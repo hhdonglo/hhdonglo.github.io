@@ -71,12 +71,27 @@ details li{margin:.25rem 0}
 footer{border-top:4px solid var(--gold);background:var(--navy-deep);color:#cdd9ee;font:.9rem/1.6 system-ui,sans-serif}
 footer .wrap{padding-top:1.2rem;padding-bottom:1.2rem}
 footer p{margin:.2rem 0}
+.ov-grid{display:grid;gap:1.1rem;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));margin-top:1rem}
+.ov-card{background:var(--surface);border:1px solid var(--border);border-top:4px solid var(--navy);border-radius:8px;padding:1rem 1.1rem 1.1rem;box-shadow:var(--shadow)}
+.ov-card.wide{grid-column:1/-1}
+.ov-card h3{margin:0 0 .5rem;font-size:1.15rem;color:var(--text)}
+.ov-card p{margin:.4rem 0}
+.ov-card ul,.ov-card ol{margin:.4rem 0 0;padding-left:1.2rem}
+.ov-card li{margin:.3rem 0}
+.ov-card dl{margin:.4rem 0 0}
+.ov-card dt{font-weight:700;margin-top:.5rem}
+.ov-card dd{margin:0 0 0 0}
+.ov-two{display:grid;gap:0 2rem;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.ov-ref{width:100%;border-collapse:collapse;font:.9rem/1.4 system-ui,sans-serif;margin-top:.5rem}
+.ov-ref th,.ov-ref td{text-align:left;padding:.3rem .5rem;border-bottom:1px solid var(--border);vertical-align:top}
+.ov-ref th{color:var(--muted);font-weight:600}
+@media (max-width:480px){.ov-grid{grid-template-columns:1fr}}
 @media (max-width:480px){.grid{grid-template-columns:1fr}}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 </style>
 </head>
 <body>
-<a class="skip" href="#main">Skip to lectures</a>
+<a class="skip" href="#main">Skip to content</a>
 <header class="banner">
 <div class="wrap">
 <p class="org">University of Ghana</p>
@@ -90,9 +105,80 @@ footer p{margin:.2rem 0}
 </ul>
 </div>
 </header>
-<nav class="jump" aria-label="Sections"><div class="wrap"><a href="#mechanics">Mechanics: lectures 1 to 8</a><a href="#thermal">Thermal physics: lectures 9 to 12</a></div></nav>
+<nav class="jump" aria-label="Sections"><div class="wrap"><a href="#overview">Overview</a><a href="#mechanics">Mechanics: lectures 1 to 8</a><a href="#thermal">Thermal physics: lectures 9 to 12</a></div></nav>
 <main id="main"><div class="wrap">
 <p class="intro">Each week is taught in three contacts. Every lecture provides a slide deck, a tutorial sheet and a supplementary note. All files are PDF. Select the deck preview or a button on a card to open it.</p>
+
+<section aria-labelledby="overview">
+<h2 id="overview">Overview</h2>
+<p class="sec-sub">Scope, reference material, weekly structure, expected skills, applications and objective</p>
+<div class="ov-grid">
+
+<article class="ov-card" aria-labelledby="ov-scope"><h3 id="ov-scope">Scope</h3>
+<p>PHYS 143 is an introductory course in two parts, covering the following topics in twelve lectures.</p>
+<dl>
+<dt>Mechanics (lectures 1 to 8)</dt><dd>Vectors, motion, Newton&#x27;s laws, work and kinetic energy, potential energy and energy conservation, impulse and momentum, and rotation.</dd>
+<dt>Thermal physics (lectures 9 to 12)</dt><dd>Temperature and heat, thermal properties of matter, the first law of thermodynamics, and the second law of thermodynamics.</dd>
+</dl></article>
+
+<article class="ov-card" aria-labelledby="ov-ref"><h3 id="ov-ref">Reference material</h3>
+<p>The prescribed text is Young and Freedman, <em>University Physics</em>, 15th edition. Each deck lists its reading. This site also provides, for each lecture, a slide deck, a tutorial sheet and a supplementary note.</p>
+<table class="ov-ref"><caption class="vh">Textbook chapters by lecture</caption>
+<thead><tr><th scope="col">Lecture</th><th scope="col">Chapters</th></tr></thead><tbody>
+<tr><td>1 Vectors</td><td>Ch. 1</td></tr>
+<tr><td>2 Motion</td><td>Ch. 2 and 3</td></tr>
+<tr><td>3 Newton&#x27;s laws</td><td>Ch. 4 and 5</td></tr>
+<tr><td>4 Work and kinetic energy</td><td>Ch. 6</td></tr>
+<tr><td>5 Potential energy</td><td>Ch. 7</td></tr>
+<tr><td>7 Impulse and momentum</td><td>Ch. 8</td></tr>
+<tr><td>8 Rotation</td><td>Ch. 9 and 10</td></tr>
+<tr><td>9 Temperature and heat</td><td>Ch. 17</td></tr>
+<tr><td>10 Thermal properties</td><td>Ch. 18</td></tr>
+<tr><td>11 First law</td><td>Ch. 19</td></tr>
+<tr><td>12 Second law</td><td>Ch. 20</td></tr>
+</tbody></table></article>
+
+<article class="ov-card" aria-labelledby="ov-contacts"><h3 id="ov-contacts">Contacts per week</h3>
+<p>Each lecture topic is taught over three contacts within one week. The contacts form a progression from understanding to independent application. Their names vary with the topic, for example Describe, Model, Apply.</p>
+<ol>
+<li><strong>Contact 1: build the physical idea.</strong> Establish the physical question, define the central quantities and develop qualitative understanding.</li>
+<li><strong>Contact 2: develop the model and method.</strong> Translate the physics into mathematics, state assumptions and limits, and practise systematic problem solving.</li>
+<li><strong>Contact 3: apply, integrate and transfer.</strong> Use the physics in less familiar problems, where the method is not always specified, and consolidate the week.</li>
+</ol></article>
+
+<article class="ov-card" aria-labelledby="ov-skills"><h3 id="ov-skills">Expected skills</h3>
+<div class="ov-two"><div>
+<p><strong>Physicist&#x27;s Toolkits</strong></p>
+<ul><li>Vector and component methods</li><li>Free-body diagrams</li><li>Graph interpretation</li><li>Estimation and dimensional analysis</li><li>Limiting cases</li><li>Conservation laws</li><li>Checking answers</li></ul></div>
+<div>
+<p><strong>Problem-solving framework</strong></p>
+<p>Identify, Set Up, Execute, Evaluate.</p>
+<p><strong>Further skills</strong></p>
+<ul><li>Switching between representations: situation, diagram, graph, words, equation and number</li><li>Calculating with units and checking sign, magnitude and direction</li></ul></div></div></article>
+
+<article class="ov-card" aria-labelledby="ov-apps"><h3 id="ov-apps">Applications</h3>
+<p>Examples drawn from the lecture decks include the following.</p>
+<ul>
+<li>Projectile motion</li>
+<li>Vehicle safety and collisions: airbags and crumple zones</li>
+<li>Rotating machinery: the flywheel</li>
+<li>Thermal expansion of structures: gaps in railway rails</li>
+<li>Internal-combustion engines and diesel compression</li>
+<li>Heat engines and refrigerators</li>
+</ul></article>
+
+<article class="ov-card wide" aria-labelledby="ov-obj"><h3 id="ov-obj">Objective</h3>
+<p>The aim of these materials is to prepare students to succeed in the PHYS 143 examination by building conceptual understanding, technical competence and the ability to apply physics to unfamiliar problems.</p>
+<p><strong>Suggested weekly study routine</strong></p>
+<ol>
+<li>Attend all three contacts.</li>
+<li>Attempt the tutorial sheet before consulting the answers.</li>
+<li>Review the supplementary note for the week.</li>
+<li>Use the checklist at the end of each deck to identify what remains to be practised.</li>
+</ol></article>
+
+</div>
+</section>
 
 <section aria-labelledby="mechanics">
 <h2 id="mechanics">Mechanics</h2>
