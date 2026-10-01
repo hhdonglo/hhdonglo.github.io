@@ -4,6 +4,8 @@ PHYS 143. Lecturer: Hope DONGLO (University of Ghana).
 
 Disclaimer: this is an independent personal website, open to anyone who finds it useful. It is not an official page of the University of Ghana and is not endorsed by it.
 
+Contact: Physics Department, Office 24. Email hdonglo@ug.edu.gh or hkdonglo@gmail.com. Tel. 0598832684.
+
 Website: https://hhdonglo.github.io/UG-Lectures/
 
 Practice questions: https://hhdonglo.github.io/UG-Lectures/practice.html (multiple-choice, 20 per lecture, drafts for review). Sources and checks are in `tools/`.
