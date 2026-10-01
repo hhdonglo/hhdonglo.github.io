@@ -28,5 +28,6 @@ Website: https://hhdonglo.github.io/UG-Lectures/
 ```
 PHYS143/
   lecture_N/   deck, tutorial and supplement PDFs
-index.html     home page for GitHub Pages
+index.html     home page for GitHub Pages (static HTML and CSS, light and dark mode)
+assets/thumbs/ title-slide previews of each deck (WebP)
 ```

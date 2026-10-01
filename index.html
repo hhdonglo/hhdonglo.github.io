@@ -1,34 +1,198 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>UG Lectures | University of Ghana</title>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>PHYS 143 Lectures | University of Ghana</title>
+<meta name="description" content="Lecture decks, tutorials and supplementary notes for PHYS 143 (Mechanics and Thermal Physics), Department of Physics, University of Ghana.">
 <style>
-body{font-family:Georgia,serif;max-width:860px;margin:0 auto;padding:1.5rem 1rem;color:#1a1a1a;line-height:1.55}
-h1{margin-bottom:.2rem} .sub{color:#555;margin-top:0}
-table{border-collapse:collapse;width:100%;margin-top:1rem}
-th,td{border:1px solid #ccc;padding:.5rem .7rem;text-align:left}
-th{background:#f0f3f8} tr:nth-child(even) td{background:#fafafa}
-a{color:#0b4a8f} .soon{color:#888;font-style:italic}
-footer{margin-top:2rem;color:#555;font-size:.9rem}
-</style></head><body>
-<h1>UG Lectures</h1>
-<p class="sub">Undergraduate physics lecture materials, University of Ghana</p>
-<h2>PHYS 143</h2>
-<p>Lecturer: Hope Donglo, Department of Physics, University of Ghana (Office 24). Each lecture provides a slide deck, a tutorial sheet and a supplementary note.</p>
-<table>
-<thead><tr><th>No.</th><th>Topic</th><th>Lecture deck</th><th>Tutorial</th><th>Supplement</th></tr></thead>
-<tbody>
-<tr><td>1</td><td>Vectors</td><td><a href="PHYS143/lecture_1/lecture01_vectors.pdf">PDF</a></td><td class="soon">Not available</td><td><a href="PHYS143/lecture_1/lecture01_supplement.pdf">PDF</a></td></tr>
-<tr><td>2</td><td>Motion</td><td><a href="PHYS143/lecture_2/lecture02_motion.pdf">PDF</a></td><td><a href="PHYS143/lecture_2/lecture02_tutorial.pdf">PDF</a></td><td><a href="PHYS143/lecture_2/lecture02_supplement.pdf">PDF</a></td></tr>
-<tr><td>3</td><td>Newton&#x27;s laws</td><td><a href="PHYS143/lecture_3/lecture03_forces.pdf">PDF</a></td><td><a href="PHYS143/lecture_3/lecture03_tutorial.pdf">PDF</a></td><td><a href="PHYS143/lecture_3/lecture03_supplement.pdf">PDF</a></td></tr>
-<tr><td>4</td><td>Work and kinetic energy</td><td><a href="PHYS143/lecture_4/lecture04_work.pdf">PDF</a></td><td><a href="PHYS143/lecture_4/lecture04_tutorial.pdf">PDF</a></td><td><a href="PHYS143/lecture_4/lecture04_supplement.pdf">PDF</a></td></tr>
-<tr><td>5</td><td>Potential energy and energy conservation</td><td><a href="PHYS143/lecture_5/lecture05_energy.pdf">PDF</a></td><td><a href="PHYS143/lecture_5/lecture05_tutorial.pdf">PDF</a></td><td><a href="PHYS143/lecture_5/lecture05_supplement.pdf">PDF</a></td></tr>
-<tr><td>6</td><td>Coming soon</td><td colspan="3" class="soon">Coming soon</td></tr>
-<tr><td>7</td><td>Impulse and momentum</td><td><a href="PHYS143/lecture_7/lecture07_momentum.pdf">PDF</a></td><td><a href="PHYS143/lecture_7/lecture07_tutorial.pdf">PDF</a></td><td><a href="PHYS143/lecture_7/lecture07_supplement.pdf">PDF</a></td></tr>
-<tr><td>8</td><td>Rotation</td><td><a href="PHYS143/lecture_8/lecture08_rotation.pdf">PDF</a></td><td><a href="PHYS143/lecture_8/lecture08_tutorial.pdf">PDF</a></td><td><a href="PHYS143/lecture_8/lecture08_supplement.pdf">PDF</a></td></tr>
-<tr><td>9</td><td>Temperature and heat</td><td><a href="PHYS143/lecture_9/lecture09_temperature.pdf">PDF</a></td><td><a href="PHYS143/lecture_9/lecture09_tutorial.pdf">PDF</a></td><td><a href="PHYS143/lecture_9/lecture09_supplement.pdf">PDF</a></td></tr>
-<tr><td>10</td><td>Thermal properties of matter</td><td><a href="PHYS143/lecture_10/lecture10_thermal_properties.pdf">PDF</a></td><td><a href="PHYS143/lecture_10/lecture10_tutorial.pdf">PDF</a></td><td><a href="PHYS143/lecture_10/lecture10_supplement.pdf">PDF</a></td></tr>
-<tr><td>11</td><td>First law of thermodynamics</td><td><a href="PHYS143/lecture_11/lecture11_first_law.pdf">PDF</a></td><td><a href="PHYS143/lecture_11/lecture11_tutorial.pdf">PDF</a></td><td><a href="PHYS143/lecture_11/lecture11_supplement.pdf">PDF</a></td></tr>
-<tr><td>12</td><td>Second law of thermodynamics</td><td><a href="PHYS143/lecture_12/lecture12_second_law.pdf">PDF</a></td><td><a href="PHYS143/lecture_12/lecture12_tutorial.pdf">PDF</a></td><td><a href="PHYS143/lecture_12/lecture12_supplement.pdf">PDF</a></td></tr>
-</tbody></table>
-<footer>Materials are provided for students enrolled in PHYS 143. Lecture 6 will be added when it is ready.</footer>
-</body></html>
+:root{
+  --navy:#1F3A68; --navy-deep:#16294b; --gold:#C99A2E; --gold-soft:#E6C677;
+  --bg:#F3F7FC; --surface:#ffffff; --sky:#DCE8F5; --text:#26303F; --muted:#5b6678;
+  --border:#cfd9e8; --link:#1F3A68; --focus:#8a5d00; --btn-bg:#ffffff; --btn-text:#1F3A68;
+  --primary-bg:#1F3A68; --primary-text:#ffffff; --off:#8A94A6; --shadow:0 1px 3px rgba(31,58,104,.12);
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0f1829; --surface:#17233a; --sky:#1f3050; --text:#e4eaf4; --muted:#a3afc4;
+  --border:#2c3e5f; --link:#9cc0f0; --focus:#f2cf7a; --btn-bg:#17233a; --btn-text:#c7dcf8;
+  --primary-bg:#C99A2E; --primary-text:#1a1405; --off:#7b869b; --shadow:none;
+}}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font:1rem/1.6 Georgia,"Times New Roman",serif}
+a{color:var(--link)}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.skip{position:absolute;left:-999px;top:0;background:#fff;color:#000;padding:.5rem 1rem;z-index:10}
+.skip:focus{left:0}
+header.banner{background:linear-gradient(135deg,var(--navy-deep),var(--navy));color:#fff;border-bottom:5px solid var(--gold)}
+.wrap{max-width:1100px;margin:0 auto;padding:0 1rem}
+.banner .wrap{padding-top:2rem;padding-bottom:1.75rem}
+.org{margin:0;color:var(--gold-soft);letter-spacing:.08em;text-transform:uppercase;font:600 .8rem/1.4 system-ui,sans-serif}
+.banner h1{margin:.3rem 0 .2rem;font-size:clamp(1.9rem,5vw,2.8rem);line-height:1.15}
+.banner .course{margin:0;font-size:1.15rem;color:#e6eefb}
+.meta{margin:1rem 0 0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:.35rem 1.5rem;font:.95rem/1.4 system-ui,sans-serif;color:#dbe6f8}
+.meta strong{color:#fff}
+nav.jump{background:var(--surface);border-bottom:1px solid var(--border)}
+nav.jump .wrap{display:flex;gap:1.25rem;padding-top:.6rem;padding-bottom:.6rem;font:.95rem system-ui,sans-serif;flex-wrap:wrap}
+main{padding:1.5rem 0 3rem}
+.intro{max-width:46rem;margin:0 0 .5rem}
+h2{margin:2.2rem 0 .3rem;color:var(--navy);font-size:1.6rem;border-left:6px solid var(--gold);padding-left:.7rem}
+@media (prefers-color-scheme:dark){h2{color:#c7dcf8}}
+.sec-sub{margin:0 0 1.1rem;color:var(--muted)}
+.grid{display:grid;gap:1.1rem;grid-template-columns:repeat(auto-fill,minmax(310px,1fr))}
+.card{background:var(--surface);border:1px solid var(--border);border-top:4px solid var(--navy);border-radius:8px;overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--shadow)}
+.card.soon{border-top-color:var(--gold);border-style:dashed;border-top-style:solid}
+.thumb{display:block;background:var(--sky);aspect-ratio:600/338}
+.thumb img{display:block;width:100%;height:auto}
+.thumb.ph{display:flex;align-items:center;justify-content:center;color:var(--muted);font:600 1rem system-ui,sans-serif}
+.body{padding:.9rem 1rem 1.1rem;display:flex;flex-direction:column;flex:1}
+.num{margin:0;color:var(--gold);font:700 .8rem/1.4 system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase}
+@media (prefers-color-scheme:light){.num{color:#8a6410}}
+.card h3{margin:.1rem 0 .4rem;font-size:1.2rem;line-height:1.3;color:var(--text)}
+.learn{margin:0 0 .7rem;font-size:.95rem}
+.contacts{list-style:none;margin:0 0 .7rem;padding:0;display:flex;flex-wrap:wrap;gap:.35rem;font:.82rem system-ui,sans-serif}
+.contacts li{display:inline-flex;align-items:center;gap:.35rem;background:var(--sky);border-radius:999px;padding:.15rem .65rem .15rem .2rem}
+.contacts .k{display:inline-grid;place-items:center;width:1.3rem;height:1.3rem;border-radius:50%;background:var(--navy);color:#fff;font-weight:700;font-size:.72rem}
+@media (prefers-color-scheme:dark){.contacts .k{background:var(--gold);color:#1a1405}}
+details{margin:0 0 .9rem;font-size:.9rem}
+summary{cursor:pointer;color:var(--link);font-family:system-ui,sans-serif;font-size:.88rem}
+details ul{margin:.5rem 0 0;padding-left:1.1rem}
+details li{margin:.25rem 0}
+.btns{margin-top:auto;display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem}
+.btn{display:inline-flex;align-items:center;justify-content:center;text-align:center;min-height:44px;padding:.4rem .4rem;border:1.5px solid var(--navy);border-radius:6px;background:var(--btn-bg);color:var(--btn-text);text-decoration:none;font:600 .92rem system-ui,sans-serif}
+@media (prefers-color-scheme:dark){.btn{border-color:var(--gold)}}
+.btn small{font-weight:500;opacity:.75}
+.btn:hover{background:var(--sky)}
+.btn.primary{background:var(--primary-bg);color:var(--primary-text);border-color:var(--primary-bg)}
+.btn.primary:hover{filter:brightness(1.12)}
+.btn.off{font-size:.8rem;border:1.5px dashed var(--off);color:var(--muted);background:transparent;font-weight:500}
+footer{border-top:4px solid var(--gold);background:var(--navy-deep);color:#cdd9ee;font:.9rem/1.6 system-ui,sans-serif}
+footer .wrap{padding-top:1.2rem;padding-bottom:1.2rem}
+footer p{margin:.2rem 0}
+@media (max-width:480px){.grid{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to lectures</a>
+<header class="banner">
+<div class="wrap">
+<p class="org">University of Ghana</p>
+<h1>PHYS 143 Lectures</h1>
+<p class="course">Mechanics and Thermal Physics</p>
+<ul class="meta">
+<li><strong>Course code:</strong> PHYS 143</li>
+<li><strong>Lecturer:</strong> Hope Donglo</li>
+<li><strong>Department of Physics</strong></li>
+<li><strong>Office:</strong> 24</li>
+</ul>
+</div>
+</header>
+<nav class="jump" aria-label="Sections"><div class="wrap"><a href="#mechanics">Mechanics: lectures 1 to 8</a><a href="#thermal">Thermal physics: lectures 9 to 12</a></div></nav>
+<main id="main"><div class="wrap">
+<p class="intro">Each week is taught in three contacts. Every lecture provides a slide deck, a tutorial sheet and a supplementary note. All files are PDF. Select the deck preview or a button on a card to open it.</p>
+
+<section aria-labelledby="mechanics">
+<h2 id="mechanics">Mechanics</h2>
+<p class="sec-sub">Lectures 1 to 8</p>
+<div class="grid">
+<article class="card" id="lecture-1" aria-labelledby="t1">
+<a class="thumb" href="PHYS143/lecture_1/lecture01_vectors.pdf" tabindex="-1" aria-hidden="true"><img src="assets/thumbs/lecture1.webp" width="600" height="338" loading="lazy" alt="Title slide of the Lecture 1 deck: Vectors"></a>
+<div class="body"><p class="num">Lecture 1</p><h3 id="t1">Vectors</h3>
+<p class="learn">How to represent, add and multiply vectors, which is the language every later topic uses.</p>
+<ol class="contacts" aria-label="Three contacts"><li><span class="k">1</span>Understand</li><li><span class="k">2</span>Calculate</li><li><span class="k">3</span>Extend</li></ol>
+<details><summary>Learning outcomes</summary><ul><li>Represent, add and subtract vectors graphically.</li><li>Resolve vectors into components and reconstruct their magnitude and direction.</li><li>Add vectors using components and unit-vector notation.</li><li>Calculate and interpret dot and cross products.</li></ul></details>
+<div class="btns"><a class="btn primary" href="PHYS143/lecture_1/lecture01_vectors.pdf">Deck<span class="vh"> for lecture 1</span></a><span class="btn off">Tutorial: not available</span><a class="btn" href="PHYS143/lecture_1/lecture01_supplement.pdf">Supplement<span class="vh"> for lecture 1</span></a></div></div></article>
+<article class="card" id="lecture-2" aria-labelledby="t2">
+<a class="thumb" href="PHYS143/lecture_2/lecture02_motion.pdf" tabindex="-1" aria-hidden="true"><img src="assets/thumbs/lecture2.webp" width="600" height="338" loading="lazy" alt="Title slide of the Lecture 2 deck: Motion"></a>
+<div class="body"><p class="num">Lecture 2</p><h3 id="t2">Motion</h3>
+<p class="learn">How position, velocity and acceleration describe motion, from free fall to projectiles and circles.</p>
+<ol class="contacts" aria-label="Three contacts"><li><span class="k">1</span>Describe</li><li><span class="k">2</span>Model</li><li><span class="k">3</span>Apply</li></ol>
+<details><summary>Learning outcomes</summary><ul><li>Describe motion using position, displacement, velocity and acceleration.</li><li>Interpret motion using diagrams, graphs and equations.</li><li>Select and apply appropriate kinematic models.</li><li>Apply kinematics to free fall, projectile, circular and relative motion.</li></ul></details>
+<div class="btns"><a class="btn primary" href="PHYS143/lecture_2/lecture02_motion.pdf">Deck<span class="vh"> for lecture 2</span></a><a class="btn" href="PHYS143/lecture_2/lecture02_tutorial.pdf">Tutorial<span class="vh"> for lecture 2</span></a><a class="btn" href="PHYS143/lecture_2/lecture02_supplement.pdf">Supplement<span class="vh"> for lecture 2</span></a></div></div></article>
+<article class="card" id="lecture-3" aria-labelledby="t3">
+<a class="thumb" href="PHYS143/lecture_3/lecture03_forces.pdf" tabindex="-1" aria-hidden="true"><img src="assets/thumbs/lecture3.webp" width="600" height="338" loading="lazy" alt="Title slide of the Lecture 3 deck: Newton&#x27;s laws"></a>
+<div class="body"><p class="num">Lecture 3</p><h3 id="t3">Newton&#x27;s laws</h3>
+<p class="learn">How forces are drawn in free-body diagrams and how they determine acceleration.</p>
+<ol class="contacts" aria-label="Three contacts"><li><span class="k">1</span>Represent</li><li><span class="k">2</span>Analyse</li><li><span class="k">3</span>Apply</li></ol>
+<details><summary>Learning outcomes</summary><ul><li>Identify forces and represent them using free-body diagrams.</li><li>Apply Newton&#x27;s laws to equilibrium and accelerating systems.</li><li>Model normal force, tension and friction in physical systems.</li><li>Solve connected-object, inclined-plane and circular-dynamics problems.</li></ul></details>
+<div class="btns"><a class="btn primary" href="PHYS143/lecture_3/lecture03_forces.pdf">Deck<span class="vh"> for lecture 3</span></a><a class="btn" href="PHYS143/lecture_3/lecture03_tutorial.pdf">Tutorial<span class="vh"> for lecture 3</span></a><a class="btn" href="PHYS143/lecture_3/lecture03_supplement.pdf">Supplement<span class="vh"> for lecture 3</span></a></div></div></article>
+<article class="card" id="lecture-4" aria-labelledby="t4">
+<a class="thumb" href="PHYS143/lecture_4/lecture04_work.pdf" tabindex="-1" aria-hidden="true"><img src="assets/thumbs/lecture4.webp" width="600" height="338" loading="lazy" alt="Title slide of the Lecture 4 deck: Work and kinetic energy"></a>
+<div class="body"><p class="num">Lecture 4</p><h3 id="t4">Work and kinetic energy</h3>
+<p class="learn">When a force does work, and how that work changes the speed of an object.</p>
+<ol class="contacts" aria-label="Three contacts"><li><span class="k">1</span>Identify</li><li><span class="k">2</span>Quantify</li><li><span class="k">3</span>Extend</li></ol>
+<details><summary>Learning outcomes</summary><ul><li>Calculate the work done by a constant force, and the total work done on an object.</li><li>Interpret the sign of work and the meaning of kinetic energy.</li><li>Apply the work–energy theorem to find speeds, distances and forces.</li><li>Calculate the work done by varying forces, including springs, and relate work to power.</li></ul></details>
+<div class="btns"><a class="btn primary" href="PHYS143/lecture_4/lecture04_work.pdf">Deck<span class="vh"> for lecture 4</span></a><a class="btn" href="PHYS143/lecture_4/lecture04_tutorial.pdf">Tutorial<span class="vh"> for lecture 4</span></a><a class="btn" href="PHYS143/lecture_4/lecture04_supplement.pdf">Supplement<span class="vh"> for lecture 4</span></a></div></div></article>
+<article class="card" id="lecture-5" aria-labelledby="t5">
+<a class="thumb" href="PHYS143/lecture_5/lecture05_energy.pdf" tabindex="-1" aria-hidden="true"><img src="assets/thumbs/lecture5.webp" width="600" height="338" loading="lazy" alt="Title slide of the Lecture 5 deck: Potential energy and energy conservation"></a>
+<div class="body"><p class="num">Lecture 5</p><h3 id="t5">Potential energy and energy conservation</h3>
+<p class="learn">How stored energy and conservation of energy solve problems that forces alone make difficult.</p>
+<ol class="contacts" aria-label="Three contacts"><li><span class="k">1</span>Identify</li><li><span class="k">2</span>Quantify</li><li><span class="k">3</span>Extend</li></ol>
+<details><summary>Learning outcomes</summary><ul><li>Calculate gravitational and elastic potential energy, and say when a force has a potential energy.</li><li>Apply conservation of mechanical energy to find speeds and heights.</li><li>Include friction and other forces in an energy equation, and say where the energy goes.</li><li>Find a force from a potential energy, and read an energy diagram.</li></ul></details>
+<div class="btns"><a class="btn primary" href="PHYS143/lecture_5/lecture05_energy.pdf">Deck<span class="vh"> for lecture 5</span></a><a class="btn" href="PHYS143/lecture_5/lecture05_tutorial.pdf">Tutorial<span class="vh"> for lecture 5</span></a><a class="btn" href="PHYS143/lecture_5/lecture05_supplement.pdf">Supplement<span class="vh"> for lecture 5</span></a></div></div></article>
+<article class="card soon" id="lecture-6" aria-labelledby="t6">
+<div class="thumb ph" aria-hidden="true"><span>Coming soon</span></div>
+<div class="body"><p class="num">Lecture 6</p><h3 id="t6">Coming soon</h3>
+<p class="learn">This lecture will be added when it is ready.</p>
+<div class="btns"><span class="btn off">Deck: coming soon</span><span class="btn off">Tutorial: coming soon</span><span class="btn off">Supplement: coming soon</span></div></div></article>
+<article class="card" id="lecture-7" aria-labelledby="t7">
+<a class="thumb" href="PHYS143/lecture_7/lecture07_momentum.pdf" tabindex="-1" aria-hidden="true"><img src="assets/thumbs/lecture7.webp" width="600" height="338" loading="lazy" alt="Title slide of the Lecture 7 deck: Impulse and momentum"></a>
+<div class="body"><p class="num">Lecture 7</p><h3 id="t7">Impulse and momentum</h3>
+<p class="learn">How impulse changes momentum, and how conservation of momentum solves collision problems.</p>
+<ol class="contacts" aria-label="Three contacts"><li><span class="k">1</span>Define</li><li><span class="k">2</span>Conserve</li><li><span class="k">3</span>Extend</li></ol>
+<details><summary>Learning outcomes</summary><ul><li>Calculate momentum and impulse, and relate them with the impulse–momentum theorem.</li><li>Apply conservation of momentum to isolated systems.</li><li>Solve one- and two-dimensional collision problems, and classify collisions as elastic or inelastic.</li><li>Use the coefficient of restitution and combine collisions with energy methods.</li></ul></details>
+<div class="btns"><a class="btn primary" href="PHYS143/lecture_7/lecture07_momentum.pdf">Deck<span class="vh"> for lecture 7</span></a><a class="btn" href="PHYS143/lecture_7/lecture07_tutorial.pdf">Tutorial<span class="vh"> for lecture 7</span></a><a class="btn" href="PHYS143/lecture_7/lecture07_supplement.pdf">Supplement<span class="vh"> for lecture 7</span></a></div></div></article>
+<article class="card" id="lecture-8" aria-labelledby="t8">
+<a class="thumb" href="PHYS143/lecture_8/lecture08_rotation.pdf" tabindex="-1" aria-hidden="true"><img src="assets/thumbs/lecture8.webp" width="600" height="338" loading="lazy" alt="Title slide of the Lecture 8 deck: Rotation"></a>
+<div class="body"><p class="num">Lecture 8</p><h3 id="t8">Rotation</h3>
+<p class="learn">How torque, moment of inertia and angular momentum extend Newton&#x27;s laws to rotating bodies.</p>
+<ol class="contacts" aria-label="Three contacts"><li><span class="k">1</span>Describe</li><li><span class="k">2</span>Model</li><li><span class="k">3</span>Apply</li></ol>
+<details><summary>Learning outcomes</summary><ul><li>Describe rotation using angular position, velocity and acceleration, and relate them to the linear motion of a point on the body.</li><li>Calculate moments of inertia and torques, and use Στ = Iα to find angular accelerations.</li><li>Use work, power and energy methods for rotating and rolling bodies.</li><li>Use angular momentum and its conservation, including when the moment of inertia changes.</li></ul></details>
+<div class="btns"><a class="btn primary" href="PHYS143/lecture_8/lecture08_rotation.pdf">Deck<span class="vh"> for lecture 8</span></a><a class="btn" href="PHYS143/lecture_8/lecture08_tutorial.pdf">Tutorial<span class="vh"> for lecture 8</span></a><a class="btn" href="PHYS143/lecture_8/lecture08_supplement.pdf">Supplement<span class="vh"> for lecture 8</span></a></div></div></article>
+</div>
+</section>
+
+<section aria-labelledby="thermal">
+<h2 id="thermal">Thermal physics</h2>
+<p class="sec-sub">Lectures 9 to 12</p>
+<div class="grid">
+<article class="card" id="lecture-9" aria-labelledby="t9">
+<a class="thumb" href="PHYS143/lecture_9/lecture09_temperature.pdf" tabindex="-1" aria-hidden="true"><img src="assets/thumbs/lecture9.webp" width="600" height="338" loading="lazy" alt="Title slide of the Lecture 9 deck: Temperature and heat"></a>
+<div class="body"><p class="num">Lecture 9</p><h3 id="t9">Temperature and heat</h3>
+<p class="learn">What temperature and heat mean, how they are measured, and how heat moves between bodies.</p>
+<ol class="contacts" aria-label="Three contacts"><li><span class="k">1</span>Define</li><li><span class="k">2</span>Model</li><li><span class="k">3</span>Apply</li></ol>
+<details><summary>Learning outcomes</summary><ul><li>Distinguish temperature from heat, and explain thermal equilibrium and the zeroth law.</li><li>Convert between the Celsius, Fahrenheit and Kelvin scales and describe how thermometers work.</li><li>Calculate thermal expansion and the heat needed to change a temperature, including simple calorimetry.</li><li>Calculate the rate of heat transfer by conduction and radiation, and describe convection.</li></ul></details>
+<div class="btns"><a class="btn primary" href="PHYS143/lecture_9/lecture09_temperature.pdf">Deck<span class="vh"> for lecture 9</span></a><a class="btn" href="PHYS143/lecture_9/lecture09_tutorial.pdf">Tutorial<span class="vh"> for lecture 9</span></a><a class="btn" href="PHYS143/lecture_9/lecture09_supplement.pdf">Supplement<span class="vh"> for lecture 9</span></a></div></div></article>
+<article class="card" id="lecture-10" aria-labelledby="t10">
+<a class="thumb" href="PHYS143/lecture_10/lecture10_thermal_properties.pdf" tabindex="-1" aria-hidden="true"><img src="assets/thumbs/lecture10.webp" width="600" height="338" loading="lazy" alt="Title slide of the Lecture 10 deck: Thermal properties of matter"></a>
+<div class="body"><p class="num">Lecture 10</p><h3 id="t10">Thermal properties of matter</h3>
+<p class="learn">How the ideal-gas equation, phase changes and kinetic theory describe matter at the molecular level.</p>
+<ol class="contacts" aria-label="Three contacts"><li><span class="k">1</span>Describe</li><li><span class="k">2</span>Represent</li><li><span class="k">3</span>Explain</li></ol>
+<details><summary>Learning outcomes</summary><ul><li>Use the ideal-gas equation and the gas laws to calculate and compare the states of a gas.</li><li>Read pV and phase diagrams, and calculate the heat in a phase change, including calorimetry.</li><li>State the assumptions of the kinetic theory and explain pressure and temperature in terms of molecular motion.</li><li>Calculate the average kinetic energy and the rms speed of molecules, and select the right model in an unfamiliar problem.</li></ul></details>
+<div class="btns"><a class="btn primary" href="PHYS143/lecture_10/lecture10_thermal_properties.pdf">Deck<span class="vh"> for lecture 10</span></a><a class="btn" href="PHYS143/lecture_10/lecture10_tutorial.pdf">Tutorial<span class="vh"> for lecture 10</span></a><a class="btn" href="PHYS143/lecture_10/lecture10_supplement.pdf">Supplement<span class="vh"> for lecture 10</span></a></div></div></article>
+<article class="card" id="lecture-11" aria-labelledby="t11">
+<a class="thumb" href="PHYS143/lecture_11/lecture11_first_law.pdf" tabindex="-1" aria-hidden="true"><img src="assets/thumbs/lecture11.webp" width="600" height="338" loading="lazy" alt="Title slide of the Lecture 11 deck: First law of thermodynamics"></a>
+<div class="body"><p class="num">Lecture 11</p><h3 id="t11">First law of thermodynamics</h3>
+<p class="learn">How energy is exchanged as heat and work, and how the first law describes each gas process.</p>
+<ol class="contacts" aria-label="Three contacts"><li><span class="k">1</span>Represent</li><li><span class="k">2</span>Quantify</li><li><span class="k">3</span>Extend and apply</li></ol>
+<details><summary>Learning outcomes</summary><ul><li>Describe a thermodynamic system, state and process, and calculate the work done by a gas from a pV diagram.</li><li>Apply the first law, ΔU = Q − W, to a process and to a cycle.</li><li>Calculate Q, W and ΔU for isochoric, isobaric, isothermal and adiabatic processes of an ideal gas.</li><li>Analyse a multi-step process or cycle in an unfamiliar problem, choosing the physics without being told.</li></ul></details>
+<div class="btns"><a class="btn primary" href="PHYS143/lecture_11/lecture11_first_law.pdf">Deck<span class="vh"> for lecture 11</span></a><a class="btn" href="PHYS143/lecture_11/lecture11_tutorial.pdf">Tutorial<span class="vh"> for lecture 11</span></a><a class="btn" href="PHYS143/lecture_11/lecture11_supplement.pdf">Supplement<span class="vh"> for lecture 11</span></a></div></div></article>
+<article class="card" id="lecture-12" aria-labelledby="t12">
+<a class="thumb" href="PHYS143/lecture_12/lecture12_second_law.pdf" tabindex="-1" aria-hidden="true"><img src="assets/thumbs/lecture12.webp" width="600" height="338" loading="lazy" alt="Title slide of the Lecture 12 deck: Second law of thermodynamics"></a>
+<div class="body"><p class="num">Lecture 12</p><h3 id="t12">Second law of thermodynamics</h3>
+<p class="learn">Why processes run in one direction, what entropy measures, and the best efficiency an engine can reach.</p>
+<ol class="contacts" aria-label="Three contacts"><li><span class="k">1</span>Direction</li><li><span class="k">2</span>Convert</li><li><span class="k">3</span>Limits</li></ol>
+<details><summary>Learning outcomes</summary><ul><li>Distinguish reversible from irreversible processes, and calculate entropy changes to decide whether a process is allowed.</li><li>Analyse a heat engine or a refrigerator with an energy-flow diagram, including from a pV cycle.</li><li>State the second law and use the Carnot cycle to find the maximum efficiency and to test a claimed device.</li><li>Analyse an unfamiliar engine, refrigerator or entropy problem, choosing the physics without being told.</li></ul></details>
+<div class="btns"><a class="btn primary" href="PHYS143/lecture_12/lecture12_second_law.pdf">Deck<span class="vh"> for lecture 12</span></a><a class="btn" href="PHYS143/lecture_12/lecture12_tutorial.pdf">Tutorial<span class="vh"> for lecture 12</span></a><a class="btn" href="PHYS143/lecture_12/lecture12_supplement.pdf">Supplement<span class="vh"> for lecture 12</span></a></div></div></article>
+</div>
+</section>
+</div></main>
+<footer><div class="wrap">
+<p>PHYS 143, Department of Physics, University of Ghana. Lecturer: Hope Donglo, Office 24.</p>
+<p>Materials are provided for students enrolled in PHYS 143. Lecture 6 will be added when it is ready.</p>
+</div></footer>
+</body>
+</html>
