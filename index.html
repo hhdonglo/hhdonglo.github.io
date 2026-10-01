@@ -5,18 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
 <title>Undergraduate Physics Lectures | PHYS 143 | Hope DONGLO</title>
-<meta name="description" content="Undergraduate Physics Lectures, PHYS 143: lecture decks, tutorials and supplementary notes by Hope DONGLO. An open, independent resource for anyone who finds it useful. Not an official University page.">
+<meta name="description" content="Undergraduate Physics Lectures, PHYS 143: lecture decks, tutorials and supplementary notes by Hope DONGLO. An open, independent resource for anyone who finds it useful. University of Ghana students: official course information is on Sakai.">
 <style>
 :root{
-  --navy:#1F3A68; --navy-deep:#16294b; --gold:#C99A2E; --gold-soft:#E6C677;
+  --navy:#1F3A68; --navy-deep:#16294b; --brown:#5C3A21; --brown-soft:#E8D3BB; --brown-edge:#B98A5E; --brown-fill:#7A4A28;
   --bg:#F3F7FC; --surface:#ffffff; --sky:#DCE8F5; --text:#26303F; --muted:#5b6678;
-  --border:#cfd9e8; --link:#1F3A68; --focus:#8a5d00; --btn-bg:#ffffff; --btn-text:#1F3A68;
+  --border:#cfd9e8; --link:#1F3A68; --focus:#5C3A21; --btn-bg:#ffffff; --btn-text:#1F3A68;
   --primary-bg:#1F3A68; --primary-text:#ffffff; --off:#8A94A6; --shadow:0 1px 3px rgba(31,58,104,.12);
 }
 @media (prefers-color-scheme:dark){:root{
   --bg:#0f1829; --surface:#17233a; --sky:#1f3050; --text:#e4eaf4; --muted:#a3afc4;
-  --border:#2c3e5f; --link:#9cc0f0; --focus:#f2cf7a; --btn-bg:#17233a; --btn-text:#c7dcf8;
-  --primary-bg:#C99A2E; --primary-text:#1a1405; --off:#7b869b; --shadow:none;
+  --border:#2c3e5f; --link:#9cc0f0; --focus:#E8D3BB; --brown:#C79A6B; --brown-fill:#8B5A33; --btn-bg:#17233a; --btn-text:#c7dcf8;
+  --primary-bg:#8B5A33; --primary-text:#ffffff; --off:#7b869b; --shadow:none;
 }}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
@@ -26,10 +26,10 @@ a{color:var(--link)}
 .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .skip{position:absolute;left:-999px;top:0;background:#fff;color:#000;padding:.5rem 1rem;z-index:10}
 .skip:focus{left:0}
-header.banner{background:linear-gradient(135deg,var(--navy-deep),var(--navy));color:#fff;border-bottom:5px solid var(--gold)}
+header.banner{background:linear-gradient(135deg,var(--navy-deep),var(--navy));color:#fff;border-bottom:5px solid var(--brown-edge)}
 .wrap{max-width:1100px;margin:0 auto;padding:0 1rem}
 .banner .wrap{padding-top:2rem;padding-bottom:1.75rem}
-.org{margin:0;color:var(--gold-soft);letter-spacing:.08em;text-transform:uppercase;font:600 .8rem/1.4 system-ui,sans-serif}
+.org{margin:0;color:var(--brown-soft);letter-spacing:.08em;text-transform:uppercase;font:600 .8rem/1.4 system-ui,sans-serif}
 .banner h1{margin:.3rem 0 .2rem;font-size:clamp(1.9rem,5vw,2.8rem);line-height:1.15}
 .banner .course{margin:0;font-size:1.15rem;color:#e6eefb}
 .meta{margin:1rem 0 0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:.35rem 1.5rem;font:.95rem/1.4 system-ui,sans-serif;color:#dbe6f8}
@@ -38,38 +38,37 @@ nav.jump{background:var(--surface);border-bottom:1px solid var(--border)}
 nav.jump .wrap{display:flex;gap:1.25rem;padding-top:.6rem;padding-bottom:.6rem;font:.95rem system-ui,sans-serif;flex-wrap:wrap}
 main{padding:1.5rem 0 3rem}
 .intro{max-width:46rem;margin:0 0 .5rem}
-h2{margin:2.2rem 0 .3rem;color:var(--navy);font-size:1.6rem;border-left:6px solid var(--gold);padding-left:.7rem}
+h2{margin:2.2rem 0 .3rem;color:var(--navy);font-size:1.6rem;border-left:6px solid var(--brown);padding-left:.7rem}
 @media (prefers-color-scheme:dark){h2{color:#c7dcf8}}
 .sec-sub{margin:0 0 1.1rem;color:var(--muted)}
 .grid{display:grid;gap:1.1rem;grid-template-columns:repeat(auto-fill,minmax(310px,1fr))}
 .card{background:var(--surface);border:1px solid var(--border);border-top:4px solid var(--navy);border-radius:8px;overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--shadow)}
-.card.soon{border-top-color:var(--gold);border-style:dashed;border-top-style:solid}
+.card.soon{border-top-color:var(--brown);border-style:dashed;border-top-style:solid}
 .thumb{display:block;background:var(--sky);aspect-ratio:600/338}
 .thumb img{display:block;width:100%;height:auto}
 .thumb.ph{display:flex;align-items:center;justify-content:center;color:var(--muted);font:600 1rem system-ui,sans-serif}
 .body{padding:.9rem 1rem 1.1rem;display:flex;flex-direction:column;flex:1}
-.num{margin:0;color:var(--gold);font:700 .8rem/1.4 system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase}
-@media (prefers-color-scheme:light){.num{color:#8a6410}}
+.num{margin:0;color:var(--brown);font:700 .8rem/1.4 system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase}
 .card h3{margin:.1rem 0 .4rem;font-size:1.2rem;line-height:1.3;color:var(--text)}
 .learn{margin:0 0 .7rem;font-size:.95rem}
 .contacts{list-style:none;margin:0 0 .7rem;padding:0;display:flex;flex-wrap:wrap;gap:.35rem;font:.82rem system-ui,sans-serif}
 .contacts li{display:inline-flex;align-items:center;gap:.35rem;background:var(--sky);border-radius:999px;padding:.15rem .65rem .15rem .2rem}
 .contacts .k{display:inline-grid;place-items:center;width:1.3rem;height:1.3rem;border-radius:50%;background:var(--navy);color:#fff;font-weight:700;font-size:.72rem}
-@media (prefers-color-scheme:dark){.contacts .k{background:var(--gold);color:#1a1405}}
+@media (prefers-color-scheme:dark){.contacts .k{background:var(--brown-fill);color:#fff}}
 details{margin:0 0 .9rem;font-size:.9rem}
 summary{cursor:pointer;color:var(--link);font-family:system-ui,sans-serif;font-size:.88rem}
 details ul{margin:.5rem 0 0;padding-left:1.1rem}
 details li{margin:.25rem 0}
 .btns{margin-top:auto;display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem}
 .btn{display:inline-flex;align-items:center;justify-content:center;text-align:center;min-height:44px;padding:.4rem .4rem;border:1.5px solid var(--navy);border-radius:6px;background:var(--btn-bg);color:var(--btn-text);text-decoration:none;font:600 .92rem system-ui,sans-serif}
-@media (prefers-color-scheme:dark){.btn{border-color:var(--gold)}}
+@media (prefers-color-scheme:dark){.btn{border-color:var(--brown)}}
 .btn small{font-weight:500;opacity:.75}
 .btn:hover{background:var(--sky)}
 .btn.primary{background:var(--primary-bg);color:var(--primary-text);border-color:var(--primary-bg)}
 .btn.primary:hover{filter:brightness(1.12)}
-.btn.practice,.btn.off.practice{grid-column:1/-1;border-style:solid;border-color:var(--gold);border-width:2px}
+.btn.practice,.btn.off.practice{grid-column:1/-1;border-style:solid;border-color:var(--brown);border-width:2px}
 .btn.off{font-size:.8rem;border:1.5px dashed var(--off);color:var(--muted);background:transparent;font-weight:500}
-footer{border-top:4px solid var(--gold);background:var(--navy-deep);color:#cdd9ee;font:.9rem/1.6 system-ui,sans-serif}
+footer{border-top:4px solid var(--brown-edge);background:var(--navy-deep);color:#cdd9ee;font:.9rem/1.6 system-ui,sans-serif}
 footer .wrap{padding-top:1.2rem;padding-bottom:1.2rem}
 footer p{margin:.2rem 0}
 .ov-grid{display:grid;gap:1.1rem;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));margin-top:1rem}
@@ -82,12 +81,12 @@ footer p{margin:.2rem 0}
 .ov-card dl{margin:.4rem 0 0}
 .ov-card dt{font-weight:700;margin-top:.5rem}
 .ov-card dd{margin:0 0 0 0}
-.sakai{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem 1rem;justify-content:space-between;background:var(--sky);border-left:5px solid var(--gold);border-radius:6px;padding:.5rem .8rem;margin:0 0 .9rem;font:.9rem/1.45 system-ui,sans-serif}
+.sakai{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem 1rem;justify-content:space-between;background:var(--sky);border-left:5px solid var(--brown);border-radius:6px;padding:.5rem .8rem;margin:0 0 .9rem;font:.9rem/1.45 system-ui,sans-serif}
 .sakai p{margin:0!important;flex:1 1 20rem}
 .sakai-link{font-weight:700;white-space:nowrap}
-.disclaimer{background:var(--sky);border-bottom:1px solid var(--gold)}
+.disclaimer{background:var(--sky);border-bottom:1px solid var(--brown)}
 .disclaimer .sakai{border-radius:0;margin:0 auto;border-left:0;padding:.8rem 1rem;background:none}
-.banner .lecturer{margin:.35rem 0 0;color:var(--gold-soft);font:600 1rem/1.4 system-ui,sans-serif}
+.banner .lecturer{margin:.35rem 0 0;color:var(--brown-soft);font:600 1rem/1.4 system-ui,sans-serif}
 .ov-card>h2{margin-top:1.2rem}
 .ov-card .intro{max-width:none;margin:.4rem 0}
 .ov-sub+.ov-sub{margin-top:1.25rem;padding-top:1.1rem;border-top:1px solid var(--border)}
@@ -104,7 +103,7 @@ footer p{margin:.2rem 0}
 .contact-list{list-style:none;margin:.4rem 0 0;padding:0;font-family:system-ui,sans-serif;font-size:.95rem}
 .contact-list li{margin:.3rem 0;overflow-wrap:anywhere}
 .contact-list span{display:inline-block;min-width:4.5rem;color:var(--muted);font-weight:600}
-footer a{color:var(--gold-soft)}
+footer a{color:var(--brown-soft)}
 </style>
 <script>if(!location.hash){if("scrollRestoration" in history)history.scrollRestoration="manual";window.addEventListener("pageshow",function(){if(!location.hash)window.scrollTo({top:0,left:0,behavior:"instant"})});}</script>
 </head>
@@ -117,7 +116,7 @@ footer a{color:var(--gold-soft)}
 <p class="lecturer">Lecturer: Hope DONGLO (University of Ghana)</p>
 </div>
 </header>
-<aside class="disclaimer" aria-label="Disclaimer"><div class="wrap sakai" role="note"><p><strong>Disclaimer.</strong> This is an independent personal website, open to anyone who finds it useful. It is not an official page of the University of Ghana and is not endorsed by the University. Official course information and instructions for registered students are provided on Sakai.</p><a class="sakai-link" href="https://sakai.ug.edu.gh/portal/site/!gateway/tool/55840c0d-ea44-4827-84cb-5270d764ecf7" target="_blank" rel="noopener">Open PHYS 143 on Sakai</a></div></aside>
+<aside class="disclaimer" aria-label="Disclaimer"><div class="wrap sakai" role="note"><p><strong>Disclaimer.</strong> This is an independent personal website, open to anyone who finds it useful. Official course information and instructions for registered students are provided on Sakai. Students at the University of Ghana should visit Sakai for official course information.</p><a class="sakai-link" href="https://sakai.ug.edu.gh/portal/site/!gateway/tool/55840c0d-ea44-4827-84cb-5270d764ecf7" target="_blank" rel="noopener">Open PHYS 143 on Sakai</a></div></aside>
 <nav class="jump" aria-label="Sections"><div class="wrap"><a href="#overview">Overview</a><a href="#mechanics">Mechanics: lectures 1 to 8</a><a href="#thermal">Thermal physics: lectures 9 to 12</a><a href="#ov-ref">Reference</a><a href="#ov-skills">Skills</a><a href="#ov-apps">Applications</a><a href="practice.html">Practice questions</a></div></nav>
 <main id="main"><div class="wrap">
 <section aria-labelledby="overview">
@@ -296,7 +295,7 @@ footer a{color:var(--gold-soft)}
 </section>
 </div></main>
 <footer><div class="wrap">
-<p>Undergraduate Physics Lectures, PHYS 143. Lecturer: Hope DONGLO (University of Ghana). An independent personal website, not an official University page.</p>
+<p>Undergraduate Physics Lectures, PHYS 143. Lecturer: Hope DONGLO (University of Ghana). An independent personal website. University of Ghana students should visit Sakai for official course information.</p>
 <p>Contact: <a href="mailto:hdonglo@ug.edu.gh">hdonglo@ug.edu.gh</a>, Physics Department, Office 24. <a href="https://www.linkedin.com/in/hopedonglo" rel="noopener">LinkedIn</a>.</p>
 <p>Lecture 6 will be added when it is ready.</p>
 </div></footer>
