@@ -1,8 +1,8 @@
-# UG Lectures
+# Undergraduate Physics Lectures
 
-Undergraduate physics lecture materials, University of Ghana.
+PHYS 143. Lecturer: Hope DONGLO (University of Ghana).
 
-Lecturer: Hope Donglo, University of Ghana, Office 24.
+Disclaimer: this is an independent personal website, open to anyone who finds it useful. It is not an official page of the University of Ghana and is not endorsed by it.
 
 Website: https://hhdonglo.github.io/UG-Lectures/
 

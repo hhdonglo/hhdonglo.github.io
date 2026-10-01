@@ -56,7 +56,7 @@
   }
   function clear() { app.innerHTML = ''; }
   function plain(html) { var d = document.createElement('div'); d.innerHTML = html; return d.textContent; }
-  function setTitle(t) { document.title = t + ' | PHYS 143 practice | University of Ghana'; }
+  function setTitle(t) { document.title = t + ' | PHYS 143 practice | Undergraduate Physics Lectures'; }
   function focusHeading() {
     var h = app.querySelector('[data-focus]');
     if (h) { h.setAttribute('tabindex', '-1'); h.focus({ preventScroll: false }); }
