@@ -6,6 +6,7 @@ used as 'and'. For calculation questions the correct option must equal the store
 computed value to the stated significant figures, and no distractor may equal it.
 """
 import glob, json, math, os, re, sys
+from decimal import Decimal, ROUND_HALF_UP
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 TYPES = {"concept", "calc", "graph", "misconception"}
@@ -31,7 +32,9 @@ def parse_number(text):
 def sig_round(x, sf):
     if x == 0:
         return 0.0
-    return round(x, sf - 1 - math.floor(math.log10(abs(x))))
+    e = math.floor(math.log10(abs(x)))
+    quant = Decimal(10) ** (e - sf + 1)
+    return float((Decimal(repr(x)) / quant).to_integral_value(ROUND_HALF_UP) * quant)
 
 
 def main():

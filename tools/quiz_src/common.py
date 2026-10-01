@@ -5,9 +5,19 @@ correct option always equals the computed value. Run build.py to write
 quizzes/lectureN.js, then validate_quizzes.py to check the output.
 """
 import math
+from decimal import Decimal, ROUND_HALF_UP
 
 SUP = str.maketrans("0123456789-+", "⁰¹²³⁴⁵⁶⁷⁸⁹⁻⁺")
 _pos_cycle = [2, 0, 3, 1, 1, 3, 0, 2]
+
+
+def sig_round(v, sf):
+    """Round half up to sf significant figures."""
+    if v == 0:
+        return 0.0
+    e = math.floor(math.log10(abs(v)))
+    quant = Decimal(10) ** (e - sf + 1)
+    return float((Decimal(repr(v)) / quant).to_integral_value(ROUND_HALF_UP) * quant)
 
 
 def fmt(v, sf=3):
@@ -18,8 +28,7 @@ def fmt(v, sf=3):
         mant, exp = f"{v:.{sf - 1}e}".split("e")
         s = f"{mant}\u00d710<sup>{int(exp)}</sup>"
         return s.replace("-", "\u2212")
-    e = math.floor(math.log10(abs(v)))
-    r = round(v, sf - 1 - e)
+    r = sig_round(v, sf)
     e2 = math.floor(math.log10(abs(r)))  # rounding may carry (9.996 -> 10.0)
     dec = max(sf - 1 - e2, 0)
     return f"{r:.{dec}f}".replace("-", "\u2212")

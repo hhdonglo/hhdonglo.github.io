@@ -163,6 +163,23 @@ for (const N of LECTURES) {
   await shot(`L${N}-wrong-phone`);
   const mw2 = await ev(`({sw:document.documentElement.scrollWidth,iw:window.innerWidth})`);
   check(`L${N}: no horizontal scroll at 375 px with feedback shown`, mw2.sw <= mw2.iw, JSON.stringify(mw2));
+  // sweep: answer every question wrongly at phone width and check layout and text
+  await go(`${BASE}practice.html#lecture-${N}-menu`); await sleep(300);
+  await clickBtn('Start again'); await sleep(200);
+  let sweepBad = [];
+  for (let i = 0; i < nq; i++) {
+    const inf = await qInfo(N);
+    await clickOpt(inf.wrong[1]); await sleep(40);
+    const m = await ev(`({sw:document.documentElement.scrollWidth,iw:window.innerWidth,txt:document.querySelector('main').textContent,hasCorrect:document.querySelectorAll('.opt.correct').length,fb:!!document.querySelector('.fb.no')})`);
+    if (m.sw > m.iw) sweepBad.push(inf.id + ' overflow');
+    if (/undefined|\{a\}|NaN|null/.test(m.txt)) sweepBad.push(inf.id + ' bad text');
+    if (m.hasCorrect !== 1 || !m.fb) sweepBad.push(inf.id + ' no feedback');
+    await clickBtn(i === nq - 1 ? 'See my score' : 'Next question'); await sleep(40);
+  }
+  check(`L${N}: every question, answered wrongly at 375 px, shows feedback with no overflow or bad text`, sweepBad.length === 0, sweepBad.join('; '));
+  await go(`${BASE}practice.html#lecture-${N}`); await sleep(300);
+  await clickBtn('Start all'); await sleep(200);
+  { const inf2 = await qInfo(N); await clickOpt(inf2.wrong[0]); await sleep(100); }
   await send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-color-scheme', value: 'dark' }] });
   await sleep(200);
   const bg = await ev(`getComputedStyle(document.body).backgroundColor`);

@@ -78,7 +78,7 @@ theta = 180 + ref
 L.N(f"A vector has components A\u2093 = {fmt(ax)} m and A\u1d67 = {fmt(ay)} m. What is its direction \u03b8, measured counter-clockwise from +x, in the range 0\u00b0 to 360\u00b0?",
     theta, "\u00b0", [ref, 180 - ref, 360 - ref],
     f"Both components are negative, so the vector is in quadrant III. The reference angle is tan\u207b\u00b9|{fmt(ay)}/{fmt(ax)}| = {val(ref, '\u00b0')}. In quadrant III \u03b8 = 180\u00b0 + reference = {{a}}. A calculator gives only {val(ref, '\u00b0')} for tan\u207b\u00b9(A\u1d67/A\u2093), which points into quadrant I, so quadrant first and calculation second.",
-    D + "\u2018Direction from components: a common error\u2019 and \u2018Toolkit 4\u2019")
+    D + "\u2018Direction from components: a common error\u2019 and \u2018Finding direction from components\u2019")
 
 A = (3.0, -2.0); B = (-5.0, 6.0)
 Rx, Ry = A[0] + B[0], A[1] + B[1]
@@ -125,7 +125,7 @@ L.C("Vectors A and B are drawn from a common tail and point in exactly the same 
     "A \u00b7 B = AB and |A \u00d7 B| = 0",
     ["A \u00b7 B = 0 and |A \u00d7 B| = AB", "A \u00b7 B = 0 and |A \u00d7 B| = 0", "A \u00b7 B = AB and |A \u00d7 B| = AB"],
     "The angle between the vectors is 0\u00b0. The dot product is AB cos 0\u00b0 = AB, its largest value, and the cross product magnitude is AB sin 0\u00b0 = 0. For perpendicular vectors the roles are reversed: the dot product is zero and the cross product is largest.",
-    D + "\u2018Dot product and cross product compared\u2019 and \u2018Toolkit 7\u2019", "graph")
+    D + "\u2018Dot product and cross product compared\u2019 and \u2018Cross Product: Technical Summary\u2019", "graph")
 
 L.C("On a diagram, vector A is drawn pointing east with length 8 m, and vector B is drawn head to tail from the head of A, pointing west with length 3 m. What is the resultant A + B?",
     "5 m, pointing east", ["11 m, pointing east", "5 m, pointing west", "3 m, pointing west"],

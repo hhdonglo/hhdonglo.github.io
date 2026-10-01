@@ -175,7 +175,7 @@ window.PHYS143_QUIZ[1] = {
    ],
    "answer": 3,
    "exp": "Both components are negative, so the vector is in quadrant III. The reference angle is tan⁻¹|−12.0/−5.00| = 67.4°. In quadrant III θ = 180° + reference = 247°. A calculator gives only 67.4° for tan⁻¹(Aᵧ/Aₓ), which points into quadrant I, so quadrant first and calculation second.",
-   "ref": "Lecture 1 deck, slide ‘Direction from components: a common error’ and ‘Toolkit 4’",
+   "ref": "Lecture 1 deck, slide ‘Direction from components: a common error’ and ‘Finding direction from components’",
    "calc": {
     "value": 247.38013505195957,
     "unit": "°",
@@ -303,7 +303,7 @@ window.PHYS143_QUIZ[1] = {
    ],
    "answer": 0,
    "exp": "The angle between the vectors is 0°. The dot product is AB cos 0° = AB, its largest value, and the cross product magnitude is AB sin 0° = 0. For perpendicular vectors the roles are reversed: the dot product is zero and the cross product is largest.",
-   "ref": "Lecture 1 deck, slide ‘Dot product and cross product compared’ and ‘Toolkit 7’"
+   "ref": "Lecture 1 deck, slide ‘Dot product and cross product compared’ and ‘Cross Product: Technical Summary’"
   },
   {
    "id": "L1-19",

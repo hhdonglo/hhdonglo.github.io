@@ -1,0 +1,347 @@
+window.PHYS143_QUIZ = window.PHYS143_QUIZ || {};
+window.PHYS143_QUIZ[5] = {
+ "lecture": 5,
+ "title": "Potential energy and energy conservation",
+ "questions": [
+  {
+   "id": "L5-01",
+   "type": "calc",
+   "q": "A 2.0 kg book is raised from a shelf 1.0 m above the floor to a shelf 2.5 m above the floor. What is the change in its gravitational potential energy?",
+   "options": [
+    "49.0 J",
+    "19.6 J",
+    "29.4 J",
+    "14.7 J"
+   ],
+   "answer": 2,
+   "exp": "ΔU = mg(y₂ − y₁) = (2.0)(9.80)(1.5) = 29.4 J. Only the change in height matters. The value 49.0 J would be U at the upper shelf if the floor were chosen as the zero of U, and 19.6 J is U at the lower shelf. Neither is a change.",
+   "ref": "Lecture 5 deck, slide ‘Defining gravitational potential energy’ and ‘Toolkit 1’",
+   "calc": {
+    "value": 29.400000000000002,
+    "unit": "J",
+    "sf": 3
+   }
+  },
+  {
+   "id": "L5-02",
+   "type": "misconception",
+   "q": "Two students analyse the same falling ball. One chooses the floor as the level where U = 0 and the other chooses a table top. Which quantity is the same for both students?",
+   "options": [
+    "The change in gravitational potential energy between two positions of the ball",
+    "The value of U at any particular position",
+    "The value of the total mechanical energy",
+    "The value of U at the floor"
+   ],
+   "answer": 0,
+   "exp": "The zero of potential energy is a choice. Different choices shift every value of U by the same constant, so the values of U and of E = K + U differ, but differences ΔU do not. Only differences have physical meaning, and so the speed of the ball, found from ΔK = −ΔU, is the same for both students.",
+   "ref": "Lecture 5 deck, slide ‘The zero of U is a choice’"
+  },
+  {
+   "id": "L5-03",
+   "type": "calc",
+   "q": "A ball is thrown straight up at 15.0 m/s. Neglect air resistance. Using energy conservation, what maximum height above the launch point does it reach?",
+   "options": [
+    "23.0 m",
+    "1.53 m",
+    "5.74 m",
+    "11.5 m"
+   ],
+   "answer": 3,
+   "exp": "At the highest point the speed is zero. Conservation of mechanical energy gives ½mv₀² = mgH, so H = v₀²/(2g) = (15.0)²/(2(9.80)) = 11.5 m. The mass cancels. The value 23.0 m leaves out the factor 2, and 1.53 is a time in seconds, not a height.",
+   "ref": "Lecture 5 deck, slide ‘Conservation of mechanical energy’ and ‘Lecturer example: the cliff ball’",
+   "calc": {
+    "value": 11.479591836734693,
+    "unit": "m",
+    "sf": 3
+   }
+  },
+  {
+   "id": "L5-04",
+   "type": "calc",
+   "q": "A smooth ramp has a height of 6.5 m. A block is released from rest at the top and slides down without friction. What is its speed at the bottom?",
+   "options": [
+    "127 m/s",
+    "11.3 m/s",
+    "7.98 m/s",
+    "22.6 m/s"
+   ],
+   "answer": 1,
+   "exp": "The normal force does no work and there is no friction, so mechanical energy is conserved: mgh = ½mv². Thus v = √(2gh) = 11.3 m/s. The speed depends only on the height, not on the angle of the ramp or on the mass. The value 7.98 m/s leaves out the factor 2.",
+   "ref": "Lecture 5 deck, slide ‘Concept check: ramps and reference levels’ and ‘Toolkit 2: conservation of mechanical energy’",
+   "calc": {
+    "value": 11.28716084761797,
+    "unit": "m/s",
+    "sf": 3
+   }
+  },
+  {
+   "id": "L5-05",
+   "type": "misconception",
+   "q": "Three identical balls are launched from the same height with the same speed: one straight up, one horizontally and one straight down. Neglect air resistance. How do their speeds compare just before they reach the ground?",
+   "options": [
+    "The ball thrown up is the slowest, because it goes up first.",
+    "All three speeds are equal.",
+    "The ball thrown down is the fastest, and the ball thrown up is the slowest.",
+    "The ball thrown horizontally is the fastest."
+   ],
+   "answer": 1,
+   "exp": "The gravitational work depends only on the change in height, which is the same for all three. By the work–energy theorem, or conservation of mechanical energy, each ball has the same final kinetic energy and hence the same speed. The directions and times of flight differ, but the speeds do not.",
+   "ref": "Lecture 5 deck, slide ‘The three launches’ and ‘The work of gravity depends only on the height’"
+  },
+  {
+   "id": "L5-06",
+   "type": "calc",
+   "q": "A pendulum bob hangs from a string of length 1.50 m. It is released from rest when the string makes 40° with the vertical. Neglect air resistance. What is the speed of the bob at the lowest point?",
+   "options": [
+    "5.42 m/s",
+    "3.24 m/s",
+    "1.85 m/s",
+    "2.62 m/s"
+   ],
+   "answer": 3,
+   "exp": "The bob drops through a height h = L(1 − cos θ) = 1.50(1 − cos 40°) = 0.351 m. The tension does no work, so mgh = ½mv² and v = √(2gh) = 2.62 m/s. Taking h = L, as if the bob fell the full length of the string, gives 5.42 m/s. Using sin instead of cos gives a wrong height.",
+   "ref": "Lecture 5 deck, slide ‘Curved paths: energy for the speed, Newton for the force’ and ‘The pendulum: solution’",
+   "calc": {
+    "value": 2.6226500666886627,
+    "unit": "m/s",
+    "sf": 3
+   }
+  },
+  {
+   "id": "L5-07",
+   "type": "calc",
+   "q": "A 0.500 kg block is pressed against a spring of force constant 250 N/m, compressing it by 0.20 m, and released on a frictionless horizontal surface. What is the speed of the block as it leaves the spring?",
+   "options": [
+    "4.47 m/s",
+    "20.0 m/s",
+    "3.16 m/s",
+    "2.24 m/s"
+   ],
+   "answer": 0,
+   "exp": "The stored elastic energy ½kx² = 5.00 J becomes kinetic energy: ½kx² = ½mv². So v = x√(k/m) = 4.47 m/s. The value 20.0 is v² and the others come from a misplaced factor of ½.",
+   "ref": "Lecture 5 deck, slide ‘Elastic potential energy’ and ‘Toolkit 3: elastic potential energy and springs’",
+   "calc": {
+    "value": 4.47213595499958,
+    "unit": "m/s",
+    "sf": 3
+   }
+  },
+  {
+   "id": "L5-08",
+   "type": "calc",
+   "q": "A 1.2 kg block is dropped from rest from 0.60 m above a vertical spring of force constant 900 N/m. What is the maximum compression of the spring? Include the gravitational energy lost while the spring is compressing.",
+   "options": [
+    "0.125 m",
+    "0.0131 m",
+    "0.139 m",
+    "0.0261 m"
+   ],
+   "answer": 2,
+   "exp": "Take the system from release to maximum compression, where the block is momentarily at rest. The block falls a total height h + x, so mg(h + x) = ½kx². This is the quadratic 450x² − 11.8x − 7.06 = 0, whose positive root is x = 0.139 m. The value 0.125 m leaves out the extra fall during the compression. The value 0.0131 m is where the block would sit at rest on the spring.",
+   "ref": "Lecture 5 deck, slide ‘Lecturer example: dropping a block on a spring’ and ‘Dropping a block on a spring: solution’",
+   "calc": {
+    "value": 0.13896637984258212,
+    "unit": "m",
+    "sf": 3
+   }
+  },
+  {
+   "id": "L5-09",
+   "type": "calc",
+   "q": "A 4.0 kg block slides from rest down a rough incline that is 3.0 m high and reaches the bottom at 5.0 m/s. How much mechanical energy is converted to thermal energy by friction?",
+   "options": [
+    "118 J",
+    "50.0 J",
+    "67.6 J",
+    "168 J"
+   ],
+   "answer": 2,
+   "exp": "Use K₁ + U₁ + W<sub>other</sub> = K₂ + U₂. With K₁ = 0, U₁ = mgh = 118 J, K₂ = ½mv² = 50.0 J and U₂ = 0, the energy lost is 118 − 50.0 = 67.6 J. It appears as thermal energy of the block and the incline. The energy is not destroyed.",
+   "ref": "Lecture 5 deck, slide ‘Friction and the lost energy’ and ‘The incline: solution’",
+   "calc": {
+    "value": 67.60000000000001,
+    "unit": "J",
+    "sf": 3
+   }
+  },
+  {
+   "id": "L5-10",
+   "type": "calc",
+   "q": "A block moving at 6.0 m/s slides 12 m along a rough horizontal floor before stopping. What is the coefficient of kinetic friction?",
+   "options": [
+    "0.153",
+    "0.306",
+    "0.0765",
+    "0.612"
+   ],
+   "answer": 0,
+   "exp": "The work done by friction equals the loss of kinetic energy: μ<sub>k</sub>mgd = ½mv₀². The mass cancels and μ<sub>k</sub> = v₀²/(2gd) = (6.0)²/(2(9.80)(12)) = 0.153. A coefficient has no units. Leaving out the factor 2 doubles the answer, to 0.306.",
+   "ref": "Lecture 5 deck, slide ‘Toolkit 4: the energy equation with other forces’",
+   "calc": {
+    "value": 0.1530612244897959,
+    "unit": "",
+    "sf": 3
+   }
+  },
+  {
+   "id": "L5-11",
+   "type": "concept",
+   "q": "Which of the following forces is nonconservative?",
+   "options": [
+    "The weight of an object near the Earth’s surface",
+    "The force exerted by an ideal spring",
+    "The gravitational force of the Earth on a satellite",
+    "Kinetic friction between a sliding box and the floor"
+   ],
+   "answer": 3,
+   "exp": "A force is conservative if the work it does between two points does not depend on the path and its work is recoverable. Gravity and the ideal spring force are conservative and have potential energies. Kinetic friction does more negative work on a longer path and converts energy irreversibly to thermal energy, so no potential energy can be defined for it.",
+   "ref": "Lecture 5 deck, slide ‘Conservative and nonconservative forces’ and ‘Toolkit 5: classifying forces’"
+  },
+  {
+   "id": "L5-12",
+   "type": "misconception",
+   "q": "A 2 kg box is moved from the bottom to the top of a 3 m high hill, once along a short steep path and once along a long winding path. Compare the work done by gravity on the box along the two paths.",
+   "options": [
+    "The work is greater along the long path, because the displacement along the path is greater.",
+    "The two works are equal, because gravity is conservative and the heights are the same.",
+    "The work is greater along the steep path, because the force is applied over a smaller distance.",
+    "The work is zero along both paths, because the box ends at rest."
+   ],
+   "answer": 1,
+   "exp": "For a conservative force, the work between two points is path independent and equals −ΔU. Here the work done by gravity is −mgh along both paths, about −59 J. By contrast, the work done by friction would be larger along the long path.",
+   "ref": "Lecture 5 deck, slide ‘Lecturer example: two ramps’ and ‘Two ramps: solution’"
+  },
+  {
+   "id": "L5-13",
+   "type": "calc",
+   "q": "A particle has potential energy U(x) = 5.0x² − 2.0x³, with U in joules and x in metres. What is the x-component of the force on the particle at x = 3.0 m?",
+   "options": [
+    "−24.0 N",
+    "24.0 N",
+    "−9.00 N",
+    "84.0 N"
+   ],
+   "answer": 1,
+   "exp": "The force is F<sub>x</sub> = −dU/dx = −(2(5.0)x − 3(2.0)x²) = −10x + 6.0x². At x = 3.0 m this is 24.0 N. The positive sign means the force points in the +x direction. The value −9.00 is U itself, which is in joules. A force requires the derivative, with the minus sign.",
+   "ref": "Lecture 5 deck, slide ‘Force from potential energy’ and ‘Lecturer example: a force from a formula’",
+   "calc": {
+    "value": 24.0,
+    "unit": "N",
+    "sf": 3
+   }
+  },
+  {
+   "id": "L5-14",
+   "type": "graph",
+   "q": "An energy diagram shows U(x) with a single valley. A particle has total energy E, with E equal to U at x = a and at x = b, and E greater than U for all x between a and b. How does the particle move?",
+   "options": [
+    "It moves from x = a to x = b and then leaves the region.",
+    "It stays at rest at the bottom of the valley.",
+    "It moves at constant speed between x = a and x = b.",
+    "It oscillates between x = a and x = b, and its speed is zero at both points."
+   ],
+   "answer": 3,
+   "exp": "The kinetic energy is K = E − U, which is positive between a and b and zero where E = U. Those two points are turning points, where the velocity reverses. The particle cannot enter regions where U > E. The speed is greatest where U is lowest, at the bottom of the valley.",
+   "ref": "Lecture 5 deck, slide ‘Reading an energy diagram’ and ‘Toolkit 7: reading energy diagrams’"
+  },
+  {
+   "id": "L5-15",
+   "type": "graph",
+   "q": "On a graph of U(x), the slope is zero at x₀ and U curves upward on both sides of x₀, like the bottom of a bowl. What type of equilibrium is this?",
+   "options": [
+    "Stable equilibrium, because a small displacement produces a force back towards x₀",
+    "Unstable equilibrium, because the slope is zero",
+    "Stable equilibrium, because the force at x₀ is large",
+    "It is not an equilibrium, because the potential energy is not zero"
+   ],
+   "answer": 0,
+   "exp": "Equilibrium requires F = −dU/dx = 0, which is a zero slope. At a minimum of U, moving away raises U, so the force −dU/dx points back towards x₀. At a maximum of U, a small displacement produces a force away from x₀, which is unstable.",
+   "ref": "Lecture 5 deck, slide ‘Toolkit 7: reading energy diagrams’"
+  },
+  {
+   "id": "L5-16",
+   "type": "calc",
+   "q": "A 0.500 kg particle has total mechanical energy 12.0 J. At x = 3.0 m the potential energy is 8.00 J. What is its speed at that point?",
+   "options": [
+    "6.93 m/s",
+    "5.66 m/s",
+    "4.00 m/s",
+    "2.83 m/s"
+   ],
+   "answer": 2,
+   "exp": "The kinetic energy is K = E − U = 4.00 J. Then v = √(2K/m) = √(2(4.00)/0.500) = 4.00 m/s. Using E or U alone, instead of their difference, gives the wrong values 6.93 m/s and 5.66 m/s.",
+   "ref": "Lecture 5 deck, slide ‘Toolkit 7: reading energy diagrams’",
+   "calc": {
+    "value": 4.0,
+    "unit": "m/s",
+    "sf": 3
+   }
+  },
+  {
+   "id": "L5-17",
+   "type": "misconception",
+   "q": "A sliding block comes to rest on a rough floor. Which statement about its energy is correct?",
+   "options": [
+    "Its kinetic energy has been destroyed, because the block no longer moves.",
+    "Its kinetic energy has been converted to potential energy of the block.",
+    "Its kinetic energy has been converted to thermal energy of the block and the floor, and the total energy is conserved.",
+    "Energy conservation does not apply to systems with friction."
+   ],
+   "answer": 2,
+   "exp": "The law of conservation of energy holds for any isolated system. Friction changes mechanical energy into thermal energy (and a little sound). Mechanical energy K + U is not conserved here, but the total energy, including thermal energy, is.",
+   "ref": "Lecture 5 deck, slide ‘The law of conservation of energy’ and ‘Friction and the lost energy’"
+  },
+  {
+   "id": "L5-18",
+   "type": "calc",
+   "q": "A roller-coaster car is released from rest at a point 30.0 m above the ground, and rolls without friction to the top of a loop 12.0 m above the ground. What is its speed at the top of the loop?",
+   "options": [
+    "18.8 m/s",
+    "24.2 m/s",
+    "15.3 m/s",
+    "353 m/s"
+   ],
+   "answer": 0,
+   "exp": "Only the difference in height matters: mg(h<sub>s</sub> − h<sub>t</sub>) = ½mv². So v = √(2g(30.0 − 12.0)) = 18.8 m/s. The value 24.2 m/s would be the speed if the car had fallen all the way to the ground, and 353 is v² without the square root.",
+   "ref": "Lecture 5 deck, slide ‘Toolkit 2: conservation of mechanical energy’",
+   "calc": {
+    "value": 18.782971010998235,
+    "unit": "m/s",
+    "sf": 3
+   }
+  },
+  {
+   "id": "L5-19",
+   "type": "graph",
+   "q": "A frictionless pendulum bob is released from rest at its highest point. A bar chart shows K, U and the total E = K + U. Which bar chart describes the bob at the lowest point of the swing?",
+   "options": [
+    "The K bar is at its smallest, the U bar is at its tallest, and the E bar is smaller than at release.",
+    "The K bar and the U bar are equal, and the E bar is zero.",
+    "The K bar is at its tallest and the E bar is taller than at release.",
+    "The K bar is at its tallest, the U bar is at its smallest, and the E bar has the same height as at release."
+   ],
+   "answer": 3,
+   "exp": "At the lowest point the height, and so U, is a minimum, and the speed and K are a maximum. With no friction the total mechanical energy does not change, so the total bar is unchanged. K gains exactly what U loses.",
+   "ref": "Lecture 5 deck, slide ‘A bar-chart representation’"
+  },
+  {
+   "id": "L5-20",
+   "type": "calc",
+   "q": "A 1.0 kg block is pressed against a spring of force constant 800 N/m, compressing it by 0.10 m. It is released and leaves the spring at its natural length onto a rough horizontal surface with μ<sub>k</sub> = 0.250. Assume the floor under the spring is smooth. How far does the block slide on the rough surface before stopping?",
+   "options": [
+    "3.27 m",
+    "1.63 m",
+    "16.0 m",
+    "0.816 m"
+   ],
+   "answer": 1,
+   "exp": "Energy ½kx² = 4.00 J is stored in the spring. The block leaves with this as kinetic energy, and friction then removes it: μ<sub>k</sub>mgd = ½kx². So d = kx²/(2μ<sub>k</sub>mg) = 1.63 m. Leaving out the factor ½ gives 3.27 m, and leaving out g gives 16.0.",
+   "ref": "Lecture 5 deck, slide ‘Your turn: a spring fires a block up a rough incline’ and ‘Toolkit 4’",
+   "calc": {
+    "value": 1.63265306122449,
+    "unit": "m",
+    "sf": 3
+   }
+  }
+ ]
+};
