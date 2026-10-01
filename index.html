@@ -81,6 +81,10 @@ footer p{margin:.2rem 0}
 .ov-card dl{margin:.4rem 0 0}
 .ov-card dt{font-weight:700;margin-top:.5rem}
 .ov-card dd{margin:0 0 0 0}
+.ov-sub+.ov-sub{margin-top:1.25rem;padding-top:1.1rem;border-top:1px solid var(--border)}
+.ov-sub h3{font-size:1.15rem;color:var(--navy)}
+.ov-sub h4{margin:.8rem 0 .2rem;font:700 1rem Georgia,serif}
+@media (prefers-color-scheme:dark){.ov-sub h3{color:#c7dcf8}}
 .ov-two{display:grid;gap:0 2rem;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
 .ov-ref{width:100%;border-collapse:collapse;font:.9rem/1.4 system-ui,sans-serif;margin-top:.5rem}
 .ov-ref th,.ov-ref td{text-align:left;padding:.3rem .5rem;border-bottom:1px solid var(--border);vertical-align:top}
@@ -111,17 +115,35 @@ footer p{margin:.2rem 0}
 
 <section aria-labelledby="overview">
 <h2 id="overview">Overview</h2>
-<p class="sec-sub">Scope, reference material, weekly structure, expected skills, applications and objective</p>
+<p class="sec-sub">Scope, objective, weekly structure, reference material, expected skills and applications</p>
 <div class="ov-grid">
 
-<article class="ov-card" aria-labelledby="ov-scope"><h3 id="ov-scope">Scope</h3>
+<article class="ov-card wide" aria-label="Course overview: scope, objective and contacts per week">
+<section class="ov-sub"><h3 id="ov-scope">Scope</h3>
 <p>PHYS 143 is an introductory course in two parts, covering the following topics in twelve lectures.</p>
 <dl>
 <dt>Mechanics (lectures 1 to 8)</dt><dd>Vectors, motion, Newton&#x27;s laws, work and kinetic energy, potential energy and energy conservation, impulse and momentum, and rotation.</dd>
 <dt>Thermal physics (lectures 9 to 12)</dt><dd>Temperature and heat, thermal properties of matter, the first law of thermodynamics, and the second law of thermodynamics.</dd>
-</dl></article>
+</dl></section>
+<section class="ov-sub"><h3 id="ov-obj">Objective</h3>
+<p>The aim of these materials is to prepare students to succeed in the PHYS 143 examination by building conceptual understanding, technical competence and the ability to apply physics to unfamiliar problems.</p>
+<h4>Suggested weekly study routine</h4>
+<ol>
+<li>Attend all three contacts.</li>
+<li>Attempt the tutorial sheet before consulting the answers.</li>
+<li>Review the supplementary note for the week.</li>
+<li>Use the checklist at the end of each deck to identify what remains to be practised.</li>
+</ol></section>
+<section class="ov-sub"><h3 id="ov-contacts">Contacts per week</h3>
+<p>Each lecture topic is taught over three contacts within one week. The contacts form a progression from understanding to independent application. Their names vary with the topic, for example Describe, Model, Apply.</p>
+<ol>
+<li><strong>Contact 1: build the physical idea.</strong> Establish the physical question, define the central quantities and develop qualitative understanding.</li>
+<li><strong>Contact 2: develop the model and method.</strong> Translate the physics into mathematics, state assumptions and limits, and practise systematic problem solving.</li>
+<li><strong>Contact 3: apply, integrate and transfer.</strong> Use the physics in less familiar problems, where the method is not always specified, and consolidate the week.</li>
+</ol></section>
+</article>
 
-<article class="ov-card" aria-labelledby="ov-ref"><h3 id="ov-ref">Reference material</h3>
+<article class="ov-card wide" aria-labelledby="ov-ref"><h3 id="ov-ref">Reference material</h3>
 <p>The prescribed text is Young and Freedman, <em>University Physics</em>, 15th edition. Each deck lists its reading. This site also provides, for each lecture, a slide deck, a tutorial sheet and a supplementary note.</p>
 <table class="ov-ref"><caption class="vh">Textbook chapters by lecture</caption>
 <thead><tr><th scope="col">Lecture</th><th scope="col">Chapters</th></tr></thead><tbody>
@@ -137,14 +159,6 @@ footer p{margin:.2rem 0}
 <tr><td>11 First law</td><td>Ch. 19</td></tr>
 <tr><td>12 Second law</td><td>Ch. 20</td></tr>
 </tbody></table></article>
-
-<article class="ov-card" aria-labelledby="ov-contacts"><h3 id="ov-contacts">Contacts per week</h3>
-<p>Each lecture topic is taught over three contacts within one week. The contacts form a progression from understanding to independent application. Their names vary with the topic, for example Describe, Model, Apply.</p>
-<ol>
-<li><strong>Contact 1: build the physical idea.</strong> Establish the physical question, define the central quantities and develop qualitative understanding.</li>
-<li><strong>Contact 2: develop the model and method.</strong> Translate the physics into mathematics, state assumptions and limits, and practise systematic problem solving.</li>
-<li><strong>Contact 3: apply, integrate and transfer.</strong> Use the physics in less familiar problems, where the method is not always specified, and consolidate the week.</li>
-</ol></article>
 
 <article class="ov-card" aria-labelledby="ov-skills"><h3 id="ov-skills">Expected skills</h3>
 <div class="ov-two"><div>
@@ -166,16 +180,6 @@ footer p{margin:.2rem 0}
 <li>Internal-combustion engines and diesel compression</li>
 <li>Heat engines and refrigerators</li>
 </ul></article>
-
-<article class="ov-card wide" aria-labelledby="ov-obj"><h3 id="ov-obj">Objective</h3>
-<p>The aim of these materials is to prepare students to succeed in the PHYS 143 examination by building conceptual understanding, technical competence and the ability to apply physics to unfamiliar problems.</p>
-<p><strong>Suggested weekly study routine</strong></p>
-<ol>
-<li>Attend all three contacts.</li>
-<li>Attempt the tutorial sheet before consulting the answers.</li>
-<li>Review the supplementary note for the week.</li>
-<li>Use the checklist at the end of each deck to identify what remains to be practised.</li>
-</ol></article>
 
 </div>
 </section>
