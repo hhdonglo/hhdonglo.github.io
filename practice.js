@@ -1,0 +1,312 @@
+/* PHYS 143 practice engine. Plain JavaScript, no libraries, no network calls other than loading quizzes/lectureN.js. */
+(function () {
+  'use strict';
+
+  var LECTURES = {
+    1: 'Vectors', 2: 'Motion', 3: 'Newton’s laws', 4: 'Work and kinetic energy',
+    5: 'Potential energy and energy conservation', 7: 'Impulse and momentum', 8: 'Rotation',
+    9: 'Temperature and heat', 10: 'Thermal properties of matter',
+    11: 'First law of thermodynamics', 12: 'Second law of thermodynamics'
+  };
+  var ORDER = [1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12];
+  var STORE_KEY = 'phys143.practice.v1';
+  var LETTERS = ['A', 'B', 'C', 'D'];
+  var TYPE_LABEL = { concept: 'Concept', calc: 'Calculation', graph: 'Graph or diagram', misconception: 'Common misconception' };
+
+  var app = document.getElementById('app');
+  window.PHYS143_QUIZ = window.PHYS143_QUIZ || {};
+
+  /* ---------- storage (every access guarded) ---------- */
+  function loadStore() {
+    try {
+      var raw = window.localStorage.getItem(STORE_KEY);
+      var s = raw ? JSON.parse(raw) : null;
+      if (s && typeof s === 'object' && s.lectures) return s;
+    } catch (e) { /* storage unavailable */ }
+    return { lectures: {} };
+  }
+  var store = loadStore();
+  function saveStore() {
+    try { window.localStorage.setItem(STORE_KEY, JSON.stringify(store)); } catch (e) { /* ignore */ }
+  }
+  function rec(n) {
+    if (!store.lectures[n]) store.lectures[n] = { best: null, attempts: 0, missed: [], run: null };
+    return store.lectures[n];
+  }
+
+  /* ---------- helpers ---------- */
+  function shuffle(a) {
+    a = a.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+  function el(tag, attrs, html) {
+    var e = document.createElement(tag);
+    if (attrs) for (var k in attrs) { if (attrs.hasOwnProperty(k)) e.setAttribute(k, attrs[k]); }
+    if (html != null) e.innerHTML = html;
+    return e;
+  }
+  function btn(label, cls, fn) {
+    var b = el('button', { type: 'button', 'class': 'btn ' + (cls || '') }, label);
+    b.addEventListener('click', fn);
+    return b;
+  }
+  function clear() { app.innerHTML = ''; }
+  function plain(html) { var d = document.createElement('div'); d.innerHTML = html; return d.textContent; }
+  function setTitle(t) { document.title = t + ' | PHYS 143 practice | University of Ghana'; }
+  function focusHeading() {
+    var h = app.querySelector('[data-focus]');
+    if (h) { h.setAttribute('tabindex', '-1'); h.focus({ preventScroll: false }); }
+  }
+  function when(ts) {
+    try { return new Date(ts).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }); } catch (e) { return ''; }
+  }
+
+  /* ---------- loading data ---------- */
+  function loadLecture(n, ok, fail) {
+    if (window.PHYS143_QUIZ[n]) { ok(window.PHYS143_QUIZ[n]); return; }
+    var s = document.createElement('script');
+    s.src = 'quizzes/lecture' + n + '.js';
+    s.charset = 'utf-8';
+    s.onload = function () { window.PHYS143_QUIZ[n] ? ok(window.PHYS143_QUIZ[n]) : fail(); };
+    s.onerror = fail;
+    document.head.appendChild(s);
+  }
+
+  /* ---------- views ---------- */
+  function home() {
+    setTitle('Practice questions');
+    clear();
+    app.appendChild(el('h2', { 'data-focus': '' }, 'Choose a lecture'));
+    app.appendChild(el('p', { 'class': 'muted' }, 'Twenty multiple-choice questions for each lecture. You get feedback after every answer.'));
+    var ul = el('ul', { 'class': 'list' });
+    ORDER.forEach(function (n) {
+      var r = store.lectures[n];
+      var status = 'Not attempted';
+      if (r && r.run) status = 'In progress, question ' + (r.run.idx + 1) + ' of ' + r.run.order.length;
+      else if (r && r.best) status = 'Best score ' + r.best.score + ' out of ' + r.best.total;
+      var li = el('li');
+      li.appendChild(el('span', null, '<span class="t">Lecture ' + n + ': ' + LECTURES[n] + '</span><br><span class="s">' + status + '</span>'));
+      li.appendChild(el('a', { 'class': 'btn', href: '#lecture-' + n }, 'Open<span class="vh"> practice for lecture ' + n + '</span>'));
+      ul.appendChild(li);
+    });
+    app.appendChild(ul);
+    app.appendChild(el('p', { 'class': 'muted', style: 'font:.9rem system-ui,sans-serif;margin-top:1rem' }, 'Lecture 6 will be added when it is ready.'));
+  }
+
+  function unavailable(n) {
+    setTitle('Lecture ' + n);
+    clear();
+    app.appendChild(el('h2', { 'data-focus': '' }, 'Lecture ' + n + (LECTURES[n] ? ': ' + LECTURES[n] : '')));
+    app.appendChild(el('p', null, LECTURES[n]
+      ? 'The practice questions for this lecture are not available yet. Please check again later.'
+      : 'There are no practice questions for this lecture.'));
+    app.appendChild(el('div', { 'class': 'row' })).appendChild(el('a', { 'class': 'btn', href: '#' }, 'All lectures'));
+    focusHeading();
+  }
+
+  function intro(n, quiz) {
+    setTitle('Lecture ' + n + ': ' + quiz.title);
+    clear();
+    var r = rec(n);
+    app.appendChild(el('h2', { 'data-focus': '' }, 'Lecture ' + n + ': ' + quiz.title));
+    app.appendChild(el('p', null, quiz.questions.length + ' questions. Select an answer to see at once whether it is correct. If it is wrong, the page shows the correct answer with a short explanation and where to look in the deck.'));
+    var info = [];
+    if (r.best) info.push('Best score: ' + r.best.score + ' out of ' + r.best.total + ' (' + when(r.best.date) + ').');
+    if (r.attempts) info.push('Attempts on this device: ' + r.attempts + '.');
+    if (info.length) app.appendChild(el('p', { 'class': 'muted' }, info.join(' ')));
+    var row = el('div', { 'class': 'row' });
+    if (r.run) {
+      row.appendChild(btn('Resume (question ' + (r.run.idx + 1) + ' of ' + r.run.order.length + ')', 'primary', function () { runQuiz(n, quiz); }));
+      row.appendChild(btn('Start again', '', function () { startRun(n, quiz, 'all'); }));
+    } else {
+      row.appendChild(btn('Start all ' + quiz.questions.length + ' questions', 'primary', function () { startRun(n, quiz, 'all'); }));
+    }
+    var missed = (r.missed || []).filter(function (id) { return byId(quiz, id); });
+    if (missed.length) row.appendChild(btn('Practise ' + missed.length + ' missed question' + (missed.length === 1 ? '' : 's'), '', function () { startRun(n, quiz, 'missed'); }));
+    row.appendChild(el('a', { 'class': 'btn', href: '#' }, 'All lectures'));
+    app.appendChild(row);
+    focusHeading();
+  }
+
+  function byId(quiz, id) {
+    for (var i = 0; i < quiz.questions.length; i++) if (quiz.questions[i].id === id) return quiz.questions[i];
+    return null;
+  }
+
+  function startRun(n, quiz, mode) {
+    var r = rec(n);
+    var pool = quiz.questions.map(function (q) { return q.id; });
+    if (mode === 'missed') {
+      pool = pool.filter(function (id) { return (r.missed || []).indexOf(id) !== -1; });
+      if (!pool.length) pool = quiz.questions.map(function (q) { return q.id; });
+    }
+    var perms = {};
+    quiz.questions.forEach(function (q) { perms[q.id] = shuffle([0, 1, 2, 3]); });
+    r.run = { mode: mode, order: shuffle(pool), perms: perms, idx: 0, answers: {} };
+    saveStore();
+    runQuiz(n, quiz);
+  }
+
+  function runQuiz(n, quiz) {
+    var r = rec(n), run = r.run;
+    if (!run) { intro(n, quiz); return; }
+    if (run.idx >= run.order.length) { result(n, quiz); return; }
+    var q = byId(quiz, run.order[run.idx]);
+    if (!q) { run.idx++; saveStore(); runQuiz(n, quiz); return; }
+    var perm = run.perms[q.id];
+    var answered = Object.prototype.hasOwnProperty.call(run.answers, q.id);
+    var chosen = answered ? run.answers[q.id] : null;
+    setTitle('Lecture ' + n + ' question ' + (run.idx + 1));
+    clear();
+
+    var total = run.order.length;
+    var prog = el('div', { 'class': 'progress' });
+    prog.appendChild(el('span', null, 'Lecture ' + n + ': question ' + (run.idx + 1) + ' of ' + total));
+    var done = 0; run.order.forEach(function (id) { if (Object.prototype.hasOwnProperty.call(run.answers, id)) done++; });
+    var score = 0; run.order.forEach(function (id) { var qq = byId(quiz, id); if (qq && run.answers[id] === qq.answer) score++; });
+    prog.appendChild(el('span', null, 'Correct so far: ' + score + ' of ' + done));
+    app.appendChild(prog);
+    var bar = el('div', { 'class': 'bar', role: 'progressbar', 'aria-label': 'Progress', 'aria-valuemin': '0', 'aria-valuemax': String(total), 'aria-valuenow': String(done) });
+    bar.appendChild(el('span', { style: 'width:' + Math.round(100 * done / total) + '%' }));
+    app.appendChild(bar);
+
+    app.appendChild(el('p', { 'class': 'qtype' }, TYPE_LABEL[q.type] || 'Question'));
+    var qt = el('h2', { 'class': 'qtext', 'data-focus': '' }, q.q);
+    qt.style.color = 'inherit';
+    qt.style.fontSize = '1.1rem';
+    app.appendChild(qt);
+
+    var ul = el('ul', { 'class': 'opts', 'aria-label': 'Answer options' });
+    var buttons = [];
+    perm.forEach(function (orig, pos) {
+      var li = el('li');
+      var b = el('button', { type: 'button', 'class': 'opt', 'data-orig': String(orig) },
+        '<span class="k" aria-hidden="true">' + LETTERS[pos] + '</span><span class="txt"><span class="vh">Option ' + LETTERS[pos] + ': </span>' + q.options[orig] + '</span><span class="tag"></span>');
+      b.addEventListener('click', function () { choose(orig); });
+      li.appendChild(b); ul.appendChild(li); buttons.push(b);
+    });
+    app.appendChild(ul);
+    var fb = el('div', { 'class': 'fb-wrap', role: 'status' });
+    app.appendChild(fb);
+    var nav = el('div', { 'class': 'row' });
+    app.appendChild(nav);
+
+    function showFeedback(sel) {
+      var right = sel === q.answer;
+      buttons.forEach(function (b) {
+        var o = Number(b.getAttribute('data-orig'));
+        b.disabled = true;
+        var tag = b.querySelector('.tag');
+        if (o === q.answer) { b.classList.add('correct'); tag.innerHTML = '&#10003; Correct answer'; }
+        else if (o === sel) { b.classList.add('wrong'); tag.innerHTML = '&#10007; Your answer'; }
+        else b.classList.add('dim');
+      });
+      var d = el('div', { 'class': 'fb ' + (right ? 'ok' : 'no') });
+      if (right) {
+        d.appendChild(el('p', { 'class': 'head' }, '✓ Correct'));
+      } else {
+        d.appendChild(el('p', { 'class': 'head' }, '✗ Not correct'));
+        d.appendChild(el('p', null, 'You chose: <strong>' + q.options[sel] + '</strong>'));
+        d.appendChild(el('p', null, 'The correct answer is: <strong>' + q.options[q.answer] + '</strong>'));
+      }
+      d.appendChild(el('p', null, q.exp));
+      if (q.ref) d.appendChild(el('p', { 'class': 'ref' }, 'Review: ' + q.ref));
+      fb.innerHTML = '';
+      fb.appendChild(d);
+      nav.innerHTML = '';
+      var last = run.idx >= run.order.length - 1;
+      var nb = btn(last ? 'See my score' : 'Next question', 'primary', function () { run.idx++; saveStore(); runQuiz(n, quiz); });
+      nav.appendChild(nb);
+      nav.appendChild(el('a', { 'class': 'btn', href: '#lecture-' + n + '-menu' }, 'Save and leave'));
+      nb.focus();
+    }
+
+    function choose(orig) {
+      if (Object.prototype.hasOwnProperty.call(run.answers, q.id)) return;
+      run.answers[q.id] = orig;
+      saveStore();
+      showFeedback(orig);
+    }
+
+    if (answered) showFeedback(chosen);
+    else {
+      nav.appendChild(el('a', { 'class': 'btn', href: '#lecture-' + n + '-menu' }, 'Save and leave'));
+      focusHeading();
+    }
+    currentKeys = function (ev) {
+      if (Object.prototype.hasOwnProperty.call(run.answers, q.id)) return;
+      var idx = '1234'.indexOf(ev.key);
+      if (idx === -1) idx = 'abcd'.indexOf(ev.key.toLowerCase());
+      if (idx !== -1 && ev.key.length === 1 && !ev.ctrlKey && !ev.metaKey && !ev.altKey) { ev.preventDefault(); choose(perm[idx]); }
+    };
+  }
+
+  function result(n, quiz) {
+    var r = rec(n), run = r.run;
+    currentKeys = null;
+    var wrongIds = [], score = 0;
+    run.order.forEach(function (id) {
+      var q = byId(quiz, id);
+      if (q && run.answers[id] === q.answer) score++; else wrongIds.push(id);
+    });
+    var total = run.order.length;
+    var first = !r.best || (run.mode === 'all' && (score / total) > (r.best.score / r.best.total));
+    r.attempts = (r.attempts || 0) + 1;
+    if (run.mode === 'all') {
+      if (first) r.best = { score: score, total: total, date: Date.now() };
+      r.missed = wrongIds;
+    } else {
+      /* missed-only run: keep questions still wrong, drop those now correct */
+      r.missed = (r.missed || []).filter(function (id) { return wrongIds.indexOf(id) !== -1 || run.order.indexOf(id) === -1; });
+    }
+    var summary = { mode: run.mode, score: score, total: total, wrong: wrongIds };
+    r.run = null;
+    saveStore();
+
+    setTitle('Lecture ' + n + ' score');
+    clear();
+    app.appendChild(el('h2', { 'data-focus': '' }, 'Lecture ' + n + ': your score'));
+    app.appendChild(el('p', { 'class': 'score' }, score + ' out of ' + total));
+    var pct = Math.round(100 * score / total);
+    app.appendChild(el('p', null, pct + ' per cent. ' + (pct >= 80 ? 'A strong result. Check the questions you missed.' : pct >= 50 ? 'A fair start. Review the explanations for the questions you missed, then retry them.' : 'Revisit the deck and the supplement, then retry the questions you missed.')));
+    if (summary.mode === 'all' && r.best) app.appendChild(el('p', { 'class': 'muted' }, 'Best score on this device: ' + r.best.score + ' out of ' + r.best.total + '.'));
+    if (wrongIds.length) {
+      app.appendChild(el('h3', null, 'Questions to review'));
+      var ol = el('ol', { 'class': 'review' });
+      wrongIds.forEach(function (id) {
+        var q = byId(quiz, id);
+        ol.appendChild(el('li', null, q.q + '<br><strong>Correct answer:</strong> ' + q.options[q.answer] + (q.ref ? '<br><span class="muted" style="font:.85rem system-ui,sans-serif">Review: ' + q.ref + '</span>' : '')));
+      });
+      app.appendChild(ol);
+    }
+    var row = el('div', { 'class': 'row' });
+    if (wrongIds.length) row.appendChild(btn('Retry the ' + wrongIds.length + ' missed question' + (wrongIds.length === 1 ? '' : 's'), 'primary', function () { startRun(n, quiz, 'missed'); }));
+    row.appendChild(btn('Start all questions again', wrongIds.length ? '' : 'primary', function () { startRun(n, quiz, 'all'); }));
+    row.appendChild(el('a', { 'class': 'btn', href: '#' }, 'All lectures'));
+    app.appendChild(row);
+    focusHeading();
+  }
+
+  /* ---------- routing ---------- */
+  var currentKeys = null;
+  document.addEventListener('keydown', function (ev) { if (currentKeys) currentKeys(ev); });
+
+  function route() {
+    currentKeys = null;
+    var h = window.location.hash || '';
+    var m = /^#lecture-(\d+)(-menu)?$/.exec(h);
+    if (!m) { home(); return; }
+    var n = Number(m[1]);
+    if (!LECTURES[n]) { unavailable(n); return; }
+    loadLecture(n, function (quiz) {
+      if (m[2]) { intro(n, quiz); return; }
+      if (rec(n).run) runQuiz(n, quiz); else intro(n, quiz);
+    }, function () { unavailable(n); });
+  }
+  window.addEventListener('hashchange', route);
+  route();
+})();

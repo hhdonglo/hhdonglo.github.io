@@ -1,0 +1,347 @@
+window.PHYS143_QUIZ = window.PHYS143_QUIZ || {};
+window.PHYS143_QUIZ[2] = {
+ "lecture": 2,
+ "title": "Motion",
+ "questions": [
+  {
+   "id": "L2-01",
+   "type": "concept",
+   "q": "A cyclist rides 60 m east along a straight road and then 20 m back towards the west. What are the displacement and the distance travelled?",
+   "options": [
+    "Displacement 80 m east, distance 40 m",
+    "Displacement 40 m east, distance 40 m",
+    "Displacement 40 m east, distance 80 m",
+    "Displacement 80 m east, distance 80 m"
+   ],
+   "answer": 2,
+   "exp": "Displacement is the change in position: +60 m − 20 m = +40 m, which is 40 m east. Distance is the total path length, 60 m + 20 m = 80 m. Distance is never smaller than the magnitude of the displacement.",
+   "ref": "Lecture 2 deck, slide ‘Position and displacement in one dimension’ and ‘Concept check: distance or displacement?’"
+  },
+  {
+   "id": "L2-02",
+   "type": "calc",
+   "q": "A student walks 90 m east in 45 s, then 30 m west in 10 s. What is the average velocity for the whole 55 s? Take east as positive.",
+   "options": [
+    "1.09 m/s",
+    "2.18 m/s",
+    "−0.500 m/s",
+    "2.50 m/s"
+   ],
+   "answer": 0,
+   "exp": "Average velocity is the displacement divided by the total time: (90 − 30) m / 55 s = 1.09 m/s, in the positive (east) direction. The value 2.18 m/s is the average speed, found from the total distance. Averaging the two velocities, 2.0 m/s and −3.0 m/s, does not work because the time intervals differ.",
+   "ref": "Lecture 2 deck, slide ‘Average velocity and average speed’",
+   "calc": {
+    "value": 1.0909090909090908,
+    "unit": "m/s",
+    "sf": 3
+   }
+  },
+  {
+   "id": "L2-03",
+   "type": "calc",
+   "q": "The position of a particle is x(t) = 4.0 + 3.0t² − 0.50t³, with x in metres and t in seconds. What is its velocity at t = 5.0 s?",
+   "options": [
+    "7.50 m/s",
+    "16.5 m/s",
+    "2.50 m/s",
+    "−7.50 m/s"
+   ],
+   "answer": 3,
+   "exp": "Differentiate: v = dx/dt = 6.0t − 1.5t². At t = 5.0 s, v = −7.50 m/s. The negative sign means the particle moves in the −x direction. The value 16.5 is the position, not the velocity, and 2.50 m/s is the average velocity over the first 5.0 s, not the instantaneous velocity.",
+   "ref": "Lecture 2 deck, slide ‘Toolkit 2: the calculus of motion’ and ‘Lecturer example: velocity from position’",
+   "calc": {
+    "value": -7.5,
+    "unit": "m/s",
+    "sf": 3
+   }
+  },
+  {
+   "id": "L2-04",
+   "type": "graph",
+   "q": "On an x–t graph the plot is a straight line falling from x = 8.0 m at t = 0 to x = 2.0 m at t = 3.0 s. What is the velocity of the object?",
+   "options": [
+    "2.00 m/s",
+    "−2.00 m/s",
+    "2.67 m/s",
+    "3.33 m/s"
+   ],
+   "answer": 1,
+   "exp": "The slope of an x–t graph is the velocity. The slope is (2.0 − 8.0) m / 3.0 s = −2.00 m/s. The sign is negative because x decreases, so the object moves in the −x direction at constant speed. The height of the graph is the position, not the speed.",
+   "ref": "Lecture 2 deck, slide ‘Concept check: reading an x–t graph’ and ‘Toolkit 3: reading motion graphs’",
+   "calc": {
+    "value": -2.0,
+    "unit": "m/s",
+    "sf": 3
+   }
+  },
+  {
+   "id": "L2-05",
+   "type": "graph",
+   "q": "The x–t graph of a ball thrown straight up is a downward-opening parabola with its peak at t = 2.0 s. What are the velocity and acceleration of the ball at t = 2.0 s?",
+   "options": [
+    "The velocity is zero and the acceleration is zero.",
+    "The velocity is zero and the acceleration is about 9.8 m/s² downward.",
+    "The velocity is zero and the acceleration is about 9.8 m/s² upward.",
+    "The velocity is upward and the acceleration is zero."
+   ],
+   "answer": 1,
+   "exp": "The slope of the x–t graph is zero at the peak, so the velocity is zero there. The curvature of the graph is downward at every point, so the acceleration is −9.8 m/s² at every point, including the top. Zero velocity does not mean zero acceleration.",
+   "ref": "Lecture 2 deck, slide ‘Concept check: reading an x–t graph’ and ‘Free fall’"
+  },
+  {
+   "id": "L2-06",
+   "type": "misconception",
+   "q": "An object moves along the x axis with velocity −4 m/s and acceleration −2 m/s². What is happening to its speed?",
+   "options": [
+    "The speed is decreasing, because the acceleration is negative.",
+    "The speed is constant, because the acceleration is constant.",
+    "The speed cannot be found without knowing the position.",
+    "The speed is increasing, because the velocity and the acceleration have the same sign."
+   ],
+   "answer": 3,
+   "exp": "When v and a have the same sign, the object speeds up. When the signs are opposite, it slows down. A negative acceleration does not by itself mean slowing down. Here the object moves in the −x direction and is accelerated further in the −x direction.",
+   "ref": "Lecture 2 deck, slide ‘Rule: speeding up or slowing down’"
+  },
+  {
+   "id": "L2-07",
+   "type": "calc",
+   "q": "The velocity of a trolley changes from 12 m/s to −8.0 m/s in 4.0 s, taking the first direction as positive. What is its average acceleration?",
+   "options": [
+    "−5.00 m/s²",
+    "5.00 m/s²",
+    "1.00 m/s²",
+    "−2.00 m/s²"
+   ],
+   "answer": 0,
+   "exp": "Average acceleration is Δv/Δt = (v₂ − v₁)/Δt = (−8.0 − 12) m/s / 4.0 s = −5.00 m/s². The sign is negative because the velocity changed towards the negative direction. Subtract the initial velocity from the final one, keeping the signs, rather than combining speeds.",
+   "ref": "Lecture 2 deck, slide ‘Average acceleration’",
+   "calc": {
+    "value": -5.0,
+    "unit": "m/s²",
+    "sf": 3
+   }
+  },
+  {
+   "id": "L2-08",
+   "type": "graph",
+   "q": "On a v–t graph the plot is a straight line from 6.0 m/s at t = 0 to −2.0 m/s at t = 4.0 s. What is the displacement during these 4.0 s?",
+   "options": [
+    "10.0 m",
+    "24.0 m",
+    "8.00 m",
+    "12.0 m"
+   ],
+   "answer": 2,
+   "exp": "The displacement is the signed area under the v–t graph. The velocity is zero at t = 3.00 s. The area above the axis is +9.00 m and the area below is −1.00 m, so the displacement is 8.00 m. The value 10.0 m is the distance, in which the area below the axis is counted as positive.",
+   "ref": "Lecture 2 deck, slide ‘Solution: slopes and areas’ and ‘Toolkit 3, completed: reading motion graphs’",
+   "calc": {
+    "value": 8.0,
+    "unit": "m",
+    "sf": 3
+   }
+  },
+  {
+   "id": "L2-09",
+   "type": "calc",
+   "q": "A car travelling at 24 m/s brakes with a constant acceleration of magnitude 4.00 m/s² until it stops. How far does it travel while braking?",
+   "options": [
+    "144 m",
+    "36.0 m",
+    "72.0 m",
+    "576 m"
+   ],
+   "answer": 2,
+   "exp": "Take +x along the motion, so v₀ = 24 m/s, v = 0 and a = −4.00 m/s². The time is not asked for, so use v² = v₀² + 2a(x − x₀). Then x − x₀ = (0 − 576)/(2(−4.00)) = 72.0 m. The value 144 m forgets the factor 2 in the denominator. The braking distance grows with v₀², so doubling the speed quadruples it.",
+   "ref": "Lecture 2 deck, slide ‘Lecturer example: braking distance’ and ‘Toolkit 4’",
+   "calc": {
+    "value": 72.0,
+    "unit": "m",
+    "sf": 3
+   }
+  },
+  {
+   "id": "L2-10",
+   "type": "concept",
+   "q": "You know the initial velocity, the final velocity and the displacement of an object moving with constant acceleration, and you need the acceleration. Which equation should you use?",
+   "options": [
+    "v² = v₀² + 2a(x − x₀), the equation that does not contain time",
+    "x − x₀ = v₀t + ½a t², because it contains the displacement",
+    "v = v₀ + at, because it contains the acceleration",
+    "x − x₀ = ½(v₀ + v)t, because it contains both velocities"
+   ],
+   "answer": 0,
+   "exp": "List the five variables: x − x₀, v₀, v, a and t. The one that is neither known nor wanted is t, so choose the equation that omits t. The equation x − x₀ = ½(v₀ + v)t has no a at all, so it cannot give the acceleration.",
+   "ref": "Lecture 2 deck, slide ‘Toolkit 4: choosing a constant-acceleration equation’"
+  },
+  {
+   "id": "L2-11",
+   "type": "misconception",
+   "q": "Which motion can be analysed with the constant-acceleration equations?",
+   "options": [
+    "A car whose acceleration increases steadily with time",
+    "A ball whirled at constant speed in a horizontal circle",
+    "Any motion, provided the acceleration at one instant is known",
+    "A car braking steadily along a straight road"
+   ],
+   "answer": 3,
+   "exp": "The equations were derived for constant acceleration along a line. If a changes with time, integrate a(t) instead. In circular motion the acceleration changes direction, so it is not constant. Using the value of a at one instant gives wrong answers, as the counter-example slide shows.",
+   "ref": "Lecture 2 deck, slide ‘Rule: the constant-acceleration equations’ and ‘Counter-example: the rule has a limit’"
+  },
+  {
+   "id": "L2-12",
+   "type": "calc",
+   "q": "A stone is dropped from rest from a bridge and hits the water 3.20 s later. Neglect air resistance and use g = 9.80 m/s². How high is the bridge above the water?",
+   "options": [
+    "100 m",
+    "50.2 m",
+    "31.4 m",
+    "25.1 m"
+   ],
+   "answer": 1,
+   "exp": "With +y up and v₀ = 0, y − y₀ = ½(−9.80)(3.20)² = −50.2 m, so the bridge is 50.2 m high. The value 31.4 is g t, which is the speed in m/s at the water and not a height. The value 100 m omits the factor ½.",
+   "ref": "Lecture 2 deck, slide ‘Your turn: a stone from a bridge’",
+   "calc": {
+    "value": 50.176000000000016,
+    "unit": "m",
+    "sf": 3
+   }
+  },
+  {
+   "id": "L2-13",
+   "type": "misconception",
+   "q": "A ball is thrown straight up. At the very top of its path, what are its velocity and acceleration?",
+   "options": [
+    "Velocity zero, acceleration zero",
+    "Velocity zero, acceleration 9.80 m/s² downward",
+    "Velocity zero, acceleration 9.80 m/s² upward",
+    "Velocity 9.80 m/s downward, acceleration zero"
+   ],
+   "answer": 1,
+   "exp": "Throughout the flight, with air resistance neglected, the acceleration is the free-fall acceleration, 9.80 m/s² downward. At the top the velocity is momentarily zero as it changes from upward to downward. If the acceleration were zero there, the ball would stay at the top.",
+   "ref": "Lecture 2 deck, slide ‘Free fall’ and ‘Revisiting the opening throw’"
+  },
+  {
+   "id": "L2-14",
+   "type": "calc",
+   "q": "A ball is thrown upward at 12 m/s from the edge of a cliff 25 m above the ground. Neglect air resistance and use g = 9.80 m/s². How long after the throw does the ball reach the ground?",
+   "options": [
+    "−1.34 s",
+    "2.26 s",
+    "1.22 s",
+    "3.79 s"
+   ],
+   "answer": 3,
+   "exp": "With +y up, the origin at the ground and y₀ = 25 m: 0 = 25 + 12t − 4.90t². The two roots are t = 3.79 s and t = −1.34 s. Only the positive root is physical, so t = 3.79 s. The negative root is when the same parabola would have crossed the ground before the throw. The value 2.26 s is the time for a drop with no initial speed, and 1.22 s is only the time to reach the highest point.",
+   "ref": "Lecture 2 deck, slide ‘Lecturer example: two roots’ and ‘Two roots: solution’",
+   "calc": {
+    "value": 3.7938119004110553,
+    "unit": "s",
+    "sf": 3
+   }
+  },
+  {
+   "id": "L2-15",
+   "type": "calc",
+   "q": "A ball is kicked from level ground with a speed of 18 m/s at 25° above the horizontal. Neglect air resistance and use g = 9.80 m/s². What is the horizontal range?",
+   "options": [
+    "25.3 m",
+    "33.1 m",
+    "14.0 m",
+    "30.0 m"
+   ],
+   "answer": 0,
+   "exp": "The ball lands when y returns to zero, at t = 2v₀ sin θ/g = 1.55 s. The range is then (v₀ cos θ)t = v₀² sin 2θ/g = 25.3 m. The value 33.1 m is the largest possible range, for a launch at 45°. Using sin θ or cos θ instead of sin 2θ gives 14.0 m or 30.0 m.",
+   "ref": "Lecture 2 deck, slide ‘Toolkit 5: projectile motion’ and ‘A long hit: solution’",
+   "calc": {
+    "value": 25.32636730311723,
+    "unit": "m",
+    "sf": 3
+   }
+  },
+  {
+   "id": "L2-16",
+   "type": "misconception",
+   "q": "Two identical balls start at the same height at the same instant. One is dropped from rest and the other is fired horizontally. Neglect air resistance. Which statement is correct?",
+   "options": [
+    "The dropped ball reaches the ground first.",
+    "The ball fired horizontally reaches the ground first.",
+    "Both balls reach the ground at the same time.",
+    "The ball fired horizontally stays in the air longer, because it travels further."
+   ],
+   "answer": 2,
+   "exp": "The horizontal and vertical motions are independent and are linked only by the time. Both balls have zero initial vertical velocity and the same vertical acceleration g, so they fall the same height in the same time. The horizontal velocity changes only where the ball lands.",
+   "ref": "Lecture 2 deck, slide ‘Independent components’ and ‘An opening puzzle: the monkey and the dart’"
+  },
+  {
+   "id": "L2-17",
+   "type": "calc",
+   "q": "A laboratory centrifuge rotor spins at 2400 revolutions per minute. A sample sits 0.080 m from the axis. What is the radial acceleration of the sample?",
+   "options": [
+    "4.61×10<sup>5</sup> m/s²",
+    "20.1 m/s²",
+    "5050 m/s²",
+    "10100 m/s²"
+   ],
+   "answer": 2,
+   "exp": "First convert to angular speed: ω = 2π(2400/60) = 251 rad/s. Then a = ω²R = (251)²(0.080) = 5050 m/s², about 520 g. The value 4.61×10<sup>5</sup> m/s² keeps the rate in revolutions per minute. The value 20.1 is the speed in m/s, not the acceleration.",
+   "ref": "Lecture 2 deck, slide ‘Toolkit 6: circular motion’ and ‘Lecturer example: a laboratory centrifuge’",
+   "calc": {
+    "value": 5053.237453357751,
+    "unit": "m/s²",
+    "sf": 3
+   }
+  },
+  {
+   "id": "L2-18",
+   "type": "graph",
+   "q": "A particle moves at constant speed in a vertical circle. It is at the top of the circle, moving to the right. In which direction is its acceleration?",
+   "options": [
+    "Downward, towards the centre of the circle",
+    "To the right, along the velocity",
+    "Upward, away from the centre",
+    "The acceleration is zero because the speed is constant"
+   ],
+   "answer": 0,
+   "exp": "The velocity is tangent to the path, here horizontal. The speed is constant, so there is no component of acceleration along the path. The velocity still changes direction, and the acceleration v²/R points towards the centre, which is downward at the top.",
+   "ref": "Lecture 2 deck, slide ‘Uniform circular motion: the geometry’ and ‘Why the acceleration is v²/R’"
+  },
+  {
+   "id": "L2-19",
+   "type": "calc",
+   "q": "A river flows east at 2.5 m/s relative to the ground. A boat with a speed of 6.0 m/s relative to the water is pointed due north. What is the speed of the boat relative to the ground?",
+   "options": [
+    "8.50 m/s",
+    "5.45 m/s",
+    "3.50 m/s",
+    "6.50 m/s"
+   ],
+   "answer": 3,
+   "exp": "Use the chain v(B/G) = v(B/W) + v(W/G) with components: 2.5 m/s east and 6.0 m/s north. The magnitude is √(2.5² + 6.0²) = 6.50 m/s. The two velocities are perpendicular, so their magnitudes do not add. The ground speed is larger than the boat speed, as the sketch suggests.",
+   "ref": "Lecture 2 deck, slide ‘Lecturer example: crossing a river’ and ‘Crossing a river: solution’",
+   "calc": {
+    "value": 6.5,
+    "unit": "m/s",
+    "sf": 3
+   }
+  },
+  {
+   "id": "L2-20",
+   "type": "calc",
+   "q": "A river flows east at 2.00 m/s relative to the ground. A boat can move at 4.00 m/s relative to the water and must travel due north across the river. At what angle west of north should it be pointed?",
+   "options": [
+    "60.0°",
+    "30.0°",
+    "26.6°",
+    "63.4°"
+   ],
+   "answer": 1,
+   "exp": "For the ground velocity to point due north, its east component must be zero: −4.00 sin φ + 2.00 = 0, so sin φ = 0.500 and φ = 30.0°, pointing upstream. The value 26.6° uses tan, which would suit a boat pointed due north, not one aimed to cancel the current.",
+   "ref": "Lecture 2 deck, slide ‘Your turn: heading straight across’ and ‘Heading straight across: solution’",
+   "calc": {
+    "value": 29.999999999999996,
+    "unit": "°",
+    "sf": 3
+   }
+  }
+ ]
+};

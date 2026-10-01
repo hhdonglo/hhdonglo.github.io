@@ -6,6 +6,8 @@ Lecturer: Hope Donglo, University of Ghana, Office 24.
 
 Website: https://hhdonglo.github.io/UG-Lectures/
 
+Practice questions: https://hhdonglo.github.io/UG-Lectures/practice.html (multiple-choice, 20 per lecture, drafts for review). Sources and checks are in `tools/`.
+
 ## PHYS 143
 
 | No. | Topic | Lecture deck | Tutorial | Supplement |
