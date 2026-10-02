@@ -1,4 +1,4 @@
-/* PHYS 143 practice engine. Plain JavaScript, no libraries, no network calls other than loading quizzes/lectureN.js. */
+/* PHYS 143 practice engine for one lecture page. Plain JavaScript, no libraries, no network calls other than loading quizzes/lectureN.json. Mounts into #quiz-app (data-lecture = lecture number). */
 (function () {
   'use strict';
 
@@ -13,7 +13,9 @@
   var LETTERS = ['A', 'B', 'C', 'D'];
   var TYPE_LABEL = { concept: 'Concept', calc: 'Calculation', graph: 'Graph or diagram', misconception: 'Common misconception' };
 
-  var app = document.getElementById('app');
+  var app = document.getElementById('quiz-app');
+  if (!app) return;
+  var started = false;
   window.PHYS143_QUIZ = window.PHYS143_QUIZ || {};
 
   /* ---------- storage (every access guarded) ---------- */
@@ -56,8 +58,9 @@
   }
   function clear() { app.innerHTML = ''; }
   function plain(html) { var d = document.createElement('div'); d.innerHTML = html; return d.textContent; }
-  function setTitle(t) { document.title = t + ' | PHYS 143 practice | Undergraduate Physics Lectures'; }
+  function setTitle() { /* the lecture page keeps its own title */ }
   function focusHeading() {
+    if (!started) return;
     var h = app.querySelector('[data-focus]');
     if (h) { h.setAttribute('tabindex', '-1'); h.focus({ preventScroll: false }); }
   }
@@ -75,34 +78,13 @@
   }
 
   /* ---------- views ---------- */
-  function home() {
-    setTitle('Practice questions');
-    clear();
-    app.appendChild(el('h2', { 'data-focus': '' }, 'Choose a lecture'));
-    app.appendChild(el('p', { 'class': 'muted' }, 'Twenty multiple-choice questions for each lecture. You get feedback after every answer.'));
-    var ul = el('ul', { 'class': 'list' });
-    ORDER.forEach(function (n) {
-      var r = store.lectures[n];
-      var status = 'Not attempted';
-      if (r && r.run) status = 'In progress, question ' + (r.run.idx + 1) + ' of ' + r.run.order.length;
-      else if (r && r.best) status = 'Best score ' + r.best.score + ' out of ' + r.best.total;
-      var li = el('li');
-      li.appendChild(el('span', null, '<span class="t">Lecture ' + n + ': ' + LECTURES[n] + '</span><br><span class="s">' + status + '</span>'));
-      li.appendChild(el('a', { 'class': 'btn', href: '#lecture-' + n }, 'Open<span class="vh"> practice for lecture ' + n + '</span>'));
-      ul.appendChild(li);
-    });
-    app.appendChild(ul);
-    app.appendChild(el('p', { 'class': 'muted', style: 'font:.9rem system-ui,sans-serif;margin-top:1rem' }, 'Lecture 6 will be added when it is ready.'));
-  }
-
   function unavailable(n) {
     setTitle('Lecture ' + n);
     clear();
-    app.appendChild(el('h2', { 'data-focus': '' }, 'Lecture ' + n + (LECTURES[n] ? ': ' + LECTURES[n] : '')));
+    app.appendChild(el('h3', { 'data-focus': '' }, 'Lecture ' + n + (LECTURES[n] ? ': ' + LECTURES[n] : '')));
     app.appendChild(el('p', null, LECTURES[n]
       ? 'The practice questions for this lecture are not available yet. Please check again later.'
       : 'There are no practice questions for this lecture.'));
-    app.appendChild(el('div', { 'class': 'row' })).appendChild(el('a', { 'class': 'btn', href: '#' }, 'All lectures'));
     focusHeading();
   }
 
@@ -110,7 +92,7 @@
     setTitle('Lecture ' + n + ': ' + quiz.title);
     clear();
     var r = rec(n);
-    app.appendChild(el('h2', { 'data-focus': '' }, 'Lecture ' + n + ': ' + quiz.title));
+    app.appendChild(el('h3', { 'data-focus': '' }, 'Lecture ' + n + ': ' + quiz.title));
     app.appendChild(el('p', null, quiz.questions.length + ' questions. Select an answer to see at once whether it is correct. If it is wrong, the page shows the correct answer with a short explanation and where to look in the deck.'));
     var info = [];
     if (r.best) info.push('Best score: ' + r.best.score + ' out of ' + r.best.total + ' (' + when(r.best.date) + ').');
@@ -125,7 +107,6 @@
     }
     var missed = (r.missed || []).filter(function (id) { return byId(quiz, id); });
     if (missed.length) row.appendChild(btn('Practise ' + missed.length + ' missed question' + (missed.length === 1 ? '' : 's'), '', function () { startRun(n, quiz, 'missed'); }));
-    row.appendChild(el('a', { 'class': 'btn', href: '#' }, 'All lectures'));
     app.appendChild(row);
     focusHeading();
   }
@@ -173,7 +154,7 @@
     app.appendChild(bar);
 
     app.appendChild(el('p', { 'class': 'qtype' }, TYPE_LABEL[q.type] || 'Question'));
-    var qt = el('h2', { 'class': 'qtext', 'data-focus': '' }, q.q);
+    var qt = el('h3', { 'class': 'qtext', 'data-focus': '' }, q.q);
     qt.style.color = 'inherit';
     qt.style.fontSize = '1.1rem';
     app.appendChild(qt);
@@ -219,7 +200,7 @@
       var last = run.idx >= run.order.length - 1;
       var nb = btn(last ? 'See my score' : 'Next question', 'primary', function () { run.idx++; saveStore(); runQuiz(n, quiz); });
       nav.appendChild(nb);
-      nav.appendChild(el('a', { 'class': 'btn', href: '#lecture-' + n + '-menu' }, 'Save and leave'));
+      nav.appendChild(btn('Save and leave', '', function () { currentKeys = null; intro(n, quiz); }));
       nb.focus();
     }
 
@@ -232,7 +213,7 @@
 
     if (answered) showFeedback(chosen);
     else {
-      nav.appendChild(el('a', { 'class': 'btn', href: '#lecture-' + n + '-menu' }, 'Save and leave'));
+      nav.appendChild(btn('Save and leave', '', function () { currentKeys = null; intro(n, quiz); }));
       focusHeading();
     }
     currentKeys = function (ev) {
@@ -267,13 +248,13 @@
 
     setTitle('Lecture ' + n + ' score');
     clear();
-    app.appendChild(el('h2', { 'data-focus': '' }, 'Lecture ' + n + ': your score'));
+    app.appendChild(el('h3', { 'data-focus': '' }, 'Lecture ' + n + ': your score'));
     app.appendChild(el('p', { 'class': 'score' }, score + ' out of ' + total));
     var pct = Math.round(100 * score / total);
     app.appendChild(el('p', null, pct + ' per cent. ' + (pct >= 80 ? 'A strong result. Check the questions you missed.' : pct >= 50 ? 'A fair start. Review the explanations for the questions you missed, then retry them.' : 'Revisit the deck and the supplement, then retry the questions you missed.')));
     if (summary.mode === 'all' && r.best) app.appendChild(el('p', { 'class': 'muted' }, 'Best score on this device: ' + r.best.score + ' out of ' + r.best.total + '.'));
     if (wrongIds.length) {
-      app.appendChild(el('h3', null, 'Questions to review'));
+      app.appendChild(el('h4', null, 'Questions to review'));
       var ol = el('ol', { 'class': 'review' });
       wrongIds.forEach(function (id) {
         var q = byId(quiz, id);
@@ -284,27 +265,22 @@
     var row = el('div', { 'class': 'row' });
     if (wrongIds.length) row.appendChild(btn('Retry the ' + wrongIds.length + ' missed question' + (wrongIds.length === 1 ? '' : 's'), 'primary', function () { startRun(n, quiz, 'missed'); }));
     row.appendChild(btn('Start all questions again', wrongIds.length ? '' : 'primary', function () { startRun(n, quiz, 'all'); }));
-    row.appendChild(el('a', { 'class': 'btn', href: '#' }, 'All lectures'));
     app.appendChild(row);
     focusHeading();
   }
 
   /* ---------- routing ---------- */
   var currentKeys = null;
-  document.addEventListener('keydown', function (ev) { if (currentKeys) currentKeys(ev); });
+  document.addEventListener('keydown', function (ev) { if (currentKeys && app.contains(document.activeElement)) currentKeys(ev); });
 
   function route() {
     currentKeys = null;
-    var h = window.location.hash || '';
-    var m = /^#lecture-(\d+)(-menu)?$/.exec(h);
-    if (!m) { home(); return; }
-    var n = Number(m[1]);
+    var n = Number(app.getAttribute('data-lecture'));
     if (!LECTURES[n]) { unavailable(n); return; }
     loadLecture(n, function (quiz) {
-      if (m[2]) { intro(n, quiz); return; }
       if (rec(n).run) runQuiz(n, quiz); else intro(n, quiz);
-    }, function () { unavailable(n); });
+      started = true;
+    }, function () { unavailable(n); started = true; });
   }
-  window.addEventListener('hashchange', route);
   route();
 })();

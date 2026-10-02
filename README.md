@@ -8,7 +8,7 @@ Contact: Physics Department, Office 24. Email hdonglo@ug.edu.gh or hkdonglo@gmai
 
 Website: https://hhdonglo.github.io/
 
-Practice questions: https://hhdonglo.github.io/practice.html (multiple-choice, 20 per lecture, drafts for review). Sources and checks are in `tools/`.
+Practice questions: on each lecture page, for example https://hhdonglo.github.io/phys143-lecture-2.html#practice (multiple-choice, 20 per lecture, drafts for review; old practice.html forwards). Sources and checks are in `tools/`.
 
 ## PHYS 143
 

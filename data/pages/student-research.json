@@ -53,7 +53,7 @@
           "title": "Learning resources on this site",
           "bullets": [
             "[PHYS 143: Mechanics and Thermal Physics](phys143.html), with one page per lecture",
-            "[Practice questions](practice.html) for every PHYS 143 lecture",
+            "Practice questions on each [PHYS 143](phys143.html) lecture page",
             "[Laboratory courses](laboratory.html) and the shared uncertainty analysis lecture",
             "[Teaching](teaching.html) overview"
           ]

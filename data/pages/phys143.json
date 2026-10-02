@@ -22,7 +22,7 @@
         {
           "style": "plain",
           "paragraphs": [
-            "Each week is taught in three contacts. Every lecture provides a slide deck, a tutorial sheet and a supplementary note. All files are PDF. Each lecture also has twenty multiple-choice practice questions that run in the browser, for practice and not assessment."
+            "Each week is taught in three contacts. Every lecture provides a slide deck, a tutorial sheet and a supplementary note. All files are PDF. Each lecture page also has its own twenty multiple-choice practice questions, which run in the browser, for practice and not assessment."
           ],
           "bullet_style": "numbered",
           "bullets": [
@@ -38,23 +38,6 @@
     }
   ],
   "bottom": [
-    {
-      "id": "practice-qs",
-      "fold": true,
-      "heading": "Practice Questions",
-      "layout": "stack",
-      "cards": [
-        {
-          "style": "plain",
-          "paragraphs": [
-            "Each lecture has twenty multiple-choice practice questions that run in the browser, for practice and not assessment."
-          ],
-          "button_label": "Open practice questions",
-          "button_url": "practice.html",
-          "button_style": "primary dl"
-        }
-      ]
-    },
     {
       "id": "why-matters",
       "fold": true,
