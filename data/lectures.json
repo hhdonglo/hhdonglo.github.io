@@ -22,7 +22,8 @@
             "Understand",
             "Calculate",
             "Extend"
-          ]
+          ],
+          "practice": "available"
         },
         {
           "number": 2,
@@ -42,7 +43,8 @@
             "Describe",
             "Model",
             "Apply"
-          ]
+          ],
+          "practice": "available"
         },
         {
           "number": 3,
@@ -62,7 +64,8 @@
             "Represent",
             "Analyse",
             "Apply"
-          ]
+          ],
+          "practice": "available"
         },
         {
           "number": 4,
@@ -82,7 +85,8 @@
             "Identify",
             "Quantify",
             "Extend"
-          ]
+          ],
+          "practice": "available"
         },
         {
           "number": 5,
@@ -102,7 +106,8 @@
             "Identify",
             "Quantify",
             "Extend"
-          ]
+          ],
+          "practice": "available"
         },
         {
           "number": 6,
@@ -128,7 +133,8 @@
             "Define",
             "Conserve",
             "Extend"
-          ]
+          ],
+          "practice": "available"
         },
         {
           "number": 8,
@@ -148,7 +154,8 @@
             "Describe",
             "Model",
             "Apply"
-          ]
+          ],
+          "practice": "available"
         }
       ]
     },
@@ -175,7 +182,8 @@
             "Define",
             "Model",
             "Apply"
-          ]
+          ],
+          "practice": "available"
         },
         {
           "number": 10,
@@ -195,7 +203,8 @@
             "Describe",
             "Represent",
             "Explain"
-          ]
+          ],
+          "practice": "available"
         },
         {
           "number": 11,
@@ -215,7 +224,8 @@
             "Represent",
             "Quantify",
             "Extend and apply"
-          ]
+          ],
+          "practice": "available"
         },
         {
           "number": 12,
@@ -235,7 +245,8 @@
             "Direction",
             "Convert",
             "Limits"
-          ]
+          ],
+          "practice": "available"
         }
       ]
     }

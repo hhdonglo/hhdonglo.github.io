@@ -51,8 +51,14 @@ R.weekly=function(el,d){
   el.innerHTML=d.groups.map(function(g){
     return '<div class="week-group" id="'+esc(g.id)+'"><h4 class="grp">'+md(g.title)+'</h4><p class="sec-sub">'+md(g.subtitle)+'</p><ul class="weeks">'+g.lectures.map(function(l){
       var n=l.number,soon=l.status==="soon";
-      return '<li class="week'+(soon?' soon':'')+'" id="lecture-'+n+'"><span class="wk">Week '+n+'</span><span class="wt"><a href="'+lpage(n)+'">'+(soon?'Coming soon':md(l.title))+'</a><span class="state'+(soon?'':' ok')+'">'+(soon?'Coming soon':'Available')+'</span></span><span class="ws">'+md(soon?(l.note||"Materials are being prepared."):l.summary)+'</span>'+(soon?'':'<span class="wl"><a href="'+esc(l.slides)+'">Slides<span class="vh"> for lecture '+n+'</span></a> <a href="'+lpage(n)+'#practice">Practice questions<span class="vh"> for lecture '+n+'</span></a></span>')+'</li>'}).join("")+'</ul></div>'}).join("");
+      return '<li class="week'+(soon?' soon':'')+'" id="lecture-'+n+'"><span class="wk">Week '+n+'</span><span class="wt"><a href="'+lpage(n)+'">'+(soon?'Coming soon':md(l.title))+'</a><span class="state'+(soon?'':' ok')+'">'+(soon?'Coming soon':'Available')+'</span></span><span class="ws">'+md(soon?(l.note||"Materials are being prepared."):l.summary)+'</span>'+(soon?'':'<span class="wl">'+[wlink(l.slides,"Slides",n),wlink(l.supplement,"Supplementary",n),wlink(l.tutorial,"Tutorial",n),wlink(l.practice==="soon"?"":lpage(n)+"#practice","Practice questions",n)].join(" ")+'</span>')+'</li>'}).join("")+'</ul></div>'}).join("");
 };
+function lbtn(url,label,n,primary){
+  var sr='<span class="vh"> for lecture '+n+'</span>';
+  if(!url)return '<span class="btn off" aria-disabled="true">'+esc(label)+'<small>Coming soon</small>'+sr+'</span>';
+  return '<a class="btn'+(primary?' primary':'')+'" href="'+esc(url)+'">'+esc(label)+sr+'</a>';
+}
+function wlink(url,label,n){return url?'<a href="'+esc(url)+'">'+esc(label)+'<span class="vh"> for lecture '+n+'</span></a>':'<span class="muted">'+esc(label)+': coming soon</span>'}
 R.lecture=function(el,d,site){
   var all=flat(d),n=+el.getAttribute("data-n"),i=all.findIndex(function(x){return x.l.number===n});if(i<0)return;
   var l=all[i].l,soon=l.status==="soon",course=d.course_title||"PHYS 143",title="Lecture "+ln(n)+" — "+(soon?"Coming soon":l.title);
@@ -63,12 +69,11 @@ R.lecture=function(el,d,site){
   var out='';
   if(soon){out+='<div class="ov-card"><p>This lecture will be added when it is ready.</p></div>'}
   else{
-    out+='<p class="lecture-actions"><a class="btn primary" href="'+esc(l.slides)+'">Open lecture slides<span class="vh"> for lecture '+n+'</span></a></p>';
+    out+='<div class="lecture-buttons" role="group" aria-label="Lecture resources">'+lbtn(l.slides,"Open lecture slides",n,true)+lbtn(l.supplement,"Supplementary",n)+lbtn(l.tutorial,"Tutorial",n)+lbtn(l.practice==="soon"?"":"#practice","Practice questions",n)+'</div>';
     out+='<details class="fold" id="objectives" open><summary>Learning objectives</summary><div class="ov-card"><p>Students should be able to:</p>'+list(l.outcomes||[],"")+'</div></details>';
     var focus=l.contact_focus||[];
-    var res=[ [link(l.slides,"Lecture slides (PDF)")], [l.tutorial?link(l.tutorial,"Tutorial sheet (PDF)"):'<span class="muted">Tutorial sheet: not available yet</span>',link("#practice","Practice questions for this lecture")], [l.supplement?link(l.supplement,"Supplementary note (PDF)"):'<span class="muted">Supplementary note: not available yet</span>'] ];
     (d.contacts||[]).forEach(function(c,k){
-      out+='<details class="fold" id="contact-'+(k+1)+'"><summary>'+md(c.heading)+'</summary><div class="ov-card"><p>'+md(c.purpose)+(focus[k]?' <span class="muted">Focus: '+esc(focus[k])+'.</span>':'')+'</p><ul class="res">'+(res[k]||[]).map(function(x){return '<li>'+x+'</li>'}).join("")+'</ul></div></details>';});
+      out+='<details class="fold" id="contact-'+(k+1)+'"><summary>'+md(c.heading)+'</summary><div class="ov-card"><p>'+md(c.purpose)+(focus[k]?' <span class="muted">Focus: '+esc(focus[k])+'.</span>':'')+'</p></div></details>';});
     out+='<details class="fold" id="practice"><summary>Practice questions</summary><div class="ov-card"><p>Twenty multiple-choice questions on this lecture, with feedback after every answer. For practice, not assessment. Progress and best scores are stored only in this browser; nothing is sent anywhere.</p><div id="quiz-app" class="quiz" data-lecture="'+n+'"><noscript>The practice questions need JavaScript. Please enable it in your browser.</noscript></div></div></details>';
   }
   var prev=all[i-1],next=all[i+1];

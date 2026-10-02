@@ -458,14 +458,21 @@ content:
         type: string
         list: true
       - name: slides
-        label: Slides PDF path
+        label: 'Button: Open lecture slides (PDF path; leave empty for Coming soon)'
         type: string
       - name: tutorial
-        label: Tutorial PDF path
+        label: 'Button: Tutorial (PDF path; leave empty for Coming soon)'
         type: string
       - name: supplement
-        label: Supplement PDF path
+        label: 'Button: Supplementary (PDF path; leave empty for Coming soon)'
         type: string
+      - name: practice
+        label: 'Button: Practice questions'
+        type: select
+        options:
+          values:
+          - available
+          - soon
       - name: contact_focus
         label: Focus words for contacts 1, 2 and 3
         type: string

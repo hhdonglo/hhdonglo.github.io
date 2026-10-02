@@ -365,3 +365,11 @@ ul.weeks{list-style:none;margin:.4rem 0 0;padding:0}
 #quiz-app .row{margin-top:1rem}
 
 @media (max-width:420px){.pager{gap:.2rem;font-size:.8rem}.pager a{padding:.3rem 0}}
+
+/* ---- lecture page quick-access buttons ---- */
+.lecture-buttons{display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;margin:1.1rem 0 1.4rem}
+.lecture-buttons .btn{min-height:64px;flex-direction:column;gap:.1rem;font-size:1.02rem;padding:.6rem .8rem;text-align:center}
+.lecture-buttons .btn small{font:600 .78rem system-ui,sans-serif}
+.btn.off{border-style:dashed;color:var(--muted);background:transparent;cursor:not-allowed;display:inline-flex;align-items:center;justify-content:center}
+@media (max-width:700px){.lecture-buttons{grid-template-columns:1fr 1fr}.lecture-buttons .btn{min-height:72px}}
+.week .wl{display:flex;flex-wrap:wrap;gap:.2rem .9rem}
