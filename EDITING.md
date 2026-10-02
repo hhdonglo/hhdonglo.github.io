@@ -76,4 +76,4 @@ Every form edits one file in the `data` folder (`data/pages/*.json`, `data/resea
 
 ## Page addresses
 
-`projects.html` and `student-research.html` replaced `data-science.html` and `students.html`. The old addresses stay in the repository as small redirect pages, so old links still work. Do not delete them.
+`data-computation.html` and `students.html` replaced `data-computation.html` and `students.html`. The old addresses stay in the repository as small redirect pages, so old links still work. Do not delete them.

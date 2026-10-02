@@ -1,90 +1,70 @@
 {
-  "eyebrow": "Hope Donglo, PhD",
-  "role": "Lecturer · Theoretical Nuclear Physics",
-  "statement": "Theoretical nuclear physics research on the reaction mechanisms that govern the formation of superheavy nuclei, using stochastic dynamics and uncertainty quantification to test and constrain nuclear reaction models.",
+  "eyebrow": "Hope Donglo",
+  "role": "Lecturer in Physics · University of Ghana",
+  "statement": "Theoretical nuclear physicist working on the reaction mechanisms that govern the formation of superheavy nuclei, with stochastic dynamics and uncertainty quantification as the principal methods. Teaches undergraduate physics, including PHYS 143, and leads laboratory sessions.",
   "primary_button": {
-    "label": "Explore my research →",
+    "label": "Explore Research →",
     "url": "research.html"
   },
   "secondary_button": {
-    "label": "View my CV",
+    "label": "View CV →",
     "url": "cv.html"
   },
   "pathways": [
     {
       "label": "Research",
-      "title": "Understanding the formation of heavy and superheavy nuclei",
-      "text": "Heavy-ion reactions · Langevin dynamics · Superheavy elements · Uncertainty quantification",
-      "link_label": "Explore research →",
+      "title": "Reaction mechanisms in superheavy element formation",
+      "text": "Research on the reaction mechanisms governing the formation of heavy and superheavy nuclei, with emphasis on theoretical modelling, fusion dynamics and fusion–evaporation reactions.",
+      "link_label": "Explore Research →",
       "url": "research.html"
     },
     {
       "label": "Teaching",
-      "title": "Physics resources for students",
-      "text": "PHYS 143, laboratory resources, tutorials, supplementary notes and interactive practice questions",
-      "link_label": "Explore teaching →",
+      "title": "Undergraduate physics resources",
+      "text": "Slide decks, tutorials, supplementary notes and practice questions for undergraduate physics courses.",
+      "link_label": "Explore Teaching →",
       "url": "teaching.html"
     },
     {
-      "label": "Projects",
-      "title": "Data science projects",
-      "text": "Data engineering and machine learning projects, with reproducible pipelines, complementary to the physics research",
-      "link_label": "View projects →",
-      "url": "projects.html"
+      "label": "Data & Computation",
+      "title": "Data science and scientific computing",
+      "text": "Data engineering and data science projects, and the scientific computing that supports the research.",
+      "link_label": "Explore Data & Computation →",
+      "url": "data-computation.html"
     }
   ],
-  "publications_heading": "Selected publications",
-  "publications_link_label": "All publications →",
-  "currently_heading": "Currently",
-  "shortcuts_heading": "Find your way",
-  "shortcuts": [
+  "selected_heading": "Selected Research",
+  "selected": [
     {
-      "title": "I am a researcher",
-      "links": [
-        {
-          "label": "Research",
-          "url": "research.html"
-        },
-        {
-          "label": "Publications",
-          "url": "publications.html"
-        },
-        {
-          "label": "Projects",
-          "url": "projects.html"
-        }
-      ]
+      "title": "Fusion Dynamics",
+      "status": "Manuscript in preparation",
+      "text": "Revisiting the fusion dynamics in the fusion-by-diffusion model for fusion–evaporation production cross sections.",
+      "link_label": "Learn more →",
+      "url": "research.html#projects"
     },
     {
-      "title": "I am a student",
-      "links": [
-        {
-          "label": "Teaching",
-          "url": "teaching.html"
-        },
-        {
-          "label": "PHYS 143",
-          "url": "phys143.html"
-        },
-        {
-          "label": "Student Research",
-          "url": "student-research.html"
-        }
-      ]
+      "title": "KEWPIE3 Development and Validation",
+      "status": "Current project",
+      "text": "Validation of KEWPIE3, the new version of the KEWPIE2 code for fusion–evaporation cross-section predictions in superheavy element synthesis.",
+      "link_label": "Learn more →",
+      "url": "research.html#projects"
     },
     {
-      "title": "I am looking for the CV",
-      "links": [
-        {
-          "label": "CV page",
-          "url": "cv.html"
-        },
-        {
-          "label": "Download PDF",
-          "url": "cv/Hope_Donglo_CV.pdf"
-        }
-      ]
+      "title": "Uncertainty Analysis of Nuclear Reaction Models",
+      "status": "Manuscript in preparation",
+      "text": "Constraining the compound nucleus formation probability in superheavy element synthesis through systematic uncertainty analysis.",
+      "link_label": "Learn more →",
+      "url": "research.html#projects"
+    },
+    {
+      "title": "Superheavy Element Synthesis",
+      "status": "Research area",
+      "text": "Theoretical investigation of the reaction mechanisms relevant to the synthesis of heavy and superheavy nuclei, including production cross-sections for Z = 119 and Z = 120.",
+      "link_label": "Learn more →",
+      "url": "research.html#themes"
     }
   ],
-  "affiliation_line": "Department of Physics, University of Ghana."
+  "profiles_heading": "Academic Profiles",
+  "cv_label": "CV",
+  "cv_url": "cv.html"
 }

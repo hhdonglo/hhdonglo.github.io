@@ -102,7 +102,7 @@
       ]
     },
     {
-      "id": "course-info-fold",
+      "id": "course-info",
       "fold": true,
       "heading": "Course Information",
       "subtitle": "Reference material, expected skills and applications",

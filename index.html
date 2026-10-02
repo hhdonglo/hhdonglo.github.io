@@ -7,7 +7,7 @@
 <title>Hope Donglo, Academic Website</title>
 <meta name="description" content="Hope Donglo, theoretical nuclear physicist. Research on the reaction mechanisms that govern the formation of superheavy nuclei, with publications, teaching resources and CV.">
 <link rel="stylesheet" href="assets/site.css">
-<script>(function(){var h=location.hash.slice(1);if(!h)return;var m={about:"about.html",research:"research.html",themes:"research.html",projects:"research.html",publications:"publications.html",teaching:"teaching.html","research-informed":"teaching.html",lab:"laboratory.html",uncertainty:"laboratory.html",students:"student-research.html",cv:"cv.html",contact:"contact.html","level-100":"phys143.html"};var t=m[h];if(!t&&/^(lecture-\d+|mechanics|thermal|overview|course-info|ov-.*|t\d+|level-100-h)$/.test(h))t="phys143.html";if(t)location.replace(t+"#"+h);})();</script>
+<script>(function(){var h=location.hash.slice(1);if(!h)return;var m={about:"about.html",research:"research.html",themes:"research.html",projects:"research.html",publications:"publications.html",teaching:"teaching.html","research-informed":"teaching.html",lab:"laboratory.html",uncertainty:"laboratory.html",students:"students.html",cv:"cv.html",contact:"contact.html","level-100":"phys143.html"};var t=m[h];if(!t&&/^(lecture-\d+|mechanics|thermal|overview|course-info|ov-.*|t\d+|level-100-h)$/.test(h))t="phys143.html";if(t)location.replace(t+"#"+h);})();</script>
 <script>if(!location.hash){if("scrollRestoration" in history)history.scrollRestoration="manual";window.addEventListener("pageshow",function(){if(!location.hash)window.scrollTo({top:0,left:0,behavior:"instant"})});}</script>
 </head>
 <body>
@@ -15,70 +15,24 @@
 <header class="banner">
 <div class="wrap">
 <h1><a class="home-link" href="index.html">Hope Donglo, Academic Website</a></h1>
-<p class="areas" data-render="banner-areas">Theoretical Nuclear Physics &bull; Heavy-Ion Reactions &bull; Superheavy Element Synthesis &bull; Uncertainty Quantification</p>
+<p class="areas" data-render="banner-areas">Theoretical Nuclear Physics · Heavy-Ion Reactions · Superheavy Elements</p>
 </div>
 </header>
-<nav class="jump" id="jump" aria-label="Sections"><div class="wrap"><button type="button" class="menu-btn" aria-expanded="false" aria-controls="jump-links"><span>Menu</span><span class="dots" aria-hidden="true">&#8943;</span></button><div class="links" id="jump-links"><a href="index.html" aria-current="page">Home</a><a href="research.html">Research</a><a href="teaching.html">Teaching</a><a href="projects.html">Projects</a><a href="publications.html">Publications</a><a href="cv.html">CV</a><a href="about.html">About</a><a href="contact.html">Contact</a></div></div></nav>
+<nav class="jump" id="jump" aria-label="Sections"><div class="wrap"><button type="button" class="menu-btn" aria-expanded="false" aria-controls="jump-links"><span>Menu</span><span class="dots" aria-hidden="true">&#8943;</span></button><div class="links" id="jump-links"><a href="index.html" aria-current="page">Home</a><a href="research.html">Research</a><a href="teaching.html">Teaching</a><a href="data-computation.html">Data &amp; Computation</a><a href="students.html">Students</a><a href="about.html">About</a><a href="cv.html" class="util first">CV</a><a href="publications.html" class="util">Publications</a><a href="contact.html" class="util">Contact</a></div></div></nav>
 <main id="main"><div class="wrap">
 <section aria-labelledby="home" id="home-sec">
 <h2 id="home" class="vh">Home</h2>
 <div class="hero">
 <img class="photo" src="assets/hope-donglo.webp" width="480" height="600" alt="Portrait photograph of Hope Donglo">
-<div data-render="home-hero">
-<p class="eyebrow">Hope Donglo, PhD</p>
-<p class="role">Lecturer &middot; Theoretical Nuclear Physics</p>
-<p class="statement">Theoretical nuclear physics research on the reaction mechanisms that govern the formation of superheavy nuclei, using stochastic dynamics and uncertainty quantification to test and constrain nuclear reaction models.</p>
-<div class="links-row">
-<a class="btn primary" href="research.html">Explore my research &rarr;</a>
-<a class="btn" href="cv.html">View my CV</a>
-</div>
-<p class="ext-links"><a href="https://scholar.google.com/citations?user=QW32BboAAAAJ&amp;hl=en" rel="noopener">Google Scholar &#8599;</a> <a href="https://orcid.org/0009-0003-6142-8780" rel="noopener">ORCID &#8599;</a> <a href="https://github.com/hhdonglo" rel="noopener">GitHub &#8599;</a> <a href="https://www.linkedin.com/in/hopedonglo" rel="noopener">LinkedIn &#8599;</a></p>
-</div>
+<div data-render="home-hero"><p class="eyebrow">Hope Donglo</p><p class="role">Lecturer in Physics · University of Ghana</p><p class="statement">Theoretical nuclear physicist working on the reaction mechanisms that govern the formation of superheavy nuclei, with stochastic dynamics and uncertainty quantification as the principal methods. Teaches undergraduate physics, including PHYS 143, and leads laboratory sessions.</p><div class="links-row"><a class="btn primary" href="research.html">Explore Research →</a><a class="btn" href="cv.html">View CV →</a></div></div>
 </div>
 </section>
-
-<section aria-labelledby="paths">
-<h2 id="paths" class="vh">Where to start</h2>
-<div class="grid paths" data-render="home-paths">
-<a class="path" href="research.html"><span class="num">Research</span><strong>Understanding the formation of heavy and superheavy nuclei</strong><span>Heavy-ion reactions &middot; Langevin dynamics &middot; Superheavy elements &middot; Uncertainty quantification</span><span class="go">Explore research &rarr;</span></a>
-<a class="path" href="teaching.html"><span class="num">Teaching</span><strong>Physics resources for students</strong><span>PHYS 143, laboratory resources, tutorials, supplementary notes and interactive practice questions</span><span class="go">Explore teaching &rarr;</span></a>
-<a class="path" href="projects.html"><span class="num">Projects</span><strong>Data science projects</strong><span>Data engineering and machine learning projects, with reproducible pipelines, complementary to the physics research</span><span class="go">View projects &rarr;</span></a>
-</div>
-</section>
-
-<section aria-labelledby="selected-pubs" class="home-sec" data-render="home-pubs">
-<h2 id="selected-pubs">Selected publications</h2>
-<ul class="refs sel">
-<li><span class="yr">2026</span><span>Probing SHN structure and stability: synthesis and decay studies at S<sup>3</sup>. D. Ackermann, F. Agert, A. Bahini, D. Boilley, <strong>H. Donglo</strong> et al. <em>Acta Physica Polonica B</em>, Vol. 19 (2026).</span></li>
-<li><span class="yr">2024</span><span>Study of reaction mechanisms for the synthesis of superheavy elements. PhD thesis, University of Caen Normandy.</span></li>
-<li><span class="yr">Preprint</span><span>Nuclear structure of even-even argon isotopes within the axial symmetry conserving configuration mixing framework. <strong>H. Donglo</strong> and T. R. Rodr&iacute;guez Frutos. HAL <a href="https://hal.science/hal-05677054" rel="noopener">hal-05677054</a>.</span></li>
-</ul>
-<p><a class="more" href="publications.html">All publications &rarr;</a></p>
-</section>
-
-<section aria-labelledby="currently" class="home-sec" data-render="home-current">
-<h2 id="currently">Currently</h2>
-<ul class="chips"><li>KEWPIE3 development and validation</li><li>Fusion dynamics and fusion-by-diffusion modelling</li><li>Uncertainty analysis of nuclear reaction models</li></ul>
-</section>
-
-<section aria-labelledby="shortcuts" class="home-sec" data-render="home-find">
-<h2 id="shortcuts">Find your way</h2>
-<div class="grid shortcuts">
-<div class="ov-card"><h3 class="h4">I am a researcher</h3><p><a href="research.html">Research</a> &middot; <a href="publications.html">Publications</a> &middot; <a href="projects.html">Projects</a></p></div>
-<div class="ov-card"><h3 class="h4">I am a student</h3><p><a href="teaching.html">Teaching</a> &middot; <a href="phys143.html">PHYS 143</a> &middot; <a href="student-research.html">Student Research</a></p></div>
-<div class="ov-card"><h3 class="h4">I am looking for the CV</h3><p><a href="cv.html">CV page</a> &middot; <a href="cv/Hope_Donglo_CV.pdf">Download PDF</a></p></div>
-</div>
-<p class="affil">Department of Physics, University of Ghana.</p>
-</section>
+<section aria-labelledby="paths"><h2 id="paths" class="vh">Where to start</h2>
+<div class="grid paths" data-render="home-paths"><a class="path" href="research.html"><span class="num">Research</span><strong>Reaction mechanisms in superheavy element formation</strong><span>Research on the reaction mechanisms governing the formation of heavy and superheavy nuclei, with emphasis on theoretical modelling, fusion dynamics and fusion–evaporation reactions.</span><span class="go">Explore Research →</span></a><a class="path" href="teaching.html"><span class="num">Teaching</span><strong>Undergraduate physics resources</strong><span>Slide decks, tutorials, supplementary notes and practice questions for undergraduate physics courses.</span><span class="go">Explore Teaching →</span></a><a class="path" href="data-computation.html"><span class="num">Data &amp; Computation</span><strong>Data science and scientific computing</strong><span>Data engineering and data science projects, and the scientific computing that supports the research.</span><span class="go">Explore Data &amp; Computation →</span></a></div></section>
+<section aria-labelledby="selected-research" class="home-sec" data-render="home-selected"><h2 id="selected-research">Selected Research</h2><div class="grid selected"><article class="sel-card"><p class="status">Manuscript in preparation</p><h3 class="h4">Fusion Dynamics</h3><p>Revisiting the fusion dynamics in the fusion-by-diffusion model for fusion–evaporation production cross sections.</p><p><a class="more" href="research.html#projects">Learn more →</a></p></article><article class="sel-card"><p class="status">Current project</p><h3 class="h4">KEWPIE3 Development and Validation</h3><p>Validation of KEWPIE3, the new version of the KEWPIE2 code for fusion–evaporation cross-section predictions in superheavy element synthesis.</p><p><a class="more" href="research.html#projects">Learn more →</a></p></article><article class="sel-card"><p class="status">Manuscript in preparation</p><h3 class="h4">Uncertainty Analysis of Nuclear Reaction Models</h3><p>Constraining the compound nucleus formation probability in superheavy element synthesis through systematic uncertainty analysis.</p><p><a class="more" href="research.html#projects">Learn more →</a></p></article><article class="sel-card"><p class="status">Research area</p><h3 class="h4">Superheavy Element Synthesis</h3><p>Theoretical investigation of the reaction mechanisms relevant to the synthesis of heavy and superheavy nuclei, including production cross-sections for Z = 119 and Z = 120.</p><p><a class="more" href="research.html#themes">Learn more →</a></p></article></div></section>
+<section aria-labelledby="profiles" class="home-sec" data-render="home-profiles"><h2 id="profiles">Academic Profiles</h2><p class="ext-links"><a href="https://scholar.google.com/citations?user=QW32BboAAAAJ&amp;hl=en" rel="noopener">Google Scholar ↗</a> <a href="https://orcid.org/0009-0003-6142-8780" rel="noopener">ORCID ↗</a> <a href="https://github.com/hhdonglo" rel="noopener">GitHub ↗</a> <a href="https://www.linkedin.com/in/hopedonglo" rel="noopener">LinkedIn ↗</a> <a href="cv.html">CV</a></p></section>
 </main>
-<footer data-render="footer"><div class="wrap">
-<div class="foot-grid">
-<div><p class="foot-name">Hope Donglo, PhD</p><p>Theoretical nuclear physics</p><p><a href="mailto:hdonglo@ug.edu.gh">hdonglo@ug.edu.gh</a></p></div>
-<nav aria-label="Footer"><ul><li><a href="research.html">Research</a></li><li><a href="teaching.html">Teaching</a></li><li><a href="projects.html">Projects</a></li><li><a href="publications.html">Publications</a></li><li><a href="cv.html">CV</a></li><li><a href="contact.html">Contact</a></li></ul></nav>
-<ul class="foot-ext"><li><a href="https://scholar.google.com/citations?user=QW32BboAAAAJ&amp;hl=en" rel="noopener">Google Scholar &#8599;</a></li><li><a href="https://orcid.org/0009-0003-6142-8780" rel="noopener">ORCID &#8599;</a></li><li><a href="https://github.com/hhdonglo" rel="noopener">GitHub &#8599;</a></li><li><a href="https://www.linkedin.com/in/hopedonglo" rel="noopener">LinkedIn &#8599;</a></li></ul>
-</div>
-<p class="foot-note">&copy; 2026 Hope Donglo. Independent academic website. University of Ghana students should visit Sakai for official course information.</p>
-</div></footer>
+<footer data-render="footer"><div class="wrap"><div class="foot-grid"><div><p class="foot-name">Hope Donglo, PhD</p><p>Lecturer in Physics · University of Ghana</p></div><nav aria-label="Footer"><ul><li><a href="research.html">Research</a></li><li><a href="teaching.html">Teaching</a></li><li><a href="data-computation.html">Data &amp; Computation</a></li><li><a href="about.html">About</a></li><li><a href="contact.html">Contact</a></li></ul></nav><ul class="foot-ext"><li><a href="https://scholar.google.com/citations?user=QW32BboAAAAJ&amp;hl=en" rel="noopener">Google Scholar ↗</a></li><li><a href="https://orcid.org/0009-0003-6142-8780" rel="noopener">ORCID ↗</a></li><li><a href="https://github.com/hhdonglo" rel="noopener">GitHub ↗</a></li></ul></div><p class="foot-note">© 2026 Hope Donglo. Independent academic website. University of Ghana students should visit Sakai for official course information.</p></div></footer>
 <script src="assets/render.js"></script>
 <script src="assets/site.js"></script>
 </body>

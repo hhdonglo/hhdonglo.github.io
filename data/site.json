@@ -9,22 +9,27 @@
   "profiles": [
     {
       "label": "Google Scholar",
-      "url": "https://scholar.google.com/citations?user=QW32BboAAAAJ&hl=en"
+      "url": "https://scholar.google.com/citations?user=QW32BboAAAAJ&hl=en",
+      "in_footer": true
     },
     {
       "label": "ORCID",
-      "url": "https://orcid.org/0009-0003-6142-8780"
+      "url": "https://orcid.org/0009-0003-6142-8780",
+      "in_footer": true
     },
     {
       "label": "GitHub",
-      "url": "https://github.com/hhdonglo"
+      "url": "https://github.com/hhdonglo",
+      "in_footer": true
     },
     {
       "label": "LinkedIn",
-      "url": "https://www.linkedin.com/in/hopedonglo"
+      "url": "https://www.linkedin.com/in/hopedonglo",
+      "in_footer": false
     }
   ],
   "footer_note": "© 2026 Hope Donglo. Independent academic website. University of Ghana students should visit Sakai for official course information.",
-  "banner_areas": "Theoretical Nuclear Physics • Heavy-Ion Reactions • Superheavy Element Synthesis • Uncertainty Quantification",
-  "banner_field": "Theoretical Nuclear Physics"
+  "banner_areas": "Theoretical Nuclear Physics · Heavy-Ion Reactions · Superheavy Elements",
+  "banner_field": "Theoretical Nuclear Physics",
+  "footer_position": "Lecturer in Physics · University of Ghana"
 }

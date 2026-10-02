@@ -58,10 +58,9 @@ R.contact=function(el,d,site){
 R["contact-profiles"]=function(el,d,site){el.innerHTML=site.profiles.map(function(p){return '<li>'+link(p.url,esc(p.label)+" &#8599;",true)+'</li>'}).join("")};
 R["contact-mail"]=function(el,d,site){el.setAttribute("href","mailto:"+site.email);el.textContent="Email "+site.email};
 R.footer=function(el,d,site){
-  var navs=[["research.html","Research"],["teaching.html","Teaching"],["projects.html","Projects"],["publications.html","Publications"],["cv.html","CV"],["contact.html","Contact"]];
-  el.innerHTML='<div class="wrap"><div class="foot-grid"><div><p class="foot-name">'+esc(site.name)+'</p><p>'+esc(site.field)+'</p><p>'+link("mailto:"+site.email,esc(site.email))+'</p></div><nav aria-label="Footer"><ul>'+navs.map(function(n){return '<li>'+link(n[0],n[1])+'</li>'}).join("")+'</ul></nav><ul class="foot-ext">'+site.profiles.map(function(p){return '<li>'+link(p.url,esc(p.label)+" &#8599;",true)+'</li>'}).join("")+'</ul></div><p class="foot-note">'+esc(site.footer_note)+'</p></div>';
+  var navs=[["research.html","Research"],["teaching.html","Teaching"],["data-computation.html","Data &amp; Computation"],["about.html","About"],["contact.html","Contact"]];
+  el.innerHTML='<div class="wrap"><div class="foot-grid"><div><p class="foot-name">'+esc(site.name)+'</p><p>'+esc(site.footer_position||site.field)+'</p></div><nav aria-label="Footer"><ul>'+navs.map(function(n){return '<li>'+link(n[0],n[1])+'</li>'}).join("")+'</ul></nav><ul class="foot-ext">'+site.profiles.filter(function(p){return p.in_footer!==false}).map(function(p){return '<li>'+link(p.url,esc(p.label)+" &#8599;",true)+'</li>'}).join("")+'</ul></div><p class="foot-note">'+esc(site.footer_note)+'</p></div>';
 };
-
 /* ---- generic pages: data/pages/*.json ---- */
 function sub(o,site){return JSON.parse(JSON.stringify(o).replace(/\{(email|email_alt|phone_display|office)\}/g,function(m,k){return JSON.stringify(site[k]||"").slice(1,-1)}))}
 function list(items,style){
@@ -129,16 +128,15 @@ R.page=function(el,d,site){
 };
 /* ---- home page ---- */
 R["home-hero"]=function(el,d,site){
-  el.innerHTML='<p class="eyebrow">'+md(d.eyebrow)+'</p><p class="role">'+md(d.role)+'</p><p class="statement">'+md(d.statement)+'</p><div class="links-row"><a class="btn primary" href="'+esc(d.primary_button.url)+'">'+esc(d.primary_button.label)+'</a><a class="btn" href="'+esc(d.secondary_button.url)+'">'+esc(d.secondary_button.label)+'</a></div><p class="ext-links">'+profiles(site," ")+'</p>';
+  el.innerHTML='<p class="eyebrow">'+md(d.eyebrow)+'</p><p class="role">'+md(d.role)+'</p><p class="statement">'+md(d.statement)+'</p><div class="links-row"><a class="btn primary" href="'+esc(d.primary_button.url)+'">'+esc(d.primary_button.label)+'</a><a class="btn" href="'+esc(d.secondary_button.url)+'">'+esc(d.secondary_button.label)+'</a></div>';
 };
 R["home-paths"]=function(el,d){el.innerHTML=d.pathways.map(function(p){return '<a class="path" href="'+esc(p.url)+'"><span class="num">'+esc(p.label)+'</span><strong>'+md(p.title)+'</strong><span>'+md(p.text)+'</span><span class="go">'+esc(p.link_label)+'</span></a>'}).join("")};
-R["home-pubs"]=function(el,d){var h=d[0],p=d[1];el.innerHTML='<h2 id="selected-pubs">'+md(h.publications_heading)+'</h2><ul class="refs sel">'+p.home.map(function(i){return '<li><span class="yr">'+esc(i.label)+'</span><span>'+md(i.text)+'</span></li>'}).join("")+'</ul><p><a class="more" href="publications.html">'+esc(h.publications_link_label)+'</a></p>'};
-R["home-current"]=function(el,d){var h=d[0],r=d[1];el.innerHTML='<h2 id="currently">'+md(h.currently_heading)+'</h2><ul class="chips">'+r.current.map(function(c){return '<li>'+md(c.chip||c.title)+'</li>'}).join("")+'</ul>'};
-R["home-find"]=function(el,d){el.innerHTML='<h2 id="shortcuts">'+md(d.shortcuts_heading)+'</h2><div class="grid shortcuts">'+d.shortcuts.map(function(x){return '<div class="ov-card"><h3 class="h4">'+md(x.title)+'</h3><p>'+x.links.map(function(l){return link(l.url,esc(l.label))}).join(" &middot; ")+'</p></div>'}).join("")+'</div><p class="affil">'+md(d.affiliation_line)+'</p>'};
+R["home-selected"]=function(el,d){el.innerHTML='<h2 id="selected-research">'+md(d.selected_heading)+'</h2><div class="grid selected">'+d.selected.map(function(x){return '<article class="sel-card"><p class="status">'+md(x.status)+'</p><h3 class="h4">'+md(x.title)+'</h3><p>'+md(x.text)+'</p><p><a class="more" href="'+esc(x.url)+'">'+esc(x.link_label||"Learn more →")+'</a></p></article>'}).join("")+'</div>'};
+R["home-profiles"]=function(el,d,site){el.innerHTML='<h2 id="profiles">'+md(d.profiles_heading)+'</h2><p class="ext-links">'+profiles(site," ")+" "+link(d.cv_url,esc(d.cv_label))+'</p>'};
 R["banner-areas"]=function(el,d,site){if(site.banner_areas)el.textContent=site.banner_areas};
 R["banner-field"]=function(el,d,site){if(site.banner_field)el.textContent=site.banner_field};
 
-var files={publications:"publications",research:"research","research-lead":"research","research-areas":"research","research-current":"research","research-previous":"research",projects:"projects",lectures:"lectures","home-hero":"home","home-paths":"home","home-pubs":["home","publications"],"home-current":["home","research"],"home-find":"home"};
+var files={publications:"publications",research:"research","research-lead":"research","research-areas":"research","research-current":"research","research-previous":"research",projects:"projects",lectures:"lectures","home-hero":"pages/home","home-paths":"pages/home","home-selected":"pages/home","home-profiles":"pages/home"};
 var cache={};function load(n){return cache[n]||(cache[n]=get(n))}
 var pending=[];
 document.querySelectorAll("[data-render]").forEach(function(el){var k=el.getAttribute("data-render"),f=files[k];

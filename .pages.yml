@@ -28,10 +28,10 @@ content:
     label: Name line
     type: string
   - name: role
-    label: Role line
+    label: Position line
     type: string
   - name: statement
-    label: Statement
+    label: Introduction (2 to 3 sentences)
     type: text
   - name: primary_button
     label: Main button
@@ -54,7 +54,7 @@ content:
       label: Link
       type: string
   - name: pathways
-    label: Three pathways
+    label: Three main cards
     type: object
     fields:
     - name: label
@@ -73,39 +73,37 @@ content:
       label: Link
       type: string
     list: true
-  - name: publications_heading
-    label: Selected publications heading
+  - name: selected_heading
+    label: Selected research heading
     type: string
-  - name: publications_link_label
-    label: All publications link text
-    type: string
-  - name: currently_heading
-    label: Currently heading
-    type: string
-  - name: shortcuts_heading
-    label: Shortcuts heading
-    type: string
-  - name: shortcuts
-    label: Shortcuts
+  - name: selected
+    label: Selected research (3 or 4)
     type: object
     fields:
     - name: title
       label: Title
       type: string
-    - name: links
-      label: Links
-      type: object
-      fields:
-      - name: label
-        label: Text
-        type: string
-      - name: url
-        label: Link
-        type: string
-      list: true
+    - name: status
+      label: Status or topic
+      type: string
+    - name: text
+      label: One-sentence description
+      type: text
+    - name: link_label
+      label: Link text
+      type: string
+    - name: url
+      label: Link
+      type: string
     list: true
-  - name: affiliation_line
-    label: Plain affiliation line
+  - name: profiles_heading
+    label: Academic profiles heading
+    type: string
+  - name: cv_label
+    label: CV link text
+    type: string
+  - name: cv_url
+    label: CV link
     type: string
 - name: research
   label: Research
@@ -434,6 +432,10 @@ content:
       - name: supplement
         label: Supplement PDF path
         type: string
+      - name: contact_focus
+        label: Focus words for contacts 1, 2 and 3
+        type: string
+        list: true
       list: true
     list: true
 - name: quizzes
@@ -501,10 +503,10 @@ content:
     type: object
     fields: *id002
     list: true
-- name: student-research
-  label: 'Teaching: Student Research'
+- name: students
+  label: Students
   type: file
-  path: data/pages/student-research.json
+  path: data/pages/students.json
   format: json
   fields:
   - name: title
@@ -708,6 +710,9 @@ content:
   - name: office
     label: Office
     type: string
+  - name: footer_position
+    label: Position line in the footer
+    type: string
   - name: banner_areas
     label: Home banner line
     type: string
@@ -727,4 +732,7 @@ content:
     - name: url
       label: Address
       type: string
+    - name: in_footer
+      label: Show in footer
+      type: boolean
     list: true

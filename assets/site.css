@@ -283,3 +283,19 @@ table.lectures tr.soon{opacity:1}
 :root{--off:#6b7585}
 @media (prefers-color-scheme:dark){:root{--off:#8d99ad}}
 .foot-grid li a,.foot-grid p a{display:inline-block;padding:.2rem 0;min-height:24px}
+
+/* Navigation: primary links first, utility links set apart */
+@media (min-width:721px){
+nav.jump .links{width:100%;align-items:center}
+nav.jump .links a.util{font-size:.88rem;opacity:.9}
+nav.jump .links a.util.first{margin-left:auto}
+}
+@media (max-width:720px){nav.jump.js .links a.util{font-size:.92rem;background:var(--bg)}nav.jump.js .links a.util.first{border-top:3px solid var(--border)}}
+nav.jump a[aria-current]{font-weight:700}
+
+/* Home: selected research */
+.selected{margin-top:.8rem;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.4rem 2.2rem}
+.sel-card{border-top:2px solid var(--border);padding-top:.7rem}
+.sel-card h3.h4{margin:.15rem 0 .3rem;font-size:1.15rem;color:var(--navy)}
+.sel-card p{margin:.2rem 0}
+@media (prefers-color-scheme:dark){.sel-card h3.h4{color:#c7dcf8}}

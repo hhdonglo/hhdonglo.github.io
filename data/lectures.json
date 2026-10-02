@@ -17,7 +17,12 @@
             "Calculate and interpret dot and cross products."
           ],
           "slides": "PHYS143/lecture_1/lecture01_vectors.pdf",
-          "supplement": "PHYS143/lecture_1/lecture01_supplement.pdf"
+          "supplement": "PHYS143/lecture_1/lecture01_supplement.pdf",
+          "contact_focus": [
+            "Understand",
+            "Calculate",
+            "Extend"
+          ]
         },
         {
           "number": 2,
@@ -32,7 +37,12 @@
           ],
           "slides": "PHYS143/lecture_2/lecture02_motion.pdf",
           "tutorial": "PHYS143/lecture_2/lecture02_tutorial.pdf",
-          "supplement": "PHYS143/lecture_2/lecture02_supplement.pdf"
+          "supplement": "PHYS143/lecture_2/lecture02_supplement.pdf",
+          "contact_focus": [
+            "Describe",
+            "Model",
+            "Apply"
+          ]
         },
         {
           "number": 3,
@@ -47,7 +57,12 @@
           ],
           "slides": "PHYS143/lecture_3/lecture03_forces.pdf",
           "tutorial": "PHYS143/lecture_3/lecture03_tutorial.pdf",
-          "supplement": "PHYS143/lecture_3/lecture03_supplement.pdf"
+          "supplement": "PHYS143/lecture_3/lecture03_supplement.pdf",
+          "contact_focus": [
+            "Represent",
+            "Analyse",
+            "Apply"
+          ]
         },
         {
           "number": 4,
@@ -62,7 +77,12 @@
           ],
           "slides": "PHYS143/lecture_4/lecture04_work.pdf",
           "tutorial": "PHYS143/lecture_4/lecture04_tutorial.pdf",
-          "supplement": "PHYS143/lecture_4/lecture04_supplement.pdf"
+          "supplement": "PHYS143/lecture_4/lecture04_supplement.pdf",
+          "contact_focus": [
+            "Identify",
+            "Quantify",
+            "Extend"
+          ]
         },
         {
           "number": 5,
@@ -77,7 +97,12 @@
           ],
           "slides": "PHYS143/lecture_5/lecture05_energy.pdf",
           "tutorial": "PHYS143/lecture_5/lecture05_tutorial.pdf",
-          "supplement": "PHYS143/lecture_5/lecture05_supplement.pdf"
+          "supplement": "PHYS143/lecture_5/lecture05_supplement.pdf",
+          "contact_focus": [
+            "Identify",
+            "Quantify",
+            "Extend"
+          ]
         },
         {
           "number": 6,
@@ -98,7 +123,12 @@
           ],
           "slides": "PHYS143/lecture_7/lecture07_momentum.pdf",
           "tutorial": "PHYS143/lecture_7/lecture07_tutorial.pdf",
-          "supplement": "PHYS143/lecture_7/lecture07_supplement.pdf"
+          "supplement": "PHYS143/lecture_7/lecture07_supplement.pdf",
+          "contact_focus": [
+            "Define",
+            "Conserve",
+            "Extend"
+          ]
         },
         {
           "number": 8,
@@ -113,7 +143,12 @@
           ],
           "slides": "PHYS143/lecture_8/lecture08_rotation.pdf",
           "tutorial": "PHYS143/lecture_8/lecture08_tutorial.pdf",
-          "supplement": "PHYS143/lecture_8/lecture08_supplement.pdf"
+          "supplement": "PHYS143/lecture_8/lecture08_supplement.pdf",
+          "contact_focus": [
+            "Describe",
+            "Model",
+            "Apply"
+          ]
         }
       ]
     },
@@ -135,7 +170,12 @@
           ],
           "slides": "PHYS143/lecture_9/lecture09_temperature.pdf",
           "tutorial": "PHYS143/lecture_9/lecture09_tutorial.pdf",
-          "supplement": "PHYS143/lecture_9/lecture09_supplement.pdf"
+          "supplement": "PHYS143/lecture_9/lecture09_supplement.pdf",
+          "contact_focus": [
+            "Define",
+            "Model",
+            "Apply"
+          ]
         },
         {
           "number": 10,
@@ -150,7 +190,12 @@
           ],
           "slides": "PHYS143/lecture_10/lecture10_thermal_properties.pdf",
           "tutorial": "PHYS143/lecture_10/lecture10_tutorial.pdf",
-          "supplement": "PHYS143/lecture_10/lecture10_supplement.pdf"
+          "supplement": "PHYS143/lecture_10/lecture10_supplement.pdf",
+          "contact_focus": [
+            "Describe",
+            "Represent",
+            "Explain"
+          ]
         },
         {
           "number": 11,
@@ -165,7 +210,12 @@
           ],
           "slides": "PHYS143/lecture_11/lecture11_first_law.pdf",
           "tutorial": "PHYS143/lecture_11/lecture11_tutorial.pdf",
-          "supplement": "PHYS143/lecture_11/lecture11_supplement.pdf"
+          "supplement": "PHYS143/lecture_11/lecture11_supplement.pdf",
+          "contact_focus": [
+            "Represent",
+            "Quantify",
+            "Extend and apply"
+          ]
         },
         {
           "number": 12,
@@ -180,7 +230,12 @@
           ],
           "slides": "PHYS143/lecture_12/lecture12_second_law.pdf",
           "tutorial": "PHYS143/lecture_12/lecture12_tutorial.pdf",
-          "supplement": "PHYS143/lecture_12/lecture12_supplement.pdf"
+          "supplement": "PHYS143/lecture_12/lecture12_supplement.pdf",
+          "contact_focus": [
+            "Direction",
+            "Convert",
+            "Limits"
+          ]
         }
       ]
     }

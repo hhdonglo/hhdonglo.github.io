@@ -18,7 +18,7 @@
           "style": "plain",
           "title": "Student enquiries",
           "paragraphs": [
-            "Undergraduate research projects, final-year projects and teaching. See [Student Research](student-research.html) first."
+            "Undergraduate research projects, final-year projects and teaching. See [Students](students.html) first."
           ],
           "button_label": "Email about a project",
           "button_url": "mailto:{email}?subject=Student%20enquiry"

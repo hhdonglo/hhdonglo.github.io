@@ -49,23 +49,6 @@
           "button_url": "laboratory.html"
         }
       ]
-    },
-    {
-      "id": "student-research",
-      "heading": "Student Research",
-      "cards": [
-        {
-          "id": "student-card",
-          "style": "secondary",
-          "kicker": "Undergraduate projects",
-          "title": "Student Research",
-          "paragraphs": [
-            "Undergraduate research supervision and final-year project themes."
-          ],
-          "button_label": "Open Student Research →",
-          "button_url": "student-research.html"
-        }
-      ]
     }
   ]
 }
