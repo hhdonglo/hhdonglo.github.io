@@ -1,5 +1,7 @@
 # Editing the site
 
+**Editor: https://app.pagescms.org** (sign in with GitHub)
+
 All page text can be edited in a browser with forms, using **Pages CMS** (pagescms.org). It is free, needs no server, and saves each change straight to this GitHub repository, which updates the live site about a minute later.
 
 Only people with write access to the `hhdonglo/hhdonglo.github.io` repository can sign in and edit. That is the repository owner, `hhdonglo`, unless more people are added in the repository's GitHub settings. Do not use the Pages CMS "Collaborators" invitation feature unless you want to give someone else edit access.
