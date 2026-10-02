@@ -6,9 +6,9 @@ Disclaimer: this is an independent personal website, open to anyone who finds it
 
 Contact: Physics Department, Office 24. Email hdonglo@ug.edu.gh or hkdonglo@gmail.com. Tel. 020 48 10 352. LinkedIn: https://www.linkedin.com/in/hopedonglo.
 
-Website: https://hhdonglo.github.io/UG-Lectures/
+Website: https://hhdonglo.github.io/
 
-Practice questions: https://hhdonglo.github.io/UG-Lectures/practice.html (multiple-choice, 20 per lecture, drafts for review). Sources and checks are in `tools/`.
+Practice questions: https://hhdonglo.github.io/practice.html (multiple-choice, 20 per lecture, drafts for review). Sources and checks are in `tools/`.
 
 ## PHYS 143
 
@@ -29,7 +29,7 @@ Practice questions: https://hhdonglo.github.io/UG-Lectures/practice.html (multip
 
 ## Laboratory skills (under development)
 
-Uncertainty analysis, a three-contact lecture supporting PHYS 105: [page](https://hhdonglo.github.io/UG-Lectures/uncertainty.html), [deck PDF](PHYS105/lecture_1/lecture01_uncertainty.pdf). The tutorial and supplement are not yet published. This page is still under development.
+Uncertainty analysis, a three-contact lecture supporting PHYS 105: [page](https://hhdonglo.github.io/uncertainty.html), [deck PDF](PHYS105/lecture_1/lecture01_uncertainty.pdf). The tutorial and supplement are not yet published. This page is still under development.
 
 ## Structure
 
