@@ -161,7 +161,7 @@ h4{font-size:1.2rem}
 .ov-card ul.chips{padding-left:0}
 .banner .areas{margin:.8rem 0 0;max-width:46rem;color:#e6eefb;font:600 .95rem/1.5 system-ui,sans-serif}
 .hero{display:grid;gap:1.2rem;grid-template-columns:200px 1fr;align-items:start;margin-top:.8rem}
-.photo{display:flex;align-items:center;justify-content:center;text-align:center;aspect-ratio:4/5;border:2px dashed var(--off);border-radius:10px;color:var(--muted);background:var(--sky);font:600 .9rem system-ui,sans-serif;padding:.5rem}
+.photo{display:block;width:100%;height:auto;aspect-ratio:4/5;object-fit:cover;border:1px solid var(--border);border-radius:10px;background:var(--sky);box-shadow:var(--shadow)}
 .statement{margin:0 0 .6rem;font-size:1.25rem;line-height:1.45;color:var(--navy);font-weight:700}
 @media (prefers-color-scheme:dark){.statement{color:#c7dcf8}}
 .hero .intro{max-width:none}
@@ -169,7 +169,7 @@ h4{font-size:1.2rem}
 .links-row .btn{padding:.4rem 1rem}
 .btn.dl{display:inline-flex}
 .note{font:.9rem/1.45 system-ui,sans-serif;color:var(--muted)}
-@media (max-width:600px){.hero{grid-template-columns:1fr}.photo{aspect-ratio:auto;min-height:5rem;max-width:200px}}
+@media (max-width:600px){.hero{grid-template-columns:1fr}.photo{max-width:200px}}
 </style>
 <script>if(!location.hash){if("scrollRestoration" in history)history.scrollRestoration="manual";window.addEventListener("pageshow",function(){if(!location.hash)window.scrollTo({top:0,left:0,behavior:"instant"})});}</script>
 </head>
@@ -188,16 +188,16 @@ h4{font-size:1.2rem}
 <section aria-labelledby="home" id="home-sec">
 <h2 id="home">Home</h2>
 <div class="hero">
-<div class="photo" role="img" aria-label="Space reserved for a professional photo">Photo to be added</div>
+<img class="photo" src="assets/hope-donglo.webp" width="480" height="600" alt="Portrait photograph of Hope Donglo">
 <div>
 <p class="statement">Research focused on understanding and modelling the mechanisms governing the formation of heavy and superheavy nuclei.</p>
 <p class="intro">Hope Donglo is a theoretical nuclear physicist who develops models of heavy-ion reactions and superheavy element synthesis. The work uses stochastic methods, uncertainty quantification and scientific computing to investigate reaction mechanisms. It is carried out alongside teaching in the Department of Physics at the University of Ghana, Legon.</p>
 <div class="links-row">
 <a class="btn primary" href="cv/Hope_Donglo_CV.pdf">CV (PDF)</a>
 <a class="btn" href="https://www.linkedin.com/in/hopedonglo" rel="noopener">LinkedIn</a>
-<span class="btn off">Google Scholar: to be added</span>
-<span class="btn off">ORCID: to be added</span>
-<span class="btn off">GitHub: to be added</span>
+<a class="btn" href="https://scholar.google.com/citations?user=QW32BboAAAAJ&amp;hl=en" rel="noopener">Google Scholar</a>
+<a class="btn" href="https://orcid.org/0009-0003-6142-8780" rel="noopener">ORCID</a>
+<a class="btn" href="https://github.com/hhdonglo" rel="noopener">GitHub</a>
 </div>
 </div>
 </div>
