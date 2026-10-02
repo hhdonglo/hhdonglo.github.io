@@ -1,6 +1,6 @@
 # Undergraduate Physics Lectures
 
-PHYS 143. Lecturer: Hope DONGLO (University of Ghana).
+PHYS 143. Lecturer: Hope DONGLO.
 
 Disclaimer: this is an independent personal website, open to anyone who finds it useful. Official course information and instructions for registered students are provided on Sakai; students at the University of Ghana should visit Sakai for official course information.
 
