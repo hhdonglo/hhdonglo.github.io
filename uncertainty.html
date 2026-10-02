@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Uncertainty analysis (under development) | Undergraduate Physics Lectures | Hope DONGLO</title>
+<meta name="description" content="Uncertainty analysis in the laboratory: a three-contact lecture on reporting results, repeated readings, propagation, graphs and uncertainty budgets. Still under development. An open, independent resource. University of Ghana students: official course information is on Sakai.">
+<style>
+:root{
+  --navy:#1F3A68; --navy-deep:#16294b; --brown:#5C3A21; --brown-soft:#EEF2F9; --brown-edge:#7A4A2A; --brown-fill:#7A4A2A;
+  --bg:#F3F7FC; --surface:#ffffff; --sky:#DCE8F5; --text:#26303F; --muted:#5b6678;
+  --border:#cfd9e8; --link:#1F3A68; --focus:#5C3A21; --btn-bg:#ffffff; --btn-text:#1F3A68;
+  --primary-bg:#1F3A68; --primary-text:#ffffff; --off:#8A94A6; --shadow:0 1px 3px rgba(31,58,104,.12);
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0f1829; --surface:#17233a; --sky:#1f3050; --text:#e4eaf4; --muted:#a3afc4;
+  --border:#2c3e5f; --link:#9cc0f0; --focus:#EEF2F9; --brown:#7A4A2A; --brown-fill:#7A4A2A; --btn-bg:#17233a; --btn-text:#c7dcf8;
+  --primary-bg:#7A4A2A; --primary-text:#ffffff; --off:#7b869b; --shadow:none;
+}}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font:1rem/1.6 Georgia,"Times New Roman",serif}
+a{color:var(--link)}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.skip{position:absolute;left:-999px;top:0;background:#fff;color:#000;padding:.5rem 1rem;z-index:10}
+.skip:focus{left:0}
+header.banner{background:linear-gradient(135deg,var(--navy-deep),var(--navy));color:#fff;border-bottom:5px solid var(--brown-edge)}
+.wrap{max-width:1100px;margin:0 auto;padding:0 1rem}
+.banner .wrap{padding-top:2rem;padding-bottom:1.75rem}
+.org{margin:0;color:var(--brown-soft);letter-spacing:.08em;text-transform:uppercase;font:600 .8rem/1.4 system-ui,sans-serif}
+.banner h1{margin:.3rem 0 .2rem;font-size:clamp(1.9rem,5vw,2.8rem);line-height:1.15}
+.banner .course{margin:0;font-size:1.15rem;color:#e6eefb}
+.meta{margin:1rem 0 0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:.35rem 1.5rem;font:.95rem/1.4 system-ui,sans-serif;color:#dbe6f8}
+.meta strong{color:#fff}
+nav.jump{background:var(--surface);border-bottom:1px solid var(--border)}
+nav.jump .wrap{display:flex;gap:.4rem 1.25rem;padding-top:.6rem;padding-bottom:.6rem;font:.95rem system-ui,sans-serif;flex-wrap:wrap}
+nav.jump .links{display:flex;flex-wrap:wrap;gap:.4rem 1.25rem}
+nav.jump .menu-btn{display:none}
+@media (max-width:720px){
+nav.jump.js{position:relative}
+nav.jump.js .wrap{display:block;padding-top:.3rem;padding-bottom:.3rem}
+nav.jump.js .menu-btn{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:44px;padding:.3rem .2rem;border:0;background:none;color:var(--link);font:600 .95rem system-ui,sans-serif;cursor:pointer}
+nav.jump .menu-btn .dots{font-size:1.4rem;line-height:1;letter-spacing:.05em;color:var(--brown)}
+nav.jump.js .links{display:none;position:absolute;left:0;right:0;top:100%;z-index:20;flex-direction:column;background:var(--surface);border-bottom:3px solid var(--brown);box-shadow:0 8px 16px rgba(0,0,0,.18)}
+nav.jump.js.open .links{display:flex}
+nav.jump.js .links a{display:flex;align-items:center;min-height:44px;padding:.4rem 1rem;border-top:1px solid var(--border);text-decoration:none}
+nav.jump.js .links a:hover{background:var(--sky)}
+}
+main{padding:1.5rem 0 3rem}
+.intro{max-width:46rem;margin:0 0 .5rem}
+h2{margin:2.2rem 0 .3rem;color:var(--navy);font-size:1.6rem;border-left:6px solid var(--brown);padding-left:.7rem}
+@media (prefers-color-scheme:dark){h2{color:#c7dcf8}}
+.sec-sub{margin:0 0 1.1rem;color:var(--muted)}
+.grid{display:grid;gap:1.1rem;grid-template-columns:repeat(auto-fill,minmax(310px,1fr))}
+.card{background:var(--surface);border:1px solid var(--border);border-top:4px solid var(--navy);border-radius:8px;overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--shadow)}
+.card.soon{border-top-color:var(--brown);border-style:dashed;border-top-style:solid}
+.thumb{display:block;background:var(--sky);aspect-ratio:600/338}
+.thumb img{display:block;width:100%;height:auto}
+.thumb.ph{display:flex;align-items:center;justify-content:center;color:var(--muted);font:600 1rem system-ui,sans-serif}
+.body{padding:.9rem 1rem 1.1rem;display:flex;flex-direction:column;flex:1}
+.num{margin:0;color:var(--brown);font:700 .8rem/1.4 system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase}
+.card h3{margin:.1rem 0 .4rem;font-size:1.2rem;line-height:1.3;color:var(--text)}
+.learn{margin:0 0 .7rem;font-size:.95rem}
+.contacts{list-style:none;margin:0 0 .7rem;padding:0;display:flex;flex-wrap:wrap;gap:.35rem;font:.82rem system-ui,sans-serif}
+.contacts li{display:inline-flex;align-items:center;gap:.35rem;background:var(--sky);border-radius:999px;padding:.15rem .65rem .15rem .2rem}
+.contacts .k{display:inline-grid;place-items:center;width:1.3rem;height:1.3rem;border-radius:50%;background:var(--navy);color:#fff;font-weight:700;font-size:.72rem}
+@media (prefers-color-scheme:dark){.contacts .k{background:var(--brown-fill);color:#fff}}
+details{margin:0 0 .9rem;font-size:.9rem}
+summary{cursor:pointer;color:var(--link);font-family:system-ui,sans-serif;font-size:.88rem}
+details ul{margin:.5rem 0 0;padding-left:1.1rem}
+details li{margin:.25rem 0}
+.btns{margin-top:auto;display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem}
+.btn{display:inline-flex;align-items:center;justify-content:center;text-align:center;min-height:44px;padding:.4rem .4rem;border:1.5px solid var(--navy);border-radius:6px;background:var(--btn-bg);color:var(--btn-text);text-decoration:none;font:600 .92rem system-ui,sans-serif}
+@media (prefers-color-scheme:dark){.btn{border-color:var(--brown)}}
+.btn small{font-weight:500;opacity:.75}
+.btn:hover{background:var(--sky)}
+.btn.primary{background:var(--primary-bg);color:var(--primary-text);border-color:var(--primary-bg)}
+.btn.primary:hover{filter:brightness(1.12)}
+.btn.practice,.btn.off.practice{grid-column:1/-1;border-style:solid;border-color:var(--brown);border-width:2px}
+.btn.off{font-size:.8rem;border:1.5px dashed var(--off);color:var(--muted);background:transparent;font-weight:500}
+footer{border-top:4px solid var(--brown-edge);background:var(--navy-deep);color:#cdd9ee;font:.9rem/1.6 system-ui,sans-serif}
+footer .wrap{padding-top:1.2rem;padding-bottom:1.2rem}
+footer p{margin:.2rem 0}
+.ov-grid{display:grid;gap:1.1rem;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));margin-top:1rem}
+.ov-card{background:var(--surface);border:1px solid var(--border);border-top:4px solid var(--navy);border-radius:8px;padding:1rem 1.1rem 1.1rem;box-shadow:var(--shadow)}
+.ov-card.wide{grid-column:1/-1}
+.ov-card h3{margin:0 0 .5rem;font-size:1.15rem;color:var(--text)}
+.ov-card p{margin:.4rem 0}
+.ov-card ul,.ov-card ol{margin:.4rem 0 0;padding-left:1.2rem}
+.ov-card li{margin:.3rem 0}
+.ov-card dl{margin:.4rem 0 0}
+.ov-card dt{font-weight:700;margin-top:.5rem}
+.ov-card dd{margin:0 0 0 0}
+.sakai{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem 1rem;justify-content:space-between;background:var(--sky);border-left:5px solid var(--brown);border-radius:6px;padding:.5rem .8rem;margin:0 0 .9rem;font:.9rem/1.45 system-ui,sans-serif}
+.sakai p{margin:0!important;flex:1 1 20rem}
+.sakai-link{font-weight:700;white-space:nowrap}
+.disclaimer{background:var(--sky);border-bottom:1px solid var(--brown)}
+.disclaimer .sakai{border-radius:0;margin:0 auto;border-left:0;padding:.8rem 1rem;background:none}
+.banner .lecturer{margin:.35rem 0 0;color:var(--brown-soft);font:600 1rem/1.4 system-ui,sans-serif}
+.ov-card>h2{margin-top:1.2rem}
+.ov-card .intro{max-width:none;margin:.4rem 0}
+.ov-sub+.ov-sub{margin-top:1.25rem;padding-top:1.1rem;border-top:1px solid var(--border)}
+.ov-sub h3{font-size:1.15rem;color:var(--navy)}
+.ov-sub h4{margin:.8rem 0 .2rem;font:700 1rem Georgia,serif}
+@media (prefers-color-scheme:dark){.ov-sub h3{color:#c7dcf8}}
+.ov-two{display:grid;gap:0 2rem;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.ov-ref{width:100%;border-collapse:collapse;font:.9rem/1.4 system-ui,sans-serif;margin-top:.5rem}
+.ov-ref th,.ov-ref td{text-align:left;padding:.3rem .5rem;border-bottom:1px solid var(--border);vertical-align:top}
+.ov-ref th{color:var(--muted);font-weight:600}
+@media (max-width:480px){.ov-grid{grid-template-columns:1fr}}
+@media (max-width:480px){.grid{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+.contact-list{list-style:none;margin:.4rem 0 0;padding:0;font-family:system-ui,sans-serif;font-size:.95rem}
+.contact-list li{margin:.3rem 0;overflow-wrap:anywhere}
+.contact-list span{display:inline-block;min-width:4.5rem;color:var(--muted);font-weight:600}
+footer a{color:var(--brown-soft)}
+@media (prefers-color-scheme:dark){nav.jump .menu-btn .dots,.num{color:var(--muted)}}
+
+.devbar{background:var(--brown-fill);color:#fff;font:600 .9rem/1.45 system-ui,sans-serif}
+.devbar .wrap{padding-top:.5rem;padding-bottom:.5rem}
+.badge{display:inline-block;background:var(--brown-fill);color:#fff;border-radius:999px;padding:.05rem .6rem;font:700 .72rem/1.5 system-ui,sans-serif;letter-spacing:.05em;text-transform:uppercase;vertical-align:middle}
+.devnote{background:var(--sky);border:1px solid var(--brown);border-left:6px solid var(--brown-fill);border-radius:6px;padding:.7rem 1rem;margin:0 0 1.2rem;font:.95rem/1.5 system-ui,sans-serif}
+.devnote p{margin:.25rem 0}
+.hero{display:grid;gap:1.1rem;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);align-items:start}
+@media (max-width:720px){.hero{grid-template-columns:1fr}}
+.hero .btns{margin-top:.9rem}
+.steps{margin:.4rem 0 0;padding-left:1.2rem}.steps li{margin:.3rem 0}
+.tk{counter-reset:tk;list-style:none;margin:.4rem 0 0;padding:0;display:grid;gap:.5rem;grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+.tk li{counter-increment:tk;display:flex;gap:.6rem;align-items:flex-start;background:var(--sky);border-radius:8px;padding:.5rem .7rem;font:.92rem/1.4 system-ui,sans-serif}
+.tk li:before{content:"T" counter(tk);flex:none;display:inline-grid;place-items:center;min-width:1.9rem;height:1.9rem;border-radius:50%;background:var(--navy);color:#fff;font-weight:700;font-size:.78rem}
+@media (prefers-color-scheme:dark){.tk li:before{background:var(--brown-fill)}}
+.rule{border:1px solid var(--brown);border-left:6px solid var(--brown-fill);border-radius:6px;padding:.6rem .9rem;margin:.7rem 0;background:var(--bg)}
+.rule p{margin:.2rem 0}
+.eq{font-family:Georgia,serif;font-size:1.05rem;text-align:center;margin:.4rem 0}
+.btns.two{grid-template-columns:repeat(2,1fr)}
+@media (max-width:480px){.btns.two{grid-template-columns:1fr}.hero .btns{grid-template-columns:1fr}}
+</style>
+<script>if(!location.hash){if("scrollRestoration" in history)history.scrollRestoration="manual";window.addEventListener("pageshow",function(){if(!location.hash)window.scrollTo({top:0,left:0,behavior:"instant"})});}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="devbar" role="status"><div class="wrap">Under development: this lecture is still being written and checked. Content may change.</div></div>
+<header class="banner">
+<div class="wrap">
+<h1>Uncertainty analysis</h1>
+<p class="course">Laboratory skills for PHYS 105 <span class="badge">Under development</span></p>
+<p class="lecturer">Lecturer: Hope DONGLO (University of Ghana)</p>
+</div>
+</header>
+<aside class="disclaimer" aria-label="Disclaimer"><div class="wrap sakai" role="note"><p><strong>Disclaimer.</strong> This is an independent personal website, open to anyone who finds it useful. Official course information and instructions for registered students are provided on Sakai. Students at the University of Ghana should visit Sakai for official course information. This lecture supports the laboratory course PHYS 105 and is not part of the PHYS 143 lecture series.</p></div></aside>
+<nav class="jump" id="jump" aria-label="Sections"><div class="wrap"><button type="button" class="menu-btn" aria-expanded="false" aria-controls="jump-links"><span>Menu</span><span class="dots" aria-hidden="true">&#8943;</span></button><div class="links" id="jump-links"><a href="index.html">Home</a><a href="#about">About</a><a href="#contacts">Three contacts</a><a href="#toolkits">Toolkits</a><a href="#example">Running example</a><a href="#files">Files</a><a href="practice.html">Practice questions</a></div></div></nav>
+<main id="main"><div class="wrap">
+<div class="devnote" role="note"><p><strong>Still under development.</strong> The deck is a working draft and has not yet had the lecturer&#x27;s full review. The tutorial sheet and the supplementary note will be added here when they are ready. If you find an error, please tell the lecturer.</p></div>
+
+<section aria-labelledby="about">
+<div class="hero">
+<article class="ov-card" aria-label="About this lecture">
+<h2 id="about">About this lecture</h2>
+<p class="sec-sub">Central question: how good is this number, and how do I show it?</p>
+<p>One lecture, taught over three contacts, on how to report a measurement honestly: with an uncertainty, correctly rounded, and compared fairly with theory. A single experiment, the simple pendulum measurement of g, runs through the lecture from sources of uncertainty to the final budget.</p>
+<p><strong>Reading:</strong> OpenStax <em>University Physics</em> Vol. 1, section 1.6; Taylor, <em>An Introduction to Error Analysis</em>; Hughes and Hase, <em>Measurements and Their Uncertainties</em>.</p>
+<div class="btns two"><a class="btn primary" href="PHYS105/lecture_1/lecture01_uncertainty.pdf">Deck (59 slides)<span class="vh"> on uncertainty analysis</span></a><a class="btn" href="#files">All files</a></div>
+</article>
+<article class="card" aria-label="Deck preview"><a class="thumb" href="PHYS105/lecture_1/lecture01_uncertainty.pdf" tabindex="-1" aria-hidden="true"><img src="assets/thumbs/uncertainty.webp" width="600" height="338" loading="lazy" alt="Title slide of the uncertainty analysis deck"></a></article>
+</div>
+<article class="ov-card wide" style="margin-top:1.1rem" aria-label="Learning outcomes">
+<h3>Learning outcomes</h3>
+<p>By the end of the lecture, you should be able to:</p>
+<ol class="steps">
+<li>Report a result as (value &plusmn; uncertainty) unit, correctly rounded, with its percent uncertainty.</li>
+<li>Distinguish accuracy, precision, random and systematic uncertainty, and classify a source as Type A or Type B.</li>
+<li>Calculate the mean, standard deviation and standard error of repeated readings.</li>
+<li>Propagate uncertainties through a formula and find the dominant source.</li>
+<li>Fit a straight line, interpret its residuals and &chi;&sup2;, and report slope and intercept.</li>
+<li>Build an uncertainty budget and test agreement with an accepted value.</li>
+</ol></article>
+</section>
+
+<section aria-labelledby="contacts">
+<h2 id="contacts">Three contacts</h2>
+<p class="sec-sub">Understand, quantify, apply</p>
+<div class="grid">
+<article class="card"><div class="body"><p class="num">Contact 1</p><h3>Understand</h3><p class="learn">What is a result, and where does uncertainty come from? Accuracy against precision, random against systematic sources, Type A and Type B, and reading an instrument.</p></div></article>
+<article class="card"><div class="body"><p class="num">Contact 2</p><h3>Quantify</h3><p class="learn">How do repeated readings and formulas give a number with an uncertainty? Mean, standard deviation, standard error, and propagation of uncertainty.</p></div></article>
+<article class="card"><div class="body"><p class="num">Contact 3</p><h3>Apply</h3><p class="learn">Graphs, budgets, comparison with theory and the report. Straight-line fits, residuals, the uncertainty budget and the test of agreement.</p></div></article>
+</div>
+</section>
+
+<section aria-labelledby="toolkits">
+<h2 id="toolkits">Physicist&#x27;s Toolkits</h2>
+<p class="sec-sub">Six reusable methods</p>
+<ol class="tk"><li>Reading an instrument</li><li>Classifying a source</li><li>Summarising repeated data</li><li>Propagating uncertainty</li><li>Linearising and fitting</li><li>Building a budget and comparing results</li></ol>
+</section>
+
+<section aria-labelledby="example">
+<h2 id="example">Running example: measuring g with a pendulum</h2>
+<p class="sec-sub">One experiment, from the first reading to the final comparison</p>
+<article class="ov-card wide">
+<p>A pendulum of length L = 0.800 &plusmn; 0.002 m is timed over 20 oscillations, ten times. The period is T = 1.795 &plusmn; 0.005 s, and g follows from</p>
+<p class="eq">g = 4&pi;&sup2;L / T&sup2;</p>
+<p>The squared T counts double in the propagation, so the timing dominates the result. After the correction for the finite amplitude, entered in the budget as a systematic term, the deck finds</p>
+<p class="eq"><strong>g = (9.77 &plusmn; 0.03) m/s&sup2;</strong></p>
+<div class="rule"><p><strong>Rule.</strong> Compare two results in units of their combined uncertainty. A measurement agrees with an accepted value when the discrepancy is small compared with that uncertainty. Round last.</p></div>
+<p class="sec-sub" style="margin:0">The full working, including the contribution table and the comparison with the accepted value, is in the deck.</p>
+</article>
+</section>
+
+<section aria-labelledby="files">
+<h2 id="files">Files</h2>
+<p class="sec-sub">All files are PDF</p>
+<article class="ov-card wide"><div class="btns" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr))"><a class="btn primary" href="PHYS105/lecture_1/lecture01_uncertainty.pdf">Deck (draft)</a><span class="btn off">Tutorial: coming soon</span><span class="btn off">Supplement: coming soon</span><span class="btn off">Practice questions: coming soon</span></div></article>
+</section>
+
+<p><a href="index.html">Back to the PHYS 143 lectures</a></p>
+</div></main>
+<footer><div class="wrap">
+<p>Undergraduate Physics Lectures. Lecturer: Hope DONGLO (University of Ghana). An independent personal website. University of Ghana students should visit Sakai for official course information.</p>
+<p>Contact: <a href="mailto:hdonglo@ug.edu.gh">hdonglo@ug.edu.gh</a>, Physics Department, Office 24. <a href="https://www.linkedin.com/in/hopedonglo" rel="noopener">LinkedIn</a>.</p>
+<p>The uncertainty analysis lecture is under development.</p>
+</div></footer>
+<script>(function(){var n=document.getElementById("jump");if(!n)return;n.classList.add("js");var b=n.querySelector(".menu-btn");function set(o){n.classList.toggle("open",o);b.setAttribute("aria-expanded",o?"true":"false")}b.addEventListener("click",function(){set(!n.classList.contains("open"))});n.addEventListener("click",function(e){if(e.target.closest&&e.target.closest(".links a"))set(false)});document.addEventListener("keydown",function(e){if(e.key==="Escape"&&n.classList.contains("open")){set(false);b.focus()}});document.addEventListener("click",function(e){if(!n.contains(e.target))set(false)});})();</script>
+</body>
+</html>

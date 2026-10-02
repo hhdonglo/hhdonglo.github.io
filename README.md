@@ -27,6 +27,10 @@ Practice questions: https://hhdonglo.github.io/UG-Lectures/practice.html (multip
 | 11 | First law of thermodynamics | [PDF](PHYS143/lecture_11/lecture11_first_law.pdf) | [PDF](PHYS143/lecture_11/lecture11_tutorial.pdf) | [PDF](PHYS143/lecture_11/lecture11_supplement.pdf) |
 | 12 | Second law of thermodynamics | [PDF](PHYS143/lecture_12/lecture12_second_law.pdf) | [PDF](PHYS143/lecture_12/lecture12_tutorial.pdf) | [PDF](PHYS143/lecture_12/lecture12_supplement.pdf) |
 
+## Laboratory skills (under development)
+
+Uncertainty analysis, a three-contact lecture supporting PHYS 105: [page](https://hhdonglo.github.io/UG-Lectures/uncertainty.html), [deck PDF](PHYS105/lecture_1/lecture01_uncertainty.pdf). The tutorial and supplement are not yet published. This page is still under development.
+
 ## Structure
 
 ```

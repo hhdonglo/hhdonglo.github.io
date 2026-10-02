@@ -117,6 +117,9 @@ footer p{margin:.2rem 0}
 .contact-list span{display:inline-block;min-width:4.5rem;color:var(--muted);font-weight:600}
 footer a{color:var(--brown-soft)}
 @media (prefers-color-scheme:dark){nav.jump .menu-btn .dots,.num{color:var(--muted)}}
+.badge{display:inline-block;background:var(--brown-fill);color:#fff;border-radius:999px;padding:.05rem .6rem;font:700 .72rem/1.5 system-ui,sans-serif;letter-spacing:.05em;text-transform:uppercase;vertical-align:middle}
+.num .badge{margin-left:.3rem}
+nav.jump .links .badge{margin-left:.5rem}
 </style>
 <script>if(!location.hash){if("scrollRestoration" in history)history.scrollRestoration="manual";window.addEventListener("pageshow",function(){if(!location.hash)window.scrollTo({top:0,left:0,behavior:"instant"})});}</script>
 </head>
@@ -130,7 +133,7 @@ footer a{color:var(--brown-soft)}
 </div>
 </header>
 <aside class="disclaimer" aria-label="Disclaimer"><div class="wrap sakai" role="note"><p><strong>Disclaimer.</strong> This is an independent personal website, open to anyone who finds it useful. Official course information and instructions for registered students are provided on Sakai. Students at the University of Ghana should visit Sakai for official course information.</p><a class="sakai-link" href="https://sakai.ug.edu.gh/portal/site/!gateway/tool/55840c0d-ea44-4827-84cb-5270d764ecf7" target="_blank" rel="noopener">Open PHYS 143 on Sakai</a></div></aside>
-<nav class="jump" id="jump" aria-label="Sections"><div class="wrap"><button type="button" class="menu-btn" aria-expanded="false" aria-controls="jump-links"><span>Menu</span><span class="dots" aria-hidden="true">&#8943;</span></button><div class="links" id="jump-links"><a href="#overview">Overview</a><a href="#mechanics">Mechanics: lectures 1 to 8</a><a href="#thermal">Thermal physics: lectures 9 to 12</a><a href="#ov-ref">Reference</a><a href="#ov-skills">Skills</a><a href="#ov-apps">Applications</a><a href="practice.html">Practice questions</a></div></div></nav>
+<nav class="jump" id="jump" aria-label="Sections"><div class="wrap"><button type="button" class="menu-btn" aria-expanded="false" aria-controls="jump-links"><span>Menu</span><span class="dots" aria-hidden="true">&#8943;</span></button><div class="links" id="jump-links"><a href="#overview">Overview</a><a href="#mechanics">Mechanics: lectures 1 to 8</a><a href="#thermal">Thermal physics: lectures 9 to 12</a><a href="uncertainty.html">Uncertainty analysis <span class="badge">In development</span></a><a href="#ov-ref">Reference</a><a href="#ov-skills">Skills</a><a href="#ov-apps">Applications</a><a href="practice.html">Practice questions</a></div></div></nav>
 <main id="main"><div class="wrap">
 <section aria-labelledby="overview">
 <div class="ov-grid">
@@ -253,6 +256,19 @@ footer a{color:var(--brown-soft)}
 </div>
 </section>
 
+<section aria-labelledby="lab">
+<h2 id="lab">Laboratory skills</h2>
+<p class="sec-sub">Supporting material for PHYS 105 <span class="badge">Under development</span></p>
+<div class="grid">
+<article class="card soon" id="uncertainty" aria-labelledby="tu">
+<a class="thumb" href="uncertainty.html" tabindex="-1" aria-hidden="true"><img src="assets/thumbs/uncertainty.webp" width="600" height="338" loading="lazy" alt="Title slide of the uncertainty analysis deck"></a>
+<div class="body"><p class="num">Laboratory lecture <span class="badge">Under development</span></p><h3 id="tu">Uncertainty analysis</h3>
+<p class="learn">How to report a measurement with its uncertainty, combine uncertainties, fit a graph and compare with theory. This page is still being developed.</p>
+<ol class="contacts" aria-label="Three contacts"><li><span class="k">1</span>Understand</li><li><span class="k">2</span>Quantify</li><li><span class="k">3</span>Apply</li></ol>
+<div class="btns"><a class="btn primary" href="uncertainty.html" style="grid-column:1/-1">Open the page<span class="vh"> for uncertainty analysis (under development)</span></a></div></div></article>
+</div>
+</section>
+
 <section aria-labelledby="course-info">
 <h2 id="course-info">Course information</h2>
 <p class="sec-sub">Reference material, expected skills and applications</p>
@@ -310,7 +326,7 @@ footer a{color:var(--brown-soft)}
 <footer><div class="wrap">
 <p>Undergraduate Physics Lectures, PHYS 143. Lecturer: Hope DONGLO (University of Ghana). An independent personal website. University of Ghana students should visit Sakai for official course information.</p>
 <p>Contact: <a href="mailto:hdonglo@ug.edu.gh">hdonglo@ug.edu.gh</a>, Physics Department, Office 24. <a href="https://www.linkedin.com/in/hopedonglo" rel="noopener">LinkedIn</a>.</p>
-<p>Lecture 6 will be added when it is ready.</p>
+<p>Lecture 6 will be added when it is ready. The uncertainty analysis page is under development.</p>
 </div></footer>
 <script>(function(){var n=document.getElementById("jump");if(!n)return;n.classList.add("js");var b=n.querySelector(".menu-btn");function set(o){n.classList.toggle("open",o);b.setAttribute("aria-expanded",o?"true":"false")}b.addEventListener("click",function(){set(!n.classList.contains("open"))});n.addEventListener("click",function(e){if(e.target.closest&&e.target.closest(".links a"))set(false)});document.addEventListener("keydown",function(e){if(e.key==="Escape"&&n.classList.contains("open")){set(false);b.focus()}});document.addEventListener("click",function(e){if(!n.contains(e.target))set(false)});})();</script>
 </body>
