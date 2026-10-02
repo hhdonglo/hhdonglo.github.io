@@ -25,7 +25,8 @@
       "title": "KEWPIE3 development and validation",
       "paragraphs": [
         "**Objective:** validate and publish KEWPIE3, the new version of the KEWPIE2 code for fusion-evaporation cross-section predictions in superheavy element synthesis.",
-        "**Key question:** how can the calculation of the compound nucleus formation probability be improved with Langevin-based stochastic approaches?"
+        "**Key question:** how can the calculation of the compound nucleus formation probability be improved with Langevin-based stochastic approaches?",
+        "[KEWPIE3 on the Projects page →](projects.html#kewpie3)"
       ],
       "chip": "KEWPIE3 development and validation"
     },
@@ -34,7 +35,8 @@
       "title": "Fusion dynamics and fusion-by-diffusion",
       "paragraphs": [
         "**Objective:** revisit the fusion dynamics in the fusion-by-diffusion model for fusion-evaporation production cross sections.",
-        "[See Publications](publications.html)"
+        "[See Publications](publications.html)",
+        "[Fusion dynamics on the Projects page →](projects.html#fusion)"
       ],
       "chip": "Fusion dynamics and fusion-by-diffusion modelling"
     },

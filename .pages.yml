@@ -31,10 +31,10 @@ content:
     label: Position line
     type: string
   - name: statement
-    label: Introduction (2 to 3 sentences)
+    label: Short research statement
     type: text
-  - name: primary_button
-    label: Main button
+  - name: buttons
+    label: Hero buttons (Research, Teaching, CV)
     type: object
     fields:
     - name: label
@@ -43,22 +43,20 @@ content:
     - name: url
       label: Link
       type: string
-  - name: secondary_button
-    label: Second button
+    - name: style
+      label: Style
+      type: select
+      options:
+        values:
+        - primary
+        - plain
+    list: true
+  - name: blocks
+    label: Research, Teaching and Projects blocks
     type: object
     fields:
     - name: label
-      label: Text
-      type: string
-    - name: url
-      label: Link
-      type: string
-  - name: pathways
-    label: Three main cards
-    type: object
-    fields:
-    - name: label
-      label: Label
+      label: Small label
       type: string
     - name: title
       label: Title
@@ -66,44 +64,54 @@ content:
     - name: text
       label: Description
       type: text
-    - name: link_label
-      label: Link text
-      type: string
     - name: url
-      label: Link
+      label: Title link
       type: string
+    - name: items
+      label: Links in the block
+      type: object
+      fields:
+      - name: label
+        label: Text
+        type: string
+      - name: url
+        label: Link
+        type: string
+      list: true
     list: true
-  - name: selected_heading
-    label: Selected research heading
+  - name: publications_heading
+    label: Selected publications heading
     type: string
-  - name: selected
-    label: Selected research (3 or 4)
+  - name: publications_link_label
+    label: All publications link text
+    type: string
+  - name: currently_heading
+    label: Currently heading
+    type: string
+  - name: shortcuts_heading
+    label: Find your way heading
+    type: string
+  - name: shortcuts
+    label: Find your way
     type: object
     fields:
     - name: title
       label: Title
       type: string
-    - name: status
-      label: Status or topic
-      type: string
-    - name: text
-      label: One-sentence description
-      type: text
-    - name: link_label
-      label: Link text
-      type: string
-    - name: url
-      label: Link
-      type: string
+    - name: links
+      label: Links
+      type: object
+      fields:
+      - name: label
+        label: Text
+        type: string
+      - name: url
+        label: Link
+        type: string
+      list: true
     list: true
-  - name: profiles_heading
-    label: Academic profiles heading
-    type: string
-  - name: cv_label
-    label: CV link text
-    type: string
-  - name: cv_url
-    label: CV link
+  - name: affiliation_line
+    label: Affiliation line
     type: string
 - name: research
   label: Research
@@ -529,10 +537,10 @@ content:
     type: object
     fields: *id002
     list: true
-- name: students
-  label: Students
+- name: student-research
+  label: Student Research
   type: file
-  path: data/pages/students.json
+  path: data/pages/student-research.json
   format: json
   fields:
   - name: title
@@ -547,7 +555,7 @@ content:
     fields: *id002
     list: true
 - name: projects
-  label: Data & Computation
+  label: Projects
   type: file
   path: data/projects.json
   format: json
@@ -558,18 +566,29 @@ content:
   - name: intro
     label: Overview text
     type: text
-  - name: computational
-    label: Computational physics
+  - name: research_projects_title
+    label: Research projects heading
+    type: string
+  - name: research_projects
+    label: Research projects
     type: object
     fields:
-    - name: title
-      label: Heading
+    - name: id
+      label: Anchor id (kewpie3 or fusion)
       type: string
-    - name: text
-      label: Text
+    - name: title
+      label: Title
+      type: string
+    - name: status
+      label: Status
+      type: string
+    - name: paragraphs
+      label: Paragraphs
       type: text
+      list: true
+    list: true
   - name: data_science_title
-    label: Data science heading
+    label: Data / ML projects heading
     type: string
   - name: software
     label: Software and tools

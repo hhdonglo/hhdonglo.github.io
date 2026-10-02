@@ -20,17 +20,17 @@ Open https://app.pagescms.org, choose the repository, choose a form, change the 
 
 | Form in Pages CMS | What it changes |
 | --- | --- |
-| Home | The name line, role, statement and buttons, the three pathway cards, section headings, the shortcuts and the plain affiliation line |
+| Home | The name line, role, research statement, the three hero buttons, the Research, Teaching and Projects blocks with their links, section headings, the Find your way shortcuts and the plain affiliation line |
 | Research | The opening question, the four research areas, current research, previous research, and the "Currently" list on the home page |
-| Teaching | The Teaching page: the PHYS 143 and Laboratory cards, Research-Informed Learning and Teaching Resources |
+| Teaching | The Teaching page: the PHYS 143 and Laboratory cards, Student Research, Research-Informed Learning and Teaching Resources |
 | Teaching: PHYS 143 page | The PHYS 143 page text outside the lecture tables: title, course structure, practice questions, why this course matters, reference chapters, expected skills, applications |
 | Teaching: PHYS 143 lectures | The weekly programme and every lecture page: title, summary, learning objectives, file links, the three contact headings and status (available or coming soon) |
 | Teaching: practice questions | The multiple-choice questions for each lecture (choose a lecture, then edit its questions, options, correct option and explanation) |
 | Teaching: Laboratory courses | The Laboratory page: course cards and the shared uncertainty lecture card |
-| Data & Computation | The Data & Computation page: overview, computational physics, data science, software and tools, project cards |
+| Projects | The Projects page: overview, research projects (KEWPIE3, Fusion dynamics), Data / ML projects, software and tools |
 | Publications | All publications, the year filter buttons, and the three selected publications on the home page |
 | CV page | The CV summary page (education, appointments, awards, skills) |
-| Students | The Students page |
+| Teaching: Student Research | The Student Research page (reached from the Teaching page) |
 | About | The About page |
 | Contact | The Contact page text and buttons |
 | Site settings | Email addresses, phone, office, profile links (Google Scholar, ORCID, GitHub, LinkedIn), the footer lines and the banner lines |
@@ -45,7 +45,7 @@ The **Media** tab uploads files: lecture PDFs (PHYS 143, PHYS 105), the CV PDF a
 
 **Add a research project.** Form: Research, "Current research", **Add**. Fill in the status label, a short name (shown on the home page), the title and the paragraphs.
 
-**Add a project card.** Form: Data & Computation, "Projects", **Add**.
+**Add a project card.** Form: Projects, "Projects" (Data / ML), **Add**. Research projects such as KEWPIE3 are under "Research projects".
 
 **Change contact details.** Form: Site settings. The Contact page, the footer and the home page links all read from it.
 
@@ -78,4 +78,4 @@ Every form edits one file in the `data` folder (`data/pages/*.json`, `data/resea
 
 ## Page addresses
 
-`data-computation.html` and `students.html` replaced `data-computation.html` and `students.html`. The old addresses stay in the repository as small redirect pages, so old links still work. Do not delete them.
+The menu is Home, Research, Teaching, Projects and About, with CV, Publications and Contact as small links. Data and Computation is now **Projects** (`projects.html`); Students is now **Student Research** under Teaching (`student-research.html`). These old addresses stay as small redirect pages so old links still work, and must not be deleted: `data-computation.html`, `data-science.html`, `students.html`.

@@ -1,6 +1,6 @@
 {
   "intro_title": "Overview",
-  "intro": "This page collects work in data engineering and data science, complementary to the physics research (see [Research](research.html)). The same habits apply: reproducible pipelines, tests that check the data, stated assumptions and results that can be reproduced.",
+  "intro": "This page collects the research software and projects, and complementary work in data engineering and data science, where the same habits apply: reproducible pipelines, tests that check the data, stated assumptions and results that can be reproduced. For the physics, see [Research](research.html).",
   "certification": {
     "title": "Data and ML Engineering, OpenClassrooms",
     "text": "Level 7 qualification (Bac+5, RNCP), followed from 2025 to 2026. The project-based programme covers the full data lifecycle: relational and NoSQL databases, ETL pipelines, containerisation, cloud services, workflow orchestration, streaming and retrieval-augmented generation. The projects below are the ones with a public repository."
@@ -124,11 +124,7 @@
     }
   ],
   "footnote": "All code is on [github.com/hhdonglo](https://github.com/hhdonglo).",
-  "computational": {
-    "title": "Computational Physics",
-    "text": "Scientific computing supports the research. KEWPIE2 and KEWPIE3 calculate fusion–evaporation cross-sections for superheavy element synthesis, and Langevin-based stochastic simulation describes the reaction dynamics. See [Research](research.html) for the physics."
-  },
-  "data_science_title": "Data Science",
+  "data_science_title": "Data / ML projects",
   "software": {
     "title": "Software and Tools",
     "text": "Tools used across the research and the data projects. Code repositories are on [GitHub](https://github.com/hhdonglo).",
@@ -141,5 +137,27 @@
       "Machine learning and data analysis in Python"
     ]
   },
-  "projects_title": "Projects"
+  "projects_title": "Projects",
+  "research_projects_title": "Research projects",
+  "research_projects": [
+    {
+      "id": "kewpie3",
+      "title": "KEWPIE3",
+      "status": "Current project",
+      "paragraphs": [
+        "**Objective:** validate and publish KEWPIE3, the new version of the KEWPIE2 code for fusion-evaporation cross-section predictions in superheavy element synthesis.",
+        "**Key question:** how can the calculation of the compound nucleus formation probability be improved with Langevin-based stochastic approaches?",
+        "[Research context →](research.html#projects)"
+      ]
+    },
+    {
+      "id": "fusion",
+      "title": "Fusion dynamics",
+      "status": "Manuscript in preparation",
+      "paragraphs": [
+        "**Objective:** revisit the fusion dynamics in the fusion-by-diffusion model for fusion-evaporation production cross sections.",
+        "[See Publications →](publications.html)"
+      ]
+    }
+  ]
 }
