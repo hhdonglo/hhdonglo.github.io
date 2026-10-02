@@ -278,7 +278,10 @@
     var n = Number(app.getAttribute('data-lecture'));
     if (!LECTURES[n]) { unavailable(n); return; }
     loadLecture(n, function (quiz) {
-      if (rec(n).run) runQuiz(n, quiz); else intro(n, quiz);
+      var r0 = rec(n);
+      if (r0.run) runQuiz(n, quiz);
+      else if (!r0.attempts) startRun(n, quiz, 'all'); /* first visit: the first question appears at once */
+      else intro(n, quiz);
       started = true;
     }, function () { unavailable(n); started = true; });
   }

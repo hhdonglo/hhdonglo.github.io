@@ -8,8 +8,8 @@ UTILITY = [("cv.html", "CV"), ("publications.html", "Publications"), ("contact.h
 CHILD = {"student-research.html": "teaching.html", "phys143.html": "teaching.html", "laboratory.html": "teaching.html", "uncertainty.html": "teaching.html"}
 
 def menu(page):
-    cur = CHILD.get(page) or (page if re.match(r"phys143-lecture-\d+\.html$", page) is None else "teaching.html")
-    if re.match(r"phys143-lecture-\d+\.html$", page): cur = "teaching.html"
+    cur = CHILD.get(page) or (page if re.match(r"phys143-lecture-\d+(-practice)?\.html$", page) is None else "teaching.html")
+    if re.match(r"phys143-lecture-\d+(-practice)?\.html$", page): cur = "teaching.html"
     out = ""
     for i, (h, l) in enumerate(PRIMARY + UTILITY):
         a = ""

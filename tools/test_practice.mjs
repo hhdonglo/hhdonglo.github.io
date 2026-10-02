@@ -1,4 +1,4 @@
-// Playwright test of the per-lecture practice quizzes.
+// Playwright test of the per-lecture practice quizzes (one page per lecture: phys143-lecture-N-practice.html).
 // Usage: node tools/test_practice.mjs [baseUrl]   (default http://localhost:8765/)
 import {createRequire} from 'module';
 const require=createRequire('/opt/node22/lib/node_modules/');
@@ -10,11 +10,15 @@ const b=await chromium.launch();
 for(const N of [1,2,3,4,5,7,8,9,10,11,12]){
   const q=JSON.parse(fs.readFileSync(`quizzes/lecture${N}.json`,'utf8'));
   const p=await b.newPage();
-  await p.goto(`${BASE}phys143-lecture-${N}.html#practice`);
-  await p.waitForSelector('#quiz-app .btn.primary');
-  check(`L${N}: practice section on its own lecture page`, await p.locator('details#practice[open]').count()===1);
-  check(`L${N}: says not assessment`, /not assessment/i.test(await p.locator('#practice').innerText()));
-  await p.click('#quiz-app .btn.primary');
+  await p.goto(`${BASE}phys143-lecture-${N}.html`);
+  await p.waitForSelector('.lecture-buttons');
+  await p.click('.lecture-buttons >> text=Practice questions');
+  await p.waitForSelector('#quiz-app .opt');
+  check(`L${N}: button opens phys143-lecture-${N}-practice.html`, p.url().endsWith(`phys143-lecture-${N}-practice.html`));
+  check(`L${N}: first question shown at once, no start screen`, (await p.locator('#quiz-app .opt').first().boundingBox()).y<900);
+  check(`L${N}: no learning objectives or contacts on the quiz page`, !/Learning objectives|Contact 1/.test(await p.locator('main').innerText()));
+  check(`L${N}: says not assessment`, /not assessment/i.test(await p.locator('main').innerText()));
+  check(`L${N}: link back to the lecture`, await p.locator(`main a[href="phys143-lecture-${N}.html"]`).count()>=1);
   let right=0;
   for(let i=0;i<q.questions.length;i++){
     await p.waitForSelector('#quiz-app .opt');
@@ -35,12 +39,12 @@ for(const N of [1,2,3,4,5,7,8,9,10,11,12]){
 }
 const p=await b.newPage();
 await p.goto(BASE+'phys143-lecture-6.html');await p.waitForTimeout(700);
-check('L6: coming soon, no quiz', await p.locator('#quiz-app').count()===0 && /Coming soon/.test(await p.locator('main').innerText()));
+check('L6: coming soon, no quiz', await p.locator('.lecture-buttons').count()===0 && /Coming soon/.test(await p.locator('main').innerText()));
 await p.goto(BASE+'phys143.html');await p.waitForSelector('.week');
 check('phys143: no grouped practice section', await p.locator('#practice-qs').count()===0 && !/Open practice questions/.test(await p.locator('main').innerText()));
-const links=await p.$$eval('.week .wl a[href*="#practice"]',a=>a.map(x=>x.getAttribute('href')));
-check('weekly: 11 practice links, one per lecture', links.length===11 && !links.some(h=>h.includes('lecture-6')));
-for(const [from,to] of [['practice.html#lecture-3','phys143-lecture-3.html'],['practice.html#lecture-4-menu','phys143-lecture-4.html'],['practice.html#lecture-6','phys143-lecture-6.html'],['practice.html','phys143.html']]){
+const links=await p.$$eval('.week .wl a[href*="-practice.html"]',a=>a.map(x=>x.getAttribute('href')));
+check('weekly: 11 practice links, one per lecture, straight to the quiz page', links.length===11 && !links.some(h=>h.includes('lecture-6')));
+for(const [from,to] of [['practice.html#lecture-3','phys143-lecture-3-practice.html'],['practice.html#lecture-4-menu','phys143-lecture-4-practice.html'],['phys143-lecture-5.html#practice','phys143-lecture-5-practice.html'],['practice.html#lecture-6','phys143-lecture-6.html'],['practice.html','phys143.html']]){
   await p.goto(BASE+from);await p.waitForTimeout(500);
   check(`${from} forwards to ${to}`, p.url().includes(to));
 }

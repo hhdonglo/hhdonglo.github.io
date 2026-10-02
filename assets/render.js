@@ -47,11 +47,12 @@ R.projects=function(el,d){
 function flat(d){var o=[];d.groups.forEach(function(g){g.lectures.forEach(function(l){o.push({l:l,g:g})})});return o.sort(function(a,b){return a.l.number-b.l.number})}
 function ln(n){return ("0"+n).slice(-2)}
 function lpage(n){return "phys143-lecture-"+n+".html"}
+function ppage(n){return "phys143-lecture-"+n+"-practice.html"}
 R.weekly=function(el,d){
   el.innerHTML=d.groups.map(function(g){
     return '<div class="week-group" id="'+esc(g.id)+'"><h4 class="grp">'+md(g.title)+'</h4><p class="sec-sub">'+md(g.subtitle)+'</p><ul class="weeks">'+g.lectures.map(function(l){
       var n=l.number,soon=l.status==="soon";
-      return '<li class="week'+(soon?' soon':'')+'" id="lecture-'+n+'"><span class="wk">Week '+n+'</span><span class="wt"><a href="'+lpage(n)+'">'+(soon?'Coming soon':md(l.title))+'</a><span class="state'+(soon?'':' ok')+'">'+(soon?'Coming soon':'Available')+'</span></span><span class="ws">'+md(soon?(l.note||"Materials are being prepared."):l.summary)+'</span>'+(soon?'':'<span class="wl">'+[wlink(l.slides,"Slides",n),wlink(l.supplement,"Supplementary",n),wlink(l.tutorial,"Tutorial",n),wlink(l.practice==="soon"?"":lpage(n)+"#practice","Practice questions",n)].join(" ")+'</span>')+'</li>'}).join("")+'</ul></div>'}).join("");
+      return '<li class="week'+(soon?' soon':'')+'" id="lecture-'+n+'"><span class="wk">Week '+n+'</span><span class="wt"><a href="'+lpage(n)+'">'+(soon?'Coming soon':md(l.title))+'</a><span class="state'+(soon?'':' ok')+'">'+(soon?'Coming soon':'Available')+'</span></span><span class="ws">'+md(soon?(l.note||"Materials are being prepared."):l.summary)+'</span>'+(soon?'':'<span class="wl">'+[wlink(l.slides,"Slides",n),wlink(l.supplement,"Supplementary",n),wlink(l.tutorial,"Tutorial",n),wlink(l.practice==="soon"?"":ppage(n),"Practice questions",n)].join(" ")+'</span>')+'</li>'}).join("")+'</ul></div>'}).join("");
 };
 function lbtn(url,label,n,primary){
   var sr='<span class="vh"> for lecture '+n+'</span>';
@@ -69,17 +70,16 @@ R.lecture=function(el,d,site){
   var out='';
   if(soon){out+='<div class="ov-card"><p>This lecture will be added when it is ready.</p></div>'}
   else{
-    out+='<div class="lecture-buttons" role="group" aria-label="Lecture resources">'+lbtn(l.slides,"Open lecture slides",n,true)+lbtn(l.supplement,"Supplementary",n)+lbtn(l.tutorial,"Tutorial",n)+lbtn(l.practice==="soon"?"":"#practice","Practice questions",n)+'</div>';
+    out+='<div class="lecture-buttons" role="group" aria-label="Lecture resources">'+lbtn(l.slides,"Open lecture slides",n,true)+lbtn(l.supplement,"Supplementary",n)+lbtn(l.tutorial,"Tutorial",n)+lbtn(l.practice==="soon"?"":ppage(n),"Practice questions",n)+'</div>';
     out+='<details class="fold" id="objectives" open><summary>Learning objectives</summary><div class="ov-card"><p>Students should be able to:</p>'+list(l.outcomes||[],"")+'</div></details>';
     var focus=l.contact_focus||[];
     (d.contacts||[]).forEach(function(c,k){
       out+='<details class="fold" id="contact-'+(k+1)+'"><summary>'+md(c.heading)+'</summary><div class="ov-card"><p>'+md(c.purpose)+(focus[k]?' <span class="muted">Focus: '+esc(focus[k])+'.</span>':'')+'</p></div></details>';});
-    out+='<details class="fold" id="practice"><summary>Practice questions</summary><div class="ov-card"><p>Twenty multiple-choice questions on this lecture, with feedback after every answer. For practice, not assessment. Progress and best scores are stored only in this browser; nothing is sent anywhere.</p><div id="quiz-app" class="quiz" data-lecture="'+n+'"><noscript>The practice questions need JavaScript. Please enable it in your browser.</noscript></div></div></details>';
   }
   var prev=all[i-1],next=all[i+1];
   out+='<nav class="pager" aria-label="Lecture navigation">'+(prev?'<a class="prev" href="'+lpage(prev.l.number)+'">&larr; Lecture '+ln(prev.l.number)+'</a>':'<span></span>')+'<a class="toc" href="phys143.html#weekly">'+esc(course)+' contents</a>'+(next?'<a class="next" href="'+lpage(next.l.number)+'">Lecture '+ln(next.l.number)+' &rarr;</a>':'<span></span>')+'</nav>';
   el.innerHTML=out;
-  if(!soon){var q=document.createElement("script");q.src="assets/practice.js";q.charset="utf-8";document.body.appendChild(q)}
+  if(location.hash==="#practice"&&!soon&&l.practice!=="soon")location.replace(ppage(n));
 };
 R.profiles=function(el,d,site){el.innerHTML=profiles(site," ")};
 R.contact=function(el,d,site){
