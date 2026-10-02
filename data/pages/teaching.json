@@ -1,9 +1,9 @@
 {
-  "subtitle": "Choose a course to explore.",
+  "subtitle": "I teach undergraduate physics at the University of Ghana. This section provides lecture slides, tutorials, supplementary notes and practice questions.",
   "sections": [
     {
       "id": "lecture-courses",
-      "heading": "Lecture Courses",
+      "heading": "Undergraduate Courses",
       "cards": [
         {
           "id": "phys143-card",
@@ -14,7 +14,7 @@
           "paragraphs": [
             "Twelve lectures following Young and Freedman, *University Physics*, each with a slide deck, a tutorial sheet, a supplementary note and practice questions."
           ],
-          "button_label": "Open Course →",
+          "button_label": "Course Overview →",
           "button_url": "phys143.html",
           "button_sr": "PHYS 143",
           "button_style": "primary"
@@ -47,6 +47,23 @@
           ],
           "button_label": "Open Laboratory Resources →",
           "button_url": "laboratory.html"
+        }
+      ]
+    },
+    {
+      "id": "teaching-resources",
+      "heading": "Teaching Resources",
+      "cards": [
+        {
+          "id": "practice-card",
+          "style": "secondary",
+          "kicker": "Practice",
+          "title": "Practice questions",
+          "paragraphs": [
+            "Twenty multiple-choice questions for each PHYS 143 lecture, with feedback after every answer. For practice, not assessment."
+          ],
+          "button_label": "Open practice questions →",
+          "button_url": "practice.html"
         }
       ]
     }

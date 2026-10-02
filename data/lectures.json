@@ -239,5 +239,20 @@
         }
       ]
     }
-  ]
+  ],
+  "contacts": [
+    {
+      "heading": "Contact 1 — Understand",
+      "purpose": "Build the physical idea."
+    },
+    {
+      "heading": "Contact 2 — Calculate",
+      "purpose": "Develop the model and method."
+    },
+    {
+      "heading": "Contact 3 — Apply and Consolidate",
+      "purpose": "Apply, integrate and transfer."
+    }
+  ],
+  "course_title": "PHYS 143"
 }

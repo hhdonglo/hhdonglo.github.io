@@ -395,6 +395,20 @@ content:
   path: data/lectures.json
   format: json
   fields:
+  - name: course_title
+    label: Course name
+    type: string
+  - name: contacts
+    label: The three contacts (shown on every lecture page)
+    type: object
+    fields:
+    - name: heading
+      label: Heading
+      type: string
+    - name: purpose
+      label: Purpose
+      type: string
+    list: true
   - name: groups
     label: Groups
     type: object

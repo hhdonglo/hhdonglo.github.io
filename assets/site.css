@@ -300,3 +300,28 @@ nav.jump a[aria-current]{font-weight:700}
 .sel-card p{margin:.2rem 0}
 @media (prefers-color-scheme:dark){.sel-card h3.h4{color:#c7dcf8}}
 @media (min-width:700px){.ov-grid.areas{grid-template-columns:repeat(2,1fr)}}
+
+/* PHYS 143 weekly programme and lecture pages */
+.week-group{margin:1.2rem 0 1.8rem}
+h4.grp{margin:.2rem 0 0;font-size:1.15rem;color:var(--navy)}
+@media (prefers-color-scheme:dark){h4.grp{color:#c7dcf8}}
+ul.weeks{list-style:none;margin:.4rem 0 0;padding:0}
+.week{display:grid;grid-template-columns:5.2rem 1fr auto;grid-template-areas:"wk wt wl" ". ws .";gap:.1rem 1rem;padding:.75rem 0;border-top:1px solid var(--border);font:1rem/1.5 system-ui,sans-serif;align-items:baseline}
+.week .wk{grid-area:wk;font-weight:700;color:var(--brown)}
+.week .wt{grid-area:wt;font-weight:600}
+.week .wt a{font-size:1.05rem}
+.week .ws{grid-area:ws;color:var(--muted);font-size:.93rem}
+.week .wl{grid-area:wl;font-size:.95rem}
+.week .state{margin-left:.6rem;font:700 .7rem system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase;padding:.1rem .45rem;border-radius:4px;background:var(--sky);border-left:3px solid var(--off)}
+.week .state.ok{border-left-color:var(--brown)}
+.week.soon .wt a{color:var(--muted)}
+@media (max-width:600px){.week{grid-template-columns:1fr;grid-template-areas:"wk" "wt" "ws" "wl"}}
+.lecture-actions{margin:1rem 0}
+.fold .ov-card ul.res{margin:.4rem 0 0}
+.fold .ov-card ul.res li{margin:.4rem 0}
+.pager{display:flex;justify-content:space-between;align-items:center;gap:1rem;margin:2.2rem 0 0;padding-top:1rem;border-top:1px solid var(--border);font:600 1rem system-ui,sans-serif}
+.pager a{display:inline-flex;align-items:center;min-height:44px;padding:.3rem .2rem}
+.pager .toc{text-align:center}
+@media (max-width:520px){.pager{font-size:.92rem;gap:.4rem}}
+.pager a{white-space:nowrap}@media (max-width:520px){.pager{font-size:.85rem}}
+@media (prefers-color-scheme:dark){.week .wk{color:#e0b999}}

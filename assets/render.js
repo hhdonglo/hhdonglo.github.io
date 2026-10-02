@@ -43,14 +43,35 @@ R.projects=function(el,d){
   h+='</div><p class="note">'+md(d.footnote)+'</p>';
   el.innerHTML=h;
 };
-R.lectures=function(el,d){
-  var g=d.groups.filter(function(x){return x.id===el.getAttribute("data-group")})[0];if(!g)return;
-  var rows=g.lectures.map(function(l){
-    var n=l.number,nn=("0"+n).slice(-2);
-    if(l.status==="soon")return '<tr class="soon" id="lecture-'+n+'"><th scope="row" class="ln">'+nn+'</th><td class="topic"><strong>Lecture '+n+'</strong><span class="state">Coming soon</span><p class="learn">'+md(l.note||"Materials are being prepared.")+'</p></td><td class="primary-cell"><span class="btn off">Slides: coming soon</span></td><td class="more-cell"><span class="muted">Tutorial &middot; Supplement &middot; Practice: coming soon</span></td></tr>';
-    var more=[l.tutorial?link(l.tutorial,'Tutorial<span class="vh"> for lecture '+n+'</span>'):'<span class="muted">Tutorial: not available</span>',l.supplement?link(l.supplement,'Supplement<span class="vh"> for lecture '+n+'</span>'):'<span class="muted">Supplement: not available</span>',link("practice.html#lecture-"+n,'Practice<span class="vh"> for lecture '+n+'</span>')];
-    return '<tr id="lecture-'+n+'"><th scope="row" class="ln">'+nn+'</th><td class="topic"><strong>Lecture '+n+': '+md(l.title)+'</strong><span class="state ok">Available</span><p class="learn">'+md(l.summary)+'</p>'+(l.outcomes&&l.outcomes.length?'<details><summary>Learning outcomes</summary><ul>'+l.outcomes.map(function(o){return '<li>'+md(o)+'</li>'}).join("")+'</ul></details>':'')+'</td><td class="primary-cell"><a class="btn primary" href="'+esc(l.slides)+'">Open slides<span class="vh"> for lecture '+n+'</span></a></td><td class="more-cell">'+more.join(" &middot; ")+'</td></tr>';}).join("");
-  el.innerHTML='<table class="lectures"><caption class="vh">Lectures</caption><thead><tr><th scope="col">Lecture</th><th scope="col">Topic</th><th scope="col">Start here</th><th scope="col">Also</th></tr></thead><tbody>'+rows+'</tbody></table>';
+function flat(d){var o=[];d.groups.forEach(function(g){g.lectures.forEach(function(l){o.push({l:l,g:g})})});return o.sort(function(a,b){return a.l.number-b.l.number})}
+function ln(n){return ("0"+n).slice(-2)}
+function lpage(n){return "phys143-lecture-"+n+".html"}
+R.weekly=function(el,d){
+  el.innerHTML=d.groups.map(function(g){
+    return '<div class="week-group" id="'+esc(g.id)+'"><h4 class="grp">'+md(g.title)+'</h4><p class="sec-sub">'+md(g.subtitle)+'</p><ul class="weeks">'+g.lectures.map(function(l){
+      var n=l.number,soon=l.status==="soon";
+      return '<li class="week'+(soon?' soon':'')+'" id="lecture-'+n+'"><span class="wk">Week '+n+'</span><span class="wt"><a href="'+lpage(n)+'">'+(soon?'Coming soon':md(l.title))+'</a><span class="state'+(soon?'':' ok')+'">'+(soon?'Coming soon':'Available')+'</span></span><span class="ws">'+md(soon?(l.note||"Materials are being prepared."):l.summary)+'</span>'+(soon?'':'<span class="wl"><a href="'+esc(l.slides)+'">Slides<span class="vh"> for lecture '+n+'</span></a></span>')+'</li>'}).join("")+'</ul></div>'}).join("");
+};
+R.lecture=function(el,d,site){
+  var all=flat(d),n=+el.getAttribute("data-n"),i=all.findIndex(function(x){return x.l.number===n});if(i<0)return;
+  var l=all[i].l,soon=l.status==="soon",course=d.course_title||"PHYS 143",title="Lecture "+ln(n)+" — "+(soon?"Coming soon":l.title);
+  var h=document.querySelector("main h2");if(h)h.textContent=title;
+  var sb=h&&h.nextElementSibling;if(sb&&sb.classList.contains("sec-sub"))sb.innerHTML=md(soon?(l.note||"Materials are being prepared."):l.summary);
+  var cr=document.querySelector("main .crumb");if(cr)cr.innerHTML='<a href="index.html">Home</a> &rsaquo; <a href="teaching.html">Teaching</a> &rsaquo; <a href="phys143.html">'+esc(course)+'</a> &rsaquo; Lecture '+ln(n);
+  document.title=title+" | "+course+" | Hope Donglo, Academic Website";
+  var out='';
+  if(soon){out+='<div class="ov-card"><p>This lecture will be added when it is ready.</p></div>'}
+  else{
+    out+='<p class="lecture-actions"><a class="btn primary" href="'+esc(l.slides)+'">Open lecture slides<span class="vh"> for lecture '+n+'</span></a></p>';
+    out+='<details class="fold" id="objectives" open><summary>Learning objectives</summary><div class="ov-card"><p>Students should be able to:</p>'+list(l.outcomes||[],"")+'</div></details>';
+    var focus=l.contact_focus||[];
+    var res=[ [link(l.slides,"Lecture slides (PDF)")], [l.tutorial?link(l.tutorial,"Tutorial sheet (PDF)"):'<span class="muted">Tutorial sheet: not available yet</span>',link("practice.html#lecture-"+n,"Practice questions")], [l.supplement?link(l.supplement,"Supplementary note (PDF)"):'<span class="muted">Supplementary note: not available yet</span>'] ];
+    (d.contacts||[]).forEach(function(c,k){
+      out+='<details class="fold" id="contact-'+(k+1)+'"><summary>'+md(c.heading)+'</summary><div class="ov-card"><p>'+md(c.purpose)+(focus[k]?' <span class="muted">Focus: '+esc(focus[k])+'.</span>':'')+'</p><ul class="res">'+(res[k]||[]).map(function(x){return '<li>'+x+'</li>'}).join("")+'</ul></div></details>';});
+  }
+  var prev=all[i-1],next=all[i+1];
+  out+='<nav class="pager" aria-label="Lecture navigation">'+(prev?'<a class="prev" href="'+lpage(prev.l.number)+'">&larr; Lecture '+ln(prev.l.number)+'</a>':'<span></span>')+'<a class="toc" href="phys143.html#weekly">'+esc(course)+' contents</a>'+(next?'<a class="next" href="'+lpage(next.l.number)+'">Lecture '+ln(next.l.number)+' &rarr;</a>':'<span></span>')+'</nav>';
+  el.innerHTML=out;
 };
 R.profiles=function(el,d,site){el.innerHTML=profiles(site," ")};
 R.contact=function(el,d,site){
@@ -137,7 +158,7 @@ R["home-profiles"]=function(el,d,site){el.innerHTML='<h2 id="profiles">'+md(d.pr
 R["banner-areas"]=function(el,d,site){if(site.banner_areas)el.textContent=site.banner_areas};
 R["banner-field"]=function(el,d,site){if(site.banner_field)el.textContent=site.banner_field};
 
-var files={publications:"publications",research:"research","research-lead":"research","research-areas":"research","research-current":"research","research-previous":"research","research-pubs":"research",projects:"projects",lectures:"lectures","home-hero":"pages/home","home-paths":"pages/home","home-selected":"pages/home","home-profiles":"pages/home"};
+var files={publications:"publications",research:"research","research-lead":"research","research-areas":"research","research-current":"research","research-previous":"research","research-pubs":"research",projects:"projects",weekly:"lectures",lecture:"lectures","home-hero":"pages/home","home-paths":"pages/home","home-selected":"pages/home","home-profiles":"pages/home"};
 var cache={};function load(n){return cache[n]||(cache[n]=get(n))}
 var pending=[];
 document.querySelectorAll("[data-render]").forEach(function(el){var k=el.getAttribute("data-render"),f=files[k];

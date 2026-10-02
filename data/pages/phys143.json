@@ -1,46 +1,37 @@
 {
   "top": [
     {
-      "id": "course-structure",
-      "fold": true,
-      "heading": "Course Structure",
-      "layout": "grid",
+      "id": "overview",
+      "heading": "Course Overview",
       "cards": [
         {
-          "id": "overview",
-          "style": "wide",
-          "title": "Overview",
-          "subtitle": "Scope, objective and weekly structure",
-          "lead": true,
+          "style": "plain",
           "paragraphs": [
-            "Each week is taught in three contacts. Every lecture provides a slide deck, a tutorial sheet and a supplementary note. All files are PDF. Select the deck preview or a button on a card to open it. Each lecture also has twenty multiple-choice practice questions that run in the browser, for practice and not assessment."
+            "To prepare students to succeed in the PHYS 143 examination through conceptual understanding, technical competence and application to unfamiliar problems.",
+            "**Mechanics:** lectures 1 to 8. **Thermal physics:** lectures 9 to 12."
+          ]
+        }
+      ],
+      "layout": "stack"
+    },
+    {
+      "id": "course-structure",
+      "heading": "Course Structure",
+      "layout": "stack",
+      "cards": [
+        {
+          "style": "plain",
+          "paragraphs": [
+            "Each week is taught in three contacts. Every lecture provides a slide deck, a tutorial sheet and a supplementary note. All files are PDF. Each lecture also has twenty multiple-choice practice questions that run in the browser, for practice and not assessment."
           ],
-          "subsections": [
-            {
-              "title": "Scope",
-              "style": "boxed",
-              "paragraphs": [
-                "**Mechanics:** lectures 1 to 8. **Thermal physics:** lectures 9 to 12."
-              ]
-            },
-            {
-              "title": "Objective",
-              "style": "boxed",
-              "paragraphs": [
-                "To prepare students to succeed in the PHYS 143 examination through conceptual understanding, technical competence and application to unfamiliar problems.",
-                "**Weekly routine:** attend all three contacts, attempt the tutorial before the answers, review the supplementary note, and use the deck checklist to find gaps."
-              ]
-            },
-            {
-              "title": "Contacts per week",
-              "style": "boxed",
-              "bullet_style": "numbered",
-              "bullets": [
-                "**Contact 1:** build the physical idea.",
-                "**Contact 2:** develop the model and method.",
-                "**Contact 3:** apply, integrate and transfer."
-              ]
-            }
+          "bullet_style": "numbered",
+          "bullets": [
+            "**Contact 1:** build the physical idea.",
+            "**Contact 2:** develop the model and method.",
+            "**Contact 3:** apply, integrate and transfer."
+          ],
+          "after": [
+            "**Weekly routine:** attend all three contacts, attempt the tutorial before the answers, review the supplementary note, and use the deck checklist to find gaps."
           ]
         }
       ]
@@ -247,5 +238,6 @@
         }
       ]
     }
-  ]
+  ],
+  "subtitle": "12 lectures · 3 weekly contacts · Practice questions"
 }
