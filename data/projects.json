@@ -1,6 +1,6 @@
 {
   "intro_title": "Data work alongside the research",
-  "intro": "Uncertainty quantification, scientific computing and machine learning for nuclear data are part of the research (see [Research](research.html)). This page collects complementary work in data engineering and data science, where the same habits apply: reproducible pipelines, tests that check the data, stated assumptions and results that can be reproduced.",
+  "intro": "This page collects work in data engineering and data science, complementary to the physics research (see [Research](research.html)), where the same habits apply: reproducible pipelines, tests that check the data, stated assumptions and results that can be reproduced.",
   "certification": {
     "title": "Data and ML Engineering, OpenClassrooms",
     "text": "Level 7 qualification (Bac+5, RNCP), followed from 2025 to 2026. The project-based programme covers the full data lifecycle: relational and NoSQL databases, ETL pipelines, containerisation, cloud services, workflow orchestration, streaming and retrieval-augmented generation. The projects below are the ones with a public repository."

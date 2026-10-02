@@ -1,7 +1,7 @@
 {
   "eyebrow": "Hope Donglo, PhD",
   "role": "Lecturer · Theoretical Nuclear Physics",
-  "statement": "Computational models of heavy-ion reactions and superheavy element synthesis, combining stochastic dynamics, uncertainty quantification and scientific computing.",
+  "statement": "Theoretical nuclear physics, investigating the reaction mechanisms behind the synthesis of superheavy elements with stochastic dynamics and uncertainty quantification.",
   "primary_button": {
     "label": "Explore my research →",
     "url": "research.html"
@@ -27,8 +27,8 @@
     },
     {
       "label": "Projects",
-      "title": "Data science and scientific computing",
-      "text": "Data engineering, machine learning, reproducible pipelines and computational projects",
+      "title": "Data science projects",
+      "text": "Data engineering and machine learning projects, with reproducible pipelines, complementary to the physics research",
       "link_label": "View projects →",
       "url": "projects.html"
     }

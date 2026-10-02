@@ -8,7 +8,7 @@
           "style": "plain",
           "title": "Academic enquiries",
           "paragraphs": [
-            "Research collaboration, theoretical nuclear physics and scientific computing."
+            "Research collaboration and enquiries on theoretical nuclear physics and superheavy element synthesis."
           ],
           "button_label": "Email {email}",
           "button_url": "mailto:{email}",
