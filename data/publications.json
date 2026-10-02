@@ -1,0 +1,103 @@
+{
+  "filters": [
+    {
+      "id": "all",
+      "label": "All"
+    },
+    {
+      "id": "2026",
+      "label": "2026"
+    },
+    {
+      "id": "2024",
+      "label": "2024"
+    },
+    {
+      "id": "2023",
+      "label": "2023"
+    },
+    {
+      "id": "earlier",
+      "label": "2020 and earlier"
+    },
+    {
+      "id": "pending",
+      "label": "Preprints and in preparation"
+    }
+  ],
+  "groups": [
+    {
+      "title": "Journal articles",
+      "note": "Published work.",
+      "items": [
+        {
+          "tag": "2026",
+          "text": "D. Ackermann, F. Agert, A. Bahini, D. Boilley, **H. Donglo**, S. Kumar, J. Piot, H. Savajols, Ch. Stodel and the S^3^ Collaboration (2026). Probing SHN structure and stability: synthesis and decay studies at S^3^. *Acta Physica Polonica B*, Vol. 19 (2026)."
+        }
+      ]
+    },
+    {
+      "title": "Preprints",
+      "items": [
+        {
+          "tag": "pending",
+          "text": "**H. Donglo** and T. R. Rodríguez Frutos. Nuclear structure of even-even argon isotopes within the axial symmetry conserving configuration mixing framework. Preprint, HAL [hal-05677054](https://hal.science/hal-05677054)."
+        }
+      ]
+    },
+    {
+      "title": "Theses",
+      "items": [
+        {
+          "tag": "2024",
+          "text": "**H. Donglo** (2024). *Study of Reaction Mechanisms for the Synthesis of Superheavy Elements.* PhD thesis, University of Caen Normandy."
+        },
+        {
+          "tag": "earlier",
+          "text": "**H. Donglo** (2020). *Nuclear Structure Studies with Symmetry-Conserving Configuration Mixing Method.* Joint Master's thesis (Erasmus Mundus)."
+        },
+        {
+          "tag": "earlier",
+          "text": "**H. Donglo** (2016). *Evaluation of Safety Status of the Ghana Research Reactor-1 (GHARR-1).* BSc thesis, University of Ghana."
+        }
+      ]
+    },
+    {
+      "title": "Conference contributions",
+      "items": [
+        {
+          "tag": "2023",
+          "text": "**H. Donglo**. Study of reaction mechanisms for the synthesis of superheavy elements. *29th Nuclear Physics Conference*, Poland, September 2023."
+        }
+      ]
+    },
+    {
+      "title": "Manuscripts in preparation",
+      "note": "These manuscripts are being written. They have not been submitted or published.",
+      "items": [
+        {
+          "tag": "pending",
+          "text": "**H. Donglo**, F. Agert, D. Boilley, T. Cap, M. Kowal and D. Ackermann. Revisiting fusion dynamics in the fusion-by-diffusion model for fusion-evaporation production cross sections. Manuscript in preparation, targeting *Journal of Physics G*."
+        },
+        {
+          "tag": "pending",
+          "text": "**H. Donglo**, D. Boilley, F. Cap and D. Ackermann. Constraining the compound nucleus formation probability in superheavy element synthesis through systematic uncertainty analysis. Manuscript in preparation, targeting *Physical Review C*."
+        }
+      ]
+    }
+  ],
+  "home": [
+    {
+      "label": "2026",
+      "text": "Probing SHN structure and stability: synthesis and decay studies at S^3^. D. Ackermann, F. Agert, A. Bahini, D. Boilley, **H. Donglo** et al. *Acta Physica Polonica B*, Vol. 19 (2026)."
+    },
+    {
+      "label": "2024",
+      "text": "Study of reaction mechanisms for the synthesis of superheavy elements. PhD thesis, University of Caen Normandy."
+    },
+    {
+      "label": "Preprint",
+      "text": "Nuclear structure of even-even argon isotopes within the axial symmetry conserving configuration mixing framework. **H. Donglo** and T. R. Rodríguez Frutos. HAL [hal-05677054](https://hal.science/hal-05677054)."
+    }
+  ]
+}

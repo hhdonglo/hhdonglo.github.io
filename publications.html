@@ -17,10 +17,11 @@
 <p class="course">Theoretical Nuclear Physics</p>
 </div>
 </header>
-<nav class="jump" id="jump" aria-label="Sections"><div class="wrap"><button type="button" class="menu-btn" aria-expanded="false" aria-controls="jump-links"><span>Menu</span><span class="dots" aria-hidden="true">&#8943;</span></button><div class="links" id="jump-links"><a href="index.html">Home</a><a href="research.html">Research</a><a href="teaching.html">Teaching</a><a href="data-science.html">Projects</a><a href="publications.html" aria-current="page">Publications</a><a href="cv.html">CV</a><a href="about.html">About</a><a href="contact.html">Contact</a></div></div></nav>
+<nav class="jump" id="jump" aria-label="Sections"><div class="wrap"><button type="button" class="menu-btn" aria-expanded="false" aria-controls="jump-links"><span>Menu</span><span class="dots" aria-hidden="true">&#8943;</span></button><div class="links" id="jump-links"><a href="index.html">Home</a><a href="research.html">Research</a><a href="teaching.html">Teaching</a><a href="projects.html">Projects</a><a href="publications.html" aria-current="page">Publications</a><a href="cv.html">CV</a><a href="about.html">About</a><a href="contact.html">Contact</a></div></div></nav>
 <main id="main"><div class="wrap">
 <section aria-labelledby="publications">
 <h2 id="publications">Publications</h2>
+<div data-render="publications">
 <div class="pub-filter" role="group" aria-label="Filter by year"><button type="button" class="btn" data-f="all" aria-pressed="true">All</button><button type="button" class="btn" data-f="2026" aria-pressed="false">2026</button><button type="button" class="btn" data-f="2024" aria-pressed="false">2024</button><button type="button" class="btn" data-f="2023" aria-pressed="false">2023</button><button type="button" class="btn" data-f="earlier" aria-pressed="false">2020 and earlier</button><button type="button" class="btn" data-f="pending" aria-pressed="false">Preprints and in preparation</button></div>
 <p class="note" id="pub-count" aria-live="polite"></p>
 <p class="ext-links">Full list on <a href="https://scholar.google.com/citations?user=QW32BboAAAAJ&amp;hl=en" rel="noopener">Google Scholar &#8599;</a> <a href="https://orcid.org/0009-0003-6142-8780" rel="noopener">ORCID &#8599;</a></p>
@@ -51,20 +52,18 @@
 <li data-year="pending"><strong>H. Donglo</strong>, D. Boilley, F. Cap and D. Ackermann. Constraining the compound nucleus formation probability in superheavy element synthesis through systematic uncertainty analysis. Manuscript in preparation, targeting <em>Physical Review C</em>.</li>
 </ul></article>
 </div>
+</div>
 </section>
 </div></main>
-<footer><div class="wrap">
+<footer data-render="footer"><div class="wrap">
 <div class="foot-grid">
 <div><p class="foot-name">Hope Donglo, PhD</p><p>Theoretical nuclear physics</p><p><a href="mailto:hdonglo@ug.edu.gh">hdonglo@ug.edu.gh</a></p></div>
-<nav aria-label="Footer"><ul><li><a href="research.html">Research</a></li><li><a href="teaching.html">Teaching</a></li><li><a href="data-science.html">Projects</a></li><li><a href="publications.html">Publications</a></li><li><a href="cv.html">CV</a></li><li><a href="contact.html">Contact</a></li></ul></nav>
+<nav aria-label="Footer"><ul><li><a href="research.html">Research</a></li><li><a href="teaching.html">Teaching</a></li><li><a href="projects.html">Projects</a></li><li><a href="publications.html">Publications</a></li><li><a href="cv.html">CV</a></li><li><a href="contact.html">Contact</a></li></ul></nav>
 <ul class="foot-ext"><li><a href="https://scholar.google.com/citations?user=QW32BboAAAAJ&amp;hl=en" rel="noopener">Google Scholar &#8599;</a></li><li><a href="https://orcid.org/0009-0003-6142-8780" rel="noopener">ORCID &#8599;</a></li><li><a href="https://github.com/hhdonglo" rel="noopener">GitHub &#8599;</a></li><li><a href="https://www.linkedin.com/in/hopedonglo" rel="noopener">LinkedIn &#8599;</a></li></ul>
 </div>
 <p class="foot-note">&copy; 2026 Hope Donglo. Independent academic website. University of Ghana students should visit Sakai for official course information.</p>
 </div></footer>
-<script>(function(){var bs=document.querySelectorAll('.pub-filter button'),lis=document.querySelectorAll('.refs li[data-year]'),cards=document.querySelectorAll('.ov-grid .ov-card'),c=document.getElementById('pub-count');
-function ok(y,f){return f==='all'||y===f||(f==='earlier'&&+y<=2020&&y!=='pending');}
-function run(f){var n=0;lis.forEach(function(l){var v=ok(l.dataset.year,f);l.hidden=!v;if(v)n++;});cards.forEach(function(k){k.hidden=!k.querySelector('li:not([hidden])');});bs.forEach(function(b){b.setAttribute('aria-pressed',b.dataset.f===f?'true':'false');});c.textContent=n+(n===1?' item shown':' items shown');}
-bs.forEach(function(b){b.addEventListener('click',function(){run(b.dataset.f);});});run('all');})();</script>
+<script src="assets/render.js"></script>
 <script src="assets/site.js"></script>
 </body>
 </html>

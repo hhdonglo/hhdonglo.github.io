@@ -7,7 +7,7 @@
 <title>Hope Donglo, Academic Website</title>
 <meta name="description" content="Hope DONGLO, theoretical nuclear physicist: theoretical nuclear physics, heavy-ion reactions, superheavy element synthesis and uncertainty quantification. Research, publications, teaching, students and CV.">
 <link rel="stylesheet" href="assets/site.css">
-<script>(function(){var h=location.hash.slice(1);if(!h)return;var m={about:"about.html",research:"research.html",themes:"research.html",projects:"research.html",publications:"publications.html",teaching:"teaching.html","research-informed":"teaching.html",lab:"laboratory.html",uncertainty:"laboratory.html",students:"students.html",cv:"cv.html",contact:"contact.html","level-100":"phys143.html"};var t=m[h];if(!t&&/^(lecture-\d+|mechanics|thermal|overview|course-info|ov-.*|t\d+|level-100-h)$/.test(h))t="phys143.html";if(t)location.replace(t+"#"+h);})();</script>
+<script>(function(){var h=location.hash.slice(1);if(!h)return;var m={about:"about.html",research:"research.html",themes:"research.html",projects:"research.html",publications:"publications.html",teaching:"teaching.html","research-informed":"teaching.html",lab:"laboratory.html",uncertainty:"laboratory.html",students:"student-research.html",cv:"cv.html",contact:"contact.html","level-100":"phys143.html"};var t=m[h];if(!t&&/^(lecture-\d+|mechanics|thermal|overview|course-info|ov-.*|t\d+|level-100-h)$/.test(h))t="phys143.html";if(t)location.replace(t+"#"+h);})();</script>
 <script>if(!location.hash){if("scrollRestoration" in history)history.scrollRestoration="manual";window.addEventListener("pageshow",function(){if(!location.hash)window.scrollTo({top:0,left:0,behavior:"instant"})});}</script>
 </head>
 <body>
@@ -18,7 +18,7 @@
 <p class="areas">Theoretical Nuclear Physics &bull; Heavy-Ion Reactions &bull; Superheavy Element Synthesis &bull; Uncertainty Quantification</p>
 </div>
 </header>
-<nav class="jump" id="jump" aria-label="Sections"><div class="wrap"><button type="button" class="menu-btn" aria-expanded="false" aria-controls="jump-links"><span>Menu</span><span class="dots" aria-hidden="true">&#8943;</span></button><div class="links" id="jump-links"><a href="index.html" aria-current="page">Home</a><a href="research.html">Research</a><a href="teaching.html">Teaching</a><a href="data-science.html">Projects</a><a href="publications.html">Publications</a><a href="cv.html">CV</a><a href="about.html">About</a><a href="contact.html">Contact</a></div></div></nav>
+<nav class="jump" id="jump" aria-label="Sections"><div class="wrap"><button type="button" class="menu-btn" aria-expanded="false" aria-controls="jump-links"><span>Menu</span><span class="dots" aria-hidden="true">&#8943;</span></button><div class="links" id="jump-links"><a href="index.html" aria-current="page">Home</a><a href="research.html">Research</a><a href="teaching.html">Teaching</a><a href="projects.html">Projects</a><a href="publications.html">Publications</a><a href="cv.html">CV</a><a href="about.html">About</a><a href="contact.html">Contact</a></div></div></nav>
 <main id="main"><div class="wrap">
 <section aria-labelledby="home" id="home-sec">
 <h2 id="home" class="vh">Home</h2>
@@ -32,7 +32,7 @@
 <a class="btn primary" href="research.html">Explore my research &rarr;</a>
 <a class="btn" href="cv.html">View my CV</a>
 </div>
-<p class="ext-links"><a href="https://scholar.google.com/citations?user=QW32BboAAAAJ&amp;hl=en" rel="noopener">Google Scholar &#8599;</a> <a href="https://orcid.org/0009-0003-6142-8780" rel="noopener">ORCID &#8599;</a> <a href="https://github.com/hhdonglo" rel="noopener">GitHub &#8599;</a> <a href="https://www.linkedin.com/in/hopedonglo" rel="noopener">LinkedIn &#8599;</a></p>
+<p class="ext-links" data-render="profiles"><a href="https://scholar.google.com/citations?user=QW32BboAAAAJ&amp;hl=en" rel="noopener">Google Scholar &#8599;</a> <a href="https://orcid.org/0009-0003-6142-8780" rel="noopener">ORCID &#8599;</a> <a href="https://github.com/hhdonglo" rel="noopener">GitHub &#8599;</a> <a href="https://www.linkedin.com/in/hopedonglo" rel="noopener">LinkedIn &#8599;</a></p>
 </div>
 </div>
 </section>
@@ -42,13 +42,13 @@
 <div class="grid paths">
 <a class="path" href="research.html"><span class="num">Research</span><strong>Understanding the formation of heavy and superheavy nuclei</strong><span>Heavy-ion reactions &middot; Langevin dynamics &middot; Superheavy elements &middot; Uncertainty quantification</span><span class="go">Explore research &rarr;</span></a>
 <a class="path" href="teaching.html"><span class="num">Teaching</span><strong>Physics resources for students</strong><span>PHYS 143, laboratory resources, tutorials, supplementary notes and interactive practice questions</span><span class="go">Explore teaching &rarr;</span></a>
-<a class="path" href="data-science.html"><span class="num">Projects</span><strong>Data science and scientific computing</strong><span>Data engineering, machine learning, reproducible pipelines and computational projects</span><span class="go">View projects &rarr;</span></a>
+<a class="path" href="projects.html"><span class="num">Projects</span><strong>Data science and scientific computing</strong><span>Data engineering, machine learning, reproducible pipelines and computational projects</span><span class="go">View projects &rarr;</span></a>
 </div>
 </section>
 
 <section aria-labelledby="selected-pubs" class="home-sec">
 <h2 id="selected-pubs">Selected publications</h2>
-<ul class="refs sel">
+<ul class="refs sel" data-render="pubs-home">
 <li><span class="yr">2026</span><span>Probing SHN structure and stability: synthesis and decay studies at S<sup>3</sup>. D. Ackermann, F. Agert, A. Bahini, D. Boilley, <strong>H. Donglo</strong> et al. <em>Acta Physica Polonica B</em>, Vol. 19 (2026).</span></li>
 <li><span class="yr">2024</span><span>Study of reaction mechanisms for the synthesis of superheavy elements. PhD thesis, University of Caen Normandy.</span></li>
 <li><span class="yr">Preprint</span><span>Nuclear structure of even-even argon isotopes within the axial symmetry conserving configuration mixing framework. <strong>H. Donglo</strong> and T. R. Rodr&iacute;guez Frutos. HAL <a href="https://hal.science/hal-05677054" rel="noopener">hal-05677054</a>.</span></li>
@@ -58,27 +58,28 @@
 
 <section aria-labelledby="currently" class="home-sec">
 <h2 id="currently">Currently</h2>
-<ul class="chips"><li>KEWPIE3 development and validation</li><li>Fusion dynamics and fusion-by-diffusion modelling</li><li>Uncertainty analysis of nuclear reaction models</li></ul>
+<ul class="chips" data-render="research-chips"><li>KEWPIE3 development and validation</li><li>Fusion dynamics and fusion-by-diffusion modelling</li><li>Uncertainty analysis of nuclear reaction models</li></ul>
 </section>
 
 <section aria-labelledby="shortcuts" class="home-sec">
 <h2 id="shortcuts">Find your way</h2>
 <div class="grid shortcuts">
-<div class="ov-card"><h3 class="h4">I am a researcher</h3><p><a href="research.html">Research</a> &middot; <a href="publications.html">Publications</a> &middot; <a href="data-science.html">Projects</a></p></div>
-<div class="ov-card"><h3 class="h4">I am a student</h3><p><a href="teaching.html">Teaching</a> &middot; <a href="phys143.html">PHYS 143</a> &middot; <a href="students.html">Student Research</a></p></div>
+<div class="ov-card"><h3 class="h4">I am a researcher</h3><p><a href="research.html">Research</a> &middot; <a href="publications.html">Publications</a> &middot; <a href="projects.html">Projects</a></p></div>
+<div class="ov-card"><h3 class="h4">I am a student</h3><p><a href="teaching.html">Teaching</a> &middot; <a href="phys143.html">PHYS 143</a> &middot; <a href="student-research.html">Student Research</a></p></div>
 <div class="ov-card"><h3 class="h4">I am looking for the CV</h3><p><a href="cv.html">CV page</a> &middot; <a href="cv/Hope_Donglo_CV.pdf">Download PDF</a></p></div>
 </div>
 <p class="affil">Department of Physics, University of Ghana.</p>
 </section>
 </main>
-<footer><div class="wrap">
+<footer data-render="footer"><div class="wrap">
 <div class="foot-grid">
 <div><p class="foot-name">Hope Donglo, PhD</p><p>Theoretical nuclear physics</p><p><a href="mailto:hdonglo@ug.edu.gh">hdonglo@ug.edu.gh</a></p></div>
-<nav aria-label="Footer"><ul><li><a href="research.html">Research</a></li><li><a href="teaching.html">Teaching</a></li><li><a href="data-science.html">Projects</a></li><li><a href="publications.html">Publications</a></li><li><a href="cv.html">CV</a></li><li><a href="contact.html">Contact</a></li></ul></nav>
+<nav aria-label="Footer"><ul><li><a href="research.html">Research</a></li><li><a href="teaching.html">Teaching</a></li><li><a href="projects.html">Projects</a></li><li><a href="publications.html">Publications</a></li><li><a href="cv.html">CV</a></li><li><a href="contact.html">Contact</a></li></ul></nav>
 <ul class="foot-ext"><li><a href="https://scholar.google.com/citations?user=QW32BboAAAAJ&amp;hl=en" rel="noopener">Google Scholar &#8599;</a></li><li><a href="https://orcid.org/0009-0003-6142-8780" rel="noopener">ORCID &#8599;</a></li><li><a href="https://github.com/hhdonglo" rel="noopener">GitHub &#8599;</a></li><li><a href="https://www.linkedin.com/in/hopedonglo" rel="noopener">LinkedIn &#8599;</a></li></ul>
 </div>
 <p class="foot-note">&copy; 2026 Hope Donglo. Independent academic website. University of Ghana students should visit Sakai for official course information.</p>
 </div></footer>
+<script src="assets/render.js"></script>
 <script src="assets/site.js"></script>
 </body>
 </html>

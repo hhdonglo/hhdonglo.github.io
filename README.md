@@ -39,3 +39,7 @@ PHYS143/
 index.html     home page for GitHub Pages (static HTML and CSS, light and dark mode)
 assets/thumbs/ title-slide previews of each deck (WebP)
 ```
+
+## Editing
+
+See [EDITING.md](EDITING.md) for step-by-step instructions on changing publications, research, projects, lectures and contact details from github.com. These are stored in `data/*.json` and drawn by `assets/render.js`.
