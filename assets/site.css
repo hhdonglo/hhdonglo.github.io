@@ -189,3 +189,17 @@ main .level{margin-top:.8rem}
 @media (max-width:480px){.hub{grid-template-columns:1fr}}
 
 .tag{font:600 .72rem system-ui,sans-serif;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-left:.4rem}
+.primary-card{border-top-width:6px;max-width:46rem}
+.primary-card .body{padding:1.2rem 1.3rem 1.4rem}
+.primary-card h4{font-size:1.9rem;margin:.1rem 0 0}
+.pc-sub{margin:.1rem 0 .6rem;font-size:1.2rem;color:var(--muted)}
+.primary-card .learn{font-size:1.02rem}
+.secondary-card{border-top-width:4px;max-width:30rem}
+.secondary-card .body{padding:.8rem 1rem 1rem}
+.arrows{list-style:none;margin:.3rem 0 0;padding:0;display:grid;gap:.4rem;font:1rem/1.45 system-ui,sans-serif;max-width:34rem}
+.arrows li{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--brown);border-radius:6px;padding:.4rem .7rem}
+.fold{margin:1rem 0;background:var(--surface);border:1px solid var(--border);border-left:5px solid var(--brown);border-radius:8px;padding:.2rem 1rem;font-size:1rem}
+.fold>summary{min-height:44px;display:flex;align-items:center;font:700 1.05rem system-ui,sans-serif;color:var(--navy)}
+@media (prefers-color-scheme:dark){.fold>summary{color:#c7dcf8}}
+.fold[open]>summary{border-bottom:1px solid var(--border);margin-bottom:.8rem}
+.fold>section,.fold>.ov-card,.fold>.ov-grid{margin-bottom:1rem}
