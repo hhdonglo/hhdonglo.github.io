@@ -29,7 +29,7 @@ Practice questions: https://hhdonglo.github.io/practice.html (multiple-choice, 2
 
 ## Laboratory skills (under development)
 
-Uncertainty analysis, a three-contact lecture supporting PHYS 105: [page](https://hhdonglo.github.io/uncertainty.html), [deck PDF](PHYS105/lecture_1/lecture01_uncertainty.pdf). The tutorial and supplement are not yet published. This page is still under development.
+Uncertainty analysis, a three-contact lecture supporting the laboratory courses PHYS 105, 106 and 205: [page](https://hhdonglo.github.io/uncertainty.html), [deck PDF](PHYS105/lecture_1/lecture01_uncertainty.pdf). The tutorial and supplement are not yet published. This page is still under development.
 
 ## Structure
 
