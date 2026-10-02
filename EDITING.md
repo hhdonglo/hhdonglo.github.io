@@ -22,15 +22,15 @@ Open https://app.pagescms.org, choose the repository, choose a form, change the 
 | --- | --- |
 | Home | The name line, role, statement and buttons, the three pathway cards, section headings, the shortcuts and the plain affiliation line |
 | Research | The opening question, the four research areas, current research, previous research, and the "Currently" list on the home page |
-| Teaching | The Teaching page: the PHYS 143, Laboratory and Student Research cards and Research-Informed Learning |
+| Teaching | The Teaching page: the PHYS 143 and Laboratory cards, Research-Informed Learning and Teaching Resources |
 | Teaching: PHYS 143 page | The PHYS 143 page text outside the lecture tables: title, course structure, practice questions, why this course matters, reference chapters, expected skills, applications |
-| Teaching: PHYS 143 lectures | Each lecture's title, summary, learning outcomes, file links and status (available or coming soon) |
+| Teaching: PHYS 143 lectures | The weekly programme and every lecture page: title, summary, learning objectives, file links, the three contact headings and status (available or coming soon) |
 | Teaching: practice questions | The multiple-choice questions for each lecture (choose a lecture, then edit its questions, options, correct option and explanation) |
 | Teaching: Laboratory courses | The Laboratory page: course cards and the shared uncertainty lecture card |
-| Teaching: Student Research | The Student Research page |
-| Projects | The Projects page: introduction, certification and each project card |
+| Data & Computation | The Data & Computation page: overview, computational physics, data science, software and tools, project cards |
 | Publications | All publications, the year filter buttons, and the three selected publications on the home page |
 | CV page | The CV summary page (education, appointments, awards, skills) |
+| Students | The Students page |
 | About | The About page |
 | Contact | The Contact page text and buttons |
 | Site settings | Email addresses, phone, office, profile links (Google Scholar, ORCID, GitHub, LinkedIn), the footer lines and the banner lines |
@@ -45,9 +45,11 @@ The **Media** tab uploads files: lecture PDFs (PHYS 143, PHYS 105), the CV PDF a
 
 **Add a research project.** Form: Research, "Current research", **Add**. Fill in the status label, a short name (shown on the home page), the title and the paragraphs.
 
-**Add a project card.** Form: Projects, "Projects", **Add**.
+**Add a project card.** Form: Data & Computation, "Projects", **Add**.
 
 **Change contact details.** Form: Site settings. The Contact page, the footer and the home page links all read from it.
+
+**Add a lecture 13.** In the form "Teaching: PHYS 143 lectures", add the lecture to a group. Then, on github.com, open `phys143-lecture-12.html`, choose **Raw**, copy it, create a new file `phys143-lecture-13.html`, paste, and change the number 12 to 13 (in `data-n="12"` and in the title and heading lines).
 
 **Change a page's text.** Open its form, find the section and card, and edit the text. Sections and cards can be added, reordered and removed with the buttons in the form.
 

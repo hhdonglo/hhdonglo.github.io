@@ -35,12 +35,14 @@ R["research-current"]=function(el,d){el.innerHTML=cards(d.current,false)};
 R["research-previous"]=function(el,d){el.innerHTML=cards(d.previous,true)};
 R["research-chips"]=function(el,d){el.innerHTML=d.current.map(function(c){return '<li>'+md(c.chip||c.title)+'</li>'}).join("")};
 R.projects=function(el,d){
-  var h='<div class="ov-card"><h3 class="h4">'+md(d.intro_title)+'</h3><p class="intro">'+md(d.intro)+'</p></div>';
-  h+='<h3 class="sub2" id="certification">Certification</h3><div class="ov-card"><h4>'+md(d.certification.title)+'</h4><p>'+md(d.certification.text)+'</p></div>';
-  h+='<h3 class="sub2" id="projects-ds">Selected projects</h3><p class="note">'+md(d.projects_note)+'</p><div class="ov-grid">';
+  var h='<section aria-labelledby="overview"><h3 class="sub2" id="overview">'+md(d.intro_title||"Overview")+'</h3><div class="ov-card"><p class="intro">'+md(d.intro)+'</p></div></section>';
+  if(d.computational)h+='<section aria-labelledby="computational"><h3 class="sub2" id="computational">'+md(d.computational.title)+'</h3><div class="ov-card"><p>'+md(d.computational.text)+'</p></div></section>';
+  h+='<section aria-labelledby="certification"><h3 class="sub2" id="certification">'+md(d.data_science_title||"Data Science")+'</h3><div class="ov-card"><h4>'+md(d.certification.title)+'</h4><p>'+md(d.certification.text)+'</p></div></section>';
+  if(d.software)h+='<section aria-labelledby="software"><h3 class="sub2" id="software">'+md(d.software.title)+'</h3><div class="ov-card"><p>'+md(d.software.text)+'</p><ul class="chips" aria-label="Tools">'+d.software.items.map(function(t){return '<li>'+md(t)+'</li>'}).join("")+'</ul></div></section>';
+  h+='<section aria-labelledby="projects-ds"><h3 class="sub2" id="projects-ds">'+md(d.projects_title||"Projects")+'</h3><p class="note">'+md(d.projects_note)+'</p><div class="ov-grid">';
   d.projects.forEach(function(p){
     h+='<article class="ov-card"><h4>'+md(p.title)+'</h4><p class="status">'+md(p.type)+'</p><p>'+md(p.description)+'</p>'+(p.details||[]).map(function(x){return '<p><strong>'+md(x.label)+':</strong> '+md(x.text)+'</p>'}).join("")+(p.tools&&p.tools.length?'<ul class="chips" aria-label="Tools">'+p.tools.map(function(t){return '<li>'+md(t)+'</li>'}).join("")+'</ul>':'')+(p.repo?'<p><a class="btn" href="'+esc(p.repo)+'" rel="noopener">View on GitHub</a></p>':'')+'</article>';});
-  h+='</div><p class="note">'+md(d.footnote)+'</p>';
+  h+='</div><p class="note">'+md(d.footnote)+'</p></section>';
   el.innerHTML=h;
 };
 function flat(d){var o=[];d.groups.forEach(function(g){g.lectures.forEach(function(l){o.push({l:l,g:g})})});return o.sort(function(a,b){return a.l.number-b.l.number})}

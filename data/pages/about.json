@@ -1,6 +1,8 @@
 {
   "sections": [
     {
+      "id": "biography",
+      "heading": "Biography",
       "layout": "stack",
       "cards": [
         {
@@ -10,32 +12,85 @@
             "Hope Donglo, PhD, is a theoretical nuclear physicist.",
             "**Affiliation:** Lecturer, Department of Physics, College of Basic and Applied Sciences, University of Ghana, Legon (appointed August 2026).",
             "Hope’s research in theoretical nuclear physics investigates the reaction mechanisms behind the synthesis of superheavy elements. Theoretical models of heavy-ion reactions are studied with stochastic methods and uncertainty quantification, supported by scientific computing, to improve predictive nuclear theory."
-          ],
-          "subsections": [
-            {
-              "title": "Main research interests",
-              "style": "inline",
-              "bullet_style": "chips",
-              "bullets": [
-                "Nuclear reaction theory",
-                "Superheavy element synthesis",
-                "Nuclear structure",
-                "Langevin dynamics",
-                "Bayesian inference and uncertainty quantification",
-                "Machine learning for nuclear data"
-              ]
-            },
-            {
-              "title": "Educational mission",
-              "style": "inline",
-              "paragraphs": [
-                "Inquiry-based, student-centred physics instruction that integrates conceptual reasoning, laboratory practice and computational problem-solving, in support of inclusive, research-informed STEM education."
-              ]
-            }
-          ],
-          "after": [
-            "[Education, appointments and awards are on the CV page.](cv.html)"
           ]
+        }
+      ]
+    },
+    {
+      "id": "background",
+      "heading": "Academic Background",
+      "layout": "grid",
+      "cards": [
+        {
+          "style": "plain",
+          "title": "Education",
+          "bullet_style": "timeline",
+          "bullets": [
+            "**PhD, Theoretical Nuclear Physics**, University of Caen Normandy, France, 2021 to 2024.",
+            "**Joint Master's in Nuclear Physics** (Erasmus Mundus), Universities of Seville, Autonomous Madrid, Padua and Caen, 2018 to 2020.",
+            "**BSc Physics**, University of Ghana, Legon, 2012 to 2016."
+          ]
+        },
+        {
+          "style": "plain",
+          "title": "Appointments",
+          "bullet_style": "timeline",
+          "bullets": [
+            "**Lecturer**, Department of Physics, University of Ghana, from August 2026.",
+            "**Doctoral Researcher**, CEA/GANIL, Caen, France, 2021 to 2024.",
+            "**Graduate Research Assistant**: Autonomous University of Madrid (2020), GANIL (2019 to 2020) and INFN Legnaro, Italy (2019)."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "interests",
+      "heading": "Research Interests",
+      "layout": "stack",
+      "cards": [
+        {
+          "style": "plain",
+          "bullet_style": "chips",
+          "bullets": [
+            "Nuclear reaction theory",
+            "Superheavy element synthesis",
+            "Nuclear structure",
+            "Langevin dynamics",
+            "Bayesian inference and uncertainty quantification",
+            "Machine learning for nuclear data"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "teaching-profile",
+      "heading": "Teaching",
+      "layout": "stack",
+      "cards": [
+        {
+          "style": "plain",
+          "lead": true,
+          "paragraphs": [
+            "Hope teaches undergraduate physics and leads laboratory sessions. The approach is inquiry-based and student-centred, integrating conceptual reasoning, laboratory practice and computational problem-solving, in support of inclusive, research-informed STEM education.",
+            "[Teaching resources on this site](teaching.html)"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cv-section",
+      "heading": "Curriculum Vitae",
+      "layout": "stack",
+      "cards": [
+        {
+          "style": "plain",
+          "paragraphs": [
+            "A summary of the academic record is on the CV page. The full CV is available as a PDF.",
+            "[View CV →](cv.html)"
+          ],
+          "button_label": "Download CV →",
+          "button_url": "cv/Hope_Donglo_CV.pdf",
+          "button_style": "primary dl"
         }
       ]
     }

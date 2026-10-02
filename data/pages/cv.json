@@ -9,7 +9,7 @@
           "paragraphs": [
             "A summary of the academic record. The full CV, with all sections, is available as a PDF."
           ],
-          "button_label": "Download the CV (PDF)",
+          "button_label": "Download CV →",
           "button_url": "cv/Hope_Donglo_CV.pdf",
           "button_style": "primary dl"
         }

@@ -2,6 +2,19 @@
   "title": "Get in touch",
   "sections": [
     {
+      "layout": "stack",
+      "cards": [
+        {
+          "style": "plain",
+          "title": "Hope Donglo, PhD",
+          "paragraphs": [
+            "Lecturer in Physics",
+            "University of Ghana"
+          ]
+        }
+      ]
+    },
+    {
       "layout": "grid",
       "cards": [
         {

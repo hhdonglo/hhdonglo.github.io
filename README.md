@@ -43,3 +43,9 @@ assets/thumbs/ title-slide previews of each deck (WebP)
 ## Editing
 
 See [EDITING.md](EDITING.md). Content is edited with Pages CMS forms (configured in `.pages.yml`) and stored in `data/*.json`, `data/pages/*.json` and `quizzes/lectureN.json`; pages are drawn by `assets/render.js`.
+
+## Tools
+
+- `tools/build_shell.py` rewrites the menu on every page.
+- `tools/make_lecture_pages.py` creates `phys143-lecture-N.html` from `data/lectures.json`.
+- `tools/bake.py` (with `tools/bake.js`, Playwright and a local server on port 8765) stores the rendered content in each page as the no-JavaScript fallback. Run it after changing the data files.

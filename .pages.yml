@@ -547,17 +547,47 @@ content:
     fields: *id002
     list: true
 - name: projects
-  label: Projects
+  label: Data & Computation
   type: file
   path: data/projects.json
   format: json
   fields:
   - name: intro_title
-    label: Introduction title
+    label: Overview heading
     type: string
   - name: intro
-    label: Introduction
+    label: Overview text
     type: text
+  - name: computational
+    label: Computational physics
+    type: object
+    fields:
+    - name: title
+      label: Heading
+      type: string
+    - name: text
+      label: Text
+      type: text
+  - name: data_science_title
+    label: Data science heading
+    type: string
+  - name: software
+    label: Software and tools
+    type: object
+    fields:
+    - name: title
+      label: Heading
+      type: string
+    - name: text
+      label: Text
+      type: text
+    - name: items
+      label: Tools
+      type: string
+      list: true
+  - name: projects_title
+    label: Projects heading
+    type: string
   - name: certification
     label: Certification
     type: object

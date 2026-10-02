@@ -1,21 +1,17 @@
 {
   "sections": [
     {
-      "layout": "stack",
+      "id": "undergraduate",
+      "heading": "Undergraduate Students",
+      "layout": "grid",
       "cards": [
         {
           "style": "plain",
-          "title": "Undergraduate research supervision",
-          "lead": true,
+          "title": "Supervision",
           "paragraphs": [
             "Undergraduate students can take part in research projects in nuclear physics, mathematical modelling, scientific computing, data analysis and uncertainty quantification. Projects are built around the methods used in the research programme, adapted to the level of the student."
           ]
-        }
-      ]
-    },
-    {
-      "layout": "grid",
-      "cards": [
+        },
         {
           "style": "plain",
           "title": "What a student might do",
@@ -25,7 +21,14 @@
             "Solve the equations of motion of a simple system numerically",
             "Analyse, plot and interpret a data set"
           ]
-        },
+        }
+      ]
+    },
+    {
+      "id": "research-projects",
+      "heading": "Research Projects",
+      "layout": "stack",
+      "cards": [
         {
           "style": "plain",
           "title": "Possible final-year project themes",
@@ -37,6 +40,23 @@
             "Python tools for analysing and plotting nuclear data"
           ],
           "note": "Interested students should get in touch through the [contact details](contact.html)."
+        }
+      ]
+    },
+    {
+      "id": "resources",
+      "heading": "Resources",
+      "layout": "stack",
+      "cards": [
+        {
+          "style": "plain",
+          "title": "Learning resources on this site",
+          "bullets": [
+            "[PHYS 143: Mechanics and Thermal Physics](phys143.html), with one page per lecture",
+            "[Practice questions](practice.html) for every PHYS 143 lecture",
+            "[Laboratory courses](laboratory.html) and the shared uncertainty analysis lecture",
+            "[Teaching](teaching.html) overview"
+          ]
         }
       ]
     }
