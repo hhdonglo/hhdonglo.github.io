@@ -27,7 +27,8 @@ R.publications=function(el,d,site){
   bs.forEach(function(b){b.addEventListener("click",function(){run(b.dataset.f)})});run("all");
 };
 R["pubs-home"]=function(el,d){el.innerHTML=d.home.map(function(i){return '<li><span class="yr">'+esc(i.label)+'</span><span>'+md(i.text)+'</span></li>'}).join("")};
-R["research-lead"]=function(el,d){el.innerHTML='<h3 class="h4">'+md(d.question)+'</h3><p class="intro">'+md(d.intro)+'</p>'};
+R["research-lead"]=function(el,d){el.innerHTML='<h3 class="h4">'+md(d.overview_title||"Research Overview")+'</h3><p class="intro"><strong>'+md(d.question)+'</strong></p><p class="intro">'+md(d.intro)+'</p>'};
+R["research-pubs"]=function(el,d){el.innerHTML='<p>'+md(d.publications_text)+'</p><p><a class="btn primary" href="publications.html">'+esc(d.publications_link_label||"View all publications")+'</a></p>'};
 R["research-areas"]=function(el,d){el.innerHTML=d.areas.map(function(a,i){return '<article class="ov-card area"><p class="num">'+("0"+(i+1)).slice(-2)+'</p><h4>'+md(a.title)+'</h4><p>'+md(a.text)+'</p></article>'}).join("")};
 function cards(list,past){return list.map(function(c){return '<article class="ov-card"><p class="status'+(past?' past':'')+'">'+md(c.status)+'</p><h4>'+md(c.title)+'</h4>'+c.paragraphs.map(function(p){return '<p>'+md(p)+'</p>'}).join("")+'</article>'}).join("")}
 R["research-current"]=function(el,d){el.innerHTML=cards(d.current,false)};
@@ -136,7 +137,7 @@ R["home-profiles"]=function(el,d,site){el.innerHTML='<h2 id="profiles">'+md(d.pr
 R["banner-areas"]=function(el,d,site){if(site.banner_areas)el.textContent=site.banner_areas};
 R["banner-field"]=function(el,d,site){if(site.banner_field)el.textContent=site.banner_field};
 
-var files={publications:"publications",research:"research","research-lead":"research","research-areas":"research","research-current":"research","research-previous":"research",projects:"projects",lectures:"lectures","home-hero":"pages/home","home-paths":"pages/home","home-selected":"pages/home","home-profiles":"pages/home"};
+var files={publications:"publications",research:"research","research-lead":"research","research-areas":"research","research-current":"research","research-previous":"research","research-pubs":"research",projects:"projects",lectures:"lectures","home-hero":"pages/home","home-paths":"pages/home","home-selected":"pages/home","home-profiles":"pages/home"};
 var cache={};function load(n){return cache[n]||(cache[n]=get(n))}
 var pending=[];
 document.querySelectorAll("[data-render]").forEach(function(el){var k=el.getAttribute("data-render"),f=files[k];

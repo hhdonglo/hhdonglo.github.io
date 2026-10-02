@@ -299,3 +299,4 @@ nav.jump a[aria-current]{font-weight:700}
 .sel-card h3.h4{margin:.15rem 0 .3rem;font-size:1.15rem;color:var(--navy)}
 .sel-card p{margin:.2rem 0}
 @media (prefers-color-scheme:dark){.sel-card h3.h4{color:#c7dcf8}}
+@media (min-width:700px){.ov-grid.areas{grid-template-columns:repeat(2,1fr)}}

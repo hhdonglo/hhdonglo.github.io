@@ -111,6 +111,9 @@ content:
   path: data/research.json
   format: json
   fields:
+  - name: overview_title
+    label: Overview heading
+    type: string
   - name: question
     label: Opening question
     type: string
@@ -161,6 +164,15 @@ content:
       type: text
       list: true
     list: true
+  - name: publications_title
+    label: Publications heading
+    type: string
+  - name: publications_text
+    label: Publications text
+    type: text
+  - name: publications_link_label
+    label: Publications button text
+    type: string
 - name: teaching
   label: Teaching
   type: file

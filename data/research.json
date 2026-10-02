@@ -3,19 +3,19 @@
   "intro": "The research addresses a central question in theoretical nuclear physics: which reaction mechanisms govern the formation of heavy and superheavy nuclei, and how reliably they can be predicted. Stochastic dynamics and systematic uncertainty analysis are the principal methods, supported by scientific computing.",
   "areas": [
     {
-      "title": "Heavy-ion reaction dynamics",
+      "title": "Nuclear Reaction Dynamics",
       "text": "Langevin dynamics and stochastic simulation of nuclear reactions, covering the pathway from the colliding nuclei to a superheavy element."
     },
     {
-      "title": "Superheavy element synthesis",
+      "title": "Heavy and Superheavy Elements",
       "text": "Production cross-sections for superheavy nuclei, including Z = 119 and Z = 120, are predicted with the KEWPIE2 and KEWPIE3 framework. The work connects to experimental studies of synthesis and decay at S^3^."
     },
     {
-      "title": "Nuclear reaction modelling",
-      "text": "Fusion-evaporation reactions and the probability of forming a compound nucleus, calculated with Langevin-based stochastic approaches."
+      "title": "Fusion–Evaporation Reactions",
+      "text": "Fusion–evaporation reactions and the probability of forming a compound nucleus, calculated with Langevin-based stochastic approaches."
     },
     {
-      "title": "Uncertainty quantification",
+      "title": "Uncertainty Quantification",
       "text": "Bayesian optimisation and machine learning applied to estimate nuclear model parameters and their uncertainties, with systematic benchmarking of competing models."
     }
   ],
@@ -70,5 +70,9 @@
         "Nuclear structure with the symmetry-conserving configuration mixing method, and a safety evaluation of the Ghana Research Reactor-1. See [Publications](publications.html)."
       ]
     }
-  ]
+  ],
+  "overview_title": "Research Overview",
+  "publications_title": "Publications",
+  "publications_text": "Journal articles, preprints, theses, conference contributions and manuscripts in preparation are listed on the Publications page.",
+  "publications_link_label": "View all publications →"
 }
