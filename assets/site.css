@@ -187,3 +187,5 @@ nav.jump a[aria-current="page"]{font-weight:700;color:var(--navy);text-decoratio
 section.l1{margin-top:1rem}
 main .level{margin-top:.8rem}
 @media (max-width:480px){.hub{grid-template-columns:1fr}}
+
+.tag{font:600 .72rem system-ui,sans-serif;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-left:.4rem}
