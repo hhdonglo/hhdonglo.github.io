@@ -152,6 +152,13 @@ h4{font-size:1.2rem}
 .levels{margin-top:1.1rem}
 .level-card{min-height:7rem}
 @media (max-width:480px){.level{padding:.8rem .7rem 1rem}.quick{grid-template-columns:1fr 1fr}.qcard span{font-size:.82rem}}
+.tl,.chips{margin:.4rem 0 0}
+.tl li{margin:.5rem 0}
+.chips{list-style:none;padding:0;display:flex;flex-wrap:wrap;gap:.4rem;font:.9rem/1.4 system-ui,sans-serif}
+.chips li{margin:0;background:var(--sky);border-left:4px solid var(--brown);border-radius:6px;padding:.3rem .65rem}
+#about .ov-grid,#research .ov-grid{margin-top:1.1rem}
+#about>.ov-card .intro,#research>.ov-card .intro{max-width:46rem}
+.ov-card ul.chips{padding-left:0}
 </style>
 <script>if(!location.hash){if("scrollRestoration" in history)history.scrollRestoration="manual";window.addEventListener("pageshow",function(){if(!location.hash)window.scrollTo({top:0,left:0,behavior:"instant"})});}</script>
 </head>
@@ -179,14 +186,63 @@ h4{font-size:1.2rem}
 
 <section aria-labelledby="about">
 <h2 id="about">About</h2>
-<div class="ov-card placeholder"><p><span class="badge">Placeholder</span></p>
-<p>[A short paragraph about background will be added here: current position, education and career, and interests. To be written by Hope DONGLO.]</p></div>
+<div class="ov-card">
+<p class="intro">Hope DONGLO, PhD, is a Lecturer in the Department of Physics, College of Basic and Applied Sciences, University of Ghana, Legon (appointed August 2026). Hope is a theoretical nuclear physicist who earned a PhD in Theoretical Nuclear Physics at the University of Caen Normandy in 2024, as a Marie Sk&lstrok;odowska-Curie COFUND Fellow with research at CEA/GANIL, France.</p>
+</div>
+<div class="ov-grid">
+<article class="ov-card"><h4>Education</h4>
+<ul class="tl">
+<li><strong>PhD, Theoretical Nuclear Physics</strong>, University of Caen Normandy, France, 2021 to 2024. Dissertation: <em>Study of Reaction Mechanisms for the Synthesis of Superheavy Elements</em>.</li>
+<li><strong>Joint Master&#x27;s in Nuclear Physics</strong> (Erasmus Mundus), Universities of Seville, Autonomous Madrid, Padua and Caen, 2018 to 2020.</li>
+<li><strong>BSc Physics</strong>, University of Ghana, Legon, 2012 to 2016. Thesis: <em>Evaluation of Safety Status of the Ghana Research Reactor-1 (GHARR-1)</em>.</li>
+</ul></article>
+<article class="ov-card"><h4>Appointments</h4>
+<ul class="tl">
+<li><strong>Lecturer</strong>, Department of Physics, University of Ghana, from August 2026.</li>
+<li><strong>Doctoral Researcher</strong>, CEA/GANIL, Caen, France, 2021 to 2024.</li>
+<li><strong>Graduate Research Assistant</strong>: Autonomous University of Madrid (2020), GANIL (2019 to 2020) and INFN Legnaro, Italy (2019).</li>
+<li><strong>Undergraduate Teaching Assistant</strong>, University of Ghana, Department of Physics, 2016 to 2017.</li>
+</ul></article>
+<article class="ov-card"><h4>Teaching</h4>
+<p><strong>Areas:</strong> introductory physics and laboratory instruction; mechanics, thermodynamics and electromagnetism; nuclear and particle physics; quantum mechanics and quantum field theory; computational and scientific programming methods for physics.</p>
+<p><strong>Approach:</strong> inquiry-based, student-centred physics instruction that integrates conceptual reasoning, laboratory practice and computational problem-solving, in support of inclusive, research-informed STEM education.</p></article>
+<article class="ov-card"><h4>Fellowships and awards</h4>
+<ul>
+<li><strong>Marie Sk&lstrok;odowska-Curie Actions, COFUND Fellow</strong> (2021 to 2024): European Commission, fully funded doctoral fellowship.</li>
+<li><strong>Erasmus Mundus Scholar</strong> (2018 to 2020): European Commission, joint Master&#x27;s scholarship.</li>
+</ul></article>
+</div>
 </section>
 
 <section aria-labelledby="research">
 <h2 id="research">Research</h2>
-<div class="ov-card placeholder"><p><span class="badge">Placeholder</span></p>
-<p>[A short description of research areas will be added here, with a few keywords or topics. To be written by Hope DONGLO.]</p></div>
+<div class="ov-card">
+<p class="intro">Research is in theoretical nuclear physics, with a focus on nuclear reaction dynamics and the synthesis of superheavy elements, using computational methods such as Langevin dynamics, Bayesian inference and high-performance computing.</p>
+<h4>Research areas</h4>
+<ul class="chips">
+<li>Nuclear reaction theory: fusion-evaporation and superheavy element synthesis</li>
+<li>Nuclear structure: collective and mean-field models</li>
+<li>Langevin dynamics and stochastic simulation</li>
+<li>Bayesian inference and uncertainty quantification</li>
+<li>Machine learning for nuclear data analysis</li>
+<li>Simulation-assisted nuclear safety analysis</li>
+<li>Nuclear fission</li>
+</ul>
+</div>
+<div class="ov-grid">
+<article class="ov-card"><h4>Ongoing projects</h4>
+<ul>
+<li><strong>KEWPIE3 development and validation.</strong> KEWPIE3 is the new version of the KEWPIE2 code for fusion-evaporation cross-section predictions in superheavy element synthesis.</li>
+<li><strong>In preparation</strong> (targeting <em>Journal of Physics G</em>): revisiting fusion dynamics in the fusion-by-diffusion model for fusion-evaporation production cross sections.</li>
+<li><strong>In preparation</strong> (targeting <em>Physical Review C</em>): constraining the compound nucleus formation probability in superheavy element synthesis through systematic uncertainty analysis.</li>
+</ul></article>
+<article class="ov-card"><h4>Selected publications</h4>
+<ul>
+<li>D. Ackermann, F. Agert, A. Bahini, D. Boilley, <strong>H. Donglo</strong>, S. Kumar, J. Piot, H. Savajols, Ch. Stodel and the S<sup>3</sup> Collaboration (2026). Probing SHN structure and stability: synthesis and decay studies at S<sup>3</sup>. <em>Acta Physica Polonica B</em>, Vol. 19 (2026).</li>
+<li><strong>H. Donglo</strong> and T. R. Rodr&iacute;guez Frutos. Nuclear structure of even-even argon isotopes within the axial symmetry conserving configuration mixing framework. Preprint, HAL hal-05677054.</li>
+<li><strong>H. Donglo</strong> (2024). <em>Study of Reaction Mechanisms for the Synthesis of Superheavy Elements.</em> PhD thesis, University of Caen Normandy.</li>
+</ul></article>
+</div>
 </section>
 
 <section aria-labelledby="teaching">
