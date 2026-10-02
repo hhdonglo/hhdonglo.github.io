@@ -193,17 +193,17 @@ for (const N of LECTURES) {
 }
 
 console.log('\n=== Home page and other checks ===');
-await go(`${BASE}index.html`);
+await go(`${BASE}phys143.html`);
 const idx = await ev(`({
   links:[...document.querySelectorAll('a.btn.practice')].map(a=>a.getAttribute('href')),
   six:!!document.querySelector('#lecture-6 a.practice'),
   sw:document.documentElement.scrollWidth, iw:window.innerWidth})`);
-check('index: Practice button on 11 lecture cards', idx.links.length === 11, String(idx.links.length));
-check('index: Lecture 6 has no practice link', idx.six === false);
+check('phys143: Practice button on 11 lecture cards', idx.links.length === 11, String(idx.links.length));
+check('phys143: Lecture 6 has no practice link', idx.six === false);
 await send('Emulation.setDeviceMetricsOverride', { width: 375, height: 812, deviceScaleFactor: 2, mobile: true });
-await go(`${BASE}index.html`);
+await go(`${BASE}phys143.html`);
 const idx2 = await ev(`({sw:document.documentElement.scrollWidth,iw:window.innerWidth})`);
-check('index: no horizontal scroll at 375 px', idx2.sw <= idx2.iw, JSON.stringify(idx2));
+check('phys143: no horizontal scroll at 375 px', idx2.sw <= idx2.iw, JSON.stringify(idx2));
 await send('Emulation.clearDeviceMetricsOverride');
 await go(`${BASE}practice.html#lecture-6`);
 check('lecture 6 hash shows a polite message, not an error', /no practice questions|not available/i.test(await textOf('main')));
