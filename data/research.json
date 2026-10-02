@@ -1,6 +1,6 @@
 {
   "question": "How are heavy and superheavy nuclei formed?",
-  "intro": "The research is in theoretical nuclear physics. It investigates the reaction mechanisms that lead to the formation of heavy and superheavy nuclei, using stochastic simulation and uncertainty quantification as methods, with scientific computing as a supporting tool.",
+  "intro": "The research addresses a central question in theoretical nuclear physics: which reaction mechanisms govern the formation of heavy and superheavy nuclei, and how reliably they can be predicted. Stochastic dynamics and systematic uncertainty analysis are the principal methods, supported by scientific computing.",
   "areas": [
     {
       "title": "Heavy-ion reaction dynamics",
