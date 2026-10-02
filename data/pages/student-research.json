@@ -1,0 +1,44 @@
+{
+  "sections": [
+    {
+      "layout": "stack",
+      "cards": [
+        {
+          "style": "plain",
+          "title": "Undergraduate research supervision",
+          "lead": true,
+          "paragraphs": [
+            "Undergraduate students can take part in research projects in nuclear physics, mathematical modelling, scientific computing, data analysis and uncertainty quantification. Projects are built around the methods used in the research programme, adapted to the level of the student."
+          ]
+        }
+      ]
+    },
+    {
+      "layout": "grid",
+      "cards": [
+        {
+          "style": "plain",
+          "title": "What a student might do",
+          "bullets": [
+            "Build a small simulation in Python and test it against a known result",
+            "Fit a model to data and report the uncertainty of the fitted parameters",
+            "Solve the equations of motion of a simple system numerically",
+            "Analyse, plot and interpret a data set"
+          ]
+        },
+        {
+          "style": "plain",
+          "title": "Possible final-year project themes",
+          "note_top": "Draft themes, to be refined.",
+          "bullets": [
+            "Simulating a random walk and diffusion to introduce stochastic dynamics",
+            "Fitting models to data and quantifying parameter uncertainty",
+            "Numerical solution of the equations of motion for a simple physical system",
+            "Python tools for analysing and plotting nuclear data"
+          ],
+          "note": "Interested students should get in touch through the [contact details](contact.html)."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "title": "Get in touch",
+  "sections": [
+    {
+      "layout": "grid",
+      "cards": [
+        {
+          "style": "plain",
+          "title": "Academic enquiries",
+          "paragraphs": [
+            "Research collaboration, theoretical nuclear physics and scientific computing."
+          ],
+          "button_label": "Email {email}",
+          "button_url": "mailto:{email}",
+          "button_style": "primary"
+        },
+        {
+          "style": "plain",
+          "title": "Student enquiries",
+          "paragraphs": [
+            "Undergraduate research projects, final-year projects and teaching. See [Student Research](student-research.html) first."
+          ],
+          "button_label": "Email about a project",
+          "button_url": "mailto:{email}?subject=Student%20enquiry"
+        },
+        {
+          "style": "plain",
+          "title": "Professional profiles",
+          "special": "profiles"
+        }
+      ]
+    },
+    {
+      "layout": "stack",
+      "cards": [
+        {
+          "style": "plain",
+          "title": "Details",
+          "special": "details"
+        }
+      ]
+    }
+  ]
+}

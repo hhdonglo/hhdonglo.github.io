@@ -256,9 +256,9 @@ def parse(text):
 def main():
     bad = checked = 0
     seen = set()
-    for path in sorted(glob.glob(os.path.join(ROOT, "quizzes", "lecture*.js"))):
+    for path in sorted(glob.glob(os.path.join(ROOT, "quizzes", "lecture*.json"))):
         raw = open(path, encoding="utf-8").read()
-        data = json.loads(re.search(r"\]\s*=\s*(\{.*\});\s*$", raw, re.S).group(1))
+        data = json.loads(raw)
         for q in data["questions"]:
             if "calc" not in q:
                 continue

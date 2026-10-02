@@ -2,7 +2,7 @@
 
 Calculation answers are computed here from the problem data, so the stated
 correct option always equals the computed value. Run build.py to write
-quizzes/lectureN.js, then validate_quizzes.py to check the output.
+quizzes/lectureN.json, then validate_quizzes.py to check the output.
 """
 import math
 from decimal import Decimal, ROUND_HALF_UP

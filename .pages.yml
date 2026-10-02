@@ -1,0 +1,730 @@
+# Pages CMS configuration (https://pagescms.org). Sign in with GitHub; only people with write access to this repository can edit.
+# Each entry below is a form for one data file. See EDITING.md.
+media:
+- name: lectures
+  label: Lecture files (PHYS 143)
+  input: PHYS143
+  output: /PHYS143
+- name: uncertainty
+  label: Uncertainty lecture files (PHYS 105)
+  input: PHYS105
+  output: /PHYS105
+- name: cv
+  label: CV
+  input: cv
+  output: /cv
+- name: images
+  label: Images
+  input: assets
+  output: /assets
+content:
+- name: home
+  label: Home
+  type: file
+  path: data/pages/home.json
+  format: json
+  fields:
+  - name: eyebrow
+    label: Name line
+    type: string
+  - name: role
+    label: Role line
+    type: string
+  - name: statement
+    label: Statement
+    type: text
+  - name: primary_button
+    label: Main button
+    type: object
+    fields:
+    - name: label
+      label: Text
+      type: string
+    - name: url
+      label: Link
+      type: string
+  - name: secondary_button
+    label: Second button
+    type: object
+    fields:
+    - name: label
+      label: Text
+      type: string
+    - name: url
+      label: Link
+      type: string
+  - name: pathways
+    label: Three pathways
+    type: object
+    fields:
+    - name: label
+      label: Label
+      type: string
+    - name: title
+      label: Title
+      type: string
+    - name: text
+      label: Description
+      type: text
+    - name: link_label
+      label: Link text
+      type: string
+    - name: url
+      label: Link
+      type: string
+    list: true
+  - name: publications_heading
+    label: Selected publications heading
+    type: string
+  - name: publications_link_label
+    label: All publications link text
+    type: string
+  - name: currently_heading
+    label: Currently heading
+    type: string
+  - name: shortcuts_heading
+    label: Shortcuts heading
+    type: string
+  - name: shortcuts
+    label: Shortcuts
+    type: object
+    fields:
+    - name: title
+      label: Title
+      type: string
+    - name: links
+      label: Links
+      type: object
+      fields:
+      - name: label
+        label: Text
+        type: string
+      - name: url
+        label: Link
+        type: string
+      list: true
+    list: true
+  - name: affiliation_line
+    label: Plain affiliation line
+    type: string
+- name: research
+  label: Research
+  type: file
+  path: data/research.json
+  format: json
+  fields:
+  - name: question
+    label: Opening question
+    type: string
+  - name: intro
+    label: Introduction
+    type: text
+  - name: areas
+    label: Research areas (numbered automatically)
+    type: object
+    fields:
+    - name: title
+      label: Title
+      type: string
+    - name: text
+      label: Description
+      type: text
+    list: true
+  - name: current
+    label: Current research
+    type: object
+    fields:
+    - name: status
+      label: Status label
+      type: string
+    - name: chip
+      label: Short name for the home page
+      type: string
+    - name: title
+      label: Title
+      type: string
+    - name: paragraphs
+      label: Paragraphs
+      type: text
+      list: true
+    list: true
+  - name: previous
+    label: Previous research
+    type: object
+    fields:
+    - name: status
+      label: Label
+      type: string
+    - name: title
+      label: Title
+      type: string
+    - name: paragraphs
+      label: Paragraphs
+      type: text
+      list: true
+    list: true
+- name: teaching
+  label: Teaching
+  type: file
+  path: data/pages/teaching.json
+  format: json
+  fields:
+  - name: title
+    label: Page title
+    type: string
+  - name: subtitle
+    label: Subtitle under the title
+    type: string
+  - name: sections
+    label: Sections
+    type: object
+    fields: &id002
+    - name: id
+      label: Anchor id (optional)
+      type: string
+    - name: heading
+      label: Heading
+      type: string
+    - name: subtitle
+      label: Subtitle
+      type: string
+    - name: fold
+      label: Show as a collapsible section
+      type: boolean
+    - name: layout
+      label: Layout
+      type: select
+      options:
+        values:
+        - grid
+        - stack
+    - name: bullets
+      label: Bullet list
+      type: string
+      list: true
+    - name: bullet_style
+      label: List style
+      type: select
+      options:
+        values: &id001
+        - list
+        - chips
+        - timeline
+        - arrows
+        - numbered
+    - name: cards
+      label: Cards
+      type: object
+      fields:
+      - name: id
+        label: Anchor id (optional)
+        type: string
+      - name: style
+        label: Card style
+        type: select
+        options:
+          values:
+          - plain
+          - wide
+          - primary
+          - secondary
+          - course
+          - lecture
+      - name: kicker
+        label: Small label above the title
+        type: string
+      - name: title
+        label: Title
+        type: string
+      - name: subtitle
+        label: Subtitle
+        type: string
+      - name: paragraphs
+        label: Paragraphs
+        type: text
+        list: true
+      - name: lead
+        label: Larger lead text
+        type: boolean
+      - name: bullets
+        label: Bullet list
+        type: string
+        list: true
+      - name: bullet_style
+        label: List style
+        type: select
+        options:
+          values: *id001
+      - name: note_top
+        label: Note above the list
+        type: string
+      - name: note
+        label: Note at the end
+        type: string
+      - name: after
+        label: Paragraphs after the list
+        type: text
+        list: true
+      - name: subsections
+        label: Subsections
+        type: object
+        fields:
+        - name: title
+          label: Title
+          type: string
+        - name: style
+          label: Style
+          type: select
+          options:
+            values:
+            - inline
+            - boxed
+            - bold
+        - name: column
+          label: Column (1 or 2, only for two-column cards)
+          type: number
+        - name: paragraphs
+          label: Paragraphs
+          type: text
+          list: true
+        - name: bullets
+          label: Bullet list
+          type: string
+          list: true
+        - name: bullet_style
+          label: List style
+          type: select
+          options:
+            values: *id001
+        list: true
+      - name: table
+        label: Table
+        type: object
+        fields:
+        - name: caption
+          label: Caption
+          type: string
+        - name: headers
+          label: Column headings
+          type: string
+          list: true
+        - name: rows
+          label: Rows
+          type: object
+          fields:
+          - name: cells
+            label: Cells
+            type: string
+            list: true
+          list: true
+      - name: special
+        label: Fills itself from Site settings
+        type: select
+        options:
+          values:
+          - profiles
+          - details
+      - name: button_label
+        label: Button text
+        type: string
+      - name: button_url
+        label: Button link
+        type: string
+      - name: button_style
+        label: Button style (primary, or blank)
+        type: string
+      - name: button_sr
+        label: Hidden text for screen readers
+        type: string
+      - name: soon
+        label: Mark as coming soon
+        type: boolean
+      - name: badge
+        label: Badge text
+        type: string
+      - name: image
+        label: Image path
+        type: string
+      - name: image_alt
+        label: Image description
+        type: string
+      - name: image_url
+        label: Image link
+        type: string
+      - name: steps
+        label: Steps
+        type: string
+        list: true
+      list: true
+    list: true
+- name: phys143
+  label: 'Teaching: PHYS 143 page'
+  type: file
+  path: data/pages/phys143.json
+  format: json
+  fields:
+  - name: title
+    label: Page title
+    type: string
+  - name: subtitle
+    label: Subtitle under the title
+    type: string
+  - name: top
+    label: Sections above the lecture tables
+    type: object
+    fields: *id002
+    list: true
+  - name: bottom
+    label: Sections below the lecture tables
+    type: object
+    fields: *id002
+    list: true
+- name: lectures
+  label: 'Teaching: PHYS 143 lectures'
+  type: file
+  path: data/lectures.json
+  format: json
+  fields:
+  - name: groups
+    label: Groups
+    type: object
+    fields:
+    - name: id
+      label: Group id (mechanics or thermal)
+      type: string
+    - name: title
+      label: Title
+      type: string
+    - name: subtitle
+      label: Subtitle
+      type: string
+    - name: lectures
+      label: Lectures
+      type: object
+      fields:
+      - name: number
+        label: Lecture number
+        type: number
+      - name: title
+        label: Title
+        type: string
+      - name: status
+        label: Status
+        type: select
+        options:
+          values:
+          - available
+          - soon
+      - name: summary
+        label: One-sentence summary
+        type: text
+      - name: note
+        label: Note shown when coming soon
+        type: string
+      - name: outcomes
+        label: Learning outcomes
+        type: string
+        list: true
+      - name: slides
+        label: Slides PDF path
+        type: string
+      - name: tutorial
+        label: Tutorial PDF path
+        type: string
+      - name: supplement
+        label: Supplement PDF path
+        type: string
+      list: true
+    list: true
+- name: quizzes
+  label: 'Teaching: practice questions'
+  type: collection
+  path: quizzes
+  format: json
+  fields:
+  - name: lecture
+    label: Lecture number
+    type: number
+  - name: title
+    label: Lecture title
+    type: string
+  - name: questions
+    label: Questions
+    type: object
+    fields:
+    - name: id
+      label: Question id
+      type: string
+    - name: type
+      label: Type
+      type: select
+      options:
+        values:
+        - concept
+        - calc
+        - misconception
+    - name: q
+      label: Question
+      type: text
+    - name: options
+      label: Answer options
+      type: string
+      list: true
+    - name: answer
+      label: Correct option (0 = first, 1 = second, ...)
+      type: number
+    - name: exp
+      label: Explanation
+      type: text
+    - name: ref
+      label: Where to look
+      type: string
+    list: true
+  view:
+    fields:
+    - title
+    primary: title
+- name: laboratory
+  label: 'Teaching: Laboratory courses'
+  type: file
+  path: data/pages/laboratory.json
+  format: json
+  fields:
+  - name: title
+    label: Page title
+    type: string
+  - name: subtitle
+    label: Subtitle under the title
+    type: string
+  - name: sections
+    label: Sections
+    type: object
+    fields: *id002
+    list: true
+- name: student-research
+  label: 'Teaching: Student Research'
+  type: file
+  path: data/pages/student-research.json
+  format: json
+  fields:
+  - name: title
+    label: Page title
+    type: string
+  - name: subtitle
+    label: Subtitle under the title
+    type: string
+  - name: sections
+    label: Sections
+    type: object
+    fields: *id002
+    list: true
+- name: projects
+  label: Projects
+  type: file
+  path: data/projects.json
+  format: json
+  fields:
+  - name: intro_title
+    label: Introduction title
+    type: string
+  - name: intro
+    label: Introduction
+    type: text
+  - name: certification
+    label: Certification
+    type: object
+    fields:
+    - name: title
+      label: Title
+      type: string
+    - name: text
+      label: Text
+      type: text
+  - name: projects_note
+    label: Note above the projects
+    type: text
+  - name: projects
+    label: Projects
+    type: object
+    fields:
+    - name: title
+      label: Title
+      type: string
+    - name: type
+      label: Type line
+      type: string
+    - name: description
+      label: Description
+      type: text
+    - name: details
+      label: Details
+      type: object
+      fields:
+      - name: label
+        label: Label
+        type: string
+      - name: text
+        label: Text
+        type: text
+      list: true
+    - name: tools
+      label: Tools
+      type: string
+      list: true
+    - name: repo
+      label: GitHub link
+      type: string
+    list: true
+  - name: footnote
+    label: Note at the end
+    type: text
+- name: publications
+  label: Publications
+  type: file
+  path: data/publications.json
+  format: json
+  fields:
+  - name: filters
+    label: Year filter buttons
+    type: object
+    fields:
+    - name: id
+      label: Filter id
+      type: string
+    - name: label
+      label: Button text
+      type: string
+    list: true
+  - name: groups
+    label: Groups
+    type: object
+    fields:
+    - name: title
+      label: Group title
+      type: string
+    - name: note
+      label: Note
+      type: string
+    - name: items
+      label: Entries
+      type: object
+      fields:
+      - name: tag
+        label: Filter id (2026, 2024, 2023, earlier or pending)
+        type: string
+      - name: text
+        label: Reference text
+        type: text
+        description: Text supports **bold**, *italic*, ^superscript^ and [link text](address).
+      list: true
+    list: true
+  - name: home
+    label: Selected publications on the home page
+    type: object
+    fields:
+    - name: label
+      label: Label (year)
+      type: string
+    - name: text
+      label: Reference text
+      type: text
+    list: true
+- name: cv
+  label: CV page
+  type: file
+  path: data/pages/cv.json
+  format: json
+  fields:
+  - name: title
+    label: Page title
+    type: string
+  - name: subtitle
+    label: Subtitle under the title
+    type: string
+  - name: sections
+    label: Sections
+    type: object
+    fields: *id002
+    list: true
+- name: about
+  label: About
+  type: file
+  path: data/pages/about.json
+  format: json
+  fields:
+  - name: title
+    label: Page title
+    type: string
+  - name: subtitle
+    label: Subtitle under the title
+    type: string
+  - name: sections
+    label: Sections
+    type: object
+    fields: *id002
+    list: true
+- name: contact
+  label: Contact
+  type: file
+  path: data/pages/contact.json
+  format: json
+  fields:
+  - name: title
+    label: Page title
+    type: string
+  - name: subtitle
+    label: Subtitle under the title
+    type: string
+  - name: sections
+    label: Sections
+    type: object
+    fields: *id002
+    list: true
+  description: Use {email} in a button link or text to insert the email address from Site settings.
+- name: site
+  label: Site settings (contact details, footer, profile links)
+  type: file
+  path: data/site.json
+  format: json
+  fields:
+  - name: name
+    label: Name in the footer
+    type: string
+  - name: field
+    label: Field line in the footer
+    type: string
+  - name: email
+    label: Email
+    type: string
+  - name: email_alt
+    label: Second email
+    type: string
+  - name: phone_display
+    label: Phone as shown
+    type: string
+  - name: phone_link
+    label: Phone for the link (+233...)
+    type: string
+  - name: office
+    label: Office
+    type: string
+  - name: banner_areas
+    label: Home banner line
+    type: string
+  - name: banner_field
+    label: Banner line on other pages
+    type: string
+  - name: footer_note
+    label: Footer note
+    type: text
+  - name: profiles
+    label: Profile links
+    type: object
+    fields:
+    - name: label
+      label: Name
+      type: string
+    - name: url
+      label: Address
+      type: string
+    list: true

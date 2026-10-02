@@ -1,4 +1,4 @@
-"""Validate quizzes/lectureN.js. Exit status 1 if any check fails.
+"""Validate quizzes/lectureN.json. Exit status 1 if any check fails.
 
 Checks per question: four distinct options, exactly one correct index in range,
 non-empty explanation and review reference, known type, unique id, no ampersand
@@ -38,17 +38,13 @@ def sig_round(x, sf):
 
 
 def main():
-    files = sorted(glob.glob(os.path.join(ROOT, "quizzes", "lecture*.js")), key=lambda p: int(re.findall(r"\d+", os.path.basename(p))[0]))
+    files = sorted(glob.glob(os.path.join(ROOT, "quizzes", "lecture*.json")), key=lambda p: int(re.findall(r"\d+", os.path.basename(p))[0]))
     total = 0
     counts = {}
     for path in files:
         raw = open(path, encoding="utf-8").read()
-        m = re.search(r"window\.PHYS143_QUIZ\[(\d+)\]\s*=\s*(\{.*\});\s*$", raw, re.S)
-        if not m:
-            err(f"{path}: cannot parse")
-            continue
-        n = int(m.group(1))
-        data = json.loads(m.group(2))
+        data = json.loads(raw)
+        n = int(data["lecture"])
         qs = data["questions"]
         counts[n] = len(qs)
         total += len(qs)

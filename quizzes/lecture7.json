@@ -1,0 +1,356 @@
+{
+  "lecture": 7,
+  "title": "Impulse and momentum",
+  "questions": [
+    {
+      "id": "L7-01",
+      "type": "calc",
+      "q": "A tennis ball of mass 0.057 kg moves at 45.0 m/s. What is the magnitude of its momentum?",
+      "options": [
+        "1.28 kg·m/s",
+        "57.7 kg·m/s",
+        "2.57 kg·m/s",
+        "789 kg·m/s"
+      ],
+      "answer": 2,
+      "exp": "Momentum is p = mv = (0.057 kg)(45.0 m/s) = 2.57 kg·m/s. The value 57.7 is the kinetic energy in joules, which has a different unit. Momentum has no factor ½ and no square, and the ratio v/m has no meaning here.",
+      "ref": "Lecture 7 deck, slide ‘Momentum’ and ‘Toolkit 1: momentum and impulse’",
+      "calc": {
+        "value": 2.565,
+        "unit": "kg·m/s",
+        "sf": 3
+      }
+    },
+    {
+      "id": "L7-02",
+      "type": "concept",
+      "q": "Which statement about momentum is correct?",
+      "options": [
+        "Momentum is a vector, and it points in the direction of the velocity.",
+        "Momentum is a scalar, because it is mass times speed.",
+        "Momentum is a vector, and it points in the direction of the net force.",
+        "Momentum is a scalar that is always positive."
+      ],
+      "answer": 0,
+      "exp": "Momentum p = mv is the product of a scalar and the velocity vector, so it is a vector in the direction of the velocity. Kinetic energy is the corresponding scalar. When momentum is conserved, every component is conserved separately.",
+      "ref": "Lecture 7 deck, slide ‘Momentum’"
+    },
+    {
+      "id": "L7-03",
+      "type": "calc",
+      "q": "A 0.40 kg ball hits a wall at 12.0 m/s, perpendicular to the wall, and rebounds along the same line at 9.00 m/s. What is the magnitude of the impulse the wall exerts on the ball?",
+      "options": [
+        "1.20 kg·m/s",
+        "4.20 kg·m/s",
+        "3.60 kg·m/s",
+        "8.40 kg·m/s"
+      ],
+      "answer": 3,
+      "exp": "Take the direction away from the wall as positive. The velocity changes from −12.0 m/s to +9.00 m/s, so J = Δp = m(v₂ − v₁) = (0.40)(9.00 + 12.0) = 8.40 kg·m/s. The velocity reverses, so the two speeds add. Subtracting the speeds, which gives 1.20, treats the ball as if it did not reverse.",
+      "ref": "Lecture 7 deck, slide ‘Lecturer example: a ball hits a wall’ and ‘A ball hits a wall: solution’",
+      "calc": {
+        "value": 8.4,
+        "unit": "kg·m/s",
+        "sf": 3
+      }
+    },
+    {
+      "id": "L7-04",
+      "type": "calc",
+      "q": "During a collision a ball receives an impulse of magnitude 8.40 kg·m/s in a contact time of 6.0 ms. What is the average force on the ball?",
+      "options": [
+        "0.0504 N",
+        "1400 N",
+        "8.40 N",
+        "1.40 N"
+      ],
+      "answer": 1,
+      "exp": "By the impulse–momentum theorem, J = F<sub>av</sub>Δt, so F<sub>av</sub> = J/Δt = (8.40)/(0.0060 s) = 1400 N. Remember to convert milliseconds to seconds. Multiplying gives 0.0504, and using 6.0 as if it were in seconds gives 1.40 N.",
+      "ref": "Lecture 7 deck, slide ‘Impulse and the impulse–momentum theorem’",
+      "calc": {
+        "value": 1400.0,
+        "unit": "N",
+        "sf": 3
+      }
+    },
+    {
+      "id": "L7-05",
+      "type": "concept",
+      "q": "Why do airbags and crumple zones reduce the injury to a driver in a collision?",
+      "options": [
+        "They reduce the change in momentum of the driver, so less impulse is needed.",
+        "They increase the time over which the momentum changes, so the average force is smaller.",
+        "They reduce the mass of the driver, so the force is smaller.",
+        "They increase the average force, which stops the driver sooner."
+      ],
+      "answer": 1,
+      "exp": "The driver’s momentum must change from its initial value to zero in either case, so the impulse is the same. From J = F<sub>av</sub>Δt, a longer stopping time Δt gives a smaller average force on the driver.",
+      "ref": "Lecture 7 deck, slide ‘Concept check: why do airbags and crumple zones work?’"
+    },
+    {
+      "id": "L7-06",
+      "type": "graph",
+      "q": "On a force–time graph, a collision force rises in a straight line from zero to 800 N and then falls in a straight line back to zero. The force acts for a total time of 20 ms. What is the impulse?",
+      "options": [
+        "16.0 N·s",
+        "4.00 N·s",
+        "800 N·s",
+        "8.00 N·s"
+      ],
+      "answer": 3,
+      "exp": "The impulse is the area under the F–t graph. The graph is a triangle of height 800 N and base 0.020 s, so J = ½(base)(height) = ½(0.020)(800) = 8.00 N·s. Using base times height gives the area of the rectangle, 16.0 N·s, which overestimates it.",
+      "ref": "Lecture 7 deck, slide ‘Impulse from a force–time graph’",
+      "calc": {
+        "value": 8.0,
+        "unit": "N·s",
+        "sf": 3
+      }
+    },
+    {
+      "id": "L7-07",
+      "type": "calc",
+      "q": "A skater of mass 60.0 kg stands at rest on ice and throws a 2.0 kg ball forward at 8.0 m/s. What is the recoil speed of the skater? Neglect friction.",
+      "options": [
+        "0.267 m/s",
+        "0.258 m/s",
+        "8.00 m/s",
+        "0.0333 m/s"
+      ],
+      "answer": 0,
+      "exp": "There is no external horizontal force, so the total momentum stays zero: 0 = m<sub>b</sub>v<sub>b</sub> − m<sub>s</sub>v<sub>s</sub>. So v<sub>s</sub> = m<sub>b</sub>v<sub>b</sub>/m<sub>s</sub> = (2.0)(8.0)/60.0 = 0.267 m/s, in the direction opposite to the ball. The value 0.258 uses the combined mass, which is wrong because the ball is thrown and the skater does not carry it afterwards.",
+      "ref": "Lecture 7 deck, slide ‘Lecturer example: recoil’ and ‘Toolkit 3: conserving momentum’",
+      "calc": {
+        "value": 0.26666666666666666,
+        "unit": "m/s",
+        "sf": 3
+      }
+    },
+    {
+      "id": "L7-08",
+      "type": "calc",
+      "q": "A 0.50 kg glider moving at 3.0 m/s collides head-on with a 0.75 kg glider moving at 1.0 m/s in the opposite direction. They stick together. What is their common velocity, taking the direction of the first glider as positive?",
+      "options": [
+        "1.00 m/s",
+        "1.80 m/s",
+        "0.600 m/s",
+        "0.750 m/s"
+      ],
+      "answer": 2,
+      "exp": "Momentum is conserved: m₁v₁ + m₂v₂ = (m₁ + m₂)v. With signs, (0.50)(3.0) + (0.75)(−1.0) = (1.25)v, so v = 0.600 m/s. The positive sign means the pair moves in the original direction of the first glider. Averaging the velocities, or dropping the negative sign of v₂, gives wrong values.",
+      "ref": "Lecture 7 deck, slide ‘Lecturer example: gliders that stick together’ and ‘Toolkit 4: collisions in one dimension’",
+      "calc": {
+        "value": 0.6,
+        "unit": "m/s",
+        "sf": 3
+      }
+    },
+    {
+      "id": "L7-09",
+      "type": "calc",
+      "q": "For the two gliders in the previous problem (0.50 kg at 3.0 m/s and 0.75 kg at 1.0 m/s in the opposite direction, sticking together), how much kinetic energy is lost in the collision?",
+      "options": [
+        "2.63 J",
+        "0.225 J",
+        "2.40 J",
+        "0 J"
+      ],
+      "answer": 2,
+      "exp": "Before: ½(0.50)(3.0)² + ½(0.75)(1.0)² = 2.63 J. After: ½(1.25)(0.600)² = 0.225 J. The loss is 2.40 J. Momentum is conserved in the collision, but kinetic energy is not, because the gliders deform and stick together. A loss of 0 J would mean an elastic collision.",
+      "ref": "Lecture 7 deck, slide ‘Collisions: elastic and inelastic’ and ‘Gliders that stick together: solution’",
+      "calc": {
+        "value": 2.4,
+        "unit": "J",
+        "sf": 3
+      }
+    },
+    {
+      "id": "L7-10",
+      "type": "misconception",
+      "q": "Two gliders on a frictionless track collide and stick together. Which quantity is conserved in the collision?",
+      "options": [
+        "The total momentum, but not the total kinetic energy",
+        "The total kinetic energy, but not the total momentum",
+        "Both the total momentum and the total kinetic energy",
+        "Neither, because the collision is inelastic"
+      ],
+      "answer": 0,
+      "exp": "Momentum is conserved in any collision of an isolated system, because the internal forces are equal and opposite. Kinetic energy is conserved only in elastic collisions. A collision in which the objects stick together loses the largest possible fraction of kinetic energy but conserves momentum.",
+      "ref": "Lecture 7 deck, slide ‘Collisions: elastic and inelastic’"
+    },
+    {
+      "id": "L7-11",
+      "type": "calc",
+      "q": "A 3.0 kg cart moving at 8.0 m/s makes an elastic head-on collision with a 1.0 kg cart at rest. What is the velocity of the 1.0 kg cart after the collision?",
+      "options": [
+        "8.00 m/s",
+        "4.00 m/s",
+        "24.0 m/s",
+        "12.0 m/s"
+      ],
+      "answer": 3,
+      "exp": "For an elastic collision with the target at rest, v₂′ = 2m₁v₁/(m₁ + m₂) = 2(3.0)(8.0)/(4.0) = 12.0 m/s. The lighter cart ends up faster than the heavier one that struck it. The value 4.00 m/s is the velocity of the first cart after the collision, v₁′. As a check, momentum: (3.0)(8.0) = (3.0)(4.00) + (1.0)(12.0).",
+      "ref": "Lecture 7 deck, slide ‘Elastic collisions in one dimension’ and ‘Special cases of an elastic collision’",
+      "calc": {
+        "value": 12.0,
+        "unit": "m/s",
+        "sf": 3
+      }
+    },
+    {
+      "id": "L7-12",
+      "type": "concept",
+      "q": "A small ball collides elastically and head-on with a much more massive object that is at rest. What happens to the small ball?",
+      "options": [
+        "It stops, and the massive object moves off with the ball’s speed.",
+        "It rebounds with almost the same speed, in the opposite direction.",
+        "It continues forward at about half its original speed.",
+        "It sticks to the massive object."
+      ],
+      "answer": 1,
+      "exp": "For an elastic collision with a stationary target, v₁′ = (m₁ − m₂)v₁/(m₁ + m₂). When m₂ is much larger than m₁ this tends to −v₁, so the ball bounces back with nearly its original speed, as a ball bounces off a wall. The massive object barely moves, so it takes away almost no kinetic energy.",
+      "ref": "Lecture 7 deck, slide ‘Special cases of an elastic collision’"
+    },
+    {
+      "id": "L7-13",
+      "type": "calc",
+      "q": "A 0.50 kg ball moving at 6.0 m/s in the +x direction strikes an identical 0.50 kg ball at rest. After the collision the first ball moves at 3.0 m/s at 60° above the +x axis. What is the speed of the second ball?",
+      "options": [
+        "4.50 m/s",
+        "5.20 m/s",
+        "2.60 m/s",
+        "3.00 m/s"
+      ],
+      "answer": 1,
+      "exp": "The balls have equal mass, so conserve each momentum component per unit mass. x: 6.0 = 3.0 cos 60° + v<sub>Bx</sub>, so v<sub>Bx</sub> = 4.50 m/s. y: 0 = 3.0 sin 60° + v<sub>By</sub>, so v<sub>By</sub> = −2.60 m/s, downward. The speed is √(v<sub>Bx</sub>² + v<sub>By</sub>²) = 5.20 m/s. The x-component alone, 4.50, is not the speed.",
+      "ref": "Lecture 7 deck, slide ‘Toolkit 5: collisions in two dimensions’ and ‘A glancing collision: solution’",
+      "calc": {
+        "value": 5.196152422706632,
+        "unit": "m/s",
+        "sf": 3
+      }
+    },
+    {
+      "id": "L7-14",
+      "type": "calc",
+      "q": "A ball dropped from 1.50 m onto a hard floor rebounds to a height of 0.90 m. What is the coefficient of restitution for the collision?",
+      "options": [
+        "0.600",
+        "1.67",
+        "0.360",
+        "0.775"
+      ],
+      "answer": 3,
+      "exp": "The speed just before impact is √(2gh₁) and just after is √(2gh₂), so e = v<sub>sep</sub>/v<sub>app</sub> = √(h₂/h₁) = √(0.90/1.50) = 0.775. The ratio of heights, 0.600, is not e, because heights are proportional to the squares of the speeds. A value above 1, such as 1.67, is impossible for e.",
+      "ref": "Lecture 7 deck, slide ‘The coefficient of restitution’ and ‘Toolkit 6: restitution and relative velocity’",
+      "calc": {
+        "value": 0.7745966692414834,
+        "unit": "",
+        "sf": 3
+      }
+    },
+    {
+      "id": "L7-15",
+      "type": "calc",
+      "q": "A 4.0 kg cart moving at 5.0 m/s overtakes and hits a 2.0 kg cart moving at 1.0 m/s in the same direction. The coefficient of restitution is 0.60. What is the velocity of the 4.0 kg cart after the collision?",
+      "options": [
+        "2.87 m/s",
+        "2.33 m/s",
+        "3.67 m/s",
+        "5.27 m/s"
+      ],
+      "answer": 0,
+      "exp": "Use two equations. Momentum: 4.0v₁′ + 2.0v₂′ = 22.0 kg·m/s. Restitution: v₂′ − v₁′ = e(v₁ − v₂) = (0.60)(4.0) = 2.40 m/s. Solving gives v₁′ = 2.87 m/s and v₂′ = 5.27 m/s. The value 2.33 m/s is what e = 1 would give, and 3.67 m/s is the common velocity if they stuck together (e = 0).",
+      "ref": "Lecture 7 deck, slide ‘Toolkit 6: restitution and relative velocity’ and ‘Lecturer example: a bouncing ball and a glider’",
+      "calc": {
+        "value": 2.8666666666666667,
+        "unit": "m/s",
+        "sf": 3
+      }
+    },
+    {
+      "id": "L7-16",
+      "type": "calc",
+      "q": "A 0.020 kg bullet is fired horizontally into a 1.50 kg block hanging from strings. The bullet embeds in the block and the block swings up to a maximum height of 0.12 m. What was the speed of the bullet? Use g = 9.80 m/s².",
+      "options": [
+        "1.53 m/s",
+        "179 m/s",
+        "117 m/s",
+        "58.3 m/s"
+      ],
+      "answer": 2,
+      "exp": "Stage 1, the collision: momentum is conserved, m<sub>b</sub>v = (m<sub>b</sub> + M)u. Stage 2, the swing: mechanical energy is conserved, ½(m<sub>b</sub> + M)u² = (m<sub>b</sub> + M)gh, so u = √(2gh) = 1.53 m/s. Then v = (m<sub>b</sub> + M)u/m<sub>b</sub> = 117 m/s. The speed 1.53 m/s is only the speed of the block just after the impact.",
+      "ref": "Lecture 7 deck, slide ‘Collision, then energy: the ballistic pendulum’ and ‘Lecturer example: measuring a bullet’s speed’",
+      "calc": {
+        "value": 116.55536023709935,
+        "unit": "m/s",
+        "sf": 3
+      }
+    },
+    {
+      "id": "L7-17",
+      "type": "concept",
+      "q": "In a ballistic pendulum, a bullet embeds in a block that then swings upward. Which quantity is conserved during the collision of the bullet and the block, and which during the swing?",
+      "options": [
+        "Mechanical energy during the collision, and momentum during the swing",
+        "Momentum during both the collision and the swing",
+        "Momentum during the collision, and mechanical energy during the swing",
+        "Mechanical energy during both the collision and the swing"
+      ],
+      "answer": 2,
+      "exp": "The collision is very short and the strings’ tension is vertical, so horizontal momentum is conserved. But kinetic energy is lost as the bullet embeds. During the swing, gravity is the only force that does work and the tension does none, so mechanical energy is conserved while the momentum changes. Splitting the problem into two stages is the key idea.",
+      "ref": "Lecture 7 deck, slide ‘Toolkit 7: two-stage problems’ and ‘Collision, then energy: the ballistic pendulum’"
+    },
+    {
+      "id": "L7-18",
+      "type": "calc",
+      "q": "Two skaters stand 5.0 m apart on frictionless ice. Their masses are 60.0 kg and 40.0 kg. They pull themselves together along a rope. How far from the starting position of the 60.0 kg skater do they meet?",
+      "options": [
+        "2.00 m",
+        "3.00 m",
+        "2.50 m",
+        "4.00 m"
+      ],
+      "answer": 0,
+      "exp": "There is no external horizontal force, so the centre of mass does not move, and the skaters meet there. Measured from the heavier skater, x<sub>cm</sub> = m₂d/(m₁ + m₂) = (40.0)(5.0)/100.0 = 2.00 m. The heavier skater moves less. The midpoint, 2.50 m, would be correct only if the masses were equal.",
+      "ref": "Lecture 7 deck, slide ‘Centre of mass: an introduction’ and ‘Lecturer example: a tug-of-war on ice’",
+      "calc": {
+        "value": 2.0,
+        "unit": "m",
+        "sf": 3
+      }
+    },
+    {
+      "id": "L7-19",
+      "type": "misconception",
+      "q": "A rifle initially at rest fires a bullet horizontally and recoils. Compared with the bullet, how do the rifle’s momentum and kinetic energy compare, in magnitude?",
+      "options": [
+        "The momenta are equal in magnitude, and the rifle has more kinetic energy than the bullet.",
+        "The rifle has more momentum and the same kinetic energy.",
+        "Both momentum and kinetic energy are equal in magnitude.",
+        "The momenta are equal in magnitude, and the rifle has much less kinetic energy than the bullet."
+      ],
+      "answer": 3,
+      "exp": "The total momentum was zero, so the two momenta are equal and opposite. Kinetic energy is K = p²/(2m). For equal p, the object with the smaller mass, the bullet, has the larger kinetic energy. The extra energy comes from the chemical energy of the propellant.",
+      "ref": "Lecture 7 deck, slide ‘Lecturer example: recoil’ and ‘Toolkit 3: conserving momentum’"
+    },
+    {
+      "id": "L7-20",
+      "type": "calc",
+      "q": "A 0.020 kg bullet moving at 300 m/s embeds in a 1.98 kg block resting on a rough floor with μ<sub>k</sub> = 0.30. How far does the block slide before it stops?",
+      "options": [
+        "3.06 m",
+        "1.53 m",
+        "0.765 m",
+        "15300 m"
+      ],
+      "answer": 1,
+      "exp": "Stage 1, the collision: momentum is conserved, so u = m<sub>b</sub>v/(m<sub>b</sub> + M) = 3.00 m/s. Stage 2, the slide: friction removes the kinetic energy, μ<sub>k</sub>(m<sub>b</sub> + M)gd = ½(m<sub>b</sub> + M)u², so d = u²/(2μ<sub>k</sub>g) = 1.53 m. Applying the energy equation with the bullet’s speed of 300 m/s, which skips the collision, gives 15300 m.",
+      "ref": "Lecture 7 deck, slide ‘Integrated problem: a bullet in a block on a rough floor’ and ‘Integrated problem: lecturer solution’",
+      "calc": {
+        "value": 1.530612244897959,
+        "unit": "m",
+        "sf": 3
+      }
+    }
+  ]
+}

@@ -68,12 +68,10 @@
   /* ---------- loading data ---------- */
   function loadLecture(n, ok, fail) {
     if (window.PHYS143_QUIZ[n]) { ok(window.PHYS143_QUIZ[n]); return; }
-    var s = document.createElement('script');
-    s.src = 'quizzes/lecture' + n + '.js';
-    s.charset = 'utf-8';
-    s.onload = function () { window.PHYS143_QUIZ[n] ? ok(window.PHYS143_QUIZ[n]) : fail(); };
-    s.onerror = fail;
-    document.head.appendChild(s);
+    fetch('quizzes/lecture' + n + '.json', { cache: 'no-cache' })
+      .then(function (r) { if (!r.ok) throw new Error('missing'); return r.json(); })
+      .then(function (d) { window.PHYS143_QUIZ[n] = d; ok(d); })
+      .catch(fail);
   }
 
   /* ---------- views ---------- */

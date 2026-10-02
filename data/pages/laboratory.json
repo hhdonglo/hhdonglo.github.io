@@ -1,0 +1,78 @@
+{
+  "subtitle": "PHYS 105, PHYS 106 and PHYS 205",
+  "sections": [
+    {
+      "layout": "stack",
+      "cards": [
+        {
+          "style": "plain",
+          "paragraphs": [
+            "Hope Donglo leads the laboratory sessions for these courses. Laboratory resources and the shared uncertainty analysis lecture are collected here."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lab-courses",
+      "heading": "Courses",
+      "cards": [
+        {
+          "id": "phys105",
+          "style": "course",
+          "kicker": "Laboratory course",
+          "title": "PHYS 105",
+          "paragraphs": [
+            "Practical Physics"
+          ]
+        },
+        {
+          "id": "phys106",
+          "style": "course",
+          "kicker": "Laboratory course",
+          "title": "PHYS 106",
+          "paragraphs": [
+            "Practical Physics"
+          ]
+        },
+        {
+          "id": "phys205",
+          "style": "course",
+          "kicker": "Laboratory course",
+          "title": "PHYS 205",
+          "paragraphs": [
+            "Practical Physics"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lab",
+      "heading": "Shared lecture",
+      "cards": [
+        {
+          "id": "uncertainty",
+          "style": "lecture",
+          "soon": true,
+          "image": "assets/thumbs/uncertainty.webp",
+          "image_alt": "Title slide of the uncertainty analysis deck",
+          "image_url": "uncertainty.html",
+          "kicker": "Lecture",
+          "badge": "Under development",
+          "title": "Uncertainty analysis",
+          "paragraphs": [
+            "Shared by PHYS 105, 106 and 205. How to report a measurement with its uncertainty, combine uncertainties, fit a graph and compare with theory."
+          ],
+          "steps": [
+            "Understand",
+            "Quantify",
+            "Apply"
+          ],
+          "button_label": "Open the lecture",
+          "button_url": "uncertainty.html",
+          "button_sr": "on uncertainty analysis (under development)",
+          "button_style": "primary"
+        }
+      ]
+    }
+  ]
+}

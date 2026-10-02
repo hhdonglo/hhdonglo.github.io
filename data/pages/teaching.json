@@ -1,0 +1,71 @@
+{
+  "subtitle": "Choose a course to explore.",
+  "sections": [
+    {
+      "id": "lecture-courses",
+      "heading": "Lecture Courses",
+      "cards": [
+        {
+          "id": "phys143-card",
+          "style": "primary",
+          "kicker": "Lecture course",
+          "title": "PHYS 143",
+          "subtitle": "Mechanics and Thermal Physics",
+          "paragraphs": [
+            "Twelve lectures following Young and Freedman, *University Physics*, each with a slide deck, a tutorial sheet, a supplementary note and practice questions."
+          ],
+          "button_label": "Open Course →",
+          "button_url": "phys143.html",
+          "button_sr": "PHYS 143",
+          "button_style": "primary"
+        }
+      ]
+    },
+    {
+      "id": "research-informed",
+      "heading": "Research-Informed Learning",
+      "subtitle": "Why this course matters: how foundational physics connects to modern research.",
+      "bullet_style": "arrows",
+      "bullets": [
+        "**Vectors** → Nuclear reaction kinematics",
+        "**Statistics** → Uncertainty quantification",
+        "**Differential equations** → Reaction dynamics",
+        "**Programming** → Physical modelling"
+      ]
+    },
+    {
+      "id": "laboratory-courses",
+      "heading": "Laboratory Courses",
+      "cards": [
+        {
+          "id": "lab-card",
+          "style": "secondary",
+          "kicker": "Laboratory courses",
+          "title": "PHYS 105 • PHYS 106 • PHYS 205",
+          "paragraphs": [
+            "Laboratory resources and uncertainty analysis lectures."
+          ],
+          "button_label": "Open Laboratory Resources →",
+          "button_url": "laboratory.html"
+        }
+      ]
+    },
+    {
+      "id": "student-research",
+      "heading": "Student Research",
+      "cards": [
+        {
+          "id": "student-card",
+          "style": "secondary",
+          "kicker": "Undergraduate projects",
+          "title": "Student Research",
+          "paragraphs": [
+            "Undergraduate research supervision and final-year project themes."
+          ],
+          "button_label": "Open Student Research →",
+          "button_url": "student-research.html"
+        }
+      ]
+    }
+  ]
+}

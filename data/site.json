@@ -7,10 +7,24 @@
   "phone_link": "+233204810352",
   "office": "Physics Department, Office 24",
   "profiles": [
-    {"label": "Google Scholar", "url": "https://scholar.google.com/citations?user=QW32BboAAAAJ&hl=en"},
-    {"label": "ORCID", "url": "https://orcid.org/0009-0003-6142-8780"},
-    {"label": "GitHub", "url": "https://github.com/hhdonglo"},
-    {"label": "LinkedIn", "url": "https://www.linkedin.com/in/hopedonglo"}
+    {
+      "label": "Google Scholar",
+      "url": "https://scholar.google.com/citations?user=QW32BboAAAAJ&hl=en"
+    },
+    {
+      "label": "ORCID",
+      "url": "https://orcid.org/0009-0003-6142-8780"
+    },
+    {
+      "label": "GitHub",
+      "url": "https://github.com/hhdonglo"
+    },
+    {
+      "label": "LinkedIn",
+      "url": "https://www.linkedin.com/in/hopedonglo"
+    }
   ],
-  "footer_note": "© 2026 Hope Donglo. Independent academic website. University of Ghana students should visit Sakai for official course information."
+  "footer_note": "© 2026 Hope Donglo. Independent academic website. University of Ghana students should visit Sakai for official course information.",
+  "banner_areas": "Theoretical Nuclear Physics • Heavy-Ion Reactions • Superheavy Element Synthesis • Uncertainty Quantification",
+  "banner_field": "Theoretical Nuclear Physics"
 }

@@ -1,0 +1,251 @@
+{
+  "top": [
+    {
+      "id": "course-structure",
+      "fold": true,
+      "heading": "Course Structure",
+      "layout": "grid",
+      "cards": [
+        {
+          "id": "overview",
+          "style": "wide",
+          "title": "Overview",
+          "subtitle": "Scope, objective and weekly structure",
+          "lead": true,
+          "paragraphs": [
+            "Each week is taught in three contacts. Every lecture provides a slide deck, a tutorial sheet and a supplementary note. All files are PDF. Select the deck preview or a button on a card to open it. Each lecture also has twenty multiple-choice practice questions that run in the browser, for practice and not assessment."
+          ],
+          "subsections": [
+            {
+              "title": "Scope",
+              "style": "boxed",
+              "paragraphs": [
+                "**Mechanics:** lectures 1 to 8. **Thermal physics:** lectures 9 to 12."
+              ]
+            },
+            {
+              "title": "Objective",
+              "style": "boxed",
+              "paragraphs": [
+                "To prepare students to succeed in the PHYS 143 examination through conceptual understanding, technical competence and application to unfamiliar problems.",
+                "**Weekly routine:** attend all three contacts, attempt the tutorial before the answers, review the supplementary note, and use the deck checklist to find gaps."
+              ]
+            },
+            {
+              "title": "Contacts per week",
+              "style": "boxed",
+              "bullet_style": "numbered",
+              "bullets": [
+                "**Contact 1:** build the physical idea.",
+                "**Contact 2:** develop the model and method.",
+                "**Contact 3:** apply, integrate and transfer."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "bottom": [
+    {
+      "id": "practice-qs",
+      "fold": true,
+      "heading": "Practice Questions",
+      "layout": "stack",
+      "cards": [
+        {
+          "style": "plain",
+          "paragraphs": [
+            "Each lecture has twenty multiple-choice practice questions that run in the browser, for practice and not assessment."
+          ],
+          "button_label": "Open practice questions",
+          "button_url": "practice.html",
+          "button_style": "primary dl"
+        }
+      ]
+    },
+    {
+      "id": "why-matters",
+      "fold": true,
+      "heading": "Why This Course Matters: Research-Informed Learning",
+      "subtitle": "How foundational physics connects to modern research.",
+      "layout": "grid",
+      "cards": [
+        {
+          "style": "plain",
+          "title": "Vectors and nuclear reaction kinematics",
+          "paragraphs": [
+            "The vector methods of Level 100 describe how momentum and energy are shared among the products of a nuclear reaction."
+          ]
+        },
+        {
+          "style": "plain",
+          "title": "Statistics and uncertainty quantification",
+          "paragraphs": [
+            "Measurement uncertainty, fitting and model comparison are the same ideas used to constrain the parameters of nuclear models."
+          ]
+        },
+        {
+          "style": "plain",
+          "title": "Differential equations and reaction dynamics",
+          "paragraphs": [
+            "Equations of motion with random forces, the Langevin equations, describe how a heavy nuclear system evolves during a reaction."
+          ]
+        },
+        {
+          "style": "plain",
+          "title": "Programming and physical models",
+          "paragraphs": [
+            "Scientific computing turns a physical model into numbers that can be compared with experiment, as in the KEWPIE codes."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "course-info-fold",
+      "fold": true,
+      "heading": "Course Information",
+      "subtitle": "Reference material, expected skills and applications",
+      "layout": "grid",
+      "cards": [
+        {
+          "id": "ov-ref",
+          "style": "wide",
+          "title": "Reference material",
+          "paragraphs": [
+            "Prescribed text: Young and Freedman, *University Physics*, 15th edition. Each deck lists its reading."
+          ],
+          "table": {
+            "caption": "Textbook chapters by lecture",
+            "headers": [
+              "Lecture",
+              "Chapters"
+            ],
+            "rows": [
+              {
+                "cells": [
+                  "1 Vectors",
+                  "Ch. 1"
+                ]
+              },
+              {
+                "cells": [
+                  "2 Motion",
+                  "Ch. 2 and 3"
+                ]
+              },
+              {
+                "cells": [
+                  "3 Newton's laws",
+                  "Ch. 4 and 5"
+                ]
+              },
+              {
+                "cells": [
+                  "4 Work and kinetic energy",
+                  "Ch. 6"
+                ]
+              },
+              {
+                "cells": [
+                  "5 Potential energy",
+                  "Ch. 7"
+                ]
+              },
+              {
+                "cells": [
+                  "7 Impulse and momentum",
+                  "Ch. 8"
+                ]
+              },
+              {
+                "cells": [
+                  "8 Rotation",
+                  "Ch. 9 and 10"
+                ]
+              },
+              {
+                "cells": [
+                  "9 Temperature and heat",
+                  "Ch. 17"
+                ]
+              },
+              {
+                "cells": [
+                  "10 Thermal properties",
+                  "Ch. 18"
+                ]
+              },
+              {
+                "cells": [
+                  "11 First law",
+                  "Ch. 19"
+                ]
+              },
+              {
+                "cells": [
+                  "12 Second law",
+                  "Ch. 20"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "ov-skills",
+          "style": "plain",
+          "title": "Expected skills",
+          "subsections": [
+            {
+              "title": "Physicist's Toolkits",
+              "style": "bold",
+              "column": 1,
+              "bullets": [
+                "Vector and component methods",
+                "Free-body diagrams",
+                "Graph interpretation",
+                "Estimation and dimensional analysis",
+                "Limiting cases",
+                "Conservation laws",
+                "Checking answers"
+              ]
+            },
+            {
+              "title": "Problem-solving framework",
+              "style": "bold",
+              "column": 2,
+              "paragraphs": [
+                "Identify, Set Up, Execute, Evaluate."
+              ]
+            },
+            {
+              "title": "Further skills",
+              "style": "bold",
+              "column": 2,
+              "bullets": [
+                "Switching between representations: situation, diagram, graph, words, equation and number",
+                "Calculating with units and checking sign, magnitude and direction"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "ov-apps",
+          "style": "plain",
+          "title": "Applications",
+          "paragraphs": [
+            "Examples drawn from the lecture decks include the following."
+          ],
+          "bullets": [
+            "Projectile motion",
+            "Vehicle safety and collisions: airbags and crumple zones",
+            "Rotating machinery: the flywheel",
+            "Thermal expansion of structures: gaps in railway rails",
+            "Internal-combustion engines and diesel compression",
+            "Heat engines and refrigerators"
+          ]
+        }
+      ]
+    }
+  ]
+}

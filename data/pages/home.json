@@ -1,0 +1,90 @@
+{
+  "eyebrow": "Hope Donglo, PhD",
+  "role": "Lecturer · Theoretical Nuclear Physics",
+  "statement": "Computational models of heavy-ion reactions and superheavy element synthesis, combining stochastic dynamics, uncertainty quantification and scientific computing.",
+  "primary_button": {
+    "label": "Explore my research →",
+    "url": "research.html"
+  },
+  "secondary_button": {
+    "label": "View my CV",
+    "url": "cv.html"
+  },
+  "pathways": [
+    {
+      "label": "Research",
+      "title": "Understanding the formation of heavy and superheavy nuclei",
+      "text": "Heavy-ion reactions · Langevin dynamics · Superheavy elements · Uncertainty quantification",
+      "link_label": "Explore research →",
+      "url": "research.html"
+    },
+    {
+      "label": "Teaching",
+      "title": "Physics resources for students",
+      "text": "PHYS 143, laboratory resources, tutorials, supplementary notes and interactive practice questions",
+      "link_label": "Explore teaching →",
+      "url": "teaching.html"
+    },
+    {
+      "label": "Projects",
+      "title": "Data science and scientific computing",
+      "text": "Data engineering, machine learning, reproducible pipelines and computational projects",
+      "link_label": "View projects →",
+      "url": "projects.html"
+    }
+  ],
+  "publications_heading": "Selected publications",
+  "publications_link_label": "All publications →",
+  "currently_heading": "Currently",
+  "shortcuts_heading": "Find your way",
+  "shortcuts": [
+    {
+      "title": "I am a researcher",
+      "links": [
+        {
+          "label": "Research",
+          "url": "research.html"
+        },
+        {
+          "label": "Publications",
+          "url": "publications.html"
+        },
+        {
+          "label": "Projects",
+          "url": "projects.html"
+        }
+      ]
+    },
+    {
+      "title": "I am a student",
+      "links": [
+        {
+          "label": "Teaching",
+          "url": "teaching.html"
+        },
+        {
+          "label": "PHYS 143",
+          "url": "phys143.html"
+        },
+        {
+          "label": "Student Research",
+          "url": "student-research.html"
+        }
+      ]
+    },
+    {
+      "title": "I am looking for the CV",
+      "links": [
+        {
+          "label": "CV page",
+          "url": "cv.html"
+        },
+        {
+          "label": "Download PDF",
+          "url": "cv/Hope_Donglo_CV.pdf"
+        }
+      ]
+    }
+  ],
+  "affiliation_line": "Department of Physics, University of Ghana."
+}

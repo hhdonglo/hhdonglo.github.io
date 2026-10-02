@@ -1,0 +1,43 @@
+{
+  "sections": [
+    {
+      "layout": "stack",
+      "cards": [
+        {
+          "style": "plain",
+          "lead": true,
+          "paragraphs": [
+            "Hope Donglo, PhD, is a theoretical nuclear physicist.",
+            "**Affiliation:** Lecturer, Department of Physics, College of Basic and Applied Sciences, University of Ghana, Legon (appointed August 2026).",
+            "Hope develops theoretical models of heavy-ion reactions and superheavy element synthesis, employing stochastic methods, uncertainty quantification, and scientific computing to investigate reaction mechanisms and improve predictive nuclear theory."
+          ],
+          "subsections": [
+            {
+              "title": "Main research interests",
+              "style": "inline",
+              "bullet_style": "chips",
+              "bullets": [
+                "Nuclear reaction theory",
+                "Superheavy element synthesis",
+                "Nuclear structure",
+                "Langevin dynamics",
+                "Bayesian inference and uncertainty quantification",
+                "Machine learning for nuclear data"
+              ]
+            },
+            {
+              "title": "Educational mission",
+              "style": "inline",
+              "paragraphs": [
+                "Inquiry-based, student-centred physics instruction that integrates conceptual reasoning, laboratory practice and computational problem-solving, in support of inclusive, research-informed STEM education."
+              ]
+            }
+          ],
+          "after": [
+            "[Education, appointments and awards are on the CV page.](cv.html)"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,351 @@
+{
+  "lecture": 12,
+  "title": "Second law of thermodynamics",
+  "questions": [
+    {
+      "id": "L12-01",
+      "type": "concept",
+      "q": "Which of the following is an irreversible process?",
+      "options": [
+        "A frictionless pendulum swinging in a vacuum",
+        "An ideal spring oscillating without damping",
+        "A cup of hot coffee cooling to room temperature",
+        "A gas expanding very slowly while staying in equilibrium with its surroundings"
+      ],
+      "answer": 2,
+      "exp": "A process is irreversible if it cannot be undone without leaving a change in the surroundings. Heat flowing across a finite temperature difference, as in the coffee, is a standard example. The other three are idealised as reversible, and each one would look possible if the film were run backwards.",
+      "ref": "Lecture 12 deck, slide ‘Reversible and irreversible processes’ and ‘Toolkit 1: reversible or irreversible?’"
+    },
+    {
+      "id": "L12-02",
+      "type": "calc",
+      "q": "0.200 kg of ice melts completely at 0 °C (273.15 K). The latent heat of fusion is 3.34×10<sup>5</sup> J/kg. What is the entropy change of the ice, now water?",
+      "options": [
+        "245 J/K",
+        "1220 J/K",
+        "66800 J/K",
+        "−245 J/K"
+      ],
+      "answer": 0,
+      "exp": "The melting occurs at constant temperature, so ΔS = Q/T = mL<sub>f</sub>/T = (0.200)(3.34×10⁵)/273.15 = 245 J/K. The value is positive because the molecules have more ways to be arranged in the liquid. Leaving out the mass gives 1220 J/K, and the heat Q = 66800 J is not an entropy.",
+      "ref": "Lecture 12 deck, slide ‘The entropy rule’ and ‘Lecturer example: melting ice’",
+      "calc": {
+        "value": 244.55427420831046,
+        "unit": "J/K",
+        "sf": 3
+      }
+    },
+    {
+      "id": "L12-03",
+      "type": "calc",
+      "q": "A heat flow of 1000 J passes directly from a large reservoir at 400 K to a large reservoir at 300 K. What is the total entropy change of the two reservoirs?",
+      "options": [
+        "0 J/K",
+        "−0.833 J/K",
+        "5.83 J/K",
+        "0.833 J/K"
+      ],
+      "answer": 3,
+      "exp": "The hot reservoir loses entropy: ΔS<sub>H</sub> = −1000/400 = −2.50 J/K. The cold reservoir gains ΔS<sub>C</sub> = +1000/300 = 3.33 J/K. The total is 0.833 J/K. It is positive, which is why heat flows spontaneously from hot to cold and never the other way. A zero would mean a reversible process.",
+      "ref": "Lecture 12 deck, slide ‘System plus surroundings: the total’ and ‘Lecturer example: heat flows from hot to cold’",
+      "calc": {
+        "value": 0.8333333333333335,
+        "unit": "J/K",
+        "sf": 3
+      }
+    },
+    {
+      "id": "L12-04",
+      "type": "misconception",
+      "q": "Water freezes in a freezer, so the entropy of the water decreases. Does this violate the second law of thermodynamics?",
+      "options": [
+        "Yes. The entropy of any system can never decrease.",
+        "No. The entropy of the water decreases, but the entropy of the surroundings increases by more, so the total increases.",
+        "No. The entropy of the water does not change when it freezes.",
+        "Yes, unless the freezer is perfectly insulated."
+      ],
+      "answer": 1,
+      "exp": "The second law applies to the total entropy of the system plus its surroundings. The freezer rejects more than enough heat to the room, whose entropy rises by more than the water’s falls. The entropy of a part of the universe can decrease so long as the total does not.",
+      "ref": "Lecture 12 deck, slide ‘System plus surroundings: the total’ and ‘Toolkit 3: entropy bookkeeping’"
+    },
+    {
+      "id": "L12-05",
+      "type": "calc",
+      "q": "1.00 mol of an ideal gas expands freely, with no heat exchanged and no work done, into a vacuum until its volume has doubled. What is the entropy change of the gas? Use R = 8.314 J/(mol·K).",
+      "options": [
+        "0 J/K",
+        "5.76 J/K",
+        "8.31 J/K",
+        "2.50 J/K"
+      ],
+      "answer": 1,
+      "exp": "Entropy is a state function, so ΔS can be found along any reversible path joining the same states. An isothermal reversible expansion gives ΔS = nR ln(V₂/V₁) = (1.00)(8.314) ln 2 = 5.76 J/K. It is not zero just because Q = 0 in the free expansion, because the free expansion is irreversible and Q/T applies only along a reversible path.",
+      "ref": "Lecture 12 deck, slide ‘Lecturer example: expansion, reversible or free’ and ‘Expansion: solution’",
+      "calc": {
+        "value": 5.762825659175385,
+        "unit": "J/K",
+        "sf": 3
+      }
+    },
+    {
+      "id": "L12-06",
+      "type": "calc",
+      "q": "A heat engine takes 800 J from a hot reservoir and rejects 500 J to a cold reservoir in each cycle. What is its thermal efficiency?",
+      "options": [
+        "62.5%",
+        "160%",
+        "60.0%",
+        "37.5%"
+      ],
+      "answer": 3,
+      "exp": "The work per cycle is W = Q<sub>H</sub> − Q<sub>C</sub> = 300 J. The efficiency is e = W/Q<sub>H</sub> = 300/800 = 37.5%. The value 62.5% is the fraction of the heat that is wasted. An efficiency above 100%, such as 160%, is impossible for an engine.",
+      "ref": "Lecture 12 deck, slide ‘The heat engine’ and ‘Toolkit 4: energy flow in an engine’",
+      "calc": {
+        "value": 37.5,
+        "unit": "%",
+        "sf": 3
+      }
+    },
+    {
+      "id": "L12-07",
+      "type": "calc",
+      "q": "A power station has a thermal efficiency of 35% and produces 700 MW of electrical power. At what rate does it reject heat to the environment?",
+      "options": [
+        "1300 MW",
+        "2000 MW",
+        "700 MW",
+        "245 MW"
+      ],
+      "answer": 0,
+      "exp": "The rate of heat input is Q<sub>H</sub> = P/e = 700/0.35 = 2000 MW. Energy is conserved, so the rejected heat is Q<sub>C</sub> = Q<sub>H</sub> − P = 1300 MW. Most of the energy input is wasted, and it must go somewhere, usually into cooling water or the air.",
+      "ref": "Lecture 12 deck, slide ‘Your turn: a power station’",
+      "calc": {
+        "value": 1300.0000000000002,
+        "unit": "MW",
+        "sf": 3
+      }
+    },
+    {
+      "id": "L12-08",
+      "type": "calc",
+      "q": "What is the ideal efficiency of an Otto cycle with a compression ratio r = 9.0, for air with γ = 1.40? Give the answer as a percentage.",
+      "options": [
+        "41.5%",
+        "88.9%",
+        "58.5%",
+        "11.1%"
+      ],
+      "answer": 2,
+      "exp": "The Otto efficiency is e = 1 − 1/r<sup>γ−1</sup> = 1 − 1/(9.0)<sup>0.40</sup> = 58.5%. The value 41.5% is the fraction of heat rejected. The expression 1 − 1/r gives 88.9%, which overstates the efficiency because it leaves out the exponent γ − 1.",
+      "ref": "Lecture 12 deck, slide ‘Otto cycle: the efficiency’ and ‘Lecturer example: an Otto engine’",
+      "calc": {
+        "value": 58.47563534614941,
+        "unit": "%",
+        "sf": 3
+      }
+    },
+    {
+      "id": "L12-09",
+      "type": "concept",
+      "q": "In an ideal Otto cycle with γ fixed, what happens to the efficiency when the compression ratio is increased?",
+      "options": [
+        "The efficiency decreases, because the gas must do more work on the piston.",
+        "The efficiency does not change, because it depends only on the temperatures.",
+        "The efficiency increases, because e = 1 − 1/r<sup>γ−1</sup> increases with r.",
+        "The efficiency increases until it reaches exactly 100%."
+      ],
+      "answer": 2,
+      "exp": "The efficiency e = 1 − r<sup>1−γ</sup> rises as r increases, but it never reaches 100%. Real engines are limited by the knocking of petrol engines and by the strength and friction of the cylinder, which is why diesel engines, with large compression ratios, are more efficient.",
+      "ref": "Lecture 12 deck, slide ‘Concept check: the compression ratio’"
+    },
+    {
+      "id": "L12-10",
+      "type": "calc",
+      "q": "A refrigerator removes 600 J of heat from its interior in each cycle, using 150 J of electrical work. What is its coefficient of performance?",
+      "options": [
+        "4.00",
+        "0.250",
+        "5.00",
+        "0.800"
+      ],
+      "answer": 0,
+      "exp": "For a refrigerator K = Q<sub>C</sub>/|W| = 600/150 = 4.00. It is useful to have a value above 1: more heat is removed than the work supplied. The value 5.00 is Q<sub>H</sub>/|W|, which is the figure for a heat pump, and 0.800 is Q<sub>C</sub>/Q<sub>H</sub>.",
+      "ref": "Lecture 12 deck, slide ‘Toolkit 6: refrigerators and heat pumps’ and ‘Lecturer example: a refrigerator’",
+      "calc": {
+        "value": 4.0,
+        "unit": "",
+        "sf": 3
+      }
+    },
+    {
+      "id": "L12-11",
+      "type": "calc",
+      "q": "An air conditioner has a coefficient of performance of 3.5 and uses 1.2 kW of electrical power. At what rate does it discharge heat to the outside air?",
+      "options": [
+        "4.20 kW",
+        "1.20 kW",
+        "8.40 kW",
+        "5.40 kW"
+      ],
+      "answer": 3,
+      "exp": "The rate of heat removal from the room is Q<sub>C</sub> = KP = (3.5)(1.2) = 4.20 kW. The heat discharged outside is Q<sub>H</sub> = Q<sub>C</sub> + P = 5.40 kW. The discharge is larger than the heat removed, because the electrical work also ends up as heat outdoors.",
+      "ref": "Lecture 12 deck, slide ‘Your turn: an air conditioner’",
+      "calc": {
+        "value": 5.4,
+        "unit": "kW",
+        "sf": 3
+      }
+    },
+    {
+      "id": "L12-12",
+      "type": "misconception",
+      "q": "A refrigerator is running with its door left open in a closed, insulated room. What happens to the temperature of the room?",
+      "options": [
+        "The room becomes cooler, because the refrigerator removes heat from the air.",
+        "The room becomes warmer, because the electrical work done by the compressor ends up as heat in the room.",
+        "The temperature of the room stays the same, because the refrigerator only moves heat.",
+        "The room becomes cooler at first and then returns to its original temperature."
+      ],
+      "answer": 1,
+      "exp": "The refrigerator removes heat Q<sub>C</sub> from one part of the room and discharges Q<sub>H</sub> = Q<sub>C</sub> + |W| into another part of the same room. The net effect on the room is the addition of the work |W|, so the room warms.",
+      "ref": "Lecture 12 deck, slide ‘Concept check: the open refrigerator door’"
+    },
+    {
+      "id": "L12-13",
+      "type": "concept",
+      "q": "Which of the following devices is forbidden by the second law of thermodynamics?",
+      "options": [
+        "A cyclic engine that takes heat from a hot reservoir, does work and rejects some heat to a cold reservoir",
+        "A cyclic engine that takes heat from a single reservoir and converts all of it into work",
+        "A refrigerator that uses electrical work to move heat from a cold interior to a warm room",
+        "A machine that converts all of its input work into heat"
+      ],
+      "answer": 1,
+      "exp": "The engine statement of the second law says that no cyclic engine can convert heat completely into work, so some heat must be rejected to a colder reservoir. The other three are allowed. Converting work completely into heat, as friction does, is possible, but the reverse is not.",
+      "ref": "Lecture 12 deck, slide ‘The second law: three statements’ and ‘The two forbidden devices’"
+    },
+    {
+      "id": "L12-14",
+      "type": "calc",
+      "q": "What is the maximum possible efficiency of any heat engine operating between reservoirs at 500 K and 320 K? Give the answer as a percentage.",
+      "options": [
+        "64.0%",
+        "56.3%",
+        "79.3%",
+        "36.0%"
+      ],
+      "answer": 3,
+      "exp": "The Carnot efficiency is e = 1 − T<sub>C</sub>/T<sub>H</sub>, with temperatures in kelvin. Here e = 1 − 320/500 = 36.0%. The value 64.0% is T<sub>C</sub>/T<sub>H</sub>, the fraction that must be rejected. Using Celsius temperatures gives 79.3%, which is wrong because the formula needs absolute temperatures.",
+      "ref": "Lecture 12 deck, slide ‘The Carnot cycle: the efficiency’ and ‘Toolkit 7: the Carnot limit’",
+      "calc": {
+        "value": 36.0,
+        "unit": "%",
+        "sf": 3
+      }
+    },
+    {
+      "id": "L12-15",
+      "type": "calc",
+      "q": "A Carnot engine operates between 700 K and 300 K and absorbs 1200 J from the hot reservoir in each cycle. How much work does it do per cycle?",
+      "options": [
+        "686 J",
+        "514 J",
+        "1200 J",
+        "588 J"
+      ],
+      "answer": 0,
+      "exp": "The efficiency is e = 1 − T<sub>C</sub>/T<sub>H</sub> = 1 − 300/700 = 0.571. The work is W = eQ<sub>H</sub> = 686 J. The value 514 J is the heat rejected, Q<sub>C</sub> = Q<sub>H</sub> − W, and 1200 J would be the result for an engine with no heat rejected.",
+      "ref": "Lecture 12 deck, slide ‘Lecturer example: limits in practice’ and ‘Toolkit 7: the Carnot limit’",
+      "calc": {
+        "value": 685.7142857142857,
+        "unit": "J",
+        "sf": 3
+      }
+    },
+    {
+      "id": "L12-16",
+      "type": "concept",
+      "q": "An inventor claims an engine that operates between reservoirs at 500 K and 300 K, absorbs 1000 J of heat per cycle and delivers 450 J of work per cycle. Is the claim possible?",
+      "options": [
+        "Yes. The efficiency is 45%, which is less than 100%, so it is allowed.",
+        "Yes. The efficiency is 45%, which is more than the 40% of a Carnot engine, so it is better than a Carnot engine and therefore allowed.",
+        "No. The Carnot limit for these temperatures is 40%, which allows at most 400 J of work, so 450 J is impossible.",
+        "It cannot be decided without knowing the working substance."
+      ],
+      "answer": 2,
+      "exp": "The best efficiency possible between 500 K and 300 K is 1 − 300/500 = 0.40. The claimed efficiency, 450/1000 = 0.45, exceeds it. No engine can do better than a Carnot engine operating between the same reservoirs. The claim would also give a negative total entropy change.",
+      "ref": "Lecture 12 deck, slide ‘Lecturer example: an inventor’s claim’ and ‘Your turn: allowed or not?’"
+    },
+    {
+      "id": "L12-17",
+      "type": "concept",
+      "q": "A Carnot engine operates between 600 K and 300 K. Which change would increase its efficiency more: raising the hot reservoir by 50 K, or lowering the cold reservoir by 50 K?",
+      "options": [
+        "Raising the hot reservoir by 50 K, because 650 K is a large temperature.",
+        "Both changes give the same improvement, because the temperature difference changes by 50 K in each case.",
+        "Lowering the cold reservoir by 50 K, because the efficiency is then 1 − 250/600 = 58%, compared with 1 − 300/650 = 54%.",
+        "Neither, because the efficiency is fixed by the working substance."
+      ],
+      "answer": 2,
+      "exp": "The efficiency is e = 1 − T<sub>C</sub>/T<sub>H</sub>. Lowering T<sub>C</sub> by 50 K gives e = 0.583. Raising T<sub>H</sub> by 50 K gives e = 0.538. Both changes alter the temperature difference by 50 K, but the efficiency depends on the ratio T<sub>C</sub>/T<sub>H</sub>. Since T<sub>C</sub> is smaller than T<sub>H</sub>, a 50 K change in T<sub>C</sub> alters the ratio more than the same change in T<sub>H</sub>.",
+      "ref": "Lecture 12 deck, slide ‘Concept check: where to improve a Carnot engine’"
+    },
+    {
+      "id": "L12-18",
+      "type": "calc",
+      "q": "In each cycle an engine takes 800 J from a reservoir at 600 K and rejects 500 J to a reservoir at 300 K. What is the total entropy change of the two reservoirs per cycle?",
+      "options": [
+        "0.333 J/K",
+        "3.00 J/K",
+        "−0.333 J/K",
+        "0 J/K"
+      ],
+      "answer": 0,
+      "exp": "The hot reservoir loses 800/600 = 1.33 J/K and the cold reservoir gains 500/300 = 1.67 J/K. The total is 0.333 J/K. The engine returns to its initial state each cycle, so only the reservoirs change. A positive total means the engine is allowed. Reversible Carnot operation would give zero, and a negative total would be impossible.",
+      "ref": "Lecture 12 deck, slide ‘Entropy and the Carnot limit’",
+      "calc": {
+        "value": 0.3333333333333335,
+        "unit": "J/K",
+        "sf": 3
+      }
+    },
+    {
+      "id": "L12-19",
+      "type": "calc",
+      "q": "An engine operates between 450 K and 300 K. In each cycle it does 90.0 J of work and rejects 210 J of heat. What fraction of the Carnot efficiency does it achieve?",
+      "options": [
+        "0.300",
+        "0.333",
+        "1.11",
+        "0.900"
+      ],
+      "answer": 3,
+      "exp": "The heat absorbed is Q<sub>H</sub> = W + Q<sub>C</sub> = 90.0 + 210 = 300 J, so e = 90.0/300 = 0.300. The Carnot limit is 1 − 300/450 = 0.333. The ratio is e/e<sub>Carnot</sub> = 0.900. The engine is allowed, since the ratio is below 1, and it is close to the best possible performance. A ratio above 1 would be impossible.",
+      "ref": "Lecture 12 deck, slide ‘Integrated problem: decide what physics applies’ and ‘Integrated problem: lecturer solution’",
+      "calc": {
+        "value": 0.8999999999999999,
+        "unit": "",
+        "sf": 3
+      }
+    },
+    {
+      "id": "L12-20",
+      "type": "calc",
+      "q": "A freezer at 255 K is in a room at 295 K. What is the largest possible coefficient of performance of any refrigerator working between these temperatures?",
+      "options": [
+        "0.157",
+        "6.38",
+        "7.38",
+        "1.16"
+      ],
+      "answer": 1,
+      "exp": "The best refrigerator is a reversed Carnot engine, for which K<sub>max</sub> = T<sub>C</sub>/(T<sub>H</sub> − T<sub>C</sub>) = 255/(295 − 255) = 6.38. The value 7.38 is T<sub>H</sub>/(T<sub>H</sub> − T<sub>C</sub>), the limit for a heat pump. A smaller temperature difference allows a much larger coefficient of performance.",
+      "ref": "Lecture 12 deck, slide ‘Toolkit 6: refrigerators and heat pumps’ and ‘Extension (unassessed): the heat pump’",
+      "calc": {
+        "value": 6.375,
+        "unit": "",
+        "sf": 3
+      }
+    }
+  ]
+}

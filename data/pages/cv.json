@@ -1,0 +1,62 @@
+{
+  "sections": [
+    {
+      "layout": "stack",
+      "cards": [
+        {
+          "style": "plain",
+          "lead": true,
+          "paragraphs": [
+            "A summary of the academic record. The full CV, with all sections, is available as a PDF."
+          ],
+          "button_label": "Download the CV (PDF)",
+          "button_url": "cv/Hope_Donglo_CV.pdf",
+          "button_style": "primary dl"
+        }
+      ]
+    },
+    {
+      "layout": "grid",
+      "cards": [
+        {
+          "style": "plain",
+          "title": "Education",
+          "bullet_style": "timeline",
+          "bullets": [
+            "**PhD, Theoretical Nuclear Physics**, University of Caen Normandy, France, 2021 to 2024.",
+            "**Joint Master's in Nuclear Physics** (Erasmus Mundus), Universities of Seville, Autonomous Madrid, Padua and Caen, 2018 to 2020.",
+            "**BSc Physics**, University of Ghana, Legon, 2012 to 2016."
+          ]
+        },
+        {
+          "style": "plain",
+          "title": "Appointments",
+          "bullet_style": "timeline",
+          "bullets": [
+            "**Lecturer**, Department of Physics, University of Ghana, from August 2026.",
+            "**Doctoral Researcher**, CEA/GANIL, Caen, France, 2021 to 2024.",
+            "**Graduate Research Assistant**: Autonomous University of Madrid (2020), GANIL (2019 to 2020) and INFN Legnaro, Italy (2019)."
+          ]
+        },
+        {
+          "style": "plain",
+          "title": "Awards",
+          "bullets": [
+            "**Marie Skłodowska-Curie Actions, COFUND Fellow** (2021 to 2024).",
+            "**Erasmus Mundus Scholar** (2018 to 2020)."
+          ]
+        },
+        {
+          "style": "plain",
+          "title": "Research skills",
+          "bullets": [
+            "Nuclear modelling: Langevin dynamics, KEWPIE2 and KEWPIE3",
+            "Bayesian inference and uncertainty quantification",
+            "Machine learning and data analysis in Python",
+            "C++ and Python for high-performance computing, Git"
+          ]
+        }
+      ]
+    }
+  ]
+}

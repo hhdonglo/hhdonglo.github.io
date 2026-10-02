@@ -42,4 +42,4 @@ assets/thumbs/ title-slide previews of each deck (WebP)
 
 ## Editing
 
-See [EDITING.md](EDITING.md) for step-by-step instructions on changing publications, research, projects, lectures and contact details from github.com. These are stored in `data/*.json` and drawn by `assets/render.js`.
+See [EDITING.md](EDITING.md). Content is edited with Pages CMS forms (configured in `.pages.yml`) and stored in `data/*.json`, `data/pages/*.json` and `quizzes/lectureN.json`; pages are drawn by `assets/render.js`.
