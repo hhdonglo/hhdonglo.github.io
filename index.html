@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
-<title>Hope DONGLO | Physics, University of Ghana</title>
-<meta name="description" content="Personal website of Hope DONGLO, Physics Department, University of Ghana: about, research, and teaching material by level, starting with the Level 100 course PHYS 143 (lecture decks, tutorials, supplementary notes and practice questions). University of Ghana students: official course information is on Sakai.">
+<title>Hope DONGLO | Theoretical Nuclear Physics</title>
+<meta name="description" content="Personal website of Hope DONGLO, Lecturer in the Department of Physics, University of Ghana: theoretical nuclear physics, heavy-ion reactions, superheavy element synthesis and uncertainty quantification; publications, teaching material by level (Level 100 PHYS 143), students and CV. University of Ghana students: official course information is on Sakai.">
 <style>
 :root{
   --navy:#1F3A68; --navy-deep:#16294b; --brown:#5C3A21; --brown-soft:#EEF2F9; --brown-edge:#7A4A2A; --brown-fill:#7A4A2A;
@@ -122,7 +122,7 @@ footer a{color:var(--brown-soft)}
 nav.jump .links .badge{margin-left:.5rem}
 
 section[aria-labelledby]{scroll-margin-top:.5rem}
-#home,#about,#research,#teaching,#contact{scroll-margin-top:3.5rem}
+#home,#about,#research,#publications,#teaching,#students,#cv,#contact{scroll-margin-top:3.5rem}
 .banner .wrap{padding-top:2.2rem;padding-bottom:2rem}
 .quick{margin-top:1.1rem;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
 .qcard{display:flex;flex-direction:column;gap:.2rem;padding:.8rem 1rem;background:var(--surface);border:1px solid var(--border);border-top:4px solid var(--brown);border-radius:8px;text-decoration:none;color:var(--text);box-shadow:var(--shadow);min-height:44px}
@@ -159,6 +159,17 @@ h4{font-size:1.2rem}
 #about .ov-grid,#research .ov-grid{margin-top:1.1rem}
 #about>.ov-card .intro,#research>.ov-card .intro{max-width:46rem}
 .ov-card ul.chips{padding-left:0}
+.banner .areas{margin:.8rem 0 0;max-width:46rem;color:#e6eefb;font:600 .95rem/1.5 system-ui,sans-serif}
+.hero{display:grid;gap:1.2rem;grid-template-columns:200px 1fr;align-items:start;margin-top:.8rem}
+.photo{display:flex;align-items:center;justify-content:center;text-align:center;aspect-ratio:4/5;border:2px dashed var(--off);border-radius:10px;color:var(--muted);background:var(--sky);font:600 .9rem system-ui,sans-serif;padding:.5rem}
+.statement{margin:0 0 .6rem;font-size:1.25rem;line-height:1.45;color:var(--navy);font-weight:700}
+@media (prefers-color-scheme:dark){.statement{color:#c7dcf8}}
+.hero .intro{max-width:none}
+.links-row{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1rem}
+.links-row .btn{padding:.4rem 1rem}
+.btn.dl{display:inline-flex}
+.note{font:.9rem/1.45 system-ui,sans-serif;color:var(--muted)}
+@media (max-width:600px){.hero{grid-template-columns:1fr}.photo{aspect-ratio:auto;min-height:5rem;max-width:200px}}
 </style>
 <script>if(!location.hash){if("scrollRestoration" in history)history.scrollRestoration="manual";window.addEventListener("pageshow",function(){if(!location.hash)window.scrollTo({top:0,left:0,behavior:"instant"})});}</script>
 </head>
@@ -166,81 +177,101 @@ h4{font-size:1.2rem}
 <a class="skip" href="#main">Skip to content</a>
 <header class="banner">
 <div class="wrap">
-<p class="org">Physics Department, University of Ghana</p>
-<h1>Hope DONGLO</h1>
-<p class="course">Physics: teaching and research</p>
+<p class="org">Department of Physics, University of Ghana</p>
+<h1>Hope Donglo</h1>
+<p class="course">Lecturer, Department of Physics, University of Ghana</p>
+<p class="areas">Theoretical Nuclear Physics &bull; Heavy-Ion Reactions &bull; Superheavy Element Synthesis &bull; Uncertainty Quantification</p>
 </div>
 </header>
-<nav class="jump" id="jump" aria-label="Sections"><div class="wrap"><button type="button" class="menu-btn" aria-expanded="false" aria-controls="jump-links"><span>Menu</span><span class="dots" aria-hidden="true">&#8943;</span></button><div class="links" id="jump-links"><a href="#home">Home</a><a href="#about">About</a><a href="#research">Research</a><a href="#teaching">Teaching</a><a href="#contact">Contact</a></div></div></nav>
+<nav class="jump" id="jump" aria-label="Sections"><div class="wrap"><button type="button" class="menu-btn" aria-expanded="false" aria-controls="jump-links"><span>Menu</span><span class="dots" aria-hidden="true">&#8943;</span></button><div class="links" id="jump-links"><a href="#home">Home</a><a href="#about">About</a><a href="#research">Research</a><a href="#publications">Publications</a><a href="#teaching">Teaching</a><a href="#students">Students</a><a href="#cv">CV</a><a href="#contact">Contact</a></div></div></nav>
 <main id="main"><div class="wrap">
 <section aria-labelledby="home" id="home-sec">
 <h2 id="home">Home</h2>
-<p class="intro">Welcome. This is the personal website of Hope DONGLO of the Physics Department, University of Ghana. It brings together teaching material organised by level, starting with the Level 100 course PHYS 143, together with a short biography and research interests.</p>
-<div class="grid quick">
-<a class="qcard" href="#about"><strong>About</strong><span>Background and interests</span></a>
-<a class="qcard" href="#research"><strong>Research</strong><span>Research areas</span></a>
-<a class="qcard" href="#level-100"><strong>Teaching</strong><span>Level 100: PHYS 143 lectures and practice questions</span></a>
-<a class="qcard" href="#contact"><strong>Contact</strong><span>Office, email and LinkedIn</span></a>
+<div class="hero">
+<div class="photo" role="img" aria-label="Space reserved for a professional photo">Photo to be added</div>
+<div>
+<p class="statement">Research focused on understanding and modelling the mechanisms governing the formation of heavy and superheavy nuclei.</p>
+<p class="intro">Hope Donglo is a theoretical nuclear physicist who develops models of heavy-ion reactions and superheavy element synthesis. The work uses stochastic methods, uncertainty quantification and scientific computing to investigate reaction mechanisms. It is carried out alongside teaching in the Department of Physics at the University of Ghana, Legon.</p>
+<div class="links-row">
+<a class="btn primary" href="cv/Hope_Donglo_CV.pdf">CV (PDF)</a>
+<a class="btn" href="https://www.linkedin.com/in/hopedonglo" rel="noopener">LinkedIn</a>
+<span class="btn off">Google Scholar: to be added</span>
+<span class="btn off">ORCID: to be added</span>
+<span class="btn off">GitHub: to be added</span>
+</div>
+</div>
 </div>
 </section>
 
 <section aria-labelledby="about">
 <h2 id="about">About</h2>
 <div class="ov-card">
-<p class="intro">Hope DONGLO, PhD, is a Lecturer in the Department of Physics, College of Basic and Applied Sciences, University of Ghana, Legon (appointed August 2026). Hope is a theoretical nuclear physicist who earned a PhD in Theoretical Nuclear Physics at the University of Caen Normandy in 2024, as a Marie Sk&lstrok;odowska-Curie COFUND Fellow with research at CEA/GANIL, France.</p>
-</div>
-<div class="ov-grid">
-<article class="ov-card"><h4>Education</h4>
-<ul class="tl">
-<li><strong>PhD, Theoretical Nuclear Physics</strong>, University of Caen Normandy, France, 2021 to 2024. Dissertation: <em>Study of Reaction Mechanisms for the Synthesis of Superheavy Elements</em>.</li>
-<li><strong>Joint Master&#x27;s in Nuclear Physics</strong> (Erasmus Mundus), Universities of Seville, Autonomous Madrid, Padua and Caen, 2018 to 2020.</li>
-<li><strong>BSc Physics</strong>, University of Ghana, Legon, 2012 to 2016. Thesis: <em>Evaluation of Safety Status of the Ghana Research Reactor-1 (GHARR-1)</em>.</li>
-</ul></article>
-<article class="ov-card"><h4>Appointments</h4>
-<ul class="tl">
-<li><strong>Lecturer</strong>, Department of Physics, University of Ghana, from August 2026.</li>
-<li><strong>Doctoral Researcher</strong>, CEA/GANIL, Caen, France, 2021 to 2024.</li>
-<li><strong>Graduate Research Assistant</strong>: Autonomous University of Madrid (2020), GANIL (2019 to 2020) and INFN Legnaro, Italy (2019).</li>
-<li><strong>Undergraduate Teaching Assistant</strong>, University of Ghana, Department of Physics, 2016 to 2017.</li>
-</ul></article>
-<article class="ov-card"><h4>Teaching</h4>
-<p><strong>Areas:</strong> introductory physics and laboratory instruction; mechanics, thermodynamics and electromagnetism; nuclear and particle physics; quantum mechanics and quantum field theory; computational and scientific programming methods for physics.</p>
-<p><strong>Approach:</strong> inquiry-based, student-centred physics instruction that integrates conceptual reasoning, laboratory practice and computational problem-solving, in support of inclusive, research-informed STEM education.</p></article>
-<article class="ov-card"><h4>Fellowships and awards</h4>
-<ul>
-<li><strong>Marie Sk&lstrok;odowska-Curie Actions, COFUND Fellow</strong> (2021 to 2024): European Commission, fully funded doctoral fellowship.</li>
-<li><strong>Erasmus Mundus Scholar</strong> (2018 to 2020): European Commission, joint Master&#x27;s scholarship.</li>
-</ul></article>
+<p class="intro">Hope Donglo, PhD, is a Lecturer in the Department of Physics, College of Basic and Applied Sciences, University of Ghana, Legon, appointed in August 2026.</p>
+<p class="intro">Hope develops theoretical models of heavy-ion reactions and superheavy element synthesis, employing stochastic methods, uncertainty quantification, and scientific computing to investigate reaction mechanisms and improve predictive nuclear theory.</p>
+<h4>Main research interests</h4>
+<ul class="chips">
+<li>Nuclear reaction theory</li>
+<li>Superheavy element synthesis</li>
+<li>Nuclear structure</li>
+<li>Langevin dynamics</li>
+<li>Bayesian inference and uncertainty quantification</li>
+<li>Machine learning for nuclear data</li>
+</ul>
+<h4>Educational mission</h4>
+<p class="intro">Inquiry-based, student-centred physics instruction that integrates conceptual reasoning, laboratory practice and computational problem-solving, in support of inclusive, research-informed STEM education.</p>
+<p class="intro"><a href="#cv">Education, appointments and awards are on the CV page.</a></p>
 </div>
 </section>
 
 <section aria-labelledby="research">
 <h2 id="research">Research</h2>
-<div class="ov-card">
-<p class="intro">Research is in theoretical nuclear physics, with a focus on nuclear reaction dynamics and the synthesis of superheavy elements, using computational methods such as Langevin dynamics, Bayesian inference and high-performance computing.</p>
-<h4>Research areas</h4>
-<ul class="chips">
-<li>Nuclear reaction theory: fusion-evaporation and superheavy element synthesis</li>
-<li>Nuclear structure: collective and mean-field models</li>
-<li>Langevin dynamics and stochastic simulation</li>
-<li>Bayesian inference and uncertainty quantification</li>
-<li>Machine learning for nuclear data analysis</li>
-<li>Simulation-assisted nuclear safety analysis</li>
-<li>Nuclear fission</li>
-</ul>
-</div>
+<p class="sec-sub">Theoretical nuclear physics, with computation as the method</p>
 <div class="ov-grid">
-<article class="ov-card"><h4>Ongoing projects</h4>
-<ul>
-<li><strong>KEWPIE3 development and validation.</strong> KEWPIE3 is the new version of the KEWPIE2 code for fusion-evaporation cross-section predictions in superheavy element synthesis.</li>
-<li><strong>In preparation</strong> (targeting <em>Journal of Physics G</em>): revisiting fusion dynamics in the fusion-by-diffusion model for fusion-evaporation production cross sections.</li>
-<li><strong>In preparation</strong> (targeting <em>Physical Review C</em>): constraining the compound nucleus formation probability in superheavy element synthesis through systematic uncertainty analysis.</li>
-</ul></article>
-<article class="ov-card"><h4>Selected publications</h4>
+<article class="ov-card"><h4>Heavy-Ion Reaction Dynamics</h4>
+<p>Reaction mechanisms are modelled with stochastic simulation, using Langevin dynamics. The approach covers the full pathway from the colliding nuclei to a superheavy element.</p></article>
+<article class="ov-card"><h4>Superheavy Element Synthesis</h4>
+<p>Production cross-sections for superheavy nuclei, including Z = 119 and Z = 120, are predicted with the KEWPIE2 and KEWPIE3 framework. The work connects to experimental studies of synthesis and decay at S<sup>3</sup>.</p></article>
+<article class="ov-card"><h4>Nuclear Reaction Modelling</h4>
+<p>Fusion-evaporation reactions and the probability of forming a compound nucleus are calculated with Langevin-based stochastic approaches. Earlier work on nuclear structure used collective and mean-field models, for example for argon isotopes.</p></article>
+<article class="ov-card"><h4>Uncertainty Quantification</h4>
+<p>Bayesian optimisation and machine learning are applied to estimate nuclear model parameters and their uncertainties. Competing theoretical models are benchmarked against each other with systematic uncertainty analysis.</p></article>
+</div>
+<h3 class="sub2" id="projects">Current research projects</h3>
+<div class="ov-grid">
+<article class="ov-card"><h4>KEWPIE3 Development and Validation</h4>
+<p><strong>Objective:</strong> validate and publish KEWPIE3, the new version of the KEWPIE2 code for fusion-evaporation cross-section predictions in superheavy element synthesis.</p>
+<p><strong>Key question:</strong> how can the calculation of the compound nucleus formation probability be improved with Langevin-based stochastic approaches?</p>
+<p><strong>Publications:</strong> in preparation.</p></article>
+<article class="ov-card"><h4>Fusion Dynamics and Compound Nucleus Formation</h4>
+<p><strong>Objective:</strong> revisit the fusion dynamics in the fusion-by-diffusion model for fusion-evaporation production cross sections.</p>
+<p><strong>Publications:</strong> in preparation, targeting <em>Journal of Physics G</em>.</p></article>
+<article class="ov-card"><h4>Uncertainty Analysis in Superheavy Element Synthesis</h4>
+<p><strong>Objective:</strong> constrain the compound nucleus formation probability in superheavy element synthesis through systematic uncertainty analysis.</p>
+<p><strong>Publications:</strong> in preparation, targeting <em>Physical Review C</em>.</p></article>
+</div>
+</section>
+
+<section aria-labelledby="publications">
+<h2 id="publications">Publications</h2>
+<div class="ov-grid">
+<article class="ov-card"><h4>Journal articles</h4>
 <ul>
 <li>D. Ackermann, F. Agert, A. Bahini, D. Boilley, <strong>H. Donglo</strong>, S. Kumar, J. Piot, H. Savajols, Ch. Stodel and the S<sup>3</sup> Collaboration (2026). Probing SHN structure and stability: synthesis and decay studies at S<sup>3</sup>. <em>Acta Physica Polonica B</em>, Vol. 19 (2026).</li>
-<li><strong>H. Donglo</strong> and T. R. Rodr&iacute;guez Frutos. Nuclear structure of even-even argon isotopes within the axial symmetry conserving configuration mixing framework. Preprint, HAL hal-05677054.</li>
+</ul>
+<p class="note">In preparation: see <a href="#projects">current research projects</a>.</p></article>
+<article class="ov-card"><h4>Preprints</h4>
+<ul>
+<li><strong>H. Donglo</strong> and T. R. Rodr&iacute;guez Frutos. Nuclear structure of even-even argon isotopes within the axial symmetry conserving configuration mixing framework. HAL: <a href="https://hal.science/hal-05677054" rel="noopener">hal-05677054</a>.</li>
+</ul></article>
+<article class="ov-card"><h4>Theses</h4>
+<ul>
 <li><strong>H. Donglo</strong> (2024). <em>Study of Reaction Mechanisms for the Synthesis of Superheavy Elements.</em> PhD thesis, University of Caen Normandy.</li>
+<li>Master&#x27;s thesis (Erasmus Mundus): <em>Nuclear Structure Studies with Symmetry-Conserving Configuration Mixing Method.</em></li>
+<li>BSc thesis, University of Ghana: <em>Evaluation of Safety Status of the Ghana Research Reactor-1 (GHARR-1).</em></li>
+</ul></article>
+<article class="ov-card"><h4>Conference proceedings and presentations</h4>
+<ul>
+<li>Study of reaction mechanisms for the synthesis of superheavy elements. <em>29th Nuclear Physics Conference</em>, Poland, September 2023.</li>
 </ul></article>
 </div>
 </section>
@@ -439,6 +470,69 @@ h4{font-size:1.2rem}
 <article class="card soon level-card" id="level-300"><div class="body"><p class="num">Level 300</p><h4>Coming soon</h4><p class="learn">Lecture material for Level 300 will be added here.</p></div></article>
 <article class="card soon level-card" id="level-400"><div class="body"><p class="num">Level 400</p><h4>Coming soon</h4><p class="learn">Lecture material for Level 400 will be added here.</p></div></article>
 </div>
+<h3 class="sub2" id="research-informed">Research-informed learning</h3>
+<p class="sec-sub">How foundational physics connects to current research</p>
+<div class="ov-grid">
+<article class="ov-card"><h4>Vectors and nuclear reaction kinematics</h4><p>The vector methods of Level 100 describe how momentum and energy are shared among the products of a nuclear reaction.</p></article>
+<article class="ov-card"><h4>Statistics and uncertainty quantification</h4><p>Measurement uncertainty, fitting and model comparison are the same ideas used to constrain the parameters of nuclear models.</p></article>
+<article class="ov-card"><h4>Differential equations and reaction dynamics</h4><p>Equations of motion with random forces, the Langevin equations, describe how a heavy nuclear system evolves during a reaction.</p></article>
+<article class="ov-card"><h4>Programming and physical models</h4><p>Scientific computing turns a physical model into numbers that can be compared with experiment, as in the KEWPIE codes.</p></article>
+</div>
+</section>
+
+<section aria-labelledby="students">
+<h2 id="students">Students</h2>
+<div class="ov-grid">
+<article class="ov-card"><h4>Undergraduate research opportunities</h4>
+<p>Possible areas for undergraduate research:</p>
+<ul><li>Nuclear physics</li><li>Mathematical modelling</li><li>Scientific computing</li><li>Data analysis</li><li>Uncertainty quantification</li></ul></article>
+<article class="ov-card"><h4>Final-year projects</h4>
+<p>Possible project themes:</p>
+<ul><li>Simulating a random walk and diffusion to introduce stochastic dynamics</li><li>Fitting models to data and quantifying the uncertainty of the fitted parameters</li><li>Numerical solution of the equations of motion for a simple physical system</li><li>Python tools for analysing and plotting nuclear data</li></ul>
+<p class="note">Students who are interested should get in touch through the <a href="#contact">contact details</a>.</p></article>
+</div>
+</section>
+
+<section aria-labelledby="cv">
+<h2 id="cv">CV</h2>
+<div class="ov-card">
+<p class="intro">A summary of the academic record. The full CV, with all sections, is available as a PDF.</p>
+<p><a class="btn primary dl" href="cv/Hope_Donglo_CV.pdf">Download the CV (PDF)</a></p>
+</div>
+<div class="ov-grid">
+<article class="ov-card"><h4>Education</h4>
+<ul class="tl">
+<li><strong>PhD, Theoretical Nuclear Physics</strong>, University of Caen Normandy, France, 2021 to 2024.</li>
+<li><strong>Joint Master&#x27;s in Nuclear Physics</strong> (Erasmus Mundus), Universities of Seville, Autonomous Madrid, Padua and Caen, 2018 to 2020.</li>
+<li><strong>BSc Physics</strong>, University of Ghana, Legon, 2012 to 2016.</li>
+</ul></article>
+<article class="ov-card"><h4>Appointments</h4>
+<ul class="tl">
+<li><strong>Lecturer</strong>, Department of Physics, University of Ghana, from August 2026.</li>
+<li><strong>Doctoral Researcher</strong>, CEA/GANIL, Caen, France, 2021 to 2024.</li>
+<li><strong>Graduate Research Assistant</strong>: Autonomous University of Madrid (2020), GANIL (2019 to 2020) and INFN Legnaro, Italy (2019).</li>
+</ul></article>
+<article class="ov-card"><h4>Publications</h4>
+<p>See the <a href="#publications">publications</a> section.</p></article>
+<article class="ov-card"><h4>Awards</h4>
+<ul>
+<li><strong>Marie Sk&lstrok;odowska-Curie Actions, COFUND Fellow</strong> (2021 to 2024).</li>
+<li><strong>Erasmus Mundus Scholar</strong> (2018 to 2020).</li>
+</ul></article>
+<article class="ov-card"><h4>Teaching experience</h4>
+<ul>
+<li>BSc intern co-supervisor, GANIL/CEA, 2022 to 2024.</li>
+<li>Undergraduate teaching assistant, University of Ghana, Department of Physics, 2016 to 2017.</li>
+<li>Physics and mathematics tutor (part-time), Greater Accra, 2017 to 2021.</li>
+</ul></article>
+<article class="ov-card"><h4>Technical skills</h4>
+<ul>
+<li>Nuclear modelling: Langevin dynamics, KEWPIE2 and KEWPIE3</li>
+<li>Bayesian inference and uncertainty quantification</li>
+<li>Machine learning and data analysis in Python</li>
+<li>C++ and Python for high-performance computing, Git</li>
+</ul></article>
+</div>
 </section>
 
 <section aria-labelledby="contact">
@@ -453,7 +547,7 @@ h4{font-size:1.2rem}
 </section>
 </div></main>
 <footer><div class="wrap">
-<p>Hope DONGLO, Physics Department, University of Ghana. Level 100 lectures: PHYS 143. An independent personal website. University of Ghana students should visit Sakai for official course information.</p>
+<p>Hope Donglo, Lecturer, Department of Physics, University of Ghana. Theoretical nuclear physics. Level 100 lectures: PHYS 143. An independent personal website. University of Ghana students should visit Sakai for official course information.</p>
 <p>Contact: <a href="mailto:hdonglo@ug.edu.gh">hdonglo@ug.edu.gh</a>, Physics Department, Office 24. <a href="https://www.linkedin.com/in/hopedonglo" rel="noopener">LinkedIn</a>.</p>
 <p>PHYS 143 lecture 6 will be added when it is ready. The uncertainty analysis page is under development.</p>
 </div></footer>

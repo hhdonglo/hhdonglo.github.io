@@ -1,0 +1,461 @@
+%========================
+% Single-column CV (Hope Donglo) -- University of Ghana, Department of Physics
+%========================
+\documentclass[10pt,a4paper]{article}
+
+\usepackage[scaled]{helvet}
+\renewcommand{\familydefault}{\sfdefault}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage[a4paper, top=1.5cm, bottom=1.5cm, left=1.5cm, right=1.5cm]{geometry}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{ragged2e}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{xparse}
+\usepackage{amsmath}
+
+\definecolor{maincolor}{rgb}{0.5,0.05,0}
+
+\newcommand{\cvsection}[1]{%
+  \par\vspace{8pt}%
+  \noindent{\large\bfseries\textcolor{maincolor}{#1}}\par
+  {\color{maincolor}\rule{\linewidth}{0.6pt}}%
+  \vspace{4pt}%
+}
+
+\newcommand{\cvsubsection}[1]{%
+  \par\vspace{4pt}%
+  \noindent{\normalsize\bfseries\textcolor{maincolor}{#1}}%
+  \vspace{2pt}%
+}
+
+\newlength{\tgutter}\setlength{\tgutter}{1.5em}
+\newlength{\tspace}\setlength{\tspace}{1pt}
+\newsavebox{\tbox}
+
+\NewDocumentCommand{\timelineitem}{s m m m}{%
+  \par\noindent
+  \sbox{\tbox}{%
+    \begin{minipage}[t]{\dimexpr\linewidth-\tgutter\relax}
+      {\small\textbf{#2}}\\[-1pt]
+      {\color{maincolor}\textit{\small #3}}\\[-1pt]
+      {\footnotesize
+        \begin{itemize}[leftmargin=1.2em,itemsep=1pt,topsep=3pt,
+                        label=\textbullet]
+          #4
+        \end{itemize}
+      }
+    \end{minipage}%
+  }%
+  \makebox[0pt][r]{%
+    \begin{minipage}[t]{\tgutter}
+      \centering
+      {\small\textbullet}\\[-0.3ex]
+      \IfBooleanTF{#1}{}{\rule{0.4pt}{\dimexpr\ht\tbox+\dp\tbox+
+        \tspace-0.8ex\relax}}%
+    \end{minipage}%
+  }%
+  \usebox{\tbox}\vspace{\tspace}%
+}
+
+\newlength{\dgutter}\setlength{\dgutter}{1.5em}
+\newlength{\dspace}\setlength{\dspace}{2pt}
+\newsavebox{\dbox}
+
+\NewDocumentCommand{\diploma}{s m m m}{%
+  \par\noindent
+  \sbox{\dbox}{%
+    \begin{minipage}[t]{\dimexpr\linewidth-\dgutter\relax}
+      {\small\textbf{#2}}\\[-1pt]
+      {\color{maincolor}\textit{\small #3}}\\[-2pt]
+      {\footnotesize
+        \begin{itemize}[leftmargin=1.2em,itemsep=2pt,topsep=2pt,
+                        label=\textbullet]
+          #4
+        \end{itemize}
+      }
+    \end{minipage}%
+  }%
+  \makebox[0pt][r]{%
+    \begin{minipage}[t]{\dgutter}
+      \centering
+      {\small\textbullet}\\[-0.3ex]
+      \IfBooleanTF{#1}{}{\rule{0.4pt}{\dimexpr\ht\dbox+\dp\dbox+
+        \dspace-0.8ex\relax}}%
+    \end{minipage}%
+  }%
+  \usebox{\dbox}\vspace{\dspace}%
+}
+
+\setlist[itemize]{noitemsep, topsep=2pt, leftmargin=1.4em}
+\pagenumbering{arabic}
+\setlength{\parskip}{1pt}
+\setlength{\parindent}{0pt}
+\hypersetup{colorlinks=true, linkcolor=black,
+            urlcolor=black, citecolor=black,
+            pdftitle={Hope Donglo, PhD: Curriculum Vitae},
+            pdfauthor={Hope Donglo}}
+
+\begin{document}
+\selectlanguage{english}
+
+\noindent\colorbox{maincolor}{%
+  \begin{minipage}{\dimexpr\linewidth-2\fboxsep\relax}
+    \vspace{8pt}
+    \begin{center}
+      {\Huge\textbf{\textcolor{white}{Hope Donglo, PhD}}\par}
+      \vspace{4pt}
+      {\normalsize\textcolor{white}{%
+        Lecturer, Department of Physics \enspace\textbar\enspace
+        University of Ghana, Legon}\par}
+      \vspace{5pt}
+      \hypersetup{urlcolor=white}%
+      {\footnotesize\textcolor{white}{%
+        Legon, Accra, Ghana \enspace\textbar\enspace
+        020\,48\,10\,352 \enspace\textbar\enspace
+        \href{mailto:hdonglo@ug.edu.gh}{hdonglo@ug.edu.gh}
+        \enspace\textbar\enspace
+        \href{mailto:hkdonglo@gmail.com}{hkdonglo@gmail.com}
+        \enspace\textbar\enspace
+        \href{https://linkedin.com/in/hopedonglo}{%
+          linkedin.com/in/hopedonglo}%
+      }}
+    \end{center}
+    \vspace{8pt}
+  \end{minipage}%
+}
+\hypersetup{urlcolor=black}%
+\vspace{6pt}
+
+\cvsection{Professional Profile}
+
+{\footnotesize
+Theoretical nuclear physicist (PhD, Universit\'{e} de Caen Normandy;
+Marie Sk\l{}odowska-Curie -- COFUND Fellow) specialising in nuclear
+reaction dynamics and superheavy element synthesis, with research
+experience at CEA/GANIL, INFN Legnaro, and the Universidad Aut\'{o}noma
+de Madrid. Develops theoretical models of heavy-ion reactions and
+superheavy element synthesis, employing stochastic methods, uncertainty
+quantification, and scientific computing to investigate reaction
+mechanisms and improve predictive nuclear theory. Contributes to
+development and validation of the KEWPIE3 code.
+}
+
+\vspace{4pt}
+{\footnotesize
+\begin{tabular}{@{}p{4.6cm}p{10.5cm}@{}}
+\textbf{Rank:} & Lecturer \\
+\textbf{Highest Qualification:} & PhD, Theoretical Nuclear Physics (Universit\'{e} de Caen Normandy, 2024) \\
+\textbf{Date of Appointment (UG):} & 1 August 2026 \\
+\textbf{Date of Assumption of Duty:} & 17 August 2026 \\
+\textbf{Area of Specialisation:} & Nuclear reaction theory; superheavy element synthesis; uncertainty quantification \\
+\end{tabular}
+}
+
+\cvsection{Education}
+
+\diploma
+{10/2021 -- 12/2024 \quad Ph.D.\ in Theoretical Nuclear Physics}
+{University of Caen Normandy, France}
+{
+  \item \textit{Dissertation:} Study of Reaction Mechanisms for the
+        Synthesis of Superheavy Elements
+  \item Marie Sk\l{}odowska-Curie -- COFUND Fellow; research conducted at
+        CEA/GANIL (France)
+  \item \textit{Supervisor:} Dr.\ Dieter Ackermann (GANIL/CEA)
+}
+
+\diploma
+{09/2018 -- 10/2020 \quad Joint Master's in Nuclear Physics
+(Erasmus Mundus)}
+{Universities of Seville, Autonomous Madrid, Padua, and Caen}
+{
+  \item Competitive international scholarship; training across four
+        European universities
+  \item \textit{Thesis:} Nuclear Structure Studies with
+        Symmetry-Conserving Configuration Mixing Method
+  \item \textit{Supervisor:} Dr.\ Tom\'{a}s Ra\'{u}l Rodr\'{i}guez
+        Frutos
+}
+
+\diploma
+{09/2012 -- 12/2016 \quad Bachelor of Science in Physics}
+{University of Ghana, Legon --- thesis conducted at GAEC/NNRI}
+{
+  \item \textit{Thesis:} Evaluation of Safety Status of the Ghana
+        Research Reactor-1 (GHARR-1)
+  \item \textit{Supervisors:} Dr.\ Allison F.\ Hughes (UG Physics)
+        and Dr.\ Joseph K.\ Gbadago (GAEC/NNRI)
+}
+
+\cvsection{Academic and Research Appointments}
+
+\timelineitem
+{08/2026 -- \quad Lecturer, Department of Physics}
+{College of Basic and Applied Sciences (CBAS), University of Ghana, Legon}
+{
+  \item Course allocation to be determined
+}
+
+\timelineitem
+{10/2021 -- 12/2024 \quad Doctoral Researcher,
+Theoretical Nuclear Physics}
+{CEA/GANIL, Caen, France}
+{
+  \item Modelled nuclear reaction mechanisms using stochastic
+        simulation methods (Langevin dynamics), covering the full
+        synthesis pathway for superheavy element production
+  \item Built and validated HPC simulation pipelines (KEWPIE2/KEWPIE3
+        framework); predicted production cross-sections for
+        $Z=119$ and $Z=120$ nuclei
+  \item Applied Bayesian optimisation and machine learning methods
+        for nuclear model parameter estimation and uncertainty
+        quantification
+  \item Performed systematic benchmarking of competing theoretical
+        models with rigorous uncertainty analysis
+}
+
+\timelineitem
+{03/2020 -- 09/2020 \quad Graduate Research Assistant}
+{Autonomous University of Madrid (UAM), Spain}
+{
+  \item Simulated 27 argon isotopes ($A=32$--58) using the
+        Symmetry-Conserving Configuration Mixing method; mapped
+        structural evolution and shape coexistence across the
+        isotopic chain
+}
+
+\timelineitem
+{09/2019 -- 01/2020 \quad Graduate Research Assistant}
+{GANIL, Caen, France}
+{
+  \item Investigated nuclear deformation dynamics using the
+        Geometric Collective Model
+  \item Identified $\gamma$-unstable shape coexistence and performed
+        numerical simulations of quadrupole dynamics
+}
+
+\timelineitem*
+{03/2019 -- 06/2019 \quad Graduate Research Assistant}
+{National Institute for Nuclear Physics (INFN), Legnaro, Italy}
+{
+  \item Optimised radiation detectors (EJ-301, LaBr$_3$, BaF$_2$)
+        for neutron/gamma discrimination; achieved 0.01\,ns/channel
+        TOF calibration and ${<}5\%$ LaBr$_3$ energy resolution
+        deviation
+  \item Developed automated data acquisition and analysis pipelines
+        for neutron time-of-flight spectroscopy
+}
+
+\cvsection{Publications}
+
+{\footnotesize
+\begin{itemize}[leftmargin=1.4em, itemsep=6pt, topsep=2pt,
+                label=\textbullet]
+
+  \item \textbf{Peer-Reviewed}\\
+  D.\ Ackermann, F.\ Agert, A.\ Bahini, D.\ Boilley, \textbf{H.\ Donglo},
+  S.\ Kumar, J.\ Piot, H.\ Savajols, Ch.\ Stodel, and the S$^3$ Collaboration (2026).
+  ``Probing SHN Structure and Stability -- synthesis and decay studies at S$^3$.''
+  \textit{Acta Physica Polonica B}, Vol.\ 19 (2026).
+
+  \item \textbf{Preprint (HAL)}\\
+  \textbf{H.\ Donglo} and T.~R.\ Rodr\'iguez Frutos.
+  ``Nuclear Structure of Even-Even Argon Isotopes within the Axial
+  Symmetry Conserving Configuration Mixing Framework.''
+  Deposited on HAL (hal-05677054).
+
+  \item \textbf{PhD Thesis}\\
+  \textbf{H.\ Donglo} (2024).
+  \textit{Study of Reaction Mechanisms for the Synthesis of
+  Superheavy Elements.}
+  University of Caen Normandy.
+
+\end{itemize}
+}
+
+\cvsection{Ongoing Research Projects}
+
+{\footnotesize
+\begin{itemize}[leftmargin=1.4em, itemsep=6pt, topsep=2pt,
+                label=\textbullet]
+
+  \item \textbf{KEWPIE3 Development and Validation}\\
+  Validation and publication of KEWPIE3, the new version of the KEWPIE2 code
+  for fusion-evaporation reaction cross-section predictions in superheavy
+  element synthesis. Contributes to improved compound nucleus formation
+  probability calculations using Langevin-based stochastic approaches.
+
+  \item \textbf{In Preparation}\\
+  \textbf{H.\ Donglo}, F.\ Agert, D.\ Boilley, T.\ Cap, M.\ Kowal, and D.\ Ackermann.
+  ``Revisiting Fusion Dynamics in the Fusion-by-Diffusion Model for
+  Fusion--Evaporation Production Cross Sections.''
+  Targeting \textit{Journal of Physics G}.
+
+  \item \textbf{In Preparation}\\
+  \textbf{H.\ Donglo}, D.\ Boilley, F.\ Cap, and D.\ Ackermann.
+  ``Constraining the Compound Nucleus Formation Probability in
+  Superheavy Element Synthesis through Systematic Uncertainty
+  Analysis.'' Targeting \textit{Physical Review C}.
+
+\end{itemize}
+}
+
+\cvsection{Research Interests}
+
+{\footnotesize
+Nuclear reaction theory (fusion-evaporation, superheavy element
+synthesis); nuclear structure (collective and mean-field models);
+Langevin dynamics and stochastic simulation; Bayesian inference and
+uncertainty quantification for nuclear model parameters; machine
+learning methods for nuclear data analysis; simulation-assisted
+nuclear safety analysis; nuclear fission.
+}
+
+\cvsection{Teaching and Supervision}
+
+\cvsubsection{Teaching Experience}
+
+{\footnotesize
+\textbf{2022--2024 \quad BSc Intern Co-Supervisor}\\
+GANIL/CEA, Caen, France\\
+Supervised final-year interns on nuclear structure projects; guided
+Python-based simulation workflows, uncertainty analysis, and scientific writing.
+
+\vspace{3pt}
+\textbf{09/2016--08/2017 \quad Undergraduate Teaching Assistant}\\
+University of Ghana, Department of Physics, Legon\\
+Supervised laboratory sessions for 150+ undergraduates across
+experimental physics modules; designed structured data analysis
+exercises and provided individual mentoring in scientific computing.
+Supported curriculum delivery alongside academic staff.
+
+\vspace{3pt}
+\textbf{2017--2021 \quad Physics and Mathematics Tutor (Intermittent, Part-time)}\\
+Greater Accra, Ghana\\
+Delivered secondary-level instruction in physics and mathematics;
+adapted teaching approaches to diverse learner backgrounds and
+ability levels.
+}
+
+\cvsubsection{Teaching Areas}
+
+{\footnotesize
+\begin{itemize}[leftmargin=1.4em, itemsep=2pt, topsep=2pt,
+                label=\textbullet]
+  \item Introductory Physics and Laboratory Instruction
+  \item Nuclear and Particle Physics
+  \item Quantum Mechanics and Quantum Field Theory
+  \item Mechanics, Thermodynamics, and Electromagnetism
+  \item Computational and Scientific Programming Methods for Physics
+\end{itemize}
+}
+
+\cvsubsection{Teaching Philosophy}
+
+{\footnotesize
+Committed to inquiry-based, student-centred physics instruction that
+integrates conceptual reasoning, laboratory practice, and
+computational problem-solving. Championing inclusive, research-informed STEM education.
+}
+
+\cvsection{Fellowships and Awards}
+
+{\footnotesize
+\begin{itemize}[leftmargin=1.4em, itemsep=3pt, topsep=2pt,
+                label=\textbullet]
+  \item \textbf{Marie Sk\l{}odowska-Curie Actions -- COFUND Fellow}
+        (2021--2024) --- European Commission, fully funded doctoral
+        fellowship
+  \item \textbf{Erasmus Mundus Scholar} (2018--2020) ---
+        European Commission, joint MSc scholarship
+\end{itemize}
+}
+
+\cvsection{Professional Development and Training}
+
+{\footnotesize
+\textbf{10/2025 -- 09/2026 \quad Data and ML Engineering
+Certification} (Bac+5, RNCP Level 7) ---
+\textit{OpenClassrooms, France Travail-funded}\\
+Professional certification in scalable data pipelines, MLOps, and
+machine learning applications, with relevance to computational
+physics instruction and research methods teaching.
+
+\vspace{4pt}
+\textbf{2024 \quad Research Integrity Certification} ---
+Universit\'{e} de Bordeaux
+}
+
+\cvsection{Conferences and Scientific Presentations}
+
+{\footnotesize
+\textbf{Seminars and Conference Presentations}
+\begin{itemize}[leftmargin=1.4em, itemsep=2pt, topsep=2pt,
+                label=\textbullet]
+  \item Study of Reaction Mechanisms for the Synthesis of Superheavy
+        Elements. \textit{29th Nuclear Physics Conference}, Poland,
+        September 2023.
+\end{itemize}
+
+\vspace{2pt}
+\textbf{Workshop Participation}
+\begin{itemize}[leftmargin=1.4em, itemsep=1pt, topsep=1pt,
+                label=\textbullet]
+  \item GRIT Workshop --- Silicon Detectors for Low-Energy Nuclear
+        Physics, GANIL, Caen, France, 2023.
+  \item Workshop on Targets and Ion Sources, GANIL,
+        Caen, France, 2023.
+  \item LISE Workshop --- Nuclear Structure and Reactions, GANIL,
+        Caen, France, 2022.
+  \item Physics with SPIRAL2 Heavy Ion Beams, GANIL, Caen, France,
+        October 2022.
+\end{itemize}
+
+\vspace{2pt}
+\textbf{Schools and Training}
+\begin{itemize}[leftmargin=1.4em, itemsep=1pt, topsep=1pt,
+                label=\textbullet]
+  \item \textbf{CEA NUMERICS Summer School} (2023) ---
+        HPC and numerical simulation, CEA
+  \item \textbf{IN2P3 School of Statistics} (2022) ---
+        Statistical methods for nuclear and particle physics
+  \item \textbf{R\,\&\,D Project Management} (2022) --- CEA INSTN
+  \item \textbf{Machine Learning and Data Analysis} (2020) ---
+        University of Caen
+\end{itemize}
+}
+
+\cvsection{Technical and Computational Skills}
+
+{\footnotesize
+\begin{itemize}[leftmargin=1.4em, itemsep=3pt, topsep=2pt,
+                label=\textbullet]
+  \item \textbf{Nuclear Modelling:} Langevin stochastic dynamics;
+        KEWPIE2/KEWPIE3 framework; cross-section prediction; nuclear
+        structure models (collective, mean-field, shell).
+  \item \textbf{Uncertainty Quantification and Statistics:}
+        Bayesian inference and optimisation; uncertainty
+        propagation; model comparison and validation; IN2P3-certified
+        statistical methods for nuclear and particle physics.
+  \item \textbf{Machine Learning and Data Analysis:} ML for nuclear
+        parameter estimation; Python scientific computing; SQL;
+        data pipeline development (PostgreSQL, Debezium, Redpanda,
+        Spark/Delta Lake, Superset).
+  \item \textbf{Scientific Software Development:} Modular
+        C\texttt{++}/Python for HPC environments; version-controlled
+        workflows (Git); reproducible simulation pipelines.
+  \item \textbf{High-Performance Computing:} Coupled differential
+        equations; numerical integration and finite-difference schemes;
+        HPC workflows (SLURM); sensitivity and convergence analysis.
+\end{itemize}
+}
+
+\cvsection{Referees}
+Available upon request.
+
+\end{document}
