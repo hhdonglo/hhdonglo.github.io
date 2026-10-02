@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Data Science and Engineering | Hope Donglo, Academic Website</title>
+<meta name="description" content="Data science and data engineering work: the OpenClassrooms Data and ML Engineering certification and selected public projects on ETL pipelines, orchestration, retrieval-augmented generation and exploratory analysis.">
+<link rel="stylesheet" href="assets/site.css">
+<script>if(!location.hash){if("scrollRestoration" in history)history.scrollRestoration="manual";window.addEventListener("pageshow",function(){if(!location.hash)window.scrollTo({top:0,left:0,behavior:"instant"})});}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="banner slim">
+<div class="wrap">
+<p class="org">Department of Physics, University of Ghana</p>
+<h1><a class="home-link" href="index.html">Hope Donglo, Academic Website</a></h1>
+<p class="course">Lecturer, Department of Physics, University of Ghana</p>
+</div>
+</header>
+<nav class="jump" id="jump" aria-label="Sections"><div class="wrap"><button type="button" class="menu-btn" aria-expanded="false" aria-controls="jump-links"><span>Menu</span><span class="dots" aria-hidden="true">&#8943;</span></button><div class="links" id="jump-links"><a href="index.html">Home</a><a href="about.html">About</a><a href="research.html">Research</a><a href="data-science.html" aria-current="page">Data Science</a><a href="publications.html">Publications</a><a href="teaching.html">Teaching</a><a href="students.html">Students</a><a href="cv.html">CV</a><a href="contact.html">Contact</a></div></div></nav>
+<main id="main"><div class="wrap">
+<section aria-labelledby="data-science">
+<h2 id="data-science">Data Science and Engineering</h2>
+<div class="ov-card">
+<h4>Data work alongside the research</h4>
+<p class="intro">Uncertainty quantification, scientific computing and machine learning for nuclear data are part of the research (see <a href="research.html">Research</a>). This page collects complementary work in data engineering and data science, where the same habits apply: reproducible pipelines, tests that check the data, stated assumptions and results that can be reproduced.</p>
+</div>
+<h3 class="sub2" id="certification">Certification</h3>
+<div class="ov-card">
+<h4>Data and ML Engineering, OpenClassrooms</h4>
+<p>Level 7 qualification (Bac+5, RNCP), followed from 2025 to 2026. The project-based programme covers the full data lifecycle: relational and NoSQL databases, ETL pipelines, containerisation, cloud services, workflow orchestration, streaming and retrieval-augmented generation. The projects below are the ones with a public repository.</p>
+</div>
+<h3 class="sub2" id="projects-ds">Selected projects</h3>
+<p class="note">Each project was completed for a fictional client scenario set by the programme. Descriptions follow the repository documentation.</p>
+<div class="ov-grid">
+<article class="ov-card"><h4>RAG Chatbot for Cultural Event Recommendations</h4><p>A retrieval-augmented generation proof of concept that recommends cultural events in Paris from live Open Agenda data, so answers are grounded in real listings rather than the general knowledge of a language model.</p><p><strong>Data:</strong> events fetched from the Open Agenda API, cleaned and filtered to the past 12 months in the Paris region</p><p><strong>Method:</strong> one text chunk per event, embedded and indexed for similarity search; a single LangChain chain serves both the Streamlit chatbot and the RAGAS evaluation (30 questions); 25 automated pytest tests</p><p><strong>Scope:</strong> a proof of concept: single-turn, one data source, manual rebuilds</p><ul class="chips" aria-label="Tools"><li>Python</li><li>LangChain</li><li>Mistral AI</li><li>FAISS</li><li>Streamlit</li><li>RAGAS</li><li>pytest</li><li>Poetry</li></ul><p><a class="btn" href="https://github.com/hhdonglo/project_11" rel="noopener">View on GitHub</a></p></article>
+<article class="ov-card"><h4>Employee Sports Benefits Data Platform</h4><p>An end-to-end pipeline for a fictional company, built to test the feasibility of two employee benefits and to estimate their financial impact: loading and validating HR and activity data, orchestrating the workflow, posting activities to Slack and presenting indicators on a dashboard.</p><p><strong>Data:</strong> simulated employee and activity data (161 employees); commute distances validated with the Google Maps Distance Matrix API</p><p><strong>Method:</strong> Airflow DAGs, a PostgreSQL store, data-quality checks, Superset dashboards and numbered Bash scripts as a manual fallback, all containerised with Docker Compose</p><p><strong>Scope:</strong> a proof of concept; activity data is simulated, not read from a live service</p><ul class="chips" aria-label="Tools"><li>Python</li><li>pandas</li><li>SQLAlchemy</li><li>PostgreSQL</li><li>Apache Airflow</li><li>Apache Superset</li><li>Docker</li><li>Slack API</li><li>Poetry</li></ul><p><a class="btn" href="https://github.com/hhdonglo/project_12" rel="noopener">View on GitHub</a></p></article>
+<article class="ov-card"><h4>Healthcare Data Migration Pipeline</h4><p>A CSV to MongoDB migration for a fictional healthcare provider with scalability problems, with automated cleaning, integrity testing and a containerised deployment, plus a written study of cloud deployment options on AWS.</p><p><strong>Data:</strong> 54,966 medical records after cleaning (55,500 in the source file)</p><p><strong>Method:</strong> seven-step ETL workflow; name standardisation and duplicate removal; memory use reduced by 21% through categorical and datetime types; five integrity tests passing under pytest</p><p><strong>Outcome:</strong> Docker Compose deployment of MongoDB with a web interface for the database, and an AWS comparison of DocumentDB, Atlas, EC2 and ECS</p><ul class="chips" aria-label="Tools"><li>Python</li><li>pandas</li><li>MongoDB</li><li>PyMongo</li><li>Docker</li><li>pytest</li><li>Poetry</li></ul><p><a class="btn" href="https://github.com/hhdonglo/csv-containerisation-mongodb" rel="noopener">View on GitHub</a></p></article>
+<article class="ov-card"><h4>EduGlobe Insights: Education Data Analysis</h4><p>An exploratory analysis of World Bank EdStats to judge whether the data can support the international expansion of an online education service for high school and university learners.</p><p><strong>Data:</strong> the five EdStats tables (indicator values, series catalogue, country metadata, country-series links, footnotes), downloaded separately from the World Bank and not included in the repository</p><p><strong>Method:</strong> exploration, cleaning and analysis in three Jupyter notebooks, with the questions of relevance, completeness and reliability of the indicators</p><ul class="chips" aria-label="Tools"><li>Python</li><li>pandas</li><li>Jupyter</li><li>Matplotlib</li><li>Seaborn</li><li>Plotly</li><li>SciPy</li></ul><p><a class="btn" href="https://github.com/hhdonglo/EduGlobe-Insights" rel="noopener">View on GitHub</a></p></article>
+</div>
+<p class="note">All code is on <a href="https://github.com/hhdonglo" rel="noopener">github.com/hhdonglo</a>.</p>
+</section>
+</div></main>
+<footer><div class="wrap">
+<p>Hope Donglo, Lecturer, Department of Physics, University of Ghana. Theoretical nuclear physics. Lecture course: PHYS 143. Laboratory courses: PHYS 105, 106 and 205. An independent personal website. University of Ghana students should visit Sakai for official course information.</p>
+<p>Contact: <a href="mailto:hdonglo@ug.edu.gh">hdonglo@ug.edu.gh</a>, Physics Department, Office 24. <a href="https://www.linkedin.com/in/hopedonglo" rel="noopener">LinkedIn</a>.</p>
+</div></footer>
+<script src="assets/site.js"></script>
+</body>
+</html>
