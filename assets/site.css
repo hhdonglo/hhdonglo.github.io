@@ -223,3 +223,10 @@ main .level{margin-top:.8rem}
 .shortcuts{grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1rem}
 .affil{margin:1.6rem 0 0;font:.9rem system-ui,sans-serif;color:var(--muted)}
 @media (max-width:480px){.sel li{grid-template-columns:1fr;gap:.1rem}}
+
+/* Stage 3: research */
+.crumb-nav{margin:.2rem 0 1rem;font:.95rem system-ui,sans-serif}
+.lead-card h4{font-size:1.35rem}
+.area .num{margin:0 0 .2rem;font:700 .85rem system-ui,sans-serif;letter-spacing:.08em;color:var(--brown)}
+.status{margin:0 0 .3rem;display:inline-block;font:700 .75rem system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase;padding:.15rem .5rem;border-radius:4px;background:var(--sky);border-left:4px solid var(--brown);color:var(--text,inherit)}
+.status.past{border-left-color:var(--off);opacity:.85}
