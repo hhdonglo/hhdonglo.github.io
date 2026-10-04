@@ -669,6 +669,32 @@ content:
       label: Paragraphs
       type: text
       list: true
+    - name: figures
+      label: Figures
+      type: object
+      fields:
+      - name: image
+        label: Image path (upload under assets/figures)
+        type: string
+      - name: full
+        label: Large version for click-to-enlarge (optional)
+        type: string
+      - name: width
+        label: Width in pixels
+        type: string
+      - name: height
+        label: Height in pixels
+        type: string
+      - name: alt
+        label: Alt text (describe the figure)
+        type: text
+      - name: caption
+        label: Caption
+        type: string
+      - name: source
+        label: Source link (optional)
+        type: string
+      list: true
     list: true
   - name: software
     label: Software and tools
@@ -739,6 +765,9 @@ content:
         fields:
         - name: image
           label: Image path (upload under assets/figures)
+          type: string
+        - name: full
+          label: Large version for click-to-enlarge (optional)
           type: string
         - name: width
           label: Width in pixels

@@ -12,7 +12,24 @@
         "**Key question:** how can the calculation of the compound nucleus formation probability be improved with Langevin-based stochastic approaches?",
         "[Research context →](research.html#projects)"
       ],
-      "topics": "Scientific computing · Nuclear reaction modelling · High-performance computing · Uncertainty quantification"
+      "topics": "Scientific computing · Nuclear reaction modelling · High-performance computing · Uncertainty quantification",
+      "figures": [
+        {
+          "image": "assets/figures/kewpie3-predictions.webp",
+          "full": "assets/figures/kewpie3-predictions-full.webp",
+          "width": 1000,
+          "height": 1365,
+          "alt": "Eleven panels of predicted evaporation-residue cross sections against centre-of-mass energy for reactions not yet measured, such as titanium-50 and chromium-54 beams on actinide targets. Curves for the 2n to 5n channels are drawn with shaded uncertainty bands, and a red arrow marks the Coulomb barrier energy in each panel.",
+          "caption": "KEWPIE3 predictions for reactions that have not yet been measured, with uncertainty bands, from the chiSquareLog2 best fit (s0 = 6.65 fm, beta = 1.16 × 10^21^ s^−1^)."
+        },
+        {
+          "image": "assets/figures/kewpie3-theory-experiment-ratio.webp",
+          "width": 1100,
+          "height": 611,
+          "alt": "Plot of the ratio of calculated to measured evaporation-residue cross sections at the channel maxima, on a logarithmic axis from 0.01 to 100, for targets from neptunium-237 to californium-249. Symbols show the 2n to 5n channels and colours show Dubna, GSI (TASCA) and LBNL data.",
+          "caption": "Comparison of calculated and measured evaporation-residue cross sections: the ratio of theory to experiment at the channel maxima, by target, channel and laboratory."
+        }
+      ]
     },
     {
       "id": "fusion",

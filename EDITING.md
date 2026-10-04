@@ -88,3 +88,5 @@ The practice quiz of lecture N lives at `phys143-lecture-N-practice.html`. The o
 **Header animation.** The home page header fades and slides in, with the rule drawing itself, and it is switched off automatically for visitors who ask their device to reduce motion. The header line on other pages is in Site settings ("Header line on other pages").
 
 **Homepage motion.** The fusion figure beside Superheavy-Element Synthesis, the counting numbers and the gentle section reveal all switch off for visitors who ask their device to reduce motion (they then see a still figure and the final numbers). The figure itself is drawn in `assets/render.js`; only its description is editable in the CMS.
+
+**Figures on project cards.** Research projects (Form: Projects) and data projects accept a "Figures" list: image path (upload to `assets/figures`), width and height in pixels, alt text, caption, and optionally a large version (click or tap to enlarge; Escape closes) and a source link. The KEWPIE3 card shows the predictions and the theory/experiment ratio.
