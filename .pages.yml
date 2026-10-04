@@ -44,30 +44,9 @@ content:
       label: Link
       type: string
     list: true
-  - name: blocks
-    label: Section blocks (Research, Teaching, Data Science ML and Engineering, Publications)
-    type: object
-    fields:
-    - name: title
-      label: Title
-      type: string
-    - name: text
-      label: Description
-      type: text
-    - name: url
-      label: Title link
-      type: string
-    - name: links
-      label: Links in the block
-      type: object
-      fields:
-      - name: label
-        label: Text
-        type: string
-      - name: url
-        label: Link
-        type: string
-      list: true
+  - name: intro_paragraphs
+    label: Introduction card (two paragraphs)
+    type: text
     list: true
   - name: areas_heading
     label: Areas of work heading

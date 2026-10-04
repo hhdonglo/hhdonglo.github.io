@@ -20,7 +20,7 @@ Open https://app.pagescms.org, choose the repository, choose a form, change the 
 
 | Form in Pages CMS | What it changes |
 | --- | --- |
-| Home | The profile card (name, position, extra links such as CV; the profile links come from Site settings), the physics-only research statement, the section blocks with their link lists (Research, Teaching, Data Science, ML and Engineering, Publications), Areas of work and the Selected publications heading |
+| Home | The profile card (name, position line, extra links such as CV; the profile links come from Site settings), the physics-only research statement, the introduction card (two paragraphs), Areas of work and the Selected publications heading |
 | Research | The opening question, the four research areas, current research, previous research |
 | Teaching | The Teaching page: current courses and teaching resources (PHYS 143 and Laboratory cards) and Research-Informed Learning with the Research connections line |
 | Teaching: PHYS 143 page | The PHYS 143 page text outside the lecture tables: title, course structure, practice questions, why this course matters, reference chapters, expected skills, applications |
