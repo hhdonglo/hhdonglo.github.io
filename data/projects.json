@@ -1,133 +1,9 @@
 {
   "intro_title": "Overview",
-  "intro": "This page collects the research software and projects, and complementary work in data engineering and data science, where the same habits apply: reproducible pipelines, tests that check the data, stated assumptions and results that can be reproduced. For the physics, see [Research](research.html).",
-  "certification": {
-    "title": "Data and ML Engineering, OpenClassrooms",
-    "text": "Level 7 qualification (Bac+5, RNCP), followed from 2025 to 2026. The project-based programme covers the full data lifecycle: relational and NoSQL databases, ETL pipelines, containerisation, cloud services, workflow orchestration, streaming and retrieval-augmented generation. The projects below are the ones with a public repository."
-  },
-  "projects_note": "Each project was completed for a fictional client scenario set by the programme. Descriptions follow the repository documentation.",
-  "projects": [
-    {
-      "title": "RAG Chatbot for Cultural Event Recommendations",
-      "type": "Data engineering · Machine learning · RAG · Proof of concept",
-      "description": "A retrieval-augmented generation proof of concept that recommends cultural events in Paris from live Open Agenda data, so answers are grounded in real listings rather than the general knowledge of a language model.",
-      "details": [
-        {
-          "label": "Data",
-          "text": "events fetched from the Open Agenda API, cleaned and filtered to the past 12 months in the Paris region"
-        },
-        {
-          "label": "Method",
-          "text": "one text chunk per event, embedded and indexed for similarity search; a single LangChain chain serves both the Streamlit chatbot and the RAGAS evaluation (30 questions); 25 automated pytest tests"
-        },
-        {
-          "label": "Scope",
-          "text": "a proof of concept: single-turn, one data source, manual rebuilds"
-        }
-      ],
-      "tools": [
-        "Python",
-        "LangChain",
-        "Mistral AI",
-        "FAISS",
-        "Streamlit",
-        "RAGAS",
-        "pytest",
-        "Poetry"
-      ],
-      "repo": "https://github.com/hhdonglo/project_11"
-    },
-    {
-      "title": "Employee Sports Benefits Data Platform",
-      "type": "Data engineering · Pipelines",
-      "description": "An end-to-end pipeline for a fictional company, built to test the feasibility of two employee benefits and to estimate their financial impact: loading and validating HR and activity data, orchestrating the workflow, posting activities to Slack and presenting indicators on a dashboard.",
-      "details": [
-        {
-          "label": "Data",
-          "text": "simulated employee and activity data (161 employees); commute distances validated with the Google Maps Distance Matrix API"
-        },
-        {
-          "label": "Method",
-          "text": "Airflow DAGs, a PostgreSQL store, data-quality checks, Superset dashboards and numbered Bash scripts as a manual fallback, all containerised with Docker Compose"
-        },
-        {
-          "label": "Scope",
-          "text": "a proof of concept; activity data is simulated, not read from a live service"
-        }
-      ],
-      "tools": [
-        "Python",
-        "pandas",
-        "SQLAlchemy",
-        "PostgreSQL",
-        "Apache Airflow",
-        "Apache Superset",
-        "Docker",
-        "Slack API",
-        "Poetry"
-      ],
-      "repo": "https://github.com/hhdonglo/project_12"
-    },
-    {
-      "title": "Healthcare Data Migration Pipeline",
-      "type": "Data engineering · Databases",
-      "description": "A CSV to MongoDB migration for a fictional healthcare provider with scalability problems, with automated cleaning, integrity testing and a containerised deployment, plus a written study of cloud deployment options on AWS.",
-      "details": [
-        {
-          "label": "Data",
-          "text": "54,966 medical records after cleaning (55,500 in the source file)"
-        },
-        {
-          "label": "Method",
-          "text": "seven-step ETL workflow; name standardisation and duplicate removal; memory use reduced by 21% through categorical and datetime types; five integrity tests passing under pytest"
-        },
-        {
-          "label": "Outcome",
-          "text": "Docker Compose deployment of MongoDB with a web interface for the database, and an AWS comparison of DocumentDB, Atlas, EC2 and ECS"
-        }
-      ],
-      "tools": [
-        "Python",
-        "pandas",
-        "MongoDB",
-        "PyMongo",
-        "Docker",
-        "pytest",
-        "Poetry"
-      ],
-      "repo": "https://github.com/hhdonglo/csv-containerisation-mongodb"
-    },
-    {
-      "title": "EduGlobe Insights: Education Data Analysis",
-      "type": "Data analysis",
-      "description": "An exploratory analysis of World Bank EdStats to judge whether the data can support the international expansion of an online education service for high school and university learners.",
-      "details": [
-        {
-          "label": "Data",
-          "text": "the five EdStats tables (indicator values, series catalogue, country metadata, country-series links, footnotes), downloaded separately from the World Bank and not included in the repository"
-        },
-        {
-          "label": "Method",
-          "text": "exploration, cleaning and analysis in three Jupyter notebooks, with the questions of relevance, completeness and reliability of the indicators"
-        }
-      ],
-      "tools": [
-        "Python",
-        "pandas",
-        "Jupyter",
-        "Matplotlib",
-        "Seaborn",
-        "Plotly",
-        "SciPy"
-      ],
-      "repo": "https://github.com/hhdonglo/EduGlobe-Insights"
-    }
-  ],
-  "footnote": "All code is on [github.com/hhdonglo](https://github.com/hhdonglo).",
-  "data_science_title": "Data / ML projects",
+  "intro": "This page collects the research software and scientific projects. For the physics, see [Research](research.html). For data engineering and data science work, see [Data Engineering](data-engineering.html).",
   "software": {
     "title": "Software and Tools",
-    "text": "Tools used across the research and the data projects. Code repositories are on [GitHub](https://github.com/hhdonglo).",
+    "text": "Tools used in the research. Code repositories are on [GitHub](https://github.com/hhdonglo).",
     "items": [
       "KEWPIE2 and KEWPIE3",
       "Python",
@@ -137,7 +13,6 @@
       "Machine learning and data analysis in Python"
     ]
   },
-  "projects_title": "Projects",
   "research_projects_title": "Research projects",
   "research_projects": [
     {

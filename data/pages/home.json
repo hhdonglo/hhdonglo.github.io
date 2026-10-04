@@ -61,7 +61,7 @@
     {
       "label": "Projects",
       "title": "Projects",
-      "text": "Research software and data science projects.",
+      "text": "Research software: KEWPIE3 and fusion dynamics.",
       "url": "projects.html",
       "items": [
         {
@@ -73,8 +73,28 @@
           "url": "projects.html#fusion"
         },
         {
-          "label": "Data / ML projects",
-          "url": "projects.html#data-ml"
+          "label": "Software and tools",
+          "url": "projects.html#software"
+        }
+      ]
+    },
+    {
+      "label": "Data Engineering",
+      "title": "Data Engineering",
+      "text": "Pipelines, databases, retrieval and data analysis.",
+      "url": "data-engineering.html",
+      "items": [
+        {
+          "label": "Data pipelines and migration",
+          "url": "data-engineering.html#pipelines"
+        },
+        {
+          "label": "Machine learning and retrieval",
+          "url": "data-engineering.html#retrieval"
+        },
+        {
+          "label": "Data analysis",
+          "url": "data-engineering.html#analysis"
         }
       ]
     }

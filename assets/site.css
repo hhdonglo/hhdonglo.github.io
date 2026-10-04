@@ -373,3 +373,6 @@ ul.weeks{list-style:none;margin:.4rem 0 0;padding:0}
 .btn.off{border-style:dashed;color:var(--muted);background:transparent;cursor:not-allowed;display:inline-flex;align-items:center;justify-content:center}
 @media (max-width:700px){.lecture-buttons{grid-template-columns:1fr 1fr}.lecture-buttons .btn{min-height:72px}}
 .week .wl{display:flex;flex-wrap:wrap;gap:.2rem .9rem}
+
+.paths .path.sec{grid-column:1/-1;border-top-width:2px;flex-direction:row;flex-wrap:wrap;align-items:baseline;gap:.3rem 1.5rem;padding:.8rem 1.1rem}.paths .path.sec .path-links{display:flex;flex-wrap:wrap;gap:.2rem 1.2rem;list-style:none;margin:0;padding:0}
+@media (min-width:760px){.paths{grid-template-columns:repeat(3,1fr)}}

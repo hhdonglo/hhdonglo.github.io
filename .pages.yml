@@ -594,9 +594,6 @@ content:
       type: text
       list: true
     list: true
-  - name: data_science_title
-    label: Data / ML projects heading
-    type: string
   - name: software
     label: Software and tools
     type: object
@@ -611,9 +608,18 @@ content:
       label: Tools
       type: string
       list: true
-  - name: projects_title
-    label: Projects heading
+- name: data-engineering
+  label: Data Engineering
+  type: file
+  path: data/data-engineering.json
+  format: json
+  fields:
+  - name: intro_title
+    label: Overview heading
     type: string
+  - name: intro
+    label: Overview text
+    type: text
   - name: certification
     label: Certification
     type: object
@@ -627,37 +633,55 @@ content:
   - name: projects_note
     label: Note above the projects
     type: text
-  - name: projects
-    label: Projects
+  - name: groups
+    label: Groups of projects
     type: object
     fields:
+    - name: id
+      label: Anchor id (pipelines, retrieval or analysis)
+      type: string
     - name: title
-      label: Title
+      label: Group heading
       type: string
-    - name: type
-      label: Type line
-      type: string
-    - name: description
-      label: Description
-      type: text
-    - name: details
-      label: Details
+    - name: projects
+      label: Projects in this group
       type: object
       fields:
-      - name: label
-        label: Label
+      - name: title
+        label: Title
         type: string
-      - name: text
-        label: Text
+      - name: type
+        label: Type line
+        type: string
+      - name: description
+        label: Description
         type: text
+      - name: details
+        label: Details
+        type: object
+        fields:
+        - name: label
+          label: Label
+          type: string
+        - name: text
+          label: Text
+          type: text
+        list: true
+      - name: tools
+        label: Tools
+        type: string
+        list: true
+      - name: repo
+        label: GitHub link
+        type: string
       list: true
-    - name: tools
-      label: Tools
-      type: string
-      list: true
-    - name: repo
-      label: GitHub link
-      type: string
+    list: true
+  - name: tools_title
+    label: Tools heading
+    type: string
+  - name: tools
+    label: Tools
+    type: string
     list: true
   - name: footnote
     label: Note at the end

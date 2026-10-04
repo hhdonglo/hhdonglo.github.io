@@ -2,7 +2,7 @@
 import glob, re, os
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PRIMARY = [("index.html", "Home"), ("research.html", "Research"), ("teaching.html", "Teaching"),
-           ("projects.html", "Projects"), ("about.html", "About")]
+           ("projects.html", "Projects"), ("data-engineering.html", "Data Engineering"), ("about.html", "About")]
 UTILITY = [("cv.html", "CV"), ("publications.html", "Publications"), ("contact.html", "Contact")]
 # page -> menu item it belongs to (exact page gets aria-current="page", a child page gets "true")
 CHILD = {"student-research.html": "teaching.html", "phys143.html": "teaching.html", "laboratory.html": "teaching.html", "uncertainty.html": "teaching.html"}
