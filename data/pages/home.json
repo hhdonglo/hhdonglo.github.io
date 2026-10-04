@@ -1,156 +1,60 @@
 {
   "eyebrow": "Hope Donglo, PhD",
-  "role": "Lecturer · Theoretical Nuclear Physics",
-  "statement": "Theoretical nuclear physics research on the reaction mechanisms that govern the formation of superheavy nuclei, using stochastic dynamics and uncertainty quantification to test and constrain nuclear reaction models.",
+  "role": "Lecturer in Physics · University of Ghana",
+  "statement": "Theoretical nuclear physics research on the reaction mechanisms that govern the formation of heavy and superheavy nuclei, using stochastic dynamics, uncertainty quantification and scientific computing to test and constrain nuclear reaction models.",
   "buttons": [
     {
-      "label": "Research",
-      "url": "research.html",
+      "label": "CV",
+      "url": "cv.html",
       "style": "primary"
     },
     {
-      "label": "Teaching",
-      "url": "teaching.html"
-    },
-    {
-      "label": "CV",
-      "url": "cv.html"
+      "label": "Publications",
+      "url": "publications.html",
+      "style": "plain"
     }
   ],
   "blocks": [
     {
-      "label": "Research",
       "title": "Research",
-      "text": "Reaction mechanisms in the formation of heavy and superheavy nuclei.",
+      "text": "Theoretical nuclear physics, reaction dynamics, superheavy element synthesis, uncertainty quantification and scientific computing.",
       "url": "research.html",
-      "items": [
-        {
-          "label": "Research themes",
-          "url": "research.html#themes"
-        },
-        {
-          "label": "Current projects",
-          "url": "research.html#projects"
-        },
-        {
-          "label": "Publications",
-          "url": "publications.html"
-        }
-      ]
+      "button_label": "Explore Research"
     },
     {
-      "label": "Teaching",
       "title": "Teaching",
-      "text": "Undergraduate physics courses and learning resources.",
+      "text": "Undergraduate physics teaching, laboratory instruction and research-informed learning.",
       "url": "teaching.html",
-      "items": [
-        {
-          "label": "Current courses",
-          "url": "teaching.html#lecture-courses"
-        },
-        {
-          "label": "Lecture resources",
-          "url": "phys143.html#weekly"
-        },
-        {
-          "label": "Students",
-          "url": "students.html"
-        }
-      ]
+      "button_label": "Explore Teaching"
     },
     {
-      "label": "Projects",
       "title": "Projects",
-      "text": "Research software: KEWPIE3 and fusion dynamics.",
+      "text": "Research software and computational projects arising from physics research.",
       "url": "projects.html",
-      "items": [
-        {
-          "label": "KEWPIE3",
-          "url": "projects.html#kewpie3"
-        },
-        {
-          "label": "Fusion dynamics",
-          "url": "projects.html#fusion"
-        },
-        {
-          "label": "Software and tools",
-          "url": "projects.html#software"
-        }
-      ]
+      "button_label": "Explore Projects"
     },
     {
-      "label": "Data Science, ML and Engineering",
       "title": "Data Science, ML and Engineering",
-      "text": "Pipelines, databases, retrieval and data analysis.",
+      "text": "Data analysis, machine learning, data pipelines, databases and retrieval, with applications to scientific and real-world data.",
       "url": "data-engineering.html",
-      "items": [
-        {
-          "label": "Data pipelines and migration",
-          "url": "data-engineering.html#pipelines"
-        },
-        {
-          "label": "Machine learning and retrieval",
-          "url": "data-engineering.html#retrieval"
-        },
-        {
-          "label": "Data analysis",
-          "url": "data-engineering.html#analysis"
-        }
-      ]
+      "button_label": "Explore Data Science, ML and Engineering"
+    }
+  ],
+  "areas_heading": "Areas of work",
+  "areas": [
+    {
+      "title": "Physics research",
+      "text": "Theoretical nuclear physics, reaction dynamics, superheavy element synthesis and uncertainty quantification."
+    },
+    {
+      "title": "Teaching",
+      "text": "Undergraduate physics, laboratory instruction and research-informed learning."
+    },
+    {
+      "title": "Data Science, ML and Engineering",
+      "text": "Data analysis, machine learning, data pipelines, databases and retrieval, with an interest in applying these methods to data-intensive problems in research and industry."
     }
   ],
   "publications_heading": "Selected publications",
-  "publications_link_label": "All publications →",
-  "currently_heading": "Currently",
-  "shortcuts_heading": "Find your way",
-  "shortcuts": [
-    {
-      "title": "I am a researcher",
-      "links": [
-        {
-          "label": "Research",
-          "url": "research.html"
-        },
-        {
-          "label": "Publications",
-          "url": "publications.html"
-        },
-        {
-          "label": "Projects",
-          "url": "projects.html"
-        }
-      ]
-    },
-    {
-      "title": "I am a student",
-      "links": [
-        {
-          "label": "Teaching",
-          "url": "teaching.html"
-        },
-        {
-          "label": "PHYS 143",
-          "url": "phys143.html"
-        },
-        {
-          "label": "Students",
-          "url": "students.html"
-        }
-      ]
-    },
-    {
-      "title": "I am looking for the CV",
-      "links": [
-        {
-          "label": "CV page",
-          "url": "cv.html"
-        },
-        {
-          "label": "Download PDF",
-          "url": "cv/Hope_Donglo_CV.pdf"
-        }
-      ]
-    }
-  ],
-  "affiliation_line": "Department of Physics, University of Ghana."
+  "publications_link_label": "All publications →"
 }

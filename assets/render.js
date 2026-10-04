@@ -43,7 +43,7 @@ R["data-engineering"]=function(el,d){
 };
 R.projects=function(el,d){
   var h='<section aria-labelledby="overview"><h3 class="sub2" id="overview">'+md(d.intro_title||"Overview")+'</h3><div class="ov-card"><p class="intro">'+md(d.intro)+'</p></div></section>';
-  if(d.research_projects)h+='<section aria-labelledby="research-projects"><h3 class="sub2" id="research-projects">'+md(d.research_projects_title||"Research projects")+'</h3><div class="ov-grid">'+d.research_projects.map(function(x){return '<article class="ov-card"'+(x.id?' id="'+esc(x.id)+'"':'')+'><p class="status">'+md(x.status)+'</p><h4>'+md(x.title)+'</h4>'+(x.paragraphs||[]).map(function(q){return '<p>'+md(q)+'</p>'}).join("")+'</article>'}).join("")+'</div></section>';
+  if(d.research_projects)h+='<section aria-labelledby="research-projects"><h3 class="sub2" id="research-projects">'+md(d.research_projects_title||"Research projects")+'</h3><div class="ov-grid">'+d.research_projects.map(function(x){return '<article class="ov-card"'+(x.id?' id="'+esc(x.id)+'"':'')+'><p class="status">'+md(x.status)+'</p><h4>'+md(x.title)+'</h4>'+(x.topics?'<p class="status">'+md(x.topics)+'</p>':'')+(x.paragraphs||[]).map(function(q){return '<p>'+md(q)+'</p>'}).join("")+'</article>'}).join("")+'</div></section>';
   if(d.software)h+='<section aria-labelledby="software"><h3 class="sub2" id="software">'+md(d.software.title)+'</h3><div class="ov-card"><p>'+md(d.software.text)+'</p><ul class="chips" aria-label="Tools">'+d.software.items.map(function(t){return '<li>'+md(t)+'</li>'}).join("")+'</ul></div></section>';
   el.innerHTML=h;
 };
@@ -164,14 +164,13 @@ R.page=function(el,d,site){
 R["home-hero"]=function(el,d,site){
   el.innerHTML='<p class="eyebrow">'+md(d.eyebrow)+'</p><p class="role">'+md(d.role)+'</p><p class="statement">'+md(d.statement)+'</p><div class="links-row">'+d.buttons.map(function(b){return '<a class="btn'+(b.style==="primary"?' primary':'')+'" href="'+esc(b.url)+'">'+esc(b.label)+'</a>'}).join("")+'</div><p class="ext-links">'+profiles(site," ")+'</p>';
 };
-R["home-blocks"]=function(el,d){var card=function(p,c){return '<article class="path'+c+'"><span class="num">'+esc(p.label)+'</span><h3 class="h4"><a href="'+esc(p.url)+'">'+md(p.title)+'</a></h3><p>'+md(p.text)+'</p><ul class="path-links">'+p.items.map(function(i){return '<li>'+link(i.url,esc(i.label))+'</li>'}).join("")+'</ul></article>'};el.innerHTML=d.blocks.slice(0,3).map(function(p){return card(p,"")}).join("")+d.blocks.slice(3).map(function(p){return card(p," sec")}).join("")};
+R["home-blocks"]=function(el,d){el.innerHTML=d.blocks.map(function(p){return '<article class="path"><h3 class="h4">'+md(p.title)+'</h3><p>'+md(p.text)+'</p><p class="path-go"><a class="btn" href="'+esc(p.url)+'">'+esc(p.button_label||"Explore")+'</a></p></article>'}).join("")};
 R["home-pubs"]=function(el,d){var h=d[0],p=d[1];el.innerHTML='<h2 id="selected-pubs">'+md(h.publications_heading)+'</h2><ul class="refs sel">'+p.home.map(function(i){return '<li><span class="yr">'+esc(i.label)+'</span><span>'+md(i.text)+'</span></li>'}).join("")+'</ul><p><a class="more" href="publications.html">'+esc(h.publications_link_label)+'</a></p>'};
-R["home-current"]=function(el,d){var h=d[0],r=d[1];el.innerHTML='<h2 id="currently">'+md(h.currently_heading)+'</h2><ul class="chips">'+r.current.map(function(c){return '<li>'+md(c.chip||c.title)+'</li>'}).join("")+'</ul>'};
-R["home-find"]=function(el,d){el.innerHTML='<h2 id="shortcuts">'+md(d.shortcuts_heading)+'</h2><div class="grid shortcuts">'+d.shortcuts.map(function(x){return '<div class="ov-card"><h3 class="h4">'+md(x.title)+'</h3><p>'+x.links.map(function(l){return link(l.url,esc(l.label))}).join(" &middot; ")+'</p></div>'}).join("")+'</div><p class="affil">'+md(d.affiliation_line)+'</p>'};
+R["home-areas"]=function(el,d){el.innerHTML='<h2 id="areas">'+md(d.areas_heading)+'</h2><div class="grid shortcuts">'+d.areas.map(function(a){return '<div class="ov-card"><h3 class="h4">'+md(a.title)+'</h3><p>'+md(a.text)+'</p></div>'}).join("")+'</div>'};
 R["banner-areas"]=function(el,d,site){if(site.banner_areas)el.textContent=site.banner_areas};
 R["banner-field"]=function(el,d,site){if(site.banner_field)el.textContent=site.banner_field};
 
-var files={publications:"publications",research:"research","research-lead":"research","research-areas":"research","research-current":"research","research-previous":"research","research-pubs":"research",projects:"projects","data-engineering":"data-engineering",weekly:"lectures",lecture:"lectures","home-hero":"pages/home","home-blocks":"pages/home","home-pubs":["pages/home","publications"],"home-current":["pages/home","research"],"home-find":"pages/home"};
+var files={publications:"publications",research:"research","research-lead":"research","research-areas":"research","research-current":"research","research-previous":"research","research-pubs":"research",projects:"projects","data-engineering":"data-engineering",weekly:"lectures",lecture:"lectures","home-hero":"pages/home","home-blocks":"pages/home","home-pubs":["pages/home","publications"],"home-areas":"pages/home"};
 var cache={};function load(n){return cache[n]||(cache[n]=get(n))}
 var pending=[];
 document.querySelectorAll("[data-render]").forEach(function(el){var k=el.getAttribute("data-render"),f=files[k];

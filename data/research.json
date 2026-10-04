@@ -1,6 +1,6 @@
 {
   "question": "How are heavy and superheavy nuclei formed?",
-  "intro": "The research addresses a central question in theoretical nuclear physics: which reaction mechanisms govern the formation of heavy and superheavy nuclei, and how reliably they can be predicted. Stochastic dynamics and systematic uncertainty analysis are the principal methods, supported by scientific computing.",
+  "intro": "My research develops computational models of heavy-ion reactions to understand and predict the formation of heavy and superheavy nuclei. Stochastic simulation, uncertainty quantification and scientific computing provide the principal methods for this work.",
   "areas": [
     {
       "title": "Nuclear Reaction Dynamics",
@@ -75,6 +75,6 @@
   ],
   "overview_title": "Research Overview",
   "publications_title": "Publications",
-  "publications_text": "Journal articles, preprints, theses, conference contributions and manuscripts in preparation are listed on the Publications page.",
+  "publications_text": "Journal articles, preprints, theses, conference contributions and manuscripts in preparation are listed on the Publications page. The research software, KEWPIE2 and KEWPIE3, is described on the [Projects](projects.html) page.",
   "publications_link_label": "View all publications →"
 }

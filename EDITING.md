@@ -20,14 +20,14 @@ Open https://app.pagescms.org, choose the repository, choose a form, change the 
 
 | Form in Pages CMS | What it changes |
 | --- | --- |
-| Home | The name line, role, research statement, the three hero buttons, the Research, Teaching and Projects blocks with their links, section headings, the Find your way shortcuts and the plain affiliation line |
-| Research | The opening question, the four research areas, current research, previous research, and the "Currently" list on the home page |
+| Home | The name and position lines, the physics-only research statement, the CV and Publications buttons, the four principal areas (Research, Teaching, Projects, Data Science, ML and Engineering), Areas of work and the Selected publications heading |
+| Research | The opening question, the four research areas, current research, previous research |
 | Teaching | The Teaching page: the PHYS 143 and Laboratory cards, Students, Research-Informed Learning and Teaching Resources |
 | Teaching: PHYS 143 page | The PHYS 143 page text outside the lecture tables: title, course structure, practice questions, why this course matters, reference chapters, expected skills, applications |
 | Teaching: PHYS 143 lectures | The weekly programme and every lecture page: title, summary, learning objectives, file links, the three contact headings and status (available or coming soon) |
 | Teaching: practice questions | The multiple-choice questions for each lecture (choose a lecture, then edit its questions, options, correct option and explanation) |
 | Teaching: Laboratory courses | The Laboratory page: course cards and the shared uncertainty lecture card |
-| Projects | The Projects page: overview, research projects (KEWPIE3, Fusion dynamics), software and tools |
+| Projects | The Projects page: overview and research projects (KEWPIE3 with its topic line, Fusion dynamics) |
 | Data Science, ML and Engineering | The Data Science, ML and Engineering page: overview, certification, project cards in groups (pipelines and migration, machine learning and retrieval, data analysis), tools |
 | Publications | All publications, the year filter buttons, and the three selected publications on the home page |
 | CV page | The CV summary page (education, appointments, awards, skills) |

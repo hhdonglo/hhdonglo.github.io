@@ -1,18 +1,6 @@
 {
   "intro_title": "Overview",
-  "intro": "This page collects the research software and scientific projects. For the physics, see [Research](research.html). For data science, machine learning and engineering work, see [Data Science, ML and Engineering](data-engineering.html).",
-  "software": {
-    "title": "Software and Tools",
-    "text": "Tools used in the research. Code repositories are on [GitHub](https://github.com/hhdonglo).",
-    "items": [
-      "KEWPIE2 and KEWPIE3",
-      "Python",
-      "C++",
-      "Git",
-      "Bayesian inference and uncertainty quantification",
-      "Machine learning and data analysis in Python"
-    ]
-  },
+  "intro": "This page collects research software and computational projects arising from my physics research. For the underlying physics, see [Research](research.html). For broader data science, machine learning and engineering projects, see [Data Science, ML and Engineering](data-engineering.html).",
   "research_projects_title": "Research projects",
   "research_projects": [
     {
@@ -23,7 +11,8 @@
         "**Objective:** validate and publish KEWPIE3, the new version of the KEWPIE2 code for fusion-evaporation cross-section predictions in superheavy element synthesis.",
         "**Key question:** how can the calculation of the compound nucleus formation probability be improved with Langevin-based stochastic approaches?",
         "[Research context →](research.html#projects)"
-      ]
+      ],
+      "topics": "Scientific computing · Nuclear reaction modelling · High-performance computing · Uncertainty quantification"
     },
     {
       "id": "fusion",

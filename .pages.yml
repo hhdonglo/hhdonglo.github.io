@@ -31,10 +31,10 @@ content:
     label: Position line
     type: string
   - name: statement
-    label: Short research statement
+    label: Research statement (physics only)
     type: text
   - name: buttons
-    label: Hero buttons (Research, Teaching, CV)
+    label: Hero buttons
     type: object
     fields:
     - name: label
@@ -52,12 +52,9 @@ content:
         - plain
     list: true
   - name: blocks
-    label: Research, Teaching and Projects blocks
+    label: Four principal areas (Research, Teaching, Projects, Data Science, ML and Engineering)
     type: object
     fields:
-    - name: label
-      label: Small label
-      type: string
     - name: title
       label: Title
       type: string
@@ -65,53 +62,31 @@ content:
       label: Description
       type: text
     - name: url
-      label: Title link
+      label: Link
       type: string
-    - name: items
-      label: Links in the block
-      type: object
-      fields:
-      - name: label
-        label: Text
-        type: string
-      - name: url
-        label: Link
-        type: string
-      list: true
+    - name: button_label
+      label: Button text
+      type: string
+    list: true
+  - name: areas_heading
+    label: Areas of work heading
+    type: string
+  - name: areas
+    label: Areas of work
+    type: object
+    fields:
+    - name: title
+      label: Title
+      type: string
+    - name: text
+      label: Description
+      type: text
     list: true
   - name: publications_heading
     label: Selected publications heading
     type: string
   - name: publications_link_label
     label: All publications link text
-    type: string
-  - name: currently_heading
-    label: Currently heading
-    type: string
-  - name: shortcuts_heading
-    label: Find your way heading
-    type: string
-  - name: shortcuts
-    label: Find your way
-    type: object
-    fields:
-    - name: title
-      label: Title
-      type: string
-    - name: links
-      label: Links
-      type: object
-      fields:
-      - name: label
-        label: Text
-        type: string
-      - name: url
-        label: Link
-        type: string
-      list: true
-    list: true
-  - name: affiliation_line
-    label: Affiliation line
     type: string
 - name: research
   label: Research
@@ -588,6 +563,9 @@ content:
       type: string
     - name: status
       label: Status
+      type: string
+    - name: topics
+      label: Topic line
       type: string
     - name: paragraphs
       label: Paragraphs
