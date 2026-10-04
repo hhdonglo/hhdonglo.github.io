@@ -430,3 +430,8 @@ nav.jump.js .sub a{padding-left:2rem;border-top:1px solid var(--border);white-sp
 .working h3{margin:0 0 .3rem;font-size:1.05rem}
 .working ul{margin:0;padding-left:1.1rem}
 .working li{margin:.3rem 0}
+.highlights{display:grid;grid-template-columns:1fr;gap:1.1rem;margin-top:1.4rem}
+@media (min-width:700px){.highlights{grid-template-columns:1fr 1fr}}
+.highlights .h4{margin:0 0 .4rem;font-size:1.15rem}
+.highlights .btn{padding:.4rem 1rem}
+.profile-side .role+.role{margin-top:-.6rem}

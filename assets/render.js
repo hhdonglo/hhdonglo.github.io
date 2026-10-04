@@ -163,10 +163,12 @@ R.page=function(el,d,site){
 };
 /* ---- home page ---- */
 R["home-side"]=function(el,d,site){
-  el.innerHTML='<img class="photo" src="assets/hope-donglo.webp" width="480" height="600" alt="Portrait photograph of Hope Donglo"><p class="name">'+md(d.eyebrow)+'</p><p class="role">'+md(d.role)+'</p><ul class="side-links">'+site.profiles.map(function(p){return '<li>'+link(p.url,esc(p.label)+" &#8599;",true)+'</li>'}).concat((d.side_links||[]).map(function(l){return '<li>'+link(l.url,esc(l.label))+'</li>'})).join("")+'</ul>';
+  el.innerHTML='<img class="photo" src="assets/hope-donglo.webp" width="480" height="600" alt="Portrait photograph of Hope Donglo"><p class="name">'+md(d.eyebrow)+'</p><p class="role">'+md(d.role)+'</p>'+(d.affiliation?'<p class="role">'+md(d.affiliation)+'</p>':"")+'<ul class="side-links">'+site.profiles.map(function(p){return '<li>'+link(p.url,esc(p.label)+" &#8599;",true)+'</li>'}).concat((d.side_links||[]).map(function(l){return '<li>'+link(l.url,esc(l.label))+'</li>'})).join("")+'</ul>';
 };
 R["home-statement"]=function(el,d){el.innerHTML=md(d.statement)};
 R["home-working"]=function(el,d){el.innerHTML='<h2 class="h3" id="working">'+md(d.working_title)+'</h2><div class="working-cols">'+d.working.map(function(g){return '<div><h3 class="h4"><a href="'+esc(g.url)+'">'+md(g.title)+'</a></h3><ul>'+g.items.map(function(i){return '<li>'+link(i.url,esc(i.label))+'</li>'}).join("")+'</ul></div>'}).join("")+'</div>'};
+R["home-highlights"]=function(el,d){el.innerHTML=d.highlights.map(function(h){return '<article class="ov-card"><h2 class="h4">'+md(h.title)+'</h2><p>'+md(h.text)+'</p><p><a class="btn" href="'+esc(h.url)+'">'+md(h.button)+'</a></p></article>'}).join("")};
+R["home-positioning"]=function(el,d){el.innerHTML='<h2 class="h3" id="positioning">Positioning</h2><div class="working-cols">'+d.positioning.map(function(g){return '<div><h3 class="h4">'+md(g.title)+'</h3><ul>'+g.links.map(function(i){return '<li>'+link(i.url,esc(i.label))+'</li>'}).join("")+'</ul></div>'}).join("")+'</div>'};
 R["home-blocks"]=function(el,d){el.innerHTML=d.blocks.map(function(p){return '<div class="hl"><h3 class="h4"><a href="'+esc(p.url)+'">'+md(p.title)+'</a></h3><ul>'+p.links.map(function(i){return '<li>'+link(i.url,esc(i.label))+'</li>'}).join("")+'</ul></div>'}).join("")};
 R["home-intro"]=function(el,d){el.innerHTML='<article class="ov-card lead-card">'+d.intro_paragraphs.map(function(p){return '<p class="intro">'+md(p)+'</p>'}).join("")+'</article>'};
 R["home-pubs"]=function(el,d){var h=d[0],p=d[1];el.innerHTML='<h2 id="selected-pubs">'+md(h.publications_heading)+'</h2><ul class="refs sel">'+p.home.map(function(i){return '<li><span class="yr">'+esc(i.label)+'</span><span>'+md(i.text)+'</span></li>'}).join("")+'</ul><p><a class="more" href="publications.html">'+esc(h.publications_link_label)+'</a></p>'};
@@ -174,7 +176,7 @@ R["home-areas"]=function(el,d){el.innerHTML='<h2 id="areas">'+md(d.areas_heading
 R["banner-areas"]=function(el,d,site){if(site.banner_areas)el.textContent=site.banner_areas};
 R["banner-field"]=function(el,d,site){if(site.banner_field)el.textContent=site.banner_field};
 
-var files={publications:"publications",research:"research","research-lead":"research","research-areas":"research","research-current":"research","research-previous":"research","research-pubs":"research",projects:"projects","data-engineering":"data-engineering",weekly:"lectures",lecture:"lectures","home-side":"pages/home","home-statement":"pages/home","home-intro":"pages/home","home-blocks":"pages/home","home-working":"pages/home","home-pubs":["pages/home","publications"],"home-areas":"pages/home"};
+var files={publications:"publications",research:"research","research-lead":"research","research-areas":"research","research-current":"research","research-previous":"research","research-pubs":"research",projects:"projects","data-engineering":"data-engineering",weekly:"lectures",lecture:"lectures","home-side":"pages/home","home-statement":"pages/home","home-intro":"pages/home","home-blocks":"pages/home","home-working":"pages/home","home-highlights":"pages/home","home-positioning":"pages/home","home-pubs":["pages/home","publications"],"home-areas":"pages/home"};
 var cache={};function load(n){return cache[n]||(cache[n]=get(n))}
 var pending=[];
 document.querySelectorAll("[data-render]").forEach(function(el){var k=el.getAttribute("data-render"),f=files[k];
