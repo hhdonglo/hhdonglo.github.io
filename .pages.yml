@@ -952,6 +952,13 @@ content:
   - name: footer_note
     label: Footer note
     type: text
+  - name: goatcounter_code
+    label: 'Visitor statistics: GoatCounter site code (the first part of yourcode.goatcounter.com; leave empty to switch counting
+      off)'
+    type: string
+  - name: privacy_note
+    label: Privacy line shown in the footer when counting is on
+    type: string
   - name: profiles
     label: Profile links
     type: object

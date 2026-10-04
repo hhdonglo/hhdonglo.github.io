@@ -54,6 +54,8 @@ The **Media** tab uploads files: lecture PDFs (PHYS 143, PHYS 105), the CV PDF a
 
 **Change a page's text.** Open its form, find the section and card, and edit the text. Sections and cards can be added, reordered and removed with the buttons in the form.
 
+**Visitor statistics (GoatCounter).** Create a free account at goatcounter.com and choose a site code (the part before `.goatcounter.com`). In Pages CMS open Site settings, paste the code into "Visitor statistics: GoatCounter site code" and save. Counting starts within a minute on every page, the footer shows "Anonymous visit counts, no cookies", and the dashboard is at `https://yourcode.goatcounter.com`. Leave the field empty to switch counting off. The counter never runs on localhost.
+
 ## Writing text
 
 In any text field you can use `**bold**`, `*italic*`, `^3^` for a superscript (S^3^ gives S³) and `[link text](address)` for a link. Links to other pages of this site look like `[Research](research.html)`. In the Contact form, `{email}` is replaced by the email address in Site settings.

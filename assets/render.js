@@ -94,7 +94,7 @@ R["contact-profiles"]=function(el,d,site){el.innerHTML=site.profiles.map(functio
 R["contact-mail"]=function(el,d,site){el.setAttribute("href","mailto:"+site.email);el.textContent="Email "+site.email};
 R.footer=function(el,d,site){
   var navs=[["research.html","Research"],["teaching.html","Teaching"],["projects.html","Projects"],["data-engineering.html","Data Science, ML and Engineering"],["index.html#about","About"],["cv.html","CV"],["contact.html","Contact"]];
-  el.innerHTML='<div class="wrap"><div class="foot-grid"><div><p class="foot-name">'+esc(site.name)+'</p><p>'+esc(site.footer_position||site.field)+'</p></div><nav aria-label="Footer"><ul>'+navs.map(function(n){return '<li>'+link(n[0],n[1])+'</li>'}).join("")+'</ul></nav><ul class="foot-ext">'+site.profiles.map(function(p){return '<li>'+link(p.url,esc(p.label)+" &#8599;",true)+'</li>'}).join("")+'</ul></div><p class="foot-note">'+esc(site.footer_note)+'</p></div>';
+  el.innerHTML='<div class="wrap"><div class="foot-grid"><div><p class="foot-name">'+esc(site.name)+'</p><p>'+esc(site.footer_position||site.field)+'</p></div><nav aria-label="Footer"><ul>'+navs.map(function(n){return '<li>'+link(n[0],n[1])+'</li>'}).join("")+'</ul></nav><ul class="foot-ext">'+site.profiles.map(function(p){return '<li>'+link(p.url,esc(p.label)+" &#8599;",true)+'</li>'}).join("")+'</ul></div><p class="foot-note">'+esc(site.footer_note)+(site.goatcounter_code&&site.privacy_note?' · '+esc(site.privacy_note):'')+'</p></div>';
 };
 
 /* ---- generic pages: data/pages/*.json ---- */
