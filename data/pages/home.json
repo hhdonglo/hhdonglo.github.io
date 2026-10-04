@@ -149,20 +149,6 @@
           "url": "research.html#uncertainty"
         }
       ]
-    },
-    {
-      "title": "Data Science, ML and Engineering",
-      "url": "data-engineering.html",
-      "items": [
-        {
-          "label": "Data and Machine Learning Engineering programme (OpenClassrooms, 2025 to 2026)",
-          "url": "data-engineering.html"
-        },
-        {
-          "label": "Data engineering, machine learning and retrieval, and data analysis projects",
-          "url": "data-engineering.html#pipelines"
-        }
-      ]
     }
   ],
   "affiliation": "University of Ghana",
