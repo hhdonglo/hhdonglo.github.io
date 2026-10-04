@@ -165,6 +165,8 @@ nav.jump.js .sub a{padding-left:2rem;border-top:1px solid var(--border);white-sp
 nav.jump a[aria-current]{font-weight:700}
 nav.jump a[aria-current="page"]{color:var(--navy);text-decoration-thickness:3px;text-decoration-color:var(--brown)}
 @media (prefers-color-scheme:dark){nav.jump a[aria-current="page"]{color:#fff}}
+nav.jump .menu-close{display:none}
+@media (max-width:720px){nav.jump.js .menu-close{display:flex;align-items:center;justify-content:center;gap:.5rem;width:100%;min-height:48px;border:0;border-top:3px solid var(--border);background:var(--bg);color:var(--link);font:600 .92rem system-ui,sans-serif;cursor:pointer}}
 </style>
 <script>if(!location.hash){if("scrollRestoration" in history)history.scrollRestoration="manual";window.addEventListener("pageshow",function(){if(!location.hash)window.scrollTo({top:0,left:0,behavior:"instant"})});}</script>
 </head>

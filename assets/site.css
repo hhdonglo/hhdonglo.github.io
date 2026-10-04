@@ -546,3 +546,5 @@ dialog.lightbox::backdrop{background:rgba(10,20,40,.85)}
 /* Sticky menu: anchors and focused items stay clear of the pinned bar (--nav-h is set from the bar's height in site.js) */
 html{scroll-padding-top:calc(var(--nav-h,3.4rem) + .6rem)}
 nav.jump,nav.jump.js{position:sticky;top:0;z-index:40}
+nav.jump .menu-close{display:none}
+@media (max-width:720px){nav.jump.js .menu-close{display:flex;align-items:center;justify-content:center;gap:.5rem;width:100%;min-height:48px;border:0;border-top:3px solid var(--border);background:var(--bg);color:var(--link);font:600 .92rem system-ui,sans-serif;cursor:pointer}}
