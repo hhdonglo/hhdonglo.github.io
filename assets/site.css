@@ -399,3 +399,10 @@ dl.tech{margin:0;display:grid;grid-template-columns:max-content 1fr;gap:.45rem 1
 .profile-main .shortcuts{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
 @media (max-width:760px){.profile{grid-template-columns:1fr;gap:1.2rem}.profile-side{position:static}.profile-side .photo{max-width:180px}}
 @media (min-width:760px){.paths{grid-template-columns:repeat(2,1fr)}}
+
+.home-links{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.4rem 1.6rem;margin-top:1.8rem}
+.home-links .hl h3{margin:0 0 .3rem;font-size:1.1rem}
+.home-links .hl ul{list-style:none;margin:0;padding:0;font:.98rem system-ui,sans-serif}
+.home-links .hl a{display:inline-flex;align-items:center;min-height:36px}
+@media (min-width:900px){.home-links{grid-template-columns:repeat(4,1fr)}}
+.home-links .hl a{line-height:1.35;padding:.25rem 0}.home-links .hl h3{line-height:1.3}

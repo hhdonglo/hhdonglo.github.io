@@ -166,13 +166,14 @@ R["home-side"]=function(el,d,site){
   el.innerHTML='<img class="photo" src="assets/hope-donglo.webp" width="480" height="600" alt="Portrait photograph of Hope Donglo"><p class="name">'+md(d.eyebrow)+'</p><p class="role">'+md(d.role)+'</p><ul class="side-links">'+site.profiles.map(function(p){return '<li>'+link(p.url,esc(p.label)+" &#8599;",true)+'</li>'}).concat((d.side_links||[]).map(function(l){return '<li>'+link(l.url,esc(l.label))+'</li>'})).join("")+'</ul>';
 };
 R["home-statement"]=function(el,d){el.innerHTML=md(d.statement)};
+R["home-blocks"]=function(el,d){el.innerHTML=d.blocks.map(function(p){return '<div class="hl"><h3 class="h4"><a href="'+esc(p.url)+'">'+md(p.title)+'</a></h3><ul>'+p.links.map(function(i){return '<li>'+link(i.url,esc(i.label))+'</li>'}).join("")+'</ul></div>'}).join("")};
 R["home-intro"]=function(el,d){el.innerHTML='<article class="ov-card lead-card">'+d.intro_paragraphs.map(function(p){return '<p class="intro">'+md(p)+'</p>'}).join("")+'</article>'};
 R["home-pubs"]=function(el,d){var h=d[0],p=d[1];el.innerHTML='<h2 id="selected-pubs">'+md(h.publications_heading)+'</h2><ul class="refs sel">'+p.home.map(function(i){return '<li><span class="yr">'+esc(i.label)+'</span><span>'+md(i.text)+'</span></li>'}).join("")+'</ul><p><a class="more" href="publications.html">'+esc(h.publications_link_label)+'</a></p>'};
 R["home-areas"]=function(el,d){el.innerHTML='<h2 id="areas">'+md(d.areas_heading)+'</h2><div class="grid shortcuts">'+d.areas.map(function(a){return '<div class="ov-card"><h3 class="h4">'+md(a.title)+'</h3><p>'+md(a.text)+'</p></div>'}).join("")+'</div>'};
 R["banner-areas"]=function(el,d,site){if(site.banner_areas)el.textContent=site.banner_areas};
 R["banner-field"]=function(el,d,site){if(site.banner_field)el.textContent=site.banner_field};
 
-var files={publications:"publications",research:"research","research-lead":"research","research-areas":"research","research-current":"research","research-previous":"research","research-pubs":"research",projects:"projects","data-engineering":"data-engineering",weekly:"lectures",lecture:"lectures","home-side":"pages/home","home-statement":"pages/home","home-intro":"pages/home","home-pubs":["pages/home","publications"],"home-areas":"pages/home"};
+var files={publications:"publications",research:"research","research-lead":"research","research-areas":"research","research-current":"research","research-previous":"research","research-pubs":"research",projects:"projects","data-engineering":"data-engineering",weekly:"lectures",lecture:"lectures","home-side":"pages/home","home-statement":"pages/home","home-intro":"pages/home","home-blocks":"pages/home","home-pubs":["pages/home","publications"],"home-areas":"pages/home"};
 var cache={};function load(n){return cache[n]||(cache[n]=get(n))}
 var pending=[];
 document.querySelectorAll("[data-render]").forEach(function(el){var k=el.getAttribute("data-render"),f=files[k];

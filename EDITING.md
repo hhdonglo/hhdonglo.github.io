@@ -20,7 +20,7 @@ Open https://app.pagescms.org, choose the repository, choose a form, change the 
 
 | Form in Pages CMS | What it changes |
 | --- | --- |
-| Home | The profile card (name, position line, extra links such as CV; the profile links come from Site settings), the physics-only research statement, the introduction card (two paragraphs), Areas of work and the Selected publications heading |
+| Home | The profile column (name, position line, extra links such as CV; profile links come from Site settings), the physics-only research statement, the introduction card (two paragraphs) and the four section link lists. The home page has no other cards |
 | Research | The opening question, the four research areas, current research, previous research |
 | Teaching | The Teaching page: current courses and teaching resources (PHYS 143 and Laboratory cards) and Research-Informed Learning with the Research connections line |
 | Teaching: PHYS 143 page | The PHYS 143 page text outside the lecture tables: title, course structure, practice questions, why this course matters, reference chapters, expected skills, applications |
@@ -29,7 +29,7 @@ Open https://app.pagescms.org, choose the repository, choose a form, change the 
 | Teaching: Laboratory courses | The Laboratory page: course cards and the shared uncertainty lecture card |
 | Projects | The Projects page: overview and research projects (KEWPIE3 with its topic line, Fusion dynamics) |
 | Data Science, ML and Engineering | The page: opening statement, the OpenClassrooms programme, project cards in three groups (Data Engineering, Machine Learning and Retrieval, Data Analysis) each with a topic line and Problem, Approach, Technical implementation, Validation and Outcome sections, and the Technical areas list |
-| Publications | All publications in five groups (Journal articles and proceedings, Preprints, Manuscripts in preparation, Theses, Conference contributions), the year filter buttons, and the three selected publications on the home page |
+| Publications | All publications in five groups (Journal articles and proceedings, Preprints, Manuscripts in preparation, Theses, Conference contributions), the year filter buttons,  |
 | CV page | The CV summary page (education, appointments, awards, skills) |
 | Students | The Students page |
 | About | The About page |

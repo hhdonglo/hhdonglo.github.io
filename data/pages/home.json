@@ -2,23 +2,6 @@
   "eyebrow": "Hope Donglo, PhD",
   "role": "Lecturer in Physics",
   "statement": "Theoretical nuclear physics research on the reaction mechanisms that govern the formation of heavy and superheavy nuclei, using stochastic dynamics and uncertainty quantification.",
-  "areas_heading": "Areas of work",
-  "areas": [
-    {
-      "title": "Physics research",
-      "text": "Theoretical nuclear physics, reaction dynamics, superheavy element synthesis and uncertainty quantification."
-    },
-    {
-      "title": "Teaching",
-      "text": "Undergraduate physics, laboratory instruction and research-informed learning."
-    },
-    {
-      "title": "Data Science, ML and Engineering",
-      "text": "Data analysis, machine learning, data pipelines, databases and retrieval, with an interest in applying these methods to data-intensive problems in research and industry."
-    }
-  ],
-  "publications_heading": "Selected publications",
-  "publications_link_label": "All publications →",
   "side_links": [
     {
       "label": "CV",
@@ -28,5 +11,91 @@
   "intro_paragraphs": [
     "I am a Lecturer in the Department of Physics at the University of Ghana and a theoretical nuclear physicist. I earned a PhD in Theoretical Nuclear Physics from Université de Caen Normandie, France, as a Marie Skłodowska-Curie COFUND Fellow within the CEA NUMERICS doctoral programme. Prior to this, I completed an Erasmus Mundus Joint Master's in Nuclear Physics across universities in Spain, Italy, and France.",
     "My research focuses on superheavy-element synthesis, nuclear reaction modelling, uncertainty quantification, and scientific computing. I study heavy-ion reactions and compound-nucleus formation, and contribute to the development of the KEWPIE3 code for fusion-evaporation reaction studies. My interests also include scientific software development, data science, machine learning, and data engineering."
+  ],
+  "blocks": [
+    {
+      "title": "Research",
+      "url": "research.html",
+      "links": [
+        {
+          "label": "Superheavy Element Synthesis",
+          "url": "research.html#superheavy"
+        },
+        {
+          "label": "Nuclear Reaction Modelling",
+          "url": "research.html#reaction-dynamics"
+        },
+        {
+          "label": "Uncertainty Quantification",
+          "url": "research.html#uncertainty"
+        }
+      ]
+    },
+    {
+      "title": "Teaching",
+      "url": "teaching.html",
+      "links": [
+        {
+          "label": "Courses",
+          "url": "teaching.html#lecture-courses"
+        },
+        {
+          "label": "Lecture Notes",
+          "url": "phys143.html#weekly"
+        },
+        {
+          "label": "Learning Resources",
+          "url": "phys143.html#course-info"
+        },
+        {
+          "label": "Student Projects",
+          "url": "students.html"
+        }
+      ]
+    },
+    {
+      "title": "Data Science, ML and Engineering",
+      "url": "data-engineering.html",
+      "links": [
+        {
+          "label": "Data Science and Analytics",
+          "url": "data-engineering.html#analysis"
+        },
+        {
+          "label": "Machine Learning",
+          "url": "data-engineering.html#retrieval"
+        },
+        {
+          "label": "Data Engineering",
+          "url": "data-engineering.html#pipelines"
+        },
+        {
+          "label": "Scientific Computing",
+          "url": "projects.html"
+        }
+      ]
+    },
+    {
+      "title": "Publications",
+      "url": "publications.html",
+      "links": [
+        {
+          "label": "Journal Articles",
+          "url": "publications.html#journal-articles"
+        },
+        {
+          "label": "Preprints",
+          "url": "publications.html#preprints"
+        },
+        {
+          "label": "Theses",
+          "url": "publications.html#theses"
+        },
+        {
+          "label": "Conference Contributions",
+          "url": "publications.html#conference"
+        }
+      ]
+    }
   ]
 }

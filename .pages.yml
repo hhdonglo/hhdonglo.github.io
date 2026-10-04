@@ -48,26 +48,28 @@ content:
     label: Introduction card (two paragraphs)
     type: text
     list: true
-  - name: areas_heading
-    label: Areas of work heading
-    type: string
-  - name: areas
-    label: Areas of work
+  - name: blocks
+    label: Section link lists (Research, Teaching, Data Science ML and Engineering, Publications)
     type: object
     fields:
     - name: title
       label: Title
       type: string
-    - name: text
-      label: Description
-      type: text
+    - name: url
+      label: Title link
+      type: string
+    - name: links
+      label: Links in the block
+      type: object
+      fields:
+      - name: label
+        label: Text
+        type: string
+      - name: url
+        label: Link
+        type: string
+      list: true
     list: true
-  - name: publications_heading
-    label: Selected publications heading
-    type: string
-  - name: publications_link_label
-    label: All publications link text
-    type: string
 - name: research
   label: Research
   type: file
