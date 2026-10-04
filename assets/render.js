@@ -163,7 +163,7 @@ R.page=function(el,d,site){
 };
 /* ---- home page ---- */
 R["home-side"]=function(el,d,site){
-  el.innerHTML='<img class="photo" src="assets/hope-donglo.webp" width="480" height="600" alt="Portrait photograph of Hope Donglo"><p class="name">'+md(d.eyebrow)+'</p><p class="role">'+md(d.role)+'</p>'+(d.affiliation?'<p class="role">'+md(d.affiliation)+'</p>':"")+'<ul class="side-links">'+site.profiles.map(function(p){return '<li>'+link(p.url,esc(p.label)+" &#8599;",true)+'</li>'}).concat((d.side_links||[]).map(function(l){return '<li>'+link(l.url,esc(l.label))+'</li>'})).join("")+'</ul>';
+  el.innerHTML='<picture><source media="(max-width:760px)" srcset="assets/hope-donglo-square.webp" width="240" height="240"><img class="photo" src="assets/hope-donglo-portrait.webp" width="640" height="800" alt="Hope Donglo smiling outdoors in glasses and a white T-shirt, holding a straw hat, with a pond and trees behind"></picture><p class="name">'+md(d.eyebrow)+'</p><p class="role">'+md(d.role)+'</p>'+(d.affiliation?'<p class="role">'+md(d.affiliation)+'</p>':"")+'<ul class="side-links">'+site.profiles.map(function(p){return '<li>'+link(p.url,esc(p.label)+" &#8599;",true)+'</li>'}).concat((d.side_links||[]).map(function(l){return '<li>'+link(l.url,esc(l.label))+'</li>'})).join("")+'</ul>';
 };
 R["home-statement"]=function(el,d){el.innerHTML=md(d.statement)};
 R["home-working"]=function(el,d){el.innerHTML='<h2 class="h3" id="working">'+md(d.working_title)+'</h2><div class="working-cols">'+d.working.map(function(g){return '<div><h3 class="h4"><a href="'+esc(g.url)+'">'+md(g.title)+'</a></h3><ul>'+g.items.map(function(i){return '<li>'+link(i.url,esc(i.label))+'</li>'}).join("")+'</ul></div>'}).join("")+'</div>'};
