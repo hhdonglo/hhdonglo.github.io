@@ -15,6 +15,14 @@
       "topics": "Scientific computing · Nuclear reaction modelling · High-performance computing · Uncertainty quantification",
       "figures": [
         {
+          "image": "assets/figures/kewpie3-theory-vs-experiment.webp",
+          "full": "assets/figures/kewpie3-theory-vs-experiment-full.webp",
+          "width": 1100,
+          "height": 1100,
+          "alt": "Nine panels of evaporation-residue cross section in picobarns, on a logarithmic axis, against centre-of-mass energy for calcium-48 beams on targets from neptunium-237 to californium-249. Smooth curves with shaded uncertainty bands show the KEWPIE3 calculations for the 2n to 5n channels, and points with error bars show measurements from Dubna, GSI and LBNL. A red arrow marks the Coulomb barrier energy in each panel.",
+          "caption": "KEWPIE3 calculated cross sections (curves with uncertainty bands) compared with measured data (points with error bars) for calcium-48 reactions on actinide targets, from neptunium-237 to californium-249, with data from Dubna, GSI and LBNL. Chi-square-log fit: s0 = 6.65 fm, beta_ss = 1.16 × 10^21^ s^−1^."
+        },
+        {
           "image": "assets/figures/kewpie3-predictions.webp",
           "full": "assets/figures/kewpie3-predictions-full.webp",
           "width": 1000,
