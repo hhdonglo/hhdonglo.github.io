@@ -790,19 +790,19 @@ content:
     label: Field line in the footer
     type: string
   - name: email
-    label: Email
+    label: University email
     type: string
   - name: email_alt
-    label: Second email
+    label: Professional email
     type: string
   - name: phone_display
-    label: Phone as shown
+    label: Phone as shown (not shown on the Contact page)
     type: string
   - name: phone_link
     label: Phone for the link (+233...)
     type: string
   - name: office
-    label: Office
+    label: Office number
     type: string
   - name: footer_position
     label: Position line in the footer

@@ -3,7 +3,7 @@
   "sections": [
     {
       "id": "lecture-courses",
-      "heading": "Undergraduate Courses",
+      "heading": "Current courses and teaching resources",
       "cards": [
         {
           "id": "phys143-card",
@@ -24,7 +24,7 @@
     {
       "id": "research-informed",
       "heading": "Research-Informed Learning",
-      "subtitle": "Why this course matters: how foundational physics connects to modern research.",
+      "subtitle": "**Research connections:** how foundational physics connects to modern research and computational practice.",
       "bullet_style": "arrows",
       "bullets": [
         "**Vectors** → Nuclear reaction kinematics",
@@ -47,23 +47,6 @@
           ],
           "button_label": "Open Laboratory Resources →",
           "button_url": "laboratory.html"
-        }
-      ]
-    },
-    {
-      "id": "student-research",
-      "heading": "Students",
-      "cards": [
-        {
-          "id": "student-card",
-          "style": "secondary",
-          "kicker": "Undergraduate projects",
-          "title": "Students",
-          "paragraphs": [
-            "Undergraduate research supervision, possible final-year project themes and learning resources."
-          ],
-          "button_label": "Open Students →",
-          "button_url": "students.html"
         }
       ]
     }

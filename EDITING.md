@@ -22,18 +22,18 @@ Open https://app.pagescms.org, choose the repository, choose a form, change the 
 | --- | --- |
 | Home | The name and position lines, the physics-only research statement, the CV and Publications buttons, the four principal areas (Research, Teaching, Projects, Data Science, ML and Engineering), Areas of work and the Selected publications heading |
 | Research | The opening question, the four research areas, current research, previous research |
-| Teaching | The Teaching page: the PHYS 143 and Laboratory cards, Students, Research-Informed Learning and Teaching Resources |
+| Teaching | The Teaching page: current courses and teaching resources (PHYS 143 and Laboratory cards) and Research-Informed Learning with the Research connections line |
 | Teaching: PHYS 143 page | The PHYS 143 page text outside the lecture tables: title, course structure, practice questions, why this course matters, reference chapters, expected skills, applications |
 | Teaching: PHYS 143 lectures | The weekly programme and every lecture page: title, summary, learning objectives, file links, the three contact headings and status (available or coming soon) |
 | Teaching: practice questions | The multiple-choice questions for each lecture (choose a lecture, then edit its questions, options, correct option and explanation) |
 | Teaching: Laboratory courses | The Laboratory page: course cards and the shared uncertainty lecture card |
 | Projects | The Projects page: overview and research projects (KEWPIE3 with its topic line, Fusion dynamics) |
 | Data Science, ML and Engineering | The page: opening statement, the OpenClassrooms programme, project cards in three groups (Data Engineering, Machine Learning and Retrieval, Data Analysis) each with a topic line and Problem, Approach, Technical implementation, Validation and Outcome sections, and the Technical areas list |
-| Publications | All publications, the year filter buttons, and the three selected publications on the home page |
+| Publications | All publications in five groups (Journal articles and proceedings, Preprints, Manuscripts in preparation, Theses, Conference contributions), the year filter buttons, and the three selected publications on the home page |
 | CV page | The CV summary page (education, appointments, awards, skills) |
 | Students | The Students page |
 | About | The About page |
-| Contact | The Contact page text and buttons |
+| Contact | The Contact page: name, position, University and Professional emails, office and the LinkedIn link (emails and office come from Site settings) |
 | Site settings | Email addresses, phone, office, profile links (Google Scholar, ORCID, GitHub, LinkedIn), the footer lines and the banner lines |
 
 The **Media** tab uploads files: lecture PDFs (PHYS 143, PHYS 105), the CV PDF and images.

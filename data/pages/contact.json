@@ -1,55 +1,20 @@
 {
-  "title": "Get in touch",
+  "title": "Contact",
   "sections": [
     {
       "layout": "stack",
       "cards": [
         {
           "style": "plain",
-          "title": "Hope Donglo, PhD",
+          "title": "Hope Donglo",
           "paragraphs": [
             "Lecturer in Physics",
-            "University of Ghana"
+            "University of Ghana, Legon",
+            "**University:** [{email}](mailto:{email})",
+            "**Professional:** [{email_alt}](mailto:{email_alt})",
+            "**Office:** {office}",
+            "[LinkedIn](https://www.linkedin.com/in/hopedonglo)"
           ]
-        }
-      ]
-    },
-    {
-      "layout": "grid",
-      "cards": [
-        {
-          "style": "plain",
-          "title": "Academic enquiries",
-          "paragraphs": [
-            "Research collaboration and enquiries on theoretical nuclear physics and superheavy element synthesis."
-          ],
-          "button_label": "Email {email}",
-          "button_url": "mailto:{email}",
-          "button_style": "primary"
-        },
-        {
-          "style": "plain",
-          "title": "Student enquiries",
-          "paragraphs": [
-            "Undergraduate research projects, final-year projects and teaching. See [Students](students.html) first."
-          ],
-          "button_label": "Email about a project",
-          "button_url": "mailto:{email}?subject=Student%20enquiry"
-        },
-        {
-          "style": "plain",
-          "title": "Professional profiles",
-          "special": "profiles"
-        }
-      ]
-    },
-    {
-      "layout": "stack",
-      "cards": [
-        {
-          "style": "plain",
-          "title": "Details",
-          "special": "details"
         }
       ]
     }

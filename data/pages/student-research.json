@@ -26,13 +26,11 @@
     },
     {
       "id": "research-projects",
-      "heading": "Research Projects",
+      "heading": "Possible project themes",
       "layout": "stack",
       "cards": [
         {
           "style": "plain",
-          "title": "Possible final-year project themes",
-          "note_top": "Draft themes, to be refined.",
           "bullets": [
             "Simulating a random walk and diffusion to introduce stochastic dynamics",
             "Fitting models to data and quantifying parameter uncertainty",

@@ -27,7 +27,7 @@
   ],
   "groups": [
     {
-      "title": "Journal articles",
+      "title": "Journal articles and proceedings",
       "note": "Published work.",
       "items": [
         {
@@ -42,6 +42,21 @@
         {
           "tag": "pending",
           "text": "**H. Donglo** and T. R. Rodríguez Frutos. Nuclear structure of even-even argon isotopes within the axial symmetry conserving configuration mixing framework. Preprint, HAL [hal-05677054](https://hal.science/hal-05677054)."
+        }
+      ],
+      "note": "Manuscripts available as preprints."
+    },
+    {
+      "title": "Manuscripts in preparation",
+      "note": "These manuscripts are in preparation. They have not been submitted or published.",
+      "items": [
+        {
+          "tag": "pending",
+          "text": "**H. Donglo**, F. Agert, D. Boilley, T. Cap, M. Kowal and D. Ackermann. Revisiting fusion dynamics in the fusion-by-diffusion model for fusion-evaporation production cross sections. Manuscript in preparation, targeting *Journal of Physics G*."
+        },
+        {
+          "tag": "pending",
+          "text": "**H. Donglo**, D. Boilley, F. Cap and D. Ackermann. Constraining the compound nucleus formation probability in superheavy element synthesis through systematic uncertainty analysis. Manuscript in preparation, targeting *Physical Review C*."
         }
       ]
     },
@@ -60,7 +75,8 @@
           "tag": "earlier",
           "text": "**H. Donglo** (2016). *Evaluation of Safety Status of the Ghana Research Reactor-1 (GHARR-1).* BSc thesis, University of Ghana."
         }
-      ]
+      ],
+      "note": "PhD and other relevant theses."
     },
     {
       "title": "Conference contributions",
@@ -69,21 +85,8 @@
           "tag": "2023",
           "text": "**H. Donglo**. Study of reaction mechanisms for the synthesis of superheavy elements. *29th Nuclear Physics Conference*, Poland, September 2023."
         }
-      ]
-    },
-    {
-      "title": "Manuscripts in preparation",
-      "note": "These manuscripts are being written. They have not been submitted or published.",
-      "items": [
-        {
-          "tag": "pending",
-          "text": "**H. Donglo**, F. Agert, D. Boilley, T. Cap, M. Kowal and D. Ackermann. Revisiting fusion dynamics in the fusion-by-diffusion model for fusion-evaporation production cross sections. Manuscript in preparation, targeting *Journal of Physics G*."
-        },
-        {
-          "tag": "pending",
-          "text": "**H. Donglo**, D. Boilley, F. Cap and D. Ackermann. Constraining the compound nucleus formation probability in superheavy element synthesis through systematic uncertainty analysis. Manuscript in preparation, targeting *Physical Review C*."
-        }
-      ]
+      ],
+      "note": "Selected conference presentations or contributions."
     }
   ],
   "home": [
