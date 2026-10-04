@@ -81,6 +81,12 @@ content:
     label: Featured highlights (two cards)
     type: object
     fields:
+    - name: figure
+      label: Animated figure (type fusion, or leave empty)
+      type: string
+    - name: figure_alt
+      label: Figure description for screen readers
+      type: text
     - name: title
       label: Title
       type: string
@@ -116,6 +122,38 @@ content:
   - name: affiliation
     label: Affiliation line under the position
     type: string
+  - name: stats
+    label: Impact numbers strip
+    type: object
+    fields:
+    - name: value
+      label: Number (whole number, counts up)
+      type: string
+    - name: label
+      label: Label
+      type: string
+    list: true
+  - name: cta
+    label: Call to action
+    type: object
+    fields:
+    - name: title
+      label: Title
+      type: string
+    - name: text
+      label: Text
+      type: text
+    - name: buttons
+      label: Buttons
+      type: object
+      fields:
+      - name: label
+        label: Text
+        type: string
+      - name: url
+        label: Link
+        type: string
+      list: true
   - name: working_title
     label: Heading of the currently working on block
     type: string

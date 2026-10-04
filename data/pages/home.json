@@ -152,5 +152,98 @@
     }
   ],
   "hero_line1": "Researcher in Nuclear Physics",
-  "hero_line2": "and **Data-Intensive Computing**"
+  "hero_line2": "and **Data-Intensive Computing**",
+  "affiliation": "University of Ghana",
+  "highlights": [
+    {
+      "title": "Superheavy-Element Synthesis",
+      "text": "Research on the reaction mechanisms governing the synthesis of superheavy elements, including heavy-ion fusion, compound-nucleus formation, and uncertainty quantification in reaction models.",
+      "button": "Explore Research",
+      "url": "research.html",
+      "figure": "fusion",
+      "figure_alt": "Diagram: two nuclei approach, touch and fuse into one larger superheavy nucleus."
+    },
+    {
+      "title": "Data Engineering and Scientific Computing",
+      "text": "Development of data pipelines, scientific software, computational workflows, and machine learning applications for research and analytics.",
+      "button": "Explore Data Science, ML and Engineering",
+      "url": "data-engineering.html"
+    }
+  ],
+  "positioning": [
+    {
+      "title": "Academic Profile",
+      "links": [
+        {
+          "label": "Research",
+          "url": "research.html"
+        },
+        {
+          "label": "Teaching",
+          "url": "teaching.html"
+        },
+        {
+          "label": "Publications",
+          "url": "publications.html"
+        },
+        {
+          "label": "Students",
+          "url": "students.html"
+        }
+      ]
+    },
+    {
+      "title": "Technical Profile",
+      "links": [
+        {
+          "label": "Data Science and Analytics",
+          "url": "data-engineering.html#analysis"
+        },
+        {
+          "label": "Machine Learning",
+          "url": "data-engineering.html#retrieval"
+        },
+        {
+          "label": "Data Engineering",
+          "url": "data-engineering.html#pipelines"
+        },
+        {
+          "label": "Scientific Computing",
+          "url": "projects.html"
+        }
+      ]
+    }
+  ],
+  "stats": [
+    {
+      "value": "11",
+      "label": "weekly lectures online for PHYS 143"
+    },
+    {
+      "value": "220",
+      "label": "practice questions with worked feedback"
+    },
+    {
+      "value": "4",
+      "label": "data, ML and engineering projects"
+    },
+    {
+      "value": "3",
+      "label": "countries of postgraduate training: Spain, Italy and France"
+    }
+  ],
+  "cta": {
+    "title": "Get in touch",
+    "text": "Questions about research, teaching or collaboration are welcome.",
+    "buttons": [
+      {
+        "label": "Contact",
+        "url": "contact.html"
+      },
+      {
+        "label": "View CV",
+        "url": "cv.html"
+      }
+    ]
+  }
 }
