@@ -30,12 +30,12 @@ nav.jump .wrap{display:flex;gap:.4rem 1.25rem;padding-top:.6rem;padding-bottom:.
 nav.jump .links{display:flex;flex-wrap:wrap;gap:.4rem 1.25rem}
 nav.jump .menu-btn{display:none}
 @media (max-width:720px){
-nav.jump.js{position:relative}
 nav.jump.js .wrap{display:block;padding-top:.3rem;padding-bottom:.3rem}
 nav.jump.js .menu-btn{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:44px;padding:.3rem .2rem;border:0;background:none;color:var(--link);font:600 .95rem system-ui,sans-serif;cursor:pointer}
 nav.jump .menu-btn .dots{font-size:1.4rem;line-height:1;letter-spacing:.05em;color:var(--brown)}
 nav.jump.js .links{display:none;position:absolute;left:0;right:0;top:100%;z-index:20;flex-direction:column;background:var(--surface);border-bottom:3px solid var(--brown);box-shadow:0 8px 16px rgba(0,0,0,.18)}
 nav.jump.js.open .links{display:flex}
+nav.jump.js .links{max-height:calc(100vh - 3.6rem);max-height:calc(100dvh - 3.6rem);overflow-y:auto;overscroll-behavior:contain}
 nav.jump.js .links a{display:flex;align-items:center;min-height:44px;padding:.4rem 1rem;border-top:1px solid var(--border);text-decoration:none}
 nav.jump.js .links a:hover{background:var(--sky)}
 }
@@ -112,8 +112,8 @@ footer a{color:var(--brown-soft)}
 .num .badge{margin-left:.3rem}
 nav.jump .links .badge{margin-left:.5rem}
 
-section[aria-labelledby]{scroll-margin-top:.5rem}
-#home,#about,#research,#publications,#teaching,#students,#cv,#contact{scroll-margin-top:3.5rem}
+section[aria-labelledby]{scroll-margin-top:.3rem}
+#home,#about,#research,#publications,#teaching,#students,#cv,#contact{scroll-margin-top:.3rem}
 .banner .wrap{padding-top:2.2rem;padding-bottom:2rem}
 .quick{margin-top:1.1rem;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
 .qcard{display:flex;flex-direction:column;gap:.2rem;padding:.8rem 1rem;background:var(--surface);border:1px solid var(--border);border-top:4px solid var(--brown);border-radius:8px;text-decoration:none;color:var(--text);box-shadow:var(--shadow);min-height:44px}
@@ -232,7 +232,7 @@ main .level{margin-top:.8rem}
 .status.past{border-left-color:var(--off);opacity:.85}
 
 /* Stage 4: PHYS 143 portal */
-.lvl-nav.sticky{position:sticky;top:0;z-index:5;background:var(--bg,var(--surface));padding:.4rem 0;margin:0 0 1rem;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.lvl-nav.sticky{position:sticky;top:var(--nav-h,3.4rem);z-index:5;background:var(--bg,var(--surface));padding:.4rem 0;margin:0 0 1rem;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch}
 .lvl-nav.sticky a{white-space:nowrap;flex:none}
 .tbl-wrap{margin:.6rem 0 1.4rem}
 table.lectures{width:100%;border-collapse:collapse;font:.95rem/1.5 system-ui,sans-serif}
@@ -255,7 +255,7 @@ table.lectures th,table.lectures td{display:block;border:0;padding:.15rem 0;widt
 table.lectures .ln{display:inline-block}
 table.lectures .primary-cell{margin:.4rem 0}
 }
-#mechanics,#thermal,#practice-qs,#course-info,#course-structure,table.lectures tr{scroll-margin-top:4.2rem}
+#mechanics,#thermal,#practice-qs,#course-info,#course-structure,table.lectures tr{scroll-margin-top:.8rem}
 
 /* Stage 5 */
 .pub-filter{display:flex;flex-wrap:wrap;gap:.5rem;margin:.6rem 0}
@@ -385,7 +385,7 @@ dl.tech{margin:0;display:grid;grid-template-columns:max-content 1fr;gap:.45rem 1
 
 /* ---- profile-card home ---- */
 .profile{display:grid;grid-template-columns:230px 1fr;gap:2rem;align-items:start;margin-top:1.4rem}
-.profile-side{position:sticky;top:1rem}
+.profile-side{position:sticky;top:calc(var(--nav-h,3.4rem) + 1rem)}
 .profile-side .photo{max-width:230px}
 .profile-side .name{margin:.9rem 0 0;font:700 1.25rem/1.25 Georgia,serif;color:var(--navy)}
 @media (prefers-color-scheme:dark){.profile-side .name{color:#c7dcf8}}
@@ -542,3 +542,7 @@ dialog.lightbox::backdrop{background:rgba(10,20,40,.85)}
 .lightbox .lb-inner{position:relative;width:100%;height:100%;overflow:auto;padding:3rem .8rem 1rem;box-sizing:border-box;text-align:center}
 .lightbox img{max-width:none;width:min(2072px,max(100%,900px));height:auto;background:#fff;border-radius:6px}
 .lightbox .lb-close{position:fixed;top:.6rem;right:.8rem;min-width:44px;min-height:44px;padding:.3rem .9rem;border:2px solid #fff;border-radius:6px;background:var(--navy-deep);color:#fff;font:600 1rem system-ui,sans-serif;cursor:pointer}
+
+/* Sticky menu: anchors and focused items stay clear of the pinned bar (--nav-h is set from the bar's height in site.js) */
+html{scroll-padding-top:calc(var(--nav-h,3.4rem) + .6rem)}
+nav.jump,nav.jump.js{position:sticky;top:0;z-index:40}

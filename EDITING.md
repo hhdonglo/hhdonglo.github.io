@@ -87,6 +87,8 @@ The practice quiz of lecture N lives at `phys143-lecture-N-practice.html`. The o
 
 **Menu dropdowns.** Research, Teaching, Projects, Data Science ML and Engineering, Students and Publications open a dropdown (hover, click, Enter or touch). Edit the lists in Form: Home, "Menu dropdown lists"; the page reads them on load. After editing, ask for `python3 tools/build_shell.py` to refresh the no-JavaScript copy. The old about.html address forwards to the home page About card.
 
+**Sticky menu.** The menu bar stays pinned at the top of every page while scrolling, including the Uncertainty and lecture pages. Its height is measured automatically, so anchor links, the profile column and the lecture contents bar sit below it. On phones it opens as a scrollable list under the bar.
+
 **Header animation.** The home page header fades and slides in, with the rule drawing itself, and it is switched off automatically for visitors who ask their device to reduce motion. The header line on other pages is in Site settings ("Header line on other pages").
 
 **Homepage motion.** The fusion figure beside Superheavy-Element Synthesis, the counting numbers and the gentle section reveal all switch off for visitors who ask their device to reduce motion (they then see a still figure and the final numbers). The figure itself is drawn in `assets/render.js`; only its description is editable in the CMS.

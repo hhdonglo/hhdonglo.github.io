@@ -39,12 +39,12 @@ nav.jump .wrap{display:flex;gap:.4rem 1.25rem;padding-top:.6rem;padding-bottom:.
 nav.jump .links{display:flex;flex-wrap:wrap;gap:.4rem 1.25rem}
 nav.jump .menu-btn{display:none}
 @media (max-width:720px){
-nav.jump.js{position:relative}
 nav.jump.js .wrap{display:block;padding-top:.3rem;padding-bottom:.3rem}
 nav.jump.js .menu-btn{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:44px;padding:.3rem .2rem;border:0;background:none;color:var(--link);font:600 .95rem system-ui,sans-serif;cursor:pointer}
 nav.jump .menu-btn .dots{font-size:1.4rem;line-height:1;letter-spacing:.05em;color:var(--brown)}
 nav.jump.js .links{display:none;position:absolute;left:0;right:0;top:100%;z-index:20;flex-direction:column;background:var(--surface);border-bottom:3px solid var(--brown);box-shadow:0 8px 16px rgba(0,0,0,.18)}
 nav.jump.js.open .links{display:flex}
+nav.jump.js .links{max-height:calc(100vh - 3.6rem);max-height:calc(100dvh - 3.6rem);overflow-y:auto;overscroll-behavior:contain}
 nav.jump.js .links a{display:flex;align-items:center;min-height:44px;padding:.4rem 1rem;border-top:1px solid var(--border);text-decoration:none}
 nav.jump.js .links a:hover{background:var(--sky)}
 }
@@ -142,6 +142,29 @@ footer a{color:var(--brown-soft)}
 .foot-grid li a,.foot-grid p a{display:inline-block;padding:.2rem 0;min-height:24px}
 .foot-note{margin:1.2rem 0 0;font-size:.88rem;opacity:.85}
 @media (max-width:640px){.foot-grid{grid-template-columns:1fr}}
+nav.jump,nav.jump.js{position:sticky;top:0;z-index:40}
+html{scroll-padding-top:calc(var(--nav-h,3.4rem) + .6rem)}
+/* dropdown menu */
+nav.jump .dd{position:relative;display:inline-flex;align-items:center}
+nav.jump .dd-btn{display:inline-flex;align-items:center;justify-content:center;min-width:28px;min-height:44px;padding:0;border:0;background:none;color:var(--brown);font-size:.85rem;cursor:pointer}
+nav.jump .sub{display:none;position:absolute;left:0;top:100%;z-index:30;min-width:15rem;margin:0;padding:.3rem 0;list-style:none;background:var(--surface);border:1px solid var(--border);border-top:3px solid var(--brown);border-radius:0 0 6px 6px;box-shadow:0 8px 16px rgba(0,0,0,.18)}
+nav.jump .dd:hover .sub,nav.jump .dd.open .sub,nav.jump .dd:has(:focus-visible) .sub{display:block}
+nav.jump .sub a{display:flex;align-items:center;min-height:40px;padding:.3rem 1rem;text-decoration:none;white-space:nowrap}
+nav.jump .sub a:hover{background:var(--sky)}
+@media (max-width:720px){
+nav.jump.js .dd{display:flex;flex-wrap:wrap;border-top:1px solid var(--border)}
+nav.jump.js .dd>a:first-child{flex:1;border-top:0}
+nav.jump.js .dd-btn{min-width:48px}
+nav.jump.js .sub{position:static;width:100%;box-shadow:none;border:0;border-radius:0;background:var(--sky)}
+nav.jump.js .dd:hover .sub{display:none}
+nav.jump.js .dd.open .sub{display:block}
+nav.jump.js .sub a{padding-left:2rem;border-top:1px solid var(--border);white-space:normal}
+}
+@media (min-width:721px){nav.jump .links{width:100%;align-items:center;gap:.4rem .7rem}nav.jump .dd-btn{min-width:22px}nav.jump .links a.util{font-size:.88rem;opacity:.9}nav.jump .links a.util.first{margin-left:auto}}
+@media (max-width:720px){nav.jump.js .links a.util{font-size:.92rem;background:var(--bg)}nav.jump.js .links a.util.first{border-top:3px solid var(--border)}}
+nav.jump a[aria-current]{font-weight:700}
+nav.jump a[aria-current="page"]{color:var(--navy);text-decoration-thickness:3px;text-decoration-color:var(--brown)}
+@media (prefers-color-scheme:dark){nav.jump a[aria-current="page"]{color:#fff}}
 </style>
 <script>if(!location.hash){if("scrollRestoration" in history)history.scrollRestoration="manual";window.addEventListener("pageshow",function(){if(!location.hash)window.scrollTo({top:0,left:0,behavior:"instant"})});}</script>
 </head>
@@ -231,8 +254,8 @@ footer a{color:var(--brown-soft)}
 
 <p><a href="laboratory.html">Back to Laboratory Courses</a></p>
 </div></main>
-<footer data-render="footer"><div class="wrap"><div class="foot-grid"><div><p class="foot-name">Hope Donglo, PhD</p><p>Lecturer in Physics · University of Ghana</p></div><nav aria-label="Footer"><ul><li><a href="research.html">Research</a></li><li><a href="teaching.html">Teaching</a></li><li><a href="projects.html">Projects</a></li><li><a href="data-engineering.html">Data Science, ML and Engineering</a></li><li><a href="index.html#about">About</a></li><li><a href="cv.html">CV</a></li><li><a href="contact.html">Contact</a></li></ul></nav><ul class="foot-ext"><li><a href="https://scholar.google.com/citations?user=QW32BboAAAAJ&amp;hl=en" rel="noopener">Google Scholar ↗</a></li><li><a href="https://orcid.org/0009-0003-6142-8780" rel="noopener">ORCID ↗</a></li><li><a href="https://github.com/hhdonglo" rel="noopener">GitHub ↗</a></li><li><a href="https://www.linkedin.com/in/hopedonglo" rel="noopener">LinkedIn ↗</a></li></ul></div><p class="foot-note">© 2026 Hope Donglo</p></div></footer>
-<script>(function(){var n=document.getElementById("jump");if(!n)return;n.classList.add("js");var b=n.querySelector(".menu-btn");function set(o){n.classList.toggle("open",o);b.setAttribute("aria-expanded",o?"true":"false")}b.addEventListener("click",function(){set(!n.classList.contains("open"))});n.addEventListener("click",function(e){if(e.target.closest&&e.target.closest(".links a"))set(false)});document.addEventListener("keydown",function(e){if(e.key==="Escape"&&n.classList.contains("open")){set(false);b.focus()}});document.addEventListener("click",function(e){if(!n.contains(e.target))set(false)});})();</script>
+<footer data-render="footer"><div class="wrap"><div class="foot-grid"><div><p class="foot-name">Hope Donglo, PhD</p><p>Lecturer in Physics · University of Ghana</p></div><nav aria-label="Footer"><ul><li><a href="research.html">Research</a></li><li><a href="teaching.html">Teaching</a></li><li><a href="projects.html">Projects</a></li><li><a href="data-engineering.html">Data Science, ML and Engineering</a></li><li><a href="index.html#about">About</a></li><li><a href="cv.html">CV</a></li><li><a href="contact.html">Contact</a></li></ul></nav><ul class="foot-ext"><li><a href="https://scholar.google.com/citations?user=QW32BboAAAAJ&amp;hl=en" rel="noopener">Google Scholar ↗</a></li><li><a href="https://orcid.org/0009-0003-6142-8780" rel="noopener">ORCID ↗</a></li><li><a href="https://github.com/hhdonglo" rel="noopener">GitHub ↗</a></li><li><a href="https://www.linkedin.com/in/hopedonglo" rel="noopener">LinkedIn ↗</a></li></ul></div><p class="foot-note">© 2026 Hope Donglo · Anonymous visit counts, no cookies</p></div></footer>
+<script src="assets/site.js"></script>
 <script src="assets/render.js"></script>
 <script src="assets/stats.js" defer></script>
 </body>
