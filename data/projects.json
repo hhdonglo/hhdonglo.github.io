@@ -14,7 +14,7 @@
         "The shaded bands show how the cross section responds when s0 and beta_ss vary together along their strongly anti-correlated compensation direction. They are not a full uncertainty estimate: sensitivity to the calibration data and to the nuclear-structure inputs was studied separately and is not included. The predictions apply the same parameters, without refitting, to reactions with ^50^Ti, ^51^V and ^54^Cr beams, so they extrapolate to different projectiles, and the bands do not include that additional uncertainty.",
         "[Research context →](research.html#projects)"
       ],
-      "topics": "Scientific computing · Nuclear reaction modelling · High-performance computing · Uncertainty quantification",
+      "topics": "Nuclear reaction modelling · Bayesian calibration · Scientific computing",
       "figures": [
         {
           "image": "assets/figures/kewpie3-theory-vs-experiment.webp",
