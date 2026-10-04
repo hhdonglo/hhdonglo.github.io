@@ -53,8 +53,8 @@
           "url": "phys143.html#weekly"
         },
         {
-          "label": "Student research",
-          "url": "student-research.html"
+          "label": "Students",
+          "url": "students.html"
         }
       ]
     },
@@ -79,8 +79,8 @@
       ]
     },
     {
-      "label": "Data Engineering",
-      "title": "Data Engineering",
+      "label": "Data Science, ML and Engineering",
+      "title": "Data Science, ML and Engineering",
       "text": "Pipelines, databases, retrieval and data analysis.",
       "url": "data-engineering.html",
       "items": [
@@ -133,8 +133,8 @@
           "url": "phys143.html"
         },
         {
-          "label": "Student Research",
-          "url": "student-research.html"
+          "label": "Students",
+          "url": "students.html"
         }
       ]
     },

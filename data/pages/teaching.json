@@ -52,18 +52,18 @@
     },
     {
       "id": "student-research",
-      "heading": "Student Research",
+      "heading": "Students",
       "cards": [
         {
           "id": "student-card",
           "style": "secondary",
           "kicker": "Undergraduate projects",
-          "title": "Student Research",
+          "title": "Students",
           "paragraphs": [
             "Undergraduate research supervision, possible final-year project themes and learning resources."
           ],
-          "button_label": "Open Student Research →",
-          "button_url": "student-research.html"
+          "button_label": "Open Students →",
+          "button_url": "students.html"
         }
       ]
     }

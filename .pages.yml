@@ -545,7 +545,7 @@ content:
     fields: *id002
     list: true
 - name: student-research
-  label: Student Research
+  label: Students
   type: file
   path: data/pages/student-research.json
   format: json
@@ -609,7 +609,7 @@ content:
       type: string
       list: true
 - name: data-engineering
-  label: Data Engineering
+  label: Data Science, ML and Engineering
   type: file
   path: data/data-engineering.json
   format: json

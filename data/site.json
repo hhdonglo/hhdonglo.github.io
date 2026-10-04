@@ -25,10 +25,10 @@
     {
       "label": "LinkedIn",
       "url": "https://www.linkedin.com/in/hopedonglo",
-      "in_footer": false
+      "in_footer": true
     }
   ],
-  "footer_note": "© 2026 Hope Donglo. Independent academic website. University of Ghana students should visit Sakai for official course information.",
+  "footer_note": "© 2026 Hope Donglo",
   "banner_areas": "Theoretical Nuclear Physics · Heavy-Ion Reactions · Superheavy Elements",
   "banner_field": "Theoretical Nuclear Physics",
   "footer_position": "Lecturer in Physics · University of Ghana"

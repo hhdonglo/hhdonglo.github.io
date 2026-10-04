@@ -22,16 +22,16 @@ Open https://app.pagescms.org, choose the repository, choose a form, change the 
 | --- | --- |
 | Home | The name line, role, research statement, the three hero buttons, the Research, Teaching and Projects blocks with their links, section headings, the Find your way shortcuts and the plain affiliation line |
 | Research | The opening question, the four research areas, current research, previous research, and the "Currently" list on the home page |
-| Teaching | The Teaching page: the PHYS 143 and Laboratory cards, Student Research, Research-Informed Learning and Teaching Resources |
+| Teaching | The Teaching page: the PHYS 143 and Laboratory cards, Students, Research-Informed Learning and Teaching Resources |
 | Teaching: PHYS 143 page | The PHYS 143 page text outside the lecture tables: title, course structure, practice questions, why this course matters, reference chapters, expected skills, applications |
 | Teaching: PHYS 143 lectures | The weekly programme and every lecture page: title, summary, learning objectives, file links, the three contact headings and status (available or coming soon) |
 | Teaching: practice questions | The multiple-choice questions for each lecture (choose a lecture, then edit its questions, options, correct option and explanation) |
 | Teaching: Laboratory courses | The Laboratory page: course cards and the shared uncertainty lecture card |
 | Projects | The Projects page: overview, research projects (KEWPIE3, Fusion dynamics), software and tools |
-| Data Engineering | The Data Engineering page: overview, certification, project cards in groups (pipelines and migration, machine learning and retrieval, data analysis), tools |
+| Data Science, ML and Engineering | The Data Science, ML and Engineering page: overview, certification, project cards in groups (pipelines and migration, machine learning and retrieval, data analysis), tools |
 | Publications | All publications, the year filter buttons, and the three selected publications on the home page |
 | CV page | The CV summary page (education, appointments, awards, skills) |
-| Teaching: Student Research | The Student Research page (reached from the Teaching page) |
+| Students | The Students page |
 | About | The About page |
 | Contact | The Contact page text and buttons |
 | Site settings | Email addresses, phone, office, profile links (Google Scholar, ORCID, GitHub, LinkedIn), the footer lines and the banner lines |
@@ -46,7 +46,7 @@ The **Media** tab uploads files: lecture PDFs (PHYS 143, PHYS 105), the CV PDF a
 
 **Add a research project.** Form: Research, "Current research", **Add**. Fill in the status label, a short name (shown on the home page), the title and the paragraphs.
 
-**Add a project card.** Form: Data Engineering, "Groups of projects", open a group, **Add** under "Projects in this group". Research projects such as KEWPIE3 are in the Projects form under "Research projects".
+**Add a project card.** Form: Data Science, ML and Engineering, "Groups of projects", open a group, **Add** under "Projects in this group". Research projects such as KEWPIE3 are in the Projects form under "Research projects".
 
 **Change contact details.** Form: Site settings. The Contact page, the footer and the home page links all read from it.
 
@@ -79,6 +79,6 @@ Every form edits one file in the `data` folder (`data/pages/*.json`, `data/resea
 
 ## Page addresses
 
-The menu is Home, Research, Teaching, Projects, Data Engineering and About, with CV, Publications and Contact as small links. Projects holds the research software; the data engineering and data science work is on its own page, **Data Engineering** (`data-engineering.html`). Data and Computation is now **Projects** (`projects.html`); Students is now **Student Research** under Teaching (`student-research.html`). These old addresses stay as small redirect pages so old links still work, and must not be deleted: `data-computation.html` (forwards to Projects), `data-science.html` (forwards to Data Engineering) and `students.html`. The old link `projects.html#data-ml` also forwards to Data Engineering.
+The menu on every page is Research, Teaching, Projects, Data Science, ML and Engineering, Students, About, then CV, Publications and Contact; Home is the site title. The same list appears in the footer. The menu is fixed page structure (`tools/build_shell.py`), not edited in Pages CMS. Projects holds the research software; the data science, machine learning and engineering work is on its own page, **Data Science, ML and Engineering** (`data-engineering.html`). Data and Computation became Projects (`projects.html`). These old addresses stay as small redirect pages so old links still work, and must not be deleted: `data-computation.html` (forwards to Projects), `data-science.html` (forwards to Data Science, ML and Engineering) and `student-research.html` (forwards to Students). The old link `projects.html#data-ml` also forwards to Data Science, ML and Engineering.
 
 The practice quiz of lecture N lives at `phys143-lecture-N-practice.html`. The old `practice.html` (and `practice.html#lecture-N`) and `phys143-lecture-N.html#practice` forward to it. To add a quiz page for a new lecture, run `python3 tools/make_lecture_pages.py`, or copy an existing practice page and change the number.

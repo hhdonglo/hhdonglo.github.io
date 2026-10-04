@@ -1,11 +1,11 @@
 """Rewrite the navigation menu on every page (the menu is fixed page structure, not edited in Pages CMS)."""
 import glob, re, os
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-PRIMARY = [("index.html", "Home"), ("research.html", "Research"), ("teaching.html", "Teaching"),
-           ("projects.html", "Projects"), ("data-engineering.html", "Data Engineering"), ("about.html", "About")]
+PRIMARY = [("research.html", "Research"), ("teaching.html", "Teaching"), ("projects.html", "Projects"),
+           ("data-engineering.html", "Data Science, ML and Engineering"), ("students.html", "Students"), ("about.html", "About")]
 UTILITY = [("cv.html", "CV"), ("publications.html", "Publications"), ("contact.html", "Contact")]
 # page -> menu item it belongs to (exact page gets aria-current="page", a child page gets "true")
-CHILD = {"student-research.html": "teaching.html", "phys143.html": "teaching.html", "laboratory.html": "teaching.html", "uncertainty.html": "teaching.html"}
+CHILD = {"phys143.html": "teaching.html", "laboratory.html": "teaching.html", "uncertainty.html": "teaching.html"}
 
 def menu(page):
     cur = CHILD.get(page) or (page if re.match(r"phys143-lecture-\d+(-practice)?\.html$", page) is None else "teaching.html")
