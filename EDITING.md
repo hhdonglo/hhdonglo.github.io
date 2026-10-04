@@ -20,7 +20,7 @@ Open https://app.pagescms.org, choose the repository, choose a form, change the 
 
 | Form in Pages CMS | What it changes |
 | --- | --- |
-| Home | The profile column (name, position line, extra links such as CV; profile links come from Site settings), the physics-only research statement, the About introduction card (two paragraphs; the About menu item opens it), the "Currently working on" block (two columns: research, and data science ML and engineering) and the lists shown in the menu dropdowns. The home page has no other cards |
+| Home | The profile column (name, position line, extra links such as CV; profile links come from Site settings), the physics-only research statement, the About introduction card (two paragraphs; the About menu item opens it), the two featured highlight cards, the "Currently working on" block (two columns: research, and data science ML and engineering) the Positioning lists, the affiliation line and the lists shown in the menu dropdowns. The home page has no other cards |
 | Research | The opening question, the four research areas, current research, previous research |
 | Teaching | The Teaching page: current courses and teaching resources (PHYS 143 and Laboratory cards) and Research-Informed Learning with the Research connections line |
 | Teaching: PHYS 143 page | The PHYS 143 page text outside the lecture tables: title, course structure, practice questions, why this course matters, reference chapters, expected skills, applications |
