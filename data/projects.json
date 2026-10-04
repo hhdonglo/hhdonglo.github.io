@@ -20,15 +20,9 @@
           "width": 1100,
           "height": 1100,
           "alt": "Nine panels of evaporation-residue cross section in picobarns, on a logarithmic axis, against centre-of-mass energy for calcium-48 beams on targets from neptunium-237 to californium-249. Smooth curves with shaded uncertainty bands show the KEWPIE3 calculations for the 2n to 5n channels, and points with error bars show measurements from Dubna, GSI and LBNL. A red arrow marks the Coulomb barrier energy in each panel.",
-          "caption": "KEWPIE3 calculated cross sections (curves with uncertainty bands) compared with measured data (points with error bars) for calcium-48 reactions on actinide targets, from neptunium-237 to californium-249, with data from Dubna, GSI and LBNL. Chi-square-log fit: s0 = 6.65 fm, beta_ss = 1.16 × 10^21^ s^−1^."
-        },
-        {
-          "image": "assets/figures/kewpie3-predictions.webp",
-          "full": "assets/figures/kewpie3-predictions-full.webp",
-          "width": 1000,
-          "height": 1365,
-          "alt": "Eleven panels of predicted evaporation-residue cross sections against centre-of-mass energy for reactions not yet measured, such as titanium-50 and chromium-54 beams on actinide targets. Curves for the 2n to 5n channels are drawn with shaded uncertainty bands, and a red arrow marks the Coulomb barrier energy in each panel.",
-          "caption": "KEWPIE3 predictions for reactions that have not yet been measured, with uncertainty bands, from the chiSquareLog2 best fit (s0 = 6.65 fm, beta = 1.16 × 10^21^ s^−1^)."
+          "caption": "KEWPIE3 calculated cross sections (curves with uncertainty bands) compared with measured data (points with error bars) for calcium-48 reactions on actinide targets, from neptunium-237 to californium-249, with data from Dubna, GSI and LBNL. Chi-square-log fit: s0 = 6.65 fm, beta_ss = 1.16 × 10^21^ s^−1^.",
+          "heading": "Comparison with data",
+          "lead": "Calculated cross sections for ^48^Ca-induced reactions on actinide targets, set against the measured values."
         },
         {
           "image": "assets/figures/kewpie3-theory-experiment-ratio.webp",
@@ -36,6 +30,16 @@
           "height": 611,
           "alt": "Plot of the ratio of calculated to measured evaporation-residue cross sections at the channel maxima, on a logarithmic axis from 0.01 to 100, for targets from neptunium-237 to californium-249. Symbols show the 2n to 5n channels and colours show Dubna, GSI (TASCA) and LBNL data.",
           "caption": "Comparison of calculated and measured evaporation-residue cross sections: the ratio of theory to experiment at the channel maxima, by target, channel and laboratory."
+        },
+        {
+          "image": "assets/figures/kewpie3-predictions.webp",
+          "full": "assets/figures/kewpie3-predictions-full.webp",
+          "width": 1000,
+          "height": 1365,
+          "alt": "Eleven panels of predicted evaporation-residue cross sections against centre-of-mass energy for reactions not yet measured, such as titanium-50 and chromium-54 beams on actinide targets. Curves for the 2n to 5n channels are drawn with shaded uncertainty bands, and a red arrow marks the Coulomb barrier energy in each panel.",
+          "caption": "KEWPIE3 predictions for reactions that have not yet been measured, with uncertainty bands, from the chiSquareLog2 best fit (s0 = 6.65 fm, beta = 1.16 × 10^21^ s^−1^).",
+          "heading": "Predictions",
+          "lead": "Cross sections calculated with the same fit for reactions that have not yet been measured."
         }
       ]
     },

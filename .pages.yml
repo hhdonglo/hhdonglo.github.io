@@ -688,6 +688,12 @@ content:
       - name: alt
         label: Alt text (describe the figure)
         type: text
+      - name: heading
+        label: Group heading (optional; starts a new group, for example Comparison with data)
+        type: string
+      - name: lead
+        label: One-line introduction to the group (optional)
+        type: string
       - name: caption
         label: Caption
         type: string
@@ -778,6 +784,12 @@ content:
         - name: alt
           label: Alt text (describe the figure)
           type: text
+        - name: heading
+          label: Group heading (optional; starts a new group, for example Comparison with data)
+          type: string
+        - name: lead
+          label: One-line introduction to the group (optional)
+          type: string
         - name: caption
           label: Caption
           type: string
