@@ -430,8 +430,10 @@ nav.jump.js .sub a{padding-left:2rem;border-top:1px solid var(--border);white-sp
 .working h3{margin:0 0 .3rem;font-size:1.05rem}
 .working ul{margin:0;padding-left:1.1rem}
 .working li{margin:.3rem 0}
-.highlights{display:grid;grid-template-columns:1fr;gap:1.1rem;margin-top:1.4rem}
-@media (min-width:700px){.highlights{grid-template-columns:1fr 1fr}}
+.highlights{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.9rem;margin-top:1.4rem;align-items:stretch}
+@media (max-width:359px){.highlights{grid-template-columns:1fr}}
+@media (max-width:700px){.highlights .ov-card{padding:.8rem .8rem .9rem}.highlights .h4{font-size:1rem}.highlights .btn{width:100%;font-size:.85rem}}
 .highlights .h4{margin:0 0 .4rem;font-size:1.15rem}
 .highlights .btn{padding:.4rem 1rem}
 .profile-side .role+.role{margin-top:-.6rem}
+.highlights .ov-card{display:flex;flex-direction:column}.highlights .ov-card p:last-child{margin-top:auto;padding-top:.4rem}
