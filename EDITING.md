@@ -20,7 +20,7 @@ Open https://app.pagescms.org, choose the repository, choose a form, change the 
 
 | Form in Pages CMS | What it changes |
 | --- | --- |
-| Home | The profile column (name, position line, extra links such as CV; profile links come from Site settings), the physics-only research statement, the About introduction card (two paragraphs; the About menu item opens it), the two featured highlight cards, the "Currently working on" block (two columns: research, and data science ML and engineering) the Positioning lists, the affiliation line and the lists shown in the menu dropdowns. The home page has no other cards |
+| Home | The animated header title (two lines; put ** around the words to highlight), the profile column (name, position line, extra links such as CV; profile links come from Site settings), the physics-only research statement, the About introduction card (two paragraphs; the About menu item opens it), the two featured highlight cards, the "Currently working on" block (two columns: research, and data science ML and engineering) the Positioning lists, the affiliation line and the lists shown in the menu dropdowns. The home page has no other cards |
 | Research | The opening question, the four research areas, current research, previous research |
 | Teaching | The Teaching page: current courses and teaching resources (PHYS 143 and Laboratory cards) and Research-Informed Learning with the Research connections line |
 | Teaching: PHYS 143 page | The PHYS 143 page text outside the lecture tables: title, course structure, practice questions, why this course matters, reference chapters, expected skills, applications |
@@ -84,3 +84,5 @@ The menu on every page is Research, Teaching, Projects, Data Science, ML and Eng
 The practice quiz of lecture N lives at `phys143-lecture-N-practice.html`. The old `practice.html` (and `practice.html#lecture-N`) and `phys143-lecture-N.html#practice` forward to it. To add a quiz page for a new lecture, run `python3 tools/make_lecture_pages.py`, or copy an existing practice page and change the number.
 
 **Menu dropdowns.** Research, Teaching, Projects, Data Science ML and Engineering, Students and Publications open a dropdown (hover, click, Enter or touch). Edit the lists in Form: Home, "Menu dropdown lists"; the page reads them on load. After editing, ask for `python3 tools/build_shell.py` to refresh the no-JavaScript copy. The old about.html address forwards to the home page About card.
+
+**Header animation.** The home page header fades and slides in, with the rule drawing itself, and it is switched off automatically for visitors who ask their device to reduce motion. The header line on other pages is in Site settings ("Header line on other pages").

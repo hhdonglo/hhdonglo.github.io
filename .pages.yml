@@ -24,6 +24,12 @@ content:
   path: data/pages/home.json
   format: json
   fields:
+  - name: hero_line1
+    label: Header title, first line
+    type: string
+  - name: hero_line2
+    label: Header title, second line (**bold** gives the highlighted accent)
+    type: string
   - name: eyebrow
     label: Name
     type: string
@@ -71,6 +77,45 @@ content:
         type: string
       list: true
     list: true
+  - name: highlights
+    label: Featured highlights (two cards)
+    type: object
+    fields:
+    - name: title
+      label: Title
+      type: string
+    - name: text
+      label: Text
+      type: text
+    - name: button
+      label: Button text
+      type: string
+    - name: url
+      label: Button link
+      type: string
+    list: true
+  - name: positioning
+    label: Positioning lists
+    type: object
+    fields:
+    - name: title
+      label: Title
+      type: string
+    - name: links
+      label: Links
+      type: object
+      fields:
+      - name: label
+        label: Text
+        type: string
+      - name: url
+        label: Link
+        type: string
+      list: true
+    list: true
+  - name: affiliation
+    label: Affiliation line under the position
+    type: string
   - name: working_title
     label: Heading of the currently working on block
     type: string
@@ -646,6 +691,29 @@ content:
       - name: title
         label: Title
         type: string
+      - name: figures
+        label: Figures from the project repository
+        type: object
+        fields:
+        - name: image
+          label: Image path (upload under assets/figures)
+          type: string
+        - name: width
+          label: Width in pixels
+          type: string
+        - name: height
+          label: Height in pixels
+          type: string
+        - name: alt
+          label: Alt text (describe the figure)
+          type: text
+        - name: caption
+          label: Caption
+          type: string
+        - name: source
+          label: Source link (repository file)
+          type: string
+        list: true
       - name: topics
         label: Topic line
         type: string
@@ -808,7 +876,7 @@ content:
     label: Home banner line
     type: string
   - name: banner_field
-    label: Banner line on other pages
+    label: Header line on other pages
     type: string
   - name: footer_note
     label: Footer note

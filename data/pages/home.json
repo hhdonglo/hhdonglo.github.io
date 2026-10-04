@@ -150,5 +150,7 @@
         }
       ]
     }
-  ]
+  ],
+  "hero_line1": "Researcher in Nuclear Physics",
+  "hero_line2": "and **Data-Intensive Computing**"
 }

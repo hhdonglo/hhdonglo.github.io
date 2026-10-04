@@ -462,3 +462,21 @@ nav.jump.js .sub a{padding-left:2rem;border-top:1px solid var(--border);white-sp
 .profile-side .side-links{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:0 .9rem;margin:.5rem 0 0;padding:0;list-style:none}
 }
 
+/* hero header */
+.banner.masthead .wrap{padding-top:1.6rem;padding-bottom:1.5rem}
+.banner.masthead h1{margin:0;font-size:clamp(2.3rem,8vw,3.6rem);line-height:1.05;letter-spacing:-.01em}
+.mast-rule{display:block;height:2px;width:min(100%,24rem);margin:.7rem 0 .8rem;background:linear-gradient(90deg,#F2C9A0,rgba(242,201,160,.15));transform-origin:left}
+.banner.masthead .mast-title{margin:0;max-width:none;font:600 clamp(1.1rem,4.4vw,1.7rem)/1.3 Georgia,serif;color:#fff}
+.mast-title span{display:block}
+.mast-title .l2{color:#dbe6f8;font-weight:400}
+.mast-title strong{font-weight:700;color:#F2C9A0;background:linear-gradient(#F2C9A0,#F2C9A0) left bottom/100% 2px no-repeat;padding-bottom:.08em}
+@media (prefers-reduced-motion:no-preference){
+.banner.masthead h1{animation:mastUp .7s cubic-bezier(.2,.7,.2,1) both}
+.mast-rule{animation:mastRule .9s .25s cubic-bezier(.2,.7,.2,1) both}
+.mast-title .l1{animation:mastUp .7s .5s cubic-bezier(.2,.7,.2,1) both}
+.mast-title .l2{animation:mastUp .7s .85s cubic-bezier(.2,.7,.2,1) both}
+.mast-title strong{animation:mastLine .8s 1.35s ease-out both}
+}
+@keyframes mastUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes mastRule{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes mastLine{from{background-size:0 2px}to{background-size:100% 2px}}
