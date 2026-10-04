@@ -49,7 +49,8 @@ content:
     type: text
     list: true
   - name: blocks
-    label: Section link lists (Research, Teaching, Data Science ML and Engineering, Publications)
+    label: Menu dropdown lists (Research, Teaching, Projects, Data Science ML and Engineering, Students, Publications); the
+      Title link must match the menu item address
     type: object
     fields:
     - name: title
@@ -60,6 +61,31 @@ content:
       type: string
     - name: links
       label: Links in the block
+      type: object
+      fields:
+      - name: label
+        label: Text
+        type: string
+      - name: url
+        label: Link
+        type: string
+      list: true
+    list: true
+  - name: working_title
+    label: Heading of the currently working on block
+    type: string
+  - name: working
+    label: 'Currently working on (two parts: research, and data science ML and engineering)'
+    type: object
+    fields:
+    - name: title
+      label: Title
+      type: string
+    - name: url
+      label: Title link
+      type: string
+    - name: items
+      label: Items
       type: object
       fields:
       - name: label
@@ -717,23 +743,6 @@ content:
   label: CV page
   type: file
   path: data/pages/cv.json
-  format: json
-  fields:
-  - name: title
-    label: Page title
-    type: string
-  - name: subtitle
-    label: Subtitle under the title
-    type: string
-  - name: sections
-    label: Sections
-    type: object
-    fields: *id002
-    list: true
-- name: about
-  label: About
-  type: file
-  path: data/pages/about.json
   format: json
   fields:
   - name: title

@@ -92,7 +92,7 @@ R.contact=function(el,d,site){
 R["contact-profiles"]=function(el,d,site){el.innerHTML=site.profiles.map(function(p){return '<li>'+link(p.url,esc(p.label)+" &#8599;",true)+'</li>'}).join("")};
 R["contact-mail"]=function(el,d,site){el.setAttribute("href","mailto:"+site.email);el.textContent="Email "+site.email};
 R.footer=function(el,d,site){
-  var navs=[["research.html","Research"],["teaching.html","Teaching"],["projects.html","Projects"],["data-engineering.html","Data Science, ML and Engineering"],["about.html","About"],["cv.html","CV"],["contact.html","Contact"]];
+  var navs=[["research.html","Research"],["teaching.html","Teaching"],["projects.html","Projects"],["data-engineering.html","Data Science, ML and Engineering"],["index.html#about","About"],["cv.html","CV"],["contact.html","Contact"]];
   el.innerHTML='<div class="wrap"><div class="foot-grid"><div><p class="foot-name">'+esc(site.name)+'</p><p>'+esc(site.footer_position||site.field)+'</p></div><nav aria-label="Footer"><ul>'+navs.map(function(n){return '<li>'+link(n[0],n[1])+'</li>'}).join("")+'</ul></nav><ul class="foot-ext">'+site.profiles.map(function(p){return '<li>'+link(p.url,esc(p.label)+" &#8599;",true)+'</li>'}).join("")+'</ul></div><p class="foot-note">'+esc(site.footer_note)+'</p></div>';
 };
 
@@ -166,6 +166,7 @@ R["home-side"]=function(el,d,site){
   el.innerHTML='<img class="photo" src="assets/hope-donglo.webp" width="480" height="600" alt="Portrait photograph of Hope Donglo"><p class="name">'+md(d.eyebrow)+'</p><p class="role">'+md(d.role)+'</p><ul class="side-links">'+site.profiles.map(function(p){return '<li>'+link(p.url,esc(p.label)+" &#8599;",true)+'</li>'}).concat((d.side_links||[]).map(function(l){return '<li>'+link(l.url,esc(l.label))+'</li>'})).join("")+'</ul>';
 };
 R["home-statement"]=function(el,d){el.innerHTML=md(d.statement)};
+R["home-working"]=function(el,d){el.innerHTML='<h2 class="h3" id="working">'+md(d.working_title)+'</h2><div class="working-cols">'+d.working.map(function(g){return '<div><h3 class="h4"><a href="'+esc(g.url)+'">'+md(g.title)+'</a></h3><ul>'+g.items.map(function(i){return '<li>'+link(i.url,esc(i.label))+'</li>'}).join("")+'</ul></div>'}).join("")+'</div>'};
 R["home-blocks"]=function(el,d){el.innerHTML=d.blocks.map(function(p){return '<div class="hl"><h3 class="h4"><a href="'+esc(p.url)+'">'+md(p.title)+'</a></h3><ul>'+p.links.map(function(i){return '<li>'+link(i.url,esc(i.label))+'</li>'}).join("")+'</ul></div>'}).join("")};
 R["home-intro"]=function(el,d){el.innerHTML='<article class="ov-card lead-card">'+d.intro_paragraphs.map(function(p){return '<p class="intro">'+md(p)+'</p>'}).join("")+'</article>'};
 R["home-pubs"]=function(el,d){var h=d[0],p=d[1];el.innerHTML='<h2 id="selected-pubs">'+md(h.publications_heading)+'</h2><ul class="refs sel">'+p.home.map(function(i){return '<li><span class="yr">'+esc(i.label)+'</span><span>'+md(i.text)+'</span></li>'}).join("")+'</ul><p><a class="more" href="publications.html">'+esc(h.publications_link_label)+'</a></p>'};
@@ -173,12 +174,13 @@ R["home-areas"]=function(el,d){el.innerHTML='<h2 id="areas">'+md(d.areas_heading
 R["banner-areas"]=function(el,d,site){if(site.banner_areas)el.textContent=site.banner_areas};
 R["banner-field"]=function(el,d,site){if(site.banner_field)el.textContent=site.banner_field};
 
-var files={publications:"publications",research:"research","research-lead":"research","research-areas":"research","research-current":"research","research-previous":"research","research-pubs":"research",projects:"projects","data-engineering":"data-engineering",weekly:"lectures",lecture:"lectures","home-side":"pages/home","home-statement":"pages/home","home-intro":"pages/home","home-blocks":"pages/home","home-pubs":["pages/home","publications"],"home-areas":"pages/home"};
+var files={publications:"publications",research:"research","research-lead":"research","research-areas":"research","research-current":"research","research-previous":"research","research-pubs":"research",projects:"projects","data-engineering":"data-engineering",weekly:"lectures",lecture:"lectures","home-side":"pages/home","home-statement":"pages/home","home-intro":"pages/home","home-blocks":"pages/home","home-working":"pages/home","home-pubs":["pages/home","publications"],"home-areas":"pages/home"};
 var cache={};function load(n){return cache[n]||(cache[n]=get(n))}
 var pending=[];
 document.querySelectorAll("[data-render]").forEach(function(el){var k=el.getAttribute("data-render"),f=files[k];
   if(k==="page")f="pages/"+el.getAttribute("data-file");
   var need=f?(Array.isArray(f)?f:[f]):[];
   pending.push(Promise.all(need.map(load).concat([load("site")])).then(function(r){var site=r.pop();R[k](el,need.length>1?r:r[0]||null,site)}).catch(function(){}));});
+load("pages/home").then(function(h){document.querySelectorAll("#jump-links .dd").forEach(function(dd){var u=dd.getAttribute("data-key"),b=h.blocks.filter(function(x){return x.url===u})[0];if(b)dd.querySelector(".sub").innerHTML=b.links.map(function(i){return '<li>'+link(i.url,esc(i.label))+'</li>'}).join("")})}).catch(function(){});
 Promise.all(pending).then(function(){if(location.hash)window.dispatchEvent(new Event("hashchange"))});
 })();

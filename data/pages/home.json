@@ -54,6 +54,20 @@
       ]
     },
     {
+      "title": "Projects",
+      "url": "projects.html",
+      "links": [
+        {
+          "label": "KEWPIE3",
+          "url": "projects.html#kewpie3"
+        },
+        {
+          "label": "Fusion dynamics",
+          "url": "projects.html#fusion"
+        }
+      ]
+    },
+    {
       "title": "Data Science, ML and Engineering",
       "url": "data-engineering.html",
       "links": [
@@ -76,6 +90,24 @@
       ]
     },
     {
+      "title": "Students",
+      "url": "students.html",
+      "links": [
+        {
+          "label": "Undergraduate students",
+          "url": "students.html#undergraduate"
+        },
+        {
+          "label": "Possible project themes",
+          "url": "students.html#research-projects"
+        },
+        {
+          "label": "Resources",
+          "url": "students.html#resources"
+        }
+      ]
+    },
+    {
       "title": "Publications",
       "url": "publications.html",
       "links": [
@@ -94,6 +126,41 @@
         {
           "label": "Conference Contributions",
           "url": "publications.html#conference"
+        }
+      ]
+    }
+  ],
+  "working_title": "Currently working on",
+  "working": [
+    {
+      "title": "Research",
+      "url": "research.html",
+      "items": [
+        {
+          "label": "KEWPIE3 development and validation",
+          "url": "projects.html#kewpie3"
+        },
+        {
+          "label": "Fusion dynamics and fusion-by-diffusion modelling",
+          "url": "projects.html#fusion"
+        },
+        {
+          "label": "Uncertainty analysis of nuclear reaction models",
+          "url": "research.html#uncertainty"
+        }
+      ]
+    },
+    {
+      "title": "Data Science, ML and Engineering",
+      "url": "data-engineering.html",
+      "items": [
+        {
+          "label": "Data and Machine Learning Engineering programme (OpenClassrooms, 2025 to 2026)",
+          "url": "data-engineering.html"
+        },
+        {
+          "label": "Data engineering, machine learning and retrieval, and data analysis projects",
+          "url": "data-engineering.html#pipelines"
         }
       ]
     }
