@@ -454,7 +454,7 @@ nav.jump.js .sub a{padding-left:2rem;border-top:1px solid var(--border);white-sp
 @media (max-width:760px){
 .profile{margin-top:.8rem;gap:.9rem}
 .profile-side{display:grid;grid-template-columns:120px 1fr;column-gap:1rem;align-content:start;align-items:center}
-.profile-side .photo{grid-column:1;grid-row:1/span 3;width:120px;height:120px;max-width:none;object-fit:cover;object-position:center;border-radius:12px}
+.profile-side picture{grid-column:1;grid-row:1/span 3;display:block}.profile-side .photo{width:120px;height:120px;max-width:none;object-fit:cover;object-position:center;border-radius:12px}
 .profile-side .name,.profile-side .role{grid-column:2;margin:0}
 .profile-side .name{font-size:1.2rem;align-self:end}
 .profile-side .role+.role{margin-top:0}
@@ -462,4 +462,3 @@ nav.jump.js .sub a{padding-left:2rem;border-top:1px solid var(--border);white-sp
 .profile-side .side-links{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:0 .9rem;margin:.5rem 0 0;padding:0;list-style:none}
 }
 
-.profile-side .photo{aspect-ratio:1/1;object-fit:cover}
