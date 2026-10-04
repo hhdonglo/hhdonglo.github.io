@@ -382,3 +382,20 @@ ul.weeks{list-style:none;margin:.4rem 0 0;padding:0}
 .status{margin:.1rem 0 .4rem}
 
 dl.tech{margin:0;display:grid;grid-template-columns:max-content 1fr;gap:.45rem 1rem}dl.tech dt{font-weight:700}dl.tech dd{margin:0}@media (max-width:560px){dl.tech{grid-template-columns:1fr;gap:.1rem}dl.tech dd{margin-bottom:.5rem}}
+
+/* ---- profile-card home ---- */
+.profile{display:grid;grid-template-columns:230px 1fr;gap:2rem;align-items:start;margin-top:1.4rem}
+.profile-side{position:sticky;top:1rem}
+.profile-side .photo{max-width:230px}
+.profile-side .name{margin:.9rem 0 0;font:700 1.25rem/1.25 Georgia,serif;color:var(--navy)}
+@media (prefers-color-scheme:dark){.profile-side .name{color:#c7dcf8}}
+.profile-side .role{margin:.2rem 0 .8rem;font-size:1rem}
+.side-links{list-style:none;margin:0;padding:0;display:grid;gap:.1rem;font:.95rem system-ui,sans-serif}
+.side-links a{display:inline-flex;align-items:center;min-height:36px}
+.profile-main .statement{margin-top:0}
+.profile-main .paths{margin-top:1.4rem}
+.path-links{margin:.2rem 0 0;padding-left:1.1rem;font:.95rem/1.7 system-ui,sans-serif}
+.path-links a{display:inline-block;padding:.1rem 0}
+.profile-main .shortcuts{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+@media (max-width:760px){.profile{grid-template-columns:1fr;gap:1.2rem}.profile-side{position:static}.profile-side .photo{max-width:180px}}
+@media (min-width:760px){.paths{grid-template-columns:repeat(2,1fr)}}

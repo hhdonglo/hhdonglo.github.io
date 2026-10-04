@@ -34,7 +34,8 @@
           "tag": "2026",
           "text": "D. Ackermann, F. Agert, A. Bahini, D. Boilley, **H. Donglo**, S. Kumar, J. Piot, H. Savajols, Ch. Stodel and the S^3^ Collaboration (2026). Probing SHN structure and stability: synthesis and decay studies at S^3^. *Acta Physica Polonica B*, Vol. 19 (2026)."
         }
-      ]
+      ],
+      "id": "journal-articles"
     },
     {
       "title": "Preprints",
@@ -44,7 +45,8 @@
           "text": "**H. Donglo** and T. R. Rodríguez Frutos. Nuclear structure of even-even argon isotopes within the axial symmetry conserving configuration mixing framework. Preprint, HAL [hal-05677054](https://hal.science/hal-05677054)."
         }
       ],
-      "note": "Manuscripts available as preprints."
+      "note": "Manuscripts available as preprints.",
+      "id": "preprints"
     },
     {
       "title": "Manuscripts in preparation",
@@ -58,7 +60,8 @@
           "tag": "pending",
           "text": "**H. Donglo**, D. Boilley, F. Cap and D. Ackermann. Constraining the compound nucleus formation probability in superheavy element synthesis through systematic uncertainty analysis. Manuscript in preparation, targeting *Physical Review C*."
         }
-      ]
+      ],
+      "id": "in-preparation"
     },
     {
       "title": "Theses",
@@ -76,7 +79,8 @@
           "text": "**H. Donglo** (2016). *Evaluation of Safety Status of the Ghana Research Reactor-1 (GHARR-1).* BSc thesis, University of Ghana."
         }
       ],
-      "note": "PhD and other relevant theses."
+      "note": "PhD and other relevant theses.",
+      "id": "theses"
     },
     {
       "title": "Conference contributions",
@@ -86,7 +90,8 @@
           "text": "**H. Donglo**. Study of reaction mechanisms for the synthesis of superheavy elements. *29th Nuclear Physics Conference*, Poland, September 2023."
         }
       ],
-      "note": "Selected conference presentations or contributions."
+      "note": "Selected conference presentations or contributions.",
+      "id": "conference"
     }
   ],
   "home": [

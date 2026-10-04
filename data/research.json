@@ -4,19 +4,23 @@
   "areas": [
     {
       "title": "Nuclear Reaction Dynamics",
-      "text": "Langevin dynamics and stochastic simulation of nuclear reactions, covering the pathway from the colliding nuclei to a superheavy element."
+      "text": "Langevin dynamics and stochastic simulation of nuclear reactions, covering the pathway from the colliding nuclei to a superheavy element.",
+      "id": "reaction-dynamics"
     },
     {
       "title": "Heavy and Superheavy Elements",
-      "text": "Production cross-sections for superheavy nuclei, including Z = 119 and Z = 120, are predicted with the KEWPIE2 and KEWPIE3 framework. The work connects to experimental studies of synthesis and decay at S^3^."
+      "text": "Production cross-sections for superheavy nuclei, including Z = 119 and Z = 120, are predicted with the KEWPIE2 and KEWPIE3 framework. The work connects to experimental studies of synthesis and decay at S^3^.",
+      "id": "superheavy"
     },
     {
       "title": "Fusion–Evaporation Reactions",
-      "text": "Fusion–evaporation reactions and the probability of forming a compound nucleus, calculated with Langevin-based stochastic approaches."
+      "text": "Fusion–evaporation reactions and the probability of forming a compound nucleus, calculated with Langevin-based stochastic approaches.",
+      "id": "fusion-evaporation"
     },
     {
       "title": "Uncertainty Quantification",
-      "text": "Bayesian optimisation and machine learning applied to estimate nuclear model parameters and their uncertainties, with systematic benchmarking of competing models."
+      "text": "Bayesian optimisation and machine learning applied to estimate nuclear model parameters and their uncertainties, with systematic benchmarking of competing models.",
+      "id": "uncertainty"
     }
   ],
   "current": [
