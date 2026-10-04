@@ -437,3 +437,6 @@ nav.jump.js .sub a{padding-left:2rem;border-top:1px solid var(--border);white-sp
 .highlights .btn{padding:.4rem 1rem}
 .profile-side .role+.role{margin-top:-.6rem}
 .highlights .ov-card{display:flex;flex-direction:column}.highlights .ov-card p:last-child{margin-top:auto;padding-top:.4rem}
+.fig{margin:.8rem 0 .4rem}
+.fig img{display:block;max-width:100%;height:auto;border:1px solid var(--border);border-radius:6px;background:#fff}
+.fig figcaption{margin-top:.3rem;font:.85rem/1.4 system-ui,sans-serif;color:var(--muted)}

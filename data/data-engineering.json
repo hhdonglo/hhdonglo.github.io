@@ -47,7 +47,17 @@
               "text": "A proof of concept; activity data is simulated, not read from a live service."
             }
           ],
-          "repo": "https://github.com/hhdonglo/project_12"
+          "repo": "https://github.com/hhdonglo/project_12",
+          "figures": [
+            {
+              "image": "assets/figures/sports-benefits-financial-scenarios.png",
+              "width": 989,
+              "height": 490,
+              "alt": "Stacked bar chart of the combined financial impact in euros under three wellness scenarios (30, 50 and 70 per cent), split into bonus cost and wellness cost.",
+              "caption": "Combined financial impact of the two benefits under three wellness scenarios, from the financial impact notebook.",
+              "source": "https://github.com/hhdonglo/project_12/blob/HEAD/notebooks/02_financial_impact.ipynb"
+            }
+          ]
         },
         {
           "title": "Healthcare Data Migration Pipeline",
@@ -75,7 +85,25 @@
               "text": "A Docker Compose deployment of MongoDB with a web interface for the database, and an AWS comparison of DocumentDB, Atlas, EC2 and ECS."
             }
           ],
-          "repo": "https://github.com/hhdonglo/csv-containerisation-mongodb"
+          "repo": "https://github.com/hhdonglo/csv-containerisation-mongodb",
+          "figures": [
+            {
+              "image": "assets/figures/healthcare-etl-pipeline.png",
+              "width": 953,
+              "height": 580,
+              "alt": "Flow diagram of the migration pipeline: load the raw CSV (55,500 rows), clean the data, connect to MongoDB, load 54,966 cleaned rows, bulk insert, validate integrity and finish.",
+              "caption": "ETL pipeline flow, from the repository documentation.",
+              "source": "https://github.com/hhdonglo/csv-containerisation-mongodb/blob/HEAD/docs/images/etl_pipeline_flow.png"
+            },
+            {
+              "image": "assets/figures/healthcare-docker-infrastructure.png",
+              "width": 835,
+              "height": 439,
+              "alt": "Diagram of the Docker infrastructure: a Python migration container and a Mongo Express container connect over a shared network to a MongoDB 8.2 container with a mounted data volume.",
+              "caption": "Docker infrastructure, from the repository documentation.",
+              "source": "https://github.com/hhdonglo/csv-containerisation-mongodb/blob/HEAD/docs/images/docker_infrastructure.png"
+            }
+          ]
         }
       ]
     },
@@ -109,7 +137,17 @@
               "text": "A proof of concept: single-turn, one data source, manual rebuilds."
             }
           ],
-          "repo": "https://github.com/hhdonglo/project_11"
+          "repo": "https://github.com/hhdonglo/project_11",
+          "figures": [
+            {
+              "image": "assets/figures/rag-pipeline.png",
+              "width": 1222,
+              "height": 211,
+              "alt": "Flow diagram of the RAG pipeline: Open Agenda events, cleaning, mistral-embed embedding, a FAISS index and Mistral generation.",
+              "caption": "RAG pipeline from event data to answer generation, from the repository notebooks.",
+              "source": "https://github.com/hhdonglo/project_11/blob/HEAD/notebooks/rag_pipeline.png"
+            }
+          ]
         }
       ]
     },
@@ -139,7 +177,17 @@
               "text": "The indicators are assessed for relevance, completeness and reliability."
             }
           ],
-          "repo": "https://github.com/hhdonglo/EduGlobe-Insights"
+          "repo": "https://github.com/hhdonglo/EduGlobe-Insights",
+          "figures": [
+            {
+              "image": "assets/figures/eduglobe-missing-values-trend.png",
+              "width": 1190,
+              "height": 490,
+              "alt": "Line chart of the percentage of missing values by year from 1970 to 2100, with the period 1995 to 2015 marked as the optimal period for analysis and later years shown as projections.",
+              "caption": "Share of missing values by year in the education indicators, from the analysis notebook.",
+              "source": "https://github.com/hhdonglo/EduGlobe-Insights/blob/HEAD/notebooks/03_analysis.ipynb"
+            }
+          ]
         }
       ]
     }
