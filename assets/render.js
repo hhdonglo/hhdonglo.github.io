@@ -70,7 +70,7 @@ R.lecture=function(el,d,site){
   var h=document.querySelector("main h2");if(h)h.textContent=title;
   var sb=h&&h.nextElementSibling;if(sb&&sb.classList.contains("sec-sub"))sb.innerHTML=md(soon?(l.note||"Materials are being prepared."):l.summary);
   var cr=document.querySelector("main .crumb");if(cr)cr.innerHTML='<a href="index.html">Home</a> &rsaquo; <a href="teaching.html">Teaching</a> &rsaquo; <a href="phys143.html">'+esc(course)+'</a> &rsaquo; Lecture '+ln(n);
-  document.title=title+" | "+course+" | Hope Donglo, Academic Website";
+  document.title=title+" | "+course+" | Hope Donglo";
   var out='';
   if(soon){out+='<div class="ov-card"><p>This lecture will be added when it is ready.</p></div>'}
   else{
