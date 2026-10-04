@@ -167,6 +167,11 @@ nav.jump a[aria-current="page"]{color:var(--navy);text-decoration-thickness:3px;
 @media (prefers-color-scheme:dark){nav.jump a[aria-current="page"]{color:#fff}}
 nav.jump .menu-close{display:none}
 @media (max-width:720px){nav.jump.js .menu-close{display:flex;align-items:center;justify-content:center;gap:.5rem;width:100%;min-height:48px;border:0;border-top:3px solid var(--border);background:var(--bg);color:var(--link);font:600 .92rem system-ui,sans-serif;cursor:pointer}}
+nav.jump .dd-btn span{display:inline-block;transition:transform .15s}
+nav.jump .dd.open .dd-btn span,nav.jump .dd:hover .dd-btn span{transform:rotate(180deg)}
+nav.jump.js.open .menu-btn .dots{font-size:0;letter-spacing:0}
+nav.jump.js.open .menu-btn .dots::before{content:"Close \2715";font-size:.95rem;font-weight:600;color:var(--link)}
+@media (prefers-reduced-motion:reduce){nav.jump .dd-btn span{transition:none}}
 </style>
 <script>if(!location.hash){if("scrollRestoration" in history)history.scrollRestoration="manual";window.addEventListener("pageshow",function(){if(!location.hash)window.scrollTo({top:0,left:0,behavior:"instant"})});}</script>
 </head>

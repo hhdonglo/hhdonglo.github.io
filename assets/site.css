@@ -548,3 +548,8 @@ html{scroll-padding-top:calc(var(--nav-h,3.4rem) + .6rem)}
 nav.jump,nav.jump.js{position:sticky;top:0;z-index:40}
 nav.jump .menu-close{display:none}
 @media (max-width:720px){nav.jump.js .menu-close{display:flex;align-items:center;justify-content:center;gap:.5rem;width:100%;min-height:48px;border:0;border-top:3px solid var(--border);background:var(--bg);color:var(--link);font:600 .92rem system-ui,sans-serif;cursor:pointer}}
+nav.jump .dd-btn span{display:inline-block;transition:transform .15s}
+nav.jump .dd.open .dd-btn span,nav.jump .dd:hover .dd-btn span{transform:rotate(180deg)}
+nav.jump.js.open .menu-btn .dots{font-size:0;letter-spacing:0}
+nav.jump.js.open .menu-btn .dots::before{content:"Close \2715";font-size:.95rem;font-weight:600;color:var(--link)}
+@media (prefers-reduced-motion:reduce){nav.jump .dd-btn span{transition:none}}
