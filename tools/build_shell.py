@@ -1,7 +1,7 @@
 """Rewrite the navigation menu on every page (the menu is fixed page structure, not edited in Pages CMS)."""
 import glob, re, os, json, html
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-PRIMARY = [("research.html", "Research"), ("teaching.html", "Teaching"), ("projects.html", "Projects"),
+PRIMARY = [("index.html", "Home"), ("research.html", "Research"), ("teaching.html", "Teaching"), ("projects.html", "Projects"),
            ("data-engineering.html", "Data Science, ML and Engineering"), ("students.html", "Students"), ("index.html#about", "About")]
 UTILITY = [("cv.html", "CV"), ("publications.html", "Publications"), ("contact.html", "Contact")]
 # page -> menu item it belongs to (exact page gets aria-current="page", a child page gets "true")

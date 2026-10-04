@@ -3,7 +3,7 @@ Usage: serve the repo (python3 -m http.server 8765), then: python3 tools/bake.py
 import glob, json, os, re, subprocess
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 files = [os.path.basename(f) for f in sorted(glob.glob(os.path.join(ROOT, "*.html"))) if "data-render=" in open(f, encoding="utf-8").read()]
-subprocess.run(["node", os.path.join(ROOT, "tools", "bake.js"), "http://localhost:8765"] + files, check=True)
+subprocess.run(["node", os.path.join(ROOT, "tools", "bake.js"), os.environ.get("BAKE_URL","http://localhost:8765")] + files, check=True)
 data = json.load(open("/tmp/claude-0/bake.json"))
 VOID = {"br", "img", "hr", "input", "meta", "link"}
 def close_of(s, start, tag):

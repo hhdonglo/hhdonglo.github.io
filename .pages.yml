@@ -100,25 +100,34 @@ content:
       label: Button link
       type: string
     list: true
-  - name: positioning
-    label: Positioning lists
+  - name: technical_title
+    label: Technical Portfolio heading
+    type: string
+  - name: technical
+    label: Technical Portfolio groups
     type: object
     fields:
     - name: title
-      label: Title
+      label: Group title
       type: string
-    - name: links
-      label: Links
-      type: object
-      fields:
-      - name: label
-        label: Text
-        type: string
-      - name: url
-        label: Link
-        type: string
+    - name: url
+      label: Title link
+      type: string
+    - name: items
+      label: Items
+      type: string
       list: true
     list: true
+  - name: technical_button
+    label: Technical Portfolio button
+    type: object
+    fields:
+    - name: label
+      label: Text
+      type: string
+    - name: url
+      label: Link
+      type: string
   - name: affiliation
     label: Affiliation line under the position
     type: string
@@ -155,29 +164,24 @@ content:
         type: string
       list: true
   - name: working_title
-    label: Heading of the currently working on block
+    label: Heading of the current work block
     type: string
   - name: working
-    label: 'Currently working on (two parts: research, and data science ML and engineering)'
+    label: Current work (three items)
     type: object
     fields:
     - name: title
       label: Title
       type: string
+    - name: text
+      label: Text
+      type: text
     - name: url
-      label: Title link
+      label: Link
       type: string
-    - name: items
-      label: Items
-      type: object
-      fields:
-      - name: label
-        label: Text
-        type: string
-      - name: url
-        label: Link
-        type: string
-      list: true
+    - name: link
+      label: Link text
+      type: string
     list: true
 - name: research
   label: Research

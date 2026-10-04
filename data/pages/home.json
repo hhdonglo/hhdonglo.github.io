@@ -130,25 +130,25 @@
       ]
     }
   ],
-  "working_title": "Currently working on",
+  "working_title": "Current work",
   "working": [
     {
-      "title": "Research",
-      "url": "research.html",
-      "items": [
-        {
-          "label": "KEWPIE3 development and validation",
-          "url": "projects.html#kewpie3"
-        },
-        {
-          "label": "Fusion dynamics and fusion-by-diffusion modelling",
-          "url": "projects.html#fusion"
-        },
-        {
-          "label": "Uncertainty analysis of nuclear reaction models",
-          "url": "research.html#uncertainty"
-        }
-      ]
+      "title": "KEWPIE3",
+      "text": "Development and validation of the new version of the KEWPIE2 code for fusion-evaporation cross-section predictions in superheavy element synthesis.",
+      "url": "projects.html#kewpie3",
+      "link": "Explore project"
+    },
+    {
+      "title": "Fusion Dynamics",
+      "text": "Revisiting the fusion dynamics in the fusion-by-diffusion model for fusion-evaporation production cross sections.",
+      "url": "projects.html#fusion",
+      "link": "Explore project"
+    },
+    {
+      "title": "Teaching",
+      "text": "PHYS 143 lecture notes, slides, tutorials and practice questions, with research-informed learning resources.",
+      "url": "teaching.html",
+      "link": "Explore teaching"
     }
   ],
   "hero_line1": "Researcher in Nuclear Physics",
@@ -168,50 +168,6 @@
       "text": "Development of data pipelines, scientific software, computational workflows, and machine learning applications for research and analytics.",
       "button": "Explore Data Science, ML and Engineering",
       "url": "data-engineering.html"
-    }
-  ],
-  "positioning": [
-    {
-      "title": "Academic Profile",
-      "links": [
-        {
-          "label": "Research",
-          "url": "research.html"
-        },
-        {
-          "label": "Teaching",
-          "url": "teaching.html"
-        },
-        {
-          "label": "Publications",
-          "url": "publications.html"
-        },
-        {
-          "label": "Students",
-          "url": "students.html"
-        }
-      ]
-    },
-    {
-      "title": "Technical Profile",
-      "links": [
-        {
-          "label": "Data Science and Analytics",
-          "url": "data-engineering.html#analysis"
-        },
-        {
-          "label": "Machine Learning",
-          "url": "data-engineering.html#retrieval"
-        },
-        {
-          "label": "Data Engineering",
-          "url": "data-engineering.html#pipelines"
-        },
-        {
-          "label": "Scientific Computing",
-          "url": "projects.html"
-        }
-      ]
     }
   ],
   "stats": [
@@ -245,5 +201,41 @@
         "url": "cv.html"
       }
     ]
+  },
+  "technical_title": "Technical Portfolio",
+  "technical": [
+    {
+      "title": "Scientific Computing",
+      "url": "projects.html",
+      "items": [
+        "Numerical modelling",
+        "Scientific software development",
+        "Computational simulation"
+      ]
+    },
+    {
+      "title": "Data Science and Machine Learning",
+      "url": "data-engineering.html#analysis",
+      "items": [
+        "Exploratory data analysis",
+        "Statistical modelling",
+        "Machine learning",
+        "Data visualisation"
+      ]
+    },
+    {
+      "title": "Data Engineering",
+      "url": "data-engineering.html#pipelines",
+      "items": [
+        "Data pipelines",
+        "ETL and workflow orchestration",
+        "Data migration",
+        "Dashboards and reporting"
+      ]
+    }
+  ],
+  "technical_button": {
+    "label": "Explore Data Science, ML and Engineering",
+    "url": "data-engineering.html"
   }
 }
