@@ -28,7 +28,7 @@ Open https://app.pagescms.org, choose the repository, choose a form, change the 
 | Teaching: practice questions | The multiple-choice questions for each lecture (choose a lecture, then edit its questions, options, correct option and explanation) |
 | Teaching: Laboratory courses | The Laboratory page: course cards and the shared uncertainty lecture card |
 | Projects | The Projects page: overview and research projects (KEWPIE3 with its topic line, Fusion dynamics) |
-| Data Science, ML and Engineering | The Data Science, ML and Engineering page: overview, certification, project cards in groups (pipelines and migration, machine learning and retrieval, data analysis), tools |
+| Data Science, ML and Engineering | The page: opening statement, the OpenClassrooms programme, project cards in three groups (Data Engineering, Machine Learning and Retrieval, Data Analysis) each with a topic line and Problem, Approach, Technical implementation, Validation and Outcome sections, and the Technical areas list |
 | Publications | All publications, the year filter buttons, and the three selected publications on the home page |
 | CV page | The CV summary page (education, appointments, awards, skills) |
 | Students | The Students page |
@@ -46,7 +46,7 @@ The **Media** tab uploads files: lecture PDFs (PHYS 143, PHYS 105), the CV PDF a
 
 **Add a research project.** Form: Research, "Current research", **Add**. Fill in the status label, a short name (shown on the home page), the title and the paragraphs.
 
-**Add a project card.** Form: Data Science, ML and Engineering, "Groups of projects", open a group, **Add** under "Projects in this group". Research projects such as KEWPIE3 are in the Projects form under "Research projects".
+**Add a project card.** Form: Data Science, ML and Engineering, "Groups of projects", open a group, **Add** under "Projects in this group", then fill in the description sections. Research projects such as KEWPIE3 are in the Projects form under "Research projects".
 
 **Change contact details.** Form: Site settings. The Contact page, the footer and the home page links all read from it.
 

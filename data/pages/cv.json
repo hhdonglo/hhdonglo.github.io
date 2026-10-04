@@ -48,12 +48,14 @@
         },
         {
           "style": "plain",
-          "title": "Research skills",
+          "title": "Research and technical skills",
           "bullets": [
             "Nuclear modelling: Langevin dynamics, KEWPIE2 and KEWPIE3",
             "Bayesian inference and uncertainty quantification",
             "Machine learning and data analysis in Python",
-            "C++ and Python for high-performance computing, Git"
+            "Data engineering: SQL, PostgreSQL, MongoDB, ETL and workflow orchestration",
+            "Scientific computing: C++, Python and high-performance computing",
+            "Software development: Git, Docker, testing and reproducible workflows"
           ]
         }
       ]

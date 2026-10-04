@@ -1,73 +1,79 @@
 {
   "intro_title": "Overview",
-  "intro": "Data science, machine learning and engineering work, complementary to the research: reproducible pipelines, tests that check the data, stated assumptions and results that can be reproduced. For the physics and the research software, see [Projects](projects.html) and [Research](research.html).",
-  "certification": {
-    "title": "Data and ML Engineering, OpenClassrooms",
-    "text": "Level 7 qualification (Bac+5, RNCP), followed from 2025 to 2026. The project-based programme covers the full data lifecycle: relational and NoSQL databases, ETL pipelines, containerisation, cloud services, workflow orchestration, streaming and retrieval-augmented generation. The projects below are the ones with a public repository."
+  "intro": "I develop data science, machine learning and engineering skills alongside my scientific computing work, with an interest in applying these methods to data-intensive problems in research and industry.",
+  "programme": {
+    "title": "Data and Machine Learning Engineering",
+    "subtitle": "OpenClassrooms · RNCP 39775",
+    "text": "Level 7 qualification (Bac+5), followed from 2025 to 2026. The project-based programme develops practical skills in:",
+    "skills": [
+      "data engineering",
+      "machine learning",
+      "data analysis",
+      "databases",
+      "workflow orchestration",
+      "software development",
+      "reproducible computational workflows"
+    ],
+    "note": "Each project below was completed for a fictional client scenario set by the programme, and the projects are the ones with a public repository. Descriptions follow the repository documentation."
   },
-  "projects_note": "Each project was completed for a fictional client scenario set by the programme. Descriptions follow the repository documentation.",
   "groups": [
     {
       "id": "pipelines",
-      "title": "Data pipelines and migration",
+      "title": "Data Engineering",
       "projects": [
         {
           "title": "Employee Sports Benefits Data Platform",
-          "type": "Data engineering · Pipelines",
-          "description": "An end-to-end pipeline for a fictional company, built to test the feasibility of two employee benefits and to estimate their financial impact: loading and validating HR and activity data, orchestrating the workflow, posting activities to Slack and presenting indicators on a dashboard.",
-          "details": [
+          "topics": "Data engineering · ETL · Workflow orchestration",
+          "scenario": "Fictional client scenario set by the programme.",
+          "sections": [
             {
-              "label": "Data",
-              "text": "simulated employee and activity data (161 employees); commute distances validated with the Google Maps Distance Matrix API"
+              "label": "Problem",
+              "text": "A fictional company wanted to test the feasibility of two employee benefits and to estimate their financial impact."
             },
             {
-              "label": "Method",
-              "text": "Airflow DAGs, a PostgreSQL store, data-quality checks, Superset dashboards and numbered Bash scripts as a manual fallback, all containerised with Docker Compose"
+              "label": "Approach",
+              "text": "An end-to-end pipeline that loads and validates HR and activity data, orchestrates the workflow, posts activities to Slack and presents indicators on a dashboard."
             },
             {
-              "label": "Scope",
-              "text": "a proof of concept; activity data is simulated, not read from a live service"
+              "label": "Technical implementation",
+              "text": "Airflow DAGs orchestrate the workflow, with a PostgreSQL store, Superset dashboards and numbered Bash scripts as a manual fallback, all containerised with Docker Compose. The data are simulated employee and activity data (161 employees)."
+            },
+            {
+              "label": "Validation",
+              "text": "Data-quality checks run in the pipeline, and commute distances are validated with the Google Maps Distance Matrix API."
+            },
+            {
+              "label": "Outcome",
+              "text": "A proof of concept; activity data is simulated, not read from a live service."
             }
-          ],
-          "tools": [
-            "Python",
-            "pandas",
-            "SQLAlchemy",
-            "PostgreSQL",
-            "Apache Airflow",
-            "Apache Superset",
-            "Docker",
-            "Slack API",
-            "Poetry"
           ],
           "repo": "https://github.com/hhdonglo/project_12"
         },
         {
           "title": "Healthcare Data Migration Pipeline",
-          "type": "Data engineering · Databases",
-          "description": "A CSV to MongoDB migration for a fictional healthcare provider with scalability problems, with automated cleaning, integrity testing and a containerised deployment, plus a written study of cloud deployment options on AWS.",
-          "details": [
+          "topics": "Data engineering · ETL · Database migration",
+          "scenario": "Fictional client scenario set by the programme.",
+          "sections": [
             {
-              "label": "Data",
-              "text": "54,966 medical records after cleaning (55,500 in the source file)"
+              "label": "Problem",
+              "text": "A fictional healthcare provider with scalability problems needed its medical records migrated from a CSV file to MongoDB."
             },
             {
-              "label": "Method",
-              "text": "seven-step ETL workflow; name standardisation and duplicate removal; memory use reduced by 21% through categorical and datetime types; five integrity tests passing under pytest"
+              "label": "Approach",
+              "text": "A seven-step ETL workflow with automated cleaning and integrity testing, a containerised deployment, and a written study of cloud deployment options on AWS."
+            },
+            {
+              "label": "Technical implementation",
+              "text": "Name standardisation and duplicate removal, and memory use reduced by 21% through categorical and datetime types. Built with Python, pandas, PyMongo, MongoDB, Docker, pytest and Poetry."
+            },
+            {
+              "label": "Validation",
+              "text": "Five integrity tests pass under pytest. 54,966 medical records remain after cleaning (55,500 in the source file)."
             },
             {
               "label": "Outcome",
-              "text": "Docker Compose deployment of MongoDB with a web interface for the database, and an AWS comparison of DocumentDB, Atlas, EC2 and ECS"
+              "text": "A Docker Compose deployment of MongoDB with a web interface for the database, and an AWS comparison of DocumentDB, Atlas, EC2 and ECS."
             }
-          ],
-          "tools": [
-            "Python",
-            "pandas",
-            "MongoDB",
-            "PyMongo",
-            "Docker",
-            "pytest",
-            "Poetry"
           ],
           "repo": "https://github.com/hhdonglo/csv-containerisation-mongodb"
         }
@@ -75,35 +81,33 @@
     },
     {
       "id": "retrieval",
-      "title": "Machine learning and retrieval",
+      "title": "Machine Learning and Retrieval",
       "projects": [
         {
           "title": "RAG Chatbot for Cultural Event Recommendations",
-          "type": "Data engineering · Machine learning · RAG · Proof of concept",
-          "description": "A retrieval-augmented generation proof of concept that recommends cultural events in Paris from live Open Agenda data, so answers are grounded in real listings rather than the general knowledge of a language model.",
-          "details": [
+          "topics": "Machine learning · Information retrieval · RAG",
+          "scenario": "Fictional client scenario set by the programme.",
+          "sections": [
             {
-              "label": "Data",
-              "text": "events fetched from the Open Agenda API, cleaned and filtered to the past 12 months in the Paris region"
+              "label": "Problem",
+              "text": "Recommending cultural events in Paris so that answers are grounded in real listings rather than in the general knowledge of a language model."
             },
             {
-              "label": "Method",
-              "text": "one text chunk per event, embedded and indexed for similarity search; a single LangChain chain serves both the Streamlit chatbot and the RAGAS evaluation (30 questions); 25 automated pytest tests"
+              "label": "Approach",
+              "text": "A retrieval-augmented generation proof of concept using live Open Agenda data. Events are fetched from the Open Agenda API, cleaned and filtered to the past 12 months in the Paris region, with one text chunk per event, embedded and indexed for similarity search."
             },
             {
-              "label": "Scope",
-              "text": "a proof of concept: single-turn, one data source, manual rebuilds"
+              "label": "Technical implementation",
+              "text": "A single LangChain chain serves both the Streamlit chatbot and the evaluation, with Mistral AI and FAISS. Built with Python, LangChain, Mistral AI, FAISS, Streamlit, RAGAS, pytest and Poetry."
+            },
+            {
+              "label": "Validation",
+              "text": "Evaluation with RAGAS on 30 questions, and 25 automated pytest tests."
+            },
+            {
+              "label": "Outcome",
+              "text": "A proof of concept: single-turn, one data source, manual rebuilds."
             }
-          ],
-          "tools": [
-            "Python",
-            "LangChain",
-            "Mistral AI",
-            "FAISS",
-            "Streamlit",
-            "RAGAS",
-            "pytest",
-            "Poetry"
           ],
           "repo": "https://github.com/hhdonglo/project_11"
         }
@@ -111,60 +115,61 @@
     },
     {
       "id": "analysis",
-      "title": "Data analysis",
+      "title": "Data Analysis",
       "projects": [
         {
           "title": "EduGlobe Insights: Education Data Analysis",
-          "type": "Data analysis",
-          "description": "An exploratory analysis of World Bank EdStats to judge whether the data can support the international expansion of an online education service for high school and university learners.",
-          "details": [
+          "topics": "Data analysis · Statistical analysis · Visualisation",
+          "scenario": "Fictional client scenario set by the programme.",
+          "sections": [
             {
-              "label": "Data",
-              "text": "the five EdStats tables (indicator values, series catalogue, country metadata, country-series links, footnotes), downloaded separately from the World Bank and not included in the repository"
+              "label": "Problem",
+              "text": "Judging whether World Bank EdStats data can support the international expansion of an online education service for high school and university learners."
             },
             {
-              "label": "Method",
-              "text": "exploration, cleaning and analysis in three Jupyter notebooks, with the questions of relevance, completeness and reliability of the indicators"
+              "label": "Approach",
+              "text": "Exploration, cleaning and analysis of the five EdStats tables (indicator values, series catalogue, country metadata, country-series links, footnotes), downloaded separately from the World Bank and not included in the repository."
+            },
+            {
+              "label": "Technical implementation",
+              "text": "Three Jupyter notebooks, using pandas, Matplotlib, Seaborn, Plotly and SciPy."
+            },
+            {
+              "label": "Validation",
+              "text": "The indicators are assessed for relevance, completeness and reliability."
             }
-          ],
-          "tools": [
-            "Python",
-            "pandas",
-            "Jupyter",
-            "Matplotlib",
-            "Seaborn",
-            "Plotly",
-            "SciPy"
           ],
           "repo": "https://github.com/hhdonglo/EduGlobe-Insights"
         }
       ]
     }
   ],
-  "tools_title": "Tools used in these projects",
-  "tools": [
-    "Python",
-    "LangChain",
-    "Mistral AI",
-    "FAISS",
-    "Streamlit",
-    "RAGAS",
-    "pytest",
-    "Poetry",
-    "pandas",
-    "SQLAlchemy",
-    "PostgreSQL",
-    "Apache Airflow",
-    "Apache Superset",
-    "Docker",
-    "Slack API",
-    "MongoDB",
-    "PyMongo",
-    "Jupyter",
-    "Matplotlib",
-    "Seaborn",
-    "Plotly",
-    "SciPy"
+  "tools_title": "Technical areas",
+  "tool_groups": [
+    {
+      "label": "Programming",
+      "items": "Python, C++, SQL"
+    },
+    {
+      "label": "Data",
+      "items": "pandas, PostgreSQL, MongoDB"
+    },
+    {
+      "label": "Data engineering",
+      "items": "Airflow, Docker, SQLAlchemy, ETL and workflow orchestration"
+    },
+    {
+      "label": "Machine learning and retrieval",
+      "items": "LangChain, FAISS, RAGAS, Mistral AI, retrieval-augmented generation"
+    },
+    {
+      "label": "Analysis",
+      "items": "Jupyter, SciPy, Matplotlib, Plotly"
+    },
+    {
+      "label": "Software development",
+      "items": "Git, pytest, Poetry, reproducible workflows"
+    }
   ],
   "footnote": "All code is on [github.com/hhdonglo](https://github.com/hhdonglo)."
 }

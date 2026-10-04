@@ -596,21 +596,28 @@ content:
     label: Overview heading
     type: string
   - name: intro
-    label: Overview text
+    label: Opening statement
     type: text
-  - name: certification
-    label: Certification
+  - name: programme
+    label: Programme
     type: object
     fields:
     - name: title
       label: Title
       type: string
+    - name: subtitle
+      label: Subtitle
+      type: string
     - name: text
       label: Text
       type: text
-  - name: projects_note
-    label: Note above the projects
-    type: text
+    - name: skills
+      label: Skills
+      type: string
+      list: true
+    - name: note
+      label: Note on fictional client scenarios
+      type: text
   - name: groups
     label: Groups of projects
     type: object
@@ -628,26 +635,22 @@ content:
       - name: title
         label: Title
         type: string
-      - name: type
-        label: Type line
+      - name: topics
+        label: Topic line
         type: string
-      - name: description
-        label: Description
-        type: text
-      - name: details
-        label: Details
+      - name: scenario
+        label: Scenario note (fictional client)
+        type: string
+      - name: sections
+        label: Description sections
         type: object
         fields:
         - name: label
-          label: Label
+          label: Label (Problem, Approach, Technical implementation, Validation, Outcome)
           type: string
         - name: text
           label: Text
           type: text
-        list: true
-      - name: tools
-        label: Tools
-        type: string
         list: true
       - name: repo
         label: GitHub link
@@ -655,11 +658,18 @@ content:
       list: true
     list: true
   - name: tools_title
-    label: Tools heading
+    label: Technical areas heading
     type: string
-  - name: tools
-    label: Tools
-    type: string
+  - name: tool_groups
+    label: Technical areas
+    type: object
+    fields:
+    - name: label
+      label: Area
+      type: string
+    - name: items
+      label: Technologies
+      type: string
     list: true
   - name: footnote
     label: Note at the end

@@ -380,3 +380,5 @@ ul.weeks{list-style:none;margin:.4rem 0 0;padding:0}
 @media (min-width:760px){.paths{grid-template-columns:repeat(2,1fr)}}
 .path .path-go{margin:auto 0 0;padding-top:.4rem}
 .status{margin:.1rem 0 .4rem}
+
+dl.tech{margin:0;display:grid;grid-template-columns:max-content 1fr;gap:.45rem 1rem}dl.tech dt{font-weight:700}dl.tech dd{margin:0}@media (max-width:560px){dl.tech{grid-template-columns:1fr;gap:.1rem}dl.tech dd{margin-bottom:.5rem}}
