@@ -570,3 +570,13 @@ nav.jump.js.open .menu-btn .dots::before{content:"Close \2715";font-size:.95rem;
 .ov-card.soon h4{margin:.2rem 0 0;font-size:1.5rem}
 .soon-tag{margin:.1rem 0 .7rem;font-size:1.05rem;font-style:italic;color:var(--muted)}
 @media (prefers-color-scheme:dark){.soon-badge{background:#2b4a7c}}
+/* Home: slim coming-soon strip */
+.home-soon{margin:1.2rem 0}
+.soon-strip{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem 1rem;padding:.8rem 1rem;border:1px solid var(--border);border-left:6px solid var(--brown);border-radius:8px;background:linear-gradient(135deg,var(--surface) 60%,var(--sky));color:inherit;text-decoration:none;min-height:44px}
+.soon-strip:hover,.soon-strip:focus-visible{border-color:var(--brown)}
+.soon-strip .soon-badge{margin:0}
+.soon-txt{display:flex;flex-direction:column;flex:1 1 14rem;font:.98rem/1.4 system-ui,sans-serif}
+.soon-txt strong{font:700 1.1rem/1.3 Georgia,serif;color:var(--navy)}
+.soon-txt span{color:var(--muted)}
+.soon-go{font:600 .95rem system-ui,sans-serif;color:var(--link);text-decoration:underline}
+@media (prefers-color-scheme:dark){.soon-txt strong{color:#c7dcf8}}

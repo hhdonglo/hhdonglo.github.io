@@ -237,5 +237,12 @@
   "technical_button": {
     "label": "Explore Data Science, ML and Engineering",
     "url": "data-engineering.html"
+  },
+  "soon": {
+    "status": "Coming soon",
+    "name": "NumeralAnalytics GH",
+    "tagline": "Physics-informed analytics for Ghana's physical industries",
+    "link_text": "Read more",
+    "url": "data-engineering.html#upcoming"
   }
 }

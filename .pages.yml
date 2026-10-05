@@ -142,6 +142,25 @@ content:
       label: Label
       type: string
     list: true
+  - name: soon
+    label: Coming-soon strip (links to the Upcoming card)
+    type: object
+    fields:
+    - name: status
+      label: Marker
+      type: string
+    - name: name
+      label: Name
+      type: string
+    - name: tagline
+      label: One-line purpose
+      type: string
+    - name: link_text
+      label: Link text
+      type: string
+    - name: url
+      label: Link (for example data-engineering.html#upcoming)
+      type: string
   - name: cta
     label: Call to action
     type: object
