@@ -13,13 +13,14 @@
           "width": 1000,
           "height": 563,
           "alt": "Chart of nuclides from curium (Z = 96) up to element 118, with proton number on the vertical axis and neutron number on the horizontal axis. Each known isotope is a coloured cell, and the cells run diagonally upward and to the right, ending at oganesson near neutron number 177.",
-          "caption": "Chart of nuclides from curium (Z = 96) to element 118, with neutron number on the horizontal axis.",
+          "caption": "Chart of nuclides from curium (Z = 96) to element 118, with neutron number on the horizontal axis [4].",
           "text": [
             "Within the Liquid Drop Model, nuclei beyond Z ≈ 104 have no fission barrier and should disintegrate at once. Yet they exist.",
             "Quantum shell corrections add the extra binding energy that stabilises them. The next closed shells are predicted at Z = 114 or 126 and N = 184, the so-called island of stability.",
             "Superheavy elements are not found in nature. They are made artificially, one atom at a time, with heavy-ion accelerators."
           ],
-          "display_width": 380
+          "display_width": 380,
+          "credit": "Figure from D. Ackermann, [Prog. Part. Nucl. Phys. 147, 104215 (2026)](https://doi.org/10.1016/j.ppnp.2025.104215)."
         }
       ]
     },
@@ -146,7 +147,8 @@
   "references": [
     "[1] S. Hofmann et al., Pure Appl. Chem. 92(9), 1387–1446 (2020).",
     "[2] H. Lü, A. Marchix, Y. Abe and D. Boilley, “Kewpie2: A cascade code for the study of dynamical decay of excited nuclei”, Comput. Phys. Commun. 200, 381–399 (2016).",
-    "[3] R. Naik, W. Loveland, P. Sprunger, A. Vinodkumar, D. Peterson, C. Jiang, S. Zhu, X. Tang, E. Moore and P. Chowdhury, “Measurement of the fusion probability P_CN for the reaction of ^50^Ti with ^208^Pb”, Phys. Rev. C 76(5), 054604 (2007)."
+    "[3] R. Naik, W. Loveland, P. Sprunger, A. Vinodkumar, D. Peterson, C. Jiang, S. Zhu, X. Tang, E. Moore and P. Chowdhury, “Measurement of the fusion probability P_CN for the reaction of ^50^Ti with ^208^Pb”, Phys. Rev. C 76(5), 054604 (2007).",
+    "[4] D. Ackermann, “Decay spectroscopy of heavy and superheavy nuclei”, Prog. Part. Nucl. Phys. 147, 104215 (2026), [doi:10.1016/j.ppnp.2025.104215](https://doi.org/10.1016/j.ppnp.2025.104215)."
   ],
   "intro": "Fusion–evaporation reactions and the synthesis of superheavy elements are parts of one subject, nuclear reaction dynamics, described by the same three-step factorisation of the evaporation residue cross section. Production cross sections for superheavy nuclei, including Z = 119 and Z = 120, are predicted with KEWPIE3, which refines the KEWPIE2 cascade code for the survival step [2] by implementing and calibrating the formation step. The work connects to experimental studies of synthesis and decay at S^3^."
 }
