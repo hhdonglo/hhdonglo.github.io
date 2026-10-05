@@ -51,7 +51,7 @@ content:
       type: string
     list: true
   - name: intro_paragraphs
-    label: Introduction card (two paragraphs)
+    label: Introduction (two paragraphs)
     type: text
     list: true
   - name: blocks
@@ -78,7 +78,7 @@ content:
       list: true
     list: true
   - name: highlights
-    label: Featured highlights (two cards)
+    label: Research cards (three)
     type: object
     fields:
     - name: figure
@@ -100,26 +100,17 @@ content:
       label: Button link
       type: string
     list: true
-  - name: technical_title
-    label: Technical Portfolio heading
+  - name: highlights_title
+    label: Research heading
     type: string
-  - name: technical
-    label: Technical Portfolio groups
-    type: object
-    fields:
-    - name: title
-      label: Group title
-      type: string
-    - name: url
-      label: Title link
-      type: string
-    - name: items
-      label: Items
-      type: string
-      list: true
-    list: true
+  - name: technical_title
+    label: Scientific Computing, Data Science and Engineering heading
+    type: string
+  - name: technical_text
+    label: Scientific Computing, Data Science and Engineering text
+    type: text
   - name: technical_button
-    label: Technical Portfolio button
+    label: Scientific Computing, Data Science and Engineering button
     type: object
     fields:
     - name: label
@@ -131,12 +122,22 @@ content:
   - name: affiliation
     label: Affiliation line under the position
     type: string
+  - name: stats_title
+    label: At a Glance heading
+    type: string
   - name: stats
-    label: Impact numbers strip
+    label: At a Glance items
     type: object
     fields:
+    - name: source
+      label: Count automatically (lectures = lectures marked available, projects = Data Science, ML and Engineering projects;
+        leave empty for a fixed number)
+      type: string
     - name: value
-      label: Number (whole number, counts up)
+      label: Fixed number (whole number, counts up; leave empty with no source for a text-only item)
+      type: string
+    - name: suffix
+      label: Suffix (for example +)
       type: string
     - name: label
       label: Label
@@ -183,10 +184,10 @@ content:
         type: string
       list: true
   - name: working_title
-    label: Heading of the current work block
+    label: Heading of the Currently Working On block
     type: string
   - name: working
-    label: Current work (three items)
+    label: Currently Working On (three items)
     type: object
     fields:
     - name: title
@@ -202,6 +203,60 @@ content:
       label: Link text
       type: string
     list: true
+  - name: teaching_block
+    label: Teaching block (clear the title to hide it)
+    type: object
+    fields:
+    - name: title
+      label: Heading
+      type: string
+    - name: text
+      label: Text
+      type: text
+    - name: list_intro
+      label: Line before the list
+      type: string
+    - name: items
+      label: Teaching resources list
+      type: string
+      list: true
+    - name: button
+      label: Button
+      type: object
+      fields:
+      - name: label
+        label: Text
+        type: string
+      - name: url
+        label: Link
+        type: string
+  - name: academic
+    label: Academic Profile (clear the title to hide it)
+    type: object
+    fields:
+    - name: title
+      label: Heading
+      type: string
+    - name: paragraphs
+      label: Paragraphs
+      type: text
+      list: true
+    - name: button
+      label: Button
+      type: object
+      fields:
+      - name: label
+        label: Text
+        type: string
+      - name: url
+        label: Link
+        type: string
+  - name: publications_heading
+    label: Selected Publications heading
+    type: string
+  - name: publications_link_label
+    label: Link text to the Publications page
+    type: string
 - name: research
   label: Research
   type: file

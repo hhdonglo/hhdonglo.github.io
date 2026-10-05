@@ -9,8 +9,8 @@
     }
   ],
   "intro_paragraphs": [
-    "I am a Lecturer in the Department of Physics at the University of Ghana and a theoretical nuclear physicist. I earned a PhD in Theoretical Nuclear Physics from Université de Caen Normandie, France, as a Marie Skłodowska-Curie COFUND Fellow within the CEA NUMERICS doctoral programme. Prior to this, I completed an Erasmus Mundus Joint Master's in Nuclear Physics across universities in Spain, Italy, and France.",
-    "My research focuses on superheavy-element synthesis, nuclear reaction modelling, uncertainty quantification, and scientific computing. I study heavy-ion reactions and compound-nucleus formation, and contribute to the development of the KEWPIE3 code for fusion-evaporation reaction studies. My interests also include scientific software development, data science, machine learning, and data engineering."
+    "I am a theoretical nuclear physicist and Lecturer in Physics at the University of Ghana. My research focuses on nuclear reaction dynamics, the synthesis of superheavy elements, scientific computing, and uncertainty quantification.",
+    "Alongside my research, I develop computational and data-driven methods for scientific applications, with interests in data science, machine learning, and data engineering."
   ],
   "blocks": [
     {
@@ -130,112 +130,95 @@
       ]
     }
   ],
-  "working_title": "Current work",
+  "working_title": "Currently Working On",
   "working": [
     {
       "title": "KEWPIE3",
-      "text": "Development and validation of the new version of the KEWPIE2 code for fusion-evaporation cross-section predictions in superheavy element synthesis.",
+      "text": "Development of computational tools for fusion–evaporation cross-section calculations, parameter calibration, sensitivity analysis, and uncertainty propagation.",
       "url": "projects.html#kewpie3",
-      "link": "Explore project"
+      "link": "View Project"
     },
     {
       "title": "Fusion Dynamics",
-      "text": "Revisiting the fusion dynamics in the fusion-by-diffusion model for fusion-evaporation production cross sections.",
+      "text": "Research on fusion-by-diffusion and dynamical descriptions of heavy-ion fusion leading to the formation of superheavy nuclei.",
       "url": "projects.html#fusion",
-      "link": "Explore project"
+      "link": "View Project"
     },
     {
-      "title": "Teaching",
-      "text": "PHYS 143 lecture notes, slides, tutorials and practice questions, with research-informed learning resources.",
-      "url": "teaching.html",
-      "link": "Explore teaching"
+      "title": "Scientific Computing",
+      "text": "Development of computational workflows for parameter studies, distributed calculations, optimisation, and reproducible scientific analysis.",
+      "url": "projects.html",
+      "link": "View Projects"
     }
   ],
-  "hero_line1": "Researcher in Nuclear Physics",
-  "hero_line2": "and **Data-Intensive Computing**",
+  "hero_line1": "Lecturer in Physics",
+  "hero_line2": "Department of Physics, University of Ghana",
   "affiliation": "University of Ghana",
   "highlights": [
     {
-      "title": "Superheavy-Element Synthesis",
-      "text": "Research on the reaction mechanisms governing the synthesis of superheavy elements, including heavy-ion fusion, compound-nucleus formation, and uncertainty quantification in reaction models.",
-      "button": "Explore Research",
-      "url": "research.html",
       "figure": "fusion",
-      "figure_alt": "Diagram: two nuclei approach, touch and fuse into one larger superheavy nucleus."
+      "figure_alt": "Diagram: two nuclei approach, touch and fuse into one larger superheavy nucleus.",
+      "title": "Superheavy-Element Synthesis",
+      "text": "I study the reaction mechanisms governing the formation of superheavy nuclei, with particular interest in fusion dynamics, formation probabilities, survival probabilities, and theoretical modelling of fusion–evaporation reactions.",
+      "button": "Explore Research →",
+      "url": "research.html#superheavy"
     },
     {
-      "title": "Data Engineering and Scientific Computing",
-      "text": "Development of data pipelines, scientific software, computational workflows, and machine learning applications for research and analytics.",
-      "button": "Explore Data Science, ML and Engineering",
-      "url": "data-engineering.html"
+      "figure": "",
+      "figure_alt": "",
+      "title": "Nuclear Reaction Modelling",
+      "text": "Development and application of theoretical models and computational methods for describing heavy-ion reactions and the formation of heavy and superheavy nuclei.",
+      "button": "Explore Research →",
+      "url": "research.html#reaction-dynamics"
+    },
+    {
+      "figure": "",
+      "figure_alt": "",
+      "title": "Uncertainty Quantification",
+      "text": "Investigation of model sensitivity, parameter variation, calibration, and uncertainty propagation in nuclear-reaction calculations.",
+      "button": "Explore Research →",
+      "url": "research.html#uncertainty"
     }
   ],
   "stats": [
     {
-      "value": "11",
-      "label": "weekly lectures online for PHYS 143"
+      "value": "",
+      "source": "lectures",
+      "suffix": "",
+      "label": "Weekly lectures online"
     },
     {
       "value": "220",
-      "label": "practice questions with worked feedback"
+      "source": "",
+      "suffix": "+",
+      "label": "Practice questions"
     },
     {
-      "value": "4",
-      "label": "data, ML and engineering projects"
+      "value": "",
+      "source": "projects",
+      "suffix": "",
+      "label": "Data, ML and engineering projects"
     },
     {
-      "value": "3",
-      "label": "countries of postgraduate training: Spain, Italy and France"
+      "value": "",
+      "source": "",
+      "suffix": "",
+      "label": "Postgraduate training across 3 countries"
     }
   ],
   "cta": {
-    "title": "Get in touch",
-    "text": "Questions about research, teaching or collaboration are welcome.",
+    "title": "Contact",
+    "text": "Hope Donglo · Department of Physics · University of Ghana",
     "buttons": [
       {
-        "label": "Contact",
+        "label": "Contact →",
         "url": "contact.html"
-      },
-      {
-        "label": "View CV",
-        "url": "cv.html"
       }
     ]
   },
-  "technical_title": "Technical Portfolio",
-  "technical": [
-    {
-      "title": "Scientific Computing",
-      "url": "projects.html",
-      "items": [
-        "Numerical modelling",
-        "Scientific software development",
-        "Computational simulation"
-      ]
-    },
-    {
-      "title": "Data Science and Machine Learning",
-      "url": "data-engineering.html#analysis",
-      "items": [
-        "Exploratory data analysis",
-        "Statistical modelling",
-        "Machine learning",
-        "Data visualisation"
-      ]
-    },
-    {
-      "title": "Data Engineering",
-      "url": "data-engineering.html#pipelines",
-      "items": [
-        "Data pipelines",
-        "ETL and workflow orchestration",
-        "Data migration",
-        "Dashboards and reporting"
-      ]
-    }
-  ],
+  "technical_title": "Scientific Computing, Data Science and Engineering",
   "technical_button": {
-    "label": "Explore Data Science, ML and Engineering",
+    "label": "Explore Technical Work →",
     "url": "data-engineering.html"
   },
   "soon": {
@@ -244,5 +227,36 @@
     "tagline": "Physics-informed analytics for Ghana's physical industries",
     "link_text": "Read more",
     "url": "data-engineering.html#upcoming"
-  }
+  },
+  "highlights_title": "Research",
+  "technical_text": "I apply computational and data-driven methods to scientific problems, with interests spanning scientific software, high-performance computing, data analysis, machine learning, and reproducible computational workflows.",
+  "teaching_block": {
+    "title": "Teaching",
+    "text": "I teach undergraduate physics at the University of Ghana, with an emphasis on clear conceptual development, quantitative reasoning, and problem-solving.",
+    "list_intro": "Current teaching resources include:",
+    "items": [
+      "PHYS 143 – Mechanics and Thermal Physics",
+      "Lecture notes and slides",
+      "Worked examples and practice questions",
+      "Additional learning resources"
+    ],
+    "button": {
+      "label": "Explore Teaching →",
+      "url": "teaching.html"
+    }
+  },
+  "academic": {
+    "title": "Academic Profile",
+    "paragraphs": [
+      "My academic background spans experimental and theoretical nuclear physics, scientific computing, and data-intensive research.",
+      "I completed my undergraduate studies at the University of Ghana before undertaking postgraduate training in theoretical nuclear physics in Europe and doctoral research on the synthesis of superheavy elements."
+    ],
+    "button": {
+      "label": "View CV →",
+      "url": "cv.html"
+    }
+  },
+  "stats_title": "At a Glance",
+  "publications_heading": "Selected Publications",
+  "publications_link_label": "View All Publications →"
 }
