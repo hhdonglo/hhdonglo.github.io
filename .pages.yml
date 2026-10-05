@@ -754,6 +754,23 @@ content:
       label: Paragraphs
       type: text
       list: true
+    - name: equations_title
+      label: Equations block heading (optional)
+      type: string
+    - name: equations_summary
+      label: Equations toggle text (optional, default Show the equations)
+      type: string
+    - name: equations
+      label: Equations (optional)
+      type: object
+      fields:
+      - name: tex
+        label: Equation as LaTeX (for example \frac{a}{b})
+        type: text
+      - name: text
+        label: Plain-language line under the equation
+        type: text
+      list: true
     - name: figures
       label: Figures
       type: object

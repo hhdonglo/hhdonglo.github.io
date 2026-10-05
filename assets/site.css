@@ -662,3 +662,16 @@ nav.jump.js.open .menu-btn .dots::before{content:"Close \2715";font-size:.95rem;
 .res-b{display:grid;grid-template-columns:1fr 1fr;gap:.4rem}
 .lecture-buttons .res .btn{min-height:44px;font-size:.92rem;padding:.3rem .4rem;flex-direction:row}
 @media (max-width:700px){.lecture-buttons .res .btn{min-height:44px}}
+/* Equations (KaTeX, Projects page only) */
+details.eqs{margin:.6rem 0 1rem;font-size:1rem}
+details.eqs>summary{min-height:44px;display:flex;align-items:center;font:600 .95rem system-ui,sans-serif;color:var(--link)}
+.eqs-in{border-left:3px solid var(--brown-edge);padding:.2rem 0 .2rem .9rem}
+.eqs-in h5{margin:.3rem 0 .6rem;font:700 1rem system-ui,sans-serif}
+.eq-item{margin:0 0 1rem}
+.eq{overflow-x:auto;overflow-y:hidden;max-width:100%;padding:.2rem 0;-webkit-overflow-scrolling:touch}
+.eq .katex-display{margin:.3rem 0;text-align:left}
+.eq .katex-display>.katex{text-align:left}
+.eq .katex{font-size:1.08em}
+.eq .tex:not(:has(.katex)){font:.85rem ui-monospace,monospace;white-space:pre-wrap}
+.eq-text{margin:.15rem 0 0;font-size:.95rem;color:var(--muted,inherit)}
+.ov-grid>*,.ov-card,.eqs,.eqs-in,.eq-item{min-width:0}

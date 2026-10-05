@@ -102,3 +102,9 @@ The practice quiz of lecture N lives at `phys143-lecture-N-practice.html`. The o
 - Lecture pages (PHYS 143): each lecture PDF shows a Preview (opens in a new tab) and a Download button automatically.
 - Course outline or syllabus: in the Lectures form, fill "Course outline or syllabus (PDF)" with the label and the PDF path (for example PHYS143/course_outline.pdf). Leave the path empty and nothing is shown. Preview and Download appear once it is filled.
 - Publications: each entry (and each Selected Publications item on Home) has "Links to the paper or preprint" (link text and address). Add only real, checked addresses (DOI, arXiv, HAL, publisher).
+
+## Equations on the Fusion dynamics card (Projects page)
+- In the Projects form, each research project has an optional "Equations (optional)" list. Each item has the equation typed as LaTeX and a plain-language line under it. Leave the list empty to hide the block.
+- The equations sit in a collapsed "Show the equations" toggle (text editable). Wide equations scroll sideways inside their own box on phones.
+- KaTeX is stored in assets/katex (no external service) and loads only when a card has equations. The Projects page links assets/katex/katex.min.css.
+- Source: equations (1), (14), (16) and (19) of the Fusion-by-Diffusion manuscript (still in preparation).

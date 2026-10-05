@@ -46,11 +46,22 @@ R["data-engineering"]=function(el,d){
   h+='<section aria-labelledby="de-tools"><h3 class="sub2" id="de-tools">'+md(d.tools_title)+'</h3><div class="ov-card"><dl class="tech">'+d.tool_groups.map(function(t){return '<dt>'+md(t.label)+':</dt><dd>'+md(t.items)+'</dd>'}).join("")+'</dl></div><p class="note">'+md(d.footnote)+'</p></section>';
   el.innerHTML=h;
 };
+var katexP;
+function loadKatex(){if(window.katex)return Promise.resolve();if(katexP)return katexP;katexP=new Promise(function(ok,no){var s=document.createElement("script");s.src="assets/katex/katex.min.js";s.onload=ok;s.onerror=no;document.head.appendChild(s)});return katexP}
+function eqs(x){
+  if(!x.equations||!x.equations.length)return "";
+  var t=x.equations_title||"The physics in brief";
+  return '<details class="eqs"><summary>'+esc(x.equations_summary||"Show the equations")+'</summary><div class="eqs-in"><h5>'+md(t)+'</h5>'+x.equations.map(function(q,i){return '<div class="eq-item"><div class="eq" role="group" tabindex="0" aria-label="Equation '+(i+1)+'"><span class="tex" data-tex="'+esc(q.tex)+'">'+esc(q.tex)+'</span></div><p class="eq-text">'+md(q.text||"")+'</p></div>'}).join("")+'</div></details>';
+}
+function texRender(root){
+  var n=root.querySelectorAll(".tex[data-tex]");if(!n.length)return;
+  loadKatex().then(function(){n.forEach(function(e){try{window.katex.render(e.getAttribute("data-tex"),e,{displayMode:true,throwOnError:false,output:"htmlAndMathml"})}catch(_){}})}).catch(function(){});
+}
 R.projects=function(el,d){
   var h='<section aria-labelledby="overview"><h3 class="sub2" id="overview">'+md(d.intro_title||"Overview")+'</h3><div class="ov-card"><p class="intro">'+md(d.intro)+'</p></div></section>';
-  if(d.research_projects)h+='<section aria-labelledby="research-projects"><h3 class="sub2" id="research-projects">'+md(d.research_projects_title||"Research projects")+'</h3><div class="ov-grid">'+d.research_projects.map(function(x){return '<article class="ov-card'+(x.figures&&x.figures.length?' wide':'')+'"'+(x.id?' id="'+esc(x.id)+'"':'')+'><p class="status">'+md(x.status)+'</p><h4>'+md(x.title)+'</h4>'+(x.topics?'<p class="status">'+md(x.topics)+'</p>':'')+(x.paragraphs||[]).map(function(q){return '<p>'+md(q)+'</p>'}).join("")+(x.figures&&x.figures.length?(x.figures.some(function(f){return f.heading})?figs(x.figures):'<div class="fig-row">'+figs(x.figures)+'</div>'):'')+'</article>'}).join("")+'</div></section>';
+  if(d.research_projects)h+='<section aria-labelledby="research-projects"><h3 class="sub2" id="research-projects">'+md(d.research_projects_title||"Research projects")+'</h3><div class="ov-grid">'+d.research_projects.map(function(x){return '<article class="ov-card'+((x.figures&&x.figures.length)||(x.equations&&x.equations.length)?' wide':'')+'"'+(x.id?' id="'+esc(x.id)+'"':'')+'><p class="status">'+md(x.status)+'</p><h4>'+md(x.title)+'</h4>'+(x.topics?'<p class="status">'+md(x.topics)+'</p>':'')+(x.paragraphs||[]).map(function(q){return '<p>'+md(q)+'</p>'}).join("")+eqs(x)+(x.figures&&x.figures.length?(x.figures.some(function(f){return f.heading})?figs(x.figures):'<div class="fig-row">'+figs(x.figures)+'</div>'):'')+'</article>'}).join("")+'</div></section>';
   if(d.software)h+='<section aria-labelledby="software"><h3 class="sub2" id="software">'+md(d.software.title)+'</h3><div class="ov-card"><p>'+md(d.software.text)+'</p><ul class="chips" aria-label="Tools">'+d.software.items.map(function(t){return '<li>'+md(t)+'</li>'}).join("")+'</ul></div></section>';
-  el.innerHTML=h;
+  el.innerHTML=h;texRender(el);
 };
 function flat(d){var o=[];d.groups.forEach(function(g){g.lectures.forEach(function(l){o.push({l:l,g:g})})});return o.sort(function(a,b){return a.l.number-b.l.number})}
 function ln(n){return ("0"+n).slice(-2)}
