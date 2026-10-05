@@ -1,4 +1,5 @@
 User-agent: *
+Disallow: /_transfer/
 Allow: /
 
 Sitemap: https://hhdonglo.github.io/sitemap.xml
