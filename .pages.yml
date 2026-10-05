@@ -800,6 +800,32 @@ content:
       label: Paragraphs after the equations
       type: text
       list: true
+    - name: figures
+      label: Figures (optional)
+      type: object
+      fields:
+      - name: image
+        label: Image path
+        type: string
+      - name: full
+        label: Large version (optional)
+        type: string
+      - name: width
+        label: Width in pixels
+        type: string
+      - name: height
+        label: Height in pixels
+        type: string
+      - name: alt
+        label: Alt text
+        type: text
+      - name: caption
+        label: Caption
+        type: text
+      - name: credit
+        label: Credit line
+        type: string
+      list: true
     list: true
   - name: references
     label: References
