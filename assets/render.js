@@ -31,6 +31,7 @@ R["pubs-home"]=function(el,d){el.innerHTML=d.home.map(function(i){return '<li><s
 R["research-lead"]=function(el,d){el.innerHTML='<h3 class="h4">'+md(d.overview_title||"Research Overview")+'</h3><p class="intro"><strong>'+md(d.question)+'</strong></p><p class="intro">'+md(d.intro)+'</p>'};
 R["research-pubs"]=function(el,d){el.innerHTML='<p>'+md(d.publications_text)+'</p><p><a class="btn primary" href="publications.html">'+esc(d.publications_link_label||"View all publications")+'</a></p>'};
 R["research-areas"]=function(el,d){el.innerHTML=d.areas.map(function(a,i){var lk=a.link&&a.equation;return '<article class="ov-card area'+(lk?' link-card wide':'')+'"'+(a.id?' id="'+esc(a.id)+'"':'')+'><p class="num">'+("0"+(i+1)).slice(-2)+'</p><h4>'+(lk?'<a class="card-link" href="'+esc(a.link)+'">'+md(a.title)+'<span class="vh"> (read more)</span></a>':md(a.title))+'</h4>'+(a.equation&&a.text?'<p>'+md(a.text)+'</p>':'')+(a.equation?(a.equation_label?'<p class="eq-label">'+md(a.equation_label)+'</p>':'')+'<div class="eq area-eq" role="group" tabindex="0" aria-label="Evaporation-residue cross section equation"><span class="tex" data-tex="'+esc(a.equation)+'">'+esc(a.equation)+'</span></div>':'<p>'+md(a.text)+'</p>')+(lk?'<p class="more" aria-hidden="true">'+esc(a.link_label||"Read more")+' →</p>':'')+'</article>'}).join("");texRender(el)};
+function ftext(t){t=t||[];if(t.length&&t.every(function(q){return /^- /.test(q)}))return '<ul class="plain">'+t.map(function(q){return '<li>'+md(q.slice(2))+'</li>'}).join("")+'</ul>';return t.map(function(q){return '<p>'+md(q)+'</p>'}).join("")}
 R["reaction-dynamics-page"]=function(el,d){
   var wrapN=0;
   var h=(d.intro?'<div class="ov-card"><p class="intro">'+md(d.intro)+'</p></div>':'');
@@ -41,7 +42,8 @@ R["reaction-dynamics-page"]=function(el,d){
     if(s.bullets&&s.bullets.length)b+='<ul class="plain">'+s.bullets.map(function(q){return '<li>'+md(q)+'</li>'}).join("")+'</ul>';
     b+=(s.equations||[]).map(function(q,i){return '<div class="eq-item"><div class="eq" role="group" tabindex="0" aria-label="Equation '+(i+1)+'"><span class="tex" data-tex="'+esc(q.tex)+'">'+esc(q.tex)+'</span></div><p class="eq-text">'+md(q.text||"")+'</p></div>'}).join("");
     b+=(s.after||[]).map(function(q){return '<p>'+md(q)+'</p>'}).join("");
-    if(s.figures&&s.figures.length)b+=s.figures.map(function(f){var side=(wrapN++%2)?"left":"right";return '<div class="fig-wrap fw-'+side+'">'+fig1(f).replace('<figure class="fig"','<figure class="fig" style="--fw:'+(f.height>f.width*1.2?Math.min(+f.width,340):(+f.width||420))+'px"')+(f.text||[]).map(function(q){return '<p>'+md(q)+'</p>'}).join("")+'</div>'}).join("");
+    if(s.figures&&s.figures.length&&s.figure_row)b+='<div class="fig-pair">'+s.figures.map(fig1).join("")+'</div>';
+    else if(s.figures&&s.figures.length)b+=s.figures.map(function(f){var side=(wrapN++%2)?"left":"right";return '<div class="fig-wrap fw-'+side+'">'+fig1(f).replace('<figure class="fig"','<figure class="fig" style="--fw:'+(f.height>f.width*1.2?Math.min(+f.width,340):(+f.width||420))+'px;--fmax:'+(+f.display_width||440)+'px;--fwp:'+((+f.display_width||0)>440?'54%':'46%')+'"')+ftext(f.text)+'</div>'}).join("");
     return b+'</div></section>'}).join("");
   if(d.references&&d.references.length)h+='<section aria-labelledby="refs-h"><h3 class="sub2" id="refs-h">References</h3><div class="ov-card refs">'+d.references.map(function(q){return '<p>'+md(q)+'</p>'}).join("")+'</div></section>';
   el.innerHTML=h;texRender(el);

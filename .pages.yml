@@ -803,6 +803,9 @@ content:
       label: Paragraphs after the equations
       type: text
       list: true
+    - name: figure_row
+      label: Show the figures side by side beneath the text (true or leave empty)
+      type: string
     - name: figures
       label: Figures (optional)
       type: object
@@ -818,6 +821,9 @@ content:
         type: string
       - name: height
         label: Height in pixels
+        type: string
+      - name: display_width
+        label: Display width on laptops in pixels (optional, default 440)
         type: string
       - name: alt
         label: Alt text

@@ -18,7 +18,8 @@
             "Within the Liquid Drop Model, nuclei beyond Z ≈ 104 have no fission barrier and should disintegrate at once. Yet they exist.",
             "Quantum shell corrections add the extra binding energy that stabilises them. The next closed shells are predicted at Z = 114 or 126 and N = 184, the so-called island of stability.",
             "Superheavy elements are not found in nature. They are made artificially, one atom at a time, with heavy-ion accelerators."
-          ]
+          ],
+          "display_width": 380
         }
       ]
     },
@@ -51,7 +52,16 @@
           "text": "Capture is summed over partial waves ℓ; formation (red) and survival (blue) are the probabilities that follow."
         }
       ],
-      "after": [],
+      "after": [
+        "**Capture** can be calculated reliably with optical models and barrier distributions.",
+        "**Survival** is treated with statistical models; the key challenge is predicting fission barriers accurately.",
+        "**Formation** is the most ambiguous step: published models differ by two to three orders of magnitude. It is the central focus of my work."
+      ]
+    },
+    {
+      "id": "challenges",
+      "heading": "The challenges",
+      "bullets": [],
       "figures": [
         {
           "image": "assets/figures/pcn-versus-z-cold-fusion.webp",
@@ -62,21 +72,12 @@
           "caption": "Formation probability P_CN versus Z_CN for cold fusion, calculated with different models; the models differ by 2 to 3 orders of magnitude.",
           "credit": "Figure from R. Naik et al., Phys. Rev. C 76, 054604 (2007).",
           "text": [
-            "**Capture** can be calculated reliably with optical models and barrier distributions.",
-            "**Survival** is treated with statistical models; the key challenge is predicting fission barriers accurately.",
-            "**Formation** is the most ambiguous step: published models differ by two to three orders of magnitude. It is the central focus of my work."
+            "- **Formation is ambiguous.** Models of the compound-nucleus formation probability disagree by orders of magnitude, and the process is hindered by quasi-fission.",
+            "- **Cross sections are tiny.** For the heaviest elements they are of the order of picobarns, and predictions for elements 119 and 120 are at the femtobarn level.",
+            "- **Fission barriers are uncertain.** The survival probability depends strongly on them.",
+            "- **One atom at a time.** Each event is rare, so every experiment is long and every prediction matters."
           ]
         }
-      ]
-    },
-    {
-      "id": "challenges",
-      "heading": "The challenges",
-      "bullets": [
-        "**Formation is ambiguous.** Models of the compound-nucleus formation probability disagree by orders of magnitude, and the process is hindered by quasi-fission.",
-        "**Cross sections are tiny.** For the heaviest elements they are of the order of picobarns, and predictions for elements 119 and 120 are at the femtobarn level.",
-        "**Fission barriers are uncertain.** The survival probability depends strongly on them.",
-        "**One atom at a time.** Each event is rare, so every experiment is long and every prediction matters."
       ]
     },
     {
@@ -107,36 +108,27 @@
     {
       "id": "successes",
       "heading": "Fusion–evaporation reactions: successes so far",
-      "paragraphs": [
-        "Fusion–evaporation reactions have produced elements up to Z = 118 [1]. The measured cross sections follow two patterns:"
-      ],
+      "paragraphs": [],
       "bullets": [],
       "figures": [
         {
-          "image": "assets/figures/cold-fusion-cross-sections.webp",
-          "full": "assets/figures/cold-fusion-cross-sections-full.webp",
-          "width": 729,
-          "height": 1012,
-          "alt": "Plot of measured cold-fusion (one-neutron channel) cross sections in picobarns, on a logarithmic axis from 10 to the power minus 3 up to 10 to the power 7, against the proton number of the compound nucleus from 100 to 120. Points for 208Pb and 209Bi targets with beams from 48Ca to 70Zn fall along a straight line, from about 2.5 times 10 to the power 5 pb at Z = 102 to about 0.02 pb at Z = 113.",
-          "caption": "Cold fusion (1n channel) with ^208^Pb and ^209^Bi targets: measured cross sections against proton number.",
-          "credit": "Figure from S. Hofmann et al., Pure Appl. Chem. 92(9), 1387–1446 (2020).",
-          "text": [
-            "**Cold fusion** (^208^Pb and ^209^Bi targets, one-neutron channel): cross sections fall steeply with proton number, from about 10^5^ pb near Z = 102 to about 10^−2^ pb near Z = 113 [1]."
-          ]
-        },
-        {
-          "image": "assets/figures/hot-fusion-cross-sections.webp",
-          "full": "assets/figures/hot-fusion-cross-sections-full.webp",
-          "width": 514,
+          "image": "assets/figures/fusion-evaporation-cross-sections.webp",
+          "full": "assets/figures/fusion-evaporation-cross-sections.webp",
+          "width": 1003,
           "height": 646,
-          "alt": "Plot of measured hot-fusion (three- and four-neutron channel) cross sections with a 48Ca beam, in picobarns on a logarithmic axis from 10 to the power minus 3 up to 10 to the power 7, against proton number from 100 to 120. Points for 208Pb, 209Bi and 226Ra targets fall steeply to about 15 pb at Z = 108. Points for 238U to 249Cf targets (superheavy nuclei, Z = 112 to 118) lie on a plateau of roughly 0.6 to 10 pb.",
-          "caption": "Hot fusion (3n and 4n channels) with a ^48^Ca beam: measured cross sections against proton number, with the superheavy nuclei (^238^U to ^249^Cf targets) on a plateau.",
+          "alt": "Two plots of measured fusion–evaporation cross sections in picobarns, on a logarithmic axis from 10 to the power minus 3 up to 10 to the power 7, against the proton number of the compound nucleus from 100 to 120. Panel a, cold fusion (one-neutron channel) with 208Pb and 209Bi targets and beams from 48Ca to 70Zn: points fall along a straight line from about 2.5 times 10 to the power 5 pb at Z = 102 to about 0.02 pb at Z = 113. Panel b, hot fusion (three- and four-neutron channels) with a 48Ca beam: points for 208Pb, 209Bi and 226Ra targets fall steeply to about 15 pb at Z = 108, and points for 238U to 249Cf targets (superheavy nuclei, Z = 112 to 118) lie on a plateau of roughly 0.6 to 10 pb.",
+          "caption": "Measured fusion–evaporation cross sections against the proton number of the compound nucleus. (a) Cold fusion (1n channel) with ^208^Pb and ^209^Bi targets. (b) Hot fusion (3n and 4n channels) with a ^48^Ca beam; the superheavy nuclei (^238^U to ^249^Cf targets) lie on a plateau.",
           "credit": "Figure from S. Hofmann et al., Pure Appl. Chem. 92(9), 1387–1446 (2020).",
           "text": [
-            "**Hot fusion** (^48^Ca beams on targets from ^238^U to ^249^Cf, three- and four-neutron channels): cross sections of the order of 1 to 10 pb for the elements from Z = 112 to Z = 118 [1]."
-          ]
+            "Fusion–evaporation reactions have produced elements up to Z = 118 [1]. The measured cross sections follow two patterns.",
+            "**Cold fusion** (^208^Pb and ^209^Bi targets, one-neutron channel): cross sections fall steeply with proton number, from about 10^5^ pb near Z = 102 to about 10^−2^ pb near Z = 113 [1].",
+            "**Hot fusion** (^48^Ca beams on targets from ^238^U to ^249^Cf, three- and four-neutron channels): cross sections of the order of 1 to 10 pb for the elements from Z = 112 to Z = 118 [1].",
+            "Cold fusion cross sections fall steeply with proton number, while hot fusion with ^48^Ca beams keeps them at the picobarn level up to Z = 118, which is why those elements could be reached [1]."
+          ],
+          "display_width": 560
         }
-      ]
+      ],
+      "after": []
     },
     {
       "id": "refine",

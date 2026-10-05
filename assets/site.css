@@ -699,7 +699,7 @@ ul.plain{margin:.4rem 0 1rem;padding-left:1.2rem}ul.plain li{margin:.45rem 0}
 .fig .credit{display:block;margin-top:.2rem;font-size:.85em;opacity:.85}
 /* Figures with wrapped text: natural proportions, modest width, never upscaled */
 .fig-wrap{display:flow-root;margin:.4rem 0 1rem}
-.fig-wrap .fig{width:min(46%,var(--fw,420px),440px);margin:.2rem 0 .8rem}
+.fig-wrap .fig{width:min(var(--fwp,46%),var(--fw,420px),var(--fmax,440px));margin:.2rem 0 .8rem}
 .fig-wrap.fw-right .fig{float:right;margin-left:1.4rem}
 .fig-wrap.fw-left .fig{float:left;margin-right:1.4rem}
 .fig-wrap .fig img{width:100%;height:auto}
@@ -708,3 +708,7 @@ ul.plain{margin:.4rem 0 1rem;padding-left:1.2rem}ul.plain li{margin:.45rem 0}
 .eq-label{margin:.5rem 0 .2rem;font:600 .95rem system-ui,sans-serif;color:var(--muted)}
 .link-card .area-eq{overflow-x:auto;max-width:100%}
 @media (max-width:900px){.link-card .area-eq .katex{font-size:.8em}}
+.fig-pair{display:grid;grid-template-columns:repeat(2,minmax(0,340px));gap:1.2rem 1.6rem;align-items:start;margin:.8rem 0 .2rem}
+.fig-pair .fig{margin:0;width:100%}
+@media (max-width:700px){.fig-pair{grid-template-columns:minmax(0,1fr)}.fig-pair .fig{max-width:var(--fw,420px)}}
+.fig-wrap .fig figcaption{font-size:.8rem}
