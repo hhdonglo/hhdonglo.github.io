@@ -108,8 +108,13 @@
     {
       "id": "successes",
       "heading": "Fusion–evaporation reactions: successes so far",
-      "paragraphs": [],
-      "bullets": [],
+      "paragraphs": [
+        "Fusion–evaporation reactions have produced elements up to Z = 118 [1]. The measured cross sections follow two patterns."
+      ],
+      "bullets": [
+        "**Cold fusion** (^208^Pb and ^209^Bi targets, one-neutron channel): cross sections fall steeply with proton number, from about 10^5^ pb near Z = 102 to about 10^−2^ pb near Z = 113 [1].",
+        "**Hot fusion** (^48^Ca beams on targets from ^238^U to ^249^Cf, three- and four-neutron channels): cross sections of the order of 1 to 10 pb for the elements from Z = 112 to Z = 118 [1]."
+      ],
       "figures": [
         {
           "image": "assets/figures/fusion-evaporation-cross-sections.webp",
@@ -117,18 +122,16 @@
           "width": 1003,
           "height": 646,
           "alt": "Two plots of measured fusion–evaporation cross sections in picobarns, on a logarithmic axis from 10 to the power minus 3 up to 10 to the power 7, against the proton number of the compound nucleus from 100 to 120. Panel a, cold fusion (one-neutron channel) with 208Pb and 209Bi targets and beams from 48Ca to 70Zn: points fall along a straight line from about 2.5 times 10 to the power 5 pb at Z = 102 to about 0.02 pb at Z = 113. Panel b, hot fusion (three- and four-neutron channels) with a 48Ca beam: points for 208Pb, 209Bi and 226Ra targets fall steeply to about 15 pb at Z = 108, and points for 238U to 249Cf targets (superheavy nuclei, Z = 112 to 118) lie on a plateau of roughly 0.6 to 10 pb.",
-          "caption": "Measured fusion–evaporation cross sections against the proton number of the compound nucleus. (a) Cold fusion (1n channel) with ^208^Pb and ^209^Bi targets. (b) Hot fusion (3n and 4n channels) with a ^48^Ca beam; the superheavy nuclei (^238^U to ^249^Cf targets) lie on a plateau.",
+          "caption": "Measured fusion–evaporation cross sections for superheavy-element synthesis against the proton number of the compound nucleus (CN). Panel (a): cold fusion (1n channel) with ^208^Pb and ^209^Bi targets. Panel (b): hot fusion (3n and 4n channels) with a ^48^Ca beam. Different symbols represent different projectiles; in panel (a), closed and open symbols indicate ^208^Pb and ^209^Bi targets. Lines guide the eye.",
           "credit": "Figure from S. Hofmann et al., Pure Appl. Chem. 92(9), 1387–1446 (2020).",
-          "text": [
-            "Fusion–evaporation reactions have produced elements up to Z = 118 [1]. The measured cross sections follow two patterns.",
-            "**Cold fusion** (^208^Pb and ^209^Bi targets, one-neutron channel): cross sections fall steeply with proton number, from about 10^5^ pb near Z = 102 to about 10^−2^ pb near Z = 113 [1].",
-            "**Hot fusion** (^48^Ca beams on targets from ^238^U to ^249^Cf, three- and four-neutron channels): cross sections of the order of 1 to 10 pb for the elements from Z = 112 to Z = 118 [1].",
-            "Cold fusion cross sections fall steeply with proton number, while hot fusion with ^48^Ca beams keeps them at the picobarn level up to Z = 118, which is why those elements could be reached [1]."
-          ],
-          "display_width": 560
+          "row": true
         }
       ],
-      "after": []
+      "after": [
+        "Cold fusion cross sections fall steeply with proton number, while hot fusion with ^48^Ca beams keeps them at the picobarn level up to Z = 118, which is why those elements could be reached [1].",
+        "Elements heavier than Z = 118 need new projectile–target combinations. Attempts to synthesise elements with Z = 119, 120 and 122 with projectiles heavier than ^48^Ca (^64^Ni + ^238^U, ^58^Fe + ^244^Pu, ^50^Ti + ^249^Bk, ^50^Ti + ^249^Cf and ^70^Zn + ^238^U) have so far produced no events. This underlines the need to choose the projectile with care, even where the target is readily available, since targets heavier than californium are highly radioactive and not suitable.",
+        "A recent experiment with ^50^Ti on ^244^Pu, aimed at Z = 116 with a beam other than ^48^Ca, gave a cross section of the order of 0.4 pb from two observed events. Beyond Z ≈ 114 the cross section starts to decrease, a limiting factor that can only be overcome by investigating alternative projectile–target combinations."
+      ]
     },
     {
       "id": "refine",

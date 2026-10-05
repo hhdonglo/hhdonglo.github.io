@@ -712,3 +712,4 @@ ul.plain{margin:.4rem 0 1rem;padding-left:1.2rem}ul.plain li{margin:.45rem 0}
 .fig-pair .fig{margin:0;width:100%}
 @media (max-width:700px){.fig-pair{grid-template-columns:minmax(0,1fr)}.fig-pair .fig{max-width:var(--fw,420px)}}
 .fig-wrap .fig figcaption{font-size:.8rem}
+.fig-solo{margin:1rem 0}.fig-solo .fig{max-width:min(100%,760px);margin:0}

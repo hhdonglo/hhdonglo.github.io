@@ -825,6 +825,9 @@ content:
       - name: display_width
         label: Display width on laptops in pixels (optional, default 440)
         type: string
+      - name: row
+        label: Show as a full-width row between the paragraphs, not beside text (true or leave empty)
+        type: string
       - name: alt
         label: Alt text
         type: text

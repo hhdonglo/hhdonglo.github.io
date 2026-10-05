@@ -41,9 +41,11 @@ R["reaction-dynamics-page"]=function(el,d){
     if(s.steps&&s.steps.length)b+='<ol class="steps">'+s.steps.map(function(t){return '<li class="step step-'+esc(t.tag||"")+'"><strong>'+md(t.title)+'</strong> '+md(t.text)+'</li>'}).join("")+'</ol>';
     if(s.bullets&&s.bullets.length)b+='<ul class="plain">'+s.bullets.map(function(q){return '<li>'+md(q)+'</li>'}).join("")+'</ul>';
     b+=(s.equations||[]).map(function(q,i){return '<div class="eq-item"><div class="eq" role="group" tabindex="0" aria-label="Equation '+(i+1)+'"><span class="tex" data-tex="'+esc(q.tex)+'">'+esc(q.tex)+'</span></div><p class="eq-text">'+md(q.text||"")+'</p></div>'}).join("");
+    var rowF=(s.figures||[]).filter(function(f){return f.row}),wrapF=(s.figures||[]).filter(function(f){return !f.row});
+    b+=rowF.map(function(f){return '<div class="fig-solo">'+fig1(f)+'</div>'}).join("");
     b+=(s.after||[]).map(function(q){return '<p>'+md(q)+'</p>'}).join("");
     if(s.figures&&s.figures.length&&s.figure_row)b+='<div class="fig-pair">'+s.figures.map(fig1).join("")+'</div>';
-    else if(s.figures&&s.figures.length)b+=s.figures.map(function(f){var side=(wrapN++%2)?"left":"right";return '<div class="fig-wrap fw-'+side+'">'+fig1(f).replace('<figure class="fig"','<figure class="fig" style="--fw:'+(f.height>f.width*1.2?Math.min(+f.width,340):(+f.width||420))+'px;--fmax:'+(+f.display_width||440)+'px;--fwp:'+((+f.display_width||0)>440?'54%':'46%')+'"')+ftext(f.text)+'</div>'}).join("");
+    else if(wrapF.length)b+=wrapF.map(function(f){var side=(wrapN++%2)?"left":"right";return '<div class="fig-wrap fw-'+side+'">'+fig1(f).replace('<figure class="fig"','<figure class="fig" style="--fw:'+(f.height>f.width*1.2?Math.min(+f.width,340):(+f.width||420))+'px;--fmax:'+(+f.display_width||440)+'px;--fwp:'+((+f.display_width||0)>440?'54%':'46%')+'"')+ftext(f.text)+'</div>'}).join("");
     return b+'</div></section>'}).join("");
   if(d.references&&d.references.length)h+='<section aria-labelledby="refs-h"><h3 class="sub2" id="refs-h">References</h3><div class="ov-card refs">'+d.references.map(function(q){return '<p>'+md(q)+'</p>'}).join("")+'</div></section>';
   el.innerHTML=h;texRender(el);
