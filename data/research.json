@@ -5,7 +5,7 @@
     {
       "title": "Nuclear Reaction Dynamics",
       "id": "reaction-dynamics",
-      "text": "Langevin-based stochastic modelling of heavy-ion reactions. Fusion–evaporation reactions and the synthesis of superheavy elements, including predictions for Z = 119 and Z = 120 with the KEWPIE2 and KEWPIE3 framework, are applications of the same description.",
+      "text": "Langevin-based stochastic modelling of heavy-ion reactions. Fusion–evaporation reactions and the synthesis of superheavy elements are applications of the same description, with predictions for Z = 119 and Z = 120 made with KEWPIE3.",
       "equation_label": "Evaporation residue cross section",
       "equation": "\\sigma_{\\mathrm{ER}}^{\\mathrm{Theo}}(E_{\\mathrm{cm}})=\\underbrace{\\pi\\lambda^{2}\\sum_{\\ell=0}^{\\infty}(2\\ell+1)\\,T_{\\ell}(E_{\\mathrm{cm}},\\ell)}_{\\text{Capture}}\\times\\htmlClass{eq-red}{\\underbrace{P_{\\mathrm{CN}}(E_{\\mathrm{cm}},\\ell)}_{\\text{Formation}}}\\times\\htmlClass{eq-blue}{\\underbrace{P^{xn}_{\\mathrm{surv}}(E^{*},\\ell)}_{\\text{Survival}}}",
       "link": "reaction-dynamics.html",
@@ -22,7 +22,7 @@
       "status": "Current project",
       "title": "KEWPIE3 development and validation",
       "paragraphs": [
-        "**Objective:** validate and publish KEWPIE3, the new version of the KEWPIE2 code for fusion-evaporation cross-section predictions in superheavy element synthesis.",
+        "**Objective:** validate and publish KEWPIE3, the refinement of the KEWPIE2 cascade code (which describes the survival of the excited nucleus) with an implemented and calibrated formation step, for fusion-evaporation cross-section predictions in superheavy element synthesis.",
         "**Key question:** how can the calculation of the compound nucleus formation probability be improved with Langevin-based stochastic approaches?",
         "[KEWPIE3 on the Projects page →](projects.html#kewpie3)"
       ],
@@ -73,6 +73,6 @@
   ],
   "overview_title": "Research Overview",
   "publications_title": "Publications",
-  "publications_text": "Journal articles, preprints, theses, conference contributions and manuscripts in preparation are listed on the Publications page. The research software, KEWPIE2 and KEWPIE3, is described on the [Projects](projects.html) page.",
+  "publications_text": "Journal articles, preprints, theses, conference contributions and manuscripts in preparation are listed on the Publications page. The research software KEWPIE3, a refinement of the KEWPIE2 cascade code, is described on the [Projects](projects.html) page.",
   "publications_link_label": "View all publications →"
 }

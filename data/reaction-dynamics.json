@@ -101,7 +101,7 @@
       ],
       "after": [
         "**Why one dimension is sufficient.** The surface separation is taken as the slow collective variable. Eliminating the other fast variables, such as the neck, shifts the initial condition of that variable, which is absorbed into a single adjustable parameter, the injection-point distance. The model is therefore deliberately simple and analytical, and its limits are discussed in the manuscript in preparation.",
-        "Details: [Fusion dynamics](projects.html#fusion) and [KEWPIE3](projects.html#kewpie3) on the Projects page, and [Publications](publications.html)."
+        "Details: [Fusion dynamics](projects.html#fusion) and [KEWPIE3](projects.html#kewpie3), the code that applies this to superheavy-element predictions, on the Projects page, and [Publications](publications.html)."
       ]
     },
     {
@@ -150,7 +150,8 @@
   ],
   "references": [
     "[1] S. Hofmann et al., Pure Appl. Chem. 92(9), 1387–1446 (2020).",
-    "[2] R. Naik, W. Loveland, P. Sprunger, A. Vinodkumar, D. Peterson, C. Jiang, S. Zhu, X. Tang, E. Moore and P. Chowdhury, “Measurement of the fusion probability P_CN for the reaction of ^50^Ti with ^208^Pb”, Phys. Rev. C 76(5), 054604 (2007)."
+    "[2] H. Lü, A. Marchix, Y. Abe and D. Boilley, “Kewpie2: A cascade code for the study of dynamical decay of excited nuclei”, Comput. Phys. Commun. 200, 381–399 (2016).",
+    "[3] R. Naik, W. Loveland, P. Sprunger, A. Vinodkumar, D. Peterson, C. Jiang, S. Zhu, X. Tang, E. Moore and P. Chowdhury, “Measurement of the fusion probability P_CN for the reaction of ^50^Ti with ^208^Pb”, Phys. Rev. C 76(5), 054604 (2007)."
   ],
-  "intro": "Fusion–evaporation reactions and the synthesis of superheavy elements are parts of one subject, nuclear reaction dynamics, described by the same three-step factorisation of the evaporation residue cross section. Production cross sections for superheavy nuclei, including Z = 119 and Z = 120, are predicted with the KEWPIE2 and KEWPIE3 framework, and the work connects to experimental studies of synthesis and decay at S^3^."
+  "intro": "Fusion–evaporation reactions and the synthesis of superheavy elements are parts of one subject, nuclear reaction dynamics, described by the same three-step factorisation of the evaporation residue cross section. Production cross sections for superheavy nuclei, including Z = 119 and Z = 120, are predicted with KEWPIE3, which refines the KEWPIE2 cascade code for the survival step [2] by implementing and calibrating the formation step. The work connects to experimental studies of synthesis and decay at S^3^."
 }
