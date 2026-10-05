@@ -43,7 +43,7 @@ R["reaction-dynamics-page"]=function(el,d){
     b+=(s.after||[]).map(function(q){return '<p>'+md(q)+'</p>'}).join("");
     if(s.figures&&s.figures.length)b+=s.figures.map(function(f){var side=(wrapN++%2)?"left":"right";return '<div class="fig-wrap fw-'+side+'">'+fig1(f).replace('<figure class="fig"','<figure class="fig" style="--fw:'+(f.height>f.width*1.2?Math.min(+f.width,340):(+f.width||420))+'px"')+(f.text||[]).map(function(q){return '<p>'+md(q)+'</p>'}).join("")+'</div>'}).join("");
     return b+'</div></section>'}).join("");
-  if(d.references&&d.references.length)h+='<section aria-labelledby="refs-h"><h3 class="sub2" id="refs-h">Reference</h3><div class="ov-card refs">'+d.references.map(function(q){return '<p>'+md(q)+'</p>'}).join("")+'</div></section>';
+  if(d.references&&d.references.length)h+='<section aria-labelledby="refs-h"><h3 class="sub2" id="refs-h">References</h3><div class="ov-card refs">'+d.references.map(function(q){return '<p>'+md(q)+'</p>'}).join("")+'</div></section>';
   el.innerHTML=h;texRender(el);
   var h2=document.querySelector("main h2");if(h2&&d.title)h2.textContent=d.title;var sb=h2&&h2.nextElementSibling;if(sb&&sb.classList.contains("sec-sub")&&d.subtitle)sb.innerHTML=md(d.subtitle);
 };

@@ -60,7 +60,7 @@
           "height": 278,
           "alt": "Plot of the compound-nucleus formation probability P_CN, on a logarithmic axis from 10 to the power minus 10 up to 10, against the compound-nucleus proton number Z_CN from 102 to 114, for cold fusion. Six model curves are shown (Adamian et al. 2000, Feng et al., Veselsky, Swiatecki et al., Loveland, and Siwek-Wilczynska et al.). All fall steeply with Z_CN, from about 0.1 near Z = 102 to between about 10 to the power minus 9 and 10 to the power minus 5 near Z = 113, and the curves spread over two to three orders of magnitude.",
           "caption": "Formation probability P_CN versus Z_CN for cold fusion, calculated with different models; the models differ by 2 to 3 orders of magnitude.",
-          "credit": "Figure from S. Hofmann et al., Pure Appl. Chem. 92(9), 1387–1446 (2020).",
+          "credit": "Figure from R. Naik et al., Phys. Rev. C 76, 054604 (2007).",
           "text": [
             "**Capture** can be calculated reliably with optical models and barrier distributions.",
             "**Survival** is treated with statistical models; the key challenge is predicting fission barriers accurately.",
@@ -149,7 +149,8 @@
     }
   ],
   "references": [
-    "[1] S. Hofmann et al., Pure Appl. Chem. 92(9), 1387–1446 (2020)."
+    "[1] S. Hofmann et al., Pure Appl. Chem. 92(9), 1387–1446 (2020).",
+    "[2] R. Naik, W. Loveland, P. Sprunger, A. Vinodkumar, D. Peterson, C. Jiang, S. Zhu, X. Tang, E. Moore and P. Chowdhury, “Measurement of the fusion probability P_CN for the reaction of ^50^Ti with ^208^Pb”, Phys. Rev. C 76(5), 054604 (2007)."
   ],
   "intro": "Fusion–evaporation reactions and the synthesis of superheavy elements are parts of one subject, nuclear reaction dynamics, described by the same three-step factorisation of the evaporation residue cross section. Production cross sections for superheavy nuclei, including Z = 119 and Z = 120, are predicted with the KEWPIE2 and KEWPIE3 framework, and the work connects to experimental studies of synthesis and decay at S^3^."
 }
