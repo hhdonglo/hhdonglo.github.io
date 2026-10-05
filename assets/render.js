@@ -40,7 +40,7 @@ R.superheavy=function(el,d){
     if(s.bullets&&s.bullets.length)b+='<ul class="plain">'+s.bullets.map(function(q){return '<li>'+md(q)+'</li>'}).join("")+'</ul>';
     b+=(s.equations||[]).map(function(q,i){return '<div class="eq-item"><div class="eq" role="group" tabindex="0" aria-label="Equation '+(i+1)+'"><span class="tex" data-tex="'+esc(q.tex)+'">'+esc(q.tex)+'</span></div><p class="eq-text">'+md(q.text||"")+'</p></div>'}).join("");
     b+=(s.after||[]).map(function(q){return '<p>'+md(q)+'</p>'}).join("");
-    if(s.figures&&s.figures.length)b+=s.figures.map(fig1).join("");
+    if(s.figures&&s.figures.length)b+=(s.figures.length>1?'<div class="fig-row">'+s.figures.map(fig1).join("")+'</div>':fig1(s.figures[0]));
     return b+'</div></section>'}).join("");
   if(d.references&&d.references.length)h+='<section aria-labelledby="refs-h"><h3 class="sub2" id="refs-h">Reference</h3><div class="ov-card refs">'+d.references.map(function(q){return '<p>'+md(q)+'</p>'}).join("")+'</div></section>';
   el.innerHTML=h;texRender(el);

@@ -9,6 +9,16 @@
         "Within the Liquid Drop Model, nuclei beyond Z ≈ 104 have no fission barrier and should disintegrate at once. Yet they exist.",
         "Quantum shell corrections add the extra binding energy that stabilises them. The next closed shells are predicted at Z = 114 or 126 and N = 184, the so-called island of stability.",
         "Superheavy elements are not found in nature. They are made artificially, one atom at a time, with heavy-ion accelerators."
+      ],
+      "figures": [
+        {
+          "image": "assets/figures/chart-of-nuclides-cm-to-118.webp",
+          "full": "assets/figures/chart-of-nuclides-cm-to-118-full.webp",
+          "width": 1000,
+          "height": 563,
+          "alt": "Chart of nuclides from curium (Z = 96) up to element 118, with proton number on the vertical axis and neutron number on the horizontal axis. Each known isotope is a coloured cell, and the cells run diagonally upward and to the right, ending at oganesson near neutron number 177.",
+          "caption": "Chart of nuclides from curium (Z = 96) to element 118, with neutron number on the horizontal axis."
+        }
       ]
     },
     {
@@ -101,6 +111,26 @@
       "bullets": [
         "**Cold fusion** (^208^Pb and ^209^Bi targets, one-neutron channel): cross sections fall steeply with proton number, from about 10^5^ pb near Z = 102 to about 10^−2^ pb near Z = 113 [1].",
         "**Hot fusion** (^48^Ca beams on targets from ^238^U to ^249^Cf, three- and four-neutron channels): cross sections of the order of 1 to 10 pb for the elements from Z = 112 to Z = 118 [1]."
+      ],
+      "figures": [
+        {
+          "image": "assets/figures/cold-fusion-cross-sections.webp",
+          "full": "assets/figures/cold-fusion-cross-sections-full.webp",
+          "width": 729,
+          "height": 1012,
+          "alt": "Plot of measured cold-fusion (one-neutron channel) cross sections in picobarns, on a logarithmic axis from 10 to the power minus 3 up to 10 to the power 7, against the proton number of the compound nucleus from 100 to 120. Points for 208Pb and 209Bi targets with beams from 48Ca to 70Zn fall along a straight line, from about 2.5 times 10 to the power 5 pb at Z = 102 to about 0.02 pb at Z = 113.",
+          "caption": "Cold fusion (1n channel) with ^208^Pb and ^209^Bi targets: measured cross sections against proton number.",
+          "credit": "Figure from S. Hofmann et al., Pure Appl. Chem. 92(9), 1387–1446 (2020)."
+        },
+        {
+          "image": "assets/figures/hot-fusion-cross-sections.webp",
+          "full": "assets/figures/hot-fusion-cross-sections-full.webp",
+          "width": 514,
+          "height": 646,
+          "alt": "Plot of measured hot-fusion (three- and four-neutron channel) cross sections with a 48Ca beam, in picobarns on a logarithmic axis from 10 to the power minus 3 up to 10 to the power 7, against proton number from 100 to 120. Points for 208Pb, 209Bi and 226Ra targets fall steeply to about 15 pb at Z = 108. Points for 238U to 249Cf targets (superheavy nuclei, Z = 112 to 118) lie on a plateau of roughly 0.6 to 10 pb.",
+          "caption": "Hot fusion (3n and 4n channels) with a ^48^Ca beam: measured cross sections against proton number, with the superheavy nuclei (^238^U to ^249^Cf targets) on a plateau.",
+          "credit": "Figure from S. Hofmann et al., Pure Appl. Chem. 92(9), 1387–1446 (2020)."
+        }
       ]
     },
     {
