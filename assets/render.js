@@ -51,7 +51,7 @@ R["reaction-dynamics-page"]=function(el,d){
   el.innerHTML=h;texRender(el);
   var h2=document.querySelector("main h2");if(h2&&d.title)h2.textContent=d.title;var sb=h2&&h2.nextElementSibling;if(sb&&sb.classList.contains("sec-sub")&&d.subtitle)sb.innerHTML=md(d.subtitle);
 };
-function cards(list,past){return list.map(function(c){return '<article class="ov-card"><p class="status'+(past?' past':'')+'">'+md(c.status)+'</p><h4>'+md(c.title)+'</h4>'+c.paragraphs.map(function(p){return '<p>'+md(p)+'</p>'}).join("")+'</article>'}).join("")}
+function cards(list,past){return list.map(function(c){return '<article class="ov-card"><p class="status'+(past?' past':'')+'">'+md(c.status)+'</p><h4>'+md(c.title)+'</h4>'+c.paragraphs.map(function(p){return '<p>'+md(p)+'</p>'}).join("")+(c.links&&c.links.some(function(x){return x.url})?'<p class="card-links">'+plinks(c.links)+'</p>':'')+'</article>'}).join("")}
 R["research-current"]=function(el,d){el.innerHTML=cards(d.current,false)};
 R["research-previous"]=function(el,d){el.innerHTML=cards(d.previous,true)};
 R["research-chips"]=function(el,d){el.innerHTML=d.current.map(function(c){return '<li>'+md(c.chip||c.title)+'</li>'}).join("")};

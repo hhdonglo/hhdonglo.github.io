@@ -330,6 +330,17 @@ content:
       label: Paragraphs
       type: text
       list: true
+    - name: links
+      label: Links (optional)
+      type: object
+      fields:
+      - name: label
+        label: Link text
+        type: string
+      - name: url
+        label: Address (opens in a new tab)
+        type: string
+      list: true
     list: true
   - name: publications_title
     label: Publications heading
