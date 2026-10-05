@@ -93,4 +93,6 @@ The practice quiz of lecture N lives at `phys143-lecture-N-practice.html`. The o
 
 **Homepage motion.** The fusion figure beside Superheavy-Element Synthesis, the counting numbers and the gentle section reveal all switch off for visitors who ask their device to reduce motion (they then see a still figure and the final numbers). The figure itself is drawn in `assets/render.js`; only its description is editable in the CMS.
 
+**Upcoming project teaser.** Form: Data Science, ML and Engineering, "Upcoming projects". Each card has a marker (for example "Coming soon"), a name, a one-line purpose, a short description, topic chips and a closing note. Add or remove cards there; keep to what is safe to show publicly (no clients, prices or plans).
+
 **Figures on project cards.** Research projects (Form: Projects) and data projects accept a "Figures" list: image path (upload to `assets/figures`), width and height in pixels, alt text, caption, and optionally a large version (click or tap to enlarge; Escape closes) and a source link. The KEWPIE3 card groups its figures under headings: set "Group heading" and "One-line introduction" on the first figure of a group (here "Comparison with data": theory versus experiment, then the theory/experiment ratio; then "Predictions"). Figures appear in list order.

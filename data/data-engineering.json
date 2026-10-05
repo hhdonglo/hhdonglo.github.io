@@ -16,6 +16,24 @@
     ],
     "note": "Each project below was completed for a fictional client scenario set by the programme, and the projects are the ones with a public repository. Descriptions follow the repository documentation."
   },
+  "upcoming_title": "Upcoming",
+  "upcoming": [
+    {
+      "status": "Coming soon",
+      "name": "NumeralAnalytics GH",
+      "tagline": "Physics-informed analytics for Ghana's physical industries",
+      "text": "An upcoming project that brings physical modelling and uncertainty-aware data science to real physical systems, where data are sparse and the cost of a wrong estimate is high. The aim is analysis whose confidence is stated as clearly as its result.",
+      "topics": [
+        "Anomaly detection",
+        "Model calibration",
+        "Surrogate modelling",
+        "Data assimilation",
+        "Experimental design",
+        "Risk-informed decisions"
+      ],
+      "note": "Details will be announced here. For enquiries, see [Contact](contact.html)."
+    }
+  ],
   "groups": [
     {
       "id": "pipelines",

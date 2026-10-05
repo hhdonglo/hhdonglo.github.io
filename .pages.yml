@@ -748,6 +748,33 @@ content:
     - name: note
       label: Note on fictional client scenarios
       type: text
+  - name: upcoming_title
+    label: Upcoming heading
+    type: string
+  - name: upcoming
+    label: Upcoming projects (teaser cards)
+    type: object
+    fields:
+    - name: status
+      label: Marker (for example Coming soon)
+      type: string
+    - name: name
+      label: Name
+      type: string
+    - name: tagline
+      label: One-line purpose
+      type: string
+    - name: text
+      label: Short description
+      type: text
+    - name: topics
+      label: Topics (shown as chips)
+      type: string
+      list: true
+    - name: note
+      label: Closing note
+      type: text
+    list: true
   - name: groups
     label: Groups of projects
     type: object
