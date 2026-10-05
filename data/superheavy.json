@@ -1,0 +1,109 @@
+{
+  "title": "Superheavy Elements",
+  "subtitle": "How the heaviest nuclei are made, why their production is hard to predict, and where my work fits.",
+  "sections": [
+    {
+      "id": "why",
+      "heading": "Why superheavy nuclei exist",
+      "paragraphs": [
+        "Within the Liquid Drop Model, nuclei beyond Z ≈ 104 have no fission barrier and should disintegrate at once. Yet they exist.",
+        "Quantum shell corrections add the extra binding energy that stabilises them. The next closed shells are predicted at Z = 114 or 126 and N = 184, the so-called island of stability.",
+        "Superheavy elements are not found in nature. They are made artificially, one atom at a time, with heavy-ion accelerators."
+      ]
+    },
+    {
+      "id": "how",
+      "heading": "How they are made: three steps",
+      "steps": [
+        {
+          "tag": "capture",
+          "title": "1. Capture",
+          "text": "The projectile and target overcome the Coulomb barrier and the nuclei touch."
+        },
+        {
+          "tag": "formation",
+          "title": "2. Formation",
+          "text": "The touching configuration evolves into a compound nucleus, in competition with quasi-fission."
+        },
+        {
+          "tag": "survival",
+          "title": "3. De-excitation (survival)",
+          "text": "The compound nucleus cools by emitting neutrons and becomes an evaporation residue, in competition with fission."
+        }
+      ],
+      "paragraphs": [
+        "The evaporation-residue cross section is the product of one factor for each step."
+      ],
+      "equations": [
+        {
+          "tex": "\\sigma_{\\mathrm{ER}}^{\\mathrm{Theo}}(E_{\\mathrm{cm}})=\\underbrace{\\pi\\lambda^{2}\\sum_{\\ell=0}^{\\infty}(2\\ell+1)\\,T_{\\ell}(E_{\\mathrm{cm}},\\ell)}_{\\text{Capture}}\\times\\htmlClass{eq-red}{\\underbrace{P_{\\mathrm{CN}}(E_{\\mathrm{cm}},\\ell)}_{\\text{Formation}}}\\times\\htmlClass{eq-blue}{\\underbrace{P^{xn}_{\\mathrm{surv}}(E^{*},\\ell)}_{\\text{Survival}}}",
+          "text": "Capture is summed over partial waves ℓ; formation (red) and survival (blue) are the probabilities that follow."
+        }
+      ],
+      "after": [
+        "**Capture** can be calculated reliably with optical models and barrier distributions.",
+        "**Survival** is treated with statistical models; the key challenge is predicting fission barriers accurately.",
+        "**Formation** is the most ambiguous step: published models differ by two to three orders of magnitude. It is the central focus of my work."
+      ]
+    },
+    {
+      "id": "challenges",
+      "heading": "The challenges",
+      "bullets": [
+        "**Formation is ambiguous.** Models of the compound-nucleus formation probability disagree by orders of magnitude, and the process is hindered by quasi-fission.",
+        "**Cross sections are tiny.** For the heaviest elements they are of the order of picobarns, and predictions for elements 119 and 120 are at the femtobarn level.",
+        "**Fission barriers are uncertain.** The survival probability depends strongly on them.",
+        "**One atom at a time.** Each event is rare, so every experiment is long and every prediction matters."
+      ]
+    },
+    {
+      "id": "method",
+      "heading": "How I evaluate the formation probability",
+      "paragraphs": [
+        "I describe formation as a stochastic process, within the fusion-by-diffusion approach. The surface separation s of the two nuclei obeys a one-dimensional Langevin equation, with the system moving over an inverted-parabola barrier of curvature ω under friction β and a random thermal force r(t) at temperature T:"
+      ],
+      "equations": [
+        {
+          "tex": "\\ddot{s}+\\beta\\,\\dot{s}-\\omega^{2}(s-s_{\\mathrm{sad}})=r(t),\\qquad \\langle r(t)\\,r(t')\\rangle=\\frac{2\\beta T}{\\mu}\\,\\delta(t-t')",
+          "text": "Langevin equation with a random force that satisfies the fluctuation-dissipation relation."
+        },
+        {
+          "tex": "P_{\\mathrm{CN}}=\\tfrac12\\,\\mathrm{erfc}\\!\\left[\\sqrt{\\frac{B(s_{\\mathrm{inj}})}{T'}}-\\frac{1}{x+\\sqrt{1+x^{2}}}\\sqrt{\\frac{K_{\\mathrm{rem}}}{T'}}\\right],\\qquad x=\\frac{\\beta}{2\\omega}",
+          "text": "Analytical solution: the probability of crossing the inner barrier B. The damping ratio x runs from overdamped (large) to underdamped (small); the second term accounts for the residual kinetic energy, and T′ is an effective temperature."
+        },
+        {
+          "tex": "P_{\\mathrm{CN}}=\\tfrac12\\,\\mathrm{erfc}\\sqrt{\\frac{B(s_{\\mathrm{inj}})}{T}}\\qquad (s_{\\mathrm{inj}}\\ge s_{\\mathrm{sad}})",
+          "text": "Overdamped limit used in fusion-by-diffusion: the residual kinetic energy is fully dissipated, and thermal fluctuations alone carry the system over the barrier."
+        }
+      ],
+      "after": [
+        "**Why one dimension is sufficient.** The surface separation is taken as the slow collective variable. Eliminating the other fast variables, such as the neck, shifts the initial condition of that variable, which is absorbed into a single adjustable parameter, the injection-point distance. The model is therefore deliberately simple and analytical, and its limits are discussed in the manuscript in preparation.",
+        "Details: [Fusion dynamics](projects.html#fusion) and [KEWPIE3](projects.html#kewpie3) on the Projects page, and [Publications](publications.html)."
+      ]
+    },
+    {
+      "id": "successes",
+      "heading": "Fusion–evaporation reactions: successes so far",
+      "paragraphs": [
+        "Fusion–evaporation reactions have produced elements up to Z = 118 [1]. The measured cross sections follow two patterns:"
+      ],
+      "bullets": [
+        "**Cold fusion** (^208^Pb and ^209^Bi targets, one-neutron channel): cross sections fall steeply with proton number, from about 10^5^ pb near Z = 102 to about 10^−2^ pb near Z = 113 [1].",
+        "**Hot fusion** (^48^Ca beams on targets from ^238^U to ^249^Cf, three- and four-neutron channels): cross sections of the order of 1 to 10 pb for the elements from Z = 112 to Z = 118 [1]."
+      ]
+    },
+    {
+      "id": "refine",
+      "heading": "Why the model must be refined for new elements",
+      "paragraphs": [
+        "Attempts to synthesise elements 119 and 120 have so far failed. The projectile–target combinations of current experimental interest have predicted cross sections at the femtobarn level.",
+        "Predictions of the formation probability differ widely between models, and a simple phenomenological model carries uncertainties that cannot be removed by refitting alone. Refining the formation step, and quantifying its uncertainty, is therefore needed for reliable predictions for new elements.",
+        "See the [predicted cross sections for four unmeasured reactions](projects.html#kewpie3) towards Z = 119 and Z = 120."
+      ]
+    }
+  ],
+  "references": [
+    "[1] S. Hofmann et al., Pure Appl. Chem. 92(9), 1387–1446 (2020)."
+  ],
+  "intro": "Production cross-sections for superheavy nuclei, including Z = 119 and Z = 120, are predicted with the KEWPIE2 and KEWPIE3 framework. The work connects to experimental studies of synthesis and decay at S^3^."
+}

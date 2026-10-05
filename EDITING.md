@@ -110,3 +110,9 @@ The practice quiz of lecture N lives at `phys143-lecture-N-practice.html`. The o
 - Source: equations (1), (14), (16) and (19) of the Fusion-by-Diffusion manuscript (still in preparation).
 
 - Official course listing: the Lectures form has "Official course listing (web page link)" (shown at the top of the PHYS 143 weekly list, opens in a new tab).
+
+## Superheavy elements page and linked research card
+- Page superheavy.html is edited in the CMS form "Superheavy elements page": sections with paragraphs, coloured steps (capture, formation, survival), bulleted lists, equations typed as LaTeX with a plain line under each, and references.
+- On the Research form, an area with "Link to a page" and an equation becomes a clickable card showing only the equation. Clear the link and equation to return to a text card.
+- The red and blue in the main equation come from \htmlClass{eq-red}{...} and \htmlClass{eq-blue}{...}; keep these wrappers when editing.
+- The Fusion dynamics card on Projects links to the page's method section.

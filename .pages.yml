@@ -283,7 +283,16 @@ content:
       label: Title
       type: string
     - name: text
-      label: Description
+      label: Description (shown when there is no equation)
+      type: text
+    - name: link
+      label: Link to a page (optional, makes the card clickable)
+      type: string
+    - name: link_label
+      label: Link text (default Read more)
+      type: string
+    - name: equation
+      label: Equation shown on the card, as LaTeX (optional; replaces the description)
       type: text
     list: true
   - name: current
@@ -728,6 +737,73 @@ content:
     label: Sections
     type: object
     fields: *id002
+    list: true
+- name: superheavy
+  label: Superheavy elements page
+  type: file
+  path: data/superheavy.json
+  format: json
+  fields:
+  - name: title
+    label: Page title
+    type: string
+  - name: subtitle
+    label: Subtitle
+    type: text
+  - name: intro
+    label: Opening text
+    type: text
+  - name: sections
+    label: Sections
+    type: object
+    fields:
+    - name: id
+      label: Anchor id
+      type: string
+    - name: heading
+      label: Heading
+      type: string
+    - name: paragraphs
+      label: Paragraphs (before the lists and equations)
+      type: text
+      list: true
+    - name: steps
+      label: Steps (optional)
+      type: object
+      fields:
+      - name: tag
+        label: 'Colour: capture, formation or survival'
+        type: string
+      - name: title
+        label: Step title
+        type: string
+      - name: text
+        label: Step text
+        type: text
+      list: true
+    - name: bullets
+      label: Bulleted list (optional)
+      type: text
+      list: true
+    - name: equations
+      label: Equations (optional)
+      type: object
+      fields:
+      - name: tex
+        label: Equation as LaTeX
+        type: text
+      - name: text
+        label: Plain-language line under the equation
+        type: text
+      list: true
+    - name: after
+      label: Paragraphs after the equations
+      type: text
+      list: true
+    list: true
+  - name: references
+    label: References
+    type: text
     list: true
 - name: projects
   label: Projects
