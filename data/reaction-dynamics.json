@@ -1,6 +1,6 @@
 {
-  "title": "Superheavy Elements",
-  "subtitle": "How the heaviest nuclei are made, why their production is hard to predict, and where my work fits.",
+  "title": "Nuclear Reaction Dynamics: Fusion–Evaporation and Superheavy Elements",
+  "subtitle": "Heavy-ion reactions, from the evaporation residue cross section to the synthesis of superheavy elements, and where my work fits.",
   "sections": [
     {
       "id": "why",
@@ -24,7 +24,7 @@
     },
     {
       "id": "how",
-      "heading": "How they are made: three steps",
+      "heading": "The evaporation residue cross section: three steps",
       "steps": [
         {
           "tag": "capture",
@@ -43,7 +43,7 @@
         }
       ],
       "paragraphs": [
-        "The evaporation-residue cross section is the product of one factor for each step."
+        "The evaporation-residue cross section of any fusion–evaporation reaction is the product of one factor for each step. Superheavy elements are its most demanding application."
       ],
       "equations": [
         {
@@ -151,5 +151,5 @@
   "references": [
     "[1] S. Hofmann et al., Pure Appl. Chem. 92(9), 1387–1446 (2020)."
   ],
-  "intro": "Production cross-sections for superheavy nuclei, including Z = 119 and Z = 120, are predicted with the KEWPIE2 and KEWPIE3 framework. The work connects to experimental studies of synthesis and decay at S^3^."
+  "intro": "Fusion–evaporation reactions and the synthesis of superheavy elements are parts of one subject, nuclear reaction dynamics, described by the same three-step factorisation of the evaporation residue cross section. Production cross sections for superheavy nuclei, including Z = 119 and Z = 120, are predicted with the KEWPIE2 and KEWPIE3 framework, and the work connects to experimental studies of synthesis and decay at S^3^."
 }

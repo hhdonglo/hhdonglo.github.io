@@ -7,7 +7,7 @@ UTILITY = [("cv.html", "CV"), ("publications.html", "Publications"), ("contact.h
 # page -> menu item it belongs to (exact page gets aria-current="page", a child page gets "true")
 HOME = json.load(open(os.path.join(ROOT, "data", "pages", "home.json"), encoding="utf-8"))
 SUB = {x["url"]: x["links"] for x in HOME["blocks"]}
-CHILD = {"superheavy.html": "research.html", "phys143.html": "teaching.html", "laboratory.html": "teaching.html", "uncertainty.html": "teaching.html"}
+CHILD = {"reaction-dynamics.html": "research.html", "phys143.html": "teaching.html", "laboratory.html": "teaching.html", "uncertainty.html": "teaching.html"}
 
 def menu(page):
     cur = CHILD.get(page) or (page if re.match(r"phys143-lecture-\d+(-practice)?\.html$", page) is None else "teaching.html")

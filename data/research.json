@@ -4,21 +4,12 @@
   "areas": [
     {
       "title": "Nuclear Reaction Dynamics",
-      "text": "Langevin dynamics and stochastic simulation of nuclear reactions, covering the pathway from the colliding nuclei to a superheavy element.",
-      "id": "reaction-dynamics"
-    },
-    {
-      "title": "Heavy and Superheavy Elements",
-      "text": "Production cross-sections for superheavy nuclei, including Z = 119 and Z = 120, are predicted with the KEWPIE2 and KEWPIE3 framework. The work connects to experimental studies of synthesis and decay at S^3^.",
-      "id": "superheavy",
-      "link": "superheavy.html",
-      "link_label": "Read more",
-      "equation": "\\sigma_{\\mathrm{ER}}^{\\mathrm{Theo}}(E_{\\mathrm{cm}})=\\underbrace{\\pi\\lambda^{2}\\sum_{\\ell=0}^{\\infty}(2\\ell+1)\\,T_{\\ell}(E_{\\mathrm{cm}},\\ell)}_{\\text{Capture}}\\times\\htmlClass{eq-red}{\\underbrace{P_{\\mathrm{CN}}(E_{\\mathrm{cm}},\\ell)}_{\\text{Formation}}}\\times\\htmlClass{eq-blue}{\\underbrace{P^{xn}_{\\mathrm{surv}}(E^{*},\\ell)}_{\\text{Survival}}}"
-    },
-    {
-      "title": "Fusion–Evaporation Reactions",
-      "text": "Fusion–evaporation reactions and the probability of forming a compound nucleus, calculated with Langevin-based stochastic approaches.",
-      "id": "fusion-evaporation"
+      "id": "reaction-dynamics",
+      "text": "Langevin-based stochastic modelling of heavy-ion reactions. Fusion–evaporation reactions and the synthesis of superheavy elements, including predictions for Z = 119 and Z = 120 with the KEWPIE2 and KEWPIE3 framework, are applications of the same description.",
+      "equation_label": "Evaporation residue cross section",
+      "equation": "\\sigma_{\\mathrm{ER}}^{\\mathrm{Theo}}(E_{\\mathrm{cm}})=\\underbrace{\\pi\\lambda^{2}\\sum_{\\ell=0}^{\\infty}(2\\ell+1)\\,T_{\\ell}(E_{\\mathrm{cm}},\\ell)}_{\\text{Capture}}\\times\\htmlClass{eq-red}{\\underbrace{P_{\\mathrm{CN}}(E_{\\mathrm{cm}},\\ell)}_{\\text{Formation}}}\\times\\htmlClass{eq-blue}{\\underbrace{P^{xn}_{\\mathrm{surv}}(E^{*},\\ell)}_{\\text{Survival}}}",
+      "link": "reaction-dynamics.html",
+      "link_label": "Read more"
     },
     {
       "title": "Uncertainty Quantification",

@@ -291,6 +291,9 @@ content:
     - name: link_label
       label: Link text (default Read more)
       type: string
+    - name: equation_label
+      label: Label above the equation (optional)
+      type: string
     - name: equation
       label: Equation shown on the card, as LaTeX (optional; replaces the description)
       type: text
@@ -738,10 +741,10 @@ content:
     type: object
     fields: *id002
     list: true
-- name: superheavy
-  label: Superheavy elements page
+- name: reaction-dynamics
+  label: Nuclear reaction dynamics page
   type: file
-  path: data/superheavy.json
+  path: data/reaction-dynamics.json
   format: json
   fields:
   - name: title

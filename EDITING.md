@@ -111,8 +111,10 @@ The practice quiz of lecture N lives at `phys143-lecture-N-practice.html`. The o
 
 - Official course listing: the Lectures form has "Official course listing (web page link)" (shown at the top of the PHYS 143 weekly list, opens in a new tab).
 
-## Superheavy elements page and linked research card
-- Page superheavy.html is edited in the CMS form "Superheavy elements page": sections with paragraphs, coloured steps (capture, formation, survival), bulleted lists, equations typed as LaTeX with a plain line under each, and references.
+## Nuclear reaction dynamics page and linked research card
+- Page reaction-dynamics.html (Nuclear Reaction Dynamics: Fusion–Evaporation and Superheavy Elements; the old address superheavy.html redirects to it) is edited in the CMS form "Nuclear reaction dynamics page": sections with paragraphs, coloured steps (capture, formation, survival), bulleted lists, equations typed as LaTeX with a plain line under each, and references.
 - On the Research form, an area with "Link to a page" and an equation becomes a clickable card showing only the equation. Clear the link and equation to return to a text card.
 - The red and blue in the main equation come from \htmlClass{eq-red}{...} and \htmlClass{eq-blue}{...}; keep these wrappers when editing.
 - The Fusion dynamics card on Projects links to the page's method section.
+
+- Research page: "Nuclear Reaction Dynamics" is one card (description, a label above the equation, the evaporation-residue cross-section equation and a Read more link). Fields: Description, Label above the equation, Equation (LaTeX), Link. On narrow screens the equation scrolls inside its own box.

@@ -18,11 +18,7 @@
       "url": "research.html",
       "links": [
         {
-          "label": "Superheavy Element Synthesis",
-          "url": "research.html#superheavy"
-        },
-        {
-          "label": "Nuclear Reaction Modelling",
+          "label": "Nuclear Reaction Dynamics",
           "url": "research.html#reaction-dynamics"
         },
         {
@@ -158,16 +154,8 @@
     {
       "figure": "fusion",
       "figure_alt": "Diagram: two nuclei approach, touch and fuse into one larger superheavy nucleus.",
-      "title": "Superheavy-Element Synthesis",
-      "text": "I study the reaction mechanisms governing the formation of superheavy nuclei, with particular interest in fusion dynamics, formation probabilities, survival probabilities, and theoretical modelling of fusion–evaporation reactions.",
-      "button": "Explore Research →",
-      "url": "research.html#superheavy"
-    },
-    {
-      "figure": "",
-      "figure_alt": "",
-      "title": "Nuclear Reaction Modelling",
-      "text": "Development and application of theoretical models and computational methods for describing heavy-ion reactions and the formation of heavy and superheavy nuclei.",
+      "title": "Nuclear Reaction Dynamics",
+      "text": "I study the dynamics of heavy-ion reactions, with particular interest in fusion–evaporation reactions and the synthesis of superheavy elements: capture, compound-nucleus formation, survival, and their theoretical modelling.",
       "button": "Explore Research →",
       "url": "research.html#reaction-dynamics"
     },

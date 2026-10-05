@@ -705,3 +705,6 @@ ul.plain{margin:.4rem 0 1rem;padding-left:1.2rem}ul.plain li{margin:.45rem 0}
 .fig-wrap .fig img{width:100%;height:auto}
 .fig-wrap>p:first-of-type{margin-top:0}
 @media (max-width:700px){.fig-wrap .fig,.fig-wrap.fw-right .fig,.fig-wrap.fw-left .fig{float:none;width:100%;max-width:var(--fw,420px);margin:.4rem 0 .8rem}}
+.eq-label{margin:.5rem 0 .2rem;font:600 .95rem system-ui,sans-serif;color:var(--muted)}
+.link-card .area-eq{overflow-x:auto;max-width:100%}
+@media (max-width:900px){.link-card .area-eq .katex{font-size:.8em}}
