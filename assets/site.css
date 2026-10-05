@@ -717,7 +717,7 @@ ul.plain{margin:.4rem 0 1rem;padding-left:1.2rem}ul.plain li{margin:.45rem 0}
 .back{margin:1.2rem 0 0;font:600 .95rem system-ui,sans-serif}
 
 /* Previous research: compact cards with a summary panel beneath */
-[data-render="research-previous"]{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;align-items:stretch}
+[data-render="research-previous"]{display:grid;grid-template-columns:repeat(var(--n,3),minmax(0,1fr));gap:1rem;align-items:stretch}
 .prev{order:var(--i)}
 .sum-panel{grid-column:1/-1;order:10;border-left:4px solid var(--brown-edge)}
 .sum-panel[hidden]{display:none}
