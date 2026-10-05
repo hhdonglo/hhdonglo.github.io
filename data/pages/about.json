@@ -1,35 +1,51 @@
 {
   "sections": [
     {
-      "id": "about-text",
+      "id": "academic-profile",
       "layout": "stack",
       "cards": [
         {
           "style": "plain",
           "lead": true,
           "paragraphs": [
-            "Hope Donglo, PhD, is a theoretical nuclear physicist and Lecturer in Physics at the University of Ghana.",
-            "His research develops theoretical and computational models of heavy-ion reactions and superheavy element synthesis, using stochastic dynamics, uncertainty quantification and scientific computing.",
-            "Alongside his research, he develops data science, machine learning and engineering skills, with an interest in applying these methods to data-intensive problems in research and industry."
+            "I am a theoretical nuclear physicist and Lecturer in Physics at the University of Ghana. My academic background spans experimental and theoretical nuclear physics, scientific computing, and data-intensive research.",
+            "I completed my undergraduate studies at the University of Ghana before undertaking postgraduate training in theoretical nuclear physics in Europe and doctoral research on the synthesis of superheavy elements. I earned a PhD in Theoretical Nuclear Physics from Université de Caen Normandie, France, as a Marie Skłodowska-Curie COFUND Fellow within the CEA NUMERICS doctoral programme. Prior to this, I completed an Erasmus Mundus Joint Master's in Nuclear Physics across universities in Spain, Italy, and France.",
+            "My research focuses on superheavy-element synthesis, nuclear reaction modelling, uncertainty quantification, and scientific computing. I study heavy-ion reactions and compound-nucleus formation, and contribute to the development of the KEWPIE3 code for fusion-evaporation reaction studies. My interests also include scientific software development, data science, machine learning, and data engineering."
           ]
         }
       ]
     },
     {
-      "id": "interests",
-      "heading": "Research interests",
-      "layout": "stack",
+      "id": "record",
+      "heading": "Academic record",
+      "layout": "grid",
       "cards": [
         {
           "style": "plain",
-          "bullet_style": "chips",
+          "title": "Education",
+          "bullet_style": "timeline",
           "bullets": [
-            "Nuclear reaction theory",
-            "Superheavy element synthesis",
-            "Nuclear structure",
-            "Langevin dynamics",
-            "Bayesian inference and uncertainty quantification",
-            "Machine learning for nuclear data"
+            "**PhD, Theoretical Nuclear Physics**, University of Caen Normandy, France, 2021 to 2024.",
+            "**Joint Master's in Nuclear Physics** (Erasmus Mundus), Universities of Seville, Autonomous Madrid, Padua and Caen, 2018 to 2020.",
+            "**BSc Physics**, University of Ghana, Legon, 2012 to 2016."
+          ]
+        },
+        {
+          "style": "plain",
+          "title": "Appointments",
+          "bullet_style": "timeline",
+          "bullets": [
+            "**Lecturer**, Department of Physics, University of Ghana, from August 2026.",
+            "**Doctoral Researcher**, CEA/GANIL, Caen, France, 2021 to 2024.",
+            "**Graduate Research Assistant**: Autonomous University of Madrid (2020), GANIL (2019 to 2020) and INFN Legnaro, Italy (2019)."
+          ]
+        },
+        {
+          "style": "plain",
+          "title": "Awards",
+          "bullets": [
+            "**Marie Skłodowska-Curie Actions, COFUND Fellow** (2021 to 2024).",
+            "**Erasmus Mundus Scholar** (2018 to 2020)."
           ]
         }
       ]
@@ -41,9 +57,8 @@
       "cards": [
         {
           "style": "plain",
-          "lead": true,
           "paragraphs": [
-            "Inquiry-based, student-centred physics instruction integrating conceptual reasoning, laboratory practice and computational problem-solving.",
+            "I teach undergraduate physics at the University of Ghana, with an emphasis on clear conceptual development, quantitative reasoning, and problem-solving.",
             "[Teaching resources on this site](teaching.html)"
           ]
         }
@@ -57,7 +72,7 @@
         {
           "style": "plain",
           "paragraphs": [
-            "Education, appointments and skills are on the CV page. The full CV is available as a PDF.",
+            "The full CV, with all sections, is available on the CV page and as a PDF.",
             "[View CV →](cv.html)"
           ],
           "button_label": "Download CV →",

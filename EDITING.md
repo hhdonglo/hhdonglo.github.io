@@ -32,7 +32,7 @@ Open https://app.pagescms.org, choose the repository, choose a form, change the 
 | Publications | All publications in five groups (Journal articles and proceedings, Preprints, Manuscripts in preparation, Theses, Conference contributions), the year filter buttons,  |
 | CV page | The CV summary page (education, appointments, awards, skills) |
 | Students | The Students page |
-| About | The About page |
+| About page (Academic Profile) | The Academic Profile page that the About menu item opens: background paragraphs, education, appointments, awards, teaching line and CV links |
 | Contact | The Contact page: name, position, University and Professional emails, office and the LinkedIn link (emails and office come from Site settings) |
 | Site settings | Email addresses, phone, office, profile links (Google Scholar, ORCID, GitHub, LinkedIn), the footer lines and the banner lines |
 
@@ -81,7 +81,7 @@ Every form edits one file in the `data` folder (`data/pages/*.json`, `data/resea
 
 ## Page addresses
 
-The menu on every page is Home, Research, Teaching, Projects, Data Science, ML and Engineering, Students, About (which opens the About card on the home page), then CV, Publications and Contact; Home is the site title. The same list appears in the footer. The menu items are fixed page structure (`tools/build_shell.py`); only the dropdown lists are edited in Pages CMS. Projects holds the research software; the data science, machine learning and engineering work is on its own page, **Data Science, ML and Engineering** (`data-engineering.html`). Data and Computation became Projects (`projects.html`). These old addresses stay as small redirect pages so old links still work, and must not be deleted: `data-computation.html` (forwards to Projects), `data-science.html` (forwards to Data Science, ML and Engineering) and `student-research.html` (forwards to Students). The old link `projects.html#data-ml` also forwards to Data Science, ML and Engineering.
+The menu on every page is Home, Research, Teaching, Projects, Data Science, ML and Engineering, Students, About (which opens the Academic Profile page), then CV, Publications and Contact; Home is the site title. The same list appears in the footer. The menu items are fixed page structure (`tools/build_shell.py`); only the dropdown lists are edited in Pages CMS. Projects holds the research software; the data science, machine learning and engineering work is on its own page, **Data Science, ML and Engineering** (`data-engineering.html`). Data and Computation became Projects (`projects.html`). These old addresses stay as small redirect pages so old links still work, and must not be deleted: `data-computation.html` (forwards to Projects), `data-science.html` (forwards to Data Science, ML and Engineering) and `student-research.html` (forwards to Students). The old link `projects.html#data-ml` also forwards to Data Science, ML and Engineering.
 
 The practice quiz of lecture N lives at `phys143-lecture-N-practice.html`. The old `practice.html` (and `practice.html#lecture-N`) and `phys143-lecture-N.html#practice` forward to it. To add a quiz page for a new lecture, run `python3 tools/make_lecture_pages.py`, or copy an existing practice page and change the number.
 

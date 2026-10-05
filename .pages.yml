@@ -991,6 +991,23 @@ content:
       label: Reference text
       type: text
     list: true
+- name: about
+  label: About page (Academic Profile)
+  type: file
+  path: data/pages/about.json
+  format: json
+  fields:
+  - name: title
+    label: Page title
+    type: string
+  - name: subtitle
+    label: Subtitle under the title
+    type: string
+  - name: sections
+    label: Sections
+    type: object
+    fields: *id002
+    list: true
 - name: cv
   label: CV page
   type: file
