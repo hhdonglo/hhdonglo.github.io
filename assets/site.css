@@ -600,3 +600,4 @@ nav.jump.js.open .menu-btn .dots::before{content:"Close \2715";font-size:.95rem;
 .home-pubs .yr{font:700 .9rem system-ui,sans-serif;color:var(--brown)}
 @media (max-width:560px){.home-pubs .refs.sel li{grid-template-columns:1fr}}
 .home-pubs .more{font-weight:700}
+@media (prefers-color-scheme:dark){.home-pubs .yr{color:#F2C9A0}}
