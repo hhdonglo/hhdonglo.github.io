@@ -69,6 +69,7 @@ function lpage(n){return "phys143-lecture-"+n+".html"}
 function ppage(n){return "phys143-lecture-"+n+"-practice.html"}
 R.weekly=function(el,d){
   var co=d.course_outline,cof='';if(co&&co.url){cof='<p class="outline"><strong>'+esc(co.label||"Course outline")+':</strong> <span class="pdf-pair"><a href="'+esc(co.url)+'" target="_blank" rel="noopener">Preview<span class="vh"> '+esc(co.label||"course outline")+' (opens in a new tab)</span></a><a href="'+esc(co.url)+'" download>Download<span class="vh"> '+esc(co.label||"course outline")+'</span></a></span></p>'}
+  var ol=d.official_listing;if(ol&&ol.url)cof+='<p class="outline"><a href="'+esc(ol.url)+'" target="_blank" rel="noopener">'+esc(ol.label||"Official course listing")+' ↗<span class="vh"> (opens in a new tab)</span></a></p>';
   el.innerHTML=cof+d.groups.map(function(g){
     return '<div class="week-group" id="'+esc(g.id)+'"><h4 class="grp">'+md(g.title)+'</h4><p class="sec-sub">'+md(g.subtitle)+'</p><ul class="weeks">'+g.lectures.map(function(l){
       var n=l.number,soon=l.status==="soon";

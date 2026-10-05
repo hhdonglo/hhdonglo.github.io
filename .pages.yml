@@ -553,6 +553,16 @@ content:
   - name: course_title
     label: Course name
     type: string
+  - name: official_listing
+    label: Official course listing (web page link)
+    type: object
+    fields:
+    - name: label
+      label: Link text
+      type: string
+    - name: url
+      label: Web address (opens in a new tab)
+      type: string
   - name: course_outline
     label: Course outline or syllabus (PDF)
     type: object

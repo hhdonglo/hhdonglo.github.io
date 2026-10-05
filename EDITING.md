@@ -108,3 +108,5 @@ The practice quiz of lecture N lives at `phys143-lecture-N-practice.html`. The o
 - The equations sit in a collapsed "Show the equations" toggle (text editable). Wide equations scroll sideways inside their own box on phones.
 - KaTeX is stored in assets/katex (no external service) and loads only when a card has equations. The Projects page links assets/katex/katex.min.css.
 - Source: equations (1), (14), (16) and (19) of the Fusion-by-Diffusion manuscript (still in preparation).
+
+- Official course listing: the Lectures form has "Official course listing (web page link)" (shown at the top of the PHYS 143 weekly list, opens in a new tab).

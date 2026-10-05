@@ -269,5 +269,9 @@
   "course_outline": {
     "label": "Course outline",
     "url": ""
+  },
+  "official_listing": {
+    "label": "Official course listing (University of Ghana)",
+    "url": "https://www.ug.edu.gh/physics/academics/undergraduate-courses?title=&field_level_target_id=1"
   }
 }
