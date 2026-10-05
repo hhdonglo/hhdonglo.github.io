@@ -553,6 +553,17 @@ content:
   - name: course_title
     label: Course name
     type: string
+  - name: course_outline
+    label: Course outline or syllabus (PDF)
+    type: object
+    fields:
+    - name: label
+      label: Label
+      type: string
+    - name: url
+      label: PDF path, for example PHYS143/course_outline.pdf (leave empty until the file is uploaded; Preview and Download
+        appear automatically)
+      type: string
   - name: contacts
     label: The three contacts (shown on every lecture page)
     type: object
@@ -978,6 +989,17 @@ content:
         label: Reference text
         type: text
         description: Text supports **bold**, *italic*, ^superscript^ and [link text](address).
+      - name: links
+        label: Links to the paper or preprint
+        type: object
+        fields:
+        - name: label
+          label: Link text (for example Paper, DOI, arXiv, Preprint)
+          type: string
+        - name: url
+          label: Address (only a real, checked address)
+          type: string
+        list: true
       list: true
     list: true
   - name: home
@@ -990,6 +1012,17 @@ content:
     - name: text
       label: Reference text
       type: text
+    - name: links
+      label: Links to the paper or preprint
+      type: object
+      fields:
+      - name: label
+        label: Link text
+        type: string
+      - name: url
+        label: Address
+        type: string
+      list: true
     list: true
 - name: about
   label: About page (Academic Profile)

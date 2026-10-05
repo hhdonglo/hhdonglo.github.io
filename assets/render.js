@@ -15,18 +15,19 @@ function get(name){return fetch("data/"+name+".json",{cache:"no-cache"}).then(fu
 function profiles(site,sep){return site.profiles.map(function(p){return link(p.url,esc(p.label)+" &#8599;",true)}).join(sep)}
 
 var R={};
+function plinks(ls){ls=(ls||[]).filter(function(x){return x&&x.url});return ls.length?' <span class="pub-links">'+ls.map(function(x){return '<a class="pub-link" href="'+esc(x.url)+'" target="_blank" rel="noopener">'+esc(x.label||"Link")+' &#8599;<span class="vh"> (opens in a new tab)</span></a>'}).join("")+'</span>':""}
 R.publications=function(el,d,site){
   var h='<div class="pub-filter" role="group" aria-label="Filter by year">'+d.filters.map(function(f,i){return '<button type="button" class="btn" data-f="'+esc(f.id)+'" aria-pressed="'+(i===0)+'">'+esc(f.label)+'</button>'}).join("")+'</div>';
   h+='<p class="note" id="pub-count" aria-live="polite"></p>';
   h+='<p class="ext-links">Full list on '+link(site.profiles[0].url,"Google Scholar &#8599;",true)+" "+link(site.profiles[1].url,"ORCID &#8599;",true)+'</p><div class="ov-grid">';
   d.groups.forEach(function(g){
-    h+='<article class="ov-card wide"'+(g.id?' id="'+esc(g.id)+'"':'')+'><h3 class="h4">'+esc(g.title)+'</h3>'+(g.note?'<p class="note">'+md(g.note)+'</p>':'')+'<ul class="refs">'+g.items.map(function(i){return '<li data-year="'+esc(i.tag)+'">'+md(i.text)+'</li>'}).join("")+'</ul></article>';});
+    h+='<article class="ov-card wide"'+(g.id?' id="'+esc(g.id)+'"':'')+'><h3 class="h4">'+esc(g.title)+'</h3>'+(g.note?'<p class="note">'+md(g.note)+'</p>':'')+'<ul class="refs">'+g.items.map(function(i){return '<li data-year="'+esc(i.tag)+'">'+md(i.text)+plinks(i.links)+'</li>'}).join("")+'</ul></article>';});
   el.innerHTML=h+'</div>';
   var bs=el.querySelectorAll(".pub-filter button"),lis=el.querySelectorAll(".refs li[data-year]"),cards=el.querySelectorAll(".ov-grid .ov-card"),c=el.querySelector("#pub-count");
   function run(f){var n=0;lis.forEach(function(l){var v=f==="all"||l.dataset.year===f;l.hidden=!v;if(v)n++});cards.forEach(function(k){k.hidden=!k.querySelector("li:not([hidden])")});bs.forEach(function(b){b.setAttribute("aria-pressed",b.dataset.f===f?"true":"false")});c.textContent=n+(n===1?" item shown":" items shown")}
   bs.forEach(function(b){b.addEventListener("click",function(){run(b.dataset.f)})});run("all");
 };
-R["pubs-home"]=function(el,d){el.innerHTML=d.home.map(function(i){return '<li><span class="yr">'+esc(i.label)+'</span><span>'+md(i.text)+'</span></li>'}).join("")};
+R["pubs-home"]=function(el,d){el.innerHTML=d.home.map(function(i){return '<li><span class="yr">'+esc(i.label)+'</span><span>'+md(i.text)+plinks(i.links)+'</span></li>'}).join("")};
 R["research-lead"]=function(el,d){el.innerHTML='<h3 class="h4">'+md(d.overview_title||"Research Overview")+'</h3><p class="intro"><strong>'+md(d.question)+'</strong></p><p class="intro">'+md(d.intro)+'</p>'};
 R["research-pubs"]=function(el,d){el.innerHTML='<p>'+md(d.publications_text)+'</p><p><a class="btn primary" href="publications.html">'+esc(d.publications_link_label||"View all publications")+'</a></p>'};
 R["research-areas"]=function(el,d){el.innerHTML=d.areas.map(function(a,i){return '<article class="ov-card area"'+(a.id?' id="'+esc(a.id)+'"':'')+'><p class="num">'+("0"+(i+1)).slice(-2)+'</p><h4>'+md(a.title)+'</h4><p>'+md(a.text)+'</p></article>'}).join("")};
@@ -56,17 +57,20 @@ function ln(n){return ("0"+n).slice(-2)}
 function lpage(n){return "phys143-lecture-"+n+".html"}
 function ppage(n){return "phys143-lecture-"+n+"-practice.html"}
 R.weekly=function(el,d){
-  el.innerHTML=d.groups.map(function(g){
+  var co=d.course_outline,cof='';if(co&&co.url){cof='<p class="outline"><strong>'+esc(co.label||"Course outline")+':</strong> <span class="pdf-pair"><a href="'+esc(co.url)+'" target="_blank" rel="noopener">Preview<span class="vh"> '+esc(co.label||"course outline")+' (opens in a new tab)</span></a><a href="'+esc(co.url)+'" download>Download<span class="vh"> '+esc(co.label||"course outline")+'</span></a></span></p>'}
+  el.innerHTML=cof+d.groups.map(function(g){
     return '<div class="week-group" id="'+esc(g.id)+'"><h4 class="grp">'+md(g.title)+'</h4><p class="sec-sub">'+md(g.subtitle)+'</p><ul class="weeks">'+g.lectures.map(function(l){
       var n=l.number,soon=l.status==="soon";
       return '<li class="week'+(soon?' soon':'')+'" id="lecture-'+n+'"><span class="wk">Week '+n+'</span><span class="wt"><a href="'+lpage(n)+'">'+(soon?'Coming soon':md(l.title))+'</a><span class="state'+(soon?'':' ok')+'">'+(soon?'Coming soon':'Available')+'</span></span><span class="ws">'+md(soon?(l.note||"Materials are being prepared."):l.summary)+'</span>'+(soon?'':'<span class="wl">'+[wlink(l.slides,"Slides",n),wlink(l.supplement,"Supplementary",n),wlink(l.tutorial,"Tutorial",n),wlink(l.practice==="soon"?"":ppage(n),"Practice questions",n)].join(" ")+'</span>')+'</li>'}).join("")+'</ul></div>'}).join("");
 };
+function isPdf(u){return /\.pdf(\?|#|$)/i.test(u||"")}
 function lbtn(url,label,n,primary){
   var sr='<span class="vh"> for lecture '+n+'</span>';
   if(!url)return '<span class="btn off" aria-disabled="true">'+esc(label)+'<small>Coming soon</small>'+sr+'</span>';
+  if(isPdf(url))return '<div class="res"><span class="res-l">'+esc(label)+'</span><span class="res-b"><a class="btn'+(primary?' primary':'')+'" href="'+esc(url)+'" target="_blank" rel="noopener">Preview'+sr+'<span class="vh"> (opens in a new tab)</span></a><a class="btn" href="'+esc(url)+'" download>Download'+sr+'</a></span></div>';
   return '<a class="btn'+(primary?' primary':'')+'" href="'+esc(url)+'">'+esc(label)+sr+'</a>';
 }
-function wlink(url,label,n){return url?'<a href="'+esc(url)+'">'+esc(label)+'<span class="vh"> for lecture '+n+'</span></a>':'<span class="muted">'+esc(label)+': coming soon</span>'}
+function wlink(url,label,n){if(!url)return '<span class="muted">'+esc(label)+': coming soon</span>';var sr='<span class="vh"> '+esc(label)+' for lecture '+n+'</span>';if(isPdf(url))return '<span class="pdf-pair"><span class="pl">'+esc(label)+'</span><a href="'+esc(url)+'" target="_blank" rel="noopener">Preview'+sr+'<span class="vh"> (opens in a new tab)</span></a><a href="'+esc(url)+'" download>Download'+sr+'</a></span>';return '<a href="'+esc(url)+'">'+esc(label)+'<span class="vh"> for lecture '+n+'</span></a>'}
 R.lecture=function(el,d,site){
   var all=flat(d),n=+el.getAttribute("data-n"),i=all.findIndex(function(x){return x.l.number===n});if(i<0)return;
   var l=all[i].l,soon=l.status==="soon",course=d.course_title||"PHYS 143",title="Lecture "+ln(n)+" — "+(soon?"Coming soon":l.title);
@@ -77,7 +81,7 @@ R.lecture=function(el,d,site){
   var out='';
   if(soon){out+='<div class="ov-card"><p>This lecture will be added when it is ready.</p></div>'}
   else{
-    out+='<div class="lecture-buttons" role="group" aria-label="Lecture resources">'+lbtn(l.slides,"Open lecture slides",n,true)+lbtn(l.supplement,"Supplementary",n)+lbtn(l.tutorial,"Tutorial",n)+lbtn(l.practice==="soon"?"":ppage(n),"Practice questions",n)+'</div>';
+    out+='<div class="lecture-buttons" role="group" aria-label="Lecture resources">'+lbtn(l.slides,"Lecture slides",n,true)+lbtn(l.supplement,"Supplementary note",n)+lbtn(l.tutorial,"Tutorial sheet",n)+lbtn(l.practice==="soon"?"":ppage(n),"Practice questions",n)+'</div>';
     out+='<details class="fold" id="objectives" open><summary>Learning objectives</summary><div class="ov-card"><p>Students should be able to:</p>'+list(l.outcomes||[],"")+'</div></details>';
     var focus=l.contact_focus||[];
     (d.contacts||[]).forEach(function(c,k){
@@ -179,7 +183,7 @@ R["home-teaching"]=function(el,d){var t=d.teaching_block;if(!t){el.hidden=true;r
 R["home-academic"]=function(el,d){var a=d.academic;if(!a||!a.title){el.hidden=true;return}el.hidden=false;el.innerHTML='<article class="ov-card"><h2 class="h3" id="academic">'+md(a.title)+'</h2>'+(a.paragraphs||[]).map(function(p){return '<p>'+md(p)+'</p>'}).join("")+(a.button?'<p><a class="btn alt" href="'+esc(a.button.url)+'">'+md(a.button.label)+'</a></p>':'')+'</article>'};
 R["home-blocks"]=function(el,d){el.innerHTML=d.blocks.map(function(p){return '<div class="hl"><h3 class="h4"><a href="'+esc(p.url)+'">'+md(p.title)+'</a></h3><ul>'+p.links.map(function(i){return '<li>'+link(i.url,esc(i.label))+'</li>'}).join("")+'</ul></div>'}).join("")};
 R["home-intro"]=function(el,d){el.innerHTML='<article class="ov-card lead-card">'+d.intro_paragraphs.map(function(p){return '<p class="intro">'+md(p)+'</p>'}).join("")+'</article>'};
-R["home-pubs"]=function(el,d){var h=d[0],p=d[1];el.innerHTML='<h2 id="selected-pubs">'+md(h.publications_heading)+'</h2><ul class="refs sel">'+p.home.map(function(i){return '<li><span class="yr">'+esc(i.label)+'</span><span>'+md(i.text)+'</span></li>'}).join("")+'</ul><p><a class="more" href="publications.html">'+esc(h.publications_link_label)+'</a></p>'};
+R["home-pubs"]=function(el,d){var h=d[0],p=d[1];el.innerHTML='<h2 id="selected-pubs">'+md(h.publications_heading)+'</h2><ul class="refs sel">'+p.home.map(function(i){return '<li><span class="yr">'+esc(i.label)+'</span><span>'+md(i.text)+plinks(i.links)+'</span></li>'}).join("")+'</ul><p><a class="more" href="publications.html">'+esc(h.publications_link_label)+'</a></p>'};
 R["home-areas"]=function(el,d){el.innerHTML='<h2 id="areas">'+md(d.areas_heading)+'</h2><div class="grid shortcuts">'+d.areas.map(function(a){return '<div class="ov-card"><h3 class="h4">'+md(a.title)+'</h3><p>'+md(a.text)+'</p></div>'}).join("")+'</div>'};
 R["banner-areas"]=function(el,d){if(d&&d.hero_line1)el.innerHTML='<span class="l1">'+md(d.hero_line1)+'</span><span class="l2">'+md(d.hero_line2||"")+'</span>'};
 R["banner-field"]=function(el,d,site){if(site.banner_field)el.textContent=site.banner_field};

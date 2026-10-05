@@ -626,3 +626,39 @@ nav.jump.js.open .menu-btn .dots::before{content:"Close \2715";font-size:.95rem;
 .monogram:focus-visible{outline:3px solid #fff;outline-offset:3px}
 @media (max-width:400px){.monogram{width:36px;height:36px;font-size:.95rem}}
 @media (max-width:380px){.monogram{width:32px;height:32px;font-size:.85rem}.banner.masthead .monogram-container{right:.75rem}}
+/* Interaction states: hover and keyboard focus on buttons and card links (deep brown and gold) */
+@media (prefers-reduced-motion:no-preference){.btn,.soon-strip,.cw,.chips li,.pub-link,.pdf-pair a{transition:background-color .15s,border-color .15s,box-shadow .15s,color .15s}}
+.btn:hover{border-color:var(--brown-edge);box-shadow:0 2px 0 var(--brown-edge)}
+.btn:active{box-shadow:none;transform:translateY(1px)}
+.btn.primary:hover{background:var(--brown-edge);border-color:var(--brown-edge);color:#fff;filter:none}
+.btn.off:hover{box-shadow:none;border-color:var(--off)}
+.btn:focus-visible,.soon-strip:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
+.cta .btn:hover{background:#F2C9A0;border-color:#F2C9A0;color:var(--navy-deep);box-shadow:0 2px 0 rgba(0,0,0,.35)}
+.cta .btn.alt:hover{background:rgba(242,201,160,.2);border-color:#F2C9A0;color:#fff}
+.cta .btn:focus-visible{outline-color:#fff}
+.ov-card a:not(.btn):hover,.cw a:hover,.working a:hover,.home-pubs a:hover,.refs a:hover{color:var(--brown-edge);text-decoration-thickness:2px}
+.soon-strip:hover{box-shadow:0 2px 0 var(--brown-edge)}
+.ov-card a:not(.btn):focus-visible,.cw a:focus-visible,.working a:focus-visible,.refs a:focus-visible{border-radius:3px}
+@media (prefers-color-scheme:dark){
+.btn:hover{border-color:#F2C9A0;box-shadow:0 2px 0 #F2C9A0}
+.btn.primary:hover{background:#9a6038;border-color:#F2C9A0}
+.ov-card a:not(.btn):hover,.cw a:hover,.working a:hover,.home-pubs a:hover,.refs a:hover{color:#F2C9A0}
+.soon-strip:hover{box-shadow:0 2px 0 #F2C9A0}
+}
+/* Publication links and PDF preview/download pairs */
+.pub-links{display:inline-flex;flex-wrap:wrap;gap:.4rem;margin-left:.4rem;vertical-align:baseline}
+.pub-link{display:inline-flex;align-items:center;min-height:32px;padding:.1rem .6rem;border:1.5px solid var(--brown-edge);border-radius:999px;font:600 .82rem system-ui,sans-serif;text-decoration:none;color:var(--link)}
+.pub-link:hover{background:var(--brown-edge);color:#fff}
+@media (prefers-color-scheme:dark){.pub-link{border-color:#F2C9A0}.pub-link:hover{background:#F2C9A0;color:#16294b}}
+.pdf-pair{display:inline-flex;flex-wrap:wrap;align-items:center;gap:.35rem}
+.pdf-pair .pl{margin-right:.1rem}
+.pdf-pair a{display:inline-flex;align-items:center;min-height:32px;padding:.05rem .6rem;border:1.5px solid var(--brown-edge);border-radius:6px;font:600 .82rem system-ui,sans-serif;text-decoration:none}
+.pdf-pair a:hover{background:var(--brown-edge);color:#fff}
+@media (prefers-color-scheme:dark){.pdf-pair a{border-color:#F2C9A0}.pdf-pair a:hover{background:#F2C9A0;color:#16294b}}
+.week .wl{display:flex;flex-wrap:wrap;gap:.5rem 1rem;align-items:center}
+.outline{margin:0 0 1rem}
+.lecture-buttons .res{display:flex;flex-direction:column;gap:.35rem;padding:.55rem .6rem .6rem;border:1px solid var(--border);border-radius:8px;background:var(--surface)}
+.res-l{font:700 .95rem system-ui,sans-serif;color:var(--text)}
+.res-b{display:grid;grid-template-columns:1fr 1fr;gap:.4rem}
+.lecture-buttons .res .btn{min-height:44px;font-size:.92rem;padding:.3rem .4rem;flex-direction:row}
+@media (max-width:700px){.lecture-buttons .res .btn{min-height:44px}}

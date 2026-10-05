@@ -42,7 +42,13 @@
       "items": [
         {
           "tag": "pending",
-          "text": "**H. Donglo** and T. R. Rodríguez Frutos. Nuclear structure of even-even argon isotopes within the axial symmetry conserving configuration mixing framework. Preprint, HAL [hal-05677054](https://hal.science/hal-05677054)."
+          "text": "**H. Donglo** and T. R. Rodríguez Frutos. Nuclear structure of even-even argon isotopes within the axial symmetry conserving configuration mixing framework. Preprint, HAL hal-05677054.",
+          "links": [
+            {
+              "label": "Preprint (HAL)",
+              "url": "https://hal.science/hal-05677054"
+            }
+          ]
         }
       ],
       "note": "Manuscripts available as preprints.",
@@ -105,7 +111,13 @@
     },
     {
       "label": "Preprint",
-      "text": "Nuclear structure of even-even argon isotopes within the axial symmetry conserving configuration mixing framework. **H. Donglo** and T. R. Rodríguez Frutos. HAL [hal-05677054](https://hal.science/hal-05677054)."
+      "text": "Nuclear structure of even-even argon isotopes within the axial symmetry conserving configuration mixing framework. **H. Donglo** and T. R. Rodríguez Frutos. HAL hal-05677054.",
+      "links": [
+        {
+          "label": "Preprint (HAL)",
+          "url": "https://hal.science/hal-05677054"
+        }
+      ]
     }
   ]
 }

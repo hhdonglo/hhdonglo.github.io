@@ -265,5 +265,9 @@
       "purpose": "Apply, integrate and transfer."
     }
   ],
-  "course_title": "PHYS 143"
+  "course_title": "PHYS 143",
+  "course_outline": {
+    "label": "Course outline",
+    "url": ""
+  }
 }

@@ -96,3 +96,9 @@ The practice quiz of lecture N lives at `phys143-lecture-N-practice.html`. The o
 **Upcoming project teaser.** Form: Data Science, ML and Engineering, "Upcoming projects". Each card has a marker (for example "Coming soon"), a name, a one-line purpose, a short description, topic chips and a closing note. Add or remove cards there; keep to what is safe to show publicly (no clients, prices or plans).
 
 **Figures on project cards.** Research projects (Form: Projects) and data projects accept a "Figures" list: image path (upload to `assets/figures`), width and height in pixels, alt text, caption, and optionally a large version (click or tap to enlarge; Escape closes) and a source link. The KEWPIE3 card groups its figures under headings: set "Group heading" and "One-line introduction" on the first figure of a group (here "Comparison with data": theory versus experiment, then the theory/experiment ratio; then "Predictions"). Figures appear in list order.
+
+## Interactive elements: hover states, Preview and Download, publication links
+- Every button and card link has a hover state (deep brown, gold in dark mode) and a visible keyboard focus ring. Transitions are disabled for visitors who prefer reduced motion.
+- Lecture pages (PHYS 143): each lecture PDF shows a Preview (opens in a new tab) and a Download button automatically.
+- Course outline or syllabus: in the Lectures form, fill "Course outline or syllabus (PDF)" with the label and the PDF path (for example PHYS143/course_outline.pdf). Leave the path empty and nothing is shown. Preview and Download appear once it is filled.
+- Publications: each entry (and each Selected Publications item on Home) has "Links to the paper or preprint" (link text and address). Add only real, checked addresses (DOI, arXiv, HAL, publisher).
