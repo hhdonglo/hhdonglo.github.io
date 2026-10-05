@@ -34,14 +34,14 @@
           "caption": "Ratio of calculated to measured cross section at each measured channel maximum, by target (marker shape: channel; colour: laboratory). The median ratio is 1.19 and 29 of 30 entries are within one order of magnitude. Agreement is not uniform: ratios lie below unity for the Np and U targets and above unity for most Cm, Bk and Cf targets, and part of the spread reflects differences between laboratories. These are descriptive statistics, not an independent validation."
         },
         {
-          "image": "assets/figures/kewpie3-predictions.webp",
-          "full": "assets/figures/kewpie3-predictions-full.webp",
-          "width": 1000,
-          "height": 1365,
-          "alt": "Eleven panels of predicted evaporation-residue cross sections against centre-of-mass energy for reactions not yet measured, for titanium-50, vanadium-51 and chromium-54 beams on actinide targets. Curves for the 2n to 5n channels are drawn with shaded bands showing the parameter-response envelope, and a red arrow marks the Coulomb barrier energy in each panel.",
-          "caption": "Predicted cross sections for eleven reactions with ^50^Ti, ^51^V and ^54^Cr beams on actinide targets, calculated with the calibrated parameters and no refitting (curves: 2n to 5n channels; the 1n channel was not calculated). Bands show only the parameter-response envelope and do not include the additional uncertainty from extrapolating to different projectiles. The calculated maxima generally decrease toward heavier projectile and compound systems.",
+          "image": "assets/figures/kewpie3-predictions-four.webp",
+          "width": 560,
+          "height": 574,
+          "alt": "Four panels of predicted evaporation-residue cross sections in femtobarns, on a logarithmic axis from 0.01 to 1000, against centre-of-mass energy, with curves for the 2n, 3n, 4n and 5n channels and an arrow marking the mean barrier B0. Top left: curium-248 plus vanadium-51 forming element 119, with a 4n peak of 1.6 fb. Top right: americium-243 plus chromium-54 forming element 119, with a 3n peak of 2.1 fb. Bottom left: curium-248 plus chromium-54 forming element 120, with a 4n peak of 0.2 fb. Bottom right: californium-249 plus titanium-50 forming element 120, with a 3n peak of 2.2 fb.",
+          "caption": "Predicted cross sections for four reactions not yet measured: ^248^Cm(^51^V,xn) and ^243^Am(^54^Cr,xn) towards Z = 119, and ^248^Cm(^54^Cr,xn) and ^249^Cf(^50^Ti,xn) towards Z = 120, calculated with the calibrated parameters and no refitting. Curves show the 2n to 5n channels; the labelled value in each panel is the largest predicted channel maximum (femtobarns). Cross sections of this size, of the order of a femtobarn, are an experimental challenge.",
           "heading": "Predictions",
-          "lead": "Cross sections calculated with the same calibrated parameters, without refitting, for reactions that have not been measured."
+          "lead": "Cross sections calculated with the same calibrated parameters, without refitting, for reactions that have not been measured.",
+          "full": "assets/figures/kewpie3-predictions-four-full.webp"
         }
       ]
     },
