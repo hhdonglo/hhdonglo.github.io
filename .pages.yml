@@ -326,14 +326,27 @@ content:
     - name: title
       label: Title
       type: string
-    - name: url
-      label: Page the card opens (optional, makes the card clickable)
-      type: string
     - name: more
-      label: Link text at the foot of the card
+      label: Button text under the card (shown only when there is a summary)
       type: string
     - name: paragraphs
-      label: Paragraphs (one line for a clickable card)
+      label: Card text (one line)
+      type: text
+      list: true
+    - name: summary_title
+      label: Summary panel heading (optional)
+      type: string
+    - name: meta
+      label: Line under the summary heading (optional)
+      type: text
+    - name: summary
+      label: Summary paragraph (leave empty for a card without a summary)
+      type: text
+    - name: results_title
+      label: Heading for the results list (default Key results)
+      type: string
+    - name: key_results
+      label: Key results (bulleted)
       type: text
       list: true
     - name: links
@@ -860,45 +873,6 @@ content:
     label: References
     type: text
     list: true
-- name: thesis-phd
-  label: PhD thesis summary page
-  type: file
-  path: data/thesis-phd.json
-  format: json
-  fields: &id003
-  - name: title
-    label: Thesis title
-    type: string
-  - name: meta
-    label: Line under the title (degree, institution, date)
-    type: text
-  - name: summary
-    label: Summary paragraph
-    type: text
-  - name: results_title
-    label: Heading for the results list
-    type: string
-  - name: key_results
-    label: Key results (bulleted)
-    type: text
-    list: true
-  - name: links
-    label: Links
-    type: object
-    fields:
-    - name: label
-      label: Link text
-      type: string
-    - name: url
-      label: Address (leave the list empty when there is no link)
-      type: string
-    list: true
-- name: thesis-masters
-  label: Master's thesis summary page
-  type: file
-  path: data/thesis-masters.json
-  format: json
-  fields: *id003
 - name: projects
   label: Projects
   type: file

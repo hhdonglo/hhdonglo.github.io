@@ -715,4 +715,22 @@ ul.plain{margin:.4rem 0 1rem;padding-left:1.2rem}ul.plain li{margin:.45rem 0}
 .fig-solo{margin:1rem 0}.fig-solo .fig{max-width:min(100%,760px);margin:0}
 .card-links{margin:.6rem 0 0}.card-links .pub-links{margin-left:0}
 .back{margin:1.2rem 0 0;font:600 .95rem system-ui,sans-serif}
-.link-card:not(.area) .card-link{display:inline-block;padding:.75rem 0;margin:-.75rem 0}
+
+/* Previous research: compact cards with a summary panel beneath */
+[data-render="research-previous"]{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;align-items:stretch}
+.prev{order:var(--i)}
+.sum-panel{grid-column:1/-1;order:10;border-left:4px solid var(--brown-edge)}
+.sum-panel[hidden]{display:none}
+.sum-head{display:flex;justify-content:space-between;gap:1rem;align-items:flex-start}
+.sum-head h4{margin:.1rem 0 .3rem}
+.sum-close,.sum-btn{font:600 .92rem system-ui,sans-serif;color:var(--link);background:none;border:1.5px solid var(--brown-edge);border-radius:6px;min-height:44px;padding:.2rem .8rem;cursor:pointer}
+.sum-btn{border:0;padding:.2rem 0;text-align:left}
+.sum-btn:hover,.sum-close:hover{text-decoration:underline}
+.sum-btn[aria-expanded="true"] .chev{display:inline-block;transform:rotate(180deg)}
+.prev.open{border-color:var(--brown-edge);box-shadow:0 2px 0 var(--brown-edge)}
+.prev .more{margin:.4rem 0 0}
+.sum-sub{margin:.9rem 0 .2rem;font:700 1rem system-ui,sans-serif}
+.prev.link-card{cursor:pointer}
+.prev .sum-btn::after{content:"";position:absolute;inset:0}
+@media (max-width:900px){[data-render="research-previous"]{grid-template-columns:minmax(0,1fr)}.prev{order:calc(var(--i)*2)}.sum-panel{order:calc(var(--i)*2 + 1)}}
+.prev:has(.sum-btn:focus-visible){outline:3px solid var(--focus);outline-offset:3px}.prev .sum-btn:focus-visible{outline:none}
