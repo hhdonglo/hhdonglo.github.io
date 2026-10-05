@@ -51,7 +51,14 @@ R["reaction-dynamics-page"]=function(el,d){
   el.innerHTML=h;texRender(el);
   var h2=document.querySelector("main h2");if(h2&&d.title)h2.textContent=d.title;var sb=h2&&h2.nextElementSibling;if(sb&&sb.classList.contains("sec-sub")&&d.subtitle)sb.innerHTML=md(d.subtitle);
 };
-function cards(list,past){return list.map(function(c){return '<article class="ov-card"><p class="status'+(past?' past':'')+'">'+md(c.status)+'</p><h4>'+md(c.title)+'</h4>'+c.paragraphs.map(function(p){return '<p>'+md(p)+'</p>'}).join("")+(c.links&&c.links.some(function(x){return x.url})?'<p class="card-links">'+plinks(c.links)+'</p>':'')+'</article>'}).join("")}
+function cards(list,past){return list.map(function(c){var lk=!!c.url;return '<article class="ov-card'+(lk?' link-card':'')+'"><p class="status'+(past?' past':'')+'">'+md(c.status)+'</p><h4>'+(lk?'<a class="card-link" href="'+esc(c.url)+'">'+md(c.title)+'</a>':md(c.title))+'</h4>'+c.paragraphs.map(function(p){return '<p>'+md(p)+'</p>'}).join("")+(c.links&&c.links.some(function(x){return x.url})?'<p class="card-links">'+plinks(c.links)+'</p>':'')+(lk?'<p class="more" aria-hidden="true">'+esc(c.more||"Read more")+' →</p>':'')+'</article>'}).join("")}
+R.thesis=function(el,d){
+  var h='<div class="ov-card"><p class="intro">'+md(d.summary)+'</p></div>';
+  h+='<section aria-labelledby="kr"><h3 class="sub2" id="kr">'+md(d.results_title||"Key results")+'</h3><div class="ov-card"><ul class="plain">'+(d.key_results||[]).map(function(q){return '<li>'+md(q)+'</li>'}).join("")+'</ul>'+(d.links&&d.links.some(function(x){return x.url})?'<p class="card-links">'+plinks(d.links)+'</p>':'')+'</div></section>';
+  el.innerHTML=h;
+  var h2=document.querySelector("main h2");if(h2&&d.title)h2.textContent=d.title;var sb=h2&&h2.nextElementSibling;if(sb&&sb.classList.contains("sec-sub")&&d.meta)sb.innerHTML=md(d.meta);
+};
+R["thesis-phd"]=R.thesis;R["thesis-masters"]=R.thesis;
 R["research-current"]=function(el,d){el.innerHTML=cards(d.current,false)};
 R["research-previous"]=function(el,d){el.innerHTML=cards(d.previous,true)};
 R["research-chips"]=function(el,d){el.innerHTML=d.current.map(function(c){return '<li>'+md(c.chip||c.title)+'</li>'}).join("")};
@@ -220,7 +227,7 @@ R["home-areas"]=function(el,d){el.innerHTML='<h2 id="areas">'+md(d.areas_heading
 R["banner-areas"]=function(el,d){if(d&&d.hero_line1)el.innerHTML='<span class="l1">'+md(d.hero_line1)+'</span><span class="l2">'+md(d.hero_line2||"")+'</span>'};
 R["banner-field"]=function(el,d,site){if(site.banner_field)el.textContent=site.banner_field};
 
-var files={publications:"publications",research:"research","research-lead":"research","research-areas":"research","research-current":"research","research-previous":"research","research-pubs":"research",projects:"projects","reaction-dynamics-page":"reaction-dynamics","data-engineering":"data-engineering",weekly:"lectures",lecture:"lectures","home-side":"pages/home","home-soon":"pages/home","home-teaching":"pages/home","home-academic":"pages/home","home-stats":["pages/home","lectures","data-engineering"],"home-statement":"pages/home","home-intro":"pages/home","home-blocks":"pages/home","home-working":"pages/home","home-cta":"pages/home","banner-areas":"pages/home","home-highlights":"pages/home","home-technical":"pages/home","home-pubs":["pages/home","publications"],"home-areas":"pages/home"};
+var files={publications:"publications",research:"research","research-lead":"research","research-areas":"research","research-current":"research","research-previous":"research","research-pubs":"research",projects:"projects","thesis-phd":"thesis-phd","thesis-masters":"thesis-masters","reaction-dynamics-page":"reaction-dynamics","data-engineering":"data-engineering",weekly:"lectures",lecture:"lectures","home-side":"pages/home","home-soon":"pages/home","home-teaching":"pages/home","home-academic":"pages/home","home-stats":["pages/home","lectures","data-engineering"],"home-statement":"pages/home","home-intro":"pages/home","home-blocks":"pages/home","home-working":"pages/home","home-cta":"pages/home","banner-areas":"pages/home","home-highlights":"pages/home","home-technical":"pages/home","home-pubs":["pages/home","publications"],"home-areas":"pages/home"};
 var cache={};function load(n){return cache[n]||(cache[n]=get(n))}
 var pending=[];
 document.querySelectorAll("[data-render]").forEach(function(el){var k=el.getAttribute("data-render"),f=files[k];

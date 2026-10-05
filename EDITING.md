@@ -120,3 +120,5 @@ The practice quiz of lecture N lives at `phys143-lecture-N-practice.html`. The o
 - Research page: "Nuclear Reaction Dynamics" is one card (description, a label above the equation, the evaporation-residue cross-section equation and a Read more link). Fields: Description, Label above the equation, Equation (LaTeX), Link. On narrow screens the equation scrolls inside its own box.
 
 - Previous Research cards (Research form) each take an optional "Links" list (link text and address; opens in a new tab). The doctoral card links to the PhD thesis on HAL, and the same link is on the thesis entry in Publications.
+
+- Thesis summary pages (phd-thesis.html and masters-thesis.html) have their own CMS forms: summary paragraph, a bulleted list of key results and an optional link. The Previous Research cards link to them (field "Page the card opens"). The Master's thesis has no link because none exists yet.

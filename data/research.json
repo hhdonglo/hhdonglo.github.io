@@ -53,16 +53,11 @@
       "status": "Doctoral research",
       "title": "Reaction mechanisms for superheavy element synthesis",
       "paragraphs": [
-        "PhD thesis, University of Caen Normandy (2024).",
-        "The thesis investigates the synthesis of superheavy elements (Z ≥ 104) by fusion–evaporation reactions, modelled in three stages: capture, formation and survival. It improves the predictive power of the Kewpie2 code by extending it with a formation step, the basis of KEWPIE3, using both overdamped and full Langevin formalisms.",
-        "The injection-point distance is optimised on cold and hot fusion data, and hot-fusion evaporation residue cross sections are reproduced to better than an order of magnitude. For cold fusion, the 1n channel deviates by a factor, while the 2n and 3n channels are within an order of magnitude. The reduced friction coefficients show that the dynamics is not fully damped, so a full one-dimensional Langevin formalism is implemented. Predictions for Z = 119 and 120 align with other codes, and a method is proposed to study formation probability ratios for ^258^No and ^259^Db."
+        "PhD thesis, University of Caen Normandy (2024): formation of superheavy elements in fusion–evaporation reactions."
       ],
-      "links": [
-        {
-          "label": "Read the thesis",
-          "url": "https://theses.hal.science/tel-04901809v1/file/sygal_fusion_50635_donglo_hope_678e54093d221.pdf"
-        }
-      ]
+      "links": [],
+      "url": "phd-thesis.html",
+      "more": "Summary and key results"
     },
     {
       "status": "Nuclear structure",
@@ -75,10 +70,10 @@
       "status": "Earlier work",
       "title": "Master's and BSc theses",
       "paragraphs": [
-        "**MSc dissertation:** Nuclear structure studies with symmetry conserving configuration mixing methods, Universidad Autónoma de Madrid, Erasmus Mundus Joint Master in Nuclear Physics (September 2020), supervised by Dr. Tomás Raúl Rodríguez Frutos.",
-        "It describes the framework of the symmetry conserving configuration mixing (SCCM) method and applies it to the even-even argon isotopes (A = 32 to 58), where the magic numbers N = 20 and 28 persist and neutron sub-shell closures appear at ^56^Ar and ^58^Ar, with binding energy per nucleon and charge radii compared with experiment. It also studies ^152,154^Nd (well deformed, with coexisting prolate and oblate rotational bands) and ^78^Kr (oblate–prolate admixture, with the moment of inertia of the first excited 0^+^ state about one third of the ground state's).",
-        "**BSc thesis:** a safety evaluation of the Ghana Research Reactor-1, University of Ghana. See [Publications](publications.html)."
-      ]
+        "MSc dissertation (Universidad Autónoma de Madrid, 2020): nuclear structure with symmetry conserving configuration mixing. BSc thesis: safety evaluation of the Ghana Research Reactor-1."
+      ],
+      "url": "masters-thesis.html",
+      "more": "Summary and key results"
     }
   ],
   "overview_title": "Research Overview",
