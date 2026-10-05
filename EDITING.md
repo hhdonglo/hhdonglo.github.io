@@ -103,13 +103,9 @@ The practice quiz of lecture N lives at `phys143-lecture-N-practice.html`. The o
 - Course outline or syllabus: in the Lectures form, fill "Course outline or syllabus (PDF)" with the label and the PDF path (for example PHYS143/course_outline.pdf). Leave the path empty and nothing is shown. Preview and Download appear once it is filled.
 - Publications: each entry (and each Selected Publications item on Home) has "Links to the paper or preprint" (link text and address). Add only real, checked addresses (DOI, arXiv, HAL, publisher).
 
-## Equations on the Fusion dynamics card (Projects page)
-- In the Projects form, each research project has an optional "Equations (optional)" list. Each item has the equation typed as LaTeX and a plain-language line under it. Leave the list empty to hide the block.
-- The equations sit in a collapsed "Show the equations" toggle (text editable). Wide equations scroll sideways inside their own box on phones.
-- KaTeX is stored in assets/katex (no external service) and loads only when a card has equations. The Projects page links assets/katex/katex.min.css.
-- Source: equations (1), (14), (16) and (19) of the Fusion-by-Diffusion manuscript (still in preparation).
-
-- Official course listing: the Lectures form has "Official course listing (web page link)" (shown at the top of the PHYS 143 weekly list, opens in a new tab).
+## Fusion dynamics and the equations
+- There is no separate Fusion dynamics card. Its objective and the equations (1), (14) and (15), (16) and (19) are part of the Nuclear Reaction Dynamics page (reaction-dynamics.html), in the "How I evaluate the formation probability" section, edited in the "Nuclear reaction dynamics page" CMS form.
+- Equations on any Projects card are still possible with the optional "Equations" list (LaTeX); add assets/katex/katex.min.css to projects.html if you use it.
 
 ## Nuclear reaction dynamics page and linked research card
 - Page reaction-dynamics.html (Nuclear Reaction Dynamics: Fusion–Evaporation and Superheavy Elements; the old address superheavy.html redirects to it) is edited in the CMS form "Nuclear reaction dynamics page": sections with paragraphs, coloured steps (capture, formation, survival), bulleted lists, equations typed as LaTeX with a plain line under each, and references.

@@ -84,7 +84,7 @@
       "id": "method",
       "heading": "How I evaluate the formation probability",
       "paragraphs": [
-        "I describe formation as a stochastic process, within the fusion-by-diffusion approach. The surface separation s of the two nuclei obeys a one-dimensional Langevin equation, with the system moving over an inverted-parabola barrier of curvature ω under friction β and a random thermal force r(t) at temperature T:"
+        "The fusion dynamics of the fusion-by-diffusion model are being revisited for fusion–evaporation production cross sections (manuscript in preparation). I describe formation as a stochastic process, within the fusion-by-diffusion approach. The surface separation s of the two nuclei obeys a one-dimensional Langevin equation, with the system moving over an inverted-parabola barrier of curvature ω under friction β and a random thermal force r(t) at temperature T:"
       ],
       "equations": [
         {
@@ -102,7 +102,7 @@
       ],
       "after": [
         "**Why one dimension is sufficient.** The surface separation is taken as the slow collective variable. Eliminating the other fast variables, such as the neck, shifts the initial condition of that variable, which is absorbed into a single adjustable parameter, the injection-point distance. The model is therefore deliberately simple and analytical, and its limits are discussed in the manuscript in preparation.",
-        "Details: [Fusion dynamics](projects.html#fusion) and [KEWPIE3](projects.html#kewpie3), the code that applies this to superheavy-element predictions, on the Projects page, and [Publications](publications.html)."
+        "Details: [KEWPIE3](projects.html#kewpie3), the code that applies this to superheavy-element predictions, is described on the Projects page; the manuscript is listed under [Publications](publications.html)."
       ]
     },
     {

@@ -44,36 +44,6 @@
           "full": "assets/figures/kewpie3-predictions-four-full.webp"
         }
       ]
-    },
-    {
-      "id": "fusion",
-      "title": "Fusion dynamics",
-      "status": "Manuscript in preparation",
-      "paragraphs": [
-        "**Objective:** revisit the fusion dynamics in the fusion-by-diffusion model for fusion-evaporation production cross sections.",
-        "**Background and method:** [Nuclear reaction dynamics: fusion–evaporation and superheavy elements →](reaction-dynamics.html#method)",
-        "[See Publications →](publications.html)"
-      ],
-      "equations_title": "The physics in brief",
-      "equations_summary": "Show the equations",
-      "equations": [
-        {
-          "tex": "\\sigma_{\\mathrm{EvR}}(E_{\\mathrm{cm}})=\\frac{\\pi}{k^{2}}\\sum_{\\ell=0}^{\\infty}(2\\ell+1)\\,T_\\ell\\,P_{\\mathrm{CN}}\\,P_{\\mathrm{surv}}",
-          "text": "The evaporation-residue cross section is a sum over partial waves of three probabilities: crossing the Coulomb barrier, forming a compound nucleus and surviving fission. The formation probability is the least certain factor."
-        },
-        {
-          "tex": "\\ddot{s}+\\beta\\,\\dot{s}-\\omega^{2}(s-s_{\\mathrm{sad}})=r(t),\\qquad \\langle r(t)\\,r(t')\\rangle=\\frac{2\\beta T}{\\mu}\\,\\delta(t-t')",
-          "text": "The surface separation s of the two nuclei is a stochastic variable: it moves over an inverted-parabola barrier (curvature ω) under friction β and a random thermal force at temperature T."
-        },
-        {
-          "tex": "P_{\\mathrm{CN}}=\\tfrac12\\,\\mathrm{erfc}\\!\\left[\\sqrt{\\frac{B(s_{\\mathrm{inj}})}{T'}}-\\frac{1}{x+\\sqrt{1+x^{2}}}\\sqrt{\\frac{K_{\\mathrm{rem}}}{T'}}\\right],\\qquad x=\\frac{\\beta}{2\\omega}",
-          "text": "The solution of the full equation. The damping ratio x runs from large (overdamped) to small (underdamped). B is the inner barrier height, the second term accounts for the residual kinetic energy, and T′ is an effective temperature."
-        },
-        {
-          "tex": "P_{\\mathrm{CN}}=\\tfrac12\\,\\mathrm{erfc}\\sqrt{\\frac{B(s_{\\mathrm{inj}})}{T}}\\qquad (s_{\\mathrm{inj}}\\ge s_{\\mathrm{sad}})",
-          "text": "The overdamped limit used in fusion-by-diffusion: the residual kinetic energy is fully dissipated, so only thermal fluctuations carry the system over the barrier."
-        }
-      ]
     }
   ]
 }

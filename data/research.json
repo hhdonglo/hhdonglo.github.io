@@ -5,7 +5,7 @@
     {
       "title": "Nuclear Reaction Dynamics",
       "id": "reaction-dynamics",
-      "text": "Langevin-based stochastic modelling of heavy-ion reactions. Fusion–evaporation reactions and the synthesis of superheavy elements are applications of the same description, with predictions for Z = 119 and Z = 120 made with KEWPIE3.",
+      "text": "Langevin-based stochastic modelling of heavy-ion reactions. Fusion–evaporation reactions and the synthesis of superheavy elements are applications of the same description, with predictions for Z = 119 and Z = 120 made with KEWPIE3. Current work revisits the fusion dynamics in the fusion-by-diffusion model for fusion–evaporation production cross sections.",
       "equation_label": "Evaporation residue cross section",
       "equation": "\\sigma_{\\mathrm{ER}}^{\\mathrm{Theo}}(E_{\\mathrm{cm}})=\\underbrace{\\pi\\lambda^{2}\\sum_{\\ell=0}^{\\infty}(2\\ell+1)\\,T_{\\ell}(E_{\\mathrm{cm}},\\ell)}_{\\text{Capture}}\\times\\htmlClass{eq-red}{\\underbrace{P_{\\mathrm{CN}}(E_{\\mathrm{cm}},\\ell)}_{\\text{Formation}}}\\times\\htmlClass{eq-blue}{\\underbrace{P^{xn}_{\\mathrm{surv}}(E^{*},\\ell)}_{\\text{Survival}}}",
       "link": "reaction-dynamics.html",
@@ -27,16 +27,6 @@
         "[KEWPIE3 on the Projects page →](projects.html#kewpie3)"
       ],
       "chip": "KEWPIE3 development and validation"
-    },
-    {
-      "status": "Manuscript in preparation",
-      "title": "Fusion dynamics and fusion-by-diffusion",
-      "paragraphs": [
-        "**Objective:** revisit the fusion dynamics in the fusion-by-diffusion model for fusion-evaporation production cross sections.",
-        "[See Publications](publications.html)",
-        "[Fusion dynamics on the Projects page →](projects.html#fusion)"
-      ],
-      "chip": "Fusion dynamics and fusion-by-diffusion modelling"
     },
     {
       "status": "Manuscript in preparation",

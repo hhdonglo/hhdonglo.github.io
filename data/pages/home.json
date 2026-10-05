@@ -56,10 +56,6 @@
         {
           "label": "KEWPIE3",
           "url": "projects.html#kewpie3"
-        },
-        {
-          "label": "Fusion dynamics",
-          "url": "projects.html#fusion"
         }
       ]
     },
@@ -135,10 +131,10 @@
       "link": "View Project"
     },
     {
-      "title": "Fusion Dynamics",
-      "text": "Research on fusion-by-diffusion and dynamical descriptions of heavy-ion fusion leading to the formation of superheavy nuclei.",
-      "url": "projects.html#fusion",
-      "link": "View Project"
+      "title": "Nuclear Reaction Dynamics",
+      "text": "Langevin-based modelling of heavy-ion reactions, from fusion–evaporation to the synthesis of superheavy elements.",
+      "url": "research.html#reaction-dynamics",
+      "link": "Read more"
     },
     {
       "title": "Scientific Computing",
