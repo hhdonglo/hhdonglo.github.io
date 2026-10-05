@@ -21,7 +21,7 @@
     {
       "status": "Coming soon",
       "name": "NumeralAnalytics GH",
-      "tagline": "Physics-informed analytics for Ghana's physical industries",
+      "tagline": "Physics-informed analytics for physical industries",
       "text": "An upcoming project that brings physical modelling and uncertainty-aware data science to real physical systems, where data are sparse and the cost of a wrong estimate is high. The aim is analysis whose confidence is stated as clearly as its result.",
       "topics": [
         "Anomaly detection",
