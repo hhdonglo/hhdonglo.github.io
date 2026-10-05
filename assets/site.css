@@ -697,3 +697,11 @@ ul.plain{margin:.4rem 0 1rem;padding-left:1.2rem}ul.plain li{margin:.45rem 0}
 .refs p{margin:0}
 .link-card .card-link{display:inline-block;min-height:44px;line-height:44px;padding:0}
 .fig .credit{display:block;margin-top:.2rem;font-size:.85em;opacity:.85}
+/* Figures with wrapped text: natural proportions, modest width, never upscaled */
+.fig-wrap{display:flow-root;margin:.4rem 0 1rem}
+.fig-wrap .fig{width:min(46%,var(--fw,420px),440px);margin:.2rem 0 .8rem}
+.fig-wrap.fw-right .fig{float:right;margin-left:1.4rem}
+.fig-wrap.fw-left .fig{float:left;margin-right:1.4rem}
+.fig-wrap .fig img{width:100%;height:auto}
+.fig-wrap>p:first-of-type{margin-top:0}
+@media (max-width:700px){.fig-wrap .fig,.fig-wrap.fw-right .fig,.fig-wrap.fw-left .fig{float:none;width:100%;max-width:var(--fw,420px);margin:.4rem 0 .8rem}}
