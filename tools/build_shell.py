@@ -2,17 +2,16 @@
 import glob, re, os, json, html
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PRIMARY = [("index.html", "Home"), ("research.html", "Research"), ("projects.html", "Projects"),
-           ("data-engineering.html", "Data Science for Physics"), ("teaching.html", "Teaching"),
+           ("data-engineering.html", "Scientific Computing"), ("teaching.html", "Teaching"),
            ("publications.html", "Publications"), ("students.html", "Students"), ("about.html", "About")]
 UTILITY = [("cv.html", "CV"), ("contact.html", "Contact")]
 # page -> menu item it belongs to (exact page gets aria-current="page", a child page gets "true")
 # Drop-down children follow the site map; each links to an existing page or section anchor.
 SUB = {
-    "research.html": [("Research Overview", "research.html#overview"), ("Research Questions", "research.html#questions"),
-                      ("Nuclear Reaction Dynamics", "reaction-dynamics.html"), ("Uncertainty Quantification", "research.html#uncertainty"), ("Earlier Research", "research.html#earlier")],
-    "projects.html": [("KEWPIE3", "kewpie3.html"), ("Other Computational Projects", "data-engineering.html#pipelines")],
-    "data-engineering.html": [("Scientific Computing", "kewpie3.html#computing"), ("Data Science", "data-engineering.html#analysis"),
-                              ("Machine Learning", "data-engineering.html#retrieval"), ("Data Engineering", "data-engineering.html#pipelines")],
+    "research.html": [("Research Questions", "research.html#questions"), ("Nuclear Reaction Dynamics", "research.html#reaction-dynamics"),
+                      ("Uncertainty Quantification", "research.html#uncertainty"), ("Earlier Research", "research.html#earlier")],
+    "projects.html": [("KEWPIE3", "kewpie3.html"), ("Current Research", "projects.html#research-projects")],
+    "data-engineering.html": [("Data Engineering", "data-engineering.html#pipelines"), ("Machine Learning", "data-engineering.html#retrieval"), ("Data Analysis", "data-engineering.html#analysis")],
     "teaching.html": [("Courses", "teaching.html#lecture-courses"), ("Lecture Notes", "phys143.html#weekly")],
     "publications.html": [("Journal Articles", "publications.html#journal-articles"), ("Preprints", "publications.html#preprints"), ("Theses", "publications.html#theses")],
     "students.html": [("Supervision", "students.html#undergraduate"), ("Project Opportunities", "students.html#research-projects")],

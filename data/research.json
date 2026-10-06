@@ -4,38 +4,12 @@
   "areas": [
     {
       "title": "Nuclear Reaction Dynamics",
-      "id": "reaction-dynamics",
+      "id": "reaction-dynamics-detail",
       "text": "Developing microscopic and phenomenological descriptions of fusion, quasifission and fission processes to explain experimental observables and improve predictive capabilities for unexplored reactions.",
       "equation_label": "Evaporation residue cross section",
       "equation": "\\sigma_{\\mathrm{ER}}^{\\mathrm{Theo}}(E_{\\mathrm{cm}})=\\underbrace{\\pi\\lambda^{2}\\sum_{\\ell=0}^{\\infty}(2\\ell+1)\\,T_{\\ell}(E_{\\mathrm{cm}},\\ell)}_{\\text{Capture}}\\times\\htmlClass{eq-red}{\\underbrace{P_{\\mathrm{CN}}(E_{\\mathrm{cm}},\\ell)}_{\\text{Formation}}}\\times\\htmlClass{eq-blue}{\\underbrace{P^{xn}_{\\mathrm{surv}}(E^{*},\\ell)}_{\\text{Survival}}}",
       "link": "reaction-dynamics.html",
       "link_label": "Read more"
-    }
-  ],
-  "current": [
-    {
-      "status": "Development and validation",
-      "title": "KEWPIE3: Fusion–Evaporation Cross-Section Modelling",
-      "paragraphs": [
-        "Development and validation of KEWPIE3 for calculating fusion–evaporation cross sections in superheavy-element synthesis.",
-        "**Focus:** Compound-nucleus formation · Stochastic reaction dynamics · Model calibration · Uncertainty and sensitivity analysis",
-        "[View project →](kewpie3.html)"
-      ]
-    },
-    {
-      "status": "Manuscript in preparation",
-      "title": "Fusion Dynamics and Fusion-by-Diffusion",
-      "paragraphs": [
-        "Reassessment of the fusion dynamics underlying the fusion-by-diffusion description of fusion–evaporation reactions.",
-        "[View project →](reaction-dynamics.html)"
-      ]
-    },
-    {
-      "status": "Manuscript in preparation",
-      "title": "Uncertainty in Nuclear Reaction Models",
-      "paragraphs": [
-        "Investigation of parameter variation, calibration and uncertainty propagation in nuclear reaction models."
-      ]
     }
   ],
   "previous": [
@@ -282,12 +256,7 @@
       {
         "title": "Uncertainty Quantification",
         "text": "Constraining reaction models using experimental data, statistical inference and sensitivity analysis to quantify predictive confidence and identify the most influential physical parameters.",
-        "id": "uncertainty"
-      },
-      {
-        "title": "Scientific Computing",
-        "text": "Designing computational frameworks, simulation workflows and data-intensive methods for large-scale nuclear physics calculations, parameter estimation and model validation.",
-        "id": "scientific-computing"
+        "id": "uncertainty-card"
       }
     ]
   },

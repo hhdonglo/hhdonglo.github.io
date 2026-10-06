@@ -865,3 +865,6 @@ nav.jump .links a,.sub a,footer li a,.profile-side li a,.fh-blocks li a,.crumb a
 @media (prefers-color-scheme:dark){.related a:hover{background:#2A3F73;color:#F4F1EA}}
 .earlier-item{margin-top:1rem}
 .earlier-item .status{display:block;margin-bottom:.6rem}
+/* framing question under each main section heading */
+.sec-q{margin:-.1rem 0 .9rem;font-style:italic;color:var(--muted)}
+h3.sub2+.sec-q{margin-top:-.1rem}

@@ -45,7 +45,7 @@
       ]
     },
     {
-      "title": "Data Science for Physics",
+      "title": "Scientific Computing",
       "url": "data-engineering.html",
       "links": [
         {
@@ -253,14 +253,14 @@
   "fh_figure_caption": "Superheavy-element synthesis as three stages: capture, formation and survival.",
   "fh_cards": [
     {
-      "title": "Data Science for Physics",
-      "text": "Scientific computing, data science, machine learning and data engineering for physics.",
-      "url": "data-engineering.html"
-    },
-    {
       "title": "Projects",
       "text": "Reaction-dynamics modelling, KEWPIE3 development, uncertainty quantification and computational studies of superheavy-element synthesis.",
       "url": "projects.html"
+    },
+    {
+      "title": "Scientific Computing",
+      "text": "Data engineering, machine learning and data analysis for physics.",
+      "url": "data-engineering.html"
     },
     {
       "title": "Publications",

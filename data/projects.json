@@ -10,10 +10,28 @@
       "paragraphs": [
         "**Objective:** validate and publish KEWPIE3, the refinement of the KEWPIE2 cascade code with an implemented and calibrated formation step, for fusion-evaporation cross-section predictions in superheavy element synthesis.",
         "**Key question:** how can the calculation of the compound nucleus formation probability be improved with Langevin-based stochastic approaches?",
+        "**Focus:** compound-nucleus formation · stochastic reaction dynamics · model calibration · uncertainty and sensitivity analysis",
         "[Full KEWPIE3 project page, with calibration, results and predictions →](kewpie3.html)"
       ],
       "topics": "Nuclear reaction modelling · Bayesian calibration · Scientific computing",
       "figures": []
+    },
+    {
+      "id": "fusion-dynamics",
+      "title": "Fusion Dynamics and Fusion-by-Diffusion",
+      "status": "Manuscript in preparation",
+      "paragraphs": [
+        "Reassessment of the fusion dynamics underlying the fusion-by-diffusion description of fusion–evaporation reactions.",
+        "[View project →](reaction-dynamics.html)"
+      ]
+    },
+    {
+      "id": "uncertainty-project",
+      "title": "Uncertainty in Nuclear Reaction Models",
+      "status": "Manuscript in preparation",
+      "paragraphs": [
+        "Investigation of parameter variation, calibration and uncertainty propagation in nuclear reaction models."
+      ]
     }
   ]
 }
