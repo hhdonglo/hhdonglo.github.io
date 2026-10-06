@@ -24,13 +24,13 @@
     {
       "id": "research-informed",
       "heading": "Research-Informed Learning",
-      "subtitle": "**Research connections:** how foundational physics connects to modern research and computational practice.",
+      "subtitle": "**Research connections:** how foundational physics connects to modern research and computational modelling.",
       "bullet_style": "arrows",
       "bullets": [
         "**Vectors** → Nuclear reaction kinematics",
         "**Statistics** → Uncertainty quantification",
         "**Differential equations** → Reaction dynamics",
-        "**Programming** → Physical modelling"
+        "**Programming** → Numerical simulation"
       ]
     },
     {
