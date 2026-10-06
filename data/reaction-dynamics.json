@@ -85,33 +85,35 @@
       "id": "method",
       "heading": "The formation probability from the full Langevin equation",
       "paragraphs": [
-        "The formation probability is calculated from the full one-dimensional Langevin equation for the surface separation s of the two nuclei. The system retains its inertia and carries the kinetic energy that remains after capture over an inverted-parabola barrier of curvature ω, under friction β and a random thermal force r(t) at temperature T:"
+        "The formation probability is computed from the full one-dimensional Langevin equation for the surface separation s of the two nuclei after capture, started at the injection point s₀. The system keeps its inertia and carries the kinetic energy that remains after capture over an inverted-parabola barrier of curvature ω, under friction β and a random force r(t) at temperature T. The thesis calls this the undamped formalism, in contrast to the overdamped limit:"
       ],
       "equations": [
         {
-          "tex": "\\ddot{s}+\\beta\\,\\dot{s}-\\omega^{2}(s-s_{\\mathrm{sad}})=r(t),\\qquad \\langle r(t)\\,r(t')\\rangle=\\frac{2\\beta T}{\\mu}\\,\\delta(t-t')",
-          "text": "Langevin equation with a random force that satisfies the fluctuation-dissipation relation."
+          "tex": "\\ddot{s}+\\beta\\,\\dot{s}-\\omega^{2}(s-s_{\\mathrm{sad}})=r(t),\\qquad \\langle r(t)\\rangle=0,\\quad \\langle r(t)\\,r(t')\\rangle=\\frac{2\\beta T}{\\mu}\\,\\delta(t-t')",
+          "text": "The Langevin equation, with a random force that satisfies the fluctuation-dissipation relation."
         },
         {
           "tex": "\\ddot{q}+\\beta\\,\\dot{q}-\\omega^{2}q=r(t),\\qquad q=s-s_{\\mathrm{sad}}",
-          "text": "The same equation for the distance q from the saddle."
+          "text": "Shifting the fusion saddle to the origin gives the equation for q, which is solved with a Laplace transform."
         },
         {
-          "tex": "P_{\\mathrm{CN}}(t,q_0)=\\tfrac12\\,\\mathrm{erfc}\\!\\left[\\frac{\\langle q\\rangle}{\\sqrt{2}\\,\\sigma_q}\\right]",
-          "text": "The mean trajectory ⟨q⟩ and the variance σ_q² follow from the solution, and give the probability that the system has crossed the barrier."
+          "tex": "P_{\\mathrm{CN}}(t,q_0)=\\int_{-\\infty}^{0}\\frac{1}{\\sqrt{2\\pi}\\,\\sigma_q(t)}\\exp\\!\\left[-\\frac{(q-\\langle q(t)\\rangle)^{2}}{2\\sigma_q^{2}(t)}\\right]dq=\\tfrac12\\,\\mathrm{erfc}\\!\\left[\\frac{\\langle q(t)\\rangle}{\\sqrt{2}\\,\\sigma_q(t)}\\right]",
+          "text": "The mean trajectory ⟨q(t)⟩ and the variance σ_q²(t) follow from the solution. This is the probability that the system has diffused over the fusion saddle into a compound nucleus."
         },
         {
-          "tex": "P_{\\mathrm{CN}}=\\tfrac12\\,\\mathrm{erfc}\\!\\left[\\sqrt{\\frac{B(s_{0})}{T'}}-\\frac{1}{x+\\sqrt{1+x^{2}}}\\sqrt{\\frac{K_{\\mathrm{rem}}}{T'}}\\right]",
-          "text": "Asymptotic limit. B(s₀) is the barrier at the injection point s₀, and K_rem(E_cm, ℓ) is the kinetic energy that remains after capture for partial wave ℓ."
+          "tex": "P_{\\mathrm{CN}}=\\tfrac12\\,\\mathrm{erfc}\\!\\left[\\sqrt{\\frac{B(s_{0})}{T'}}-\\frac{1}{x+\\sqrt{1+x^{2}}}\\sqrt{\\frac{K_{\\mathrm{rem}}(E_{\\mathrm{cm}},\\ell)}{T'}}\\right]",
+          "text": "The asymptotic limit. B(s₀) is the inner barrier at the injection point, and K_rem(E_cm, ℓ) is the remaining kinetic energy of partial wave ℓ after capture."
         },
         {
           "tex": "x=\\frac{\\beta}{2\\omega},\\qquad \\omega=\\sqrt{\\frac{2B(s_{0})}{\\mu\\,(s_{0}-s_{\\mathrm{sad}})^{2}}},\\qquad T'=2Tx\\left(\\sqrt{1+x^{2}}-x\\right)",
-          "text": "The damping ratio x, the barrier curvature ω and the dynamical temperature T′."
+          "text": "The damping ratio x, the angular frequency ω of the parabolic barrier, and the dynamical temperature T′."
         }
       ],
       "after": [
-        "**Fitting parameters.** The injection-point distance s₀ and the friction strength β_ss are the fitting parameters. They are shared across the ^48^Ca-induced reactions.",
-        "**Overdamped limit.** For large x, T′ tends to T and the second term vanishes, which recovers the overdamped expression P_CN = ½ erfc √(B/T) of the fusion-by-diffusion model. The calculation here keeps the full dynamics.",
+        "**What controls formation.** The probability depends on three quantities: the inner barrier B(s₀), the temperature T and the remaining kinetic energy K_rem.",
+        "**Three regimes.** Below the effective barrier B_eff = (x + √(1+x²))² B(s₀), the mean trajectory turns back and the system re-separates by quasi-fission. Very few systems fuse, and only through the random force. At K_rem = B_eff the probability is ½. Above B_eff the mean trajectory crosses the saddle and the probability approaches one.",
+        "**Fitting parameters.** The injection-point distance s₀ and the reduced friction β_ss are the two fitting parameters. They take the same values for all reactions analysed, the hot-fusion reactions induced by ^48^Ca, whose targets have similar deformations. Cold fusion requires an additional parameter that depends on the Coulomb parameter.",
+        "**Overdamped limit.** For large x, T′ tends to T and the second term vanishes, which recovers the overdamped expression P_CN = ½ erfc √(B/T) of the fusion-by-diffusion model. The analysis here retains the full dynamics.",
         "**One collective variable.** The surface separation is the slow collective variable. Eliminating the fast variables, such as the neck, shifts its initial condition, and the shift is absorbed in a single parameter, the injection-point distance.",
         "[KEWPIE3](kewpie3.html) applies this to superheavy-element predictions."
       ]
