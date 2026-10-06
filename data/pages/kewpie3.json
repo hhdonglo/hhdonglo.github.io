@@ -10,7 +10,7 @@
           "style": "plain",
           "lead": true,
           "paragraphs": [
-            "KEWPIE3 is a C++ code for fusion–evaporation reactions in heavy-ion collisions. It calculates evaporation-residue cross sections for the synthesis of heavy and superheavy nuclei, as the product of capture, compound-nucleus formation and survival. It refines the KEWPIE2 cascade code, which describes the survival of the excited nucleus, with an implemented and calibrated formation step based on Langevin dynamics."
+            "KEWPIE3 is research software, written in C++, for fusion–evaporation reactions in heavy-ion collisions. It calculates evaporation-residue cross sections for the synthesis of heavy and superheavy nuclei, as the product of capture, compound-nucleus formation and survival. It refines the KEWPIE2 cascade code, which describes the survival of the excited nucleus, with an implemented and calibrated formation step based on Langevin dynamics."
           ]
         }
       ]

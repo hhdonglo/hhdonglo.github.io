@@ -1,6 +1,6 @@
 {
   "question": "How are heavy and superheavy nuclei formed, and how reliably can their production be predicted?",
-  "intro": "My research investigates the reaction mechanisms governing the formation of heavy and superheavy nuclei. I use stochastic reaction dynamics, computational modelling and uncertainty quantification to understand and improve predictions of fusion and evaporation processes.",
+  "intro": "My research investigates the reaction mechanisms governing the formation of heavy and superheavy nuclei. I use stochastic reaction dynamics, numerical simulation and uncertainty quantification to understand and improve predictive modelling of fusion and evaporation processes.",
   "areas": [
     {
       "title": "Nuclear Reaction Dynamics",
@@ -212,7 +212,7 @@
       "Calibration of reaction models against experimental data",
       "Uncertainty-aware predictions of superheavy-element production cross sections",
       "Development and application of KEWPIE-based reaction simulations",
-      "Computational frameworks for reaction dynamics and model validation"
+      "Research software for numerical simulation of reaction dynamics and model validation"
     ]
   },
   "why_new": {
@@ -239,7 +239,7 @@
       },
       {
         "title": "Fusion–Evaporation Modelling",
-        "text": "Modelling capture, compound-nucleus formation and survival in fusion–evaporation reactions."
+        "text": "Computational modelling of capture, compound-nucleus formation and survival in fusion–evaporation reactions."
       }
     ]
   },

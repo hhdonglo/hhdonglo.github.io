@@ -1,6 +1,6 @@
 {
   "intro_title": "Overview",
-  "intro": "Designing computational frameworks, simulation workflows and data-intensive methods for large-scale nuclear physics calculations, parameter estimation and model validation. Physical models and measurements produce uncertain data, and machine learning, data science and data engineering turn them into reliable predictions.",
+  "intro": "Designing numerical simulation workflows, research software and data-intensive methods for large-scale nuclear physics calculations, parameter estimation and model validation. Physical models and measurements produce uncertain data, and data-driven modelling, machine learning and data engineering turn them into reliable predictions.",
   "programme": {
     "title": "Data and Machine Learning Engineering",
     "subtitle": "OpenClassrooms · RNCP 39775",

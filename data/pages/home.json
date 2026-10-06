@@ -254,7 +254,7 @@
   "fh_cards": [
     {
       "title": "Projects",
-      "text": "Reaction-dynamics modelling, KEWPIE3 development, uncertainty quantification and computational studies of superheavy-element synthesis.",
+      "text": "Numerical simulation of reaction dynamics, KEWPIE3 research software, uncertainty quantification and computational studies of superheavy-element synthesis.",
       "url": "projects.html"
     },
     {
@@ -264,7 +264,7 @@
     },
     {
       "title": "Publications",
-      "text": "Research articles on nuclear reaction dynamics, superheavy-element synthesis and scientific computing.",
+      "text": "Research articles on nuclear reaction dynamics, superheavy-element synthesis and computational modelling.",
       "url": "publications.html"
     }
   ],
@@ -285,8 +285,8 @@
   "fh_welcome": {
     "title": "Welcome",
     "paragraphs": [
-      "My research investigates the formation of superheavy nuclei in heavy-ion collisions and the fundamental limits of nuclear stability. Through reaction modelling, uncertainty quantification and scientific computing, I develop predictive frameworks for experiments searching for new elements and exploring the limits of the periodic table.",
-      "Alongside nuclear physics, I develop computational methods for scientific modelling, data-intensive computing and machine learning applications in physics."
+      "My research investigates the formation of superheavy nuclei in heavy-ion collisions and the fundamental limits of nuclear stability. Through numerical simulation, uncertainty quantification and scientific computing, I build predictive models for experiments searching for new elements and exploring the limits of the periodic table.",
+      "Alongside nuclear physics, I develop research software and data-driven modelling methods, including machine learning, for physical problems."
     ]
   },
   "fh_highlights": {
@@ -305,7 +305,7 @@
         "url": "research.html#uncertainty"
       },
       {
-        "label": "Scientific computing, machine learning and data-intensive methods for physics",
+        "label": "Scientific computing, data-driven modelling and machine learning for physics",
         "url": "data-engineering.html#physics"
       }
     ]

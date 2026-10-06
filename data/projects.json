@@ -1,6 +1,6 @@
 {
   "intro_title": "Overview",
-  "intro": "This page collects research software and computational projects arising from my physics research. For the underlying physics, see [Research](research.html). For broader data science, machine learning and engineering projects, see [Scientific Computing](data-engineering.html).",
+  "intro": "This page collects research software and computational projects arising from my physics research. For the underlying physics, see [Research](research.html). For broader data-driven modelling, machine learning and data engineering projects, see [Scientific Computing](data-engineering.html).",
   "research_projects_title": "Research projects",
   "research_projects": [
     {
