@@ -1,6 +1,6 @@
 {
   "title": "Nuclear Reaction Dynamics: Fusion–Evaporation and Superheavy Elements",
-  "subtitle": "Heavy-ion reactions, from the evaporation residue cross section to the synthesis of superheavy elements, and where my work fits.",
+  "subtitle": "Heavy-ion reactions, from the evaporation residue cross section to the synthesis of superheavy elements.",
   "sections": [
     {
       "id": "why",
@@ -74,7 +74,7 @@
           "credit": "Figure from R. Naik et al., Phys. Rev. C 76, 054604 (2007).",
           "text": [
             "- **Formation is ambiguous.** Models of the compound-nucleus formation probability disagree by orders of magnitude, and the process is hindered by quasi-fission.",
-            "- **Cross sections are tiny.** For the heaviest elements they are of the order of picobarns, and predictions for elements 119 and 120 are at the femtobarn level.",
+            "- **Cross sections are small.** For the heaviest elements they are of the order of picobarns, and predictions for elements 119 and 120 are at the femtobarn level.",
             "- **Fission barriers are uncertain.** The survival probability depends strongly on them.",
             "- **One atom at a time.** Each event is rare, so every experiment is long and every prediction matters."
           ]
@@ -150,8 +150,8 @@
       "id": "refine",
       "heading": "Why the model must be refined for new elements",
       "paragraphs": [
-        "Attempts to synthesise elements 119 and 120 have so far failed. The projectile–target combinations of current experimental interest have predicted cross sections at the femtobarn level.",
-        "Predictions of the formation probability differ widely between models, and a simple phenomenological model carries uncertainties that cannot be removed by refitting alone. Refining the formation step, and quantifying its uncertainty, is therefore needed for reliable predictions for new elements.",
+        "Attempts to synthesise elements 119 and 120 have so far produced no events. The projectile–target combinations of current experimental interest have predicted cross sections at the femtobarn level.",
+        "Predictions of the formation probability differ widely between models, and a phenomenological model carries uncertainties that refitting alone does not remove. Refining the formation step, and quantifying its uncertainty, is therefore needed for reliable predictions for new elements.",
         "See the [predicted cross sections for four unmeasured reactions](projects.html#kewpie3) towards Z = 119 and Z = 120."
       ]
     }

@@ -22,7 +22,7 @@
         {
           "style": "plain",
           "paragraphs": [
-            "Only a tiny fraction of heavy-ion collisions produce a surviving superheavy nucleus, with cross sections down to the picobarn range and below. Experiments aimed at elements such as Z = 119 and Z = 120 therefore depend on theoretical predictions to choose reactions and beam energies.",
+            "Only a small fraction of heavy-ion collisions produce a surviving superheavy nucleus, with cross sections down to the picobarn range and below. Experiments aimed at elements such as Z = 119 and Z = 120 therefore depend on theoretical predictions to choose reactions and beam energies.",
             "The least certain factor in these predictions is the probability that the touching system forms a compound nucleus instead of re-separating by quasifission. **Key question:** how can the calculation of the compound-nucleus formation probability be improved with Langevin-based stochastic approaches?"
           ]
         }
