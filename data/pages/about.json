@@ -8,9 +8,8 @@
           "style": "plain",
           "lead": true,
           "paragraphs": [
-            "I am a theoretical nuclear physicist and Lecturer in Physics at the University of Ghana. My academic background spans experimental and theoretical nuclear physics, scientific computing, and data-intensive research.",
-            "I completed my undergraduate studies at the University of Ghana before undertaking postgraduate training in theoretical nuclear physics in Europe and doctoral research on the synthesis of superheavy elements. I earned a PhD in Theoretical Nuclear Physics from Université de Caen Normandie, France, as a Marie Skłodowska-Curie COFUND Fellow within the CEA NUMERICS doctoral programme. Prior to this, I completed an Erasmus Mundus Joint Master's in Nuclear Physics across universities in Spain, Italy, and France.",
-            "My research focuses on superheavy-element synthesis, nuclear reaction modelling, uncertainty quantification, and scientific computing. I study heavy-ion reactions and compound-nucleus formation, and develop the KEWPIE3 code for fusion–evaporation reaction studies. I also work in scientific software development, data science, machine learning and data engineering."
+            "I am a theoretical nuclear physicist and Lecturer in Physics at the University of Ghana. My research concerns the reaction mechanisms that form heavy and superheavy nuclei, studied with stochastic dynamics, uncertainty quantification and scientific computing.",
+            "[Research](research.html) · [Publications](publications.html) · [Teaching](teaching.html) · [CV](cv.html)"
           ]
         }
       ]
@@ -47,37 +46,6 @@
             "**Marie Skłodowska-Curie Actions, COFUND Fellow** (2021 to 2024).",
             "**Erasmus Mundus Scholar** (2018 to 2020)."
           ]
-        }
-      ]
-    },
-    {
-      "id": "teaching-profile",
-      "heading": "Teaching",
-      "layout": "stack",
-      "cards": [
-        {
-          "style": "plain",
-          "paragraphs": [
-            "I teach undergraduate physics at the University of Ghana, with an emphasis on clear conceptual development, quantitative reasoning, and problem-solving.",
-            "[Teaching resources on this site](teaching.html)"
-          ]
-        }
-      ]
-    },
-    {
-      "id": "cv-section",
-      "heading": "Curriculum Vitae",
-      "layout": "stack",
-      "cards": [
-        {
-          "style": "plain",
-          "paragraphs": [
-            "The full CV, with all sections, is available on the CV page and as a PDF.",
-            "[View CV →](cv.html)"
-          ],
-          "button_label": "Download CV →",
-          "button_url": "cv/Hope_Donglo_CV.pdf",
-          "button_style": "primary dl"
         }
       ]
     }
