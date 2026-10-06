@@ -230,9 +230,9 @@
   "stats_title": "At a Glance",
   "publications_heading": "Selected Publications",
   "publications_link_label": "View All Publications →",
-  "fh_headline": "Theoretical and Computational Nuclear Physics",
-  "fh_sub": "Nuclear Reaction Dynamics · Superheavy-Element Synthesis · Computational Modelling · Uncertainty Quantification",
-  "fh_intro": "Research on how superheavy nuclei form in heavy-ion collisions, using stochastic reaction models, model calibration and uncertainty quantification. The same computational methods extend into scientific computing, machine learning and data engineering.",
+  "fh_headline": "At the Edge of the Periodic Table",
+  "fh_sub": "Investigating the reaction dynamics of superheavy-element synthesis at the limits of nuclear stability",
+  "fh_intro": "The synthesis of superheavy elements probes one of the central questions in modern physics: **how heavy can matter become?**",
   "fh_buttons": [
     {
       "label": "Research",
@@ -251,23 +251,6 @@
   "fh_figure": "assets/fig-pathway.svg",
   "fh_figure_alt": "Schematic of superheavy-element synthesis in three stages: capture, compound-nucleus formation and survival. The evaporation-residue cross section is the product of the three.",
   "fh_figure_caption": "Superheavy-element synthesis as three stages: capture, formation and survival.",
-  "fh_research_heading": "Research",
-  "fh_research_text": "The central question: which reaction mechanisms govern the formation of superheavy nuclei, and how reliably can they be predicted?",
-  "fh_questions": [
-    {
-      "label": "How does a touching nuclear system fuse into a compound nucleus, rather than re-separate?",
-      "url": "research.html#questions"
-    },
-    {
-      "label": "How well can cross sections for new elements such as Z = 119 and 120 be predicted?",
-      "url": "research.html#questions"
-    },
-    {
-      "label": "Which model parameters do experimental data actually constrain, and with what uncertainty?",
-      "url": "research.html#questions"
-    }
-  ],
-  "fh_research_link": "Research areas and questions →",
   "fh_cards": [
     {
       "title": "Applied and Computational Work",
@@ -290,18 +273,11 @@
       "url": "publications.html"
     }
   ],
-  "fh_curious": [
-    {
-      "q": "How heavy can matter get?",
-      "url": "research.html#edge-heavy"
-    },
-    {
-      "q": "Where does the periodic table end?",
-      "url": "research.html#edge-table"
-    },
-    {
-      "q": "Do the laws of physics still hold at the edge?",
-      "url": "research.html#edge-laws"
-    }
-  ]
+  "fh_intro2": "I develop theoretical and computational models of heavy-ion collisions to understand how nuclei fuse, survive fission, and populate the heaviest known region of the periodic table. My work combines nuclear reaction dynamics, uncertainty quantification and scientific computing to improve predictions for the creation of new elements.",
+  "fh_keywords": "Nuclear Reaction Dynamics · Superheavy-Element Synthesis · Heavy-Ion Collisions · Quasifission · Scientific Computing · Uncertainty Quantification",
+  "fh_synth_title": "Superheavy-Element Synthesis",
+  "fh_synth_text": "Only a tiny fraction of heavy-ion collisions successfully leads to a surviving superheavy nucleus.",
+  "fh_tex": "\\sigma_{\\mathrm{ER}} = \\sigma_{\\mathrm{cap}} \\times P_{\\mathrm{CN}} \\times W_{\\mathrm{sur}}",
+  "fh_synth_text2": "The synthesis probability is determined by three competing processes: capture, compound-nucleus formation and survival against fission.",
+  "fh_synth_link": "Research →"
 }

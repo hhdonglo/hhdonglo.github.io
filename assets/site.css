@@ -768,3 +768,9 @@ ul.plain{margin:.4rem 0 1rem;padding-left:1.2rem}ul.plain li{margin:.45rem 0}
 .fh-curious a:hover{text-decoration:underline}
 @media (prefers-color-scheme:dark){.fh-curious a{color:#c7dcf8}}
 .fh-hero{margin-top:.2rem}
+.fh-kw{margin:.2rem 0 .9rem;font:600 .92rem/1.5 system-ui,sans-serif;color:var(--brown)}
+@media (prefers-color-scheme:dark){.fh-kw{color:#e0b999}}
+.fh-synth{margin-top:1.6rem;background:var(--surface);border:1px solid var(--border);border-top:5px solid var(--navy);border-radius:10px;padding:.3rem 1.2rem 1rem}
+.fh-synth h2{margin-top:.9rem}
+.fh-eq{margin:.6rem 0;overflow-x:auto}
+ul.rq{margin:.3rem 0 .6rem}

@@ -99,24 +99,11 @@
   "publications_text": "Journal articles, preprints, theses, conference contributions and manuscripts in preparation are listed on the Publications page. The research software KEWPIE3, a refinement of the KEWPIE2 cascade code, is described on the [Projects](projects.html) page.",
   "publications_link_label": "View all publications →",
   "questions": [
-    {
-      "question": "How does a touching nuclear system fuse into a compound nucleus, rather than re-separate?",
-      "text": "Above the Coulomb barrier, most heavy systems re-separate by quasifission. The probability of forming a compound nucleus is the least understood factor in superheavy-element synthesis, and it is studied with Langevin (stochastic) dynamics.",
-      "link_label": "KEWPIE3 →",
-      "link_url": "kewpie3.html"
-    },
-    {
-      "question": "How well can production cross sections for new elements be predicted?",
-      "text": "Predictions for elements such as Z = 119 and Z = 120 guide experiments that run for months to observe a handful of events. The question is not only the predicted value but how far it can be trusted.",
-      "link_label": "Nuclear Reaction Dynamics →",
-      "link_url": "reaction-dynamics.html"
-    },
-    {
-      "question": "Which model parameters do experimental data actually constrain?",
-      "text": "Reaction models carry free parameters that theory does not fix. Fitting them jointly to measured cross sections, and tracing the confidence region of the fit, shows which are constrained by data and which are not.",
-      "link_label": "Calibration and uncertainty in KEWPIE3 →",
-      "link_url": "kewpie3.html#calibration"
-    }
+    "How do touching nuclei evolve toward fusion rather than quasifission?",
+    "Can production cross sections for elements beyond Z = 118 be reliably predicted?",
+    "Which reaction mechanisms dominate the formation of superheavy nuclei?",
+    "How strongly do experimental data constrain model parameters and predictions?",
+    "What are the fundamental limits of nuclear existence and stability?"
   ],
   "edge_title": "Questions at the Edge of the Periodic Table",
   "edge": [
@@ -136,5 +123,8 @@
       "text": "Yes, but common approximations fail. Relativistic and quantum-electrodynamic effects grow strongly with Z, and nuclear predictions there are extrapolations, so the authors call for Bayesian uncertainty quantification (Smits et al. 2024, pp. 3–5)."
     }
   ],
-  "edge_source": "Source: Smits et al. (2024), *The quest for superheavy elements and the limit of the periodic table*."
+  "edge_source": "Source: Smits et al. (2024), *The quest for superheavy elements and the limit of the periodic table*.",
+  "challenge_title": "The central challenge",
+  "challenge_text": "Superheavy-element synthesis lies at the intersection of nuclear structure, reaction dynamics and quantum many-body physics.",
+  "challenge_text2": "The challenge is to understand why some heavy-ion collisions produce a new nucleus while most result in quasifission or fission. Reliable predictions are essential for guiding experiments aimed at discovering elements beyond **Z = 118** and exploring the predicted **island of stability**."
 }
