@@ -734,3 +734,9 @@ ul.plain{margin:.4rem 0 1rem;padding-left:1.2rem}ul.plain li{margin:.45rem 0}
 .prev .sum-btn::after{content:"";position:absolute;inset:0}
 @media (max-width:900px){[data-render="research-previous"]{grid-template-columns:minmax(0,1fr)}.prev{order:calc(var(--i)*2)}.sum-panel{order:calc(var(--i)*2 + 1)}}
 .prev:has(.sum-btn:focus-visible){outline:3px solid var(--focus);outline-offset:3px}.prev .sum-btn:focus-visible{outline:none}
+
+/* figures in project pages, research question cards */
+.fig{margin:1.2rem 0 .4rem;max-width:46rem}
+.fig img{display:block;width:100%;height:auto;border:1px solid var(--border);border-radius:10px}
+.fig figcaption{margin-top:.45rem;font:.85rem/1.45 system-ui,sans-serif;color:var(--muted)}
+.ov-card.q .num{margin-bottom:.2rem}

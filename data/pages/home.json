@@ -1,5 +1,5 @@
 {
-  "eyebrow": "Hope Donglo",
+  "eyebrow": "",
   "role": "Lecturer in Physics",
   "statement": "Theoretical nuclear physics research on the reaction mechanisms that govern the formation of heavy and superheavy nuclei, using stochastic dynamics and uncertainty quantification.",
   "side_links": [
@@ -9,8 +9,7 @@
     }
   ],
   "intro_paragraphs": [
-    "I am a theoretical nuclear physicist and Lecturer in Physics at the University of Ghana. My research focuses on nuclear reaction dynamics, the synthesis of superheavy elements, scientific computing, and uncertainty quantification.",
-    "Alongside my research, I develop computational and data-driven methods for scientific applications, with interests in data science, machine learning, and data engineering."
+    "Research on the reaction mechanisms behind the synthesis of superheavy elements, using stochastic modelling, scientific computing and uncertainty quantification, with applications in machine learning and data engineering."
   ],
   "blocks": [
     {
@@ -18,12 +17,48 @@
       "url": "research.html",
       "links": [
         {
+          "label": "Research questions",
+          "url": "research.html#questions"
+        },
+        {
           "label": "Nuclear Reaction Dynamics",
           "url": "research.html#reaction-dynamics"
         },
         {
           "label": "Uncertainty Quantification",
           "url": "research.html#uncertainty"
+        }
+      ]
+    },
+    {
+      "title": "Projects",
+      "url": "projects.html",
+      "links": [
+        {
+          "label": "KEWPIE3",
+          "url": "kewpie3.html"
+        },
+        {
+          "label": "Computational projects",
+          "url": "projects.html#research-projects"
+        }
+      ]
+    },
+    {
+      "title": "Applied & Computational Work",
+      "url": "data-engineering.html",
+      "links": [
+        {
+          "label": "Data Engineering",
+          "url": "data-engineering.html#pipelines"
+        },
+        {
+          "label": "Machine Learning",
+          "url": "data-engineering.html#retrieval"
+        },
+        {
+          "label": "Data Analysis",
+          "url": "data-engineering.html#analysis"
         }
       ]
     },
@@ -38,64 +73,6 @@
         {
           "label": "Lecture Notes",
           "url": "phys143.html#weekly"
-        },
-        {
-          "label": "Learning Resources",
-          "url": "phys143.html#course-info"
-        },
-        {
-          "label": "Student Projects",
-          "url": "students.html"
-        }
-      ]
-    },
-    {
-      "title": "Projects",
-      "url": "projects.html",
-      "links": [
-        {
-          "label": "KEWPIE3",
-          "url": "projects.html#kewpie3"
-        }
-      ]
-    },
-    {
-      "title": "Data Science, ML and Engineering",
-      "url": "data-engineering.html",
-      "links": [
-        {
-          "label": "Data Science and Analytics",
-          "url": "data-engineering.html#analysis"
-        },
-        {
-          "label": "Machine Learning",
-          "url": "data-engineering.html#retrieval"
-        },
-        {
-          "label": "Data Engineering",
-          "url": "data-engineering.html#pipelines"
-        },
-        {
-          "label": "Scientific Computing",
-          "url": "projects.html"
-        }
-      ]
-    },
-    {
-      "title": "Students",
-      "url": "students.html",
-      "links": [
-        {
-          "label": "Undergraduate students",
-          "url": "students.html#undergraduate"
-        },
-        {
-          "label": "Possible project themes",
-          "url": "students.html#research-projects"
-        },
-        {
-          "label": "Resources",
-          "url": "students.html#resources"
         }
       ]
     },
@@ -114,10 +91,20 @@
         {
           "label": "Theses",
           "url": "publications.html#theses"
+        }
+      ]
+    },
+    {
+      "title": "Students",
+      "url": "students.html",
+      "links": [
+        {
+          "label": "Undergraduate students",
+          "url": "students.html#undergraduate"
         },
         {
-          "label": "Conference Contributions",
-          "url": "publications.html#conference"
+          "label": "Possible project themes",
+          "url": "students.html#research-projects"
         }
       ]
     }

@@ -97,5 +97,25 @@
   "overview_title": "Research Overview",
   "publications_title": "Publications",
   "publications_text": "Journal articles, preprints, theses, conference contributions and manuscripts in preparation are listed on the Publications page. The research software KEWPIE3, a refinement of the KEWPIE2 cascade code, is described on the [Projects](projects.html) page.",
-  "publications_link_label": "View all publications →"
+  "publications_link_label": "View all publications →",
+  "questions": [
+    {
+      "question": "How does a touching nuclear system fuse into a compound nucleus, rather than re-separate?",
+      "text": "Above the Coulomb barrier, most heavy systems re-separate by quasifission. The probability of forming a compound nucleus is the least understood factor in superheavy-element synthesis, and it is studied with Langevin (stochastic) dynamics.",
+      "link_label": "KEWPIE3 →",
+      "link_url": "kewpie3.html"
+    },
+    {
+      "question": "How well can production cross sections for new elements be predicted?",
+      "text": "Predictions for elements such as Z = 119 and Z = 120 guide experiments that run for months to observe a handful of events. The question is not only the predicted value but how far it can be trusted.",
+      "link_label": "Nuclear Reaction Dynamics →",
+      "link_url": "reaction-dynamics.html"
+    },
+    {
+      "question": "Which model parameters do experimental data actually constrain?",
+      "text": "Reaction models carry free parameters that theory does not fix. Fitting them jointly to measured cross sections, and tracing the confidence region of the fit, shows which are constrained by data and which are not.",
+      "link_label": "Calibration and uncertainty in KEWPIE3 →",
+      "link_url": "kewpie3.html#calibration"
+    }
+  ]
 }

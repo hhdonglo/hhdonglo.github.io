@@ -2,7 +2,7 @@
 import glob, re, os, json, html
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PRIMARY = [("index.html", "Home"), ("research.html", "Research"), ("teaching.html", "Teaching"), ("projects.html", "Projects"),
-           ("data-engineering.html", "Data Science, ML and Engineering"), ("students.html", "Students"), ("about.html", "About")]
+           ("data-engineering.html", "Applied &amp; Computational Work"), ("students.html", "Students"), ("about.html", "About")]
 UTILITY = [("cv.html", "CV"), ("publications.html", "Publications"), ("contact.html", "Contact")]
 # page -> menu item it belongs to (exact page gets aria-current="page", a child page gets "true")
 HOME = json.load(open(os.path.join(ROOT, "data", "pages", "home.json"), encoding="utf-8"))

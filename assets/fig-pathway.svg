@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 300" role="img" aria-labelledby="t d">
+<title id="t">Fusion–evaporation pathway to a superheavy nucleus</title>
+<desc id="d">Schematic of the three stages of superheavy-element synthesis: capture of projectile and target, formation of a compound nucleus, and survival against fission by neutron evaporation. The evaporation-residue cross section is the product of the capture cross section, the formation probability and the survival probability.</desc>
+<style>
+.bg{fill:#ffffff}.ink{fill:#26303F}.mut{fill:#5b6678}.ln{stroke:#1F3A68;fill:none}.ac{stroke:#7A4A2A;fill:none}
+.nP{fill:#1F3A68}.nT{fill:#7A4A2A}.nC{fill:#3f5f95}.box{fill:#EEF2F9;stroke:#cfd9e8}
+text{font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+@media (prefers-color-scheme:dark){.bg{fill:#17233a}.ink{fill:#e4eaf4}.mut{fill:#a3afc4}.ln{stroke:#9cc0f0}.nP{fill:#9cc0f0}.nC{fill:#6f90c6}.box{fill:#1f3050;stroke:#2c3e5f}}
+</style>
+<rect class="bg" width="720" height="300" rx="10"/>
+<!-- stage 1: capture -->
+<g transform="translate(40,30)">
+<text class="mut" x="0" y="0" font-size="12" font-weight="700" letter-spacing="1">1 · CAPTURE</text>
+<circle class="nP" cx="30" cy="90" r="16"/><circle class="nT" cx="140" cy="90" r="34"/>
+<path class="ln" d="M50 90 H100" stroke-width="2" marker-end="url(#a)"/>
+<text class="mut" x="0" y="150" font-size="12">Overcome the Coulomb</text>
+<text class="mut" x="0" y="166" font-size="12">barrier and touch</text>
+</g>
+<!-- stage 2: formation -->
+<g transform="translate(270,30)">
+<text class="mut" x="0" y="0" font-size="12" font-weight="700" letter-spacing="1">2 · FORMATION</text>
+<path class="nC" d="M20 90 a28 22 0 1 1 56 0 a28 22 0 1 1 -56 0 Z M60 90 a40 30 0 1 1 80 0 a40 30 0 1 1 -80 0 Z"/>
+<path class="ac" d="M80 40 C110 20 150 30 160 55" stroke-width="1.6" stroke-dasharray="4 3" marker-end="url(#b)"/>
+<text class="mut" x="118" y="28" font-size="11">quasifission</text>
+<text class="mut" x="0" y="150" font-size="12">Langevin dynamics: fuse</text>
+<text class="mut" x="0" y="166" font-size="12">or re-separate</text>
+</g>
+<!-- stage 3: survival -->
+<g transform="translate(500,30)">
+<text class="mut" x="0" y="0" font-size="12" font-weight="700" letter-spacing="1">3 · SURVIVAL</text>
+<circle class="nC" cx="70" cy="90" r="38"/>
+<circle class="nP" cx="140" cy="60" r="5"/><circle class="nP" cx="150" cy="95" r="5"/>
+<path class="ln" d="M108 76 L132 64" stroke-width="1.6"/><path class="ln" d="M110 92 L142 95" stroke-width="1.6"/>
+<text class="mut" x="128" y="125" font-size="11">n</text>
+<text class="mut" x="0" y="150" font-size="12">Evaporate neutrons</text>
+<text class="mut" x="0" y="166" font-size="12">before fission</text>
+</g>
+<path class="ln" d="M225 120 H255" stroke-width="1.5" marker-end="url(#a)"/>
+<path class="ln" d="M455 120 H485" stroke-width="1.5" marker-end="url(#a)"/>
+<!-- product -->
+<rect class="box" x="40" y="222" width="640" height="52" rx="8"/>
+<text class="ink" x="360" y="254" font-size="18" text-anchor="middle" font-family="Georgia,serif">σ<tspan font-size="12" dy="5">ER</tspan><tspan dy="-5"> = σ</tspan><tspan font-size="12" dy="5">cap</tspan><tspan dy="-5"> × P</tspan><tspan font-size="12" dy="5">CN</tspan><tspan dy="-5"> × W</tspan><tspan font-size="12" dy="5">sur</tspan></text>
+<defs>
+<marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ln" d="M0 0 L10 5 L0 10" stroke-width="1.5"/></marker>
+<marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ac" d="M0 0 L10 5 L0 10" stroke-width="1.5"/></marker>
+</defs>
+</svg>
