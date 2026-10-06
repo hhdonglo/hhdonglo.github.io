@@ -4,19 +4,23 @@
   "areas": [
     {
       "title": "Nuclear Reaction Dynamics",
-      "text": "Langevin dynamics and stochastic simulation of nuclear reactions, covering the pathway from the colliding nuclei to a superheavy element."
+      "text": "Langevin dynamics and stochastic simulation of heavy-ion reactions, from the colliding nuclei to a compound nucleus."
     },
     {
-      "title": "Heavy and Superheavy Elements",
-      "text": "Production cross-sections for superheavy nuclei, including Z = 119 and Z = 120, are predicted with the KEWPIE2 and KEWPIE3 framework. The work connects to experimental studies of synthesis and decay at S^3^."
+      "title": "Superheavy-Element Synthesis",
+      "text": "Fusion–evaporation cross sections for superheavy nuclei, including Z = 119 and Z = 120, connected to experimental studies of synthesis and decay at S^3^."
     },
     {
-      "title": "Fusion–Evaporation Reactions",
-      "text": "Fusion–evaporation reactions and the probability of forming a compound nucleus, calculated with Langevin-based stochastic approaches."
+      "title": "Computational Nuclear Physics",
+      "text": "Development of KEWPIE3, a C++ code for fusion–evaporation reactions that computes capture, formation and survival for each reaction and energy."
+    },
+    {
+      "title": "Model Calibration",
+      "text": "Joint fits of free model parameters to experimental cross sections, with Newton–Raphson refinement and Bayesian optimisation with Gaussian-process surrogates."
     },
     {
       "title": "Uncertainty Quantification",
-      "text": "Bayesian optimisation and machine learning applied to estimate nuclear model parameters and their uncertainties, with systematic benchmarking of competing models."
+      "text": "Confidence corridors on predicted cross sections from profile-likelihood scans, and systematic comparison of competing model choices."
     }
   ],
   "current": [
@@ -76,5 +80,26 @@
   "overview_title": "Research Overview",
   "publications_title": "Publications",
   "publications_text": "Journal articles, preprints, theses, conference contributions and manuscripts in preparation are listed on the Publications page.",
-  "publications_link_label": "View all publications →"
+  "publications_link_label": "View all publications →",
+  "questions_title": "Research Questions",
+  "questions": [
+    {
+      "question": "How does a touching nuclear system fuse into a compound nucleus, rather than re-separate?",
+      "text": "Above the Coulomb barrier, most heavy systems re-separate by quasifission. The probability of forming a compound nucleus is the least understood factor in superheavy-element synthesis, and it is studied here with Langevin (stochastic) dynamics.",
+      "link_label": "KEWPIE3 →",
+      "link_url": "kewpie3.html"
+    },
+    {
+      "question": "How well can production cross sections for new elements be predicted?",
+      "text": "Predictions for elements such as Z = 119 and Z = 120 guide experiments that run for months to observe a handful of events. The question is not only the predicted value but how far it can be trusted.",
+      "link_label": "Fusion dynamics →",
+      "link_url": "projects.html#fusion"
+    },
+    {
+      "question": "Which model parameters do experimental data actually constrain?",
+      "text": "Reaction models carry free parameters that theory does not fix. Fitting them jointly to measured cross sections, and tracing the confidence region of the fit, shows which parameters are constrained by data and which are not.",
+      "link_label": "Calibration and uncertainty in KEWPIE3 →",
+      "link_url": "kewpie3.html#calibration"
+    }
+  ]
 }

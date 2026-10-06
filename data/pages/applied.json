@@ -1,0 +1,161 @@
+{
+  "title": "Applied & Computational Work",
+  "subtitle": "The computational methods behind the research, applied to scientific, real-world and industrial problems.",
+  "sections": [
+    {
+      "cards": [
+        {
+          "style": "plain",
+          "lead": true,
+          "paragraphs": [
+            "Modelling nuclear reactions requires numerical simulation, parameter estimation from noisy data, uncertainty quantification and reproducible workflows. These methods are general. This page shows where they are applied beyond nuclear physics, and every area links to the work that demonstrates it."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "areas",
+      "heading": "Areas",
+      "layout": "grid",
+      "cards": [
+        {
+          "id": "scientific-computing",
+          "title": "Scientific Computing",
+          "paragraphs": [
+            "Numerical modelling, optimisation, simulation workflows and high-performance computing."
+          ],
+          "subsections": [
+            {
+              "title": "Demonstrated in",
+              "style": "bold",
+              "bullets": [
+                "[KEWPIE3](kewpie3.html#framework): a C++ engine for fusion–evaporation reactions, parallelised over beam energies with OpenMP",
+                "[Distributed parameter sweeps](projects.html#computational): MPI-distributed grids of fits across several hosts"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "machine-learning",
+          "title": "Machine Learning",
+          "paragraphs": [
+            "Predictive modelling and scientific machine learning."
+          ],
+          "subsections": [
+            {
+              "title": "Demonstrated in",
+              "style": "bold",
+              "bullets": [
+                "[KEWPIE3 calibration](kewpie3.html#calibration): Bayesian optimisation with a Gaussian-process surrogate of the loss surface",
+                "[RAG chatbot for cultural events](projects.html#data-ml): retrieval-augmented generation, evaluated with RAGAS"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "data-science",
+          "title": "Data Science",
+          "paragraphs": [
+            "Statistical analysis and quantitative modelling."
+          ],
+          "subsections": [
+            {
+              "title": "Demonstrated in",
+              "style": "bold",
+              "bullets": [
+                "[Uncertainty analysis of nuclear reaction models](kewpie3.html#uncertainty): profile-likelihood confidence regions",
+                "[EduGlobe Insights](projects.html#data-ml): exploratory analysis of World Bank education statistics"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "data-engineering",
+          "title": "Data Engineering",
+          "paragraphs": [
+            "Data pipelines, automation, workflow design and scalable data systems."
+          ],
+          "subsections": [
+            {
+              "title": "Demonstrated in",
+              "style": "bold",
+              "bullets": [
+                "[Employee sports benefits platform](projects.html#data-ml): Airflow, PostgreSQL and Docker",
+                "[Healthcare data migration](projects.html#data-ml): CSV to MongoDB with integrity tests",
+                "[KEWPIE3 workflow](kewpie3.html#framework): one input file drives calculation, fitting and plotting"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "competencies",
+      "heading": "Technical Competencies",
+      "subtitle": "Organised by domain. Each links to the work where it is used.",
+      "layout": "grid",
+      "cards": [
+        {
+          "title": "Scientific Computing",
+          "bullet_style": "chips",
+          "bullets": [
+            "C++",
+            "Python",
+            "MPI",
+            "OpenMP",
+            "Numerical methods",
+            "Optimisation"
+          ],
+          "note": "Used in [KEWPIE3](kewpie3.html#framework)."
+        },
+        {
+          "title": "Statistical Methods",
+          "bullet_style": "chips",
+          "bullets": [
+            "Bayesian analysis",
+            "Parameter estimation",
+            "Sensitivity analysis",
+            "Uncertainty quantification"
+          ],
+          "note": "Used in [KEWPIE3 calibration and uncertainty](kewpie3.html#calibration)."
+        },
+        {
+          "title": "Machine Learning & Data Science",
+          "bullet_style": "chips",
+          "bullets": [
+            "Predictive modelling",
+            "Statistical learning",
+            "Scientific machine learning",
+            "Data analytics"
+          ],
+          "note": "Used in [KEWPIE3 calibration](kewpie3.html#calibration) and the [applied projects](projects.html#data-ml)."
+        },
+        {
+          "title": "Data Engineering",
+          "bullet_style": "chips",
+          "bullets": [
+            "Data pipelines",
+            "Workflow automation",
+            "Data transformation",
+            "Reproducible systems"
+          ],
+          "note": "Used in the [applied projects](projects.html#data-ml)."
+        }
+      ]
+    },
+    {
+      "id": "qualification",
+      "heading": "Qualification",
+      "cards": [
+        {
+          "title": "Data and ML Engineering, OpenClassrooms",
+          "paragraphs": [
+            "Level 7 qualification (Bac+5, RNCP), 2025 to 2026: relational and NoSQL databases, ETL pipelines, containerisation, cloud services, workflow orchestration, streaming and retrieval-augmented generation."
+          ],
+          "button_label": "Applied projects →",
+          "button_url": "projects.html#data-ml"
+        }
+      ]
+    }
+  ]
+}

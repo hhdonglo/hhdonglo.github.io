@@ -1,7 +1,7 @@
 {
-  "eyebrow": "Hope Donglo, PhD",
-  "role": "Lecturer · Theoretical Nuclear Physics",
-  "statement": "Theoretical nuclear physics research on the reaction mechanisms that govern the formation of superheavy nuclei, using stochastic dynamics and uncertainty quantification to test and constrain nuclear reaction models.",
+  "headline": "Theoretical & Computational Nuclear Physics",
+  "subheadline": "Nuclear Reaction Dynamics · Superheavy-Element Synthesis · Computational Modelling · Uncertainty Quantification",
+  "intro": "Research on how superheavy nuclei form in heavy-ion collisions, using stochastic reaction models, model calibration and uncertainty quantification. The same computational methods extend into scientific computing, machine learning and data engineering.",
   "buttons": [
     {
       "label": "Research",
@@ -9,128 +9,58 @@
       "style": "primary"
     },
     {
-      "label": "Teaching",
-      "url": "teaching.html"
+      "label": "Publications",
+      "url": "publications.html"
     },
     {
-      "label": "CV",
-      "url": "cv.html"
+      "label": "Projects",
+      "url": "projects.html"
     }
   ],
-  "blocks": [
+  "figure": "assets/fig-pathway.svg",
+  "figure_alt": "Schematic of superheavy-element synthesis in three stages: capture, compound-nucleus formation and survival. The evaporation-residue cross section is the product of the three.",
+  "figure_caption": "Superheavy-element synthesis as three stages: capture, formation and survival.",
+  "research_heading": "Research",
+  "research_text": "The central question: which reaction mechanisms govern the formation of superheavy nuclei, and how reliably can they be predicted?",
+  "questions": [
     {
-      "label": "Research",
-      "title": "Research",
-      "text": "Reaction mechanisms in the formation of heavy and superheavy nuclei.",
-      "url": "research.html",
-      "items": [
-        {
-          "label": "Research themes",
-          "url": "research.html#themes"
-        },
-        {
-          "label": "Current projects",
-          "url": "research.html#projects"
-        },
-        {
-          "label": "Publications",
-          "url": "publications.html"
-        }
-      ]
+      "label": "How does a touching nuclear system fuse into a compound nucleus, rather than re-separate?",
+      "url": "research.html#questions"
     },
     {
-      "label": "Teaching",
-      "title": "Teaching",
-      "text": "Undergraduate physics courses and learning resources.",
-      "url": "teaching.html",
-      "items": [
-        {
-          "label": "Current courses",
-          "url": "teaching.html#lecture-courses"
-        },
-        {
-          "label": "Lecture resources",
-          "url": "phys143.html#weekly"
-        },
-        {
-          "label": "Student research",
-          "url": "student-research.html"
-        }
-      ]
+      "label": "How well can cross sections for new elements such as Z = 119 and 120 be predicted?",
+      "url": "research.html#questions"
+    },
+    {
+      "label": "Which model parameters do experimental data actually constrain, and with what uncertainty?",
+      "url": "research.html#questions"
+    }
+  ],
+  "research_link_label": "Research areas and questions →",
+  "blocks": [
+    {
+      "label": "Applied Work",
+      "title": "Applied & Computational Work",
+      "text": "Scientific computing, machine learning, data science and data engineering.",
+      "url": "applied.html"
     },
     {
       "label": "Projects",
       "title": "Projects",
-      "text": "Research software and data science projects.",
-      "url": "projects.html",
-      "items": [
-        {
-          "label": "KEWPIE3",
-          "url": "projects.html#kewpie3"
-        },
-        {
-          "label": "Fusion dynamics",
-          "url": "projects.html#fusion"
-        },
-        {
-          "label": "Data / ML projects",
-          "url": "projects.html#data-ml"
-        }
-      ]
-    }
-  ],
-  "publications_heading": "Selected publications",
-  "publications_link_label": "All publications →",
-  "currently_heading": "Currently",
-  "shortcuts_heading": "Find your way",
-  "shortcuts": [
-    {
-      "title": "I am a researcher",
-      "links": [
-        {
-          "label": "Research",
-          "url": "research.html"
-        },
-        {
-          "label": "Publications",
-          "url": "publications.html"
-        },
-        {
-          "label": "Projects",
-          "url": "projects.html"
-        }
-      ]
+      "text": "KEWPIE3, fusion dynamics, computational and applied projects.",
+      "url": "projects.html"
     },
     {
-      "title": "I am a student",
-      "links": [
-        {
-          "label": "Teaching",
-          "url": "teaching.html"
-        },
-        {
-          "label": "PHYS 143",
-          "url": "phys143.html"
-        },
-        {
-          "label": "Student Research",
-          "url": "student-research.html"
-        }
-      ]
+      "label": "Teaching",
+      "title": "Teaching",
+      "text": "Undergraduate physics: lectures, tutorials and practice questions.",
+      "url": "teaching.html"
     },
     {
-      "title": "I am looking for the CV",
-      "links": [
-        {
-          "label": "CV page",
-          "url": "cv.html"
-        },
-        {
-          "label": "Download PDF",
-          "url": "cv/Hope_Donglo_CV.pdf"
-        }
-      ]
+      "label": "Publications",
+      "title": "Publications",
+      "text": "Journal articles, preprints and theses.",
+      "url": "publications.html"
     }
-  ],
-  "affiliation_line": "Department of Physics, University of Ghana."
+  ]
 }

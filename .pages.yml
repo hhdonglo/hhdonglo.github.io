@@ -24,17 +24,17 @@ content:
   path: data/pages/home.json
   format: json
   fields:
-  - name: eyebrow
-    label: Name line
+  - name: headline
+    label: Headline
     type: string
-  - name: role
-    label: Position line
+  - name: subheadline
+    label: Subheadline (research areas)
     type: string
-  - name: statement
-    label: Short research statement
+  - name: intro
+    label: Short introduction
     type: text
   - name: buttons
-    label: Hero buttons (Research, Teaching, CV)
+    label: Hero buttons (Research, Publications, Projects)
     type: object
     fields:
     - name: label
@@ -51,68 +51,52 @@ content:
         - primary
         - plain
     list: true
-  - name: blocks
-    label: Research, Teaching and Projects blocks
+  - name: figure
+    label: Figure next to the headline (image path)
+    type: string
+  - name: figure_alt
+    label: Figure description for screen readers
+    type: text
+  - name: figure_caption
+    label: Figure caption
+    type: string
+  - name: research_heading
+    label: Research heading
+    type: string
+  - name: research_text
+    label: Central research question
+    type: text
+  - name: questions
+    label: Research questions (links)
     type: object
     fields:
     - name: label
-      label: Small label
+      label: Question
+      type: string
+    - name: url
+      label: Link
+      type: string
+    list: true
+  - name: research_link_label
+    label: Research link text
+    type: string
+  - name: blocks
+    label: Link cards (Applied Work, Projects, Teaching, Publications)
+    type: object
+    fields:
+    - name: label
+      label: Short label
       type: string
     - name: title
       label: Title
       type: string
     - name: text
-      label: Description
-      type: text
+      label: One-line description
+      type: string
     - name: url
-      label: Title link
+      label: Link
       type: string
-    - name: items
-      label: Links in the block
-      type: object
-      fields:
-      - name: label
-        label: Text
-        type: string
-      - name: url
-        label: Link
-        type: string
-      list: true
     list: true
-  - name: publications_heading
-    label: Selected publications heading
-    type: string
-  - name: publications_link_label
-    label: All publications link text
-    type: string
-  - name: currently_heading
-    label: Currently heading
-    type: string
-  - name: shortcuts_heading
-    label: Find your way heading
-    type: string
-  - name: shortcuts
-    label: Find your way
-    type: object
-    fields:
-    - name: title
-      label: Title
-      type: string
-    - name: links
-      label: Links
-      type: object
-      fields:
-      - name: label
-        label: Text
-        type: string
-      - name: url
-        label: Link
-        type: string
-      list: true
-    list: true
-  - name: affiliation_line
-    label: Affiliation line
-    type: string
 - name: research
   label: Research
   type: file
@@ -128,6 +112,26 @@ content:
   - name: intro
     label: Introduction
     type: text
+  - name: questions_title
+    label: Research questions heading
+    type: string
+  - name: questions
+    label: Research questions
+    type: object
+    fields:
+    - name: question
+      label: Question
+      type: string
+    - name: text
+      label: Explanation
+      type: text
+    - name: link_label
+      label: Link text
+      type: string
+    - name: link_url
+      label: Link
+      type: string
+    list: true
   - name: areas
     label: Research areas (numbered automatically)
     type: object
@@ -315,6 +319,15 @@ content:
           options:
             values: *id001
         list: true
+      - name: figure
+        label: Figure (image path)
+        type: string
+      - name: figure_alt
+        label: Figure description for screen readers
+        type: text
+      - name: figure_caption
+        label: Figure caption
+        type: string
       - name: table
         label: Table
         type: object
@@ -594,6 +607,27 @@ content:
       type: text
       list: true
     list: true
+  - name: computational_projects_title
+    label: Computational projects heading
+    type: string
+  - name: computational_projects
+    label: Computational projects
+    type: object
+    fields:
+    - name: id
+      label: Anchor id (for links)
+      type: string
+    - name: title
+      label: Title
+      type: string
+    - name: status
+      label: Status label
+      type: string
+    - name: paragraphs
+      label: Paragraphs
+      type: text
+      list: true
+    list: true
   - name: data_science_title
     label: Data / ML projects heading
     type: string
@@ -703,7 +737,7 @@ content:
       list: true
     list: true
   - name: home
-    label: Selected publications on the home page
+    label: Selected publications (not shown on the home page at present)
     type: object
     fields:
     - name: label
@@ -734,6 +768,40 @@ content:
   label: About
   type: file
   path: data/pages/about.json
+  format: json
+  fields:
+  - name: title
+    label: Page title
+    type: string
+  - name: subtitle
+    label: Subtitle under the title
+    type: string
+  - name: sections
+    label: Sections
+    type: object
+    fields: *id002
+    list: true
+- name: applied
+  label: "Applied & Computational Work"
+  type: file
+  path: data/pages/applied.json
+  format: json
+  fields:
+  - name: title
+    label: Page title
+    type: string
+  - name: subtitle
+    label: Subtitle under the title
+    type: string
+  - name: sections
+    label: Sections
+    type: object
+    fields: *id002
+    list: true
+- name: kewpie3
+  label: "Projects: KEWPIE3 page"
+  type: file
+  path: data/pages/kewpie3.json
   format: json
   fields:
   - name: title

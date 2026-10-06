@@ -1,6 +1,17 @@
 {
-  "subtitle": "I teach undergraduate physics at the University of Ghana. This section provides lecture slides, tutorials, supplementary notes and practice questions.",
+  "subtitle": "Undergraduate physics at the University of Ghana, with lecture slides, tutorials, supplementary notes and practice questions. Detailed materials are on each course page.",
   "sections": [
+    {
+      "id": "approach",
+      "heading": "Teaching Approach",
+      "subtitle": "Physics taught as a way of reasoning: understand the idea, calculate with it, then apply it to a real problem.",
+      "bullet_style": "arrows",
+      "bullets": [
+        "**Understand:** the physical idea and when it applies",
+        "**Calculate:** quantitative reasoning and problem solving",
+        "**Apply:** scientific thinking on real systems, including current research"
+      ]
+    },
     {
       "id": "lecture-courses",
       "heading": "Undergraduate Courses",
