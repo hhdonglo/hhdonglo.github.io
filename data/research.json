@@ -84,20 +84,19 @@
     {
       "id": "edge-heavy",
       "question": "How heavy can matter become?",
-      "text": "This is not yet known. The heaviest element made is oganesson (Z = 118); searches for elements 119 and 120 have found nothing so far. Models predict about 6,500 to 8,500 bound nuclei, with half-life predictions differing by up to 11 orders of magnitude (Smits et al. 2024, pp. 2–3, 19)."
+      "text": "This is not yet known. The heaviest element made is oganesson (Z = 118), and searches for elements 119 and 120 have found nothing so far. Models predict about 6,500 to 8,500 bound nuclei, with half-life predictions differing by up to 11 orders of magnitude."
     },
     {
       "id": "edge-table",
       "question": "Where does the periodic table end?",
-      "text": "It may have no fixed end. At Z ≈ 171 the 1s electron level enters the negative-energy continuum, which the authors argue requires new mathematics rather than ending the elements. Periodicity breaks down earlier: some elements beyond 120 have no clear place in the table (Smits et al. 2024, pp. 5, 20)."
+      "text": "No fixed end is known. At Z ≈ 171 the 1s electron level enters the negative-energy continuum, which calls for new mathematics and does not mark the end of the elements. Periodicity breaks down earlier: some elements beyond 120 have no clear place in the table."
     },
     {
       "id": "edge-laws",
       "question": "Do our theories remain predictive at the limits of nuclear stability?",
-      "text": "Common approximations fail at the edge. Relativistic and quantum-electrodynamic effects grow strongly with Z, and nuclear predictions there are extrapolations, so the authors call for Bayesian uncertainty quantification (Smits et al. 2024, pp. 3–5)."
+      "text": "Common approximations fail at the edge. Relativistic and quantum-electrodynamic effects grow strongly with Z, and nuclear predictions there are extrapolations, so reliable conclusions require Bayesian uncertainty quantification."
     }
   ],
-  "edge_source": "Source: Smits et al. (2024), *The quest for superheavy elements and the limit of the periodic table*.",
   "challenge_title": "The central challenge",
   "challenge_text": "Superheavy-element synthesis lies at the intersection of nuclear structure, reaction dynamics and quantum many-body physics.",
   "challenge_text2": "The challenge is to understand why some heavy-ion collisions produce a new nucleus while most result in quasifission or fission. Reliable predictions are essential for guiding experiments aimed at discovering elements beyond **Z = 118** and exploring the predicted **island of stability**.",
