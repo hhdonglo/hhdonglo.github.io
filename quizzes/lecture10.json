@@ -336,6 +336,141 @@
       "answer": 1,
       "exp": "At the same temperature each molecule has the same average translational kinetic energy, (3/2)kT. The total is N(3/2)kT. For equal masses the number of molecules is proportional to 1/M, so hydrogen has 32/2 = 16 times as many molecules, and so 16 times the total energy.",
       "ref": "Lecture 10 deck, slide ‘Concept check: equal masses’"
+    },
+    {
+      "id": "L10-P1516-33",
+      "type": "calc",
+      "q": "Calculate the size of the container that would be required to keep two moles of an ideal gas at standard temperature and pressure (STP).",
+      "options": [
+        "44.8 L",
+        "22.4 L",
+        "33.6 L",
+        "89.0 L"
+      ],
+      "answer": 0,
+      "exp": "At STP (273 K, 1.01×10<sup>5</sup> Pa) one mole occupies V = RT/p = (8.31)(273)/(1.01×10<sup>5</sup>) = 22.4 L, so two moles occupy 44.8 L.",
+      "ref": "Lecture 10 deck, slide ‘Toolkit 2: the ideal-gas equation’ and ‘Lecturer example: a helium tank’",
+      "source": "Past exam: PHYS 143 2015/2016, question 33"
+    },
+    {
+      "id": "L10-P1516-34",
+      "type": "calc",
+      "q": "A balloon contains 64 g of pure oxygen (molar mass 32.0 g mol<sup>−1</sup>), treated as an ideal gas, at a temperature of 47 °C. Calculate the total translational kinetic energy of the gas.",
+      "options": [
+        "6.02 kJ",
+        "8.11 kJ",
+        "7.99 kJ",
+        "9.26 kJ"
+      ],
+      "answer": 2,
+      "exp": "n = 64 g/(32.0 g/mol) = 2.00 mol and T = 47 + 273 = 320 K. The total translational kinetic energy is (3/2)nRT = 1.5(2.00)(8.31)(320) = 7.98 × 10<sup>3</sup> J, which is 7.98 kJ. The paper’s list has 7.99 kJ, within 0.1 %. Using the average energy of one molecule, (3/2)k<sub>B</sub>T, would give a value of about 10<sup>−20</sup> J, and the rotational energy of the diatomic molecule is not included.",
+      "ref": "Lecture 10 deck, slide ‘Temperature has a molecular meaning’ and ‘Toolkit 7: kinetic theory’",
+      "source": "Past exam: PHYS 143 2015/2016, question 34"
+    },
+    {
+      "id": "L10-P1516-37",
+      "type": "graph",
+      "q": "Three isotherms T<sub>1</sub>, T<sub>2</sub> and T<sub>3</sub> are drawn for a fixed amount of ideal gas on a p–V diagram. The T<sub>3</sub> curve is the farthest from the origin, the T<sub>1</sub> curve is the closest to it and the T<sub>2</sub> curve is between them. Which of the following orders is correct?",
+      "options": [
+        "T<sub>1</sub> < T<sub>2</sub> > T<sub>3</sub>",
+        "T<sub>2</sub> < T<sub>1</sub> < T<sub>3</sub>",
+        "T<sub>1</sub> < T<sub>2</sub> < T<sub>3</sub>",
+        "T<sub>3</sub> < T<sub>2</sub> > T<sub>1</sub>"
+      ],
+      "answer": 2,
+      "exp": "For a fixed amount of ideal gas, pV = nRT, so at the same volume an isotherm farther from the origin has the higher pressure and the higher temperature. T<sub>1</sub> is the lowest curve and T<sub>3</sub> the highest: T<sub>1</sub> < T<sub>2</sub> < T<sub>3</sub>. The other statements do not rank all three temperatures correctly.",
+      "ref": "Lecture 10 deck, slide ‘pV diagrams and isotherms’ and ‘Toolkit 4: reading pV and phase diagrams’",
+      "source": "Past exam: PHYS 143 2015/2016, question 37"
+    },
+    {
+      "id": "L10-P1516-40",
+      "type": "concept",
+      "q": "Which of the following is true of the phases of matter?",
+      "options": [
+        "The phase of matter at a time depends on the state parameters.",
+        "Matter only exists in one phase at a time.",
+        "It is not possible for matter to exist in all phases at the same time.",
+        "It is impossible to make a direct transition from the solid to the gaseous phase."
+      ],
+      "answer": 0,
+      "exp": "The phase of a substance is fixed by the state variables (mainly p and T), as shown on a phase diagram. At the triple point solid, liquid and gas coexist (A, B, D false); sublimation is a direct solid-to-gas transition (E false).",
+      "ref": "Lecture 10 deck, slide ‘The phase diagram: pressure against temperature’ and ‘Lecturer example: dry ice and the triple point’",
+      "source": "Past exam: PHYS 143 2015/2016, question 40"
+    },
+    {
+      "id": "L10-P1516-44",
+      "type": "calc",
+      "q": "A 20.0 L tank contains 0.225 kg of helium at 15.0 °C. The molar mass of helium is 4.00 g mol<sup>−1</sup>. Calculate the pressure in the tank, in Pascals.",
+      "options": [
+        "46.7 × 10<sup>5</sup> Pa",
+        "57.8 × 10<sup>5</sup> Pa",
+        "71.2 × 10<sup>5</sup> Pa",
+        "67.3 × 10<sup>5</sup> Pa"
+      ],
+      "answer": 3,
+      "exp": "n = 225 g/(4.00 g mol<sup>−1</sup>) = 56.25 mol; T = 288 K; V = 20.0×10<sup>−3</sup> m³. p = nRT/V = (56.25)(8.31)(288)/(0.0200) = 6.73×10<sup>6</sup> Pa = 67.3×10<sup>5</sup> Pa.",
+      "ref": "Lecture 10 deck, slide ‘Toolkit 2: the ideal-gas equation’ and ‘Lecturer example: a helium tank’",
+      "source": "Past exam: PHYS 143 2015/2016, question 44"
+    },
+    {
+      "id": "L10-P1718-35",
+      "type": "calc",
+      "q": "A quantity of nitrogen gas of mass 21 g is in thermal equilibrium at 30 °C. Determine the total translational kinetic energy of the system knowing that nitrogen exists as a diatomic gas. The mass of the nitrogen atom is 14 amu.",
+      "options": [
+        "1.94 kJ",
+        "2.83 kJ",
+        "3.35 kJ",
+        "4.67 kJ"
+      ],
+      "answer": 1,
+      "exp": "The molecule N<sub>2</sub> has mass 28 amu, so M = 28 g mol<sup>−1</sup> and n = 21/28 = 0.75 mol. Translational energy is (3/2)nRT = 1.5(0.75)(8.31)(303) = 2.83×10<sup>3</sup> J. The two rotational degrees of freedom of the diatomic molecule are not translational and are not counted.",
+      "ref": "Lecture 10 deck, slide ‘Lecturer example: nitrogen and helium at room temperature’ and ‘Toolkit 7: kinetic theory’",
+      "source": "Past exam: PHYS 143 2017/2018, question 35"
+    },
+    {
+      "id": "L10-P1718-36",
+      "type": "concept",
+      "q": "Which of the following corrections to the ideal gas equation of state are necessary for real gases?",
+      "options": [
+        "Finite volume and temperature of the ideal gas must be subtracted and the decreased pressure due to inter atomic or molecular attraction added.",
+        "Finite volume of the real gas must be subtracted and the decreased pressure due to inter atomic or molecular attraction added.",
+        "Extra pressure due to inter atomic or molecular attraction must be decreased and the volume of the ideal gas must be added.",
+        "Decreased pressure due to inter atomic or molecular attraction must be added and the finite volume of the ideal gas must be added."
+      ],
+      "answer": 1,
+      "exp": "van der Waals: (p + an²/V²)(V − nb) = nRT. The volume that the molecules themselves occupy (nb) is subtracted from the volume of the container, and the reduction of pressure caused by the attractions between molecules (an²/V²) is added back. Only the answer that states both corrections is right. Temperature is not corrected, and the volume of the molecules is subtracted, not added.",
+      "ref": "Lecture 10 deck, slide ‘The kinetic model of an ideal gas’",
+      "source": "Past exam: PHYS 143 2017/2018, question 36"
+    },
+    {
+      "id": "L10-P1718-37",
+      "type": "graph",
+      "q": "The graph shows the distribution f(v) of molecular speeds in a fixed mass of a gas at three temperatures T<sub>1</sub>, T<sub>2</sub> and T<sub>3</sub>. The T<sub>2</sub> curve has the tallest, narrowest peak, at the lowest speed. The T<sub>3</sub> curve has a lower peak at a higher speed. The T<sub>1</sub> curve is the lowest and broadest, with its peak at the highest speed and a long tail. Rank the temperatures.",
+      "options": [
+        "T<sub>1</sub> < T<sub>2</sub> < T<sub>3</sub>",
+        "T<sub>3</sub> < T<sub>2</sub> < T<sub>1</sub>",
+        "T<sub>1</sub> < T<sub>3</sub> < T<sub>2</sub>",
+        "T<sub>2</sub> < T<sub>3</sub> < T<sub>1</sub>"
+      ],
+      "answer": 3,
+      "exp": "In a Maxwell–Boltzmann distribution a higher temperature moves the peak to a higher speed and makes the curve lower and broader, because the total area (the number of molecules) stays the same. The tall, narrow T<sub>2</sub> curve is the coldest and the low, broad T<sub>1</sub> curve is the hottest: T<sub>2</sub> < T<sub>3</sub> < T<sub>1</sub>.",
+      "ref": "Lecture 10 deck, slide ‘Why root-mean-square?’ and ‘Toolkit 7: kinetic theory’",
+      "source": "Past exam: PHYS 143 2017/2018, question 37"
+    },
+    {
+      "id": "L10-P1819-39",
+      "type": "concept",
+      "q": "When ethanol evaporates from a beaker, the temperature of ethanol in the beaker",
+      "options": [
+        "increases.",
+        "decreases.",
+        "remains constant.",
+        "decreases and then increases."
+      ],
+      "answer": 1,
+      "exp": "The molecules that escape are the most energetic, and the latent heat of vaporization is taken from the liquid, so the average energy of the remaining ethanol, and its temperature, falls (evaporative cooling).",
+      "ref": "Lecture 10 deck, slide ‘What happens at a change of phase?’",
+      "source": "Past exam: PHYS 143 2018/2019, question 39"
     }
   ]
 }

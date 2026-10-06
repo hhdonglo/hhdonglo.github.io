@@ -361,6 +361,246 @@
         "unit": "",
         "sf": 3
       }
+    },
+    {
+      "id": "L11-P1516-31",
+      "type": "concept",
+      "q": "When a fixed amount of ideal gas goes through an isothermal expansion,",
+      "options": [
+        "its internal energy does not change.",
+        "the gas does no work.",
+        "no heat enters or leaves the gas.",
+        "its temperature must decrease."
+      ],
+      "answer": 0,
+      "exp": "The internal energy of an ideal gas depends only on T, and T is constant: ΔU = 0. The gas does work (W = nRT ln(V<sub>2</sub>/V<sub>1</sub>) > 0), absorbs an equal amount of heat, and its pressure falls.",
+      "ref": "Lecture 11 deck, slide ‘Isothermal work of an ideal gas’",
+      "source": "Past exam: PHYS 143 2015/2016, question 31"
+    },
+    {
+      "id": "L11-P1516-32",
+      "type": "calc",
+      "q": "How much work is done by 3.00 mol of ideal gas when its volume triples at a constant temperature of 127 °C?",
+      "options": [
+        "12.7 kJ",
+        "9.97 kJ",
+        "15.3 kJ",
+        "11.0 kJ"
+      ],
+      "answer": 3,
+      "exp": "T = 127 + 273 = 400 K. W = nRT ln(V<sub>2</sub>/V<sub>1</sub>) = (3.00)(8.31)(400) ln 3 = 9972 × 1.0986 = 1.10×10<sup>4</sup> J = 11.0 kJ.",
+      "ref": "Lecture 11 deck, slide ‘Isothermal work of an ideal gas’",
+      "source": "Past exam: PHYS 143 2015/2016, question 32"
+    },
+    {
+      "id": "L11-P1516-36",
+      "type": "calc",
+      "q": "A 10 g mass of water at a volume of 10 cm<sup>3</sup> undergoes an isobaric heating to become 1510 cm<sup>3</sup> of steam. If the pressure is 202 kPa and the heat of vaporization is 2.26 × 10<sup>6</sup> J kg<sup>−1</sup> calculate the increase in internal energy when the water vaporizes.",
+      "options": [
+        "18.4 kJ",
+        "22.3 kJ",
+        "29.3 kJ",
+        "26.9 kJ"
+      ],
+      "answer": 1,
+      "exp": "Q = mL = (0.010)(2.26×10<sup>6</sup>) = 22.6 kJ; W = pΔV = (2.02×10<sup>5</sup>)(1500×10<sup>−6</sup>) = 0.303 kJ; ΔU = Q − W = 22.6 − 0.30 = 22.3 kJ.",
+      "ref": "Lecture 11 deck, slide ‘The first law and a change of phase’ and ‘Boiling water: solution’",
+      "source": "Past exam: PHYS 143 2015/2016, question 36"
+    },
+    {
+      "id": "L11-P1516-38",
+      "type": "concept",
+      "q": "The first law of thermodynamics is most closely related to",
+      "options": [
+        "the definition of the absolute zero.",
+        "the conservation of energy.",
+        "the definition of an ideal gas.",
+        "the conservation of momentum."
+      ],
+      "answer": 1,
+      "exp": "The first law, ΔU = Q − W, is the statement of conservation of energy for thermodynamic systems.",
+      "ref": "Lecture 11 deck, slide ‘Energy crossing the boundary: signs for Q and W’ and ‘Toolkit 1: system and sign convention’",
+      "source": "Past exam: PHYS 143 2015/2016, question 38"
+    },
+    {
+      "id": "L11-P1516-43",
+      "type": "concept",
+      "q": "1.5 mol of an ideal gas undergoes an isothermal process at 150 °C. On a p–V diagram the pressure falls from 2.0 × 10<sup>5</sup> Pa to 1.0 × 10<sup>5</sup> Pa as the volume increases. What is the change in the internal energy of the gas?",
+      "options": [
+        "3.7 × 10<sup>5</sup> J",
+        "1.5 × 10<sup>5</sup> J",
+        "−1.5 × 10<sup>5</sup> J",
+        "0 J"
+      ],
+      "answer": 3,
+      "exp": "For an ideal gas U depends only on temperature; the process is isothermal (150 °C throughout), so ΔU = 0. This holds regardless of the numbers in the figure.",
+      "ref": "Lecture 11 deck, slide ‘Internal energy of an ideal gas’ and ‘Toolkit 5: ideal-gas energy and heat capacities’",
+      "source": "Past exam: PHYS 143 2015/2016, question 43"
+    },
+    {
+      "id": "L11-P1516-45",
+      "type": "concept",
+      "q": "The first law of thermodynamics can be expressed as Q = ΔU + W. Which of the following expressions is a restatement of the law for an adiabatic process for ideal gas?",
+      "options": [
+        "ΔU = −W",
+        "Q = ΔU = W",
+        "Q = W",
+        "Q = ΔU"
+      ],
+      "answer": 0,
+      "exp": "Adiabatic means Q = 0, so 0 = ΔU + W, that is ΔU = −W: the gas does work at the expense of its internal energy (or work done on it increases U).",
+      "ref": "Lecture 11 deck, slide ‘Concept check: isothermal against adiabatic’ and ‘The adiabatic process’",
+      "source": "Past exam: PHYS 143 2015/2016, question 45"
+    },
+    {
+      "id": "L11-P1718-38",
+      "type": "calc",
+      "q": "During an adiabatic expansion, a gas does 50 J of work against the surroundings. It is then cooled at constant volume by removing 20 J of energy. The magnitude of the total change in internal energy of the gas is",
+      "options": [
+        "30 J",
+        "70 J",
+        "50 J",
+        "90 J"
+      ],
+      "answer": 1,
+      "exp": "Adiabatic: Q = 0, so ΔU<sub>1</sub> = −W = −50 J. Isochoric cooling: W = 0, so ΔU<sub>2</sub> = Q = −20 J. Total ΔU = −70 J, magnitude 70 J.",
+      "ref": "Lecture 11 deck, slide ‘Concept check: isothermal against adiabatic’ and ‘The adiabatic process’",
+      "source": "Past exam: PHYS 143 2017/2018, question 38"
+    },
+    {
+      "id": "L11-P1718-39",
+      "type": "graph",
+      "q": "An ideal gas of fixed mass goes round the cycle X → Y → Z → X on a p–V diagram. X → Y is at constant pressure to a smaller volume. Y → Z is at constant volume to a higher pressure. Z → X is a straight line back to the larger volume, with the pressure falling. In which part(s) of the cycle is external work done on the gas?",
+      "options": [
+        "Y → Z only",
+        "X → Y only",
+        "X → Y and Z → X only",
+        "Z → X only"
+      ],
+      "answer": 1,
+      "exp": "Work is done on the gas when its volume decreases. Y → Z is vertical (constant volume, no work); Z → X is an expansion (work done by the gas); X → Y goes from large to small volume at constant pressure, so external work is done on the gas only in X → Y.",
+      "ref": "Lecture 11 deck, slide ‘Work done by a gas in a volume change’ and ‘Work is an area on the pV diagram’",
+      "source": "Past exam: PHYS 143 2017/2018, question 39"
+    },
+    {
+      "id": "L11-P1718-40",
+      "type": "concept",
+      "q": "Which of the following statements is/are true?<br>I. The heat required to bring about the same change in internal energy of a given system is greater in an isobaric process than in an isochoric process.<br>II. On a pV diagram, an isotherm has a steeper slope than an adiabat.<br>III. The change in internal energy of an ideal gas in both isothermal and cyclic processes is zero.",
+      "options": [
+        "I and II only",
+        "II and III only",
+        "I, II and III",
+        "I and III only"
+      ],
+      "answer": 3,
+      "exp": "I: isochoric Q = ΔU, isobaric Q = ΔU + W with W > 0 for the same ΔU, so isobaric needs more heat (true). II: an adiabat is steeper than an isotherm (false). III: for an ideal gas U depends only on T, so ΔU = 0 for an isothermal process and for any cycle (true).",
+      "ref": "Lecture 11 deck, slide ‘Isotherm against adiabat’ and ‘Concept check: compression to half the volume’",
+      "source": "Past exam: PHYS 143 2017/2018, question 40"
+    },
+    {
+      "id": "L11-P1718-41",
+      "type": "concept",
+      "q": "n moles of an ideal gas undergoes a process in which the heat absorbed is given by Q = nC<sub>p</sub>ΔT. The process is",
+      "options": [
+        "isobaric.",
+        "isothermal.",
+        "adiabatic.",
+        "isochoric."
+      ],
+      "answer": 0,
+      "exp": "The molar heat capacity at constant pressure C<sub>p</sub> applies when the pressure is constant (isobaric). (Isochoric would use C<sub>v</sub>; Q = 0 for adiabatic; ΔT = 0 for isothermal.)",
+      "ref": "Lecture 11 deck, slide ‘Heat capacities C<sub>V</sub> and C<sub>p</sub> of an ideal gas’ and ‘Toolkit 5: ideal-gas energy and heat capacities’",
+      "source": "Past exam: PHYS 143 2017/2018, question 41"
+    },
+    {
+      "id": "L11-P1718-44",
+      "type": "calc",
+      "q": "A 20 g mass of water at a volume of 30 cm³ undergoes an isobaric heating to become 2500 cm³ of steam. The pressure is 3.04 × 10<sup>5</sup> Pa and the heat of vaporisation is 2.26 × 10<sup>6</sup> J kg<sup>−1</sup>. Calculate the work done during the phase transition.",
+      "options": [
+        "2.7 × 10<sup>2</sup> J",
+        "3.5 × 10<sup>2</sup> J",
+        "7.5 × 10<sup>2</sup> J",
+        "5.6 × 10<sup>2</sup> J"
+      ],
+      "answer": 2,
+      "exp": "Isobaric work: W = pΔV = (3.04×10<sup>5</sup>)(2500 − 30)×10<sup>−6</sup> = (3.04×10<sup>5</sup>)(2.47×10<sup>−3</sup>) = 751 J ≈ 7.5×10<sup>2</sup> J.",
+      "ref": "Lecture 11 deck, slide ‘The first law and a change of phase’ and ‘Boiling water: solution’",
+      "source": "Past exam: PHYS 143 2017/2018, question 44"
+    },
+    {
+      "id": "L11-P1718-45",
+      "type": "calc",
+      "q": "A 20 g mass of water at a volume of 30 cm³ undergoes an isobaric heating to become 2500 cm³ of steam. The pressure is 3.04 × 10<sup>5</sup> Pa and the heat of vaporisation is 2.26 × 10<sup>6</sup> J kg<sup>−1</sup>. Calculate the increase in the internal energy during the phase change.",
+      "options": [
+        "6.8 × 10<sup>4</sup> J",
+        "3.0 × 10<sup>4</sup> J",
+        "4.4 × 10<sup>4</sup> J",
+        "2.0 × 10<sup>4</sup> J"
+      ],
+      "answer": 2,
+      "exp": "Q = mL = (0.020)(2.26×10<sup>6</sup>) = 4.52×10<sup>4</sup> J. First law: ΔU = Q − W = 45 200 − 751 = 4.44×10<sup>4</sup> J ≈ 4.4×10<sup>4</sup> J.",
+      "ref": "Lecture 11 deck, slide ‘The first law and a change of phase’ and ‘Boiling water: solution’",
+      "source": "Past exam: PHYS 143 2017/2018, question 45"
+    },
+    {
+      "id": "L11-P1819-42",
+      "type": "calc",
+      "q": "An ideal gas in a cylinder expands from a volume of 0.110 m<sup>3</sup> to 0.320 m<sup>3</sup>. Heat flows into the gas just rapidly enough to keep the pressure constant at 1.80 × 10<sup>5</sup> Pa during the expansion. The total heat added is 1.15 × 10<sup>5</sup> J. Calculate the change in internal energy of the gas.",
+      "options": [
+        "38.2 kJ",
+        "88.4 kJ",
+        "77.2 kJ",
+        "90.6 kJ"
+      ],
+      "answer": 2,
+      "exp": "W = pΔV = (1.80×10<sup>5</sup>)(0.320 − 0.110) = 3.78×10<sup>4</sup> J. ΔU = Q − W = 1.15×10<sup>5</sup> − 3.78×10<sup>4</sup> = 7.72×10<sup>4</sup> J = 77.2 kJ.",
+      "ref": "Lecture 11 deck, slide ‘Toolkit 3: the energy ledger’ and ‘Integrated problem: the ledger’",
+      "source": "Past exam: PHYS 143 2018/2019, question 42"
+    },
+    {
+      "id": "L11-P1819-43",
+      "type": "calc",
+      "q": "One mole of an ideal gas undergoes isothermal expansion at a temperature of 283 K, during which its pressure changes from 4.0 × 10<sup>5</sup> Pa to 2.0 × 10<sup>5</sup> Pa. Determine the work done by the ideal gas during the process.",
+      "options": [
+        "1.2 kJ",
+        "2.7 kJ",
+        "1.6 kJ",
+        "3.3 kJ"
+      ],
+      "answer": 2,
+      "exp": "Isothermal: W = nRT ln(V<sub>2</sub>/V<sub>1</sub>) = nRT ln(p<sub>1</sub>/p<sub>2</sub>) = (1)(8.31)(283) ln(4.0/2.0) = 2352 × 0.693 = 1.63×10<sup>3</sup> J = 1.6 kJ.",
+      "ref": "Lecture 11 deck, slide ‘Isothermal work of an ideal gas’",
+      "source": "Past exam: PHYS 143 2018/2019, question 43"
+    },
+    {
+      "id": "L11-P1819-44",
+      "type": "calc",
+      "q": "One mole of an ideal gas undergoes isothermal expansion at a temperature of 283 K, during which its pressure changes from 4.0 × 10<sup>5</sup> Pa to 2.0 × 10<sup>5</sup> Pa. Determine the quantity of heat absorbed during the process.",
+      "options": [
+        "1.6 kJ",
+        "3.3 kJ",
+        "2.7 kJ",
+        "1.2 kJ"
+      ],
+      "answer": 0,
+      "exp": "Isothermal ideal gas: ΔU = 0, so Q = W = 1.63 kJ ≈ 1.6 kJ (absorbed by the gas).",
+      "ref": "Lecture 11 deck, slide ‘Isothermal work of an ideal gas’",
+      "source": "Past exam: PHYS 143 2018/2019, question 44"
+    },
+    {
+      "id": "L11-P1819-45",
+      "type": "concept",
+      "q": "Which of the following statements is true for the molar heat capacity of an ideal gas?<br>I. The molar heat capacity at constant volume is larger than that at constant pressure.<br>II. The molar heat capacity at constant volume is less than that at constant pressure because in a constant-pressure process, temperature may change and the system does no work.<br>III. The molar heat capacity at constant pressure is larger than that at constant volume because in a constant-volume process, temperature may change and the system does no work.",
+      "options": [
+        "II only",
+        "I and III only",
+        "II and III only",
+        "III only"
+      ],
+      "answer": 3,
+      "exp": "C<sub>p</sub> = C<sub>v</sub> + R > C<sub>v</sub>, so I is false. In a constant-volume process no work is done and all the heat goes into raising the temperature, whereas at constant pressure part of the heat does expansion work, so more heat per kelvin is needed: III gives the right reason. II gives a wrong reason (the system does work at constant pressure).",
+      "ref": "Lecture 11 deck, slide ‘Heat capacities C<sub>V</sub> and C<sub>p</sub> of an ideal gas’ and ‘Measured molar heat capacities’",
+      "source": "Past exam: PHYS 143 2018/2019, question 45"
     }
   ]
 }

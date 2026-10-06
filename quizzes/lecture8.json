@@ -356,6 +356,186 @@
         "unit": "rad/s",
         "sf": 3
       }
+    },
+    {
+      "id": "L8-P1516-07",
+      "type": "calc",
+      "q": "The velocity of a 500 g particle at the point r = (4î + 3ĵ − 2k̂) m is v = (5î − 2ĵ + 4k̂) m s<sup>−1</sup>. What is the angular momentum of the particle about the origin?",
+      "options": [
+        "(24î − 6ĵ − 8k̂) kg m<sup>2</sup> s<sup>−1</sup>",
+        "12î − 3ĵ − 4k̂ kg m<sup>2</sup> s<sup>−1</sup>",
+        "(4î − 13ĵ − 11.5k̂) kg m<sup>2</sup> s<sup>−1</sup>",
+        "(8î + 14ĵ − 13k̂) kg m<sup>2</sup> s<sup>−1</sup>"
+      ],
+      "answer": 2,
+      "exp": "L = m(r × v). r × v = [(3)(4) − (−2)(−2)]î + [(−2)(5) − (4)(4)]ĵ + [(4)(−2) − (3)(5)]k̂ = 8î − 26ĵ − 23k̂. Multiplying by m = 0.500 kg gives L = (4î − 13ĵ − 11.5k̂) kg m² s<sup>−1</sup>.",
+      "ref": "Lecture 8 deck, slide ‘Your turn: a child jumps on a merry-go-round’ and ‘Toolkit 7: angular momentum and its conservation’",
+      "source": "Past exam: PHYS 143 2015/2016, question 7"
+    },
+    {
+      "id": "L8-P1516-20",
+      "type": "calc",
+      "q": "An engine develops a power of 1600π W at constant torque of 40 N m. Determine the angular velocity of the engine in revolutions per minute.",
+      "options": [
+        "1025 rev min<sup>−1</sup>",
+        "1320 rev min<sup>−1</sup>",
+        "1200 rev min<sup>−1</sup>",
+        "1360 rev min<sup>−1</sup>"
+      ],
+      "answer": 2,
+      "exp": "P = τω gives ω = 1600π/40 = 40π rad s<sup>−1</sup> = 20 rev s<sup>−1</sup> = 1200 rev min<sup>−1</sup>.",
+      "ref": "Lecture 8 deck, slide ‘Work and power of a torque’ and ‘Lecturer example: a flywheel under a constant torque’",
+      "source": "Past exam: PHYS 143 2015/2016, question 20"
+    },
+    {
+      "id": "L8-P1516-27",
+      "type": "calc",
+      "q": "A DVD has an initial angular velocity of 23.5 rad s<sup>−1</sup> and acceleration of −6 rad s<sup>−2</sup> as it slows to stop. A point on the edge of the disc is connected by a line to the centre of the disc. Determine what angle the line sweeps after 1.2 s.",
+      "options": [
+        "23.9 rad",
+        "27.2 rad",
+        "21.6 rad",
+        "18.7 rad"
+      ],
+      "answer": 0,
+      "exp": "θ = ω<sub>0</sub>t + ½αt² = (23.5)(1.2) + ½(−6)(1.2)² = 28.2 − 4.32 = 23.9 rad. (The DVD stops only at t = 23.5/6 = 3.9 s, so it is still turning at 1.2 s.)",
+      "ref": "Lecture 8 deck, slide ‘Lecturer example: a braking washing-machine drum’ and ‘Toolkit 1’",
+      "source": "Past exam: PHYS 143 2015/2016, question 27"
+    },
+    {
+      "id": "L8-P1718-24",
+      "type": "calc",
+      "q": "The instantaneous angular position θ of a rotating disk at any time t is given by θ = (2 rad s<sup>−2</sup>)t² + (6 rad s<sup>−1</sup>)t and the diameter of the rotating disk is 0.20 m. Find the distance a particle on the rim of the rotating disk travels in 2 s.",
+      "options": [
+        "4.0 m",
+        "2.0 m",
+        "6.0 m",
+        "7.5 m"
+      ],
+      "answer": 1,
+      "exp": "Angle turned in 2 s: θ(2) − θ(0) = 2(4) + 6(2) = 20 rad. The rim distance is s = rθ = (0.10 m)(20 rad) = 2.0 m.",
+      "ref": "Lecture 8 deck, slide ‘Toolkit 2: linking linear and angular motion’",
+      "source": "Past exam: PHYS 143 2017/2018, question 24"
+    },
+    {
+      "id": "L8-P1718-25",
+      "type": "calc",
+      "q": "The instantaneous angular position of a rotating disk is θ = (2 rad s<sup>−2</sup>)t² + (6 rad s<sup>−1</sup>)t. What is the value of the angular acceleration of the disk?",
+      "options": [
+        "2.0 rad s<sup>−2</sup>",
+        "4.0 rad s<sup>−2</sup>",
+        "6.0 rad s<sup>−2</sup>",
+        "8.0 rad s<sup>−2</sup>"
+      ],
+      "answer": 1,
+      "exp": "ω = dθ/dt = 4t + 6 and α = dω/dt = 4.0 rad s<sup>−2</sup> (constant).",
+      "ref": "Lecture 8 deck, slide ‘Angular velocity and angular acceleration’ and ‘Toolkit 1’",
+      "source": "Past exam: PHYS 143 2017/2018, question 25"
+    },
+    {
+      "id": "L8-P1718-28",
+      "type": "calc",
+      "q": "The grinder in a corn milling machine has a constant moment of inertia of 0.5 kg m² about its axis of rotation. Its angular speed is ω = (10.0 rad s<sup>−5</sup>)t<sup>4</sup>. Calculate the value of the torque at time t = 3 s.",
+      "options": [
+        "405 N m",
+        "705 N m",
+        "910 N m",
+        "540 N m"
+      ],
+      "answer": 3,
+      "exp": "α = dω/dt = 40t³ = 40(3)³ = 1080 rad s<sup>−2</sup>, so τ = Iα = (0.5)(1080) = 540 N m. The unit of torque is N m, which is kg m² s<sup>−2</sup>. The paper printed kg m² s<sup>−1</sup>, which is a misprint.",
+      "ref": "Lecture 8 deck, slide ‘Toolkit 5: rotational dynamics’ and ‘Lecturer example: pulling a cord wound on a disc’",
+      "source": "Past exam: PHYS 143 2017/2018, question 28"
+    },
+    {
+      "id": "L8-P1718-29",
+      "type": "concept",
+      "q": "A force is applied on a body making it turn about a point O. The torque of the force depends on<br>I. the magnitude of the applied force.<br>II. the perpendicular distance from O to the point of application of the force.<br>III. the shortest distance from O to the line of action of the force.",
+      "options": [
+        "I and III only",
+        "I and II only",
+        "II and III only",
+        "III only"
+      ],
+      "answer": 0,
+      "exp": "τ = F·d<sub>⊥</sub> where d<sub>⊥</sub> is the shortest (perpendicular) distance from O to the line of action of the force (III). The perpendicular distance from O to the point of application (II) is not what enters the torque; the distance to the point is r, and τ = rF sin φ.",
+      "ref": "Lecture 8 deck, slide ‘Torque’ and ‘Toolkit 4: torque’",
+      "source": "Past exam: PHYS 143 2017/2018, question 29"
+    },
+    {
+      "id": "L8-P1819-25",
+      "type": "calc",
+      "q": "A roller in a printing press turns through an angle θ(t) given by θ(t) = βt<sup>2</sup> − γt<sup>3</sup>, where β = 3.20 rad s<sup>−2</sup> and γ = 0.500 rad s<sup>−3</sup>. At what time does the maximum positive angular velocity occur?",
+      "options": [
+        "4.24 s",
+        "3.14 s",
+        "1.56 s",
+        "2.13 s"
+      ],
+      "answer": 3,
+      "exp": "ω = dθ/dt = 2βt − 3γt². It is a maximum when α = dω/dt = 2β − 6γt = 0, so t = β/(3γ) = 3.20/1.50 = 2.13 s (α changes from positive to negative there, so it is a maximum: ω<sub>max</sub> = 3.41 rad s<sup>−1</sup>).",
+      "ref": "Lecture 8 deck, slide ‘Angular velocity and angular acceleration’ and ‘Toolkit 1’",
+      "source": "Past exam: PHYS 143 2018/2019, question 25"
+    },
+    {
+      "id": "L8-P1819-26",
+      "type": "calc",
+      "q": "A flywheel is made of iron (density 7800 kg m<sup>−3</sup>) in the shape of a 10.0 cm thick uniform disk. What would be the diameter of such a disk if it is to store 10.0 MJ of kinetic energy when spinning at 9.42 rad s<sup>−1</sup> about an axis perpendicular to the disk at its centre? [Hint: I = ½mR² for a disk with the axis at the centre.]",
+      "options": [
+        "6.62 m",
+        "7.36 m",
+        "4.51 m",
+        "3.04 m"
+      ],
+      "answer": 1,
+      "exp": "K = ½Iω² = ¼mR²ω² with m = ρπR²h, so K = ¼ρπhR⁴ω². R⁴ = 4K/(ρπhω²) = 4(1.00×10<sup>7</sup>)/[(7800)(3.14)(0.100)(9.42)²] = 183.7 m⁴, R = 3.68 m and the diameter is 7.36 m (π = 3.14 as given on the paper).",
+      "ref": "Lecture 8 deck, slide ‘Kinetic energy of rotation and the moment of inertia’ and ‘Toolkit 3: moment of inertia’",
+      "source": "Past exam: PHYS 143 2018/2019, question 26"
+    },
+    {
+      "id": "L8-P1819-27",
+      "type": "calc",
+      "q": "An iron flywheel (density 7800 kg m<sup>−3</sup>) is a 10.0 cm thick uniform disk that stores 10.0 MJ of kinetic energy when spinning at 9.42 rad s<sup>−1</sup>. What is the radial acceleration of a point on its rim when it spins at this rate?",
+      "options": [
+        "425 m s<sup>−2</sup>",
+        "327 m s<sup>−2</sup>",
+        "254 m s<sup>−2</sup>",
+        "146 m s<sup>−2</sup>"
+      ],
+      "answer": 1,
+      "exp": "a<sub>r</sub> = ω²R = (9.42)²(3.68) = 327 m s<sup>−2</sup>, using R = 3.68 m from Question 26.",
+      "ref": "Lecture 8 deck, slide ‘Toolkit 2: linking linear and angular motion’",
+      "source": "Past exam: PHYS 143 2018/2019, question 27"
+    },
+    {
+      "id": "L8-P1819-31",
+      "type": "calc",
+      "q": "A 3.00 kg piece of metal rotates about a point O. At a point P it has a velocity of magnitude 12.0 m s<sup>−1</sup>, directed horizontally to the right. P is 8.00 m from O, up and to the left of O along a line that makes 36.9° with the horizontal. If the only force acting on the piece of metal is its weight, what is the rate of change (magnitude and direction) of its angular momentum about O at this instant? (Directions are given relative to the page, which shows the plane of the motion.)",
+      "options": [
+        "115 kg m² s<sup>−2</sup>, into the page",
+        "179 kg m² s<sup>−2</sup>, into the page",
+        "188 kg m² s<sup>−2</sup>, into the page",
+        "188 kg m² s<sup>−2</sup>, out of the page"
+      ],
+      "answer": 3,
+      "exp": "dL/dt = τ = r × w. With r = 8.00 m at 36.9° above the horizontal (to the left of O), the horizontal lever arm is 8.00 cos 36.9° = 6.40 m, so τ = (3.00)(9.81)(6.40) = 188 N m. The weight points down and the lever arm is to the left, so r × w points out of the page (right-hand rule).",
+      "ref": "Lecture 8 deck, slide ‘Torque’ and ‘Toolkit 4: torque’",
+      "source": "Past exam: PHYS 143 2018/2019, question 31"
+    },
+    {
+      "id": "L8-P1819-32",
+      "type": "concept",
+      "q": "A 3.00 kg piece of metal rotates about a point O. At a point P it has a velocity of magnitude 12.0 m s<sup>−1</sup>, directed horizontally to the right. P is 8.00 m from O, up and to the left of O along a line that makes 36.9° with the horizontal. The only force on the piece of metal is its weight. By considering the directions of the angular momentum L about O and its rate of change dL/dt, we can conclude that",
+      "options": [
+        "the magnitude of the angular momentum is decreasing.",
+        "the magnitude of the angular momentum is increasing.",
+        "the magnitude of the angular momentum remains constant.",
+        "the gravity force is accelerating the piece of metal upward."
+      ],
+      "answer": 0,
+      "exp": "L points into the page and dL/dt points out of the page, so they are opposite and the magnitude of L is decreasing (d|L|²/dt = 2L·dL/dt < 0). Gravity can only accelerate the piece of metal downward, not upward.",
+      "ref": "Lecture 8 deck, slide ‘Your turn: a child jumps on a merry-go-round’ and ‘Toolkit 7: angular momentum and its conservation’",
+      "source": "Past exam: PHYS 143 2018/2019, question 32"
     }
   ]
 }

@@ -153,7 +153,7 @@
     bar.appendChild(el('span', { style: 'width:' + Math.round(100 * done / total) + '%' }));
     app.appendChild(bar);
 
-    app.appendChild(el('p', { 'class': 'qtype' }, TYPE_LABEL[q.type] || 'Question'));
+    app.appendChild(el('p', { 'class': 'qtype' }, (TYPE_LABEL[q.type] || 'Question') + (q.source ? ' · ' + q.source : '')));
     var qt = el('h3', { 'class': 'qtext', 'data-focus': '' }, q.q);
     qt.style.color = 'inherit';
     qt.style.fontSize = '1.1rem';

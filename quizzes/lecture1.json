@@ -336,6 +336,51 @@
         "unit": "J",
         "sf": 3
       }
+    },
+    {
+      "id": "L1-P1516-03",
+      "type": "calc",
+      "q": "If B = −2î − 6ĵ + 2k̂ and C = −2î − 2ĵ − 3k̂, find the magnitude of C × B.",
+      "options": [
+        "21.1",
+        "25.5",
+        "17.6",
+        "13.9"
+      ],
+      "answer": 1,
+      "exp": "C × B = [(−2)(2) − (−3)(−6)]î + [(−3)(−2) − (−2)(2)]ĵ + [(−2)(−6) − (−2)(−2)]k̂ = −22î + 10ĵ + 8k̂. Magnitude = √(484 + 100 + 64) = √648 = 25.5.",
+      "ref": "Lecture 1 deck, slide ‘Properties of the cross product’",
+      "source": "Past exam: PHYS 143 2015/2016, question 3"
+    },
+    {
+      "id": "L1-P1819-01",
+      "type": "calc",
+      "q": "Determine the direction of the resultant of the two displacement vectors D<sub>1</sub> = (−4î + 2ĵ) m and D<sub>2</sub> = (2î − 4ĵ) m.",
+      "options": [
+        "45°",
+        "225°",
+        "135°",
+        "315°"
+      ],
+      "answer": 1,
+      "exp": "R = D<sub>1</sub> + D<sub>2</sub> = (−2î − 2ĵ) m. Both components are negative, so R lies in the third quadrant: θ = 180° + arctan(2/2) = 225° from the +x axis.",
+      "ref": "Lecture 1 deck, slide ‘Direction from components: a common error’ and ‘Finding direction from components’",
+      "source": "Past exam: PHYS 143 2018/2019, question 1"
+    },
+    {
+      "id": "L1-P1819-02",
+      "type": "concept",
+      "q": "Determine the x and y components of a vector D of magnitude 10 m oriented in the south west direction.",
+      "options": [
+        "D<sub>x</sub> = 10 cos(45°) m and D<sub>y</sub> = 10 sin(45°) m",
+        "D<sub>x</sub> = −10 cos(45°) m and D<sub>y</sub> = 10 sin(45°) m",
+        "D<sub>x</sub> = 10 cos(45°) m and D<sub>y</sub> = −10 sin(45°) m",
+        "D<sub>x</sub> = 10 cos(225°) m and D<sub>y</sub> = 10 sin(225°) m"
+      ],
+      "answer": 3,
+      "exp": "South-west is 225° measured anticlockwise from the +x axis (east), so D<sub>x</sub> = D cos 225° = −7.07 m and D<sub>y</sub> = D sin 225° = −7.07 m. Both components are negative, as they must be for a vector that points south and west. The other forms have the wrong signs or the wrong angle.",
+      "ref": "Lecture 1 deck, slide ‘Your turn: angles measured from other axes’ and ‘Toolkit 3: components’",
+      "source": "Past exam: PHYS 143 2018/2019, question 2"
     }
   ]
 }

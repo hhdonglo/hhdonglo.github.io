@@ -341,6 +341,156 @@
       "answer": 1,
       "exp": "The direction of heat transfer is set by the temperature difference, from higher to lower temperature, not by the amount of energy stored or the mass. The large block can hold more thermal energy and still be the colder one. Heat flows until the two reach a common temperature.",
       "ref": "Lecture 9 deck, slide ‘Temperature is not heat’ and ‘Thermal equilibrium and walls’"
+    },
+    {
+      "id": "L9-P1516-41",
+      "type": "calc",
+      "q": "A steel rod is calibrated at 20 °C. On a cold day when the temperature is −15 °C, what will be the percentage change in length of the steel rod? [α<sub>steel</sub> = 1.1 × 10<sup>−5</sup> °C<sup>−1</sup>]",
+      "options": [
+        "0.05 %",
+        "0.03 %",
+        "0.04 %",
+        "0.02 %"
+      ],
+      "answer": 2,
+      "exp": "ΔL/L<sub>0</sub> = αΔT = (1.1×10<sup>−5</sup>)(−15 − 20) = −3.85×10<sup>−4</sup> = −0.0385 %, a decrease of about 0.04 %.",
+      "ref": "Lecture 9 deck, slide ‘Thermal expansion’ and ‘Toolkit 2: thermal expansion’",
+      "source": "Past exam: PHYS 143 2015/2016, question 41"
+    },
+    {
+      "id": "L9-P1718-31",
+      "type": "concept",
+      "q": "Which of the following is true about the concept of heat and work?",
+      "options": [
+        "The amount of heat transferred is independent of the heat capacity of the substance for a unit temperature change.",
+        "Work can cause temperature change.",
+        "Only work requires a temperature gradient for transfer of energy.",
+        "Only heat transfers energy."
+      ],
+      "answer": 1,
+      "exp": "Work can raise the temperature of a system, for example by stirring or friction. The heat needed for a given temperature change is Q = CΔT, so it does depend on the heat capacity. Heat, not work, requires a temperature difference. Both heat and work transfer energy.",
+      "ref": "Lecture 9 deck, slide ‘Temperature is not heat’ and ‘Systems and states’",
+      "source": "Past exam: PHYS 143 2017/2018, question 31"
+    },
+    {
+      "id": "L9-P1718-32",
+      "type": "calc",
+      "q": "A rod initially at 0 °C is heated in a furnace by a blacksmith until it attains a length of 50 cm at a temperature of 1500 °C. The coefficient of linear expansion of the rod is 2.0 × 10<sup>−5</sup> K<sup>−1</sup>. Calculate the initial length of the rod at 0 °C.",
+      "options": [
+        "38.0 cm",
+        "48.5 cm",
+        "50.8 cm",
+        "51.8 cm"
+      ],
+      "answer": 1,
+      "exp": "L = L<sub>0</sub>(1 + αΔT) = L<sub>0</sub>(1 + 2.0×10<sup>−5</sup> × 1500) = 1.030 L<sub>0</sub>, so L<sub>0</sub> = 50/1.030 = 48.5 cm.",
+      "ref": "Lecture 9 deck, slide ‘Thermal expansion’ and ‘Toolkit 2: thermal expansion’",
+      "source": "Past exam: PHYS 143 2017/2018, question 32"
+    },
+    {
+      "id": "L9-P1718-33",
+      "type": "calc",
+      "q": "A rod initially at 0 °C is heated in a furnace until it attains a length of 50 cm at a temperature of 1500 °C. The coefficient of linear expansion of the rod is 2.0 × 10<sup>−5</sup> K<sup>−1</sup>. What is the change in length of the rod?",
+      "options": [
+        "3.0 cm",
+        "4.5 cm",
+        "6.0 cm",
+        "1.5 cm"
+      ],
+      "answer": 3,
+      "exp": "ΔL = 50 − 48.5 = 1.46 cm ≈ 1.5 cm (check: αL<sub>0</sub>ΔT = 2.0×10<sup>−5</sup> × 48.54 × 1500 = 1.46 cm).",
+      "ref": "Lecture 9 deck, slide ‘Thermal expansion’ and ‘Toolkit 2: thermal expansion’",
+      "source": "Past exam: PHYS 143 2017/2018, question 33"
+    },
+    {
+      "id": "L9-P1718-34",
+      "type": "concept",
+      "q": "A slab of material has area A, thickness L, and thermal conductivity k. One of its surfaces, P, is maintained at temperature T<sub>1</sub> and the other surface Q at a lower temperature T<sub>2</sub>. The rate of heat flow by conduction from P to Q is given by",
+      "options": [
+        "kA(T<sub>1</sub> − T<sub>2</sub>)/L",
+        "kA(T<sub>1</sub> − T<sub>2</sub>)/L<sup>2</sup>",
+        "kL(T<sub>1</sub> − T<sub>2</sub>)/A",
+        "k(T<sub>1</sub> − T<sub>2</sub>)/(LA)"
+      ],
+      "answer": 0,
+      "exp": "Conduction: H = kA(T<sub>1</sub> − T<sub>2</sub>)/L. Units check: W m<sup>−1</sup> K<sup>−1</sup> × m² × K / m = W.",
+      "ref": "Lecture 9 deck, slide ‘Conduction’ and ‘Toolkit 5: conduction’",
+      "source": "Past exam: PHYS 143 2017/2018, question 34"
+    },
+    {
+      "id": "L9-P1819-33",
+      "type": "calc",
+      "q": "The volume of a cubic aluminium box is V<sub>0</sub> = 10.0 m³ at a temperature of 27 °C. Take the coefficient of linear expansion of aluminium to be 2.4 × 10<sup>−5</sup> °C<sup>−1</sup>. Determine the change in volume of the box at a temperature of 70 °C.",
+      "options": [
+        "0.02 m<sup>3</sup>",
+        "0.04 m<sup>3</sup>",
+        "0.03 m<sup>3</sup>",
+        "0.05 m<sup>3</sup>"
+      ],
+      "answer": 2,
+      "exp": "β = 3α = 7.2×10<sup>−5</sup> K<sup>−1</sup> and ΔT = 70 − 27 = 43 K, so ΔV = βV<sub>0</sub>ΔT = (7.2×10<sup>−5</sup>)(10.0)(43) = 0.031 m³ ≈ 0.03 m³.",
+      "ref": "Lecture 9 deck, slide ‘Thermal expansion’ and ‘Toolkit 2: thermal expansion’",
+      "source": "Past exam: PHYS 143 2018/2019, question 33"
+    },
+    {
+      "id": "L9-P1819-34",
+      "type": "calc",
+      "q": "The volume of a cubic aluminium box is V<sub>0</sub> = 10.0 m³ at a temperature of 27 °C. Take the coefficient of linear expansion of aluminium to be 2.4 × 10<sup>−5</sup> °C<sup>−1</sup>. What is the new length of a side of the box at a temperature of 70 °C?",
+      "options": [
+        "2.16 m",
+        "4.71 m",
+        "3.44 m",
+        "1.63 m"
+      ],
+      "answer": 0,
+      "exp": "The original side is L<sub>0</sub> = (10.0)<sup>1/3</sup> = 2.154 m. L = L<sub>0</sub>(1 + αΔT) = 2.154(1 + 2.4×10<sup>−5</sup> × 43) = 2.156 m ≈ 2.16 m.",
+      "ref": "Lecture 9 deck, slide ‘Thermal expansion’ and ‘Toolkit 2: thermal expansion’",
+      "source": "Past exam: PHYS 143 2018/2019, question 34"
+    },
+    {
+      "id": "L9-P1819-36",
+      "type": "calc",
+      "q": "If the total surface area of the human body is 1.20 m<sup>2</sup> and the surface temperature is 30 °C, find the total rate of radiation of energy from the body. Take the emissivity of the human body to be e = 1 and the Stefan-Boltzmann constant to be σ = 5.67 × 10<sup>−8</sup> W m<sup>−2</sup> K<sup>−4</sup>.",
+      "options": [
+        "444 W",
+        "642 W",
+        "764 W",
+        "574 W"
+      ],
+      "answer": 3,
+      "exp": "H = eσAT⁴ with T = 30 + 273 = 303 K: H = (1)(5.67×10<sup>−8</sup>)(1.20)(303)⁴ = (5.67×10<sup>−8</sup>)(1.20)(8.43×10<sup>9</sup>) = 574 W.",
+      "ref": "Lecture 9 deck, slide ‘Lecturer example: radiation from a person’ and ‘Toolkit 6: radiation’",
+      "source": "Past exam: PHYS 143 2018/2019, question 36"
+    },
+    {
+      "id": "L9-P1819-37",
+      "type": "concept",
+      "q": "The equation of heat flow is H = −kA dT/dx. What does the negative sign mean?",
+      "options": [
+        "Heat always flows from regions of low temperature to those of high temperature.",
+        "Heat always flows from regions of high temperature to those of low temperature.",
+        "Heat flows in all directions.",
+        "The direction of heat flow is independent of the temperature gradient."
+      ],
+      "answer": 1,
+      "exp": "dT/dx is the temperature gradient. Heat flows down the gradient, from hot to cold, so H is positive in the direction in which T decreases, and the minus sign makes H positive when dT/dx is negative.",
+      "ref": "Lecture 9 deck, slide ‘Conduction’ and ‘Toolkit 5: conduction’",
+      "source": "Past exam: PHYS 143 2018/2019, question 37"
+    },
+    {
+      "id": "L9-P1819-40",
+      "type": "calc",
+      "q": "In an effort to stay awake for an all-night study session, a physics student makes a cup of coffee by first placing a 200 W electric immersion heater in 0.320 kg water. Assuming that all of the heater’s power goes into heating the water, how much time is required to heat the water to raise its temperature from 20 °C to 80 °C? Take the specific heat capacity of water to be c = 4.19 × 10<sup>3</sup> J kg<sup>−1</sup> K<sup>−1</sup>.",
+      "options": [
+        "252 s",
+        "402 s",
+        "315 s",
+        "535 s"
+      ],
+      "answer": 1,
+      "exp": "Q = mcΔT = (0.320)(4.19×10<sup>3</sup>)(60) = 8.05×10<sup>4</sup> J. Pt = Q gives t = 8.05×10<sup>4</sup>/200 = 402 s.",
+      "ref": "Lecture 9 deck, slide ‘Heat and the change in temperature’ and ‘Toolkit 3: heat and specific heat’",
+      "source": "Past exam: PHYS 143 2018/2019, question 40"
     }
   ]
 }

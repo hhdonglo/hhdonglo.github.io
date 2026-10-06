@@ -346,6 +346,156 @@
         "unit": "m",
         "sf": 3
       }
+    },
+    {
+      "id": "L4-P1516-12",
+      "type": "concept",
+      "q": "You are carrying a 7.00 kg bag at a height of 1.20 m above the level floor of a 2.30 m long room at a constant velocity of 0.75 m s<sup>−1</sup>. How much work do you do on the bag in moving across the room?",
+      "options": [
+        "182 J",
+        "158 J",
+        "0.0 J",
+        "34 J"
+      ],
+      "answer": 2,
+      "exp": "The force you apply on the bag is vertical (it balances the weight) while the displacement is horizontal, so W = Fd cos 90° = 0. At constant velocity the net work is zero as well.",
+      "ref": "Lecture 4 deck, slide ‘Concept check: which forces do no work?’ and ‘Is a hard workout work?’",
+      "source": "Past exam: PHYS 143 2015/2016, question 12"
+    },
+    {
+      "id": "L4-P1516-13",
+      "type": "calc",
+      "q": "A force F = (12î − 10ĵ) N acts on an object. How much work does this force do as the object moves from the origin to the point r = (13î + 11ĵ) m?",
+      "options": [
+        "166 J",
+        "77 J",
+        "46 J",
+        "37 J"
+      ],
+      "answer": 2,
+      "exp": "W = F·Δr = (12)(13) + (−10)(11) = 156 − 110 = 46 J.",
+      "ref": "Lecture 4 deck, slide ‘Work by a constant force’ and ‘Toolkit 1: work by a constant force’",
+      "source": "Past exam: PHYS 143 2015/2016, question 13"
+    },
+    {
+      "id": "L4-P1516-26",
+      "type": "calc",
+      "q": "A body of mass 350 g with initial velocity of 4.0 m s<sup>−1</sup> is acted upon by a force of 27 N to attain a velocity of 12 m s<sup>−1</sup>. Calculate the work done by the force neglecting the effect of any other forces.",
+      "options": [
+        "22 J",
+        "54 J",
+        "60 J",
+        "76 J"
+      ],
+      "answer": 0,
+      "exp": "Work–energy theorem: W = ΔK = ½(0.350)(12² − 4.0²) = 0.175 × 128 = 22.4 J ≈ 22 J. (The 27 N is not needed.)",
+      "ref": "Lecture 4 deck, slide ‘Rule: the work–energy theorem’ and ‘Toolkit 3: applying the work–energy theorem’",
+      "source": "Past exam: PHYS 143 2015/2016, question 26"
+    },
+    {
+      "id": "L4-P1718-06",
+      "type": "concept",
+      "q": "A particle of mass m is moving with constant speed v in uniform circular motion. What is the total work done by the centripetal force during one revolution?",
+      "options": [
+        "½mv²",
+        "Zero",
+        "mv²",
+        "πmv²"
+      ],
+      "answer": 1,
+      "exp": "The centripetal force is always perpendicular to the velocity (dW = F·dr = 0 at every instant), so it does no work in any part of the motion, including one revolution. The speed, and hence the kinetic energy, does not change.",
+      "ref": "Lecture 4 deck, slide ‘Concept check: which forces do no work?’ and ‘Is a hard workout work?’",
+      "source": "Past exam: PHYS 143 2017/2018, question 6"
+    },
+    {
+      "id": "L4-P1718-10",
+      "type": "concept",
+      "q": "Which force(s) will do negative work when an object is lifted upwards via an inextensible string?",
+      "options": [
+        "Normal force and air resistance",
+        "Weight and air resistance",
+        "Tension and air resistance",
+        "Weight and tension"
+      ],
+      "answer": 1,
+      "exp": "Work is negative when the force has a component opposite to the displacement. The object moves up: weight (down) and air resistance (opposes the motion) do negative work; the tension (up) does positive work; there is no normal force on a lifted object.",
+      "ref": "Lecture 4 deck, slide ‘The sign of work’",
+      "source": "Past exam: PHYS 143 2017/2018, question 10"
+    },
+    {
+      "id": "L4-P1718-11",
+      "type": "calc",
+      "q": "A 10-kg toy car moving in a linear path with an initial velocity of 6.0 m s<sup>−1</sup> applies its brakes and its velocity reduces to 3.0 m s<sup>−1</sup>. Determine the magnitude of the work done on the toy car in the process.",
+      "options": [
+        "26.3 J",
+        "65.4 J",
+        "97.5 J",
+        "135.0 J"
+      ],
+      "answer": 3,
+      "exp": "W = ΔK = ½m(v<sub>f</sub>² − v<sub>i</sub>²) = ½(10)(3.0² − 6.0²) = −135 J. The brakes do negative work, because the car loses kinetic energy, and the magnitude is 135 J. The question asks for the magnitude.",
+      "ref": "Lecture 4 deck, slide ‘Rule: the work–energy theorem’ and ‘Toolkit 3: applying the work–energy theorem’",
+      "source": "Past exam: PHYS 143 2017/2018, question 11"
+    },
+    {
+      "id": "L4-P1718-12",
+      "type": "calc",
+      "q": "A distance-dependent force F(x) = 6x<sup>5</sup> − 3x<sup>2</sup> N acts on a particle from the origin to the point (3, 0) m. Calculate the work done by F(x).",
+      "options": [
+        "702 J",
+        "918 J",
+        "592 J",
+        "335 J"
+      ],
+      "answer": 0,
+      "exp": "W = ∫<sub>0</sub><sup>3</sup>(6x<sup>5</sup> − 3x<sup>2</sup>)dx = [x<sup>6</sup> − x<sup>3</sup>]<sub>0</sub><sup>3</sup> = 729 − 27 = 702 J.",
+      "ref": "Lecture 4 deck, slide ‘Work as the area under a force graph’ and ‘Example: work from an F<sub>x</sub>–x graph’",
+      "source": "Past exam: PHYS 143 2017/2018, question 12"
+    },
+    {
+      "id": "L4-P1819-12",
+      "type": "calc",
+      "q": "A bullet travelling at 350 m s<sup>−1</sup> strikes a large tree penetrating to a depth of 0.130 m. The mass of the bullet is 1.80 g. Compute the force exerted by the tree on the bullet.",
+      "options": [
+        "576 N",
+        "488 N",
+        "321 N",
+        "848 N"
+      ],
+      "answer": 3,
+      "exp": "Work–energy theorem: −Fd = 0 − ½mv²; F = mv²/(2d) = (1.80×10<sup>−3</sup>)(350)²/(2 × 0.130) = 220.5/0.26 = 848 N (a constant average force, opposing the motion).",
+      "ref": "Lecture 4 deck, slide ‘Rule: the work–energy theorem’ and ‘The physical meaning of kinetic energy’",
+      "source": "Past exam: PHYS 143 2018/2019, question 12"
+    },
+    {
+      "id": "L4-P1819-16",
+      "type": "calc",
+      "q": "A net force acts on an object and accelerates it from rest to a speed v. By what factor must the work done on the object be increased to produce three times the speed v?",
+      "options": [
+        "6 times",
+        "9 times",
+        "10 times",
+        "12 times"
+      ],
+      "answer": 1,
+      "exp": "W = ΔK = ½mv² from rest. Tripling v multiplies K by 3² = 9, so the work must increase by a factor of 9.",
+      "ref": "Lecture 4 deck, slide ‘The physical meaning of kinetic energy’ and ‘Comparing kinetic energies’",
+      "source": "Past exam: PHYS 143 2018/2019, question 16"
+    },
+    {
+      "id": "L4-P1819-17",
+      "type": "calc",
+      "q": "A force with component F<sub>x</sub> = −[20.0 N + (3.0 N m<sup>−1</sup>)x] is applied against a moving cart along the x-axis. Calculate the work done if the cart moves from x = 0 to x = 6 m while the force was being applied.",
+      "options": [
+        "124 J",
+        "−174 J",
+        "151 J",
+        "165 J"
+      ],
+      "answer": 1,
+      "exp": "W = ∫<sub>0</sub><sup>6</sup>F<sub>x</sub>dx = −[20.0x + 1.5x²]<sub>0</sub><sup>6</sup> = −(120 + 54) = −174 J.",
+      "ref": "Lecture 4 deck, slide ‘Work as the area under a force graph’ and ‘Example: work from an F<sub>x</sub>–x graph’",
+      "source": "Past exam: PHYS 143 2018/2019, question 17"
     }
   ]
 }

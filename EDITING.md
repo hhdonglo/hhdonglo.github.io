@@ -77,7 +77,7 @@ Each save is one commit in the repository history. To undo a change, open the fi
 
 ## Editing the files directly (without Pages CMS)
 
-Every form edits one file in the `data` folder (`data/pages/*.json`, `data/research.json`, `data/projects.json`, `data/publications.json`, `data/lectures.json`, `data/site.json`) or the practice questions in `quizzes/lectureN.json`. You can also edit these on github.com with the pencil icon. Keep all text in double quotes with commas between items.
+Every form edits one file in the `data` folder (`data/pages/*.json`, `data/research.json`, `data/projects.json`, `data/publications.json`, `data/lectures.json`, `data/site.json`) or the practice questions in `quizzes/lectureN.json`. You can also edit these on github.com with the pencil icon. Keep all text in double quotes with commas between items. Past examination questions in `quizzes/lectureN.json` have an id like `L2-P1718-03` and a `source` line ("Past exam: PHYS 143 2017/2018, question 3"), which the page shows above the question. They are not covered by `tools/check_calcs.py`; their answers were checked separately before they were added.
 
 ## Page addresses
 

@@ -715,6 +715,7 @@ content:
         values:
         - concept
         - calc
+        - graph
         - misconception
     - name: q
       label: Question
@@ -731,6 +732,9 @@ content:
       type: text
     - name: ref
       label: Where to look
+      type: string
+    - name: source
+      label: Past exam source (leave empty for the course's own questions)
       type: string
     list: true
   view:

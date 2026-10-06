@@ -341,6 +341,141 @@
       "answer": 1,
       "exp": "The scale reads the normal force n. Taking up as positive, n − mg = ma with a > 0, so n = m(g + a), which is greater than mg. The normal force does not always equal the weight. It equals mg only when the vertical acceleration is zero.",
       "ref": "Lecture 3 deck, slide ‘Toolkit 6: friction and the normal force’"
+    },
+    {
+      "id": "L3-P1516-01",
+      "type": "concept",
+      "q": "You are standing in a moving bus, facing forward, and you suddenly fall forward as the bus comes to an immediate stop. What is the force that causes you to fall forward?",
+      "options": [
+        "The force of gravity.",
+        "The normal force due to your contact with the floor of the bus.",
+        "The force due to static friction between you and the floor of the bus.",
+        "No forces were acting on you to cause you to fall."
+      ],
+      "answer": 3,
+      "exp": "No forward force acts. The bus decelerates, but your body, by inertia (Newton’s first law), keeps its forward velocity. The only horizontal force on you, friction from the floor, acts backward and tends to slow you. Gravity and the normal force are vertical.",
+      "ref": "Lecture 3 deck, slide ‘Newton’s first law’ and ‘Concept check: is the net force zero?’",
+      "source": "Past exam: PHYS 143 2015/2016, question 1"
+    },
+    {
+      "id": "L3-P1516-08",
+      "type": "concept",
+      "q": "A stalled car is being pushed up a hill at a constant velocity by three people. The net force on the car is",
+      "options": [
+        "zero.",
+        "up the hill and equal to the weight of the car.",
+        "down the hill and equal to the weight of the car.",
+        "up the hill and greater than the weight of the car."
+      ],
+      "answer": 0,
+      "exp": "Constant velocity means zero acceleration, so by Newton’s second law the net force is zero (the pushes balance the weight component down the hill and friction).",
+      "ref": "Lecture 3 deck, slide ‘Newton’s first law’ and ‘Concept check: is the net force zero?’",
+      "source": "Past exam: PHYS 143 2015/2016, question 8"
+    },
+    {
+      "id": "L3-P1516-09",
+      "type": "calc",
+      "q": "A 50.0 N box is sliding on a rough horizontal floor, and the only horizontal force acting on it is friction. You observe that at one instant the box is sliding to the right at 1.75 m/s and that it stops in 2.25 s with uniform acceleration. What is the magnitude of the frictional force on the box?",
+      "options": [
+        "8.93 N",
+        "38.9 N",
+        "3.96 N",
+        "50.0 N"
+      ],
+      "answer": 2,
+      "exp": "The mass is m = W/g = 50.0/9.81 = 5.10 kg. The deceleration is a = 1.75/2.25 = 0.778 m s<sup>−2</sup>, so f = ma = (5.10)(0.778) = 3.96 N.",
+      "ref": "Lecture 3 deck, slide ‘Newton’s second law’ and ‘Toolkit 3: applying ΣF = ma’",
+      "source": "Past exam: PHYS 143 2015/2016, question 9"
+    },
+    {
+      "id": "L3-P1516-10",
+      "type": "calc",
+      "q": "A 60.0 kg person rides in an elevator while standing on a scale. The elevator is travelling downward but slowing down at a rate of 2.00 m/s². The reading on the scale is closest to",
+      "options": [
+        "589 N.",
+        "469 N.",
+        "708 N.",
+        "349 N."
+      ],
+      "answer": 2,
+      "exp": "Moving down while slowing down means the acceleration is upward (a = +2.00 m s<sup>−2</sup>). N − mg = ma gives N = m(g + a) = 60.0(9.81 + 2.00) = 709 N ≈ 708 N.",
+      "ref": "Lecture 3 deck, slide ‘Newton’s second law’",
+      "source": "Past exam: PHYS 143 2015/2016, question 10"
+    },
+    {
+      "id": "L3-P1718-01",
+      "type": "concept",
+      "q": "Which of the following statements is/are true according to Newton’s first law of motion?<br>I. Once a body has been set in motion, no net force is needed to keep its motion.<br>II. A body acted on by a net force moves with a constant velocity.<br>III. A body acted on by zero net force moves with zero acceleration.",
+      "options": [
+        "I and II only",
+        "I and III only",
+        "II and III only",
+        "I, II and III"
+      ],
+      "answer": 1,
+      "exp": "Newton’s first law: if the net force is zero the acceleration is zero, so the velocity stays constant (I and III are true). A net force produces an acceleration, so the velocity changes (II is false).",
+      "ref": "Lecture 3 deck, slide ‘Newton’s first law’ and ‘Concept check: is the net force zero?’",
+      "source": "Past exam: PHYS 143 2017/2018, question 1"
+    },
+    {
+      "id": "L3-P1718-22",
+      "type": "concept",
+      "q": "When one steps on the accelerator to increase the speed of a car, the force that accelerates the car is the",
+      "options": [
+        "force of one’s foot on the accelerator.",
+        "force of friction between the road and the tyres.",
+        "force of the engine on the drive shaft.",
+        "normal force of the road on the tyres."
+      ],
+      "answer": 1,
+      "exp": "Only an external force can accelerate the car as a whole. The tyres push backward on the road and, by Newton’s third law, the road’s (static) friction force on the tyres pushes the car forward. Forces from the engine and drive shaft are internal.",
+      "ref": "Lecture 3 deck, slide ‘Toolkit 6: friction and the normal force’",
+      "source": "Past exam: PHYS 143 2017/2018, question 22"
+    },
+    {
+      "id": "L3-P1819-09",
+      "type": "calc",
+      "q": "A parcel of mass 10 kg rests on a lorry. When the lorry accelerates at 1.5 m s<sup>−2</sup>, the parcel is just about to slide backwards. What is the coefficient of friction between the parcel and the lorry?",
+      "options": [
+        "0.15",
+        "0.10",
+        "0.25",
+        "0.35"
+      ],
+      "answer": 0,
+      "exp": "Static friction provides the parcel’s forward acceleration: μ<sub>s</sub>N = ma with N = mg at the point of slipping, so μ<sub>s</sub> = a/g = 1.5/9.81 = 0.153 ≈ 0.15 (the mass cancels).",
+      "ref": "Lecture 3 deck, slide ‘Strongest misconception of the week’ and ‘Static and kinetic friction’",
+      "source": "Past exam: PHYS 143 2018/2019, question 9"
+    },
+    {
+      "id": "L3-P1819-13",
+      "type": "calc",
+      "q": "A flat (unbanked) curve on a highway has a radius of 220 m. A car rounds the curve at a speed of 25.0 m s<sup>−1</sup>. What is the minimum coefficient of friction that will prevent the car from sliding?",
+      "options": [
+        "0.564",
+        "0.321",
+        "0.089",
+        "0.290"
+      ],
+      "answer": 3,
+      "exp": "Static friction supplies the centripetal force: μ<sub>s</sub>mg = mv²/r, so μ<sub>s</sub> = v²/(rg) = 625/((220)(9.81)) = 0.290.",
+      "ref": "Lecture 3 deck, slide ‘Toolkit 7: circular dynamics’ and ‘A flat curve: solution’",
+      "source": "Past exam: PHYS 143 2018/2019, question 13"
+    },
+    {
+      "id": "L3-P1819-19",
+      "type": "calc",
+      "q": "A boy skateboards from rest down a curved playground ramp that is a quarter circle of radius 4.0 m. The mass of the boy together with the skateboard is 20.0 kg. Neglect friction. Calculate the normal force that acts on him at the bottom of the curve.",
+      "options": [
+        "735 N",
+        "589 N",
+        "653 N",
+        "486 N"
+      ],
+      "answer": 1,
+      "exp": "At the bottom the net upward force provides the centripetal acceleration: N − mg = mv²/R. With v² = 2gR, N = mg + 2mg = 3mg = 3(20.0)(9.81) = 589 N.",
+      "ref": "Lecture 3 deck, slide ‘Toolkit 7: circular dynamics’ and ‘Lecturer example: a flat curve’",
+      "source": "Past exam: PHYS 143 2018/2019, question 19"
     }
   ]
 }

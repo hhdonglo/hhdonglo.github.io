@@ -341,6 +341,126 @@
         "unit": "m",
         "sf": 3
       }
+    },
+    {
+      "id": "L5-P1516-11",
+      "type": "concept",
+      "q": "Two objects, one of mass m and the other of mass 2m, are dropped from the top of a building. When they hit the ground,",
+      "options": [
+        "both of them will have the same kinetic energy.",
+        "the heavier one will have four times the kinetic energy of the lighter one.",
+        "the heavier one will have twice the kinetic energy of the lighter one.",
+        "the lighter one will have four times the kinetic energy of the heavier one."
+      ],
+      "answer": 2,
+      "exp": "Energy conservation: K = mgh at the ground. Both fall through the same height, so K is proportional to m and the heavier object has twice the kinetic energy (both have the same speed).",
+      "ref": "Lecture 5 deck, slide ‘Concept check: ramps and reference levels’ and ‘Toolkit 2: conservation of mechanical energy’",
+      "source": "Past exam: PHYS 143 2015/2016, question 11"
+    },
+    {
+      "id": "L5-P1516-14",
+      "type": "calc",
+      "q": "A bead slides on a smooth curved wire, and friction is neglected. At point A, 80 cm above the ground, its speed is 2 m s<sup>−1</sup>. The wire runs down to point B at ground level and then up to point C, 50 cm above the ground. Calculate its speed at point B.",
+      "options": [
+        "3.10 m s<sup>−1</sup>",
+        "5.33 m s<sup>−1</sup>",
+        "4.40 m s<sup>−1</sup>",
+        "6.30 m s<sup>−1</sup>"
+      ],
+      "answer": 2,
+      "exp": "Energy conservation from A to B: ½v<sub>B</sub>² = ½(2)² + g(0.80 m), so v<sub>B</sub> = √(4 + 15.7) = 4.44 m/s. The mass cancels and the shape of the wire does not matter. The paper’s list has 4.40 m/s as the closest value.",
+      "ref": "Lecture 5 deck, slide ‘Curved paths: energy for the speed, Newton for the force’ and ‘The pendulum: solution’",
+      "source": "Past exam: PHYS 143 2015/2016, question 14"
+    },
+    {
+      "id": "L5-P1516-15",
+      "type": "calc",
+      "q": "A bead slides on a smooth curved wire, and friction is neglected. At point A, 80 cm above the ground, its speed is 2 m s<sup>−1</sup>. The wire runs down to point B at ground level and then up to point C, 50 cm above the ground. Calculate its speed at point C.",
+      "options": [
+        "3.1 m s<sup>−1</sup>",
+        "2.4 m s<sup>−1</sup>",
+        "5.3 m s<sup>−1</sup>",
+        "4.4 m s<sup>−1</sup>"
+      ],
+      "answer": 0,
+      "exp": "From A (80 cm) to C (50 cm) the bead drops 0.30 m: v<sub>C</sub>² = (2)² + 2(9.81)(0.30) = 9.89, so v<sub>C</sub> = 3.14 m s<sup>−1</sup> ≈ 3.1 m s<sup>−1</sup>.",
+      "ref": "Lecture 5 deck, slide ‘Curved paths: energy for the speed, Newton for the force’ and ‘The pendulum: solution’",
+      "source": "Past exam: PHYS 143 2015/2016, question 15"
+    },
+    {
+      "id": "L5-P1718-09",
+      "type": "calc",
+      "q": "A body of mass 400 g is thrown straight up in the air with an initial upward speed 30.0 m s<sup>−1</sup>. Ignoring air resistance, calculate the potential energy of the ball half-way through its trajectory.",
+      "options": [
+        "201.7 J",
+        "90.0 J",
+        "132.1 J",
+        "64.5 J"
+      ],
+      "answer": 1,
+      "exp": "Taking U = 0 at the launch point, the maximum height is H = v<sub>0</sub>²/2g = 45.9 m. Half-way is H/2 = 22.9 m, so U = mg(H/2) = (0.400)(9.81)(22.94) = 90.0 J (equivalently half of the initial kinetic energy ½mv<sub>0</sub>² = 180 J).",
+      "ref": "Lecture 5 deck, slide ‘Conservation of mechanical energy’ and ‘Lecturer example: the cliff ball’",
+      "source": "Past exam: PHYS 143 2017/2018, question 9"
+    },
+    {
+      "id": "L5-P1718-14",
+      "type": "concept",
+      "q": "The work done by a conservative force has the following properties:<br>I. It can be expressed as the difference between the initial and final values of the potential energy function.<br>II. It is reversible.<br>III. It is independent of the path.",
+      "options": [
+        "I only",
+        "I, II and III",
+        "I and II only",
+        "I and III only"
+      ],
+      "answer": 1,
+      "exp": "All three are standard properties of a conservative force: W = U<sub>i</sub> − U<sub>f</sub>, the work can be recovered (reversible), and it depends only on the end points (path-independent, equivalent to zero work round a closed path).",
+      "ref": "Lecture 5 deck, slide ‘Conservative and nonconservative forces’ and ‘Toolkit 5: classifying forces’",
+      "source": "Past exam: PHYS 143 2017/2018, question 14"
+    },
+    {
+      "id": "L5-P1718-15",
+      "type": "calc",
+      "q": "A bullet of mass 30.0 g is vertically fired up from a reference height off the ground. If the bullet rose by 3.36 m from the reference height, determine the initial velocity with which the bullet was fired.",
+      "options": [
+        "7.60 m s<sup>−1</sup>",
+        "6.70 m s<sup>−1</sup>",
+        "5.96 m s<sup>−1</sup>",
+        "8.12 m s<sup>−1</sup>"
+      ],
+      "answer": 3,
+      "exp": "Conservation of mechanical energy: ½mv<sub>0</sub>² = mgh, so v<sub>0</sub> = √(2gh) = √(2 × 9.81 × 3.36) = 8.12 m s<sup>−1</sup> (the mass cancels).",
+      "ref": "Lecture 5 deck, slide ‘Conservation of mechanical energy’ and ‘Lecturer example: the cliff ball’",
+      "source": "Past exam: PHYS 143 2017/2018, question 15"
+    },
+    {
+      "id": "L5-P1718-16",
+      "type": "concept",
+      "q": "Which of the following statement(s) define(s) total mechanical energy of a body?<br>I. The sum of heat absorbed by the body, the internal energy and the work done.<br>II. The sum of kinetic, internal and potential energies of the body.<br>III. The sum of the potential and kinetic energies of the body.",
+      "options": [
+        "III only",
+        "II only",
+        "I and III only",
+        "I, II and III"
+      ],
+      "answer": 0,
+      "exp": "Mechanical energy is E = K + U. Heat and internal energy belong to thermal energy and are not part of the mechanical energy, so only III is correct.",
+      "ref": "Lecture 5 deck, slide ‘The law of conservation of energy’ and ‘Friction and the lost energy’",
+      "source": "Past exam: PHYS 143 2017/2018, question 16"
+    },
+    {
+      "id": "L5-P1819-18",
+      "type": "calc",
+      "q": "A boy skateboards from rest down a curved playground ramp that is a quarter circle of radius 4.0 m. The mass of the boy together with the skateboard is 20.0 kg. Neglect friction. Calculate his speed at the bottom of the ramp.",
+      "options": [
+        "10.5 m s<sup>−1</sup>",
+        "9.13 m s<sup>−1</sup>",
+        "6.88 m s<sup>−1</sup>",
+        "8.86 m s<sup>−1</sup>"
+      ],
+      "answer": 3,
+      "exp": "The ramp is a quarter circle of radius 4.0 m, so the drop is R = 4.0 m. Energy conservation (no friction): ½mv² = mgR, so v = √(2gR) = √(2(9.81)(4.0)) = 8.86 m s<sup>−1</sup>.",
+      "ref": "Lecture 5 deck, slide ‘Curved paths: energy for the speed, Newton for the force’ and ‘The pendulum: solution’",
+      "source": "Past exam: PHYS 143 2018/2019, question 18"
     }
   ]
 }

@@ -23,7 +23,8 @@ for(const N of [1,2,3,4,5,7,8,9,10,11,12]){
   for(let i=0;i<q.questions.length;i++){
     await p.waitForSelector('#quiz-app .opt');
     const text=await p.locator('#quiz-app .qtext').innerText();
-    const qq=q.questions.find(x=>x.q.replace(/<[^>]+>/g,'').trim()===text.trim())||q.questions.find(x=>text.includes(x.q.replace(/<[^>]+>/g,'').slice(0,20)));
+    const flat=s=>s.replace(/<br\s*\/?>/g,'\n').replace(/<[^>]+>/g,'').trim();
+    const qq=q.questions.find(x=>flat(x.q)===text.trim())||q.questions.find(x=>text.includes(flat(x.q).slice(0,20)));
     const want=(i%5===4)?(qq.answer+1)%4:qq.answer; if(want===qq.answer)right++;
     await p.click(`#quiz-app .opt[data-orig="${want}"]`);
     await p.waitForSelector('#quiz-app .fb');

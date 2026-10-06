@@ -346,6 +346,21 @@
         "unit": "",
         "sf": 3
       }
+    },
+    {
+      "id": "L12-P1516-39",
+      "type": "concept",
+      "q": "Which of the following statements is a consequence of the second law of thermodynamics?",
+      "options": [
+        "Isothermal compressions lead to heat gain.",
+        "A heat engine can never achieve 100 % efficiency.",
+        "A well designed Carnot cycle returns 100 % efficiency.",
+        "All systems shall always return to equilibrium due to automatic decrease in entropy."
+      ],
+      "answer": 1,
+      "exp": "The Kelvin–Planck statement of the second law: no cyclic engine can convert all the heat it takes in into work, so e < 1 always. A Carnot engine has e = 1 − T<sub>C</sub>/T<sub>H</sub> < 1 (C false). Adiabatic expansions occur without heat (A false), isothermal compression gives heat out (B false), and equilibrium is reached through an increase of entropy (E false).",
+      "ref": "Lecture 12 deck, slide ‘The second law: three statements’ and ‘The two forbidden devices’",
+      "source": "Past exam: PHYS 143 2015/2016, question 39"
     }
   ]
 }

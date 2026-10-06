@@ -50,8 +50,17 @@ def main():
         total += len(qs)
         if data["lecture"] != n:
             err(f"L{n}: lecture field mismatch")
-        if len(qs) != EXPECTED:
-            err(f"L{n}: {len(qs)} questions, expected {EXPECTED}")
+        own = [q for q in qs if "source" not in q]
+        past = [q for q in qs if "source" in q]
+        if len(own) != EXPECTED:
+            err(f"L{n}: {len(own)} own questions, expected {EXPECTED}")
+        for q in past:
+            if not re.match(rf"^L{n}-P\d{{4}}-\d{{2}}$", q.get("id", "")):
+                err(f"{q.get('id', '?')}: past-exam id must look like L{n}-P1718-12")
+            if not str(q["source"]).startswith("Past exam: PHYS 143 "):
+                err(f"{q.get('id', '?')}: source must start with 'Past exam: PHYS 143 '")
+            if "calc" in q:
+                err(f"{q.get('id', '?')}: past-exam questions are checked separately and carry no calc field")
         ids = set()
         types = {}
         for q in qs:
