@@ -9,7 +9,7 @@ UTILITY = [("cv.html", "CV"), ("contact.html", "Contact")]
 # Drop-down children follow the site map; each links to an existing page or section anchor.
 SUB = {
     "research.html": [("Research Overview", "research.html#overview"), ("Research Questions", "research.html#questions"),
-                      ("Nuclear Reaction Dynamics", "reaction-dynamics.html"), ("Uncertainty Quantification", "research.html#uncertainty")],
+                      ("Nuclear Reaction Dynamics", "reaction-dynamics.html"), ("Uncertainty Quantification", "research.html#uncertainty"), ("Earlier Research", "research.html#earlier")],
     "projects.html": [("KEWPIE3", "kewpie3.html"), ("Other Computational Projects", "data-engineering.html#pipelines")],
     "data-engineering.html": [("Scientific Computing", "kewpie3.html#computing"), ("Data Science", "data-engineering.html#analysis"),
                               ("Machine Learning", "data-engineering.html#retrieval"), ("Data Engineering", "data-engineering.html#pipelines")],
