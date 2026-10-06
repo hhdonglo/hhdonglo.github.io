@@ -237,5 +237,17 @@
       "items": "Git, pytest, Poetry, reproducible workflows"
     }
   ],
-  "footnote": "All code is on [github.com/hhdonglo](https://github.com/hhdonglo)."
+  "footnote": "All code is on [github.com/hhdonglo](https://github.com/hhdonglo).",
+  "computing": {
+    "title": "Scientific Computing and Data Engineering",
+    "text": "Alongside nuclear physics, I develop computational methods for modelling, data analysis and scalable scientific workflows. These activities support both fundamental research and data-intensive applications in science and industry.",
+    "list_intro": "Areas include:",
+    "items": [
+      "Scientific software and simulation workflows",
+      "Data engineering and data pipelines",
+      "Machine learning for scientific applications",
+      "Reproducible computational research",
+      "Numerical modelling and optimisation"
+    ]
+  }
 }

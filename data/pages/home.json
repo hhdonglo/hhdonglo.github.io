@@ -232,7 +232,7 @@
   "publications_link_label": "View All Publications →",
   "fh_headline": "At the Edge of the Periodic Table",
   "fh_sub": "Investigating the reaction dynamics of superheavy-element synthesis at the limits of nuclear stability",
-  "fh_intro": "The synthesis of superheavy elements probes one of the central questions in modern physics: **how heavy can matter become?**",
+  "fh_intro": "How heavy can matter become? These questions guide research on the synthesis of superheavy elements.",
   "fh_buttons": [
     {
       "label": "Research",
@@ -273,11 +273,18 @@
       "url": "publications.html"
     }
   ],
-  "fh_intro2": "I develop theoretical and computational models of heavy-ion collisions to understand how nuclei fuse, survive fission, and populate the heaviest known region of the periodic table. My work combines nuclear reaction dynamics, uncertainty quantification and scientific computing to improve predictions for the creation of new elements.",
-  "fh_keywords": "Nuclear Reaction Dynamics · Superheavy-Element Synthesis · Heavy-Ion Collisions · Quasifission · Scientific Computing · Uncertainty Quantification",
-  "fh_synth_title": "Superheavy-Element Synthesis",
-  "fh_synth_text": "Only a tiny fraction of heavy-ion collisions successfully leads to a surviving superheavy nucleus.",
-  "fh_tex": "\\sigma_{\\mathrm{ER}} = \\sigma_{\\mathrm{cap}} \\times P_{\\mathrm{CN}} \\times W_{\\mathrm{sur}}",
-  "fh_synth_text2": "The synthesis probability is determined by three competing processes: capture, compound-nucleus formation and survival against fission.",
-  "fh_synth_link": "Research →"
+  "fh_curious": [
+    {
+      "q": "How heavy can matter get?",
+      "url": "research.html#edge-heavy"
+    },
+    {
+      "q": "Where does the periodic table end?",
+      "url": "research.html#edge-table"
+    },
+    {
+      "q": "Do the laws of physics still hold at the edge?",
+      "url": "research.html#edge-laws"
+    }
+  ]
 }

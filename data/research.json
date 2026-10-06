@@ -3,9 +3,14 @@
   "intro": "My research develops computational models of heavy-ion reactions to understand and predict the formation of heavy and superheavy nuclei. Stochastic simulation, uncertainty quantification and scientific computing provide the principal methods for this work.",
   "areas": [
     {
+      "title": "Superheavy-Element Synthesis",
+      "id": "superheavy-synthesis",
+      "text": "Understanding the mechanisms that govern the formation of the heaviest nuclei through heavy-ion collisions. This work focuses on capture dynamics, compound-nucleus formation, quasifission, fission competition and survival probabilities leading to evaporation-residue production."
+    },
+    {
       "title": "Nuclear Reaction Dynamics",
       "id": "reaction-dynamics",
-      "text": "Langevin-based stochastic modelling of heavy-ion reactions. Fusion–evaporation reactions and the synthesis of superheavy elements are applications of the same description, with predictions for Z = 119 and Z = 120 made with KEWPIE3. Current work revisits the fusion dynamics in the fusion-by-diffusion model for fusion–evaporation production cross sections.",
+      "text": "Developing microscopic and phenomenological descriptions of fusion, quasifission and fission processes to explain experimental observables and improve predictive capabilities for unexplored reactions.",
       "equation_label": "Evaporation residue cross section",
       "equation": "\\sigma_{\\mathrm{ER}}^{\\mathrm{Theo}}(E_{\\mathrm{cm}})=\\underbrace{\\pi\\lambda^{2}\\sum_{\\ell=0}^{\\infty}(2\\ell+1)\\,T_{\\ell}(E_{\\mathrm{cm}},\\ell)}_{\\text{Capture}}\\times\\htmlClass{eq-red}{\\underbrace{P_{\\mathrm{CN}}(E_{\\mathrm{cm}},\\ell)}_{\\text{Formation}}}\\times\\htmlClass{eq-blue}{\\underbrace{P^{xn}_{\\mathrm{surv}}(E^{*},\\ell)}_{\\text{Survival}}}",
       "link": "reaction-dynamics.html",
@@ -13,8 +18,13 @@
     },
     {
       "title": "Uncertainty Quantification",
-      "text": "Bayesian optimisation and machine learning applied to estimate nuclear model parameters and their uncertainties, with systematic benchmarking of competing models.",
+      "text": "Constraining reaction models using experimental data, statistical inference and sensitivity analysis to quantify predictive confidence and identify the most influential physical parameters.",
       "id": "uncertainty"
+    },
+    {
+      "title": "Scientific Computing",
+      "id": "scientific-computing",
+      "text": "Designing computational frameworks, simulation workflows and data-intensive methods for large-scale nuclear physics calculations, parameter estimation and model validation."
     }
   ],
   "current": [
@@ -126,5 +136,51 @@
   "edge_source": "Source: Smits et al. (2024), *The quest for superheavy elements and the limit of the periodic table*.",
   "challenge_title": "The central challenge",
   "challenge_text": "Superheavy-element synthesis lies at the intersection of nuclear structure, reaction dynamics and quantum many-body physics.",
-  "challenge_text2": "The challenge is to understand why some heavy-ion collisions produce a new nucleus while most result in quasifission or fission. Reliable predictions are essential for guiding experiments aimed at discovering elements beyond **Z = 118** and exploring the predicted **island of stability**."
+  "challenge_text2": "The challenge is to understand why some heavy-ion collisions produce a new nucleus while most result in quasifission or fission. Reliable predictions are essential for guiding experiments aimed at discovering elements beyond **Z = 118** and exploring the predicted **island of stability**.",
+  "more": {
+    "interests_title": "Current Interests",
+    "interests": [
+      "Formation mechanisms of superheavy nuclei",
+      "Fusion-quasifission competition",
+      "Shell effects in heavy and superheavy systems",
+      "Evaporation-residue cross-section predictions",
+      "Statistical model calibration",
+      "Bayesian uncertainty quantification",
+      "Physics-informed machine learning",
+      "High-performance scientific computing"
+    ],
+    "why_title": "Why This Research Matters",
+    "why": [
+      "The existence of superheavy nuclei is not guaranteed. Enormous Coulomb repulsion should drive very heavy nuclei apart, yet quantum shell effects provide additional stability that allows some of them to exist.",
+      "Understanding these systems addresses fundamental questions:"
+    ],
+    "why_list": [
+      "How heavy can matter become?",
+      "Where does the periodic table end?",
+      "What mechanisms govern the synthesis of new elements?",
+      "Can long-lived superheavy nuclei exist beyond those currently known?",
+      "How predictive are our theories at the limits of nuclear stability?"
+    ],
+    "approach_title": "Approach",
+    "approach_intro": "My research combines:",
+    "approach_list": [
+      "Nuclear reaction theory",
+      "Statistical modelling",
+      "Scientific computing",
+      "Data analysis",
+      "Uncertainty quantification"
+    ],
+    "approach_end": "to build predictive frameworks for experiments aimed at discovering new elements and exploring the limits of nuclear existence.",
+    "closing_title": "Closing Statement",
+    "closing": "The formation of superheavy elements represents one of the most demanding problems in nuclear physics. By combining theoretical modelling, uncertainty-aware prediction and advanced computation, my goal is to improve our understanding of how new elements are created and how far the periodic table can ultimately extend.",
+    "synth": {
+      "title": "Superheavy-Element Synthesis",
+      "text": "Only a tiny fraction of heavy-ion collisions successfully leads to a surviving superheavy nucleus.",
+      "tex": "\\sigma_{\\mathrm{ER}} = \\sigma_{\\mathrm{cap}} \\times P_{\\mathrm{CN}} \\times W_{\\mathrm{sur}}",
+      "text2": "The synthesis probability is determined by three competing processes: capture, compound-nucleus formation and survival against fission.",
+      "figure": "assets/fig-pathway.svg",
+      "figure_alt": "Schematic of superheavy-element synthesis in three stages: capture, compound-nucleus formation and survival. The evaporation-residue cross section is the product of the three.",
+      "figure_caption": "Superheavy-element synthesis as three stages: capture, formation and survival."
+    }
+  }
 }
