@@ -45,7 +45,7 @@
       ]
     },
     {
-      "title": "Applied & Computational Work",
+      "title": "Applied and Computational Work",
       "url": "data-engineering.html",
       "links": [
         {
@@ -230,7 +230,7 @@
   "stats_title": "At a Glance",
   "publications_heading": "Selected Publications",
   "publications_link_label": "View All Publications →",
-  "fh_headline": "Theoretical & Computational Nuclear Physics",
+  "fh_headline": "Theoretical and Computational Nuclear Physics",
   "fh_sub": "Nuclear Reaction Dynamics · Superheavy-Element Synthesis · Computational Modelling · Uncertainty Quantification",
   "fh_intro": "Research on how superheavy nuclei form in heavy-ion collisions, using stochastic reaction models, model calibration and uncertainty quantification. The same computational methods extend into scientific computing, machine learning and data engineering.",
   "fh_buttons": [
@@ -270,7 +270,7 @@
   "fh_research_link": "Research areas and questions →",
   "fh_cards": [
     {
-      "title": "Applied & Computational Work",
+      "title": "Applied and Computational Work",
       "text": "Scientific computing, machine learning, data science and data engineering.",
       "url": "data-engineering.html"
     },
