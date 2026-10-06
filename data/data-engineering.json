@@ -1,6 +1,6 @@
 {
   "intro_title": "Overview",
-  "intro": "Physical models and measurements produce uncertain data, and machine learning, data science and data engineering turn them into reliable predictions. I apply these methods to real-world physical problems in [KEWPIE3](kewpie3.html) and in the projects below.",
+  "intro": "Physical models and measurements produce uncertain data, and machine learning, data science and data engineering turn them into reliable predictions.",
   "programme": {
     "title": "Data and Machine Learning Engineering",
     "subtitle": "OpenClassrooms · RNCP 39775",
