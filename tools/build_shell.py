@@ -2,11 +2,11 @@
 import glob, re, os, json, html
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PRIMARY = [("index.html", "Home"), ("research.html", "Research"), ("teaching.html", "Teaching"), ("projects.html", "Projects"),
-           ("data-engineering.html", "Applied and Computational Work"), ("students.html", "Students"), ("about.html", "About")]
+           ("data-engineering.html", "Applied"), ("students.html", "Students"), ("about.html", "About")]
 UTILITY = [("cv.html", "CV"), ("publications.html", "Publications"), ("contact.html", "Contact")]
 # page -> menu item it belongs to (exact page gets aria-current="page", a child page gets "true")
 HOME = json.load(open(os.path.join(ROOT, "data", "pages", "home.json"), encoding="utf-8"))
-SUB = {x["url"]: x["links"] for x in HOME["blocks"]}
+SUB = {}  # single-word navigation, no dropdown sub-menus
 CHILD = {"reaction-dynamics.html": "research.html", "phys143.html": "teaching.html", "laboratory.html": "teaching.html", "uncertainty.html": "teaching.html"}
 
 def menu(page):
