@@ -310,10 +310,10 @@
   },
   "fh_teaching": {
     "title": "Teaching",
-    "text": "I teach undergraduate physics at the University of Ghana.",
+    "text": "**PHYS 143: Mechanics and Thermal Physics**",
     "items": [
       {
-        "label": "PHYS 143: Mechanics and Thermal Physics",
+        "label": "Course overview",
         "url": "phys143.html"
       },
       {
