@@ -45,7 +45,7 @@
       ]
     },
     {
-      "title": "Applied and Computational Work",
+      "title": "Scientific Computing",
       "url": "data-engineering.html",
       "links": [
         {
@@ -130,8 +130,8 @@
       "link": "View Projects"
     }
   ],
-  "hero_line1": "Researcher in Nuclear Physics",
-  "hero_line2": "and **Data-Intensive Computing**",
+  "hero_line1": "At the Edge of the Periodic Table",
+  "hero_line2": "",
   "affiliation": "",
   "highlights": [
     {
@@ -253,23 +253,23 @@
   "fh_figure_caption": "Superheavy-element synthesis as three stages: capture, formation and survival.",
   "fh_cards": [
     {
-      "title": "Applied and Computational Work",
-      "text": "Scientific computing, machine learning, data science and data engineering.",
+      "title": "Scientific Computing",
+      "text": "Numerical modelling, machine learning, data science and data engineering for physics.",
       "url": "data-engineering.html"
     },
     {
       "title": "Projects",
-      "text": "KEWPIE3, fusion dynamics, computational and applied projects.",
+      "text": "Reaction-dynamics modelling, KEWPIE3 development, uncertainty quantification and computational studies of superheavy-element synthesis.",
       "url": "projects.html"
     },
     {
       "title": "Teaching",
-      "text": "Undergraduate physics: lectures, tutorials and practice questions.",
+      "text": "Mechanics and thermal physics (PHYS 143), with laboratory courses and uncertainty analysis.",
       "url": "teaching.html"
     },
     {
       "title": "Publications",
-      "text": "Journal articles, preprints and theses.",
+      "text": "Research articles on nuclear reaction dynamics, superheavy-element synthesis and scientific computing.",
       "url": "publications.html"
     }
   ],
@@ -289,21 +289,28 @@
   ],
   "fh_welcome": {
     "title": "Welcome",
-    "text": "I am a theoretical nuclear physicist and Lecturer in Physics at the University of Ghana. My research is on how superheavy nuclei form, using calibrated reaction models and uncertainty quantification. I also develop machine learning and data engineering methods for physics."
+    "paragraphs": [
+      "My research investigates the formation of superheavy nuclei in heavy-ion collisions and the fundamental limits of nuclear stability. Through reaction modelling, uncertainty quantification and scientific computing, I develop predictive frameworks for experiments searching for new elements and exploring the limits of the periodic table.",
+      "Alongside nuclear physics, I develop computational methods for scientific modelling, data-intensive computing and machine learning applications in physics."
+    ]
   },
   "fh_highlights": {
     "title": "Research Highlights",
     "items": [
       {
-        "label": "Nuclear reaction dynamics and superheavy-element synthesis",
+        "label": "Reaction dynamics of superheavy-element synthesis",
         "url": "research.html#reaction-dynamics"
       },
       {
-        "label": "Calibration and uncertainty quantification of reaction models",
+        "label": "Fusion, quasifission and survival mechanisms in heavy-ion collisions",
+        "url": "reaction-dynamics.html"
+      },
+      {
+        "label": "Calibration and uncertainty quantification of nuclear reaction models",
         "url": "research.html#uncertainty"
       },
       {
-        "label": "Machine Learning and Data Engineering for Physics",
+        "label": "Scientific computing, machine learning and data-intensive methods for physics",
         "url": "data-engineering.html#physics"
       }
     ]
@@ -325,5 +332,30 @@
         "url": "teaching.html"
       }
     ]
+  },
+  "fh_questions_card": {
+    "title": "Scientific Questions",
+    "items": [
+      {
+        "label": "How heavy can matter become?",
+        "url": "research.html#edge-heavy"
+      },
+      {
+        "label": "Where does the periodic table end?",
+        "url": "research.html#edge-table"
+      },
+      {
+        "label": "Can long-lived superheavy nuclei exist?",
+        "url": "research.html#why"
+      },
+      {
+        "label": "How predictive are our theories at the limits of nuclear stability?",
+        "url": "research.html#why"
+      }
+    ]
+  },
+  "fh_vision": {
+    "title": "Research Vision",
+    "text": "To develop predictive theories of nuclear reactions that guide the discovery of new elements and reveal the ultimate limits of the periodic table."
   }
 }
