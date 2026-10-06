@@ -13,8 +13,7 @@
       "workflow orchestration",
       "software development",
       "reproducible computational workflows"
-    ],
-    "note": "Each project below was completed for a fictional client scenario set by the programme, and the projects are the ones with a public repository. Descriptions follow the repository documentation."
+    ]
   },
   "upcoming_title": "Applied outcome",
   "upcoming": [
@@ -42,11 +41,11 @@
         {
           "title": "Employee Sports Benefits Data Platform",
           "topics": "Data engineering · ETL · Workflow orchestration",
-          "scenario": "Fictional client scenario set by the programme.",
+          "scenario": "Case study set by the programme.",
           "sections": [
             {
               "label": "Problem",
-              "text": "A fictional company wanted to test the feasibility of two employee benefits and to estimate their financial impact."
+              "text": "In the case study, a company wanted to test the feasibility of two employee benefits and to estimate their financial impact."
             },
             {
               "label": "Approach",
@@ -80,11 +79,11 @@
         {
           "title": "Healthcare Data Migration Pipeline",
           "topics": "Data engineering · ETL · Database migration",
-          "scenario": "Fictional client scenario set by the programme.",
+          "scenario": "Case study set by the programme.",
           "sections": [
             {
               "label": "Problem",
-              "text": "A fictional healthcare provider with scalability problems needed its medical records migrated from a CSV file to MongoDB."
+              "text": "In the case study, a healthcare provider with scalability problems needed its medical records migrated from a CSV file to MongoDB."
             },
             {
               "label": "Approach",
@@ -132,7 +131,7 @@
         {
           "title": "RAG Chatbot for Cultural Event Recommendations",
           "topics": "Machine learning · Information retrieval · RAG",
-          "scenario": "Fictional client scenario set by the programme.",
+          "scenario": "Case study set by the programme.",
           "sections": [
             {
               "label": "Problem",
@@ -176,7 +175,7 @@
         {
           "title": "EduGlobe Insights: Education Data Analysis",
           "topics": "Data analysis · Statistical analysis · Visualisation",
-          "scenario": "Fictional client scenario set by the programme.",
+          "scenario": "Case study set by the programme.",
           "sections": [
             {
               "label": "Problem",
@@ -277,6 +276,5 @@
   "training_items": [
     "Joint Master's in Nuclear Physics (Erasmus Mundus), 2018 to 2020: including data science.",
     "OpenClassrooms, Data and Machine Learning Engineering, Level 7 (Bac+5), RNCP 39775, 2025 to 2026."
-  ],
-  "projects_note": "Each project below was completed for a fictional client scenario set by the OpenClassrooms programme. Descriptions follow the repository documentation."
+  ]
 }
