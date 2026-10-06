@@ -889,3 +889,14 @@ h3.sub2+.sec-q{margin-top:-.1rem}
 .banner.masthead .mast-tag{order:3;margin:0;font:400 .92rem/1.4 Georgia,'Times New Roman',serif;letter-spacing:.02em;color:rgba(244,241,234,.82)}
 @media (min-width:701px){.banner.masthead .mast-tag{padding-right:280px}}
 @media (max-width:700px){.banner.masthead .mast-tag{font-size:.85rem;padding-right:56px}}
+
+/* NumeralAnalytics GH: stand-alone page header and footer */
+.banner.standalone .wrap{display:block;padding-top:1.6rem;padding-bottom:1.5rem}
+.banner.standalone h1{margin:0;font:600 clamp(1.7rem,6vw,2.4rem)/1.2 Georgia,'Times New Roman',serif;letter-spacing:0;color:#fff}
+.banner.standalone .tagline{margin:.45rem 0 0;font:400 1.02rem/1.45 Georgia,'Times New Roman',serif;color:rgba(244,241,234,.86)}
+.status-line{margin:1.2rem 0 .9rem}
+.standalone-foot{border-top:4px solid var(--brown-edge);background:var(--navy-deep);color:#cdd9ee;font:.9rem/1.6 system-ui,sans-serif}
+.standalone-foot .wrap{padding-top:1.1rem;padding-bottom:1.1rem}
+.standalone-foot ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:.4rem 1.5rem}
+.standalone-foot a{color:var(--brown-soft);text-decoration:none}
+.standalone-foot a:hover{text-decoration:underline}
