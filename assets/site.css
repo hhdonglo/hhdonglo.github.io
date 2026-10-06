@@ -760,3 +760,11 @@ ul.plain{margin:.4rem 0 1rem;padding-left:1.2rem}ul.plain li{margin:.45rem 0}
 .fh-card strong{color:var(--link);font-size:1.05rem}
 .fh-card span{font:.9rem/1.4 system-ui,sans-serif;color:var(--muted)}
 .fh-card:hover{background:var(--sky)}
+
+/* Home: opening questions */
+.fh-curious{list-style:none;margin:0 0 1.4rem;padding:0;display:grid;gap:.5rem}
+.fh-curious li{border-left:5px solid var(--brown);padding:.1rem 0 .1rem .9rem}
+.fh-curious a{font-size:clamp(1.25rem,2.8vw,1.7rem);line-height:1.25;text-decoration:none;color:var(--navy);font-weight:700}
+.fh-curious a:hover{text-decoration:underline}
+@media (prefers-color-scheme:dark){.fh-curious a{color:#c7dcf8}}
+.fh-hero{margin-top:.2rem}

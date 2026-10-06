@@ -289,5 +289,19 @@
       "text": "Journal articles, preprints and theses.",
       "url": "publications.html"
     }
+  ],
+  "fh_curious": [
+    {
+      "q": "How heavy can matter get?",
+      "url": "research.html#edge-heavy"
+    },
+    {
+      "q": "Where does the periodic table end?",
+      "url": "research.html#edge-table"
+    },
+    {
+      "q": "Do the laws of physics still hold at the edge?",
+      "url": "research.html#edge-laws"
+    }
   ]
 }

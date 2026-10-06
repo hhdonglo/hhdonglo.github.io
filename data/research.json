@@ -117,5 +117,24 @@
       "link_label": "Calibration and uncertainty in KEWPIE3 →",
       "link_url": "kewpie3.html#calibration"
     }
-  ]
+  ],
+  "edge_title": "Questions at the Edge of the Periodic Table",
+  "edge": [
+    {
+      "id": "edge-heavy",
+      "question": "How heavy can matter get?",
+      "text": "No one knows yet. The heaviest element made is oganesson (Z = 118), and searches for elements 119 and 120 have found nothing so far. Models predict roughly 6,500 to 8,500 bound nuclei, and an island of longer-lived (not stable) nuclei near Z ≈ 112 to 126 and N ≈ 172 to 184. The models disagree on half-lives by as much as eleven orders of magnitude."
+    },
+    {
+      "id": "edge-table",
+      "question": "Where does the periodic table end?",
+      "text": "It may have no fixed end. At Z ≈ 171 the 1s electron level dives into the negative-energy continuum, which calls for new mathematics rather than marking the end of the elements. Periodicity itself breaks down earlier: some elements beyond 120 have no clear place in the table."
+    },
+    {
+      "id": "edge-laws",
+      "question": "Do the laws of physics still hold at the edge?",
+      "text": "They do, but the approximations used to apply them fail. Relativistic and quantum-electrodynamic effects grow strongly with Z, and every nuclear prediction there is an extrapolation. This is why Bayesian uncertainty quantification is needed, and it is the motivation for the uncertainty analysis in this research."
+    }
+  ],
+  "edge_source": "Source: Smits et al. (2024), *The quest for superheavy elements and the limit of the periodic table*."
 }
