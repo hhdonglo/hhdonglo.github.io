@@ -237,44 +237,10 @@
     }
   ],
   "footnote": "All code is on [github.com/hhdonglo](https://github.com/hhdonglo).",
-  "areas_title": "Use in research",
-  "areas": [
-    {
-      "id": "scientific-computing",
-      "title": "Scientific Computing",
-      "physics": "KEWPIE3 is a C++ code, parallelised with OpenMP, with parameter sweeps and fits distributed with MPI.",
-      "applies": "",
-      "link": "kewpie3.html#framework",
-      "link_label": "KEWPIE3 computational framework →"
-    },
-    {
-      "id": "machine-learning",
-      "title": "Machine Learning",
-      "physics": "A Gaussian-process surrogate supports Bayesian calibration of the KEWPIE3 reaction model.",
-      "applies": "",
-      "link": "#retrieval",
-      "link_label": "Machine learning projects →"
-    },
-    {
-      "id": "data-science",
-      "title": "Data Science",
-      "physics": "Profile-likelihood scans and sensitivity analysis quantify the confidence of fitted parameters.",
-      "applies": "",
-      "link": "#analysis",
-      "link_label": "Data analysis projects →"
-    },
-    {
-      "id": "data-engineering-area",
-      "title": "Data Engineering",
-      "physics": "One input file drives calculations, fits, plots and uncertainty estimates, so results can be reproduced.",
-      "applies": "",
-      "link": "#pipelines",
-      "link_label": "Data engineering projects →"
-    }
-  ],
   "training_title": "Training",
   "training_items": [
     "Joint Master's in Nuclear Physics (Erasmus Mundus), 2018 to 2020: including data science.",
     "OpenClassrooms, Data and Machine Learning Engineering, Level 7 (Bac+5), RNCP 39775, 2025 to 2026."
-  ]
+  ],
+  "tools_note": "All code is on [github.com/hhdonglo](https://github.com/hhdonglo)."
 }
