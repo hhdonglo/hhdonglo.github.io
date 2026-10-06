@@ -197,6 +197,7 @@ function acard(c,site,sec){
   if(c.bullets&&c.bullets.length)h+=list(c.bullets,c.bullet_style);
   if(c.special==="profiles")h+='<ul class="foot-ext plain">'+site.profiles.map(function(p){return '<li>'+link(p.url,esc(p.label)+" &#8599;",true)+'</li>'}).join("")+'</ul>';
   if(c.special==="details")h+='<ul class="contact-list"><li><span>Office</span> '+esc(site.office)+'</li><li><span>Email</span> '+link("mailto:"+site.email,esc(site.email))+(site.email_alt?' or '+link("mailto:"+site.email_alt,esc(site.email_alt)):'')+'</li><li><span>Tel.</span> '+link("tel:"+site.phone_link,esc(site.phone_display))+'</li></ul>';
+  if(c.figures&&c.figures.length)h+=figs(c.figures);
   if(c.figure)h+='<figure class="fig"><img src="'+esc(c.figure)+'" loading="lazy" alt="'+esc(c.figure_alt||"")+'">'+(c.figure_caption?'<figcaption>'+md(c.figure_caption)+'</figcaption>':'')+'</figure>';
   if(c.table&&c.table.headers&&c.table.headers.length)h+='<table class="ov-ref">'+(c.table.caption?'<caption class="vh">'+esc(c.table.caption)+'</caption>':'')+'<thead><tr>'+c.table.headers.map(function(x){return '<th scope="col">'+esc(x)+'</th>'}).join("")+'</tr></thead><tbody>'+c.table.rows.map(function(r){r=r.cells||r;return '<tr>'+r.map(function(x){return '<td>'+md(x)+'</td>'}).join("")+'</tr>'}).join("")+'</tbody></table>';
   var subs=c.subsections||[];
