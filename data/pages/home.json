@@ -307,5 +307,23 @@
         "url": "data-engineering.html#physics"
       }
     ]
+  },
+  "fh_teaching": {
+    "title": "Teaching",
+    "text": "I teach undergraduate physics at the University of Ghana.",
+    "items": [
+      {
+        "label": "PHYS 143: Mechanics and Thermal Physics",
+        "url": "phys143.html"
+      },
+      {
+        "label": "Weekly lectures and practice questions",
+        "url": "phys143.html#weekly"
+      },
+      {
+        "label": "All teaching",
+        "url": "teaching.html"
+      }
+    ]
   }
 }

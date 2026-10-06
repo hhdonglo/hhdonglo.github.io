@@ -785,3 +785,6 @@ ul.rq{margin:.3rem 0 .6rem}
 .fh-blocks:first-child{margin-top:0}
 .fh-hero{margin-bottom:1.6rem}
 .fh-hero .fh-curious{margin-bottom:0}
+.fh-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.9rem;align-items:stretch}
+.fh-row>div{display:flex}.fh-row>div>.fh-block{flex:1}
+@media (max-width:700px){.fh-row{grid-template-columns:1fr}}
