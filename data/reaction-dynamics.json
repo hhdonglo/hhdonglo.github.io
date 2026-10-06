@@ -83,9 +83,9 @@
     },
     {
       "id": "method",
-      "heading": "How I evaluate the formation probability",
+      "heading": "The formation probability from the full Langevin equation",
       "paragraphs": [
-        "The fusion dynamics of the fusion-by-diffusion model are being revisited for fusion–evaporation production cross sections (manuscript in preparation). I describe formation as a stochastic process, within the fusion-by-diffusion approach. The surface separation s of the two nuclei obeys a one-dimensional Langevin equation, with the system moving over an inverted-parabola barrier of curvature ω under friction β and a random thermal force r(t) at temperature T:"
+        "The formation probability is calculated from the full one-dimensional Langevin equation for the surface separation s of the two nuclei. The system retains its inertia and carries the kinetic energy that remains after capture over an inverted-parabola barrier of curvature ω, under friction β and a random thermal force r(t) at temperature T:"
       ],
       "equations": [
         {
@@ -93,17 +93,27 @@
           "text": "Langevin equation with a random force that satisfies the fluctuation-dissipation relation."
         },
         {
-          "tex": "P_{\\mathrm{CN}}=\\tfrac12\\,\\mathrm{erfc}\\!\\left[\\sqrt{\\frac{B(s_{\\mathrm{inj}})}{T'}}-\\frac{1}{x+\\sqrt{1+x^{2}}}\\sqrt{\\frac{K_{\\mathrm{rem}}}{T'}}\\right],\\qquad x=\\frac{\\beta}{2\\omega}",
-          "text": "Analytical solution: the probability of crossing the inner barrier B. The damping ratio x runs from overdamped (large) to underdamped (small); the second term accounts for the residual kinetic energy, and T′ is an effective temperature."
+          "tex": "\\ddot{q}+\\beta\\,\\dot{q}-\\omega^{2}q=r(t),\\qquad q=s-s_{\\mathrm{sad}}",
+          "text": "The same equation for the distance q from the saddle."
         },
         {
-          "tex": "P_{\\mathrm{CN}}=\\tfrac12\\,\\mathrm{erfc}\\sqrt{\\frac{B(s_{\\mathrm{inj}})}{T}}\\qquad (s_{\\mathrm{inj}}\\ge s_{\\mathrm{sad}})",
-          "text": "Overdamped limit used in fusion-by-diffusion: the residual kinetic energy is fully dissipated, and thermal fluctuations alone carry the system over the barrier."
+          "tex": "P_{\\mathrm{CN}}(t,q_0)=\\tfrac12\\,\\mathrm{erfc}\\!\\left[\\frac{\\langle q\\rangle}{\\sqrt{2}\\,\\sigma_q}\\right]",
+          "text": "The mean trajectory ⟨q⟩ and the variance σ_q² follow from the solution, and give the probability that the system has crossed the barrier."
+        },
+        {
+          "tex": "P_{\\mathrm{CN}}=\\tfrac12\\,\\mathrm{erfc}\\!\\left[\\sqrt{\\frac{B(s_{0})}{T'}}-\\frac{1}{x+\\sqrt{1+x^{2}}}\\sqrt{\\frac{K_{\\mathrm{rem}}}{T'}}\\right]",
+          "text": "Asymptotic limit. B(s₀) is the barrier at the injection point s₀, and K_rem(E_cm, ℓ) is the kinetic energy that remains after capture for partial wave ℓ."
+        },
+        {
+          "tex": "x=\\frac{\\beta}{2\\omega},\\qquad \\omega=\\sqrt{\\frac{2B(s_{0})}{\\mu\\,(s_{0}-s_{\\mathrm{sad}})^{2}}},\\qquad T'=2Tx\\left(\\sqrt{1+x^{2}}-x\\right)",
+          "text": "The damping ratio x, the barrier curvature ω and the dynamical temperature T′."
         }
       ],
       "after": [
-        "**Why one dimension is sufficient.** The surface separation is taken as the slow collective variable. Eliminating the other fast variables, such as the neck, shifts the initial condition of that variable, which is absorbed into a single adjustable parameter, the injection-point distance. The model is therefore deliberately simple and analytical, and its limits are discussed in the manuscript in preparation.",
-        "Details: [KEWPIE3](projects.html#kewpie3), the code that applies this to superheavy-element predictions, is described on the Projects page; the manuscript is listed under [Publications](publications.html)."
+        "**Fitting parameters.** The injection-point distance s₀ and the friction strength β_ss are the fitting parameters. They are shared across the ^48^Ca-induced reactions.",
+        "**Overdamped limit.** For large x, T′ tends to T and the second term vanishes, which recovers the overdamped expression P_CN = ½ erfc √(B/T) of the fusion-by-diffusion model. The calculation here keeps the full dynamics.",
+        "**One collective variable.** The surface separation is the slow collective variable. Eliminating the fast variables, such as the neck, shifts its initial condition, and the shift is absorbed in a single parameter, the injection-point distance.",
+        "[KEWPIE3](kewpie3.html) applies this to superheavy-element predictions."
       ]
     },
     {
