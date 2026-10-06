@@ -781,3 +781,7 @@ ul.rq{margin:.3rem 0 .6rem}
 .fh-block ul{margin:.2rem 0 0;padding-left:1.1rem}
 .fh-block p{margin:.3rem 0}
 .fh-block dt{font-weight:700;margin-top:.5rem}.fh-block dd{margin:0}
+.fh-blocks{grid-template-columns:1fr}
+.fh-blocks:first-child{margin-top:0}
+.fh-hero{margin-bottom:1.6rem}
+.fh-hero .fh-curious{margin-bottom:0}
