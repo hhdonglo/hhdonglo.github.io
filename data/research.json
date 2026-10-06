@@ -245,13 +245,8 @@
   "why_new": {
     "title": "Why It Matters",
     "text": "Superheavy nuclei exist only because quantum shell effects counteract enormous Coulomb repulsion between protons.",
-    "intro": "Their study helps answer fundamental questions:",
-    "items": [
-      "How heavy can matter become?",
-      "Where does the periodic table end?",
-      "Can long-lived superheavy nuclei exist?",
-      "How predictive are our theories at the limits of nuclear stability?"
-    ]
+    "intro": "Their study addresses the fundamental questions listed under [Research Questions](#questions).",
+    "items": []
   },
   "vision": {
     "title": "Research Vision",
@@ -286,11 +281,13 @@
     "cards": [
       {
         "title": "Uncertainty Quantification",
-        "text": "Constraining reaction models using experimental data, statistical inference and sensitivity analysis to quantify predictive confidence and identify the most influential physical parameters."
+        "text": "Constraining reaction models using experimental data, statistical inference and sensitivity analysis to quantify predictive confidence and identify the most influential physical parameters.",
+        "id": "uncertainty"
       },
       {
         "title": "Scientific Computing",
-        "text": "Designing computational frameworks, simulation workflows and data-intensive methods for large-scale nuclear physics calculations, parameter estimation and model validation."
+        "text": "Designing computational frameworks, simulation workflows and data-intensive methods for large-scale nuclear physics calculations, parameter estimation and model validation.",
+        "id": "scientific-computing"
       }
     ]
   },

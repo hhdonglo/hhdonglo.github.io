@@ -284,5 +284,10 @@
       "link": "#pipelines",
       "link_label": "Data engineering projects →"
     }
-  ]
+  ],
+  "figure": {
+    "src": "assets/fig-datascience-map.svg",
+    "alt": "Diagram: Nuclear Physics leads to Computational Research, which branches into Scientific Computing, Uncertainty Quantification and Data Analysis. Scientific Computing branches into Machine Learning, Data and Engineering.",
+    "caption": "How the physics leads to the methods on this page."
+  }
 }

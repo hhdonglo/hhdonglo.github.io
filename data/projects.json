@@ -8,43 +8,12 @@
       "title": "KEWPIE3",
       "status": "Current project",
       "paragraphs": [
-        "**Objective:** validate and publish KEWPIE3, the refinement of the KEWPIE2 cascade code (which describes the survival of the excited nucleus) with an implemented and calibrated formation step, for fusion-evaporation cross-section predictions in superheavy element synthesis.",
+        "**Objective:** validate and publish KEWPIE3, the refinement of the KEWPIE2 cascade code with an implemented and calibrated formation step, for fusion-evaporation cross-section predictions in superheavy element synthesis.",
         "**Key question:** how can the calculation of the compound nucleus formation probability be improved with Langevin-based stochastic approaches?",
-        "**About the calculations:** KEWPIE3 computes the evaporation-residue cross section as a sum over partial waves of capture, compound-nucleus formation and survival probabilities. The survival stage follows the KEWPIE2 cascade code (H. Lü et al., Comput. Phys. Commun. 200, 381 (2016)); the formation step is the addition in KEWPIE3. The formation stage uses a Langevin-based description with two free parameters, s0 and beta_ss. These were fitted to measured cross sections for nine ^48^Ca-induced hot-fusion reactions (compound nuclei ^285^Nh to ^297^Og; Dubna, GSI and LBNL data) by Gaussian-process Bayesian optimisation of an uncertainty-weighted logarithmic objective, after the nuclear-model configuration was chosen from a 96-configuration factorial study. The fit gives s0 = 6.65 fm and beta_ss = 1.16 × 10^21^ s^−1^.",
-        "The shaded bands show how the cross section responds when s0 and beta_ss vary together along their strongly anti-correlated compensation direction. They are not a full uncertainty estimate: sensitivity to the calibration data and to the nuclear-structure inputs was studied separately and is not included. The predictions apply the same parameters, without refitting, to reactions with ^50^Ti, ^51^V and ^54^Cr beams, so they extrapolate to different projectiles, and the bands do not include that additional uncertainty.",
-        "[Research context →](research.html#projects)",
-        "[Full KEWPIE3 project page →](kewpie3.html)"
+        "[Full KEWPIE3 project page, with calibration, results and predictions →](kewpie3.html)"
       ],
       "topics": "Nuclear reaction modelling · Bayesian calibration · Scientific computing",
-      "figures": [
-        {
-          "image": "assets/figures/kewpie3-theory-vs-experiment.webp",
-          "full": "assets/figures/kewpie3-theory-vs-experiment-full.webp",
-          "width": 1100,
-          "height": 1100,
-          "alt": "Nine panels of evaporation-residue cross section in picobarns, on a logarithmic axis, against centre-of-mass energy for calcium-48 beams on targets from neptunium-237 to californium-249. Smooth curves with shaded bands showing the parameter-response envelope show the KEWPIE3 calculations for the 2n to 5n channels, and points with error bars show measurements from Dubna, GSI and LBNL. A red arrow marks the Coulomb barrier energy in each panel.",
-          "caption": "KEWPIE3 calculation (curves, 2n to 5n channels) for ^48^Ca-induced reactions on targets from ^237^Np to ^249^Cf, compared with measured excitation functions from Dubna, GSI and LBNL (points with error bars). Shaded bands show the response to correlated variation of s0 and beta_ss, not a full uncertainty; arrows mark the mean Coulomb barrier. The calculation reproduces the broad magnitude and energy dependence of most excitation functions, with agreement that varies by reaction and channel.",
-          "heading": "Comparison with data",
-          "lead": "Calculated cross sections for ^48^Ca-induced reactions on actinide targets, set against the measured values."
-        },
-        {
-          "image": "assets/figures/kewpie3-theory-experiment-ratio.webp",
-          "width": 1100,
-          "height": 611,
-          "alt": "Plot of the ratio of calculated to measured evaporation-residue cross sections at the channel maxima, on a logarithmic axis from 0.01 to 100, for targets from neptunium-237 to californium-249. Symbols show the 2n to 5n channels and colours show Dubna, GSI (TASCA) and LBNL data.",
-          "caption": "Ratio of calculated to measured cross section at each measured channel maximum, by target (marker shape: channel; colour: laboratory). The median ratio is 1.19 and 29 of 30 entries are within one order of magnitude. Agreement is not uniform: ratios lie below unity for the Np and U targets and above unity for most Cm, Bk and Cf targets, and part of the spread reflects differences between laboratories. These are descriptive statistics, not an independent validation."
-        },
-        {
-          "image": "assets/figures/kewpie3-predictions-four.webp",
-          "width": 560,
-          "height": 574,
-          "alt": "Four panels of predicted evaporation-residue cross sections in femtobarns, on a logarithmic axis from 0.01 to 1000, against centre-of-mass energy, with curves for the 2n, 3n, 4n and 5n channels and an arrow marking the mean barrier B0. Top left: curium-248 plus vanadium-51 forming element 119, with a 4n peak of 1.6 fb. Top right: americium-243 plus chromium-54 forming element 119, with a 3n peak of 2.1 fb. Bottom left: curium-248 plus chromium-54 forming element 120, with a 4n peak of 0.2 fb. Bottom right: californium-249 plus titanium-50 forming element 120, with a 3n peak of 2.2 fb.",
-          "caption": "Predicted cross sections for four reactions not yet measured: ^248^Cm(^51^V,xn) and ^243^Am(^54^Cr,xn) towards Z = 119, and ^248^Cm(^54^Cr,xn) and ^249^Cf(^50^Ti,xn) towards Z = 120, calculated with the calibrated parameters and no refitting. Curves show the 2n to 5n channels; the labelled value in each panel is the largest predicted channel maximum (femtobarns). Cross sections of this size, of the order of a femtobarn, are an experimental challenge.",
-          "heading": "Predictions",
-          "lead": "Cross sections calculated with the same calibrated parameters, without refitting, for reactions that have not been measured.",
-          "full": "assets/figures/kewpie3-predictions-four-full.webp"
-        }
-      ]
+      "figures": []
     }
   ]
 }
