@@ -20,7 +20,7 @@ for(const N of [1,2,3,4,5,7,8,9,10,11,12]){
   check(`L${N}: says not assessment`, /not assessment/i.test(await p.locator('main').innerText()));
   check(`L${N}: link back to the lecture`, await p.locator(`main a[href="phys143-lecture-${N}.html"]`).count()>=1);
   let right=0;
-  for(let i=0;i<q.questions.length;i++){
+  for(let i=0;i<20;i++){
     await p.waitForSelector('#quiz-app .opt');
     const text=await p.locator('#quiz-app .qtext').innerText();
     const flat=s=>s.replace(/<br\s*\/?>/g,'\n').replace(/<[^>]+>/g,'').trim();
@@ -31,7 +31,7 @@ for(const N of [1,2,3,4,5,7,8,9,10,11,12]){
     await p.click('#quiz-app .row .btn.primary');
   }
   const score=await p.locator('#quiz-app .score').innerText();
-  check(`L${N}: score ${score} = ${right} of ${q.questions.length}`, score.startsWith(right+' out of '+q.questions.length));
+  check(`L${N}: score ${score} = ${right} of 20`, score.startsWith(right+" out of 20"));
   const st=JSON.parse(await p.evaluate(()=>localStorage.getItem('phys143.practice.v1')));
   check(`L${N}: best score stored`, st.lectures[N]&&st.lectures[N].best.score===right);
   check(`L${N}: no other lecture's quiz on this page`, await p.locator('#quiz-app').count()===1);

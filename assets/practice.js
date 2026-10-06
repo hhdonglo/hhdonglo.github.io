@@ -9,6 +9,7 @@
     11: 'First law of thermodynamics', 12: 'Second law of thermodynamics'
   };
   var ORDER = [1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12];
+  var QUIZ_LENGTH = 20;
   var STORE_KEY = 'phys143.practice.v1';
   var LETTERS = ['A', 'B', 'C', 'D'];
   var TYPE_LABEL = { concept: 'Concept', calc: 'Calculation', graph: 'Graph or diagram', misconception: 'Common misconception' };
@@ -44,6 +45,17 @@
       var t = a[i]; a[i] = a[j]; a[j] = t;
     }
     return a;
+  }
+  /* Exactly `size` ids: a random draw without repeats when the pool is larger; otherwise every question, then reshuffled passes, never the same question twice in a row. */
+  function buildOrder(ids, size) {
+    if (ids.length >= size) return shuffle(ids).slice(0, size);
+    var out = [];
+    while (out.length < size) {
+      var pass = shuffle(ids);
+      if (out.length && ids.length > 1 && pass[0] === out[out.length - 1]) { var t = pass[0]; pass[0] = pass[1]; pass[1] = t; }
+      for (var i = 0; i < pass.length && out.length < size; i++) out.push(pass[i]);
+    }
+    return out;
   }
   function el(tag, attrs, html) {
     var e = document.createElement(tag);
@@ -93,17 +105,17 @@
     clear();
     var r = rec(n);
     app.appendChild(el('h3', { 'data-focus': '' }, 'Lecture ' + n + ': ' + quiz.title));
-    app.appendChild(el('p', null, quiz.questions.length + ' questions. Select an answer to see at once whether it is correct. If it is wrong, the page shows the correct answer with a short explanation and where to look in the deck.'));
+    app.appendChild(el('p', null, QUIZ_LENGTH + ' questions, drawn and shuffled afresh each time. Select an answer to see at once whether it is correct. If it is wrong, the page shows the correct answer with a short explanation and where to look in the deck.'));
     var info = [];
     if (r.best) info.push('Best score: ' + r.best.score + ' out of ' + r.best.total + ' (' + when(r.best.date) + ').');
     if (r.attempts) info.push('Attempts on this device: ' + r.attempts + '.');
     if (info.length) app.appendChild(el('p', { 'class': 'muted' }, info.join(' ')));
     var row = el('div', { 'class': 'row' });
-    if (r.run) {
+    if (r.run && r.run.v === 2) {
       row.appendChild(btn('Resume (question ' + (r.run.idx + 1) + ' of ' + r.run.order.length + ')', 'primary', function () { runQuiz(n, quiz); }));
       row.appendChild(btn('Start again', '', function () { startRun(n, quiz, 'all'); }));
     } else {
-      row.appendChild(btn('Start all ' + quiz.questions.length + ' questions', 'primary', function () { startRun(n, quiz, 'all'); }));
+      row.appendChild(btn('Start ' + QUIZ_LENGTH + ' questions', 'primary', function () { startRun(n, quiz, 'all'); }));
     }
     var missed = (r.missed || []).filter(function (id) { return byId(quiz, id); });
     if (missed.length) row.appendChild(btn('Practise ' + missed.length + ' missed question' + (missed.length === 1 ? '' : 's'), '', function () { startRun(n, quiz, 'missed'); }));
@@ -123,30 +135,31 @@
       pool = pool.filter(function (id) { return (r.missed || []).indexOf(id) !== -1; });
       if (!pool.length) pool = quiz.questions.map(function (q) { return q.id; });
     }
-    var perms = {};
-    quiz.questions.forEach(function (q) { perms[q.id] = shuffle([0, 1, 2, 3]); });
-    r.run = { mode: mode, order: shuffle(pool), perms: perms, idx: 0, answers: {} };
+    var order = mode === 'missed' ? shuffle(pool).slice(0, QUIZ_LENGTH) : buildOrder(pool, QUIZ_LENGTH);
+    var perms = order.map(function () { return shuffle([0, 1, 2, 3]); });
+    r.run = { v: 2, mode: mode, order: order, perms: perms, idx: 0, answers: {} };
     saveStore();
     runQuiz(n, quiz);
   }
 
   function runQuiz(n, quiz) {
     var r = rec(n), run = r.run;
+    if (run && run.v !== 2) { r.run = run = null; saveStore(); }
     if (!run) { intro(n, quiz); return; }
     if (run.idx >= run.order.length) { result(n, quiz); return; }
     var q = byId(quiz, run.order[run.idx]);
     if (!q) { run.idx++; saveStore(); runQuiz(n, quiz); return; }
-    var perm = run.perms[q.id];
-    var answered = Object.prototype.hasOwnProperty.call(run.answers, q.id);
-    var chosen = answered ? run.answers[q.id] : null;
+    var perm = run.perms[run.idx], pos0 = run.idx;
+    var answered = Object.prototype.hasOwnProperty.call(run.answers, pos0);
+    var chosen = answered ? run.answers[pos0] : null;
     setTitle('Lecture ' + n + ' question ' + (run.idx + 1));
     clear();
 
     var total = run.order.length;
     var prog = el('div', { 'class': 'progress' });
     prog.appendChild(el('span', null, 'Lecture ' + n + ': question ' + (run.idx + 1) + ' of ' + total));
-    var done = 0; run.order.forEach(function (id) { if (Object.prototype.hasOwnProperty.call(run.answers, id)) done++; });
-    var score = 0; run.order.forEach(function (id) { var qq = byId(quiz, id); if (qq && run.answers[id] === qq.answer) score++; });
+    var done = 0; run.order.forEach(function (id, i) { if (Object.prototype.hasOwnProperty.call(run.answers, i)) done++; });
+    var score = 0; run.order.forEach(function (id, i) { var qq = byId(quiz, id); if (qq && run.answers[i] === qq.answer) score++; });
     prog.appendChild(el('span', null, 'Correct so far: ' + score + ' of ' + done));
     app.appendChild(prog);
     var bar = el('div', { 'class': 'bar', role: 'progressbar', 'aria-label': 'Progress', 'aria-valuemin': '0', 'aria-valuemax': String(total), 'aria-valuenow': String(done) });
@@ -205,8 +218,8 @@
     }
 
     function choose(orig) {
-      if (Object.prototype.hasOwnProperty.call(run.answers, q.id)) return;
-      run.answers[q.id] = orig;
+      if (Object.prototype.hasOwnProperty.call(run.answers, pos0)) return;
+      run.answers[pos0] = orig;
       saveStore();
       showFeedback(orig);
     }
@@ -217,7 +230,7 @@
       focusHeading();
     }
     currentKeys = function (ev) {
-      if (Object.prototype.hasOwnProperty.call(run.answers, q.id)) return;
+      if (Object.prototype.hasOwnProperty.call(run.answers, pos0)) return;
       var idx = '1234'.indexOf(ev.key);
       if (idx === -1) idx = 'abcd'.indexOf(ev.key.toLowerCase());
       if (idx !== -1 && ev.key.length === 1 && !ev.ctrlKey && !ev.metaKey && !ev.altKey) { ev.preventDefault(); choose(perm[idx]); }
@@ -228,9 +241,10 @@
     var r = rec(n), run = r.run;
     currentKeys = null;
     var wrongIds = [], score = 0;
-    run.order.forEach(function (id) {
+    run.order.forEach(function (id, i) {
       var q = byId(quiz, id);
-      if (q && run.answers[id] === q.answer) score++; else wrongIds.push(id);
+      if (q && run.answers[i] === q.answer) score++;
+      else if (wrongIds.indexOf(id) === -1) wrongIds.push(id);
     });
     var total = run.order.length;
     var first = !r.best || (run.mode === 'all' && (score / total) > (r.best.score / r.best.total));
@@ -264,7 +278,7 @@
     }
     var row = el('div', { 'class': 'row' });
     if (wrongIds.length) row.appendChild(btn('Retry the ' + wrongIds.length + ' missed question' + (wrongIds.length === 1 ? '' : 's'), 'primary', function () { startRun(n, quiz, 'missed'); }));
-    row.appendChild(btn('Start all questions again', wrongIds.length ? '' : 'primary', function () { startRun(n, quiz, 'all'); }));
+    row.appendChild(btn('Start a new set of ' + QUIZ_LENGTH, wrongIds.length ? '' : 'primary', function () { startRun(n, quiz, 'all'); }));
     app.appendChild(row);
     focusHeading();
   }
@@ -279,7 +293,7 @@
     if (!LECTURES[n]) { unavailable(n); return; }
     loadLecture(n, function (quiz) {
       var r0 = rec(n);
-      if (r0.run) runQuiz(n, quiz);
+      if (r0.run && r0.run.v === 2) runQuiz(n, quiz);
       else if (!r0.attempts) startRun(n, quiz, 'all'); /* first visit: the first question appears at once */
       else intro(n, quiz);
       started = true;
