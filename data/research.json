@@ -1,5 +1,5 @@
 {
-  "question": "How are heavy and superheavy nuclei formed?",
+  "question": "The formation of superheavy nuclei is governed by a competition between fusion, quasifission and fission. Only a tiny fraction of heavy-ion collisions result in a surviving superheavy nucleus. Understanding and predicting these rare events is the central goal of my research.",
   "intro": "My research develops computational models of heavy-ion reactions to understand and predict the formation of heavy and superheavy nuclei. Stochastic simulation, uncertainty quantification and scientific computing provide the principal methods for this work.",
   "areas": [
     {
@@ -109,17 +109,17 @@
   "publications_text": "Journal articles, preprints, theses, conference contributions and manuscripts in preparation are listed on the Publications page. The research software KEWPIE3, a refinement of the KEWPIE2 cascade code, is described on the [Projects](projects.html) page.",
   "publications_link_label": "View all publications →",
   "questions": [
+    "How heavy can matter become?",
+    "Where does the periodic table end?",
     "How do touching nuclei evolve toward fusion rather than quasifission?",
-    "Can production cross sections for elements beyond Z = 118 be reliably predicted?",
-    "Which reaction mechanisms dominate the formation of superheavy nuclei?",
-    "How strongly do experimental data constrain model parameters and predictions?",
-    "What are the fundamental limits of nuclear existence and stability?"
+    "Can production cross sections for new elements be reliably predicted?",
+    "Do our theories remain predictive at the limits of nuclear stability?"
   ],
   "edge_title": "Questions at the Edge of the Periodic Table",
   "edge": [
     {
       "id": "edge-heavy",
-      "question": "How heavy can matter get?",
+      "question": "How heavy can matter become?",
       "text": "This is not yet known. The heaviest element made is oganesson (Z = 118); searches for elements 119 and 120 have found nothing so far. Models predict about 6,500 to 8,500 bound nuclei, with half-life predictions differing by up to 11 orders of magnitude (Smits et al. 2024, pp. 2–3, 19)."
     },
     {
@@ -129,8 +129,8 @@
     },
     {
       "id": "edge-laws",
-      "question": "Do the laws of physics still hold at the edge?",
-      "text": "Yes, but common approximations fail. Relativistic and quantum-electrodynamic effects grow strongly with Z, and nuclear predictions there are extrapolations, so the authors call for Bayesian uncertainty quantification (Smits et al. 2024, pp. 3–5)."
+      "question": "Do our theories remain predictive at the limits of nuclear stability?",
+      "text": "Common approximations fail at the edge. Relativistic and quantum-electrodynamic effects grow strongly with Z, and nuclear predictions there are extrapolations, so the authors call for Bayesian uncertainty quantification (Smits et al. 2024, pp. 3–5)."
     }
   ],
   "edge_source": "Source: Smits et al. (2024), *The quest for superheavy elements and the limit of the periodic table*.",
@@ -174,13 +174,14 @@
     "closing_title": "Closing Statement",
     "closing": "The formation of superheavy elements represents one of the most demanding problems in nuclear physics. By combining theoretical modelling, uncertainty-aware prediction and advanced computation, my goal is to improve our understanding of how new elements are created and how far the periodic table can ultimately extend.",
     "synth": {
-      "title": "Superheavy-Element Synthesis",
-      "text": "Only a tiny fraction of heavy-ion collisions successfully leads to a surviving superheavy nucleus.",
+      "title": "Key Equation",
+      "text": "",
       "tex": "\\sigma_{\\mathrm{ER}} = \\sigma_{\\mathrm{cap}} \\times P_{\\mathrm{CN}} \\times W_{\\mathrm{sur}}",
       "text2": "The synthesis probability is determined by three competing processes: capture, compound-nucleus formation and survival against fission.",
       "figure": "assets/fig-pathway.svg",
       "figure_alt": "Schematic of superheavy-element synthesis in three stages: capture, compound-nucleus formation and survival. The evaporation-residue cross section is the product of the three.",
-      "figure_caption": "Superheavy-element synthesis as three stages: capture, formation and survival."
+      "figure_caption": "Superheavy-element synthesis as three stages: capture, formation and survival.",
+      "line": "Capture × Formation × Survival = New Element"
     }
   },
   "background": {
@@ -240,5 +241,30 @@
         ]
       }
     ]
+  },
+  "contrib": {
+    "title": "Research Contributions",
+    "items": [
+      "Modelling fusion and quasifission dynamics in heavy-ion collisions",
+      "Calibration of reaction models against experimental data",
+      "Uncertainty-aware predictions of superheavy-element production cross sections",
+      "Development and application of KEWPIE-based reaction simulations",
+      "Computational frameworks for reaction dynamics and model validation"
+    ]
+  },
+  "why_new": {
+    "title": "Why It Matters",
+    "text": "Superheavy nuclei exist only because quantum shell effects counteract enormous Coulomb repulsion between protons.",
+    "intro": "Their study helps answer fundamental questions:",
+    "items": [
+      "How heavy can matter become?",
+      "Where does the periodic table end?",
+      "Can long-lived superheavy nuclei exist?",
+      "How predictive are our theories at the limits of nuclear stability?"
+    ]
+  },
+  "vision": {
+    "title": "Research Vision",
+    "text": "To develop predictive theories of nuclear reactions that guide the discovery of new elements and reveal the ultimate limits of the periodic table."
   }
 }

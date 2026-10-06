@@ -232,7 +232,7 @@
   "publications_link_label": "View All Publications →",
   "fh_headline": "At the Edge of the Periodic Table",
   "fh_sub": "Investigating the reaction dynamics of superheavy-element synthesis at the limits of nuclear stability",
-  "fh_intro": "How heavy can matter become? These questions guide research on the synthesis of superheavy elements.",
+  "fh_intro": "How heavy can matter become? Where does the periodic table end? These fundamental questions motivate my research on the synthesis of heavy and superheavy elements.",
   "fh_buttons": [
     {
       "label": "Research",
@@ -275,7 +275,7 @@
   ],
   "fh_curious": [
     {
-      "q": "How heavy can matter get?",
+      "q": "How heavy can matter become?",
       "url": "research.html#edge-heavy"
     },
     {
@@ -283,7 +283,7 @@
       "url": "research.html#edge-table"
     },
     {
-      "q": "Do the laws of physics still hold at the edge?",
+      "q": "Do our theories remain predictive at the limits of nuclear stability?",
       "url": "research.html#edge-laws"
     }
   ],
@@ -357,5 +357,6 @@
   "fh_vision": {
     "title": "Research Vision",
     "text": "To develop predictive theories of nuclear reactions that guide the discovery of new elements and reveal the ultimate limits of the periodic table."
-  }
+  },
+  "fh_intro2": "My research investigates the reaction dynamics governing the formation of superheavy nuclei in heavy-ion collisions and the fundamental limits of nuclear stability. Through reaction modelling, uncertainty quantification and scientific computing, I develop predictive frameworks for experiments searching for new elements."
 }

@@ -813,3 +813,5 @@ ul.rq{margin:.3rem 0 .6rem}
 .fh-cards{grid-template-columns:repeat(2,minmax(0,1fr))}
 @media (min-width:1100px){.fh-cards{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media (max-width:480px){.fh-cards{grid-template-columns:1fr}}
+.rq-sub{margin:.4rem 0 .6rem;font-size:1.05rem}
+.eq-line{margin:.4rem 0}
