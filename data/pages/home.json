@@ -1,5 +1,6 @@
 {
-  "eyebrow": "",
+  "hero_line1": "At the Edge of the Periodic Table",
+  "eyebrow": "Hope DONGLO",
   "role": "Lecturer in Physics",
   "statement": "Theoretical nuclear physics research on the reaction mechanisms that govern the formation of heavy and superheavy nuclei, using stochastic dynamics and uncertainty quantification.",
   "side_links": [
@@ -109,6 +110,64 @@
       ]
     }
   ],
+  "highlights": [
+    {
+      "figure": "fusion",
+      "figure_alt": "Diagram: two nuclei approach, touch and fuse into one larger superheavy nucleus.",
+      "title": "Nuclear Reaction Dynamics",
+      "text": "I study the dynamics of heavy-ion reactions, with particular interest in fusion–evaporation reactions and the synthesis of superheavy elements: capture, compound-nucleus formation, survival, and their theoretical modelling.",
+      "button": "Explore Research →",
+      "url": "research.html#reaction-dynamics"
+    },
+    {
+      "title": "Uncertainty Quantification",
+      "text": "Investigation of model sensitivity, parameter variation, calibration, and uncertainty propagation in nuclear-reaction calculations.",
+      "button": "Explore Research →",
+      "url": "research.html#uncertainty"
+    }
+  ],
+  "highlights_title": "Research",
+  "technical_title": "Scientific Computing, Data Science and Engineering",
+  "technical_text": "I apply computational and data-driven methods to scientific problems, with interests spanning scientific software, high-performance computing, data analysis, machine learning, and reproducible computational workflows.",
+  "technical_button": {
+    "label": "Explore Technical Work →",
+    "url": "data-engineering.html"
+  },
+  "stats_title": "At a Glance",
+  "stats": [
+    {
+      "source": "lectures",
+      "label": "Weekly lectures online"
+    },
+    {
+      "value": "220",
+      "suffix": "+",
+      "label": "Practice questions"
+    },
+    {
+      "source": "projects",
+      "label": "Data, ML and engineering projects"
+    },
+    {
+      "label": "Postgraduate training across 3 countries"
+    }
+  ],
+  "soon": {
+    "status": "Coming soon",
+    "name": "NumeralAnalytics GH",
+    "tagline": "Physics-informed analytics for physical industries",
+    "link_text": "Read more",
+    "url": "numeralanalytics.html"
+  },
+  "cta": {
+    "title": "Contact",
+    "buttons": [
+      {
+        "label": "Contact →",
+        "url": "contact.html"
+      }
+    ]
+  },
   "working_title": "Currently Working On",
   "working": [
     {
@@ -130,77 +189,6 @@
       "link": "View Projects"
     }
   ],
-  "hero_line1": "At the Edge of the Periodic Table",
-  "hero_line2": "",
-  "affiliation": "",
-  "highlights": [
-    {
-      "figure": "fusion",
-      "figure_alt": "Diagram: two nuclei approach, touch and fuse into one larger superheavy nucleus.",
-      "title": "Nuclear Reaction Dynamics",
-      "text": "I study the dynamics of heavy-ion reactions, with particular interest in fusion–evaporation reactions and the synthesis of superheavy elements: capture, compound-nucleus formation, survival, and their theoretical modelling.",
-      "button": "Explore Research →",
-      "url": "research.html#reaction-dynamics"
-    },
-    {
-      "figure": "",
-      "figure_alt": "",
-      "title": "Uncertainty Quantification",
-      "text": "Investigation of model sensitivity, parameter variation, calibration, and uncertainty propagation in nuclear-reaction calculations.",
-      "button": "Explore Research →",
-      "url": "research.html#uncertainty"
-    }
-  ],
-  "stats": [
-    {
-      "value": "",
-      "source": "lectures",
-      "suffix": "",
-      "label": "Weekly lectures online"
-    },
-    {
-      "value": "220",
-      "source": "",
-      "suffix": "+",
-      "label": "Practice questions"
-    },
-    {
-      "value": "",
-      "source": "projects",
-      "suffix": "",
-      "label": "Data, ML and engineering projects"
-    },
-    {
-      "value": "",
-      "source": "",
-      "suffix": "",
-      "label": "Postgraduate training across 3 countries"
-    }
-  ],
-  "cta": {
-    "title": "Contact",
-    "text": "",
-    "buttons": [
-      {
-        "label": "Contact →",
-        "url": "contact.html"
-      }
-    ]
-  },
-  "technical_title": "Scientific Computing, Data Science and Engineering",
-  "technical_button": {
-    "label": "Explore Technical Work →",
-    "url": "data-engineering.html"
-  },
-  "soon": {
-    "status": "Coming soon",
-    "name": "NumeralAnalytics GH",
-    "tagline": "Physics-informed analytics for physical industries",
-    "link_text": "Read more",
-    "url": "numeralanalytics.html"
-  },
-  "highlights_title": "Research",
-  "technical_text": "I apply computational and data-driven methods to scientific problems, with interests spanning scientific software, high-performance computing, data analysis, machine learning, and reproducible computational workflows.",
   "teaching_block": {
     "title": "Teaching",
     "text": "I teach undergraduate physics at the University of Ghana, with an emphasis on clear conceptual development, quantitative reasoning, and problem-solving.",
@@ -227,131 +215,6 @@
       "url": "about.html"
     }
   },
-  "stats_title": "At a Glance",
   "publications_heading": "Selected Publications",
-  "publications_link_label": "View All Publications →",
-  "fh_headline": "At the Edge of the Periodic Table",
-  "fh_sub": "Investigating the reaction dynamics of superheavy-element synthesis at the limits of nuclear stability",
-  "fh_intro": "How heavy can matter become? Where does the periodic table end? These fundamental questions motivate my research on the synthesis of heavy and superheavy elements.",
-  "fh_buttons": [
-    {
-      "label": "Research",
-      "url": "research.html",
-      "style": "primary"
-    },
-    {
-      "label": "Publications",
-      "url": "publications.html"
-    },
-    {
-      "label": "Projects",
-      "url": "projects.html"
-    }
-  ],
-  "fh_figure": "assets/fig-pathway.svg",
-  "fh_figure_alt": "Schematic of superheavy-element synthesis in three stages: capture, compound-nucleus formation and survival. The evaporation-residue cross section is the product of the three.",
-  "fh_figure_caption": "Superheavy-element synthesis as three stages: capture, formation and survival.",
-  "fh_cards": [
-    {
-      "title": "Projects",
-      "text": "Numerical simulation of reaction dynamics, KEWPIE3 research software, uncertainty quantification and computational studies of superheavy-element synthesis.",
-      "url": "projects.html"
-    },
-    {
-      "title": "Scientific Computing",
-      "text": "Data engineering, machine learning and data analysis for physics.",
-      "url": "data-engineering.html"
-    },
-    {
-      "title": "Publications",
-      "text": "Research articles on nuclear reaction dynamics, superheavy-element synthesis and computational modelling.",
-      "url": "publications.html"
-    }
-  ],
-  "fh_curious": [
-    {
-      "q": "How heavy can matter become?",
-      "url": "research.html#edge-heavy"
-    },
-    {
-      "q": "Where does the periodic table end?",
-      "url": "research.html#edge-table"
-    },
-    {
-      "q": "Do our theories remain predictive at the limits of nuclear stability?",
-      "url": "research.html#edge-laws"
-    }
-  ],
-  "fh_welcome": {
-    "title": "Welcome",
-    "paragraphs": [
-      "My research investigates the formation of superheavy nuclei in heavy-ion collisions and the fundamental limits of nuclear stability. Through numerical simulation, uncertainty quantification and scientific computing, I build predictive models for experiments searching for new elements and exploring the limits of the periodic table.",
-      "Alongside nuclear physics, I develop research software and data-driven modelling methods, including machine learning, for physical problems."
-    ]
-  },
-  "fh_highlights": {
-    "title": "Research Highlights",
-    "items": [
-      {
-        "label": "Reaction dynamics of superheavy-element synthesis",
-        "url": "research.html#reaction-dynamics"
-      },
-      {
-        "label": "Fusion, quasifission and survival mechanisms in heavy-ion collisions",
-        "url": "reaction-dynamics.html"
-      },
-      {
-        "label": "Calibration and uncertainty quantification of nuclear reaction models",
-        "url": "research.html#uncertainty"
-      },
-      {
-        "label": "Scientific computing, data-driven modelling and machine learning for physics",
-        "url": "data-engineering.html#physics"
-      }
-    ]
-  },
-  "fh_teaching": {
-    "title": "Teaching",
-    "text": "**PHYS 143: Mechanics and Thermal Physics**",
-    "items": [
-      {
-        "label": "Course overview",
-        "url": "phys143.html"
-      },
-      {
-        "label": "Weekly lectures and practice questions",
-        "url": "phys143.html#weekly"
-      },
-      {
-        "label": "All teaching",
-        "url": "teaching.html"
-      }
-    ]
-  },
-  "fh_questions_card": {
-    "title": "Scientific Questions",
-    "items": [
-      {
-        "label": "How heavy can matter become?",
-        "url": "research.html#edge-heavy"
-      },
-      {
-        "label": "Where does the periodic table end?",
-        "url": "research.html#edge-table"
-      },
-      {
-        "label": "Can long-lived superheavy nuclei exist?",
-        "url": "research.html#why"
-      },
-      {
-        "label": "How predictive are our theories at the limits of nuclear stability?",
-        "url": "research.html#why"
-      }
-    ]
-  },
-  "fh_vision": {
-    "title": "Research Vision",
-    "text": "To develop predictive theories of nuclear reactions that guide the discovery of new elements and reveal the ultimate limits of the periodic table."
-  },
-  "fh_intro2": "My research investigates the reaction dynamics governing the formation of superheavy nuclei in heavy-ion collisions and the fundamental limits of nuclear stability. Through reaction modelling, uncertainty quantification and scientific computing, I develop predictive frameworks for experiments searching for new elements."
+  "publications_link_label": "View All Publications →"
 }
