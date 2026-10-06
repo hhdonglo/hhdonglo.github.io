@@ -9,14 +9,14 @@ UTILITY = [("cv.html", "CV"), ("contact.html", "Contact")]
 # Drop-down children follow the site map; each links to an existing page or section anchor.
 SUB = {
     "research.html": [("Research Questions", "research.html#questions"), ("Nuclear Reaction Dynamics", "research.html#reaction-dynamics"),
-                      ("Uncertainty Quantification", "research.html#uncertainty"), ("Earlier Research", "research.html#earlier")],
+                      ("Uncertainty Quantification", "research.html#uncertainty"), ("Earlier Research", "earlier-research.html")],
     "projects.html": [("KEWPIE3", "kewpie3.html"), ("Current Research", "projects.html#research-projects")],
     "data-engineering.html": [("Data Engineering", "data-engineering.html#pipelines"), ("Machine Learning", "data-engineering.html#retrieval"), ("Data Analysis", "data-engineering.html#analysis")],
     "teaching.html": [("Courses", "teaching.html#lecture-courses"), ("Lecture Notes", "phys143.html#weekly")],
     "publications.html": [("Journal Articles", "publications.html#journal-articles"), ("Preprints", "publications.html#preprints"), ("Theses", "publications.html#theses")],
     "students.html": [("Supervision", "students.html#undergraduate"), ("Project Opportunities", "students.html#research-projects")],
 }
-CHILD = {"reaction-dynamics.html": "research.html", "phys143.html": "teaching.html", "laboratory.html": "teaching.html", "uncertainty.html": "teaching.html", "kewpie3.html": "projects.html", "student-research.html": "students.html"}
+CHILD = {"reaction-dynamics.html": "research.html", "phys143.html": "teaching.html", "laboratory.html": "teaching.html", "uncertainty.html": "teaching.html", "kewpie3.html": "projects.html", "earlier-research.html": "research.html", "student-research.html": "students.html"}
 
 def menu(page):
     cur = CHILD.get(page) or (page if re.match(r"phys143-lecture-\d+(-practice)?\.html$", page) is None else "teaching.html")
