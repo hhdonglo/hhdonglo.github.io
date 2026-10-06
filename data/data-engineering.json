@@ -1,6 +1,6 @@
 {
-  "intro_title": "Machine Learning and Data Engineering for Physics",
-  "intro": "The applied work on this page is a product of the physics research. Calibrating reaction models, quantifying their uncertainty and making calculations reproducible required machine learning, data analysis and data engineering methods, built first for nuclear reaction problems. The same methods carry over to scientific, real-world and industrial problems.",
+  "intro_title": "Overview",
+  "intro": "I use data science, machine learning and data engineering in my research and in independent projects.",
   "programme": {
     "title": "Data and Machine Learning Engineering",
     "subtitle": "OpenClassrooms · RNCP 39775",
@@ -250,39 +250,44 @@
       "Numerical modelling and optimisation"
     ]
   },
-  "areas_title": "From the physics to applications",
+  "areas_title": "Use in research",
   "areas": [
     {
       "id": "scientific-computing",
       "title": "Scientific Computing",
-      "physics": "KEWPIE3 is a C++ engine that parallelises the energy loop with OpenMP and distributes parameter sweeps and fits across hosts with MPI.",
-      "applies": "Numerical modelling, optimisation and simulation workflows for other scientific and industrial models.",
+      "physics": "KEWPIE3 is a C++ code, parallelised with OpenMP, with parameter sweeps and fits distributed with MPI.",
+      "applies": "",
       "link": "kewpie3.html#framework",
       "link_label": "KEWPIE3 computational framework →"
     },
     {
       "id": "machine-learning",
       "title": "Machine Learning",
-      "physics": "Bayesian optimisation with a Gaussian-process surrogate of the loss surface calibrates the free parameters of the reaction model.",
-      "applies": "Predictive modelling and retrieval-based systems, for example the retrieval-augmented chatbot project.",
+      "physics": "A Gaussian-process surrogate supports Bayesian calibration of the KEWPIE3 reaction model.",
+      "applies": "",
       "link": "#retrieval",
       "link_label": "Machine learning projects →"
     },
     {
       "id": "data-science",
       "title": "Data Science",
-      "physics": "Profile-likelihood scans give confidence regions for fitted parameters, and sensitivity analysis shows how results depend on model choices.",
-      "applies": "Statistical analysis and quantified confidence for real data, for example the education data analysis project.",
+      "physics": "Profile-likelihood scans and sensitivity analysis quantify the confidence of fitted parameters.",
+      "applies": "",
       "link": "#analysis",
       "link_label": "Data analysis projects →"
     },
     {
       "id": "data-engineering-area",
       "title": "Data Engineering",
-      "physics": "One input file drives calculations, fits, plots and uncertainty corridors, so that results can be reproduced.",
-      "applies": "Data pipelines and workflow automation, for example the Airflow, PostgreSQL and Docker projects.",
+      "physics": "One input file drives calculations, fits, plots and uncertainty estimates, so results can be reproduced.",
+      "applies": "",
       "link": "#pipelines",
       "link_label": "Data engineering projects →"
     }
+  ],
+  "training_title": "Training",
+  "training_items": [
+    "**Joint Master's in Nuclear Physics** (Erasmus Mundus), 2018 to 2020: including data science.",
+    "**OpenClassrooms, Data and Machine Learning Engineering**, Level 7 (Bac+5), RNCP 39775, 2025 to 2026."
   ]
 }
