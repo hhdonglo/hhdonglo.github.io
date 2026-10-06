@@ -1,6 +1,6 @@
 {
   "intro_title": "Overview",
-  "intro": "I use data science, machine learning and data engineering in my research and in independent projects.",
+  "intro": "Physical models and measurements produce uncertain data, and machine learning, data science and data engineering turn them into reliable predictions. I apply these methods to real-world physical problems in [KEWPIE3](kewpie3.html) and in the projects below.",
   "programme": {
     "title": "Data and Machine Learning Engineering",
     "subtitle": "OpenClassrooms · RNCP 39775",
@@ -238,18 +238,6 @@
     }
   ],
   "footnote": "All code is on [github.com/hhdonglo](https://github.com/hhdonglo).",
-  "computing": {
-    "title": "Scientific Computing and Data Engineering",
-    "text": "Alongside nuclear physics, I develop computational methods for modelling, data analysis and scalable scientific workflows. These activities support both fundamental research and data-intensive applications in science and industry.",
-    "list_intro": "Areas include:",
-    "items": [
-      "Scientific software and simulation workflows",
-      "Data engineering and data pipelines",
-      "Machine learning for scientific applications",
-      "Reproducible computational research",
-      "Numerical modelling and optimisation"
-    ]
-  },
   "areas_title": "Use in research",
   "areas": [
     {
@@ -287,7 +275,8 @@
   ],
   "training_title": "Training",
   "training_items": [
-    "**Joint Master's in Nuclear Physics** (Erasmus Mundus), 2018 to 2020: including data science.",
-    "**OpenClassrooms, Data and Machine Learning Engineering**, Level 7 (Bac+5), RNCP 39775, 2025 to 2026."
-  ]
+    "Joint Master's in Nuclear Physics (Erasmus Mundus), 2018 to 2020: including data science.",
+    "OpenClassrooms, Data and Machine Learning Engineering, Level 7 (Bac+5), RNCP 39775, 2025 to 2026."
+  ],
+  "projects_note": "Each project below was completed for a fictional client scenario set by the OpenClassrooms programme. Descriptions follow the repository documentation."
 }
