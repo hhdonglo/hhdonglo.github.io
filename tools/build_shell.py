@@ -16,7 +16,7 @@ SUB = {
     "publications.html": [("Journal Articles", "publications.html#journal-articles"), ("Preprints", "publications.html#preprints"), ("Theses", "publications.html#theses")],
     "students.html": [("Supervision", "students.html#undergraduate"), ("Project Opportunities", "students.html#research-projects")],
 }
-CHILD = {"reaction-dynamics.html": "research.html", "phys143.html": "teaching.html", "laboratory.html": "teaching.html", "uncertainty.html": "teaching.html", "kewpie3.html": "projects.html", "earlier-research.html": "research.html", "student-research.html": "students.html"}
+CHILD = {"reaction-dynamics.html": "research.html", "phys143.html": "teaching.html", "laboratory.html": "teaching.html", "uncertainty.html": "teaching.html", "kewpie3.html": "projects.html", "numeralanalytics.html": "data-engineering.html", "earlier-research.html": "research.html", "student-research.html": "students.html"}
 
 def menu(page):
     cur = CHILD.get(page) or (page if re.match(r"phys143-lecture-\d+(-practice)?\.html$", page) is None else "teaching.html")
