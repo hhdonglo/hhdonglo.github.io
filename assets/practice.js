@@ -86,8 +86,8 @@
      ENTRY     : the entry.NNNNNNNNN id of each field, from the form's "Get pre-filled link"
      Until FORM_URL is set the report link stays hidden (add ?reportpreview=1 to a practice page to preview it). */
   var REPORT_FORM = {
-    FORM_URL: 'https://docs.google.com/forms/d/e/PLACEHOLDER_FORM_ID/viewform',
-    ENTRY: { lecture: 'entry.1111111111', id: 'entry.2222222222', question: 'entry.3333333333', answer: 'entry.4444444444', comment: 'entry.5555555555' }
+    FORM_URL: 'https://docs.google.com/forms/d/e/1FAIpQLSeks0aQI_OLforxFg-5oOxyVQw5mdNA0dbtPQqUmHAPNz_mkg/viewform',
+    ENTRY: { lecture: 'entry.639134261', id: 'entry.917742440', question: 'entry.1866410730', answer: 'entry.1771614469', comment: 'entry.1612452879' }
   };
   var reportLive = REPORT_FORM.FORM_URL.indexOf('PLACEHOLDER') === -1 || /[?&]reportpreview=1/.test(window.location.search);
   function clip(t, n) { t = plain(String(t == null ? '' : t)).replace(/\s+/g, ' ').trim(); return t.length > n ? t.slice(0, n - 1) + '…' : t; }
