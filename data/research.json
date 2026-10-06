@@ -1,12 +1,7 @@
 {
-  "question": "The formation of superheavy nuclei is governed by a competition between fusion, quasifission and fission. Only a tiny fraction of heavy-ion collisions result in a surviving superheavy nucleus. Understanding and predicting these rare events is the central goal of my research.",
-  "intro": "My research develops computational models of heavy-ion reactions to understand and predict the formation of heavy and superheavy nuclei. Stochastic simulation, uncertainty quantification and scientific computing provide the principal methods for this work.",
+  "question": "How are heavy and superheavy nuclei formed, and how reliably can their production be predicted?",
+  "intro": "My research investigates the reaction mechanisms governing the formation of heavy and superheavy nuclei. I use stochastic reaction dynamics, computational modelling and uncertainty quantification to understand and improve predictions of fusion and evaporation processes.",
   "areas": [
-    {
-      "title": "Superheavy-Element Synthesis",
-      "id": "superheavy-synthesis",
-      "text": "Understanding the mechanisms that govern the formation of the heaviest nuclei through heavy-ion collisions. This work focuses on capture dynamics, compound-nucleus formation, quasifission, fission competition and survival probabilities leading to evaporation-residue production."
-    },
     {
       "title": "Nuclear Reaction Dynamics",
       "id": "reaction-dynamics",
@@ -15,37 +10,32 @@
       "equation": "\\sigma_{\\mathrm{ER}}^{\\mathrm{Theo}}(E_{\\mathrm{cm}})=\\underbrace{\\pi\\lambda^{2}\\sum_{\\ell=0}^{\\infty}(2\\ell+1)\\,T_{\\ell}(E_{\\mathrm{cm}},\\ell)}_{\\text{Capture}}\\times\\htmlClass{eq-red}{\\underbrace{P_{\\mathrm{CN}}(E_{\\mathrm{cm}},\\ell)}_{\\text{Formation}}}\\times\\htmlClass{eq-blue}{\\underbrace{P^{xn}_{\\mathrm{surv}}(E^{*},\\ell)}_{\\text{Survival}}}",
       "link": "reaction-dynamics.html",
       "link_label": "Read more"
-    },
-    {
-      "title": "Uncertainty Quantification",
-      "text": "Constraining reaction models using experimental data, statistical inference and sensitivity analysis to quantify predictive confidence and identify the most influential physical parameters.",
-      "id": "uncertainty"
-    },
-    {
-      "title": "Scientific Computing",
-      "id": "scientific-computing",
-      "text": "Designing computational frameworks, simulation workflows and data-intensive methods for large-scale nuclear physics calculations, parameter estimation and model validation."
     }
   ],
   "current": [
     {
-      "status": "Current project",
-      "title": "KEWPIE3 development and validation",
+      "status": "Development and validation",
+      "title": "KEWPIE3: Fusion–Evaporation Cross-Section Modelling",
       "paragraphs": [
-        "**Objective:** validate and publish KEWPIE3, the refinement of the KEWPIE2 cascade code (which describes the survival of the excited nucleus) with an implemented and calibrated formation step, for fusion-evaporation cross-section predictions in superheavy element synthesis.",
-        "**Key question:** how can the calculation of the compound nucleus formation probability be improved with Langevin-based stochastic approaches?",
-        "[KEWPIE3 on the Projects page →](projects.html#kewpie3)"
-      ],
-      "chip": "KEWPIE3 development and validation"
+        "Development and validation of KEWPIE3 for calculating fusion–evaporation cross sections in superheavy-element synthesis.",
+        "**Focus:** Compound-nucleus formation · Stochastic reaction dynamics · Model calibration · Uncertainty and sensitivity analysis",
+        "[View project →](kewpie3.html)"
+      ]
     },
     {
       "status": "Manuscript in preparation",
-      "title": "Uncertainty analysis of nuclear reaction models",
+      "title": "Fusion Dynamics and Fusion-by-Diffusion",
       "paragraphs": [
-        "**Objective:** constrain the compound nucleus formation probability in superheavy element synthesis through systematic uncertainty analysis.",
-        "[See Publications](publications.html)"
-      ],
-      "chip": "Uncertainty analysis of nuclear reaction models"
+        "Reassessment of the fusion dynamics underlying the fusion-by-diffusion description of fusion–evaporation reactions.",
+        "[View project →](reaction-dynamics.html)"
+      ]
+    },
+    {
+      "status": "Manuscript in preparation",
+      "title": "Uncertainty in Nuclear Reaction Models",
+      "paragraphs": [
+        "Investigation of parameter variation, calibration and uncertainty propagation in nuclear reaction models."
+      ]
     }
   ],
   "previous": [
@@ -104,10 +94,10 @@
       ]
     }
   ],
-  "overview_title": "Research Overview",
+  "overview_title": "Nuclear Reaction Dynamics and the Formation of Heavy and Superheavy Nuclei",
   "publications_title": "Publications",
-  "publications_text": "Journal articles, preprints, theses, conference contributions and manuscripts in preparation are listed on the Publications page. The research software KEWPIE3, a refinement of the KEWPIE2 cascade code, is described on the [Projects](projects.html) page.",
-  "publications_link_label": "View all publications →",
+  "publications_text": "Selected and complete publication records are available on the publications page.",
+  "publications_link_label": "View publications →",
   "questions": [
     "How heavy can matter become?",
     "Where does the periodic table end?",
@@ -266,5 +256,61 @@
   "vision": {
     "title": "Research Vision",
     "text": "To develop predictive theories of nuclear reactions that guide the discovery of new elements and reveal the ultimate limits of the periodic table."
+  },
+  "programme": {
+    "title": "Research Programme",
+    "intro": "My research focuses on the theoretical description of fusion–evaporation reactions leading to heavy and superheavy nuclei.",
+    "cards": [
+      {
+        "title": "Nuclear Reaction Dynamics",
+        "text": "Reaction mechanisms governing the evolution of colliding nuclei towards compound-nucleus formation."
+      },
+      {
+        "title": "Heavy and Superheavy Element Synthesis",
+        "text": "Theoretical modelling of production cross sections and reaction pathways for heavy and superheavy nuclei."
+      },
+      {
+        "title": "Fusion–Evaporation Modelling",
+        "text": "Modelling capture, compound-nucleus formation and survival in fusion–evaporation reactions."
+      }
+    ]
+  },
+  "methods": {
+    "title": "Methods",
+    "tags": [
+      "Stochastic dynamics",
+      "Scientific computing",
+      "Uncertainty quantification",
+      "Bayesian optimisation"
+    ],
+    "cards": [
+      {
+        "title": "Uncertainty Quantification",
+        "text": "Constraining reaction models using experimental data, statistical inference and sensitivity analysis to quantify predictive confidence and identify the most influential physical parameters."
+      },
+      {
+        "title": "Scientific Computing",
+        "text": "Designing computational frameworks, simulation workflows and data-intensive methods for large-scale nuclear physics calculations, parameter estimation and model validation."
+      }
+    ]
+  },
+  "earlier": {
+    "title": "Earlier Research",
+    "cards": [
+      {
+        "title": "Reaction Mechanisms for Superheavy-Element Synthesis",
+        "text": "Doctoral research on theoretical models of reaction mechanisms involved in the synthesis of superheavy nuclei."
+      },
+      {
+        "title": "Nuclear Structure",
+        "text": "Symmetry-conserving configuration-mixing calculations of even-even argon isotopes."
+      },
+      {
+        "title": "Earlier Work",
+        "text": "Nuclear structure and nuclear reactor-related research."
+      }
+    ],
+    "link_label": "Summaries and key results are on the About page →",
+    "link_url": "about.html#previous"
   }
 }

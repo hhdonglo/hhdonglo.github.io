@@ -818,3 +818,11 @@ ul.rq{margin:.3rem 0 .6rem}
 .fh-block h4.fh-sub-h{margin:.9rem 1.1rem 0;padding-top:.7rem;border-top:1px solid #2A3F73;color:#F4F1EA;font-size:1.02rem}
 .fh-vision p{margin-bottom:0}
 .fh-vision ul{margin-top:.4rem}
+
+/* Research page hierarchy and spacing */
+.lead-card{margin-bottom:1.6rem}
+.lead-card>h3.h4{font-size:1.35rem;line-height:1.3;color:var(--navy);margin-bottom:.7rem}
+@media (prefers-color-scheme:dark){.lead-card>h3.h4{color:#c7dcf8}}
+.sub-under h3.sub2{font-size:1.1rem;margin:1.6rem 0 .5rem;border-left-width:4px}
+ul.tags{margin:.2rem 0 1rem}
+h3.sub2+.intro{margin-top:.4rem}
