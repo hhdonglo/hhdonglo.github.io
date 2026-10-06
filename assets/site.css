@@ -774,3 +774,10 @@ ul.plain{margin:.4rem 0 1rem;padding-left:1.2rem}ul.plain li{margin:.45rem 0}
 .fh-synth h2{margin-top:.9rem}
 .fh-eq{margin:.6rem 0;overflow-x:auto}
 ul.rq{margin:.3rem 0 .6rem}
+
+/* Welcome and highlight cards */
+.fh-blocks{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:.9rem;margin-top:1.4rem}
+.fh-block h3,.fh-block h4{margin:0 0 .6rem;padding-bottom:.35rem;border-bottom:2px solid var(--brown);font-size:1.1rem}
+.fh-block ul{margin:.2rem 0 0;padding-left:1.1rem}
+.fh-block p{margin:.3rem 0}
+.fh-block dt{font-weight:700;margin-top:.5rem}.fh-block dd{margin:0}

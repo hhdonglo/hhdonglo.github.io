@@ -249,5 +249,26 @@
       "Reproducible computational research",
       "Numerical modelling and optimisation"
     ]
+  },
+  "physics": {
+    "title": "Machine Learning and Data Engineering for Physics",
+    "items": [
+      {
+        "title": "Surrogate models for calibration",
+        "text": "Gaussian-process surrogates of the loss surface support Bayesian optimisation of reaction-model parameters in KEWPIE3."
+      },
+      {
+        "title": "Reproducible calculation workflows",
+        "text": "One input file drives forward calculations, fits, plots and uncertainty corridors, so that results can be reproduced."
+      },
+      {
+        "title": "Data pipelines",
+        "text": "Pipelines for validation, loading and orchestration, with data-quality checks, applied in the projects below."
+      },
+      {
+        "title": "Retrieval and analysis",
+        "text": "Retrieval-augmented generation and exploratory data analysis, evaluated with automated tests."
+      }
+    ]
   }
 }

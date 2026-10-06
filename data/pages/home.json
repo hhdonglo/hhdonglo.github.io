@@ -286,5 +286,26 @@
       "q": "Do the laws of physics still hold at the edge?",
       "url": "research.html#edge-laws"
     }
-  ]
+  ],
+  "fh_welcome": {
+    "title": "Welcome",
+    "text": "I am a theoretical nuclear physicist and Lecturer in Physics at the University of Ghana. My research is on how superheavy nuclei form, using calibrated reaction models and uncertainty quantification. I also develop machine learning and data engineering methods for physics."
+  },
+  "fh_highlights": {
+    "title": "Research Highlights",
+    "items": [
+      {
+        "label": "Nuclear reaction dynamics and superheavy-element synthesis",
+        "url": "research.html#reaction-dynamics"
+      },
+      {
+        "label": "Calibration and uncertainty quantification of reaction models",
+        "url": "research.html#uncertainty"
+      },
+      {
+        "label": "Machine Learning and Data Engineering for Physics",
+        "url": "data-engineering.html#physics"
+      }
+    ]
+  }
 }
