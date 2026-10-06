@@ -3,132 +3,137 @@
   "subtitle": "A computational framework for fusion–evaporation reactions and superheavy-element synthesis.",
   "sections": [
     {
-      "id": "problem",
-      "heading": "Scientific Problem",
+      "id": "what",
+      "heading": "What is KEWPIE3?",
       "cards": [
         {
           "style": "plain",
           "lead": true,
           "paragraphs": [
-            "Superheavy elements are made by fusing two heavy nuclei, and only a tiny fraction of collisions produce one: cross sections fall to picobarns and below. Experiments to reach new elements such as Z = 119 and Z = 120 depend on theoretical predictions to choose the reaction and the beam energy.",
-            "The weakest link in those predictions is the probability that the touching system forms a compound nucleus instead of re-separating. KEWPIE3 is a new version of the KEWPIE2 code built to address it with Langevin dynamics."
+            "KEWPIE3 is a C++ code for fusion–evaporation reactions in heavy-ion collisions. It calculates evaporation-residue cross sections for the synthesis of heavy and superheavy nuclei, as the product of capture, compound-nucleus formation and survival. It refines the KEWPIE2 cascade code, which describes the survival of the excited nucleus, with an implemented and calibrated formation step based on Langevin dynamics."
           ]
         }
       ]
     },
     {
-      "id": "questions",
-      "heading": "Research Questions",
-      "bullet_style": "arrows",
-      "bullets": [
-        "How can the compound-nucleus formation probability be calculated more reliably with Langevin-based stochastic approaches?",
-        "Which reaction and beam energy give the best chance of producing a new element?",
-        "How far can a predicted cross section be trusted, given the data used to calibrate the model?"
-      ]
-    },
-    {
-      "id": "model",
-      "heading": "Physical Model",
+      "id": "problem",
+      "heading": "Research Problem",
       "cards": [
         {
           "style": "plain",
           "paragraphs": [
-            "Each reaction is calculated in three stages, and the evaporation-residue cross section is their product, summed over partial waves."
-          ],
-          "table": {
-            "caption": "The three stages of the model",
-            "headers": [
-              "Stage",
-              "Question",
-              "Treatment"
-            ],
-            "rows": [
-              {
-                "cells": [
-                  "Capture",
-                  "Do the two nuclei get close enough to touch?",
-                  "Transmission through the Coulomb-plus-nuclear barrier"
-                ]
-              },
-              {
-                "cells": [
-                  "Formation",
-                  "Does the touching system fuse, or re-separate by quasifission?",
-                  "Langevin (stochastic) dynamics from an injection point, with friction"
-                ]
-              },
-              {
-                "cells": [
-                  "Survival",
-                  "Does the hot compound nucleus cool by emitting particles before it fissions?",
-                  "Statistical decay cascade: neutron, charged-particle and gamma emission against fission"
-                ]
-              }
-            ]
-          },
-          "figure": "assets/fig-pathway.svg",
-          "figure_alt": "Schematic of the three stages: capture, compound-nucleus formation and survival, whose product gives the evaporation-residue cross section."
+            "Only a tiny fraction of heavy-ion collisions produce a surviving superheavy nucleus, with cross sections down to the picobarn range and below. Experiments aimed at elements such as Z = 119 and Z = 120 therefore depend on theoretical predictions to choose reactions and beam energies.",
+            "The least certain factor in these predictions is the probability that the touching system forms a compound nucleus instead of re-separating by quasifission. **Key question:** how can the calculation of the compound-nucleus formation probability be improved with Langevin-based stochastic approaches?"
+          ]
         }
       ]
     },
     {
       "id": "framework",
-      "heading": "Computational Framework",
+      "heading": "Scientific Framework",
       "layout": "grid",
       "cards": [
         {
-          "title": "Physics engine",
+          "style": "wide",
+          "title": "Three stages",
           "paragraphs": [
-            "C++ modules for each stage, with shared level-density, mass-table and fission-barrier components. The loop over beam energies runs in parallel with OpenMP."
+            "The evaporation-residue cross section is the product of the three stages below, summed over partial waves."
+          ],
+          "figure": "assets/fig-pathway.svg",
+          "figure_alt": "Schematic of the three stages: capture, compound-nucleus formation and survival, whose product gives the evaporation-residue cross section."
+        },
+        {
+          "title": "Capture",
+          "paragraphs": [
+            "Do the two nuclei get close enough to touch? Transmission of each partial wave through the barrier, in the WKB approximation with the HIVAP potential model."
           ]
         },
         {
-          "title": "Workflow",
+          "title": "Compound-nucleus formation",
           "paragraphs": [
-            "One input file selects the reaction, the energies and the mode, and one command runs a forward calculation or a fit, then plots every neutron-emission channel. Python tooling reads the same input file as the C++ engine, so the two never disagree on settings."
+            "Does the touching system fuse, or re-separate by quasifission? Langevin dynamics from an injection point, with friction. This is the step added in KEWPIE3."
           ]
         },
         {
-          "title": "Distributed runs",
+          "title": "Survival",
           "paragraphs": [
-            "Sweeps over model settings, and single fits, can be distributed across several hosts with MPI. Results are collected into one table for comparison."
+            "Does the hot compound nucleus cool by emitting particles before it fissions? A statistical decay cascade of neutron, charged-particle and gamma emission against fission, following the KEWPIE2 code (H. Lü et al., Comput. Phys. Commun. 200, 381 (2016))."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "development",
+      "heading": "Model Development",
+      "layout": "grid",
+      "cards": [
+        {
+          "title": "Fusion-by-diffusion",
+          "paragraphs": [
+            "Formation is described as a stochastic process in which the surface separation of the two nuclei diffuses over the barrier. In the overdamped limit used by fusion-by-diffusion the residual kinetic energy is fully dissipated.",
+            "[Fusion-by-diffusion in detail →](reaction-dynamics.html)"
+          ]
+        },
+        {
+          "title": "Langevin dynamics",
+          "paragraphs": [
+            "Analysis of the reduced friction coefficients suggested that the dynamics is not fully damped, so a full one-dimensional Langevin formalism was implemented and applied to hot-fusion data."
+          ]
+        },
+        {
+          "title": "KEWPIE3 implementation",
+          "paragraphs": [
+            "The formation step was implemented in the KEWPIE2 code for the first time, with both the overdamped and the full Langevin formalisms. The formation and survival steps were tested against the fusion-by-diffusion model for sets of 27 cold-fusion and 24 hot-fusion reactions (doctoral thesis)."
           ]
         }
       ]
     },
     {
       "id": "calibration",
-      "heading": "Calibration",
+      "heading": "Calibration and Sensitivity",
+      "layout": "grid",
       "cards": [
         {
-          "style": "plain",
+          "title": "Calibration strategy",
           "paragraphs": [
-            "The formation stage has two parameters that theory does not fix: the injection-point distance and the friction strength. They are fitted jointly to measured cross sections for all hot-fusion or all cold-fusion reactions.",
-            "Two optimisers are available: a random search refined by Newton–Raphson, which yields the Hessian and one-sigma errors, and Bayesian optimisation with a Gaussian-process surrogate of the loss surface. An error-weighted logarithmic chi-square gives statistically calibrated uncertainties."
+            "The formation stage has two free parameters, the injection-point distance s0 and the friction strength beta_ss. They were fitted to measured cross sections for nine ^48^Ca-induced hot-fusion reactions (compound nuclei ^285^Nh to ^297^Og; Dubna, GSI and LBNL data) by Gaussian-process Bayesian optimisation of an uncertainty-weighted logarithmic objective. The fit gives s0 = 6.65 fm and beta_ss = 1.16 × 10^21^ s^−1^."
+          ]
+        },
+        {
+          "title": "Parameter variation",
+          "paragraphs": [
+            "The nuclear-model configuration was chosen from a 96-configuration factorial study of discrete settings, such as the level-density model, shell damping, fission friction and the Kramers factor. A profile scan of beta_ss tests whether the data constrain it."
+          ]
+        },
+        {
+          "title": "Uncertainty and sensitivity analysis",
+          "paragraphs": [
+            "The confidence region of the fit is traced by direct evaluation of the Δχ² surface. The two parameters are strongly anti-correlated, and the shaded bands in the figures show the response along that compensation direction. They are not a full uncertainty estimate: sensitivity to the calibration data and to the nuclear-structure inputs was studied separately and is not included."
           ]
         }
       ]
     },
     {
-      "id": "sensitivity",
-      "heading": "Sensitivity Analysis",
+      "id": "computing",
+      "heading": "Computational Framework",
+      "layout": "grid",
       "cards": [
         {
-          "style": "plain",
+          "title": "C++, GSL and OpenMP",
           "paragraphs": [
-            "The fit is repeated across a grid of model choices outside the fitted parameters: the level-density model, the damping of shell effects, the friction in the fission width, the Kramers factor with collective enhancement, and a temperature correction to the fission barrier. Each setting is judged both by fit quality and by how stable the fit stays when the other choices change."
+            "A C++ engine with modules for capture, formation and survival, built on the GNU Scientific Library. The loop over beam energies runs in parallel with OpenMP. One input file selects the reaction, the energies and the mode, and Python and gnuplot tooling reads the same file to fit, plot and trace uncertainty."
           ]
-        }
-      ]
-    },
-    {
-      "id": "uncertainty",
-      "heading": "Uncertainty Quantification",
-      "cards": [
+        },
         {
-          "style": "plain",
+          "title": "Optimisation",
           "paragraphs": [
-            "The confidence region of the fit is traced by direct evaluation of the Δχ² surface, not by a Gaussian approximation, and refined along the correlation direction of the two parameters. Forward calculations at points spanning that region give a confidence corridor around every predicted excitation function."
+            "Two optimisers are available: a random search refined by Newton–Raphson, which gives the Hessian and one-sigma errors, and Bayesian optimisation with a Gaussian-process surrogate. An error-weighted logarithmic chi-square gives statistically calibrated uncertainties."
+          ]
+        },
+        {
+          "title": "MPI and multi-Mac computing",
+          "paragraphs": [
+            "Parameter sweeps and single fits can be distributed across several machines with MPI, and the results are collected into one ranked table. MPI is optional, and a single-machine run needs only the compiler, GSL and gnuplot."
           ]
         }
       ]
@@ -136,26 +141,80 @@
     {
       "id": "results",
       "heading": "Results",
+      "layout": "grid",
+      "cards": [
+        {
+          "style": "wide",
+          "title": "Validation",
+          "paragraphs": [
+            "The calculation reproduces the broad magnitude and energy dependence of most excitation functions for ^48^Ca-induced reactions on targets from ^237^Np to ^249^Cf. The median ratio of calculated to measured cross section at the channel maxima is 1.19, and 29 of 30 entries are within one order of magnitude. Agreement varies by reaction and channel, and these are descriptive statistics, not an independent validation."
+          ],
+          "figures": [
+            {
+              "image": "assets/figures/kewpie3-theory-vs-experiment.webp",
+              "full": "assets/figures/kewpie3-theory-vs-experiment-full.webp",
+              "width": 1100,
+              "height": 1100,
+              "alt": "Nine panels of evaporation-residue cross section in picobarns, on a logarithmic axis, against centre-of-mass energy for calcium-48 beams on targets from neptunium-237 to californium-249, with KEWPIE3 curves and shaded bands, and measured points with error bars from Dubna, GSI and LBNL.",
+              "caption": "KEWPIE3 calculation (curves, 2n to 5n channels) for ^48^Ca-induced reactions, compared with measured excitation functions from Dubna, GSI and LBNL (points). Shaded bands show the response to correlated variation of s0 and beta_ss, not a full uncertainty."
+            },
+            {
+              "image": "assets/figures/kewpie3-theory-experiment-ratio.webp",
+              "width": 1100,
+              "height": 611,
+              "alt": "Ratio of calculated to measured evaporation-residue cross sections at the channel maxima, on a logarithmic axis, for targets from neptunium-237 to californium-249.",
+              "caption": "Ratio of calculated to measured cross section at each measured channel maximum, by target (marker shape: channel; colour: laboratory)."
+            }
+          ]
+        },
+        {
+          "style": "wide",
+          "title": "Representative predictions",
+          "paragraphs": [
+            "Cross sections calculated with the same calibrated parameters, without refitting, for four reactions not yet measured: ^248^Cm(^51^V,xn) and ^243^Am(^54^Cr,xn) towards Z = 119, and ^248^Cm(^54^Cr,xn) and ^249^Cf(^50^Ti,xn) towards Z = 120. The predicted cross sections are of the order of a femtobarn, which is an experimental challenge. They extrapolate to different projectiles, and the bands do not include that additional uncertainty."
+          ],
+          "figures": [
+            {
+              "image": "assets/figures/kewpie3-predictions-four.webp",
+              "width": 560,
+              "height": 574,
+              "alt": "Four panels of predicted evaporation-residue cross sections in femtobarns against centre-of-mass energy, with curves for the 2n to 5n channels.",
+              "caption": "Predicted cross sections for four reactions not yet measured, with the calibrated parameters and no refitting."
+            }
+          ]
+        },
+        {
+          "title": "Sensitivity findings",
+          "paragraphs": [
+            "In the factorial study, the Kramers stationary factor accounted for most of the variation in fit quality (η² = 0.906), and the temperature correction to the fission barrier had no measurable effect. A smaller fission friction gave a slightly worse fit but a much more stable one (analysis notebook in the code repository). A full, published sensitivity analysis is in progress."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "development-now",
+      "heading": "Current Development",
       "cards": [
         {
           "style": "plain",
           "paragraphs": [
-            "Validation against measured hot- and cold-fusion cross sections is in progress. Results will be reported in the KEWPIE3 publication and the manuscript on uncertainty analysis of nuclear reaction models, both in preparation."
+            "Validation and publication of KEWPIE3 are in progress. Two manuscripts are in preparation: one revisiting the fusion dynamics in the fusion-by-diffusion model, and one on uncertainty analysis of nuclear reaction models. The code was last updated in September 2026."
           ]
         }
       ]
     },
     {
       "id": "outputs",
-      "heading": "Outputs",
+      "heading": "Publications and Technical Reports",
       "cards": [
         {
           "style": "plain",
           "bullets": [
-            "**Publications:** KEWPIE3 paper and uncertainty-analysis manuscript in preparation; related work on the [Publications](publications.html) page",
-            "**Software:** KEWPIE3 (C++, with Python tooling)",
-            "**Documentation:** code overview and user guide maintained with the code",
-            "**Repository:** not yet public"
+            "**Doctoral thesis:** [Study of reaction mechanisms for the synthesis of superheavy elements, University of Caen Normandy (2024)](https://theses.hal.science/tel-04901809v1/file/sygal_fusion_50635_donglo_hope_678e54093d221.pdf)",
+            "**Manuscripts in preparation:** KEWPIE3; fusion dynamics; uncertainty analysis of nuclear reaction models",
+            "**Technical documentation:** code overview and user guide, maintained with the code",
+            "**Software:** KEWPIE3 (C++ with Python tooling); the repository is not yet public",
+            "[All publications →](publications.html)"
           ]
         }
       ]
