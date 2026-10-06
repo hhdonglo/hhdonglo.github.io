@@ -182,5 +182,63 @@
       "figure_alt": "Schematic of superheavy-element synthesis in three stages: capture, compound-nucleus formation and survival. The evaporation-residue cross section is the product of the three.",
       "figure_caption": "Superheavy-element synthesis as three stages: capture, formation and survival."
     }
+  },
+  "background": {
+    "title": "Research Background",
+    "paragraphs": [
+      "My research is in theoretical nuclear physics, on the reaction mechanisms that lead to the formation of heavy and superheavy nuclei. My training began with a BSc in Physics at the University of Ghana, followed by the Erasmus Mundus Joint Master's in Nuclear Physics at universities in Spain, Italy and France, where I studied nuclear structure with the symmetry-conserving configuration mixing method.",
+      "My doctoral research at the University of Caen Normandy, within the CEA NUMERICS programme at GANIL, moved to reaction dynamics. It addressed the synthesis of superheavy elements by fusion–evaporation reactions, in particular the formation of the compound nucleus, which I implemented in the KEWPIE2 code as the basis of KEWPIE3.",
+      "Since then my work has combined reaction modelling with calibration against experimental data and uncertainty quantification, supported by scientific computing. The same methods carry over to machine learning and data engineering, which I develop alongside the physics."
+    ],
+    "cards": [
+      {
+        "title": "Nuclear Reaction Dynamics",
+        "bullets": [
+          "Fusion–evaporation reactions in three stages: capture, formation and survival",
+          "Langevin dynamics for compound-nucleus formation",
+          "Competition between fusion and quasifission"
+        ]
+      },
+      {
+        "title": "Superheavy-Element Synthesis",
+        "bullets": [
+          "Production cross sections for heavy and superheavy nuclei, including elements 119 and 120",
+          "Cold and hot fusion reactions",
+          "Links to synthesis and decay studies at S^3^"
+        ]
+      },
+      {
+        "title": "Nuclear Structure",
+        "bullets": [
+          "Symmetry-conserving configuration mixing method",
+          "Even-even argon isotopes",
+          "Master's research in nuclear structure"
+        ]
+      },
+      {
+        "title": "Calibration and Uncertainty",
+        "bullets": [
+          "Joint fits of model parameters to experimental cross sections",
+          "Newton–Raphson refinement and Bayesian optimisation",
+          "Confidence regions and sensitivity analysis"
+        ]
+      },
+      {
+        "title": "Scientific Computing",
+        "bullets": [
+          "KEWPIE3, a C++ code with Python tooling",
+          "Parallel and distributed calculations (OpenMP and MPI)",
+          "Reproducible calculation and fitting workflows"
+        ]
+      },
+      {
+        "title": "Machine Learning and Data Engineering",
+        "bullets": [
+          "Gaussian-process surrogates for calibration",
+          "Data pipelines and workflow automation",
+          "Retrieval-augmented generation and data analysis projects"
+        ]
+      }
+    ]
   }
 }
