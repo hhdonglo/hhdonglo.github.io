@@ -815,3 +815,6 @@ ul.rq{margin:.3rem 0 .6rem}
 @media (max-width:480px){.fh-cards{grid-template-columns:1fr}}
 .rq-sub{margin:.4rem 0 .6rem;font-size:1.05rem}
 .eq-line{margin:.4rem 0}
+.fh-block h4.fh-sub-h{margin:.9rem 1.1rem 0;padding-top:.7rem;border-top:1px solid #2A3F73;color:#F4F1EA;font-size:1.02rem}
+.fh-vision p{margin-bottom:0}
+.fh-vision ul{margin-top:.4rem}
