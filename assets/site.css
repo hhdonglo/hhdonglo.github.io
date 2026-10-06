@@ -863,3 +863,5 @@ nav.jump .links a,.sub a,footer li a,.profile-side li a,.fh-blocks li a,.crumb a
 .related a{display:inline-flex;align-items:center;min-height:44px;padding:.3rem .9rem;border:1px solid var(--border);border-radius:999px;background:var(--surface);text-decoration:none;font:.95rem system-ui,sans-serif}
 .related a:hover{background:var(--sky);border-color:var(--brown-edge)}
 @media (prefers-color-scheme:dark){.related a:hover{background:#2A3F73;color:#F4F1EA}}
+.earlier-item{margin-top:1rem}
+.earlier-item .status{display:block;margin-bottom:.6rem}

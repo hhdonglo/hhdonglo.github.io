@@ -293,20 +293,44 @@
   },
   "earlier": {
     "title": "Earlier Research",
-    "cards": [
+    "intro": "My earlier research moved from nuclear structure to nuclear reaction dynamics. The studies below are listed in chronological order, and the methods and current work that follow from them are described in the sections above.",
+    "sections": [
       {
-        "title": "Reaction Mechanisms for Superheavy-Element Synthesis",
-        "text": "Doctoral research on theoretical models of reaction mechanisms involved in the synthesis of superheavy nuclei."
+        "title": "Reactor safety evaluation",
+        "meta": "BSc thesis, University of Ghana, 2016",
+        "paragraphs": [
+          "The undergraduate thesis evaluated the safety status of the Ghana Research Reactor-1."
+        ]
       },
       {
-        "title": "Nuclear Structure",
-        "text": "Symmetry-conserving configuration-mixing calculations of even-even argon isotopes."
+        "title": "Nuclear structure with symmetry-conserving configuration mixing",
+        "meta": "MSc dissertation, Universidad Autónoma de Madrid, Erasmus Mundus Joint Master in Nuclear Physics, September 2020. Supervisor: T. R. Rodríguez Frutos",
+        "paragraphs": [
+          "The dissertation sets out the symmetry-conserving configuration mixing (SCCM) method, a beyond-mean-field approach based on the variational principle. An axially symmetric version of the method is applied to the even-even argon isotopes (A = 32 to 58), and then to ^152,154^Nd and ^78^Kr.",
+          "In the argon isotopes, collectivity appears with a mixing of oblate and prolate shapes. The magic numbers N = 20 and 28 persist along the isotopic chain, and neutron sub-shell closures at ^56^Ar and ^58^Ar are indicated by the first excitation energies and the charge radius. Binding energies per nucleon and charge radii are reproduced along the chain, in good agreement with experiment. ^152,154^Nd are well deformed, with two rotational bands in which prolate and oblate shapes coexist. ^78^Kr shows an admixture of oblate and prolate shapes, and the moment of inertia of its first excited 0^+^ state is about one third of that of the ground state, which reinforces the evidence for shape coexistence."
+        ],
+        "links": [
+          {
+            "label": "Argon isotopes: preprint on HAL",
+            "url": "https://hal.science/hal-05677054"
+          }
+        ]
       },
       {
-        "title": "Earlier Work",
-        "text": "Nuclear structure and nuclear reactor-related research."
+        "title": "Reaction mechanisms for superheavy-element synthesis",
+        "meta": "PhD thesis, University of Caen Normandy, 2024. Doctoral research at CEA/GANIL",
+        "paragraphs": [
+          "Nuclei with Z ≥ 104 do not exist in nature, because their macroscopic fission barriers vanish. Quantum shell corrections stabilise them. The thesis addresses their synthesis in fusion–evaporation reactions, described in three stages: capture, formation and survival. The KEWPIE2 code simulated capture and survival, and relied on external calculations for the formation probability.",
+          "The formation step was implemented in KEWPIE2 for the first time, with both the overdamped and the full Langevin formalisms. These implementations are the basis of KEWPIE3. The injection-point distance was optimised on cold- and hot-fusion data. In hot fusion, the evaporation-residue cross sections are reproduced, typically to better than an order of magnitude. In cold fusion, the multiple neutron-emission channels are described with an additional structural term: the 1n channel deviates from the data by a factor, and the 2n and 3n channels agree within an order of magnitude. The survival probability was modelled with the latest data for superheavy elements, and the formation and survival steps were tested against the fusion-by-diffusion model for 27 cold- and 24 hot-fusion reactions.",
+          "The reduced friction coefficients obtained in the overdamped approach indicate that the dynamics is not fully damped. A full one-dimensional Langevin formalism was therefore implemented and applied to hot-fusion data, and its fits confirm this result. Its predictions agree with the data within an order of magnitude. Predictions for the synthesis of elements with Z = 119 and 120 are consistent with those of other codes. A method for comparing ratios of formation probabilities was proposed for the synthesis of ^258^No and ^259^Db. The work establishes KEWPIE2 as a self-contained tool for studying superheavy-element synthesis and for guiding experiments."
+        ],
+        "links": [
+          {
+            "label": "Thesis (HAL)",
+            "url": "https://theses.hal.science/tel-04901809v1/file/sygal_fusion_50635_donglo_hope_678e54093d221.pdf"
+          }
+        ]
       }
-    ],
-    "details_summary": "Thesis summaries and key results"
+    ]
   }
 }
