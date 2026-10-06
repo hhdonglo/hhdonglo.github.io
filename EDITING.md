@@ -118,3 +118,7 @@ The practice quiz of lecture N lives at `phys143-lecture-N-practice.html`. The o
 - Previous Research cards (Research form) each take an optional "Links" list (link text and address; opens in a new tab). The doctoral card links to the PhD thesis on HAL, and the same link is on the thesis entry in Publications.
 
 - Previous Research (Research form): each card has Card text (one line) and, optionally, a Summary paragraph, a bulleted Key results list and a Links list. A card with a summary gets a "Summary and key results" button; the summary opens in a panel directly beneath the card row (beneath the card itself on phones) and closes with Close or Esc. Leave the Summary empty for a card without one. (The earlier thesis summary pages now redirect here.)
+
+## Reports from students
+
+Each practice question shows a quiet "Report a problem or suggest a correction" link after it is answered. It opens a prefilled issue in the public repository `hhdonglo/hhdonglo.github.io` (Issues must stay switched on in the repository settings). Reports need a free GitHub account and carry the lecture, the question id and the answer shown. An email form or a Pages CMS form is an alternative if issues are not wanted.

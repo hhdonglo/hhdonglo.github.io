@@ -868,3 +868,9 @@ nav.jump .links a,.sub a,footer li a,.profile-side li a,.fh-blocks li a,.crumb a
 /* framing question under each main section heading */
 .sec-q{margin:-.1rem 0 .9rem;font-style:italic;color:var(--muted)}
 h3.sub2+.sec-q{margin-top:-.1rem}
+
+/* practice pages: quiet report link and note */
+.fb .report{margin:.7rem 0 0;font:.85rem/1.4 system-ui,sans-serif}
+.fb .report a{color:var(--muted);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:.18em}
+.fb .report a:hover,.fb .report a:focus-visible{color:var(--link);text-decoration-thickness:2px}
+.quiz-note{margin:1rem 0 0;max-width:46rem}
