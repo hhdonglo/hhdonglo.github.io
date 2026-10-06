@@ -884,3 +884,8 @@ h3.sub2+.sec-q{margin-top:-.1rem}
 .banner.slim .brand-logo img{height:46px}
 @media (min-width:701px){.banner h1,.banner .areas,.banner .course{padding-right:280px}}
 @media (max-width:700px){.brand-logo img{height:40px;width:40px}.banner.slim .brand-logo img{height:34px;width:34px}.banner h1{padding-right:56px}}
+
+/* Homepage header: one quiet line under the headline */
+.banner.masthead .mast-tag{order:3;margin:0;font:400 .92rem/1.4 Georgia,'Times New Roman',serif;letter-spacing:.02em;color:rgba(244,241,234,.82)}
+@media (min-width:701px){.banner.masthead .mast-tag{padding-right:280px}}
+@media (max-width:700px){.banner.masthead .mast-tag{font-size:.85rem;padding-right:56px}}
