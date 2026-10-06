@@ -121,4 +121,6 @@ The practice quiz of lecture N lives at `phys143-lecture-N-practice.html`. The o
 
 ## Reports from students
 
-Each practice question shows a quiet "Report a problem or suggest a correction" link after it is answered. It opens a prefilled issue in the public repository `hhdonglo/hhdonglo.github.io` (Issues must stay switched on in the repository settings). Reports need a free GitHub account and carry the lecture, the question id and the answer shown. An email form or a Pages CMS form is an alternative if issues are not wanted.
+Each practice question shows a quiet "Report a problem or suggest a correction" link after it is answered. It opens a Google Form in a new tab with the lecture, the question id, the question and the answer shown already filled in, so students need no account.
+
+To set it up: create a Google Form with five short fields in this order (Lecture, Question id, Question, Answer shown, Comment), send the responses to a Google Sheet, then use the form's menu "Get pre-filled link", fill the first four fields with any text, and copy the link. Put the form address (ending in `/viewform`) and the five `entry.NNNNNNNNN` numbers into the `REPORT_FORM` block at the top of the reports section in `assets/practice.js`. Until the form address is set, the link and the note under the quiz stay hidden; add `?reportpreview=1` to a practice page address to preview them.

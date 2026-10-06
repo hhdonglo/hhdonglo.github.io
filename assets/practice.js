@@ -80,23 +80,30 @@
     try { return new Date(ts).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }); } catch (e) { return ''; }
   }
 
-  /* ---------- reports: a prefilled GitHub issue in this site's public repository ---------- */
-  var ISSUES_URL = 'https://github.com/hhdonglo/hhdonglo.github.io/issues/new';
+  /* ---------- reports: a prefilled Google Form, no account needed ----------
+     CONFIG: replace the three values below once the form exists (see EDITING.md, "Reports from students").
+     FORM_URL  : the form's address ending in /viewform
+     ENTRY     : the entry.NNNNNNNNN id of each field, from the form's "Get pre-filled link"
+     Until FORM_URL is set the report link stays hidden (add ?reportpreview=1 to a practice page to preview it). */
+  var REPORT_FORM = {
+    FORM_URL: 'https://docs.google.com/forms/d/e/PLACEHOLDER_FORM_ID/viewform',
+    ENTRY: { lecture: 'entry.1111111111', id: 'entry.2222222222', question: 'entry.3333333333', answer: 'entry.4444444444', comment: 'entry.5555555555' }
+  };
+  var reportLive = REPORT_FORM.FORM_URL.indexOf('PLACEHOLDER') === -1 || /[?&]reportpreview=1/.test(window.location.search);
   function clip(t, n) { t = plain(String(t == null ? '' : t)).replace(/\s+/g, ' ').trim(); return t.length > n ? t.slice(0, n - 1) + '…' : t; }
   function reportUrl(n, quiz, q, sel) {
-    var body = '**Lecture:** ' + n + (LECTURES[n] ? ' (' + LECTURES[n] + ')' : '') + '\n' +
-      '**Question id:** ' + q.id + '\n' +
-      '**Question:** ' + clip(q.q, 500) + '\n' +
-      '**Answer on the site:** ' + clip(q.options[q.answer], 200) + '\n' +
-      (sel != null && sel !== q.answer ? '**My answer:** ' + clip(q.options[sel], 200) + '\n' : '') +
-      '\n**What is the problem, or what correction do you suggest?**\n\n';
-    var title = 'Practice question report: Lecture ' + n + ', ' + q.id;
-    return ISSUES_URL + '?title=' + encodeURIComponent(title) + '&body=' + encodeURIComponent(body);
+    var E = REPORT_FORM.ENTRY, shown = clip(q.options[q.answer], 200) + (sel != null && sel !== q.answer ? ' (my answer: ' + clip(q.options[sel], 200) + ')' : '');
+    var parts = ['usp=pp_url',
+      E.lecture + '=' + encodeURIComponent('Lecture ' + n + (LECTURES[n] ? ': ' + LECTURES[n] : '')),
+      E.id + '=' + encodeURIComponent(q.id),
+      E.question + '=' + encodeURIComponent(clip(q.q, 500)),
+      E.answer + '=' + encodeURIComponent(shown)];
+    return REPORT_FORM.FORM_URL + '?' + parts.join('&');
   }
   function reportNote() {
-    if (document.getElementById('quiz-report-note')) return;
+    if (!reportLive || document.getElementById('quiz-report-note')) return;
     var p = el('p', { id: 'quiz-report-note', 'class': 'note quiz-note' },
-      'Found a mistake or have a better explanation? After answering a question, use “Report a problem or suggest a correction”. It opens a public issue on this site’s GitHub repository with the question already filled in, and needs a free GitHub account. Reports are reviewed by the lecturer.');
+      'Found a mistake or have a better explanation? After answering a question, use “Report a problem or suggest a correction”. It opens a short form with the question already filled in, and no account is needed. Reports go to the lecturer.');
     app.parentNode.insertBefore(p, app.nextSibling);
   }
 
@@ -227,9 +234,11 @@
       }
       d.appendChild(el('p', null, q.exp));
       if (q.ref) d.appendChild(el('p', { 'class': 'ref' }, 'Review: ' + q.ref));
+      if (reportLive) {
       var rp = el('p', { 'class': 'report' });
       var ra = el('a', { href: reportUrl(n, quiz, q, sel), target: '_blank', rel: 'noopener noreferrer' }, 'Report a problem or suggest a correction');
       rp.appendChild(ra); d.appendChild(rp);
+      }
       fb.innerHTML = '';
       fb.appendChild(d);
       nav.innerHTML = '';
