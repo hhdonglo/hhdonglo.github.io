@@ -826,3 +826,40 @@ ul.rq{margin:.3rem 0 .6rem}
 .sub-under h3.sub2{font-size:1.1rem;margin:1.6rem 0 .5rem;border-left-width:4px}
 ul.tags{margin:.2rem 0 1rem}
 h3.sub2+.intro{margin-top:.4rem}
+
+/* ---- Link style: no underline on navigation-type links; clear hover, focus and tap states ---- */
+a{transition:color .15s,background-color .15s,box-shadow .15s,transform .15s}
+nav.jump a,footer a,.profile-side a,.side-links a,.ext-links a,.crumb a,.crumb-nav a,a.more,.home-soon a,.fh-cards a,.fh-blocks a,.chips a,.lvl-nav a,.sub a,.path-links a,.card-link,.tree a,.pager a,.btn{text-decoration:none}
+nav.jump a:hover,footer a:hover,.profile-side a:hover,.side-links a:hover,.ext-links a:hover,.crumb a:hover,.crumb-nav a:hover,a.more:hover,.fh-blocks li a:hover,.tree a:hover,.pager a:hover{background:var(--sky);color:var(--navy);border-radius:4px}
+@media (prefers-color-scheme:dark){nav.jump a:hover,footer a:hover,.profile-side a:hover,.side-links a:hover,.ext-links a:hover,.crumb a:hover,.crumb-nav a:hover,a.more:hover,.fh-blocks li a:hover,.tree a:hover,.pager a:hover{background:#2A3F73;color:#F4F1EA}}
+nav.jump a[aria-current="page"]{text-decoration:none;border-bottom:3px solid var(--brown-edge)}
+.fh-blocks li a,.profile-side a,.side-links a{display:inline-block;padding:.15rem .35rem;margin-left:-.35rem}
+.fh-cards .fh-card,.ov-card.link-card,.home-soon .soon-strip{transition:transform .15s,box-shadow .15s,background-color .15s,border-color .15s}
+.fh-cards .fh-card:hover,.fh-cards .fh-card:focus-visible,.home-soon .soon-strip:hover,.home-soon .soon-strip:focus-visible,.ov-card.link-card:hover{transform:translateY(-2px);box-shadow:0 6px 14px rgba(0,0,0,.28)}
+.fh-cards .fh-card:hover{border-color:#F4F1EA}
+.home-soon .soon-strip:hover{background:#22305a}
+/* running text keeps a quiet underline, thickened on hover */
+.ov-card p a,.intro a,.note a,main li a:not(.btn){text-decoration-thickness:1px;text-underline-offset:.18em;text-decoration-color:currentColor}
+.ov-card p a:hover,.intro a:hover,.note a:hover{text-decoration-thickness:2px}
+.fh-blocks li a,.fh-blocks p a,.fh-vision a{text-decoration:none}
+/* keyboard focus: always visible */
+a:focus-visible,button:focus-visible,.btn:focus-visible,summary:focus-visible{outline:3px solid #D6B07C;outline-offset:3px;border-radius:4px}
+/* touch: larger targets */
+@media (pointer:coarse){
+nav.jump .links a,.sub a,footer li a,.profile-side li a,.fh-blocks li a,.crumb a{display:inline-flex;align-items:center;min-height:44px}
+.fh-cards .fh-card:hover{transform:none}
+}
+@media (prefers-reduced-motion:reduce){a,.fh-cards .fh-card,.ov-card.link-card,.home-soon .soon-strip{transition:none}.fh-cards .fh-card:hover,.home-soon .soon-strip:hover,.ov-card.link-card:hover{transform:none}}
+.fh-blocks li a,.fh-blocks p a{color:#E3C99D}
+.fh-blocks li a:hover{color:#F4F1EA}
+/* phone: lecture resource buttons never force the page wider */
+.lecture-buttons>*{min-width:0}
+.lecture-buttons .btn{overflow-wrap:anywhere}
+@media (max-width:700px){.lecture-buttons{grid-template-columns:repeat(2,minmax(0,1fr))}.res-b{grid-template-columns:minmax(0,1fr)}}
+/* related pages row at the foot of main pages */
+.related{margin:2.2rem 0 0;padding-top:1rem;border-top:1px solid var(--border)}
+.related h3{margin:0 0 .5rem;font:700 .8rem system-ui,sans-serif;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.related ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:.5rem}
+.related a{display:inline-flex;align-items:center;min-height:44px;padding:.3rem .9rem;border:1px solid var(--border);border-radius:999px;background:var(--surface);text-decoration:none;font:.95rem system-ui,sans-serif}
+.related a:hover{background:var(--sky);border-color:var(--brown-edge)}
+@media (prefers-color-scheme:dark){.related a:hover{background:#2A3F73;color:#F4F1EA}}
