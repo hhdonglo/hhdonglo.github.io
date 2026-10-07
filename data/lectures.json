@@ -39,6 +39,7 @@
             "Apply kinematics to free fall, projectile, circular and relative motion."
           ],
           "slides": "PHYS143/lecture_2/lecture02_motion.pdf",
+          "reference": "PHYS143/lecture_2/lecture02_motion_reference.pdf",
           "tutorial": "PHYS143/lecture_2/lecture02_tutorial.pdf",
           "supplement": "PHYS143/lecture_2/lecture02_supplement.pdf",
           "contact_focus": [
