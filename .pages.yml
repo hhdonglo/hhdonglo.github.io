@@ -673,6 +673,9 @@ content:
       - name: tutorial
         label: 'Button: Tutorial (PDF path; leave empty for Coming soon)'
         type: string
+      - name: reference
+        label: 'Button: Reference slides (PDF path; optional, hidden when empty)'
+        type: string
       - name: supplement
         label: 'Button: Supplementary (PDF path; leave empty for Coming soon)'
         type: string

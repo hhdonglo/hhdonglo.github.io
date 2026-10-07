@@ -118,7 +118,7 @@ R.weekly=function(el,d){
   el.innerHTML=cof+mj+d.groups.map(function(g){
     return '<div class="week-group" id="'+esc(g.id)+'"><h4 class="grp">'+md(g.title)+'</h4><p class="sec-sub">'+md(g.subtitle)+'</p><ul class="weeks">'+g.lectures.map(function(l){
       var n=l.number,soon=l.status==="soon";
-      return '<li class="week'+(soon?' soon':'')+'" id="lecture-'+n+'"><span class="wk">Week '+n+'</span><span class="wt"><a href="'+lpage(n)+'">'+(soon?'Coming soon':md(l.title))+'</a><span class="state'+(soon?'':' ok')+'">'+(soon?'Coming soon':'Available')+'</span></span><span class="ws">'+md(soon?(l.note||"Materials are being prepared."):l.summary)+'</span>'+(soon?'':'<span class="wl">'+[wlink(l.slides,"Slides",n),wlink(l.supplement,"Supplementary",n),wlink(l.tutorial,"Tutorial",n),wlink(l.practice==="soon"?"":ppage(n),"Practice questions",n)].join(" ")+'</span>')+'</li>'}).join("")+'</ul></div>'}).join("")+mk;
+      return '<li class="week'+(soon?' soon':'')+'" id="lecture-'+n+'"><span class="wk">Week '+n+'</span><span class="wt"><a href="'+lpage(n)+'">'+(soon?'Coming soon':md(l.title))+'</a><span class="state'+(soon?'':' ok')+'">'+(soon?'Coming soon':'Available')+'</span></span><span class="ws">'+md(soon?(l.note||"Materials are being prepared."):l.summary)+'</span>'+(soon?'':'<span class="wl">'+[wlink(l.slides,"Slides",n),wlink(l.supplement,"Supplementary",n),(l.reference?wlink(l.reference,"Reference slides",n):""),wlink(l.tutorial,"Tutorial",n),wlink(l.practice==="soon"?"":ppage(n),"Practice questions",n)].join(" ")+'</span>')+'</li>'}).join("")+'</ul></div>'}).join("")+mk;
 };
 function isPdf(u){return /\.pdf(\?|#|$)/i.test(u||"")}
 function lbtn(url,label,n,primary){
@@ -138,7 +138,7 @@ R.lecture=function(el,d,site){
   var out='';
   if(soon){out+='<div class="ov-card"><p>This lecture will be added when it is ready.</p></div>'}
   else{
-    out+='<div class="lecture-buttons" role="group" aria-label="Lecture resources">'+lbtn(l.slides,"Lecture slides",n,true)+lbtn(l.supplement,"Supplementary note",n)+lbtn(l.tutorial,"Tutorial sheet",n)+lbtn(l.practice==="soon"?"":ppage(n),"Practice questions",n)+'</div>';
+    out+='<div class="lecture-buttons" role="group" aria-label="Lecture resources">'+lbtn(l.slides,"Lecture slides",n,true)+lbtn(l.supplement,"Supplementary note",n)+(l.reference?lbtn(l.reference,"Reference slides",n):"")+lbtn(l.tutorial,"Tutorial sheet",n)+lbtn(l.practice==="soon"?"":ppage(n),"Practice questions",n)+'</div>';
     out+='<details class="fold" id="objectives" open><summary>Learning objectives</summary><div class="ov-card"><p>Students should be able to:</p>'+list(l.outcomes||[],"")+'</div></details>';
     var focus=l.contact_focus||[];
     (d.contacts||[]).forEach(function(c,k){
