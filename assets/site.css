@@ -973,3 +973,18 @@ ol.mock-review a.btn.report-btn{margin-left:0}
 .quiz-track input:focus-visible{outline:3px solid #D6B07C;outline-offset:2px}
 .quiz-track .btn{margin:.2rem .2rem .2rem 0}
 .quiz-track .track-note{margin:.5rem 0 0}.quiz-track .track-state{margin:.3rem 0 0;font-weight:600;min-height:1.2em}
+
+/* Mock exam: featured card, jump line and menu entry */
+.mock-feature{margin:1.6rem 0 0;padding:1.4rem 1.5rem;border:2px solid #D6B07C;border-radius:12px;background:linear-gradient(135deg,#16294b,#1A2645);box-shadow:0 0 0 4px rgba(214,176,124,.12)}
+.mock-feature .mf-kicker{margin:0;font:700 .8rem system-ui,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#D6B07C}
+.mock-feature .mf-title{margin:.2rem 0 .5rem;font:700 clamp(1.7rem,5vw,2.3rem)/1.15 Georgia,serif;color:#F4F1EA}
+.mock-feature .mf-text{margin:0 0 .8rem;max-width:44rem;color:#D7DDE8}
+.mock-feature .mf-meta{display:flex;flex-wrap:wrap;gap:.5rem;margin:0 0 1rem;padding:0}
+.mock-feature .mf-meta span{border:1px solid rgba(214,176,124,.6);border-radius:99px;padding:.2rem .7rem;font:600 .85rem system-ui,sans-serif;color:#F4F1EA}
+.mock-feature .mf-btn{min-height:48px;padding:.5rem 1.4rem;font-size:1.05rem;background:#D6B07C;border-color:#D6B07C;color:#16294b}
+.mock-feature .mf-btn:hover{background:#e6c391;filter:none}
+.mock-feature .mf-btn:focus-visible{outline:3px solid #F4F1EA;outline-offset:3px}
+.mock-jump{margin:0 0 1rem}
+.mock-jump a{display:flex;align-items:center;min-height:44px;padding:.4rem .9rem;border:1.5px solid #D6B07C;border-radius:8px;color:#F4F1EA;text-decoration:none;background:rgba(214,176,124,.1)}
+.mock-jump a:hover,.mock-jump a:focus-visible{background:rgba(214,176,124,.22)}
+nav.jump a[href="mock-exam.html"]{color:#D6B07C;font-weight:700}
