@@ -931,3 +931,9 @@ h3.sub2+.sec-q{margin-top:-.1rem}
 .banner.slim .course{margin:0}
 .banner.slim .wrap{padding-top:1.15rem;padding-bottom:1.15rem;min-height:3.6rem;display:flex;flex-direction:column;justify-content:center}
 @media (max-width:700px){.banner.slim .wrap{padding-top:.9rem;padding-bottom:.9rem;min-height:3.2rem}.banner.slim .course{padding-right:56px}}
+
+/* Report link under the answer options, visible from the start */
+.q-report{margin:.8rem 0 0;font:.85rem/1.4 system-ui,sans-serif}
+.q-report a{color:var(--muted);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:.18em}
+.q-report a:hover,.q-report a:focus-visible{color:var(--link);text-decoration-thickness:2px}
+@media (max-width:700px){.q-report a{display:inline-flex;align-items:center;min-height:44px}}

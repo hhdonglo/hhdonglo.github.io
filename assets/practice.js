@@ -103,7 +103,7 @@
   function reportNote() {
     if (!reportLive || document.getElementById('quiz-report-note')) return;
     var p = el('p', { id: 'quiz-report-note', 'class': 'note quiz-note' },
-      'Found a mistake or have a better explanation? After answering a question, use “Report a problem or suggest a correction”. It opens a short form with the question already filled in, and no account is needed. Reports go to the lecturer.');
+      'Found a mistake or have a better explanation? Use “Report a problem or suggest a correction” under any question. It opens a short form with the question already filled in, and no account is needed. Reports go to the lecturer.');
     app.parentNode.insertBefore(p, app.nextSibling);
   }
 
@@ -209,6 +209,12 @@
       li.appendChild(b); ul.appendChild(li); buttons.push(b);
     });
     app.appendChild(ul);
+    var repA = null;
+    if (reportLive) {
+      var repP = el('p', { 'class': 'q-report' });
+      repA = el('a', { href: reportUrl(n, quiz, q, null), target: '_blank', rel: 'noopener noreferrer' }, 'Report a problem or suggest a correction');
+      repP.appendChild(repA); app.appendChild(repP);
+    }
     var fb = el('div', { 'class': 'fb-wrap', role: 'status' });
     app.appendChild(fb);
     var nav = el('div', { 'class': 'row' });
@@ -234,11 +240,7 @@
       }
       d.appendChild(el('p', null, q.exp));
       if (q.ref) d.appendChild(el('p', { 'class': 'ref' }, 'Review: ' + q.ref));
-      if (reportLive) {
-      var rp = el('p', { 'class': 'report' });
-      var ra = el('a', { href: reportUrl(n, quiz, q, sel), target: '_blank', rel: 'noopener noreferrer' }, 'Report a problem or suggest a correction');
-      rp.appendChild(ra); d.appendChild(rp);
-      }
+      if (repA) repA.href = reportUrl(n, quiz, q, sel);
       fb.innerHTML = '';
       fb.appendChild(d);
       nav.innerHTML = '';
