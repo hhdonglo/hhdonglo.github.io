@@ -273,5 +273,11 @@
   "official_listing": {
     "label": "Official course listing (University of Ghana)",
     "url": "https://www.ug.edu.gh/physics/academics/undergraduate-courses?title=&field_level_target_id=1"
+  },
+  "mock_exam": {
+    "title": "Mock exam",
+    "summary": "Fifty questions drawn at random from past examination questions across the course, in 2 hours 30 minutes. For practice, not assessment.",
+    "url": "mock-exam.html",
+    "label": "Take the mock exam"
   }
 }
