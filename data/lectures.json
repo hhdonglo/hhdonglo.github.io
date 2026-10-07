@@ -111,9 +111,24 @@
         },
         {
           "number": 6,
-          "title": "",
-          "status": "soon",
-          "note": "Materials are being prepared."
+          "title": "Gravitation",
+          "status": "available",
+          "summary": "Why planets, the Moon and satellites move as they do, and how one force law and one energy explain them all.",
+          "outcomes": [
+            "Apply Kepler's three laws, including the ellipse, the eccentricity and the speeds at perihelion and aphelion.",
+            "Calculate with Newton's law of gravitation, including superposition, g above and below the surface, and weight against gravity.",
+            "Analyse circular orbits: speed, period and the mass of the central body, including geostationary orbits.",
+            "Use U = −GMm/r for energy conservation, escape speed and the energy of a satellite."
+          ],
+          "slides": "PHYS143/lecture_6/lecture06_gravitation.pdf",
+          "tutorial": "PHYS143/lecture_6/lecture06_tutorial.pdf",
+          "supplement": "PHYS143/lecture_6/lecture06_supplement.pdf",
+          "contact_focus": [
+            "Describe",
+            "Model",
+            "Conserve and apply"
+          ],
+          "practice": "soon"
         },
         {
           "number": 7,
