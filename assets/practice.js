@@ -103,7 +103,7 @@
   function reportNote() {
     if (!reportLive || document.getElementById('quiz-report-note')) return;
     var p = el('p', { id: 'quiz-report-note', 'class': 'note quiz-note' },
-      'Found a mistake or have a better explanation? Use “Report a problem or suggest a correction” under any question. It opens a short form with the question already filled in, and no account is needed. Reports go to the lecturer.');
+      'Found a mistake or have a better explanation? Use “Report a problem” on any question to suggest a correction. It opens a short form with the question already filled in, and no account is needed. Reports go to the lecturer.');
     app.parentNode.insertBefore(p, app.nextSibling);
   }
 
@@ -211,9 +211,7 @@
     app.appendChild(ul);
     var repA = null;
     if (reportLive) {
-      var repP = el('p', { 'class': 'q-report' });
-      repA = el('a', { href: reportUrl(n, quiz, q, null), target: '_blank', rel: 'noopener noreferrer' }, 'Report a problem or suggest a correction');
-      repP.appendChild(repA); app.appendChild(repP);
+      repA = el('a', { 'class': 'btn report-btn', href: reportUrl(n, quiz, q, null), target: '_blank', rel: 'noopener noreferrer', title: 'Report a problem or suggest a correction', 'aria-label': 'Report a problem or suggest a correction (opens a form in a new tab)' }, '<span aria-hidden="true">⚑</span> Report a problem');
     }
     var fb = el('div', { 'class': 'fb-wrap', role: 'status' });
     app.appendChild(fb);
@@ -248,6 +246,7 @@
       var nb = btn(last ? 'See my score' : 'Next question', 'primary', function () { run.idx++; saveStore(); runQuiz(n, quiz); });
       nav.appendChild(nb);
       nav.appendChild(btn('Save and leave', '', function () { currentKeys = null; intro(n, quiz); }));
+      if (repA) nav.appendChild(repA);
       nb.focus();
     }
 
@@ -261,6 +260,7 @@
     if (answered) showFeedback(chosen);
     else {
       nav.appendChild(btn('Save and leave', '', function () { currentKeys = null; intro(n, quiz); }));
+      if (repA) nav.appendChild(repA);
       focusHeading();
     }
     currentKeys = function (ev) {
