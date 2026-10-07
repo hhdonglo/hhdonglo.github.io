@@ -967,3 +967,9 @@ ol.mock-review p{margin:.3rem 0}
 ol.mock-review .ref{font:.85rem system-ui,sans-serif;color:var(--muted)}
 ol.mock-review a.btn.report-btn{margin-left:0}
 @media (max-width:700px){.mock-timer{font-size:1.2rem}.mock-bar{gap:.5rem .8rem}.mock-submit{margin-left:auto}}
+
+/* Optional student ID box */
+.quiz-track input{font:1rem system-ui,sans-serif;min-height:44px;padding:.3rem .6rem;border:1.5px solid var(--border);border-radius:6px;background:var(--surface);color:inherit;width:12rem;max-width:100%}
+.quiz-track input:focus-visible{outline:3px solid #D6B07C;outline-offset:2px}
+.quiz-track .btn{margin:.2rem .2rem .2rem 0}
+.quiz-track .track-note{margin:.5rem 0 0}.quiz-track .track-state{margin:.3rem 0 0;font-weight:600;min-height:1.2em}

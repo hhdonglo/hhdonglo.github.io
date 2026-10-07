@@ -132,7 +132,7 @@
     clear();
     var r = rec(n);
     app.appendChild(el('h3', { 'data-focus': '' }, 'Lecture ' + n + ': ' + quiz.title));
-    app.appendChild(el('p', null, QUIZ_LENGTH + ' questions, drawn and shuffled afresh each time. Select an answer to see at once whether it is correct. If it is wrong, the page shows the correct answer with a short explanation and where to look in the deck.'));
+    app.appendChild(el('p', null, QUIZ_LENGTH + ' questions, drawn at random from a larger pool each time. Select an answer to see at once whether it is correct. If it is wrong, the page shows the correct answer with a short explanation and where to look in the deck.'));
     var info = [];
     if (r.best) info.push('Best score: ' + r.best.score + ' out of ' + r.best.total + ' (' + when(r.best.date) + ').');
     if (r.attempts) info.push('Attempts on this device: ' + r.attempts + '.');
@@ -162,9 +162,17 @@
       pool = pool.filter(function (id) { return (r.missed || []).indexOf(id) !== -1; });
       if (!pool.length) pool = quiz.questions.map(function (q) { return q.id; });
     }
-    var order = mode === 'missed' ? shuffle(pool).slice(0, QUIZ_LENGTH) : buildOrder(pool, QUIZ_LENGTH);
+    var order;
+    if (mode === 'missed') order = shuffle(pool).slice(0, QUIZ_LENGTH);
+    else {
+      /* a fresh random draw from the whole pool; questions from the previous attempt are used only when the pool is too small to avoid them */
+      var last = r.last || [], fresh = pool.filter(function (id) { return last.indexOf(id) === -1; });
+      if (fresh.length >= QUIZ_LENGTH || pool.length <= QUIZ_LENGTH) order = buildOrder(fresh.length >= QUIZ_LENGTH ? fresh : pool, QUIZ_LENGTH);
+      else order = shuffle(shuffle(fresh).concat(shuffle(pool.filter(function (id) { return last.indexOf(id) !== -1; }))).slice(0, QUIZ_LENGTH));
+      r.last = order.slice();
+    }
     var perms = order.map(function () { return shuffle([0, 1, 2, 3]); });
-    r.run = { v: 2, mode: mode, order: order, perms: perms, idx: 0, answers: {} };
+    r.run = { v: 2, mode: mode, order: order, perms: perms, idx: 0, answers: {}, t0: Date.now() };
     saveStore();
     runQuiz(n, quiz);
   }
@@ -291,6 +299,9 @@
       r.missed = (r.missed || []).filter(function (id) { return wrongIds.indexOf(id) !== -1 || run.order.indexOf(id) === -1; });
     }
     var summary = { mode: run.mode, score: score, total: total, wrong: wrongIds };
+    var sent = window.PHYS143_TRACK ? window.PHYS143_TRACK.send({ quiz: 'Lecture ' + n + (run.mode === 'missed' ? ' (missed questions)' : ''), attempt: r.attempts, score: score, total: total, seconds: run.t0 ? Math.round((Date.now() - run.t0) / 1000) : null, wrong: wrongIds }, function (ok) {
+      var s2 = document.getElementById('quiz-send-state'); if (s2) s2.textContent = ok ? 'Result sent to the lecturer.' : 'Result not sent.';
+    }) : false;
     r.run = null;
     saveStore();
 
@@ -300,6 +311,7 @@
     app.appendChild(el('p', { 'class': 'score' }, score + ' out of ' + total));
     var pct = Math.round(100 * score / total);
     app.appendChild(el('p', null, pct + ' per cent. ' + (pct >= 80 ? 'A strong result. Check the questions you missed.' : pct >= 50 ? 'A fair start. Review the explanations for the questions you missed, then retry them.' : 'Revisit the deck and the supplement, then retry the questions you missed.')));
+    if (sent) app.appendChild(el('p', { 'class': 'muted', id: 'quiz-send-state', role: 'status' }, 'Sending your result…'));
     if (summary.mode === 'all' && r.best) app.appendChild(el('p', { 'class': 'muted' }, 'Best score on this device: ' + r.best.score + ' out of ' + r.best.total + '.'));
     if (wrongIds.length) {
       app.appendChild(el('h4', null, 'Questions to review'));
@@ -334,5 +346,6 @@
     }, function () { unavailable(n); started = true; });
   }
   reportNote();
+  if (window.PHYS143_TRACK) window.PHYS143_TRACK.mount(app);
   route();
 })();

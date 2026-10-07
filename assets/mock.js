@@ -308,7 +308,11 @@
     if (!store.best || score / total > store.best.score / store.best.total) store.best = { score: score, total: total, date: Date.now() };
     store.run = null;
     saveStore();
-    result({ score: score, total: total, used: used, how: how, per: per, items: items });
+    var wrong = run.ids.filter(function (id) { return run.answers[id] !== pool.byId[id].q.answer; });
+    var sent = window.PHYS143_TRACK ? window.PHYS143_TRACK.send({ quiz: 'Mock exam', attempt: store.attempts, score: score, total: total, seconds: Math.round(used / 1000), wrong: wrong }, function (ok) {
+      var s2 = document.getElementById('quiz-send-state'); if (s2) s2.textContent = ok ? 'Result sent to the lecturer.' : 'Result not sent.';
+    }) : false;
+    result({ sent: sent, score: score, total: total, used: used, how: how, per: per, items: items });
   }
 
   function result(r) {
@@ -319,6 +323,7 @@
     app.appendChild(el('p', { 'class': 'score' }, r.score + ' out of ' + r.total));
     var unans = r.items.filter(function (x) { return x.sel == null; }).length;
     app.appendChild(el('p', null, Math.round(100 * r.score / r.total) + ' per cent. Time used: ' + words(r.used) + ' of 2 h 30 min' + (r.how === 'time' ? ' (submitted automatically when time ran out)' : '') + '. Unanswered: ' + unans + '.'));
+    if (r.sent) app.appendChild(el('p', { 'class': 'muted', id: 'quiz-send-state', role: 'status' }, 'Sending your result…'));
     if (store.best) app.appendChild(el('p', { 'class': 'muted' }, 'Best score on this device: ' + store.best.score + ' out of ' + store.best.total + '.'));
 
     app.appendChild(el('h4', null, 'By lecture'));
@@ -355,6 +360,7 @@
   }
 
   /* ---------- start ---------- */
+  if (window.PHYS143_TRACK) window.PHYS143_TRACK.mount(app);
   loadPool(function () {
     if (!pool || poolSize() === 0) { clear(); app.appendChild(el('p', null, 'The mock exam is not available at the moment.')); return; }
     var run = store.run;

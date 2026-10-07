@@ -124,3 +124,16 @@ The practice quiz of lecture N lives at `phys143-lecture-N-practice.html`. The o
 Each practice question shows a quiet "Report a problem or suggest a correction" link after it is answered. It opens a Google Form in a new tab with the lecture, the question id, the question and the answer shown already filled in, so students need no account.
 
 To set it up: create a Google Form with five short fields in this order (Lecture, Question id, Question, Answer shown, Comment), send the responses to a Google Sheet, then use the form's menu "Get pre-filled link", fill the first four fields with any text, and copy the link. Put the form address (ending in `/viewform`) and the five `entry.NNNNNNNNN` numbers into the `REPORT_FORM` block at the top of the reports section in `assets/practice.js`. Until the form address is set, the link and the note under the quiz stay hidden; add `?reportpreview=1` to a practice page address to preview them.
+
+## Optional student ID and progress
+
+Both the weekly practice pages and the mock exam can send one record per completed attempt to a second Google Form, only when the student has typed an optional Student ID. With no ID nothing is sent, and the quizzes work in full. The ID is kept only in the student's browser and can be cleared on the page. Nothing else is stored or tracked: no cookies and no analytics.
+
+To set it up:
+
+1. Create a new Google Form (separate from the reports form) with eight short-answer fields in this order: Student ID, Quiz, Attempt, Score, Total, Seconds, Time, Wrong question ids. Use "Short answer" for all eight (no "Paragraph" needed; ids are comma separated).
+2. In the form's Settings, turn off "Limit to 1 response" and any "Require sign in" or "Collect email addresses" option. Under Responses, choose "Link to Sheets".
+3. In the form's menu choose "Get pre-filled link", type any text in each of the eight fields, press Get link, and copy it.
+4. Send the pre-filled link (or put the form address ending in `/viewform` and the eight `entry.NNNNNNNNN` numbers into the `TRACK_FORM` block at the top of `assets/tracking.js`). Until the address is set, the ID box stays hidden. Add `?trackpreview=1` to a quiz address to preview it; nothing is sent in preview.
+
+Each record holds: the ID, the quiz ("Lecture 3", "Lecture 3 (missed questions)" or "Mock exam"), the attempt number on that device, score, total, seconds used, the time sent, and the ids of the questions answered wrongly. The ID box states this to students on the page.

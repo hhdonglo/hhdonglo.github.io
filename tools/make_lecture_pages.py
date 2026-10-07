@@ -24,6 +24,6 @@ for g in d["groups"]:
         pm = (f'<main id="main"><div class="wrap">\n<p class="crumb"><a href="index.html">Home</a> &rsaquo; <a href="teaching.html">Teaching</a> &rsaquo; <a href="phys143.html">PHYS 143</a> &rsaquo; <a href="phys143-lecture-{n}.html">Lecture {n:02d}</a> &rsaquo; Practice questions</p>\n'
               f'<h2 id="practice-title">{pt}</h2>\n<p class="sec-sub"><a href="phys143-lecture-{n}.html">&larr; Back to Lecture {n:02d}</a> &middot; For practice, not assessment. Progress and best scores are stored only in this browser.</p>\n'
               f'<div class="ov-card"><div id="quiz-app" class="quiz" data-lecture="{n}"><noscript>The practice questions need JavaScript. Please enable it in your browser.</noscript></div></div>\n{disc}\n')
-        t2 = tail.replace('<script src="assets/site.js"></script>', '<script src="assets/site.js"></script>\n<script src="assets/practice.js" charset="utf-8"></script>')
+        t2 = tail.replace('<script src="assets/site.js"></script>', '<script src="assets/site.js"></script>\n<script src="assets/tracking.js"></script>\n<script src="assets/practice.js" charset="utf-8"></script>')
         open(os.path.join(ROOT, f"phys143-lecture-{n}-practice.html"), "w", encoding="utf-8").write(h2 + pm + t2)
 print("lecture and practice pages written")
