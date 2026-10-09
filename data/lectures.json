@@ -61,6 +61,7 @@
             "Solve connected-object, inclined-plane and circular-dynamics problems."
           ],
           "slides": "PHYS143/lecture_3/lecture03_forces.pdf",
+          "reference": "PHYS143/lecture_3/lecture03_forces_reference.pdf",
           "tutorial": "PHYS143/lecture_3/lecture03_tutorial.pdf",
           "supplement": "PHYS143/lecture_3/lecture03_supplement.pdf",
           "contact_focus": [
