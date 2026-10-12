@@ -154,10 +154,10 @@
   ],
   "soon": {
     "status": "Now live",
-    "name": "NumeralAnalytics",
+    "name": "PhyAnalytics",
     "tagline": "Physics-informed analytics for physical systems",
-    "link_text": "Visit numeralanalytics.com",
-    "url": "https://numeralanalytics.com/"
+    "link_text": "Visit phyanalytics.com",
+    "url": "https://phyanalytics.com/"
   },
   "cta": {
     "title": "Contact",

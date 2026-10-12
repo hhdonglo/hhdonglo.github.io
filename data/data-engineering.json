@@ -19,7 +19,7 @@
   "upcoming": [
     {
       "status": "Now live",
-      "name": "NumeralAnalytics",
+      "name": "PhyAnalytics",
       "tagline": "Physics-informed analytics for physical systems",
       "text": "Physical modelling and uncertainty-aware data science for real physical systems, where data are sparse and the cost of a wrong estimate is high. The aim is analysis whose confidence is stated as clearly as its result.",
       "topics": [
@@ -30,8 +30,8 @@
         "Experimental design",
         "Risk-informed decisions"
       ],
-      "note": "Now live at [numeralanalytics.com](https://numeralanalytics.com/).",
-      "url": "https://numeralanalytics.com/"
+      "note": "Now live at [phyanalytics.com](https://phyanalytics.com/).",
+      "url": "https://phyanalytics.com/"
     }
   ],
   "groups": [
