@@ -1315,7 +1315,7 @@ content:
       type: boolean
     list: true
   - name: footer_links
-    label: Other footer links (for example NumeralAnalytics)
+    label: Other footer links (for example PhyAnalytics)
     type: object
     fields:
     - name: label
