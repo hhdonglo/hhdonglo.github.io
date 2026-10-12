@@ -1038,6 +1038,31 @@ content:
       label: Closing note
       type: text
     list: true
+  - name: services
+    label: Data pipelines and AI integration for business (clear the title to hide it)
+    type: object
+    fields:
+    - name: title
+      label: Heading
+      type: string
+    - name: intro
+      label: Opening paragraph
+      type: text
+    - name: blocks
+      label: Cards
+      type: object
+      fields:
+      - name: title
+        label: Card heading
+        type: string
+      - name: items
+        label: Points
+        type: text
+        list: true
+      list: true
+    - name: note
+      label: Closing note
+      type: text
   - name: groups
     label: Groups of projects
     type: object

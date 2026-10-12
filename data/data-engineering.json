@@ -1,6 +1,31 @@
 {
   "intro_title": "Overview",
   "intro": "Designing numerical simulation workflows, research software and data-intensive methods for large-scale nuclear physics calculations, parameter estimation and model validation. Physical models and measurements produce uncertain data, and data-driven modelling, machine learning and data engineering turn them into reliable predictions.",
+  "services": {
+    "title": "Reliable Data Pipelines and AI Integration for Business",
+    "intro": "Many organisations hold useful data in spreadsheets, exports and separate systems, and want to use AI tools on it without losing control of accuracy. This work builds pipelines that collect, clean and check that data, and adds AI only where it helps, with answers drawn from the organisation's own records and measured before anyone relies on them.",
+    "blocks": [
+      {
+        "title": "What this covers",
+        "items": [
+          "**Data pipelines:** loading data from files, databases and APIs, cleaning and validating it, and storing it in PostgreSQL or MongoDB, as in the [healthcare migration pipeline](#pipelines).",
+          "**Workflow automation:** scheduled workflows in Airflow that feed dashboards and send notifications, as in the [sports benefits platform](#pipelines).",
+          "**AI integration:** assistants that answer from an organisation's own documents or listings through retrieval-augmented generation, not from a language model's general knowledge, as in the [event recommendation chatbot](#retrieval).",
+          "**Data assessment:** judging whether existing data is complete and reliable enough to support a decision, as in [EduGlobe Insights](#analysis)."
+        ]
+      },
+      {
+        "title": "How the work is done",
+        "items": [
+          "**Tested:** data-quality and integrity checks run inside the pipeline, alongside automated tests in pytest.",
+          "**Containerised:** each part runs in Docker, so the same pipeline runs on a laptop, a server or a cloud platform.",
+          "**Reproducible:** code is kept in Git with pinned dependencies, so every result can be rebuilt and checked.",
+          "**AI within clear limits:** answers come from retrieved sources, quality is measured on a fixed set of test questions before use, and what the system does not cover is written down."
+        ]
+      }
+    ],
+    "note": "The projects below are proofs of concept built on programme case studies. For enquiries, see [Contact](contact.html)."
+  },
   "programme": {
     "title": "Data and Machine Learning Engineering",
     "subtitle": "OpenClassrooms · RNCP 39775",

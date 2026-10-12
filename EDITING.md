@@ -28,7 +28,7 @@ Open https://app.pagescms.org, choose the repository, choose a form, change the 
 | Teaching: practice questions | The multiple-choice questions for each lecture (choose a lecture, then edit its questions, options, correct option and explanation) |
 | Teaching: Laboratory courses | The Laboratory page: course cards and the shared uncertainty lecture card |
 | Projects | The Projects page: overview and research projects (KEWPIE3 with its topic line, Fusion dynamics) |
-| Data Science, ML and Engineering | The page: opening statement, the OpenClassrooms programme, project cards in three groups (Data Engineering, Machine Learning and Retrieval, Data Analysis) each with a topic line and Problem, Approach, Technical implementation, Validation and Outcome sections, and the Technical areas list |
+| Data Science, ML and Engineering | The page: opening statement, the Reliable Data Pipelines and AI Integration for Business section (opening paragraph, two cards of points and a closing note; clear its heading to hide it), the OpenClassrooms programme, project cards in three groups (Data Engineering, Machine Learning and Retrieval, Data Analysis) each with a topic line and Problem, Approach, Technical implementation, Validation and Outcome sections, and the Technical areas list |
 | Publications | All publications in five groups (Journal articles and proceedings, Preprints, Manuscripts in preparation, Theses, Conference contributions), the year filter buttons,  |
 | CV page | The CV summary page (education, appointments, awards, skills) |
 | Students | The Students page |
