@@ -34,7 +34,7 @@ Open https://app.pagescms.org, choose the repository, choose a form, change the 
 | Students | The Students page |
 | About page (Academic Profile) | The Academic Profile page that the About menu item opens: background paragraphs, education, appointments, awards, teaching line and CV links |
 | Contact | The Contact page: name, position, University and Professional emails, office and the LinkedIn link (emails and office come from Site settings) |
-| Site settings | Email addresses, phone, office, profile links (Google Scholar, ORCID, GitHub, LinkedIn), the footer lines and the banner lines |
+| Site settings | Email addresses, phone, office, profile links (Google Scholar, ORCID, GitHub, LinkedIn), other footer links (NumeralAnalytics), the footer lines and the banner lines |
 
 The **Media** tab uploads files: lecture PDFs (PHYS 143, PHYS 105), the CV PDF and images.
 

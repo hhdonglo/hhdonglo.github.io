@@ -33,5 +33,11 @@
   "banner_field": "At the Edge of the Periodic Table",
   "footer_position": "Lecturer in Physics · University of Ghana",
   "goatcounter_code": "hopedonglo",
-  "privacy_note": "Anonymous visit counts, no cookies"
+  "privacy_note": "Anonymous visit counts, no cookies",
+  "footer_links": [
+    {
+      "label": "NumeralAnalytics",
+      "url": "https://numeralanalytics.com/"
+    }
+  ]
 }
