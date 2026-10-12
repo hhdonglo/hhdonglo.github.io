@@ -153,11 +153,11 @@
     }
   ],
   "soon": {
-    "status": "Coming soon",
-    "name": "NumeralAnalytics GH",
-    "tagline": "Physics-informed analytics for physical industries",
-    "link_text": "Read more",
-    "url": "numeralanalytics.html"
+    "status": "Now live",
+    "name": "NumeralAnalytics",
+    "tagline": "Physics-informed analytics for physical systems",
+    "link_text": "Visit numeralanalytics.com",
+    "url": "https://numeralanalytics.com/"
   },
   "cta": {
     "title": "Contact",

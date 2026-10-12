@@ -1314,3 +1314,14 @@ content:
       label: Show in footer
       type: boolean
     list: true
+  - name: footer_links
+    label: Other footer links (for example NumeralAnalytics)
+    type: object
+    fields:
+    - name: label
+      label: Name
+      type: string
+    - name: url
+      label: Address
+      type: string
+    list: true
