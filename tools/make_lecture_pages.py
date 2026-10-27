@@ -9,6 +9,7 @@ tail = src[src.index("</main>"):]
 disc = re.search(r'<aside class="disclaimer".*?</aside>', src, re.S).group(0)
 for g in d["groups"]:
     for l in g["lectures"]:
+        if l["number"] == 0: continue  # the introduction has its own pages (tools/make_intro_pages.py)
         n = l["number"]; soon = l["status"] == "soon"
         title = f"Lecture {n:02d} — " + ("Coming soon" if soon else l["title"])
         h = re.sub(r"<title>.*?</title>", f"<title>{title} | PHYS 143 | Hope Donglo</title>", head, flags=re.S)
