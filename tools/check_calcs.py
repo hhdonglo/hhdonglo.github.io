@@ -246,6 +246,18 @@ EXPECT.update({
 })
 
 
+EXPECT.update({
+    # Lecture 0 (orientation and physical quantities)
+    "L0-14": 54.0 * 1000 / 3600,
+    "L0-15": 2.5e3 * (1e-2) ** 3,
+    "L0-16": 450.0 * 1e-9,
+    "L0-17": math.pi * (2.91 / 2) ** 2,
+    "L0-18": 100 * 0.01 / 2.91,
+    "L0-19": 1.20e3 / (2.50 * 4.0 * 12.35),
+    "L0-20": 70.0 * 60 * 24 * 365 * 70,
+})
+
+
 def parse(text):
     t = text.replace("−", "-")
     m = re.match(r"^\s*(-?\d+(?:\.\d+)?)(?:×10<sup>(-?\d+)</sup>)?", t)
