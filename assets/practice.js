@@ -3,11 +3,13 @@
   'use strict';
 
   var LECTURES = {
+    0: 'Orientation and physical quantities',
     1: 'Vectors', 2: 'Motion', 3: 'Newton’s laws', 4: 'Work and kinetic energy',
     5: 'Potential energy and energy conservation', 7: 'Impulse and momentum', 8: 'Rotation',
     9: 'Temperature and heat', 10: 'Thermal properties of matter',
     11: 'First law of thermodynamics', 12: 'Second law of thermodynamics'
   };
+  function lab(n) { return n === 0 ? 'Introduction' : 'Lecture ' + n; }
   var ORDER = [1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12];
   var QUIZ_LENGTH = 20;
   var STORE_KEY = 'phys143.practice.v1';
@@ -94,7 +96,7 @@
   function reportUrl(n, quiz, q, sel) {
     var E = REPORT_FORM.ENTRY, shown = clip(q.options[q.answer], 200) + (sel != null && sel !== q.answer ? ' (my answer: ' + clip(q.options[sel], 200) + ')' : '');
     var parts = ['usp=pp_url',
-      E.lecture + '=' + encodeURIComponent('Lecture ' + n + (LECTURES[n] ? ': ' + LECTURES[n] : '')),
+      E.lecture + '=' + encodeURIComponent(lab(n) + (LECTURES[n] ? ': ' + LECTURES[n] : '')),
       E.id + '=' + encodeURIComponent(q.id),
       E.question + '=' + encodeURIComponent(clip(q.q, 500)),
       E.answer + '=' + encodeURIComponent(shown)];
@@ -118,9 +120,9 @@
 
   /* ---------- views ---------- */
   function unavailable(n) {
-    setTitle('Lecture ' + n);
+    setTitle(lab(n));
     clear();
-    app.appendChild(el('h3', { 'data-focus': '' }, 'Lecture ' + n + (LECTURES[n] ? ': ' + LECTURES[n] : '')));
+    app.appendChild(el('h3', { 'data-focus': '' }, lab(n) + (LECTURES[n] ? ': ' + LECTURES[n] : '')));
     app.appendChild(el('p', null, LECTURES[n]
       ? 'The practice questions for this lecture are not available yet. Please check again later.'
       : 'There are no practice questions for this lecture.'));
@@ -128,10 +130,10 @@
   }
 
   function intro(n, quiz) {
-    setTitle('Lecture ' + n + ': ' + quiz.title);
+    setTitle(lab(n) + ': ' + quiz.title);
     clear();
     var r = rec(n);
-    app.appendChild(el('h3', { 'data-focus': '' }, 'Lecture ' + n + ': ' + quiz.title));
+    app.appendChild(el('h3', { 'data-focus': '' }, lab(n) + ': ' + quiz.title));
     app.appendChild(el('p', null, QUIZ_LENGTH + ' questions, drawn at random from a larger pool each time. Select an answer to see at once whether it is correct. If it is wrong, the page shows the correct answer with a short explanation and where to look in the deck.'));
     var info = [];
     if (r.best) info.push('Best score: ' + r.best.score + ' out of ' + r.best.total + ' (' + when(r.best.date) + ').');
@@ -187,12 +189,12 @@
     var perm = run.perms[run.idx], pos0 = run.idx;
     var answered = Object.prototype.hasOwnProperty.call(run.answers, pos0);
     var chosen = answered ? run.answers[pos0] : null;
-    setTitle('Lecture ' + n + ' question ' + (run.idx + 1));
+    setTitle(lab(n) + ' question ' + (run.idx + 1));
     clear();
 
     var total = run.order.length;
     var prog = el('div', { 'class': 'progress' });
-    prog.appendChild(el('span', null, 'Lecture ' + n + ': question ' + (run.idx + 1) + ' of ' + total));
+    prog.appendChild(el('span', null, lab(n) + ': question ' + (run.idx + 1) + ' of ' + total));
     var done = 0; run.order.forEach(function (id, i) { if (Object.prototype.hasOwnProperty.call(run.answers, i)) done++; });
     var score = 0; run.order.forEach(function (id, i) { var qq = byId(quiz, id); if (qq && run.answers[i] === qq.answer) score++; });
     prog.appendChild(el('span', null, 'Correct so far: ' + score + ' of ' + done));
@@ -299,15 +301,15 @@
       r.missed = (r.missed || []).filter(function (id) { return wrongIds.indexOf(id) !== -1 || run.order.indexOf(id) === -1; });
     }
     var summary = { mode: run.mode, score: score, total: total, wrong: wrongIds };
-    var sent = window.PHYS143_TRACK ? window.PHYS143_TRACK.send({ quiz: 'Lecture ' + n + (run.mode === 'missed' ? ' (missed questions)' : ''), attempt: r.attempts, score: score, total: total, seconds: run.t0 ? Math.round((Date.now() - run.t0) / 1000) : null, wrong: wrongIds }, function (ok) {
+    var sent = window.PHYS143_TRACK ? window.PHYS143_TRACK.send({ quiz: lab(n) + (run.mode === 'missed' ? ' (missed questions)' : ''), attempt: r.attempts, score: score, total: total, seconds: run.t0 ? Math.round((Date.now() - run.t0) / 1000) : null, wrong: wrongIds }, function (ok) {
       var s2 = document.getElementById('quiz-send-state'); if (s2) s2.textContent = ok ? 'Result sent to the lecturer.' : 'Result not sent.';
     }) : false;
     r.run = null;
     saveStore();
 
-    setTitle('Lecture ' + n + ' score');
+    setTitle(lab(n) + ' score');
     clear();
-    app.appendChild(el('h3', { 'data-focus': '' }, 'Lecture ' + n + ': your score'));
+    app.appendChild(el('h3', { 'data-focus': '' }, lab(n) + ': your score'));
     app.appendChild(el('p', { 'class': 'score' }, score + ' out of ' + total));
     var pct = Math.round(100 * score / total);
     app.appendChild(el('p', null, pct + ' per cent. ' + (pct >= 80 ? 'A strong result. Check the questions you missed.' : pct >= 50 ? 'A fair start. Review the explanations for the questions you missed, then retry them.' : 'Revisit the deck and the supplement, then retry the questions you missed.')));

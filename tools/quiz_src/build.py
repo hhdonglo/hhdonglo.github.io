@@ -6,7 +6,7 @@ OUT = os.path.join(HERE, "..", "..", "quizzes")
 sys.path.insert(0, HERE)
 
 def main():
-    nums = [int(a) for a in sys.argv[1:]] or [n for n in range(1, 13)]
+    nums = [int(a) for a in sys.argv[1:]] or [n for n in range(0, 13)]
     for n in nums:
         path = os.path.join(HERE, f"lecture{n}.py")
         if not os.path.exists(path):
