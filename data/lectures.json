@@ -1,6 +1,27 @@
 {
   "groups": [
     {
+      "id": "introduction",
+      "title": "Introduction",
+      "subtitle": "Additional practice material before Lecture 1",
+      "lectures": [
+        {
+          "number": 0,
+          "title": "Introduction",
+          "status": "available",
+          "summary": "What physics measures and how to state a result: physical quantities, units and uncertainty.",
+          "outcomes": [],
+          "slides": "PHYS143/introduction/introduction_slides.pdf",
+          "handout": "PHYS143/introduction/introduction_handout.pdf",
+          "tutorial": "PHYS143/introduction/introduction_tutorial.pdf",
+          "supplement": "PHYS143/introduction/introduction_supplement.pdf",
+          "page": "phys143-introduction.html",
+          "practice_page": "phys143-introduction-practice.html",
+          "practice": "available"
+        }
+      ]
+    },
+    {
       "id": "mechanics",
       "title": "Mechanics",
       "subtitle": "Lectures 1 to 8",
@@ -17,8 +38,8 @@
             "Calculate and interpret dot and cross products."
           ],
           "slides": "PHYS143/lecture_1/lecture01_vectors.pdf",
-            "reference": "PHYS143/lecture_1/lecture01_vectors_reference.pdf",
-            "tutorial": "PHYS143/lecture_1/lecture01_tutorial.pdf",
+          "reference": "PHYS143/lecture_1/lecture01_vectors_reference.pdf",
+          "tutorial": "PHYS143/lecture_1/lecture01_tutorial.pdf",
           "supplement": "PHYS143/lecture_1/lecture01_supplement.pdf",
           "contact_focus": [
             "Understand",
@@ -216,7 +237,7 @@
             "Calculate the average kinetic energy and the rms speed of molecules, and select the right model in an unfamiliar problem."
           ],
           "slides": "PHYS143/lecture_10/lecture10_thermal_properties.pdf",
-            "tutorial": "PHYS143/lecture_10/lecture10_tutorial.pdf",
+          "tutorial": "PHYS143/lecture_10/lecture10_tutorial.pdf",
           "supplement": "PHYS143/lecture_10/lecture10_supplement.pdf",
           "contact_focus": [
             "Describe",
@@ -237,7 +258,7 @@
             "Analyse a multi-step process or cycle in an unfamiliar problem, choosing the physics without being told."
           ],
           "slides": "PHYS143/lecture_11/lecture11_first_law.pdf",
-            "tutorial": "PHYS143/lecture_11/lecture11_tutorial.pdf",
+          "tutorial": "PHYS143/lecture_11/lecture11_tutorial.pdf",
           "supplement": "PHYS143/lecture_11/lecture11_supplement.pdf",
           "contact_focus": [
             "Represent",
@@ -258,7 +279,7 @@
             "Analyse an unfamiliar engine, refrigerator or entropy problem, choosing the physics without being told."
           ],
           "slides": "PHYS143/lecture_12/lecture12_second_law.pdf",
-            "tutorial": "PHYS143/lecture_12/lecture12_tutorial.pdf",
+          "tutorial": "PHYS143/lecture_12/lecture12_tutorial.pdf",
           "supplement": "PHYS143/lecture_12/lecture12_supplement.pdf",
           "contact_focus": [
             "Direction",
