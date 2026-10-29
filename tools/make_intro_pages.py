@@ -15,13 +15,12 @@ OUT = ["Convert quantities to SI units and check that equations are dimensionall
 def res(path, label, primary=False):
     return ('<div class="res"><span class="res-l">%s</span><span class="res-b"><a class="btn%s" href="%s" target="_blank" rel="noopener">Preview<span class="vh"> %s for the introduction</span><span class="vh"> (opens in a new tab)</span></a>'
             '<a class="btn" href="%s" download>Download<span class="vh"> %s for the introduction</span></a></span></div>') % (label, " primary" if primary else "", path, label, path, label)
-buttons = ('<div class="lecture-buttons" role="group" aria-label="Introduction resources">' + res("PHYS143/introduction/introduction_slides.pdf", "Slides", True)
-           + res("PHYS143/introduction/introduction_handout.pdf", "Handout") + res("PHYS143/introduction/introduction_supplement.pdf", "Supplementary note")
+buttons = ('<div class="lecture-buttons" role="group" aria-label="Introduction resources">' + res("PHYS143/introduction/introduction_handout.pdf", "Handout", True) + res("PHYS143/introduction/introduction_supplement.pdf", "Supplementary note")
            + res("PHYS143/introduction/introduction_tutorial.pdf", "Tutorial sheet")
            + '<a class="btn" href="phys143-introduction-practice.html">Practice questions<span class="vh"> for the introduction</span></a></div>')
 title = "Introduction — Physical quantities and measurement"
 h = re.sub(r"<title>.*?</title>", "<title>%s | PHYS 143 | Hope Donglo</title>" % title, head, flags=re.S)
-h = re.sub(r'<meta name="description" content=".*?">', '<meta name="description" content="PHYS 143 introduction: slides, handout, supplementary note, tutorial sheet and practice questions on physical quantities, units and uncertainty.">', h, flags=re.S)
+h = re.sub(r'<meta name="description" content=".*?">', '<meta name="description" content="PHYS 143 introduction: handout, supplementary note, tutorial sheet and practice questions on physical quantities, units and uncertainty.">', h, flags=re.S)
 main = ('<main id="main"><div class="wrap">\n<p class="crumb"><a href="index.html">Home</a> &rsaquo; <a href="teaching.html">Teaching</a> &rsaquo; <a href="phys143.html">PHYS 143</a> &rsaquo; Introduction</p>\n'
         '<h2 id="lecture">%s</h2>\n<p class="sec-sub">%s</p>\n<div>%s'
         '<details class="fold" id="objectives" open><summary>Learning objectives</summary><div class="ov-card"><p>Students should be able to:</p><ul>%s</ul></div></details>'
