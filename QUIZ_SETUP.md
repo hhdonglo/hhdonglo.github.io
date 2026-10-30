@@ -14,8 +14,8 @@ The join code is what keeps quizzes apart on the sheet. Pick a fresh code for ea
    (type the code in capitals if it has letters). Replace the hash in `ACCEPTED`, or add it to the list if one page should accept several codes.
 5. **Check the Form.** If the quiz still has five questions, the same Form works and the field ids in `FORM_FIELDS` stay. For a different number of questions, add questions Q6 and so on to the Form, then copy the new `entry.NNN` ids from the Form's source (view-source, search "entry.") into `FORM_FIELDS.q`. For a separate Form, change `FORM_BASE` as well.
 6. **Make the QR code.** Point it at the new page address (segno or any QR maker). Save it as `assets/figures/phys143-l3-try-qr.svg` and update the `<img>` in the page.
-7. **Sheet: add the answers.** In the private Key tab add a row for the new code with the correct letters for Q1 to Q5. The score formula should look up the key by Join Code, so a response with another code is scored against its own quiz's key, or not at all.
-8. **Sheet: Leaderboard.** It should list First Name, Join Code and Score only. The page shows each student the rows that share their own join code, so quizzes never mix on the screen.
+7. **Sheet: add the answers.** In the private **Key** tab add one row per quiz: Join Code, then the correct letters for Q1 to Q5, then Ranking (Open or Closed). The script scores each submission from this row, so the letters never reach the page. A code that is not in the Key tab is refused.
+8. **Sheet: Leaderboard.** It reads First Name, Join Code and Score from Form Responses 1 (the script writes Score in column J). Each student sees their own score straight away; the class ranking appears only after you set that quiz's Ranking cell to **Closed**. The Log tab records every submission outcome (ok, duplicate, bad code).
 9. **Test, then publish.** Open the page locally, try a wrong code (it must refuse) and the right code, then push. Do one full test submission and check the row reaches Form Responses 1 and the Leaderboard. Delete test rows afterwards.
 
 ## End of semester: totals across quizzes

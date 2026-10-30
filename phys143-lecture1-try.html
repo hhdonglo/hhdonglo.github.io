@@ -68,9 +68,9 @@
   <p>These questions are a short check on this week's vectors work. Each question has five options, A to E, and a one-minute countdown. Pick an answer, then move on. A question left blank when the clock reaches zero counts as wrong, and you cannot go back.</p>
   <p class="note"><strong>Only your first attempt counts</strong> for each ID and join code. Later attempts are ignored.</p>
   <form id="f-start" autocomplete="off" novalidate>
-   <label for="in-name">First name</label><input type="text" id="in-name" maxlength="40" required>
-   <label for="in-id">ID</label><input type="text" id="in-id" maxlength="20" inputmode="numeric" required>
-   <label for="in-code">Join code</label><input type="text" id="in-code" maxlength="30" required>
+   <label for="in-name">First name</label><input type="text" id="in-name" maxlength="40" placeholder="for example Ama" required>
+   <label for="in-id">Student ID</label><input type="text" id="in-id" maxlength="20" inputmode="numeric" placeholder="your ID number" required>
+   <label for="in-code">Join code (given in class)</label><input type="text" id="in-code" maxlength="30" placeholder="the code your lecturer gave you" required>
    <p class="note" id="err" role="alert" hidden></p>
    <button type="submit" class="go">Start question 1</button>
   </form>
@@ -85,10 +85,12 @@
  <section class="panel" id="s-end" hidden>
   <h3 id="t-end">Sending your answers</h3>
   <p id="end-msg">Sending your answers. Please keep this page open.</p>
-  <div id="fallback" hidden>
-   <p><a class="go" id="open-form" href="#" target="_blank" rel="noopener" style="display:inline-block;text-decoration:none">Open the form and submit</a></p>
-   <p class="note">Press <strong>Submit</strong> on the form page. Allow pop-ups for this page if nothing opens.</p>
+  <div id="mine" hidden>
+   <p class="score" id="mine-score" style="font:700 1.6rem system-ui,sans-serif;margin:.4rem 0"></p>
+   <ol id="mine-list" style="margin:.2rem 0 .8rem;padding-left:1.4rem"></ol>
+   <p class="note" id="mine-note"></p>
   </div>
+  <button type="button" class="go alt" id="retry" hidden>Send again</button>
   <div id="board" hidden>
    <h3>Class ranking</h3>
    <p class="note" id="board-note"></p>
@@ -100,8 +102,6 @@
 <script>
 (function(){
 "use strict";
-var FORM_FIELDS={name:"entry.338957421",id:"entry.1078891600",code:"entry.1788617642",q:["entry.157347972","entry.618118762","entry.204256551","entry.1807712655","entry.621647878"]};
-var FORM_BASE="https://docs.google.com/forms/d/e/1FAIpQLSeSiqJnaqT0TxPqYGa5GpJMaP9lM8QYz-Fu2LmRVtynNfqQ4Q/viewform";
 var SCRIPT_URL="https://script.google.com/macros/s/AKfycbzso5-FCU4erf_grbktH-AH-RKaPDap7TfJAw_TOSxNarTrJDe-PgyBzgIH7Fj2fjZ3/exec"; // Apps Script web app address (see apps_script/quiz_receiver.gs)
 var LEADERBOARD_CSV="https://docs.google.com/spreadsheets/d/e/2PACX-1vR6SZQewzCDwqP5zfu1uycwaOb_ZEoJgXwLAhEWN4qBwT0zo89MDERju8cBM2Vne6w1-rje6gCZI5X-/pub?gid=1903986573&single=true&output=csv";
 var SECONDS=60;
@@ -170,36 +170,53 @@ function advance(){
 $("next").addEventListener("click",function(){if(!$("next").disabled)advance()});
 function finish(){
  show("s-end");
- var u=FORM_BASE+"?usp=pp_url";
- function add(k,v){u+="&"+k+"="+encodeURIComponent(v)}
- add(FORM_FIELDS.name,st.name);add(FORM_FIELDS.id,st.id);add(FORM_FIELDS.code,st.code);
- st.ans.forEach(function(a,j){if(a)add(FORM_FIELDS.q[j],a)});
- $("open-form").href=u;$("board").hidden=false;
- $("board-note").textContent="The ranking will appear here once your answers are recorded.";
- if(!SCRIPT_URL){fallback();return}
+ $("board").hidden=true;
  deliver();
 }
-function fallback(){
- $("t-end").textContent="One last step, "+st.name;
- $("end-msg").textContent="Your answers are not recorded yet. Press the button below, then press Submit on the form page.";
- $("fallback").hidden=false;
+function jsonp(params,cb){
+ var n="cb"+Date.now()+Math.floor(Math.random()*1e6),sc=document.createElement("script"),done=false;
+ function end(d){if(done)return;done=true;delete window[n];if(sc.parentNode)sc.parentNode.removeChild(sc);cb(d)}
+ window[n]=end;sc.onerror=function(){end(null)};
+ sc.src=SCRIPT_URL+"?"+params+"&callback="+n+"&_="+Date.now();document.head.appendChild(sc);
 }
 function deliver(){
+ $("retry").hidden=true;
+ $("t-end").textContent="Sending your answers";
+ $("end-msg").textContent="Sending your answers. Please keep this page open.";
  var body=new URLSearchParams();
  body.set("name",st.name);body.set("id",st.id);body.set("code",st.code);
  st.ans.forEach(function(a,j){body.set("q"+(j+1),a)});
- fetch(SCRIPT_URL,{method:"POST",mode:"no-cors",body:body}).then(function(){
-  $("t-end").textContent="Thank you, "+st.name;
-  $("end-msg").textContent="Your answers were sent. I am checking that they reached the class sheet. This can take up to a minute.";
-  setTimeout(function(){verify(0)},4000);
- }).catch(function(){fallback()});
+ fetch(SCRIPT_URL,{method:"POST",mode:"no-cors",body:body}).then(function(){setTimeout(function(){poll(0)},2500)}).catch(function(){problem("Your answers could not be sent. Check your connection and press Send again.")});
 }
-$("open-form").addEventListener("click",function(){
- $("t-end").textContent="Now press Submit, "+st.name;
- $("end-msg").textContent="On the form page that opened, press Submit. Then come back here; I will check that your answers reached the class sheet.";
- $("fallback").hidden=true;
- if(!st.checking){st.checking=true;setTimeout(function(){st.checking=false;verify(0)},6000)}
-});
+function problem(m){$("t-end").textContent="Not recorded yet";$("end-msg").textContent=m;$("retry").hidden=false}
+function poll(n){
+ jsonp("action=result&id="+encodeURIComponent(st.id)+"&code="+encodeURIComponent(st.code),function(d){
+  if(d&&d.found){showMine(d);return}
+  if(d&&(d.keyMissing||d.outcome==="bad code")){problem("The class sheet did not recognise this join code, so your answers were not recorded. Tell your lecturer.");return}
+  if(d&&d.outcome&&d.outcome!=="ok"&&d.outcome!=="duplicate"){problem("The class sheet could not record your answers ("+d.outcome+"). Tell your lecturer.");return}
+  if(n<14){setTimeout(function(){poll(n+1)},3000);return}
+  problem("I could not confirm that your answers reached the class sheet. Press Send again; only your first attempt counts, so sending twice does no harm.");
+ });
+}
+function showMine(d){
+ $("t-end").textContent="Thank you, "+st.name;
+ $("end-msg").textContent="Your answers reached the class sheet.";
+ $("mine").hidden=false;
+ $("mine-score").textContent="You scored "+d.score+" out of "+d.total;
+ var l=$("mine-list");l.innerHTML="";
+ d.flags.forEach(function(f,i){var li=document.createElement("li");li.textContent="Question "+(i+1)+": "+(f?"correct":"not correct");l.appendChild(li)});
+ $("mine-note").textContent=(d.outcome==="duplicate"?"You had already submitted these questions, so this is your first attempt, the one that counts. ":"Only your first attempt counts. ")+"The right answers are not shown here; your lecturer will go through them.";
+ checkRanking();
+}
+function checkRanking(){
+ $("board").hidden=false;
+ jsonp("action=status&code="+encodeURIComponent(st.code),function(d){
+  if(d&&d.closed){loadBoard();return}
+  $("board-table").innerHTML="";
+  $("board-note").textContent=d?"The class ranking will appear here when your lecturer closes the quiz. Press the button to check again.":"I could not check the ranking just now. Press the button to try again.";
+ });
+}
+$("retry").addEventListener("click",deliver);
 function parseCSV(t){
  var r=[],row=[],c="",q=false;
  for(var i=0;i<t.length;i++){var ch=t[i];
@@ -226,14 +243,7 @@ function loadBoard(cb){cb=cb||function(){};
   note.textContent="Updated "+new Date().toLocaleTimeString()+". Only first attempts count.";
  }).catch(function(){note.textContent="The ranking could not be loaded just now. Try the refresh button in a moment.";cb(false)});
 }
-function verify(n){
- loadBoard(function(found){
-  if(found){$("end-msg").textContent="Your answers have reached the class sheet and your score is on the ranking below.";return}
-  if(n<8){setTimeout(function(){verify(n+1)},8000);return}
-  fallback();
- });
-}
-$("refresh").addEventListener("click",function(){loadBoard()});
+$("refresh").addEventListener("click",checkRanking);
 })();
 </script>
 <aside class="disclaimer" aria-label="Disclaimer"><div class="wrap sakai" role="note"><p><strong>Disclaimer.</strong> This is an independent personal website, open to anyone who finds it useful. Official course information and instructions for registered students are provided on Sakai. Students at the University of Ghana should visit Sakai for official course information.</p><a class="sakai-link" href="https://sakai.ug.edu.gh/portal/site/!gateway/tool/55840c0d-ea44-4827-84cb-5270d764ecf7" target="_blank" rel="noopener">Open PHYS 143 on Sakai</a></div></aside>

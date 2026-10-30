@@ -2,10 +2,12 @@
 // Appends one row per first attempt to "Form Responses 1":
 // Timestamp, First Name, ID, Join Code, Q1, Q2, Q3, Q4, Q5.
 // Also records practice-page reports ("Reports" tab) and optional-ID attempts ("Attempts" tab), chosen by the kind field.
-// Accepted join codes are listed in column A of a private tab named "Codes" (one per row, no header).
+// Each quiz is one row of the private "Key" tab: Join Code, Q1 to Q5 (the correct letters), Ranking (Open or Closed).
+// Score is worked out here from the Key, never in the page. The page asks for its own result and for the ranking switch.
+// Form Responses 1 columns: Timestamp, First Name, ID, Join Code, Q1 to Q5, Score.
 
 var RESPONSES_TAB = 'Form Responses 1';
-var CODES_TAB = 'Codes';
+var KEY_TAB = 'Key'; // private: Join Code | Q1 | Q2 | Q3 | Q4 | Q5 | Ranking (Open or Closed), one row per quiz
 var LETTERS = ['A', 'B', 'C', 'D', 'E'];
 var NOTIFY_EMAIL = 'hkdonglo@gmail.com'; // new reports are emailed here
 
@@ -43,6 +45,56 @@ function testEmail() {
   MailApp.sendEmail(NOTIFY_EMAIL, 'PHYS 143 test email', 'If you can read this, report emails will reach you. Remaining daily quota: ' + MailApp.getRemainingDailyQuota());
 }
 
+function log_(outcome, name, id, code) {
+  try { append_('Log', ['Timestamp', 'Outcome', 'First Name', 'ID', 'Join Code'], [new Date(), outcome, name, id, code]); } catch (err) { /* logging must never stop a submission */ }
+}
+
+function lastOutcome_(id, code) {
+  var ls = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Log');
+  if (!ls || ls.getLastRow() < 2) return '';
+  var rows = ls.getRange(2, 2, ls.getLastRow() - 1, 4).getValues(); // Outcome, First Name, ID, Join Code
+  for (var i = rows.length - 1; i >= 0; i--) {
+    if (String(rows[i][2]).trim() === id && String(rows[i][3]).trim().toUpperCase() === code) return String(rows[i][0]);
+  }
+  return '';
+}
+
+function keyRow_(code) {
+  var ks = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(KEY_TAB);
+  if (!ks || ks.getLastRow() < 2) return null;
+  var rows = ks.getRange(2, 1, ks.getLastRow() - 1, 7).getValues();
+  for (var i = 0; i < rows.length; i++) {
+    if (String(rows[i][0]).trim().toUpperCase() === code) return rows[i];
+  }
+  return null;
+}
+
+function mark_(key, row) { // row = [Q1..Q5]; returns [1,0,...] without revealing the key
+  var out = [];
+  for (var q = 0; q < 5; q++) {
+    var k = String(key[1 + q]).trim().toUpperCase();
+    out.push(k && String(row[q]).trim().toUpperCase() === k ? 1 : 0);
+  }
+  return out;
+}
+
+// Run once from the editor: creates the private Key tab with a row for 2627 for you to fill in.
+function setup() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ks = ss.getSheetByName(KEY_TAB) || ss.insertSheet(KEY_TAB);
+  if (ks.getLastRow() === 0) {
+    ks.appendRow(['Join Code', 'Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Ranking']);
+    ks.appendRow(['2627', '', '', '', '', '', 'Open']);
+  }
+}
+
+function jsonp_(e, obj) {
+  var cb = String((e && e.parameter && e.parameter.callback) || '');
+  var body = JSON.stringify(obj);
+  if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(cb)) return ContentService.createTextOutput(body).setMimeType(ContentService.MimeType.JSON);
+  return ContentService.createTextOutput(cb + '(' + body + ')').setMimeType(ContentService.MimeType.JAVASCRIPT);
+}
+
 function doPost(e) {
   var p = (e && e.parameter) || {};
   if (p.kind === 'report' || p.kind === 'attempt') {
@@ -65,43 +117,64 @@ function doPost(e) {
       lk.releaseLock();
     }
   }
+  function fin_(o) { log_(o, name, id, code); return out_(o); }
   var name = clean_(p.name, 40), id = clean_(p.id, 20), code = clean_(p.code, 30).toUpperCase();
-  if (!name || !id || !code) return out_('missing');
+  if (!name || !id || !code) return fin_('missing');
 
   var lock = LockService.getScriptLock();
   lock.waitLock(20000);
   try {
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var codes = ss.getSheetByName(CODES_TAB);
-    var ok = false;
-    if (codes && codes.getLastRow() > 0) {
-      var list = codes.getRange(1, 1, codes.getLastRow(), 1).getValues();
-      for (var i = 0; i < list.length; i++) {
-        if (String(list[i][0]).trim().toUpperCase() === code) { ok = true; break; }
-      }
-    }
-    if (!ok) return out_('bad code');
+    var key = keyRow_(code);
+    if (!key) return fin_('bad code');
 
-    var sh = ss.getSheetByName(RESPONSES_TAB);
+    var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(RESPONSES_TAB);
+    if (!sh) return fin_('no tab named ' + RESPONSES_TAB);
     var n = sh.getLastRow();
     if (n > 1) { // first attempt per ID and join code only
       var seen = sh.getRange(2, 3, n - 1, 2).getValues();
       for (var j = 0; j < seen.length; j++) {
-        if (String(seen[j][0]).trim() === id && String(seen[j][1]).trim().toUpperCase() === code) return out_('duplicate');
+        if (String(seen[j][0]).trim() === id && String(seen[j][1]).trim().toUpperCase() === code) return fin_('duplicate');
       }
     }
-    var row = [new Date(), name, id, code];
+    var ans = [];
     for (var q = 1; q <= 5; q++) {
       var a = String(p['q' + q] || '').trim().toUpperCase();
-      row.push(LETTERS.indexOf(a) >= 0 ? a : '');
+      ans.push(LETTERS.indexOf(a) >= 0 ? a : '');
     }
-    sh.appendRow(row);
-    return out_('ok');
+    var score = mark_(key, ans).reduce(function (x, y) { return x + y; }, 0);
+    if (n === 0) sh.appendRow(['Timestamp', 'First Name', 'ID', 'Join Code', 'Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Score']);
+    else if (!sh.getRange(1, 10).getValue()) sh.getRange(1, 10).setValue('Score');
+    sh.appendRow([new Date(), name, id, code].concat(ans, [score]));
+    return fin_('ok');
   } finally {
     lock.releaseLock();
   }
 }
 
-function doGet() { return out_('PHYS 143 quiz receiver is running'); }
+// GET: ?action=result&id=..&code=.. gives that student's own score and right/wrong flags;
+//      ?action=status&code=.. says whether the ranking has been opened. Both answer as JSONP (callback=...).
+function doGet(e) {
+  var p = (e && e.parameter) || {};
+  var code = clean_(p.code, 30).toUpperCase();
+  if (p.action === 'status') {
+    var k = keyRow_(code);
+    return jsonp_(e, { closed: !!k && String(k[6]).trim().toLowerCase() === 'closed' });
+  }
+  if (p.action === 'result') {
+    var id = clean_(p.id, 20), key = keyRow_(code);
+    var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(RESPONSES_TAB);
+    if (key && id && sh && sh.getLastRow() > 1) {
+      var rows = sh.getRange(2, 3, sh.getLastRow() - 1, 7).getValues(); // ID, Join Code, Q1 to Q5
+      for (var i = 0; i < rows.length; i++) {
+        if (String(rows[i][0]).trim() === id && String(rows[i][1]).trim().toUpperCase() === code) {
+          var flags = mark_(key, rows[i].slice(2, 7));
+          return jsonp_(e, { found: true, score: flags.reduce(function (x, y) { return x + y; }, 0), total: 5, flags: flags, outcome: lastOutcome_(id, code) });
+        }
+      }
+    }
+    return jsonp_(e, { found: false, outcome: lastOutcome_(id, code), keyMissing: !key });
+  }
+  return out_('PHYS 143 quiz receiver is running');
+}
 
 function out_(t) { return ContentService.createTextOutput(t); }
