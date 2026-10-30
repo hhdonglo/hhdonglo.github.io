@@ -49,6 +49,10 @@
 .host .bar{display:flex;align-items:center;gap:.6rem;margin:.2rem 0;font:1rem system-ui,sans-serif}
 .host .bar i{display:block;height:16px;background:var(--brown-fill);border-radius:3px;min-width:2px}
 header.banner,nav.jump,footer,aside.disclaimer,#host-title,.sec-sub{display:none!important}
+#h-rev .ro{display:flex;gap:.6rem;padding:.35rem .7rem;margin:.3rem 0;border:2px solid var(--border);border-radius:6px}
+#h-rev .ro.ok{border-color:#2e7d32;background:rgba(46,125,50,.14)}
+#h-rev .ro .n{margin-left:auto;font-weight:700}
+#h-rev .err{color:#b3261e}
 .host .ctlbar{position:sticky;bottom:0;background:var(--surface);padding:.5rem 0;border-top:1px solid var(--border);margin-top:.6rem}
 #h-qr{width:min(65vh,560px)!important;height:min(65vh,560px)!important;max-width:92%}
 .host .note{font:.92rem/1.5 system-ui,sans-serif;color:var(--muted)}
@@ -89,6 +93,7 @@ header.banner,nav.jump,footer,aside.disclaimer,#host-title,.sec-sub{display:none
      <div id="h-prevstem" style="font-size:1.15rem;margin:.3rem 0"></div>
      <div id="h-prevopts"></div>
     </div>
+    <div id="h-rev" hidden style="border-top:1px solid var(--border);margin-top:.8rem;padding-top:.6rem"></div>
     <p class="ctlbar">
      <button class="go alt" data-a="lobby" data-show="ready,draft">Open lobby</button>
      <button class="go big" data-a="start" data-show="ready,draft,lobby">Start quiz</button>
@@ -148,7 +153,7 @@ function jsonp(params,cb){
  window[n]=end;sc.onerror=function(){end(null)};
  sc.src=SCRIPT_URL+"?"+params+"&callback="+n+"&_="+Date.now();document.head.appendChild(sc);
 }
-var LABEL={draft:"Draft",ready:"Ready",lobby:"Lobby: students are joining",running:"Running",paused:"Paused",ended:"Ended",released:"Results released",waiting:"Waiting",started:"Started",stopped:"Stopped"};
+var LABEL={draft:"Draft",ready:"Ready",lobby:"Number of participants",running:"Running",paused:"Paused",ended:"Ended",released:"Results released",waiting:"Waiting",started:"Started",stopped:"Stopped"};
 function q(){return "code="+encodeURIComponent(cfg.code)+"&hostkey="+encodeURIComponent(cfg.key)}
 function act(a,extra,cb){
  cfg.stale=false;
@@ -188,10 +193,18 @@ function refresh(first){
    if(r==="on"&&!(st.reviewQ>0))b.hidden=true;
    if(r==="off"&&st.reviewQ>0)b.hidden=true;
   });
-  $("h-state").textContent=(LABEL[s]||s)+(st.reviewQ>0?" \u00b7 reviewing question "+st.reviewQ:"");
+  $("h-state").textContent=(LABEL[s]||s)+(s==="lobby"?": "+d.joined:"")+(st.reviewQ>0?" \u00b7 reviewing question "+st.reviewQ:"");
   var Q=window.QUIZ_L1&&window.QUIZ_L1[(st.currentQ||0)-1];
   $("h-prev").hidden=!(Q&&live);
   if(Q){$("h-prevstem").innerHTML=Q.stem;$("h-prevopts").innerHTML=Q.opts.map(function(o,i){return '<p style="margin:.2rem 0"><b>'+"ABCDE"[i]+'</b>&nbsp; '+o+'</p>'}).join("")}
+  var rv=d.review&&d.review.q>0&&(s==="ended"||s==="released")?d.review:null,Qr=rv&&window.QUIZ_L1[rv.q-1];
+  $("h-rev").hidden=!Qr;
+  if(Qr){
+   var rh='<p class="lbl">Reviewing question '+rv.q+' of 5 ('+rv.answered+' answered)</p><div style="font-size:1.15rem;margin:.3rem 0">'+Qr.stem+'</div>';
+   Qr.opts.forEach(function(o,i){var k="ABCDE"[i];rh+='<div class="ro'+(k===rv.correct?" ok":"")+'"><b>'+k+'</b><span>'+o+'</span><span class="n">'+(k===rv.correct?"\u2713 ":"")+(rv.dist[k]||0)+'</span></div>'});
+   rh+=rv.explanation?'<p style="border-left:4px solid var(--brown-edge);padding:.2rem .8rem">'+esc(rv.explanation)+'</p>':'<p class="err">No explanation shown to students: '+esc(rv.explanationError||"none found")+'</p>';
+   $("h-rev").innerHTML=rh;
+  }
   $("h-joined").textContent=d.joined;$("h-ans").textContent=d.answered||0;
   var dist=d.dist,h="";
   if(dist){var mx=Math.max(1,dist.A,dist.B,dist.C,dist.D,dist.E);"ABCDE".split("").forEach(function(k){h+='<div class="bar"><b style="width:1.2rem">'+k+'</b><i style="width:'+Math.round(dist[k]/mx*260)+'px"></i> '+dist[k]+'</div>'});}

@@ -493,16 +493,16 @@ function siteJson_(path) {
 
 function plainText_(t) { return String(t || '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim(); }
 
-function bankExplanation_(code, q) {
+function bankExplanation_(code, q) { // {text, error}
   try {
     var map = siteJson_('/apps_script/live_quizzes.json')[code];
-    if (!map || !map.ids || !map.ids[q - 1]) return '';
+    if (!map || !map.ids || !map.ids[q - 1]) return { text: '', error: 'no practice-bank question is listed for this quiz in apps_script/live_quizzes.json' };
     var bank = siteJson_('/quizzes/' + map.bank + '.json').questions;
     for (var i = 0; i < bank.length; i++) {
-      if (bank[i].id === map.ids[q - 1]) return plainText_(bank[i].exp) + (bank[i].ref ? ' Review: ' + plainText_(bank[i].ref) : '');
+      if (bank[i].id === map.ids[q - 1]) return { text: plainText_(bank[i].exp) + (bank[i].ref ? ' Review: ' + plainText_(bank[i].ref) : ''), error: '' };
     }
-  } catch (err) { /* no explanation is better than an error in front of the class */ }
-  return '';
+    return { text: '', error: 'bank question ' + map.ids[q - 1] + ' was not found' };
+  } catch (err) { return { text: '', error: String(err).slice(0, 160) }; }
 }
 
 // What the class sees while the lecturer goes over a question: the correct letter, the spread of answers,
@@ -518,8 +518,9 @@ function reviewData_(code, id) {
     var rows = es.getRange(2, 1, es.getLastRow() - 1, 3).getValues();
     for (var i = 0; i < rows.length; i++) if (String(rows[i][0]).trim().toUpperCase() === code && Number(rows[i][1]) === q) expl = String(rows[i][2]);
   }
-  if (!expl) expl = bankExplanation_(code, q);
-  return { q: q, correct: String(key[q]).trim().toUpperCase(), dist: dist, answered: n, mine: id && got[id] ? got[id].ans[q - 1] : '', explanation: expl };
+  var err = '';
+  if (!expl) { var bx = bankExplanation_(code, q); expl = bx.text; err = bx.error; }
+  return { q: q, correct: String(key[q]).trim().toUpperCase(), dist: dist, answered: n, mine: id && got[id] ? got[id].ans[q - 1] : '', explanation: expl, explanationError: err };
 }
 
 // ---------- GET (JSONP): status, own result, ranking, host and display data ----------
@@ -607,7 +608,7 @@ function doGet(e) {
     var hk = keyRow_(code);
     if (!hostOk_(p) || !hk) return jsonp_(e, { ok: false });
     var ch = ctl_(code), cn = counts_(code), rows2 = ranking_(code, '');
-    var out = { ok: true, controlled: !!ch, joined: cn.joined, inprogress: cn.inprogress, submitted: cn.submitted, notYet: cn.notYet, rows: rows2 };
+    var out = { ok: true, review: ch ? reviewData_(code, '') : { q: 0 }, controlled: !!ch, joined: cn.joined, inprogress: cn.inprogress, submitted: cn.submitted, notYet: cn.notYet, rows: rows2 };
     if (ch && paced_(ch) && Number(ch.v[11]) > 0) { var ac = answerCounts_(code, Number(ch.v[11])); out.answered = ac.answered; out.dist = ac.dist; }
     if (ch) { out.status = ctlStatus_(ch); out.state = out.status.state; out.settings = { duration: Number(ch.v[2]), allowLate: ch.v[5], showScore: ch.v[6], showBoard: ch.v[7] }; }
     else out.state = state_(hk);
