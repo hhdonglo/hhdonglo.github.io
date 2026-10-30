@@ -18,6 +18,7 @@ var KEY_TAB = 'Key';
 var CONTROL_TAB = 'Quiz_Control';
 var PRESENCE_TAB = 'Presence';
 var ANSWERS_TAB = 'Answers';
+var TOTALS_TAB = 'Totals'; // private: one row per student ID, rebuilt automatically
 var EXPL_TAB = 'Explanations'; // optional override: join code | question number | explanation. Normally empty.
 var SITE = 'https://hhdonglo.github.io'; // explanations come from the practice bank listed in apps_script/live_quizzes.json
 var LETTERS = ['A', 'B', 'C', 'D', 'E'];
@@ -129,12 +130,15 @@ function setup() {
   ks.getRange(1, 10).setValue('Host key');
   if (!String(ks.getRange(2, 10).getValue()).trim()) ks.getRange(2, 10).setValue(Math.random().toString(36).slice(2, 10));
   if (ks.getLastRow() < 2) ks.appendRow(['2627', '', '', '', '', '', 'Open']);
+  ks.getRange(1, 11).setValue('Totals count (Best or Latest)');
+  if (!String(ks.getRange(2, 11).getValue()).trim()) ks.getRange(2, 11).setValue('Best');
   controlSheet_();
   var xs = ss.getSheetByName(EXPL_TAB) || ss.insertSheet(EXPL_TAB);
   if (xs.getLastRow() === 0) xs.appendRow(['Join Code', 'Question', 'Explanation']);
   var rs = responses_();
   if (!rs.getRange(1, 10).getValue()) rs.getRange(1, 10).setValue('Score');
   rs.getRange(1, 11).setValue('Round');
+  refreshTotals();
   var names = ss.getSheets().map(function (x) { return x.getName(); });
   var msg = 'Setup finished. Host key (also in Key!J2): ' + ks.getRange(2, 10).getValue() + '. Responses tab: ' + rs.getName() + '. Tabs in this file: ' + names.join(', ') + '.';
   log_('setup', msg.replace(/Host key[^.]*\./, 'Host key shown in Key!J2.'), '', '');
@@ -343,6 +347,7 @@ function finalize_(code) {
     else sh.appendRow([new Date(), a.name, id, code].concat(a.ans, [score, rnd]));
     presence_(code, id, a.name, 'submitted');
   });
+  totalsSafe_();
 }
 
 function answerCounts_(code, q) { // how many have answered question q, and the spread of A to E
@@ -353,6 +358,45 @@ function answerCounts_(code, q) { // how many have answered question q, and the 
   });
   return { answered: n, dist: dist };
 }
+
+// ---------- Totals: every student's quizzes, scores and average, rebuilt automatically ----------
+
+// One row per student ID. A column per quiz code holds the counted score for that quiz. If a student has several
+// rounds for the same code, Key!K2 chooses which counts: Best (default) or Latest.
+function refreshTotals() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet(), rs = responses_(), n = rs.getLastRow();
+  var ks = ss.getSheetByName(KEY_TAB), mode = ks ? String(ks.getRange(2, 11).getValue()).trim().toLowerCase() : '';
+  var latest = mode === 'latest';
+  var data = n > 1 ? rs.getRange(2, 1, n - 1, 11).getValues() : []; // Timestamp, First Name, ID, Join Code, Q1 to Q5, Score, Round
+  var students = {}, codes = {};
+  data.forEach(function (r) {
+    var id = String(r[2]).trim(), code = String(r[3]).trim().toUpperCase();
+    if (!id || !code || r[9] === '') return;
+    var score = Number(r[9]), rnd = Number(r[10]) || 0, st = students[id] || (students[id] = { name: '', best: {} });
+    st.name = String(r[1]) || st.name;
+    codes[code] = true;
+    var cur = st.best[code];
+    if (!cur || (latest ? rnd >= cur.rnd : score > cur.score)) st.best[code] = { score: score, rnd: rnd };
+  });
+  var codeList = Object.keys(codes).sort();
+  var header = ['Student ID', 'First name', 'Quizzes taken'].concat(codeList.map(function (c) { return 'Quiz ' + c; }), ['Total', 'Out of', 'Average %']);
+  var rows = Object.keys(students).sort(function (a, b) { return a.localeCompare(b, undefined, { numeric: true }); }).map(function (id) {
+    var st = students[id], taken = 0, total = 0;
+    var cells = codeList.map(function (c) { var b = st.best[c]; if (!b) return ''; taken++; total += b.score; return b.score; });
+    return [id, st.name, taken].concat(cells, [total, taken * 5, taken ? Math.round(total / (taken * 5) * 1000) / 10 : '']);
+  });
+  var ts = ss.getSheetByName(TOTALS_TAB) || ss.insertSheet(TOTALS_TAB);
+  ts.clearContents();
+  ts.getRange(1, 1, 1, header.length).setValues([header]);
+  if (rows.length) ts.getRange(2, 1, rows.length, header.length).setValues(rows);
+  return rows.length;
+}
+
+function onOpen() { // a PHYS 143 menu in the sheet
+  try { SpreadsheetApp.getUi().createMenu('PHYS 143').addItem('Refresh totals', 'refreshTotals').addToUi(); } catch (err) { /* not opened from the sheet */ }
+}
+
+function totalsSafe_() { try { refreshTotals(); } catch (err) { log_('totals failed', String(err).slice(0, 150), '', ''); } }
 
 // ---------- Presence: who has joined, who is working, who has submitted ----------
 
@@ -477,6 +521,7 @@ function doPost(e) {
     else if (!sh.getRange(1, 10).getValue()) sh.getRange(1, 10).setValue('Score');
     sh.appendRow([new Date(), name, id, code].concat(ans, [score, rnd]));
     presence_(code, id, name, 'submitted');
+    totalsSafe_();
     return fin_('ok');
   } finally {
     lock.releaseLock();
