@@ -5,6 +5,7 @@
 // Key: Join Code | Q1 to Q5 (correct letters) | Ranking (Hidden hides it) | State (legacy: Waiting, Started, Stopped) ... J2 = host key.
 // Quiz_Control (one row per lecturer-controlled quiz, written by the host dashboard; the server is the authority):
 //   join_code | status | duration_min | end_time_ms | remaining_ms | allow_late_join | show_score | show_leaderboard | message | title | updated
+//   (student records are never deleted: each quiz run is a round; the ranking, first-attempt rule and results use the current round)
 //   + current_q | q_seconds (0 = no question timer) | q_deadline_ms | q_remaining_ms | mode (paced or timed) | round (a new round archives the old responses) | review_q (0 = off; 1 to 5 = the lecturer is going over that question)
 //   status: Draft, Ready, Lobby, Running, Paused, Ended, Released.
 //   paced (default): the lecturer moves the whole class from question to question; answers go to the Answers tab as they are given
@@ -101,6 +102,8 @@ function mark_(key, row) { // row = [Q1..Q5]; returns [1,0,...] without revealin
 }
 
 // The responses tab: by name, else the first tab whose header row starts Timestamp, First Name; else created.
+function roundOf_(code) { var c = ctl_(code); return c ? Number(c.v[16]) || 0 : 0; }
+
 function responses_() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sh = ss.getSheetByName(RESPONSES_TAB);
@@ -113,7 +116,7 @@ function responses_() {
     }
   }
   sh = ss.insertSheet(RESPONSES_TAB);
-  sh.appendRow(['Timestamp', 'First Name', 'ID', 'Join Code', 'Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Score']);
+  sh.appendRow(['Timestamp', 'First Name', 'ID', 'Join Code', 'Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Score', 'Round']);
   return sh;
 }
 
@@ -131,6 +134,7 @@ function setup() {
   if (xs.getLastRow() === 0) xs.appendRow(['Join Code', 'Question', 'Explanation']);
   var rs = responses_();
   if (!rs.getRange(1, 10).getValue()) rs.getRange(1, 10).setValue('Score');
+  rs.getRange(1, 11).setValue('Round');
   var names = ss.getSheets().map(function (x) { return x.getName(); });
   var msg = 'Setup finished. Host key (also in Key!J2): ' + ks.getRange(2, 10).getValue() + '. Responses tab: ' + rs.getName() + '. Tabs in this file: ' + names.join(', ') + '.';
   log_('setup', msg.replace(/Host key[^.]*\./, 'Host key shown in Key!J2.'), '', '');
@@ -273,18 +277,11 @@ function ctlAct_(p, code) {
     if (['draft', 'ready', 'lobby'].indexOf(s) < 0) return { ok: false, why: 'cannot reset after it has started' };
     c.v[1] = 'Ready'; c.v[3] = 0; c.v[4] = dur; c.v[11] = 0; c.v[13] = 0;
   }
-  else if (act === 'newround') { // keep every old response in the Archive tab, clear the live state, back to the lobby
-    var arch = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Archive') || SpreadsheetApp.getActiveSpreadsheet().insertSheet('Archive');
-    if (arch.getLastRow() === 0) arch.appendRow(['Archived', 'Round', 'Timestamp', 'First Name', 'ID', 'Join Code', 'Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Score']);
-    var rsh = responses_(), rn = rsh.getLastRow(), moved = 0, stamp = new Date();
-    for (var ri = rn; ri >= 2; ri--) {
-      var rv = rsh.getRange(ri, 1, 1, 10).getValues()[0];
-      if (String(rv[3]).trim().toUpperCase() === code) { arch.appendRow([stamp, Number(c.v[16]) || 0].concat(rv)); rsh.deleteRow(ri); moved++; }
-    }
+  else if (act === 'newround') { // student records are kept; a new round starts the class ranking again from zero
     var ps = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(PRESENCE_TAB);
     if (ps) for (var pi = ps.getLastRow(); pi >= 2; pi--) if (String(ps.getRange(pi, 4).getValue()).trim().toUpperCase() === code) ps.deleteRow(pi);
     c.v[16] = (Number(c.v[16]) || 0) + 1; c.v[1] = 'Lobby'; c.v[3] = 0; c.v[4] = dur; c.v[11] = 0; c.v[13] = 0; c.v[14] = 0; c.v[8] = ''; c.v[17] = 0;
-    detail = 'round ' + c.v[16] + ', ' + moved + ' responses archived';
+    detail = 'round ' + c.v[16];
   }
   else if (act === 'review') { // go over the answers with the class: only after the quiz has ended
     if (s !== 'ended' && s !== 'released') return { ok: false, why: 'end the quiz first' };
@@ -333,16 +330,17 @@ function finalize_(code) {
   var key = keyRow_(code), got = latestAnswers_(code);
   if (!key) return;
   var sh = responses_(), n = sh.getLastRow(), have = {};
-  if (n === 0) { sh.appendRow(['Timestamp', 'First Name', 'ID', 'Join Code', 'Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Score']); n = 1; }
+  if (n === 0) { sh.appendRow(['Timestamp', 'First Name', 'ID', 'Join Code', 'Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Score', 'Round']); n = 1; }
   else if (!sh.getRange(1, 10).getValue()) sh.getRange(1, 10).setValue('Score');
+  var rnd = roundOf_(code);
   if (n > 1) {
-    var seen = sh.getRange(2, 3, n - 1, 2).getValues();
-    for (var j = 0; j < seen.length; j++) if (String(seen[j][1]).trim().toUpperCase() === code) have[String(seen[j][0]).trim()] = j + 2;
+    var seen = sh.getRange(2, 3, n - 1, 9).getValues(); // ID, Join Code, ..., Round
+    for (var j = 0; j < seen.length; j++) if (String(seen[j][1]).trim().toUpperCase() === code && (Number(seen[j][8]) || 0) === rnd) have[String(seen[j][0]).trim()] = j + 2;
   }
   Object.keys(got).forEach(function (id) {
     var a = got[id], score = mark_(key, a.ans).reduce(function (x, y) { return x + y; }, 0);
     if (have[id]) sh.getRange(have[id], 5, 1, 6).setValues([a.ans.concat([score])]); // a reopened quiz is compiled again
-    else sh.appendRow([new Date(), a.name, id, code].concat(a.ans, [score]));
+    else sh.appendRow([new Date(), a.name, id, code].concat(a.ans, [score, rnd]));
     presence_(code, id, a.name, 'submitted');
   });
 }
@@ -462,10 +460,11 @@ function doPost(e) {
 
     var sh = responses_();
     var n = sh.getLastRow();
-    if (n > 1) { // first attempt per ID and join code only
-      var seen = sh.getRange(2, 3, n - 1, 2).getValues();
+    var rnd = roundOf_(code);
+    if (n > 1) { // first attempt per ID and join code in this round only
+      var seen = sh.getRange(2, 3, n - 1, 9).getValues();
       for (var j = 0; j < seen.length; j++) {
-        if (String(seen[j][0]).trim() === id && String(seen[j][1]).trim().toUpperCase() === code) return fin_('duplicate');
+        if (String(seen[j][0]).trim() === id && String(seen[j][1]).trim().toUpperCase() === code && (Number(seen[j][8]) || 0) === rnd) return fin_('duplicate');
       }
     }
     var ans = [];
@@ -474,9 +473,9 @@ function doPost(e) {
       ans.push(LETTERS.indexOf(a) >= 0 ? a : '');
     }
     var score = mark_(key, ans).reduce(function (x, y) { return x + y; }, 0);
-    if (n === 0) sh.appendRow(['Timestamp', 'First Name', 'ID', 'Join Code', 'Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Score']);
+    if (n === 0) sh.appendRow(['Timestamp', 'First Name', 'ID', 'Join Code', 'Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Score', 'Round']);
     else if (!sh.getRange(1, 10).getValue()) sh.getRange(1, 10).setValue('Score');
-    sh.appendRow([new Date(), name, id, code].concat(ans, [score]));
+    sh.appendRow([new Date(), name, id, code].concat(ans, [score, rnd]));
     presence_(code, id, name, 'submitted');
     return fin_('ok');
   } finally {
@@ -528,9 +527,9 @@ function reviewData_(code, id) {
 function ranking_(code, me) {
   var rsh = responses_(), list = [];
   if (rsh.getLastRow() > 1) {
-    var data = rsh.getRange(2, 1, rsh.getLastRow() - 1, 10).getValues(); // Timestamp, First Name, ID, Join Code, Q1 to Q5, Score
+    var rnd = roundOf_(code), data = rsh.getRange(2, 1, rsh.getLastRow() - 1, 11).getValues(); // Timestamp, First Name, ID, Join Code, Q1 to Q5, Score, Round
     for (var r = 0; r < data.length; r++) {
-      if (String(data[r][3]).trim().toUpperCase() === code && data[r][9] !== '') {
+      if (String(data[r][3]).trim().toUpperCase() === code && data[r][9] !== '' && (Number(data[r][10]) || 0) === rnd) {
         list.push({ name: String(data[r][1]), score: Number(data[r][9]), me: !!me && String(data[r][2]).trim() === me });
       }
     }
@@ -627,9 +626,9 @@ function doGet(e) {
     var id = clean_(p.id, 20), key = keyRow_(code), cx = ctl_(code);
     var sh = responses_();
     if (key && id && sh && sh.getLastRow() > 1) {
-      var rows = sh.getRange(2, 3, sh.getLastRow() - 1, 7).getValues(); // ID, Join Code, Q1 to Q5
+      var rnd2 = roundOf_(code), rows = sh.getRange(2, 3, sh.getLastRow() - 1, 9).getValues(); // ID, Join Code, Q1 to Q5, Score, Round
       for (var i = 0; i < rows.length; i++) {
-        if (String(rows[i][0]).trim() === id && String(rows[i][1]).trim().toUpperCase() === code) {
+        if (String(rows[i][0]).trim() === id && String(rows[i][1]).trim().toUpperCase() === code && (Number(rows[i][8]) || 0) === rnd2) {
           if (cx && !visible_(cx, 'show_score')) return jsonp_(e, { found: true, scoreHidden: true, outcome: lastOutcome_(id, code) });
           var flags = mark_(key, rows[i].slice(2, 7));
           return jsonp_(e, { found: true, score: flags.reduce(function (x, y) { return x + y; }, 0), total: 5, flags: flags, outcome: lastOutcome_(id, code) });

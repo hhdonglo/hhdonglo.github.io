@@ -105,7 +105,7 @@ header.banner,nav.jump,footer,aside.disclaimer,#host-title,.sec-sub{display:none
      <button class="go alt" data-a="reviewprev" data-show="ended,released" data-rev="on">Previous question</button>
      <button class="go big" data-a="reviewnext" data-show="ended,released" data-rev="on">Next question</button>
      <button class="go alt" data-a="reviewoff" data-show="ended,released" data-rev="on">Stop review</button>
-     <button class="go alt" data-a="newround" data-show="ended,released,paused" data-confirm="Start a new round? The responses so far are moved to the Archive tab (not deleted) and the quiz goes back to the lobby.">New round</button>
+     <button class="go alt" data-a="newround" data-show="ended,released,paused" data-confirm="Start a new round? Student records are kept. The quiz goes back to the lobby and the class ranking starts again.">New round</button>
     </p>
     <p class="note" id="h-msgline" role="status"></p>
    </section>
@@ -170,10 +170,16 @@ function refresh(first){
   if(!d.controlled)return;
   cfg.c=d.status;cfg.at=Date.now();
   var st=d.status,s=st.state;
+  if(cfg.first===undefined){
+   cfg.first=true;
+   if(s==="running"||s==="paused"){
+    if(window.confirm("A quiz is in progress ("+s+"). Reset to a fresh lobby? Student records are kept. Press Cancel to carry on with it.")){act("newround");return}
+   } else if(s==="ended"||s==="released"){act("newround");return}
+  }
   var lob=(s==="lobby"||s==="ready"||s==="draft"),live=(s==="running"||s==="paused");
   $("h-qr").hidden=!lob;$("h-link").hidden=!lob;
   $("h-qbox").hidden=!live;$("h-tbox").hidden=!live;$("h-part").hidden=!live;
-  if(cfg.stale===undefined)cfg.stale=!lob;$("h-stale").hidden=!cfg.stale;$("h-stalestate").textContent=(LABEL[s]||s).toLowerCase();
+  $("h-stale").hidden=true;$("h-stalestate").textContent=(LABEL[s]||s).toLowerCase();
   $("h-showcode").textContent=cfg.code;$("h-state").textContent=LABEL[s]||s;
   $("h-q").textContent=(st.currentQ||0)+" / "+(st.totalQ||5);
   Array.prototype.forEach.call(document.querySelectorAll("[data-show]"),function(b){
