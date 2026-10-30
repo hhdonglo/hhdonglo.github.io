@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
 <meta name="color-scheme" content="light dark">
-<title>Lecture 01 — Host screen | PHYS 143 | Hope Donglo</title>
-<meta name="description" content="PHYS 143 Lecture 01 quiz host screen for the lecturer.">
+<title>Lecture 01 — Quiz administration | PHYS 143 | Hope Donglo</title>
+<meta name="description" content="PHYS 143 Lecture 01 quiz administration for the lecturer.">
 <link rel="icon" href="assets/logo/hd-favicon.svg" type="image/svg+xml">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/logo/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/logo/favicon-16.png">
@@ -25,27 +25,28 @@
 </header>
 <nav class="jump" id="jump" aria-label="Sections"><div class="wrap"><button type="button" class="menu-btn" aria-expanded="false" aria-controls="jump-links"><span>Menu</span><span class="dots" aria-hidden="true">&#8943;</span></button><div class="links" id="jump-links"><a href="index.html">Home</a><div class="dd" data-key="research.html"><a href="research.html">Research</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Research links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="research.html#questions">Research Questions</a></li><li><a href="research.html#reaction-dynamics">Nuclear Reaction Dynamics</a></li><li><a href="research.html#uncertainty">Uncertainty Quantification</a></li><li><a href="earlier-research.html">Earlier Research</a></li></ul></div><div class="dd" data-key="projects.html"><a href="projects.html">Projects</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Projects links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="kewpie3.html">KEWPIE3</a></li><li><a href="projects.html#research-projects">Current Research</a></li></ul></div><div class="dd" data-key="data-engineering.html"><a href="data-engineering.html">Scientific Computing</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Scientific Computing links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="data-engineering.html#pipelines">Data Engineering</a></li><li><a href="data-engineering.html#retrieval">Machine Learning</a></li><li><a href="data-engineering.html#analysis">Data Analysis</a></li></ul></div><div class="dd" data-key="teaching.html"><a href="teaching.html" aria-current="true">Teaching</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Teaching links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="teaching.html#lecture-courses">Courses</a></li><li><a href="phys143.html#weekly">Lecture Notes</a></li><li><a href="mock-exam.html">Mock exam</a></li></ul></div><div class="dd" data-key="publications.html"><a href="publications.html">Publications</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Publications links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="publications.html#journal-articles">Journal Articles</a></li><li><a href="publications.html#preprints">Preprints</a></li><li><a href="publications.html#theses">Theses</a></li></ul></div><div class="dd" data-key="students.html"><a href="students.html">Students</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Students links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="students.html#undergraduate">Supervision</a></li><li><a href="students.html#research-projects">Project Opportunities</a></li></ul></div><a href="about.html">About</a><a href="cv.html" class="util first">CV</a><a href="contact.html" class="util">Contact</a></div></div></nav>
 <main id="main"><div class="wrap">
-<h2 id="host-title">Lecture 01 — Host screen</h2>
-<p class="sec-sub">For the lecturer. Project this page; students scan the QR code to join.</p>
+<h2 id="host-title">Lecture 01 — Quiz administration</h2>
+<p class="sec-sub">Private lecturer dashboard. Keep this on your own screen; the projector shows <a id="h-disp" href="phys143-lecture1-display.html" target="_blank" rel="noopener">the display page</a>.</p>
 <style>
 .host{max-width:62rem;margin:0 auto}
-.host .panel{background:var(--surface);border:1px solid var(--border);border-top:5px solid var(--brown-edge);border-radius:8px;padding:1.2rem 1.3rem;box-shadow:var(--shadow);margin-bottom:1rem}
-.host label{display:block;font:600 .95rem system-ui,sans-serif;margin:.8rem 0 .25rem}
-.host input[type=text]{width:100%;max-width:22rem;min-height:44px;padding:.4rem .6rem;border:1.5px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font:1rem system-ui,sans-serif}
-.host .go{min-height:46px;padding:.5rem 1.4rem;border:2px solid var(--brown-fill);border-radius:6px;background:var(--brown-fill);color:#fff;font:600 1rem system-ui,sans-serif;cursor:pointer;margin:.4rem .4rem 0 0}
+.host .panel{background:var(--surface);border:1px solid var(--border);border-top:5px solid var(--brown-edge);border-radius:8px;padding:1.1rem 1.3rem;box-shadow:var(--shadow);margin-bottom:1rem}
+.host label{display:block;font:600 .9rem system-ui,sans-serif;margin:.6rem 0 .2rem}
+.host input[type=text],.host select{min-height:42px;padding:.35rem .6rem;border:1.5px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font:1rem system-ui,sans-serif}
+.host input[type=text]{width:100%;max-width:22rem}
+.host .go{min-height:44px;padding:.45rem 1.1rem;border:2px solid var(--brown-fill);border-radius:6px;background:var(--brown-fill);color:#fff;font:600 1rem system-ui,sans-serif;cursor:pointer;margin:.3rem .3rem 0 0}
 .host .go.alt{background:var(--btn-bg);color:var(--btn-text)}
-.host .go[aria-pressed=true]{outline:3px solid var(--focus);outline-offset:2px}
-.host .top{display:flex;flex-wrap:wrap;gap:1.6rem;align-items:center}
-.host .top img{width:280px;height:280px;background:#fff;border:1px solid var(--border);border-radius:8px;padding:6px}
-.host .lbl{font:600 .85rem system-ui,sans-serif;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0}
-.host .code{font:700 4rem/1.1 ui-monospace,Menlo,monospace;letter-spacing:.06em;color:var(--brown);margin:.1rem 0 .6rem}
-@media (prefers-color-scheme:dark){.host .code{color:#e9c9a8}}
-.host .addr{font:1.1rem ui-monospace,Menlo,monospace;word-break:break-all}
+.host .go.big{min-height:56px;font-size:1.2rem;padding:.6rem 1.6rem}
+.host .go[disabled]{opacity:.4;cursor:not-allowed}
+.host .lbl{font:600 .8rem system-ui,sans-serif;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0}
+.host .row{display:flex;flex-wrap:wrap;gap:1.6rem;align-items:flex-start}
+.host .big-n{font:700 2.6rem/1 system-ui,sans-serif}
+.host .clock{font:700 3rem/1 ui-monospace,Menlo,monospace;color:var(--brown)}
+@media (prefers-color-scheme:dark){.host .clock{color:#e9c9a8}}
 .host .badge{display:inline-block;padding:.15rem .8rem;border-radius:999px;font:700 1rem system-ui,sans-serif;background:var(--sky);color:var(--text)}
-.host .counts{display:flex;gap:2.5rem;flex-wrap:wrap;margin:.6rem 0}
-.host .big{font:700 2.6rem/1 system-ui,sans-serif}
-.host table{width:100%;border-collapse:collapse;font:1.05rem system-ui,sans-serif}
-.host th,.host td{padding:.4rem .6rem;border-bottom:1px solid var(--border);text-align:left}
+.host table{width:100%;border-collapse:collapse;font:1rem system-ui,sans-serif}
+.host th,.host td{padding:.35rem .6rem;border-bottom:1px solid var(--border);text-align:left}
+.host .bar{display:flex;align-items:center;gap:.6rem;margin:.2rem 0;font:1rem system-ui,sans-serif}
+.host .bar i{display:block;height:16px;background:var(--brown-fill);border-radius:3px;min-width:2px}
 .host .note{font:.92rem/1.5 system-ui,sans-serif;color:var(--muted)}
 .host [hidden]{display:none!important}
 </style>
@@ -53,33 +54,67 @@
  <section class="panel" id="h-setup">
   <form id="h-form" autocomplete="off">
    <label for="h-code">Join code</label><input type="text" id="h-code" maxlength="30">
-   <label for="h-key">Host key (from the Key tab, cell J2)</label><input type="text" id="h-key" maxlength="40">
-   <p><button class="go" type="submit">Open the host screen</button></p>
+   <label for="h-key">Host key (Key tab, cell J2)</label><input type="text" id="h-key" maxlength="40">
+   <p><button class="go" type="submit">Open the dashboard</button></p>
    <p class="note" id="h-err" role="alert" hidden></p>
   </form>
  </section>
  <div id="h-main" hidden>
-  <section class="panel">
-   <div class="top">
-    <img src="assets/figures/phys143-l1-try-qr.svg" alt="QR code to join the quiz" width="280" height="280">
-    <div>
-     <p class="lbl">Scan to join, or open</p><p class="addr">hhdonglo.github.io/phys143-lecture1-try.html</p>
-     <p class="lbl">Join code</p><p class="code" id="h-showcode"></p>
-     <p class="lbl">Quiz state</p><p><span class="badge" id="h-state">...</span></p>
-     <p><button type="button" class="go alt" data-s="waiting" aria-pressed="false">Waiting</button><button type="button" class="go" data-s="started" aria-pressed="false">Start quiz</button><button type="button" class="go alt" data-s="stopped" aria-pressed="false">Stop quiz</button></p>
-     <p class="note">Waiting: students who join see a waiting message. Start: their quiz begins. Stop: submissions are refused.</p>
+  <section class="panel" id="h-init" hidden>
+   <p>This quiz is not lecturer-controlled yet. Students can still take it the older way. To run it question by question from this screen, switch it on.</p>
+   <button class="go" id="h-initbtn">Switch on lecturer control</button>
+  </section>
+  <div id="h-ctl" hidden>
+   <section class="panel">
+    <div class="row">
+     <div><p class="lbl">Join code</p><p class="big-n" id="h-showcode"></p></div>
+     <div><p class="lbl">Quiz state</p><p><span class="badge" id="h-state">...</span></p></div>
+     <div><p class="lbl">Question</p><p class="big-n" id="h-q">0 / 5</p></div>
+     <div><p class="lbl">Time left</p><p class="clock" id="h-clock">--</p></div>
     </div>
-   </div>
-  </section>
-  <section class="panel">
-   <div class="counts"><div><p class="lbl">Joined</p><p class="big" id="h-joined">0</p></div><div><p class="lbl">Submitted</p><p class="big" id="h-sub">0</p></div></div>
-   <p class="note" id="h-notyet"></p>
-  </section>
-  <section class="panel">
-   <h3>Class ranking</h3>
-   <div id="h-rank"></div>
-   <p class="note" id="h-upd"></p>
-  </section>
+    <p>
+     <button class="go alt" data-a="lobby">Open lobby</button>
+     <button class="go big" data-a="start" id="b-start">Start quiz</button>
+     <button class="go big" data-a="next" id="b-next">Next question</button>
+     <button class="go alt" data-a="pause" id="b-pause">Pause</button>
+     <button class="go alt" data-a="resume" id="b-resume">Resume</button>
+    </p>
+    <p>
+     <button class="go alt" data-a="extend" data-min="1">+1 min</button>
+     <button class="go alt" data-a="extend" data-min="2">+2 min</button>
+     <button class="go alt" data-a="extend" data-min="5">+5 min</button>
+     <button class="go alt" data-a="end" data-confirm="End the quiz now? Answers so far are marked.">End quiz</button>
+     <button class="go alt" data-a="release">Release results</button>
+     <button class="go alt" data-a="reopen" data-min="2" data-confirm="Reopen the quiz for 2 more minutes? This is logged.">Reopen</button>
+     <button class="go alt" data-a="reset" data-confirm="Reset the quiz to Ready? Only possible before it starts.">Reset</button>
+    </p>
+    <p class="note" id="h-msgline" role="status"></p>
+   </section>
+   <section class="panel">
+    <div class="row">
+     <div><p class="lbl">Joined</p><p class="big-n" id="h-joined">0</p></div>
+     <div><p class="lbl">Answered this question</p><p class="big-n" id="h-ans">0</p></div>
+    </div>
+    <div id="h-dist"></div>
+    <p class="note" id="h-names"></p>
+   </section>
+   <section class="panel">
+    <label for="h-msg">Message to all students</label>
+    <input type="text" id="h-msg" maxlength="200"> <button class="go alt" id="h-msgbtn">Send message</button> <button class="go alt" id="h-msgclr">Clear</button>
+    <div class="row">
+     <div><label for="h-qs">Seconds per question (0 = no timer)</label><select id="h-qs"><option>0</option><option>30</option><option>45</option><option>60</option><option>90</option><option>120</option><option>180</option></select></div>
+     <div><label for="h-late">Late joining</label><select id="h-late"><option>Yes</option><option>No</option></select></div>
+     <div><label for="h-ss">Student score shown</label><select id="h-ss"><option>OnRelease</option><option>Immediate</option><option>Never</option></select></div>
+     <div><label for="h-sb">Ranking shown</label><select id="h-sb"><option>OnRelease</option><option>Immediate</option><option>Never</option></select></div>
+    </div>
+    <p class="note">Settings apply from the next question. Scores and ranking are worked out when the quiz ends.</p>
+   </section>
+   <section class="panel">
+    <h3>Class ranking</h3>
+    <div id="h-rank"></div>
+    <p class="note" id="h-upd"></p>
+   </section>
+  </div>
  </div>
 </div>
 <script>
@@ -87,7 +122,7 @@
 "use strict";
 var SCRIPT_URL="https://script.google.com/macros/s/AKfycbzso5-FCU4erf_grbktH-AH-RKaPDap7TfJAw_TOSxNarTrJDe-PgyBzgIH7Fj2fjZ3/exec";
 var $=function(i){return document.getElementById(i)};
-var cfg={code:"",key:"",t:null};
+var cfg={code:"",key:"",t:null,c:null,busy:false};
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function jsonp(params,cb){
  var n="cb"+Date.now()+Math.floor(Math.random()*1e6),sc=document.createElement("script"),done=false;
@@ -95,33 +130,75 @@ function jsonp(params,cb){
  window[n]=end;sc.onerror=function(){end(null)};
  sc.src=SCRIPT_URL+"?"+params+"&callback="+n+"&_="+Date.now();document.head.appendChild(sc);
 }
-var LABEL={waiting:"Waiting to start",started:"Quiz is running",stopped:"Stopped"};
+var LABEL={draft:"Draft",ready:"Ready",lobby:"Lobby: students are joining",running:"Running",paused:"Paused",ended:"Ended",released:"Results released",waiting:"Waiting",started:"Started",stopped:"Stopped"};
 function q(){return "code="+encodeURIComponent(cfg.code)+"&hostkey="+encodeURIComponent(cfg.key)}
+function act(a,extra,cb){
+ jsonp("action=control&act="+a+"&"+q()+(extra||""),function(d){
+  $("h-msgline").textContent=!d?"Could not reach the class sheet.":(d.ok?"Done: "+a+".":"Not done: "+(d.why||"refused")+".");
+  refresh(false);if(cb)cb(d);
+ });
+}
+function setSel(id,v){var e=$(id);if(document.activeElement!==e&&v!=null)e.value=String(v)}
 function refresh(first){
  jsonp("action=host&"+q(),function(d){
   if(!d||!d.ok){
    if(first){$("h-err").textContent=d?"That join code or host key was not accepted.":"Could not reach the class sheet. Check the connection.";$("h-err").hidden=false}
    else $("h-upd").textContent="Could not refresh just now; trying again.";
    return}
-  $("h-setup").hidden=true;$("h-main").hidden=false;$("h-showcode").textContent=cfg.code;
-  $("h-state").textContent=LABEL[d.state]||d.state;
-  Array.prototype.forEach.call(document.querySelectorAll("[data-s]"),function(b){b.setAttribute("aria-pressed",b.getAttribute("data-s")===d.state?"true":"false")});
-  $("h-joined").textContent=d.joined;$("h-sub").textContent=d.submitted;
-  $("h-notyet").textContent=d.notYet.length?"Joined, not yet submitted: "+d.notYet.join(", "):"";
-  var rk=0,prev=null,h="<table><thead><tr><th>#</th><th>First name</th><th>Score</th></tr></thead><tbody>";
-  d.rows.forEach(function(r,i){if(r.score!==prev){rk=i+1;prev=r.score}h+="<tr><td>"+rk+"</td><td>"+esc(r.name)+"</td><td>"+esc(r.score)+" / 5</td></tr>"});
-  $("h-rank").innerHTML=d.rows.length?h+"</tbody></table>":"<p class=\"note\">No submissions yet.</p>";
-  $("h-upd").textContent="Updates every 5 seconds. Last update "+new Date().toLocaleTimeString()+".";
-  if(!cfg.t)cfg.t=setInterval(function(){refresh(false)},5000);
+  $("h-setup").hidden=true;$("h-main").hidden=false;
+  $("h-init").hidden=!!d.controlled;$("h-ctl").hidden=!d.controlled;
+  if(!cfg.t)cfg.t=setInterval(function(){refresh(false)},4000);
+  if(!d.controlled)return;
+  cfg.c=d.status;cfg.at=Date.now();
+  var st=d.status,s=st.state;
+  $("h-showcode").textContent=cfg.code;$("h-state").textContent=LABEL[s]||s;
+  $("h-q").textContent=(st.currentQ||0)+" / "+(st.totalQ||5);
+  var run=s==="running",pz=s==="paused",pre=s==="ready"||s==="lobby"||s==="draft",fin=s==="ended"||s==="released";
+  $("b-start").disabled=!pre;$("b-next").disabled=!run;$("b-pause").disabled=!run;$("b-resume").disabled=!pz;
+  Array.prototype.forEach.call(document.querySelectorAll("[data-a]"),function(b){
+   var a=b.getAttribute("data-a");
+   if(a==="extend")b.disabled=!(run||pz);
+   if(a==="end")b.disabled=!(run||pz);
+   if(a==="release")b.disabled=!(s==="ended");
+   if(a==="reopen")b.disabled=!fin;
+   if(a==="reset")b.disabled=!pre;
+   if(a==="lobby")b.disabled=!(s==="ready"||s==="draft");
+  });
+  $("h-joined").textContent=d.joined;$("h-ans").textContent=d.answered||0;
+  var dist=d.dist,h="";
+  if(dist){var mx=Math.max(1,dist.A,dist.B,dist.C,dist.D,dist.E);"ABCDE".split("").forEach(function(k){h+='<div class="bar"><b style="width:1.2rem">'+k+'</b><i style="width:'+Math.round(dist[k]/mx*260)+'px"></i> '+dist[k]+'</div>'});}
+  $("h-dist").innerHTML=h;
+  $("h-names").textContent=d.notYet&&d.notYet.length?"Joined: "+d.notYet.join(", "):"";
+  setSel("h-qs",st.qSeconds);setSel("h-late",d.settings&&d.settings.allowLate);setSel("h-ss",d.settings&&d.settings.showScore);setSel("h-sb",d.settings&&d.settings.showBoard);
+  var rk=0,prev=null,t="<table><thead><tr><th>#</th><th>First name</th><th>Score</th></tr></thead><tbody>";
+  d.rows.forEach(function(r,i){if(r.score!==prev){rk=i+1;prev=r.score}t+="<tr><td>"+rk+"</td><td>"+esc(r.name)+"</td><td>"+esc(r.score)+" / 5</td></tr>"});
+  $("h-rank").innerHTML=d.rows.length?t+"</tbody></table>":'<p class="note">The ranking appears here when the quiz ends.</p>';
+  $("h-upd").textContent="Updates every 4 seconds. Last update "+new Date().toLocaleTimeString()+".";
  });
 }
+setInterval(function(){
+ var st=cfg.c;if(!st)return;var el=$("h-clock");
+ if(st.state==="paused"){var p=Math.ceil((st.remainingMs||0)/1000);el.textContent=st.qDeadline||st.qSeconds?Math.floor(p/60)+":"+("0"+p%60).slice(-2)+" (paused)":"--";return}
+ if(st.state!=="running"||!st.qDeadline){el.textContent="--";return}
+ var left=Math.max(0,st.qDeadline-(st.serverNow+(Date.now()-cfg.at))),t=Math.ceil(left/1000);
+ el.textContent=Math.floor(t/60)+":"+("0"+t%60).slice(-2);
+},500);
 $("h-form").addEventListener("submit",function(e){
  e.preventDefault();cfg.code=$("h-code").value.trim().toUpperCase();cfg.key=$("h-key").value.trim();
  if(!cfg.code||!cfg.key){$("h-err").textContent="Enter the join code and the host key.";$("h-err").hidden=false;return}
- $("h-err").hidden=true;refresh(true);
+ $("h-err").hidden=true;$("h-disp").href="phys143-lecture1-display.html?code="+encodeURIComponent(cfg.code);refresh(true);
 });
-Array.prototype.forEach.call(document.querySelectorAll("[data-s]"),function(b){
- b.addEventListener("click",function(){jsonp("action=control&state="+b.getAttribute("data-s")+"&"+q(),function(){refresh(false)})});
+$("h-initbtn").addEventListener("click",function(){act("init")});
+Array.prototype.forEach.call(document.querySelectorAll("[data-a]"),function(b){
+ b.addEventListener("click",function(){
+  var c=b.getAttribute("data-confirm");if(c&&!window.confirm(c))return;
+  var m=b.getAttribute("data-min");act(b.getAttribute("data-a"),m?"&min="+m:"");
+ });
+});
+$("h-msgbtn").addEventListener("click",function(){act("message","&text="+encodeURIComponent($("h-msg").value))});
+$("h-msgclr").addEventListener("click",function(){$("h-msg").value="";act("message","&text=")});
+[["h-qs","q_seconds"],["h-late","allow_late_join"],["h-ss","show_score"],["h-sb","show_leaderboard"]].forEach(function(x){
+ $(x[0]).addEventListener("change",function(){act("set","&field="+x[1]+"&value="+encodeURIComponent($(x[0]).value))});
 });
 })();
 </script>

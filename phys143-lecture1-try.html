@@ -80,6 +80,7 @@
   <div class="track"><i id="fill"></i></div>
   <p class="note" id="banner" role="status" hidden></p>
   <p class="stem" id="stem"></p>
+  <p class="note" id="pnote" role="status"></p>
   <div class="opts" id="opts" role="radiogroup" aria-label="Answer options"></div>
   <button type="button" class="go alt" id="prev" hidden>Back</button> <button type="button" class="go" id="next" disabled>Next</button>
  </section>
@@ -144,7 +145,7 @@ function gate(){
  jsonp("action=status&code="+encodeURIComponent(st.code),function(d){
   function wait(m){btn.disabled=true;er.textContent=m;er.hidden=false;if(!st.joined){st.joined=true;join()}setTimeout(gate,3000)}
   function stop(m){btn.disabled=false;er.textContent=m;er.hidden=false}
-  if(d&&d.timed){
+  if(d&&(d.timed||d.paced)){
    var s=d.state;
    if(s==="ended"||s==="released"){stop("This quiz is closed. Ask your lecturer.");return}
    if(s==="paused"&&!st.joined){stop("This quiz is paused. Ask your lecturer.");return}
@@ -153,7 +154,7 @@ function gate(){
    if(!st.joined&&!d.allowLate){stop("This quiz has already started and late joining is closed. Ask your lecturer.");return}
    btn.disabled=false;er.hidden=true;
    if(!st.joined){st.joined=true;join()}
-   startTimed(d);return}
+   if(d.paced)startPaced(d);else startTimed(d);return}
   var state=d&&d.state?d.state:"started";
   if(state==="stopped"){stop("This quiz is closed. Ask your lecturer.");return}
   if(state==="waiting"){wait("You are in, "+st.name+". Waiting for your lecturer to start the quiz. This page will begin by itself.");return}
@@ -165,6 +166,78 @@ function gate(){
 function join(kind){
  var b=new URLSearchParams();b.set("kind",kind||"join");b.set("name",st.name);b.set("id",st.id);b.set("code",st.code);
  try{fetch(SCRIPT_URL,{method:"POST",mode:"no-cors",body:b}).catch(function(){})}catch(x){}
+}
+// ---- lecturer-paced mode: the lecturer moves the whole class from question to question ----
+function startPaced(d){
+ st.paced=true;st.ans=["","","","",""];st.curQ=0;st.ended=false;
+ join("progress");show("s-q");
+ $("prev").hidden=true;$("next").hidden=true;
+ applyPaced(d);
+ clearInterval(st.timer);clearInterval(st.poll);
+ st.timer=setInterval(pacedTick,500);st.poll=setInterval(pacedPoll,2000);
+}
+function pacedClosed(){
+ if(st.paused)return true;
+ return !!(st.qDeadline&&Date.now()+st.off>st.qDeadline);
+}
+function applyPaced(d){
+ st.off=d.serverNow-Date.now();st.paused=d.state==="paused";st.remain=d.remainingMs;st.qDeadline=d.qDeadline||0;st.qSeconds=d.qSeconds||0;
+ var b=$("banner");
+ if(st.paused){b.textContent="Paused by your lecturer. The clock has stopped.";b.hidden=false}
+ else if(d.message){b.textContent="Message from your lecturer: "+d.message;b.hidden=false}
+ else b.hidden=true;
+ if(d.state==="ended"||d.state==="released"){endPaced();return}
+ if(d.currentQ&&d.currentQ!==st.curQ){st.curQ=d.currentQ;renderPaced()}
+ setLocked();
+}
+function renderPaced(){
+ var q=QS[st.curQ-1];if(!q)return;
+ $("qn").textContent="Question "+st.curQ+" of "+QS.length;
+ $("stem").innerHTML=q.stem;
+ var o=$("opts");o.innerHTML="";
+ q.opts.forEach(function(t,j){
+  var b=document.createElement("button");b.type="button";b.className="opt";b.setAttribute("role","radio");
+  b.setAttribute("aria-checked",st.ans[st.curQ-1]===L[j]?"true":"false");
+  b.innerHTML="<b>"+L[j]+"</b><span>"+t+"</span>";
+  b.addEventListener("click",function(){
+   if(pacedClosed())return;
+   st.ans[st.curQ-1]=L[j];Array.prototype.forEach.call(o.children,function(c){c.setAttribute("aria-checked",c===b?"true":"false")});
+   sendAnswer(st.curQ,L[j]);
+  });
+  o.appendChild(b);
+ });
+ $("pnote").textContent=st.ans[st.curQ-1]?"Your answer is sent. You can change it until time runs out.":"Choose an answer.";
+}
+function sendAnswer(q,a){
+ var b=new URLSearchParams();b.set("kind","answer");b.set("name",st.name);b.set("id",st.id);b.set("code",st.code);b.set("q",String(q));b.set("answer",a);
+ $("pnote").textContent="Sending your answer.";
+ fetch(SCRIPT_URL,{method:"POST",mode:"no-cors",body:b}).then(function(){$("pnote").textContent="Your answer is sent. You can change it until time runs out. Wait for your lecturer to move on."},function(){$("pnote").textContent="Your answer could not be sent. Check your connection and tap it again."});
+}
+function setLocked(){
+ var lock=pacedClosed();
+ Array.prototype.forEach.call($("opts").children,function(c){c.disabled=lock});
+ if(lock&&!st.paused)$("pnote").textContent="Time is up for this question. Wait for your lecturer to move on.";
+}
+function pacedTick(){
+ var c=$("clock");
+ if(st.paused){var t0=Math.ceil(Math.max(0,st.remain)/1000);c.textContent="Paused "+Math.floor(t0/60)+":"+("0"+t0%60).slice(-2);$("fill").style.width="100%";return}
+ if(!st.qDeadline){c.textContent="";$("fill").style.width="0%";return}
+ var left=Math.max(0,st.qDeadline-(Date.now()+st.off)),t=Math.ceil(left/1000);
+ c.textContent=Math.floor(t/60)+":"+("0"+t%60).slice(-2);c.className="clock"+(t<=10?" low":"");
+ $("fill").style.width=Math.min(100,left/(st.qSeconds*1000||1)*100)+"%";
+ if(left<=0)setLocked();
+}
+function pacedPoll(){
+ if(st.ended)return;
+ jsonp("action=status&code="+encodeURIComponent(st.code),function(d){if(d&&(d.paced||d.timed)&&!st.ended)applyPaced(d)});
+}
+function endPaced(){
+ if(st.ended)return;st.ended=true;
+ clearInterval(st.timer);clearInterval(st.poll);
+ show("s-end");$("board").hidden=true;$("retry").hidden=true;
+ $("t-end").textContent="The quiz has ended";
+ $("end-msg").textContent="Checking your result.";
+ setTimeout(function(){poll(0)},1500);
 }
 // ---- lecturer-controlled mode: one clock for the whole quiz, set and checked by the server ----
 function startTimed(d){
@@ -282,6 +355,7 @@ function poll(n){
   if(d&&d.outcome==="not joined"){problem("You joined after the quiz started and late joining is closed, so your answers were not recorded. Tell your lecturer.");return}
   if(d&&d.outcome==="quiz closed"){problem("The quiz closed before your answers arrived, so they were not recorded. Tell your lecturer.");return}
   if(d&&d.outcome&&d.outcome!=="ok"&&d.outcome!=="duplicate"){problem("The class sheet could not record your answers ("+d.outcome+"). Tell your lecturer.");return}
+  if(st.paced&&n>=4){$("t-end").textContent="The quiz has ended";$("end-msg").textContent="No answers from you were recorded for this quiz. If that is wrong, tell your lecturer.";return}
   if(n<14){setTimeout(function(){poll(n+1)},3000);return}
   problem("I could not confirm that your answers reached the class sheet. Press Send again; only your first attempt counts, so sending twice does no harm.");
  });

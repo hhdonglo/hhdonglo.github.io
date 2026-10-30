@@ -5,7 +5,10 @@
 // Key: Join Code | Q1 to Q5 (correct letters) | Ranking (Hidden hides it) | State (legacy: Waiting, Started, Stopped) ... J2 = host key.
 // Quiz_Control (one row per lecturer-controlled quiz, written by the host dashboard; the server is the authority):
 //   join_code | status | duration_min | end_time_ms | remaining_ms | allow_late_join | show_score | show_leaderboard | message | title | updated
+//   + current_q | q_seconds (0 = no question timer) | q_deadline_ms | q_remaining_ms | mode (paced or timed)
 //   status: Draft, Ready, Lobby, Running, Paused, Ended, Released.
+//   paced (default): the lecturer moves the whole class from question to question; answers go to the Answers tab as they are given
+//   and are compiled into Form Responses 1 (with the Score) when the quiz ends. timed: one clock for all five questions.
 //   show_score and show_leaderboard: Immediate, OnRelease (default) or Never.
 // A join code with no Quiz_Control row keeps the older behaviour (Key columns G and H).
 
@@ -13,6 +16,7 @@ var RESPONSES_TAB = 'Form Responses 1';
 var KEY_TAB = 'Key';
 var CONTROL_TAB = 'Quiz_Control';
 var PRESENCE_TAB = 'Presence';
+var ANSWERS_TAB = 'Answers';
 var LETTERS = ['A', 'B', 'C', 'D', 'E'];
 var NOTIFY_EMAIL = 'hkdonglo@gmail.com'; // new reports are emailed here
 var GRACE_MS = 15000; // a submission may arrive this long after the deadline (network delay)
@@ -141,7 +145,7 @@ function out_(t) { return ContentService.createTextOutput(t); }
 
 // ---------- Quiz_Control: the server decides what state a quiz is in ----------
 
-var CTL_HEADER = ['join_code', 'status', 'duration_min', 'end_time_ms', 'remaining_ms', 'allow_late_join', 'show_score', 'show_leaderboard', 'message', 'title', 'updated'];
+var CTL_HEADER = ['join_code', 'status', 'duration_min', 'end_time_ms', 'remaining_ms', 'allow_late_join', 'show_score', 'show_leaderboard', 'message', 'title', 'updated', 'current_q', 'q_seconds', 'q_deadline_ms', 'q_remaining_ms', 'mode'];
 
 function controlSheet_() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -169,9 +173,11 @@ function ctlSave_(c) {
 // ready, lobby, running, paused, ended, released, draft; a Running quiz past its deadline reads as ended.
 function eff_(c) {
   var s = String(c.v[1]).trim().toLowerCase() || 'draft';
-  if (s === 'running' && Date.now() >= Number(c.v[3])) return 'ended';
+  if (s === 'running' && !paced_(c) && Date.now() >= Number(c.v[3])) return 'ended';
   return s;
 }
+
+function paced_(c) { return String(c.v[15]).trim().toLowerCase() !== 'timed'; }
 
 function when_(c, name) { // 'immediate' | 'onrelease' | 'never'
   var m = { show_score: 6, show_leaderboard: 7 };
@@ -187,12 +193,14 @@ function allowLate_(c) { return String(c.v[5]).trim().toLowerCase() !== 'no'; }
 
 function ctlStatus_(c) {
   var s = eff_(c), now = Date.now();
-  return {
-    timed: true, state: s, serverNow: now, endTime: Number(c.v[3]) || 0,
-    remainingMs: s === 'paused' ? Number(c.v[4]) || 0 : (s === 'running' ? Math.max(0, Number(c.v[3]) - now) : 0),
+  var o = {
+    timed: !paced_(c), paced: paced_(c), state: s, serverNow: now, endTime: Number(c.v[3]) || 0,
+    remainingMs: s === 'paused' ? Number(paced_(c) ? c.v[14] : c.v[4]) || 0 : (s === 'running' && !paced_(c) ? Math.max(0, Number(c.v[3]) - now) : 0),
     duration: Number(c.v[2]) || 0, message: String(c.v[8] || ''), title: String(c.v[9] || ''),
     allowLate: allowLate_(c), showScore: visible_(c, 'show_score'), showBoard: visible_(c, 'show_leaderboard')
   };
+  if (paced_(c)) { o.currentQ = Number(c.v[11]) || 0; o.totalQ = 5; o.qSeconds = Number(c.v[12]) || 0; o.qDeadline = Number(c.v[13]) || 0; }
+  return o;
 }
 
 // Host-only changes. Every change is written to the audit log.
@@ -203,32 +211,45 @@ function ctlAct_(p, code) {
   if (act === 'init') {
     if (c) return { ok: true, status: ctlStatus_(c) };
     var sh = controlSheet_();
-    sh.appendRow([code, 'Ready', 10, 0, 10 * 60000, 'Yes', 'OnRelease', 'OnRelease', '', '', new Date().toISOString()]);
+    sh.appendRow([code, 'Ready', 10, 0, 10 * 60000, 'Yes', 'OnRelease', 'OnRelease', '', '', new Date().toISOString(), 0, 60, 0, 0, 'paced']);
     log_('control:init', 'host', '', code);
     return { ok: true, status: ctlStatus_(ctl_(code)) };
   }
   if (!c) return { ok: false, why: 'not lecturer-controlled yet' };
   var s = eff_(c), dur = (Number(c.v[2]) || 10) * 60000, min = Math.max(0, Math.min(60, Number(p.min) || 0)) * 60000, detail = '';
-  if (act === 'ready' || act === 'draft') { c.v[1] = act === 'ready' ? 'Ready' : 'Draft'; c.v[3] = 0; c.v[4] = dur; }
-  else if (act === 'lobby') { c.v[1] = 'Lobby'; c.v[3] = 0; c.v[4] = dur; }
+  var pc = paced_(c), qms = (Number(c.v[12]) || 0) * 1000;
+  if (act === 'ready' || act === 'draft') { c.v[1] = act === 'ready' ? 'Ready' : 'Draft'; c.v[3] = 0; c.v[4] = dur; c.v[11] = 0; c.v[13] = 0; }
+  else if (act === 'lobby') { c.v[1] = 'Lobby'; c.v[3] = 0; c.v[4] = dur; c.v[11] = 0; c.v[13] = 0; }
   else if (act === 'start') {
     if (['ready', 'lobby', 'draft'].indexOf(s) < 0) return { ok: false, why: 'can only start from Ready or Lobby (now ' + s + ')' };
     c.v[1] = 'Running'; c.v[3] = now + dur; c.v[4] = dur;
+    if (pc) { c.v[11] = 1; c.v[13] = qms ? now + qms : 0; detail = 'question 1'; }
+  }
+  else if (act === 'next') { // paced only: move the whole class on
+    if (!pc || s !== 'running') return { ok: false, why: 'start the quiz first' };
+    if ((Number(c.v[11]) || 0) >= 5) { finalize_(code); c.v[1] = 'Ended'; detail = 'after question 5'; }
+    else { c.v[11] = (Number(c.v[11]) || 0) + 1; c.v[13] = qms ? now + qms : 0; detail = 'question ' + c.v[11]; }
   }
   else if (act === 'pause') {
     if (s !== 'running') return { ok: false, why: 'not running' };
-    c.v[4] = Math.max(0, Number(c.v[3]) - now); c.v[1] = 'Paused';
+    if (pc) c.v[14] = Number(c.v[13]) ? Math.max(0, Number(c.v[13]) - now) : 0; else c.v[4] = Math.max(0, Number(c.v[3]) - now);
+    c.v[1] = 'Paused';
   }
   else if (act === 'resume') {
     if (s !== 'paused') return { ok: false, why: 'not paused' };
-    c.v[1] = 'Running'; c.v[3] = now + Number(c.v[4]);
+    c.v[1] = 'Running';
+    if (pc) c.v[13] = qms ? now + Number(c.v[14]) : 0; else c.v[3] = now + Number(c.v[4]);
   }
   else if (act === 'end') {
     if (s !== 'running' && s !== 'paused') return { ok: false, why: 'not running' };
+    if (pc) finalize_(code);
     c.v[1] = 'Ended'; c.v[3] = Math.min(now, Number(c.v[3]) || now); c.v[4] = 0;
   }
   else if (act === 'extend') {
-    if (s === 'running') c.v[3] = Number(c.v[3]) + min;
+    if (pc) {
+      if (!qms) return { ok: false, why: 'this quiz has no question timer' };
+      if (s === 'running') c.v[13] = Math.max(Number(c.v[13]), now) + min; else if (s === 'paused') c.v[14] = Number(c.v[14]) + min; else return { ok: false, why: 'not running' };
+    } else if (s === 'running') c.v[3] = Number(c.v[3]) + min;
     else if (s === 'paused') c.v[4] = Number(c.v[4]) + min;
     else return { ok: false, why: 'not running' };
     detail = String(min / 60000) + ' min';
@@ -237,13 +258,15 @@ function ctlAct_(p, code) {
     if (s !== 'ended' && s !== 'released') return { ok: false, why: 'end the quiz first' };
     c.v[1] = 'Released';
   }
-  else if (act === 'reopen') { // a genuine technical problem: back to Running with extra time
+  else if (act === 'reopen') { // a genuine technical problem: back to Running, same question
     if (s !== 'ended' && s !== 'released') return { ok: false, why: 'quiz is not ended' };
-    c.v[1] = 'Running'; c.v[3] = now + (min || 2 * 60000); detail = String((min || 120000) / 60000) + ' min';
+    c.v[1] = 'Running'; c.v[3] = now + (min || 2 * 60000);
+    if (pc) c.v[13] = qms ? now + (min || qms) : 0;
+    detail = 'question ' + c.v[11];
   }
   else if (act === 'reset') { // before it starts only; submissions are never deleted
     if (['draft', 'ready', 'lobby'].indexOf(s) < 0) return { ok: false, why: 'cannot reset after it has started' };
-    c.v[1] = 'Ready'; c.v[3] = 0; c.v[4] = dur;
+    c.v[1] = 'Ready'; c.v[3] = 0; c.v[4] = dur; c.v[11] = 0; c.v[13] = 0;
   }
   else if (act === 'message') { c.v[8] = clean_(p.text, 200); detail = c.v[8]; }
   else if (act === 'set') { // duration, late joining, when scores and ranking show
@@ -252,6 +275,8 @@ function ctlAct_(p, code) {
     else if (field === 'allow_late_join') c.v[5] = /^y/i.test(val) ? 'Yes' : 'No';
     else if (field === 'show_score' || field === 'show_leaderboard') c.v[field === 'show_score' ? 6 : 7] = /^i/i.test(val) ? 'Immediate' : (/^n/i.test(val) ? 'Never' : 'OnRelease');
     else if (field === 'title') c.v[9] = val;
+    else if (field === 'q_seconds') { var qs = Math.max(0, Math.min(600, Number(val) || 0)); c.v[12] = qs; val = String(qs); }
+    else if (field === 'mode') c.v[15] = /^t/i.test(val) ? 'timed' : 'paced';
     else return { ok: false, why: 'unknown setting' };
     detail = field + '=' + val;
   }
@@ -259,6 +284,48 @@ function ctlAct_(p, code) {
   ctlSave_(c);
   log_('control:' + act, detail, '', code);
   return { ok: true, status: ctlStatus_(c) };
+}
+
+// ---------- Paced answers: stored as given, compiled into Form Responses 1 when the quiz ends ----------
+
+function latestAnswers_(code) { // {id: {name, ans:[5]}} from the Answers tab; the last answer to each question wins
+  var out = {}, sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ANSWERS_TAB);
+  if (!sh || sh.getLastRow() < 2) return out;
+  var rows = sh.getRange(2, 2, sh.getLastRow() - 1, 5).getValues(); // ID, First Name, Join Code, Q, Answer
+  for (var i = 0; i < rows.length; i++) {
+    if (String(rows[i][2]).trim().toUpperCase() !== code) continue;
+    var id = String(rows[i][0]).trim(), q = Number(rows[i][3]);
+    if (!out[id]) out[id] = { name: String(rows[i][1]), ans: ['', '', '', '', ''] };
+    if (q >= 1 && q <= 5) out[id].ans[q - 1] = String(rows[i][4]);
+  }
+  return out;
+}
+
+function finalize_(code) {
+  var key = keyRow_(code), got = latestAnswers_(code);
+  if (!key) return;
+  var sh = responses_(), n = sh.getLastRow(), have = {};
+  if (n === 0) { sh.appendRow(['Timestamp', 'First Name', 'ID', 'Join Code', 'Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Score']); n = 1; }
+  else if (!sh.getRange(1, 10).getValue()) sh.getRange(1, 10).setValue('Score');
+  if (n > 1) {
+    var seen = sh.getRange(2, 3, n - 1, 2).getValues();
+    for (var j = 0; j < seen.length; j++) if (String(seen[j][1]).trim().toUpperCase() === code) have[String(seen[j][0]).trim()] = j + 2;
+  }
+  Object.keys(got).forEach(function (id) {
+    var a = got[id], score = mark_(key, a.ans).reduce(function (x, y) { return x + y; }, 0);
+    if (have[id]) sh.getRange(have[id], 5, 1, 6).setValues([a.ans.concat([score])]); // a reopened quiz is compiled again
+    else sh.appendRow([new Date(), a.name, id, code].concat(a.ans, [score]));
+    presence_(code, id, a.name, 'submitted');
+  });
+}
+
+function answerCounts_(code, q) { // how many have answered question q, and the spread of A to E
+  var got = latestAnswers_(code), dist = { A: 0, B: 0, C: 0, D: 0, E: 0 }, n = 0;
+  Object.keys(got).forEach(function (id) {
+    var a = got[id].ans[q - 1];
+    if (a) { n++; if (dist[a] !== undefined) dist[a]++; }
+  });
+  return { answered: n, dist: dist };
 }
 
 // ---------- Presence: who has joined, who is working, who has submitted ----------
@@ -318,6 +385,18 @@ function doPost(e) {
   var name = clean_(p.name, 40), id = clean_(p.id, 20), code = clean_(p.code, 30).toUpperCase();
   function fin_(o) { log_(o, name, id, code); return out_(o); }
 
+  if (p.kind === 'answer') { // paced quiz: one answer to the question that is open right now
+    var qn = Number(p.q), al = String(p.answer || '').trim().toUpperCase();
+    if (!name || !id || !keyRow_(code) || LETTERS.indexOf(al) < 0 || !(qn >= 1 && qn <= 5)) return fin_('bad answer');
+    var ca = ctl_(code);
+    if (!ca || !paced_(ca)) return fin_('not paced');
+    if (eff_(ca) !== 'running') return fin_('not open');
+    if (Number(ca.v[11]) !== qn) return fin_('wrong question');
+    if (Number(ca.v[13]) && Date.now() > Number(ca.v[13]) + GRACE_MS) return fin_('question closed');
+    if (!allowLate_(ca) && !hasPresence_(code, id)) return fin_('not joined');
+    append_(ANSWERS_TAB, ['Timestamp', 'ID', 'First Name', 'Join Code', 'Q', 'Answer'], [new Date(), id, name, code, qn, al]);
+    return out_('ok');
+  }
   if (p.kind === 'join' || p.kind === 'progress') { // lobby and live participation
     if (!name || !id || !keyRow_(code)) return out_('ok');
     var lj = LockService.getScriptLock();
@@ -339,6 +418,7 @@ function doPost(e) {
     var key = keyRow_(code);
     if (!key) return fin_('bad code');
     var c = ctl_(code);
+    if (c && paced_(c)) return fin_('use answers');
     if (c) { // lecturer-controlled: state and deadline are checked here, not in the browser
       var s = eff_(c), left = Number(c.v[3]) + GRACE_MS - Date.now();
       if (s === 'draft' || s === 'ready' || s === 'lobby') return fin_('not started');
@@ -460,6 +540,7 @@ function doGet(e) {
     if (!hostOk_(p) || !hk) return jsonp_(e, { ok: false });
     var ch = ctl_(code), cn = counts_(code), rows2 = ranking_(code, '');
     var out = { ok: true, controlled: !!ch, joined: cn.joined, inprogress: cn.inprogress, submitted: cn.submitted, notYet: cn.notYet, rows: rows2 };
+    if (ch && paced_(ch) && Number(ch.v[11]) > 0) { var ac = answerCounts_(code, Number(ch.v[11])); out.answered = ac.answered; out.dist = ac.dist; }
     if (ch) { out.status = ctlStatus_(ch); out.state = out.status.state; out.settings = { duration: Number(ch.v[2]), allowLate: ch.v[5], showScore: ch.v[6], showBoard: ch.v[7] }; }
     else out.state = state_(hk);
     return jsonp_(e, out);
