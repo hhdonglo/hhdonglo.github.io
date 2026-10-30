@@ -64,8 +64,7 @@
 <div class="try" id="try-app">
  <section class="panel" id="s-start" aria-labelledby="t-start">
   <h3 id="t-start">Join the class</h3>
-  <p class="lbl">Join code</p>
-  <div class="join"><div class="code" id="code-show">2627</div><img src="assets/figures/phys143-l1-try-qr.svg" alt="QR code linking to this page" width="168" height="168"></div>
+  <div class="join"><img src="assets/figures/phys143-l1-try-qr.svg" alt="QR code linking to this page" width="168" height="168"><p>Scan to open this page on another device. Your lecturer will give you the join code in class.</p></div>
   <p>These questions are a short check on this week's vectors work. Each question has five options, A to E, and a one-minute countdown. Pick an answer, then move on. A question left blank when the clock reaches zero counts as wrong, and you cannot go back.</p>
   <p class="note"><strong>Only your first attempt counts</strong> for each ID and join code. Later attempts are ignored.</p>
   <form id="f-start" autocomplete="off" novalidate>
@@ -103,6 +102,9 @@ var FORM_FIELDS={name:"entry.338957421",id:"entry.1078891600",code:"entry.178861
 var FORM_BASE="https://docs.google.com/forms/d/e/1FAIpQLSeSiqJnaqT0TxPqYGa5GpJMaP9lM8QYz-Fu2LmRVtynNfqQ4Q/viewform";
 var LEADERBOARD_CSV="https://docs.google.com/spreadsheets/d/e/2PACX-1vR6SZQewzCDwqP5zfu1uycwaOb_ZEoJgXwLAhEWN4qBwT0zo89MDERju8cBM2Vne6w1-rje6gCZI5X-/pub?gid=1903986573&single=true&output=csv";
 var SECONDS=60;
+// accepted join codes, stored as SHA-256 of "phys143-try:" + CODE (uppercase); add one per quiz
+var ACCEPTED=["65813372d2a0cbf4b1c69eaae826d53ad0855d22c157cb7c755b5d5985d4b443"];
+function sha(c){var b=new TextEncoder().encode("phys143-try:"+c);return crypto.subtle.digest("SHA-256",b).then(function(d){return Array.prototype.map.call(new Uint8Array(d),function(x){return("0"+x.toString(16)).slice(-2)}).join("")})}
 var D=function(s){return s};
 var QS=[
 {stem:"A displacement <b>D</b> has magnitude 10 m and points south-west. Take +x as east and +y as north, with angles measured anticlockwise from +x. Which pair gives its components?",
@@ -126,8 +128,11 @@ $("f-start").addEventListener("submit",function(e){
  var n=$("in-name").value.trim(),d=$("in-id").value.trim(),c=$("in-code").value.trim().toUpperCase();
  var er=$("err");
  if(!n||!d||!c){er.textContent="Please fill in your first name, ID and the join code.";er.hidden=false;return}
- er.hidden=true;st.name=n;st.id=d;st.code=c;st.ans=[];st.i=0;
- ask();
+ er.hidden=true;
+ sha(c).then(function(h){
+  if(ACCEPTED.indexOf(h)<0){er.textContent="That join code is not correct. Check the code shown on the slide and try again.";er.hidden=false;return}
+  st.name=n;st.id=d;st.code=c;st.ans=[];st.i=0;ask();
+ }).catch(function(){er.textContent="This browser cannot check the join code. Please try another browser.";er.hidden=false});
 });
 function ask(){
  var q=QS[st.i];show("s-q");
