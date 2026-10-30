@@ -70,46 +70,40 @@
     <p><b>This quiz is already <span id="h-stalestate"></span>.</b> That state was left over from an earlier session or a test. To start clean, press New round: the old responses go to the Archive tab and the quiz returns to the lobby.</p>
     <button class="go big" id="h-stalebtn">New round (back to lobby)</button>
    </section>
-   <section class="panel" id="h-lobby" hidden style="text-align:center">
-    <p class="lbl">Lobby: students scan to join</p>
-    <div class="row" style="justify-content:center;align-items:center">
-     <img id="h-lobbyqr" src="assets/figures/phys143-l1-try-qr.svg" alt="QR code to join the quiz" width="300" height="300" style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:6px">
-     <div><p class="lbl">Join code</p><p style="font:700 4.5rem/1.1 ui-monospace,Menlo,monospace;margin:.1rem 0" id="h-lobbycode"></p><p class="lbl">Joined</p><p class="big-n" id="h-lobbyn">0</p><p class="note">hhdonglo.github.io/phys143-lecture1-try.html</p></div>
-    </div>
-   </section>
    <section class="panel">
-    <div class="row">
-     <div><p class="lbl">Join code</p><p class="big-n" id="h-showcode"></p><img id="h-qr" src="assets/figures/phys143-l1-try-qr.svg" alt="QR code to join the quiz" width="200" height="200" style="background:#fff;border:1px solid var(--border);border-radius:6px;padding:3px;margin-top:.3rem"></div>
-     <div><p class="lbl">Quiz state</p><p><span class="badge" id="h-state">...</span></p></div>
-     <div><p class="lbl">Question</p><p class="big-n" id="h-q">0 / 5</p></div>
-     <div><p class="lbl">Time left</p><p class="clock" id="h-clock">--</p></div>
+    <div class="row" style="align-items:center">
+     <img id="h-qr" src="assets/figures/phys143-l1-try-qr.svg" alt="QR code to join the quiz" width="260" height="260" style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:6px">
+     <div>
+      <p class="lbl">Join code</p><p style="font:700 4rem/1.1 ui-monospace,Menlo,monospace;margin:.1rem 0" id="h-showcode"></p>
+      <p class="note" id="h-link">hhdonglo.github.io/phys143-lecture1-try.html</p>
+      <p><span class="badge" id="h-state">...</span></p>
+     </div>
+     <div><p class="lbl">Joined</p><p class="big-n" id="h-joined">0</p></div>
+     <div id="h-qbox" hidden><p class="lbl">Question</p><p class="big-n" id="h-q">0 / 5</p></div>
+     <div id="h-tbox" hidden><p class="lbl">Time left</p><p class="clock" id="h-clock">--</p></div>
     </div>
     <div id="h-prev" hidden style="border-top:1px solid var(--border);margin-top:.8rem;padding-top:.6rem">
      <div id="h-prevstem" style="font-size:1.15rem;margin:.3rem 0"></div>
      <div id="h-prevopts"></div>
     </div>
     <p>
-     <button class="go alt" data-a="lobby">Open lobby</button>
-     <button class="go alt" data-a="newround" data-confirm="Start a new round? The responses so far are moved to the Archive tab (not deleted) and the quiz goes back to the lobby.">New round (back to lobby)</button>
-     <button class="go big" data-a="start" id="b-start">Start quiz</button>
-     <button class="go big" data-a="next" id="b-next">Next question</button>
-     <button class="go alt" data-a="pause" id="b-pause">Pause</button>
-     <button class="go alt" data-a="resume" id="b-resume">Resume</button>
-    </p>
-    <p>
-     <button class="go alt" data-a="extend" data-min="1">+1 min</button>
-     <button class="go alt" data-a="extend" data-min="2">+2 min</button>
-     <button class="go alt" data-a="extend" data-min="5">+5 min</button>
-     <button class="go alt" data-a="end" data-confirm="End the quiz now? Answers so far are marked.">End quiz</button>
-     <button class="go alt" data-a="release">Release results</button>
-     <button class="go alt" data-a="reopen" data-min="2" data-confirm="Reopen the quiz for 2 more minutes? This is logged.">Reopen</button>
-     <button class="go alt" data-a="reset" data-confirm="Reset the quiz to Ready? Only possible before it starts.">Reset</button>
+     <button class="go alt" data-a="lobby" data-show="ready,draft">Open lobby</button>
+     <button class="go big" data-a="start" data-show="ready,draft,lobby">Start quiz</button>
+     <button class="go big" data-a="next" data-show="running">Next question</button>
+     <button class="go alt" data-a="pause" data-show="running">Pause</button>
+     <button class="go big" data-a="resume" data-show="paused">Resume</button>
+     <button class="go alt" data-a="extend" data-min="1" data-show="running,paused">+1 min</button>
+     <button class="go alt" data-a="extend" data-min="2" data-show="running,paused">+2 min</button>
+     <button class="go alt" data-a="extend" data-min="5" data-show="running,paused">+5 min</button>
+     <button class="go alt" data-a="end" data-show="running,paused" data-confirm="End the quiz now? Answers so far are marked.">End quiz</button>
+     <button class="go big" data-a="release" data-show="ended">Release results</button>
+     <button class="go alt" data-a="reopen" data-min="2" data-show="ended,released" data-confirm="Reopen the quiz for 2 more minutes? This is logged.">Reopen</button>
+     <button class="go alt" data-a="newround" data-show="ended,released,paused" data-confirm="Start a new round? The responses so far are moved to the Archive tab (not deleted) and the quiz goes back to the lobby.">New round</button>
     </p>
     <p class="note" id="h-msgline" role="status"></p>
    </section>
-   <section class="panel">
+   <section class="panel" id="h-part" hidden>
     <div class="row">
-     <div><p class="lbl">Joined</p><p class="big-n" id="h-joined">0</p></div>
      <div><p class="lbl">Answered this question</p><p class="big-n" id="h-ans">0</p></div>
     </div>
     <div id="h-dist"></div>
@@ -150,6 +144,7 @@ function jsonp(params,cb){
 var LABEL={draft:"Draft",ready:"Ready",lobby:"Lobby: students are joining",running:"Running",paused:"Paused",ended:"Ended",released:"Results released",waiting:"Waiting",started:"Started",stopped:"Stopped"};
 function q(){return "code="+encodeURIComponent(cfg.code)+"&hostkey="+encodeURIComponent(cfg.key)}
 function act(a,extra,cb){
+ cfg.stale=false;
  jsonp("action=control&act="+a+"&"+q()+(extra||""),function(d){
   $("h-msgline").textContent=!d?"Could not reach the class sheet.":(d.ok?"Done: "+a+".":"Not done: "+(d.why||"refused")+".");
   refresh(false);if(cb)cb(d);
@@ -168,24 +163,17 @@ function refresh(first){
   if(!d.controlled)return;
   cfg.c=d.status;cfg.at=Date.now();
   var st=d.status,s=st.state;
-  var lob=(s==="lobby"||s==="ready"||s==="draft");
-  $("h-lobby").hidden=!lob;$("h-lobbycode").textContent=cfg.code;$("h-lobbyn").textContent=d.joined;
-  $("h-stale").hidden=lob||!!cfg.stalehide;$("h-stalestate").textContent=(LABEL[s]||s).toLowerCase();
-  $("h-showcode").textContent=cfg.code;$("h-qr").hidden=!(s==="lobby"||s==="ready"||s==="draft");$("h-state").textContent=LABEL[s]||s;
+  var lob=(s==="lobby"||s==="ready"||s==="draft"),live=(s==="running"||s==="paused");
+  $("h-qr").hidden=!lob;$("h-link").hidden=!lob;
+  $("h-qbox").hidden=!live;$("h-tbox").hidden=!live;$("h-part").hidden=!live;
+  if(cfg.stale===undefined)cfg.stale=!lob;$("h-stale").hidden=!cfg.stale;$("h-stalestate").textContent=(LABEL[s]||s).toLowerCase();
+  $("h-showcode").textContent=cfg.code;$("h-state").textContent=LABEL[s]||s;
   $("h-q").textContent=(st.currentQ||0)+" / "+(st.totalQ||5);
-  var run=s==="running",pz=s==="paused",pre=s==="ready"||s==="lobby"||s==="draft",fin=s==="ended"||s==="released";
-  $("b-start").disabled=!pre;$("b-next").disabled=!run;$("b-pause").disabled=!run;$("b-resume").disabled=!pz;
-  Array.prototype.forEach.call(document.querySelectorAll("[data-a]"),function(b){
-   var a=b.getAttribute("data-a");
-   if(a==="extend")b.disabled=!(run||pz);
-   if(a==="end")b.disabled=!(run||pz);
-   if(a==="release")b.disabled=!(s==="ended");
-   if(a==="reopen")b.disabled=!fin;
-   if(a==="reset")b.disabled=!pre;
-   if(a==="lobby")b.disabled=!(s==="ready"||s==="draft");
+  Array.prototype.forEach.call(document.querySelectorAll("[data-show]"),function(b){
+   b.hidden=b.getAttribute("data-show").split(",").indexOf(s)<0;
   });
   var Q=window.QUIZ_L1&&window.QUIZ_L1[(st.currentQ||0)-1];
-  $("h-prev").hidden=!Q;
+  $("h-prev").hidden=!(Q&&live);
   if(Q){$("h-prevstem").innerHTML=Q.stem;$("h-prevopts").innerHTML=Q.opts.map(function(o,i){return '<p style="margin:.2rem 0"><b>'+"ABCDE"[i]+'</b>&nbsp; '+o+'</p>'}).join("")}
   $("h-joined").textContent=d.joined;$("h-ans").textContent=d.answered||0;
   var dist=d.dist,h="";
