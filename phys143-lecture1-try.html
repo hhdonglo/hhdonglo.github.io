@@ -27,8 +27,8 @@
 <nav class="jump" id="jump" aria-label="Sections"><div class="wrap"><button type="button" class="menu-btn" aria-expanded="false" aria-controls="jump-links"><span>Menu</span><span class="dots" aria-hidden="true">&#8943;</span></button><div class="links" id="jump-links"><a href="index.html">Home</a><div class="dd" data-key="research.html"><a href="research.html">Research</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Research links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="research.html#questions">Research Questions</a></li><li><a href="research.html#reaction-dynamics">Nuclear Reaction Dynamics</a></li><li><a href="research.html#uncertainty">Uncertainty Quantification</a></li><li><a href="earlier-research.html">Earlier Research</a></li></ul></div><div class="dd" data-key="projects.html"><a href="projects.html">Projects</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Projects links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="kewpie3.html">KEWPIE3</a></li><li><a href="projects.html#research-projects">Current Research</a></li></ul></div><div class="dd" data-key="data-engineering.html"><a href="data-engineering.html">Scientific Computing</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Scientific Computing links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="data-engineering.html#pipelines">Data Engineering</a></li><li><a href="data-engineering.html#retrieval">Machine Learning</a></li><li><a href="data-engineering.html#analysis">Data Analysis</a></li></ul></div><div class="dd" data-key="teaching.html"><a href="teaching.html" aria-current="true">Teaching</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Teaching links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="teaching.html#lecture-courses">Courses</a></li><li><a href="phys143.html#weekly">Lecture Notes</a></li><li><a href="mock-exam.html">Mock exam</a></li></ul></div><div class="dd" data-key="publications.html"><a href="publications.html">Publications</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Publications links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="publications.html#journal-articles">Journal Articles</a></li><li><a href="publications.html#preprints">Preprints</a></li><li><a href="publications.html#theses">Theses</a></li></ul></div><div class="dd" data-key="students.html"><a href="students.html">Students</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Students links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="students.html#undergraduate">Supervision</a></li><li><a href="students.html#research-projects">Project Opportunities</a></li></ul></div><a href="about.html">About</a><a href="cv.html" class="util first">CV</a><a href="contact.html" class="util">Contact</a></div></div></nav>
 <main id="main"><div class="wrap">
 <p class="crumb"><a href="index.html">Home</a> &rsaquo; <a href="teaching.html">Teaching</a> &rsaquo; <a href="phys143.html">PHYS 143</a> &rsaquo; <a href="phys143-lecture-1.html">Lecture 01</a> &rsaquo; Try questions</p>
-<h2 id="try-title">Lecture 01 — Try questions</h2>
-<p class="sec-sub">Five questions, one at a time, one minute each.</p>
+<h2 id="try-title">Lecture 01 quiz</h2>
+<p class="sec-sub">5 questions</p>
 <style>
 .try{max-width:46rem;margin:0 auto}
 .try .panel{background:var(--surface);border:1px solid var(--border);border-top:5px solid var(--brown-edge);border-radius:8px;padding:1.2rem 1.3rem;box-shadow:var(--shadow)}
@@ -74,17 +74,15 @@ aside.disclaimer .sakai-link{font-size:.8rem}
 </style>
 <div class="try" id="try-app">
  <section class="panel" id="s-start" aria-labelledby="t-start">
-  <h3 id="t-start">Join the class</h3>
-  <div class="join"><img src="assets/figures/phys143-l1-try-qr.svg" alt="QR code linking to this page" width="168" height="168"><p>Scan to open this page on another device. Your lecturer will give you the join code in class.</p></div>
-  <p>These questions are a short check on this week's vectors work. Each question has five options, A to E, and a one-minute countdown. Pick an answer, then move on. A question left blank when the clock reaches zero counts as wrong, and you cannot go back.</p>
-  <p class="note"><strong>Only your first attempt counts</strong> for each ID and join code. Later attempts are ignored.</p>
+  <h3 id="t-start">Join the quiz</h3>
   <form id="f-start" autocomplete="off" novalidate>
-   <label for="in-name">First name</label><input type="text" id="in-name" maxlength="40" placeholder="for example Ama" required>
-   <label for="in-id">Student ID</label><input type="text" id="in-id" maxlength="20" inputmode="numeric" placeholder="your ID number" required>
-   <label for="in-code">Join code (given in class)</label><input type="text" id="in-code" maxlength="30" placeholder="the code your lecturer gave you" required>
+   <label for="in-name">First name</label><input type="text" id="in-name" maxlength="40" placeholder="Ama" required>
+   <label for="in-id">Student ID</label><input type="text" id="in-id" maxlength="20" inputmode="numeric" placeholder="ID number" required>
+   <label for="in-code">Join code</label><input type="text" id="in-code" maxlength="30" placeholder="Code from the screen" required>
    <p class="note" id="err" role="alert" hidden></p>
-   <button type="submit" class="go">Start question 1</button>
+   <button type="submit" class="go">Join</button>
   </form>
+  <details class="note" style="margin-top:.8rem"><summary>How it works</summary><p>Your lecturer shows one question at a time. Choose an answer before the clock runs out. Only your first attempt counts.</p></details>
  </section>
  <section class="panel" id="s-q" aria-live="polite" hidden>
   <div class="bar"><span id="qn">Question 1 of 5</span><span class="clock" id="clock" role="timer">1:00</span></div>
