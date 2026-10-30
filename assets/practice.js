@@ -230,6 +230,7 @@
     var fb = el('div', { 'class': 'fb-wrap', role: 'status' });
     app.appendChild(fb);
     function openReport() {
+      var old = document.getElementById('report-done'); if (old) old.parentNode.removeChild(old);
       if (document.getElementById('report-panel')) { document.getElementById('report-text').focus(); return; }
       var P = el('div', { id: 'report-panel', 'class': 'note quiz-note' },
         '<label for="report-text"><strong>Report a problem</strong></label> ' +
@@ -243,7 +244,13 @@
         var f = reportFields(n, quiz, q, curSel); f.comment = P.querySelector('#report-text').value; f.page = window.location.href.split(/[?#]/)[0];
         st.textContent = 'Sending.';
         window.PHYS143_TRACK.post('report', f, function (ok) {
-          st.innerHTML = ok ? 'Report sent to the lecturer. Thank you.' : 'The report could not be sent. You can <a href="' + reportUrl(n, quiz, q, curSel) + '" target="_blank" rel="noopener noreferrer">use the form instead</a>.';
+          if (ok) {
+            P.parentNode.removeChild(P);
+            var done = el('p', { id: 'report-done', 'class': 'note quiz-note', role: 'status' }, 'Report sent to the lecturer. Thank you.');
+            nav.parentNode.insertBefore(done, nav.nextSibling);
+            return;
+          }
+          st.innerHTML = 'The report could not be sent. You can <a href="' + reportUrl(n, quiz, q, curSel) + '" target="_blank" rel="noopener noreferrer">use the form instead</a>.';
         });
       });
       P.querySelector('#report-text').focus();
