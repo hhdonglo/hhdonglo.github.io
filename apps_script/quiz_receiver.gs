@@ -7,6 +7,7 @@
 var RESPONSES_TAB = 'Form Responses 1';
 var CODES_TAB = 'Codes';
 var LETTERS = ['A', 'B', 'C', 'D', 'E'];
+var NOTIFY_EMAIL = 'hkdonglo@gmail.com'; // new reports are emailed here
 
 function clean_(v, max) {
   var s = String(v == null ? '' : v).trim().slice(0, max);
@@ -19,6 +20,16 @@ function append_(tab, header, row) {
   var sh = ss.getSheetByName(tab) || ss.insertSheet(tab);
   if (sh.getLastRow() === 0) sh.appendRow(header);
   sh.appendRow(row);
+  return sh;
+}
+
+function mailReport_(sh, r) {
+  try {
+    var link = SpreadsheetApp.getActiveSpreadsheet().getUrl() + '#gid=' + sh.getSheetId() + '&range=A' + sh.getLastRow();
+    MailApp.sendEmail(NOTIFY_EMAIL, 'PHYS 143 report: ' + r.lecture + ', ' + r.qid,
+      'A student reported a problem.\n\nTime: ' + r.time + '\nPage: ' + r.page + '\nLecture: ' + r.lecture + '\nQuestion id: ' + r.qid +
+      '\nQuestion: ' + r.question + '\nAnswer shown: ' + r.answer + '\n\nComment:\n' + r.comment + '\n\nOpen the row: ' + link);
+  } catch (err) { /* the row is already saved; a mail failure must not lose it */ }
 }
 
 function doPost(e) {
@@ -28,8 +39,11 @@ function doPost(e) {
     lk.waitLock(20000);
     try {
       if (p.kind === 'report') {
-        append_('Reports', ['Timestamp', 'Lecture', 'Question id', 'Question', 'Answer shown', 'Comment'],
-          [new Date(), clean_(p.lecture, 80), clean_(p.qid, 40), clean_(p.question, 500), clean_(p.answer, 300), clean_(p.comment, 1000)]);
+        var r = { time: new Date().toString(), page: clean_(p.page, 200), lecture: clean_(p.lecture, 80), qid: clean_(p.qid, 40),
+          question: clean_(p.question, 500), answer: clean_(p.answer, 300), comment: clean_(p.comment, 1000) };
+        var rs = append_('Reports', ['Timestamp', 'Lecture', 'Question id', 'Question', 'Answer shown', 'Comment', 'Page'],
+          [new Date(), r.lecture, r.qid, r.question, r.answer, r.comment, r.page]);
+        mailReport_(rs, r);
       } else {
         if (!clean_(p.id, 30)) return out_('missing');
         append_('Attempts', ['Timestamp', 'Student ID', 'Quiz', 'Attempt', 'Score', 'Total', 'Seconds', 'Wrong question ids'],

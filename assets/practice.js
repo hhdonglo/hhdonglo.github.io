@@ -240,7 +240,7 @@
       var st = P.querySelector('#report-state');
       P.querySelector('#report-cancel').addEventListener('click', function () { P.parentNode.removeChild(P); });
       P.querySelector('#report-send').addEventListener('click', function () {
-        var f = reportFields(n, quiz, q, curSel); f.comment = P.querySelector('#report-text').value;
+        var f = reportFields(n, quiz, q, curSel); f.comment = P.querySelector('#report-text').value; f.page = window.location.href.split(/[?#]/)[0];
         st.textContent = 'Sending.';
         window.PHYS143_TRACK.post('report', f, function (ok) {
           st.innerHTML = ok ? 'Report sent to the lecturer. Thank you.' : 'The report could not be sent. You can <a href="' + reportUrl(n, quiz, q, curSel) + '" target="_blank" rel="noopener noreferrer">use the form instead</a>.';
