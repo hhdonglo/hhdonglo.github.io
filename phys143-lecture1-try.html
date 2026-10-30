@@ -83,10 +83,12 @@
   <button type="button" class="go" id="next" disabled>Next</button>
  </section>
  <section class="panel" id="s-end" hidden>
-  <h3 id="t-end">One last step</h3>
-  <p id="end-msg">Your answers are ready. Press the button below, then press <strong>Submit</strong> on the next page to record them. Your answers are not recorded until you do.</p>
-  <p><a class="go" id="open-form" href="#" target="_blank" rel="noopener" style="display:inline-block;text-decoration:none">Open the form and submit</a></p>
-  <p class="note">If nothing opens, allow pop-ups for this page and press the button again.</p>
+  <h3 id="t-end">Sending your answers</h3>
+  <p id="end-msg">Sending your answers. Please keep this page open.</p>
+  <div id="fallback" hidden>
+   <p><a class="go" id="open-form" href="#" target="_blank" rel="noopener" style="display:inline-block;text-decoration:none">Open the form and submit</a></p>
+   <p class="note">Press <strong>Submit</strong> on the form page. Allow pop-ups for this page if nothing opens.</p>
+  </div>
   <div id="board" hidden>
    <h3>Class ranking</h3>
    <p class="note" id="board-note"></p>
@@ -100,6 +102,7 @@
 "use strict";
 var FORM_FIELDS={name:"entry.338957421",id:"entry.1078891600",code:"entry.1788617642",q:["entry.157347972","entry.618118762","entry.204256551","entry.1807712655","entry.621647878"]};
 var FORM_BASE="https://docs.google.com/forms/d/e/1FAIpQLSeSiqJnaqT0TxPqYGa5GpJMaP9lM8QYz-Fu2LmRVtynNfqQ4Q/viewform";
+var SCRIPT_URL=""; // Apps Script web app address (see apps_script/quiz_receiver.gs)
 var LEADERBOARD_CSV="https://docs.google.com/spreadsheets/d/e/2PACX-1vR6SZQewzCDwqP5zfu1uycwaOb_ZEoJgXwLAhEWN4qBwT0zo89MDERju8cBM2Vne6w1-rje6gCZI5X-/pub?gid=1903986573&single=true&output=csv";
 var SECONDS=60;
 // accepted join codes, stored as SHA-256 of "phys143-try:" + CODE (uppercase); add one per quiz
@@ -173,11 +176,29 @@ function finish(){
  st.ans.forEach(function(a,j){if(a)add(FORM_FIELDS.q[j],a)});
  $("open-form").href=u;$("board").hidden=false;
  $("board-note").textContent="The ranking will appear here once your answers are recorded.";
+ if(!SCRIPT_URL){fallback();return}
+ deliver();
+}
+function fallback(){
+ $("t-end").textContent="One last step, "+st.name;
+ $("end-msg").textContent="Your answers are not recorded yet. Press the button below, then press Submit on the form page.";
+ $("fallback").hidden=false;
+}
+function deliver(){
+ var body=new URLSearchParams();
+ body.set("name",st.name);body.set("id",st.id);body.set("code",st.code);
+ st.ans.forEach(function(a,j){body.set("q"+(j+1),a)});
+ fetch(SCRIPT_URL,{method:"POST",mode:"no-cors",body:body}).then(function(){
+  $("t-end").textContent="Thank you, "+st.name;
+  $("end-msg").textContent="Your answers were sent. I am checking that they reached the class sheet. This can take up to a minute.";
+  setTimeout(function(){verify(0)},4000);
+ }).catch(function(){fallback()});
 }
 $("open-form").addEventListener("click",function(){
  $("t-end").textContent="Now press Submit, "+st.name;
- $("end-msg").textContent="On the form page that just opened, press Submit. Then come back to this page; I will check that your answers reached the class sheet, which can take up to a minute.";
- if(!st.checking){st.checking=true;setTimeout(function(){verify(0)},6000)}
+ $("end-msg").textContent="On the form page that opened, press Submit. Then come back here; I will check that your answers reached the class sheet.";
+ $("fallback").hidden=true;
+ if(!st.checking){st.checking=true;setTimeout(function(){st.checking=false;verify(0)},6000)}
 });
 function parseCSV(t){
  var r=[],row=[],c="",q=false;
@@ -209,7 +230,7 @@ function verify(n){
  loadBoard(function(found){
   if(found){$("end-msg").textContent="Your answers have reached the class sheet and your score is on the ranking below.";return}
   if(n<8){setTimeout(function(){verify(n+1)},8000);return}
-  $("end-msg").textContent="I could not find you on the ranking yet. Your answers may not have arrived. Press Refresh once more in a minute; if you are still missing, tell your lecturer before you leave.";
+  fallback();
  });
 }
 $("refresh").addEventListener("click",function(){loadBoard()});
