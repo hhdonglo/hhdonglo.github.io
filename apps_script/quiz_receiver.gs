@@ -78,14 +78,36 @@ function mark_(key, row) { // row = [Q1..Q5]; returns [1,0,...] without revealin
   return out;
 }
 
-// Run once from the editor: creates the private Key tab with a row for 2627 for you to fill in.
+// The responses tab: by name, else the first tab whose header row starts Timestamp, First Name; else created.
+function responses_() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sh = ss.getSheetByName(RESPONSES_TAB);
+  if (sh) return sh;
+  var all = ss.getSheets();
+  for (var i = 0; i < all.length; i++) {
+    if (all[i].getLastColumn() >= 2) {
+      var h = all[i].getRange(1, 1, 1, 2).getValues()[0];
+      if (String(h[0]).trim() === 'Timestamp' && String(h[1]).trim() === 'First Name') return all[i];
+    }
+  }
+  sh = ss.insertSheet(RESPONSES_TAB);
+  sh.appendRow(['Timestamp', 'First Name', 'ID', 'Join Code', 'Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Score']);
+  return sh;
+}
+
+// Run once from the editor: makes sure the Key, responses and Log tabs exist and tells you what it found.
 function setup() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var ks = ss.getSheetByName(KEY_TAB) || ss.insertSheet(KEY_TAB);
-  if (ks.getLastRow() === 0) {
-    ks.appendRow(['Join Code', 'Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Ranking']);
-    ks.appendRow(['2627', '', '', '', '', '', 'Open']);
-  }
+  if (ks.getLastRow() === 0) ks.appendRow(['Join Code', 'Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Ranking']);
+  if (ks.getLastRow() < 2) ks.appendRow(['2627', '', '', '', '', '', 'Open']);
+  var rs = responses_();
+  if (!rs.getRange(1, 10).getValue()) rs.getRange(1, 10).setValue('Score');
+  var names = ss.getSheets().map(function (x) { return x.getName(); });
+  var msg = 'Setup finished. Key tab: ' + KEY_TAB + ' (type the correct letters in row 2). Responses tab: ' + rs.getName() + '. Tabs in this file: ' + names.join(', ') + '.';
+  log_('setup', msg, '', '');
+  try { SpreadsheetApp.getUi().alert(msg); } catch (err) { /* not run from the sheet */ }
+  return msg;
 }
 
 function jsonp_(e, obj) {
@@ -127,8 +149,7 @@ function doPost(e) {
     var key = keyRow_(code);
     if (!key) return fin_('bad code');
 
-    var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(RESPONSES_TAB);
-    if (!sh) return fin_('no tab named ' + RESPONSES_TAB);
+    var sh = responses_();
     var n = sh.getLastRow();
     if (n > 1) { // first attempt per ID and join code only
       var seen = sh.getRange(2, 3, n - 1, 2).getValues();
@@ -162,7 +183,7 @@ function doGet(e) {
   }
   if (p.action === 'result') {
     var id = clean_(p.id, 20), key = keyRow_(code);
-    var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(RESPONSES_TAB);
+    var sh = responses_();
     if (key && id && sh && sh.getLastRow() > 1) {
       var rows = sh.getRange(2, 3, sh.getLastRow() - 1, 7).getValues(); // ID, Join Code, Q1 to Q5
       for (var i = 0; i < rows.length; i++) {
