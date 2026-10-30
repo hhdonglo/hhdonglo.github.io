@@ -27,20 +27,28 @@
 <nav class="jump" id="jump" aria-label="Sections"><div class="wrap"><button type="button" class="menu-btn" aria-expanded="false" aria-controls="jump-links"><span>Menu</span><span class="dots" aria-hidden="true">&#8943;</span></button><div class="links" id="jump-links"><a href="index.html">Home</a><div class="dd" data-key="research.html"><a href="research.html">Research</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Research links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="research.html#questions">Research Questions</a></li><li><a href="research.html#reaction-dynamics">Nuclear Reaction Dynamics</a></li><li><a href="research.html#uncertainty">Uncertainty Quantification</a></li><li><a href="earlier-research.html">Earlier Research</a></li></ul></div><div class="dd" data-key="projects.html"><a href="projects.html">Projects</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Projects links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="kewpie3.html">KEWPIE3</a></li><li><a href="projects.html#research-projects">Current Research</a></li></ul></div><div class="dd" data-key="data-engineering.html"><a href="data-engineering.html">Scientific Computing</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Scientific Computing links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="data-engineering.html#pipelines">Data Engineering</a></li><li><a href="data-engineering.html#retrieval">Machine Learning</a></li><li><a href="data-engineering.html#analysis">Data Analysis</a></li></ul></div><div class="dd" data-key="teaching.html"><a href="teaching.html" aria-current="true">Teaching</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Teaching links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="teaching.html#lecture-courses">Courses</a></li><li><a href="phys143.html#weekly">Lecture Notes</a></li><li><a href="mock-exam.html">Mock exam</a></li></ul></div><div class="dd" data-key="publications.html"><a href="publications.html">Publications</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Publications links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="publications.html#journal-articles">Journal Articles</a></li><li><a href="publications.html#preprints">Preprints</a></li><li><a href="publications.html#theses">Theses</a></li></ul></div><div class="dd" data-key="students.html"><a href="students.html">Students</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Students links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="students.html#undergraduate">Supervision</a></li><li><a href="students.html#research-projects">Project Opportunities</a></li></ul></div><a href="about.html">About</a><a href="cv.html" class="util first">CV</a><a href="contact.html" class="util">Contact</a></div></div></nav>
 <main id="main"><div class="wrap">
 <style>
-.disp{max-width:70rem;margin:0 auto;text-align:center}
+header.banner,nav.jump,footer,aside.disclaimer{display:none!important}
+main>.wrap{max-width:none!important;padding:0 1.5rem}
+.disp{max-width:none;margin:0 auto;text-align:center}
 .disp .panel{background:var(--surface);border:1px solid var(--border);border-top:6px solid var(--brown-edge);border-radius:10px;padding:1.4rem;margin:1rem 0}
+.disp .layout{display:block;text-align:center}
+.disp .side{display:flex;gap:3rem;align-items:center;justify-content:center;flex-wrap:wrap}
+.disp .side img{width:min(74vh,720px);height:min(74vh,720px);max-width:92vw}
+.disp .side .code{font-size:clamp(5rem,16vh,10rem)}
+.disp .side .addr{font-size:1.8rem}
+.disp .side .huge{font-size:3rem}
 .disp img{width:340px;height:340px;max-width:80vw;background:#fff;border:1px solid var(--border);border-radius:10px;padding:8px}
 .disp .code{font:700 6rem/1.05 ui-monospace,Menlo,monospace;letter-spacing:.08em;color:var(--brown)}
 @media (prefers-color-scheme:dark){.disp .code,.disp .clock{color:#e9c9a8}}
-.disp .clock{font:700 7rem/1 ui-monospace,Menlo,monospace;color:var(--brown)}
+.disp .clock{margin:.1rem 0;font:700 4.4rem/1 ui-monospace,Menlo,monospace;color:var(--brown)}
 .disp .clock.low{color:#b3261e}
 .disp .lbl{font:600 1rem system-ui,sans-serif;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:0}
-.disp .huge{font:700 3.4rem/1.1 system-ui,sans-serif;margin:.2rem 0}
+.disp .huge{font:700 2.2rem/1.1 system-ui,sans-serif;margin:.2rem 0}
 .disp .state{font:700 2rem system-ui,sans-serif}
 .disp .addr{font:1.5rem ui-monospace,Menlo,monospace}
 .disp table{margin:0 auto;border-collapse:collapse;font:1.6rem system-ui,sans-serif;min-width:24rem}
 .disp th,.disp td{padding:.4rem 1rem;border-bottom:1px solid var(--border);text-align:left}
-.disp .progress{height:14px;background:var(--sky);border-radius:7px;overflow:hidden;max-width:36rem;margin:.6rem auto}
+.disp .progress{height:12px;background:var(--sky);border-radius:7px;overflow:hidden;max-width:36rem;margin:.6rem auto}
 .disp .progress i{display:block;height:100%;background:var(--brown-fill);width:0}
 .disp [hidden]{display:none!important}
 </style>
@@ -49,28 +57,34 @@
   <form id="d-form"><label for="d-code" class="lbl">Join code</label><br><input type="text" id="d-code" maxlength="30" style="font:1.4rem system-ui;padding:.4rem .8rem;margin:.5rem"> <button class="btn primary" type="submit" style="min-height:48px;padding:0 1.4rem">Show display</button></form>
  </section>
  <div id="d-main" hidden>
-  <section class="panel" id="d-join">
-   <p class="lbl">Scan to join, or open</p>
-   <p class="addr">hhdonglo.github.io/phys143-lecture1-try.html</p>
-   <img src="assets/figures/phys143-l1-try-qr.svg" alt="QR code to join the quiz" width="340" height="340">
-   <p class="lbl">Join code</p><p class="code" id="d-showcode"></p>
-   <p class="huge"><span id="d-joined">0</span> joined</p>
-  </section>
-  <section class="panel" id="d-live" hidden>
-   <p class="lbl" id="d-qlbl">Question</p>
-   <p class="clock" id="d-clock">--</p>
-   <div class="progress"><i id="d-fill"></i></div>
-   <p class="huge"><span id="d-answered">0</span> of <span id="d-joined2">0</span> answered</p>
-   <p class="state" id="d-state"></p>
-   <div id="d-quest" hidden style="text-align:left;border-top:1px solid var(--border);margin-top:1rem;padding-top:1rem">
-    <div id="d-stem" style="font-size:2rem;line-height:1.35;margin-bottom:1rem"></div>
-    <div id="d-opts" style="font-size:1.8rem;line-height:1.5"></div>
+  <div class="layout">
+   <aside class="panel side" id="d-join">
+    <img src="assets/figures/phys143-l1-try-qr.svg" alt="QR code to join the quiz" width="340" height="340">
+    <div>
+     <p class="lbl">Scan to join, or open</p>
+     <p class="addr">hhdonglo.github.io/<br>phys143-lecture1-try.html</p>
+     <p class="lbl">Join code</p><p class="code" id="d-showcode"></p>
+     <p class="huge"><span id="d-joined">0</span> joined</p>
+    </div>
+   </aside>
+   <div class="left">
+    <section class="panel" id="d-live" hidden>
+     <p class="lbl" id="d-qlbl">Question</p>
+     <p class="clock" id="d-clock">--</p>
+     <div class="progress"><i id="d-fill"></i></div>
+     <p class="huge"><span id="d-answered">0</span> of <span id="d-joined2">0</span> answered</p>
+     <p class="state" id="d-state"></p>
+     <div id="d-quest" hidden style="text-align:left;border-top:1px solid var(--border);margin-top:1rem;padding-top:1rem">
+      <div id="d-stem" style="font-size:3.3rem;line-height:1.3;margin-bottom:1.2rem"></div>
+      <div id="d-opts" style="font-size:3rem;line-height:1.4"></div>
+     </div>
+    </section>
+    <section class="panel" id="d-end" hidden>
+     <p class="state" id="d-endmsg"></p>
+     <div id="d-rank"></div>
+    </section>
    </div>
-  </section>
-  <section class="panel" id="d-end" hidden>
-   <p class="state" id="d-endmsg"></p>
-   <div id="d-rank"></div>
-  </section>
+  </div>
  </div>
 </div>
 <script>
@@ -93,10 +107,9 @@ function refresh(){
   $("d-joined").textContent=d.joined;$("d-joined2").textContent=d.joined;$("d-answered").textContent=d.answered||0;
   var st=d.status;cfg.c=st;cfg.at=Date.now();
   var s=st?st.state:"started",live=s==="running"||s==="paused",fin=s==="ended"||s==="released";
-  $("d-join").hidden=live||fin&&false;
+  $("d-join").hidden=live||fin;
   $("d-live").hidden=!live;$("d-end").hidden=!fin;if(!live)$("d-quest").hidden=true;
   if(live){
-   $("d-join").hidden=true;
    $("d-qlbl").textContent="Question "+(st.currentQ||0)+" of "+(st.totalQ||5);
    var Q=window.QUIZ_L1&&window.QUIZ_L1[(st.currentQ||0)-1];
    $("d-quest").hidden=!Q;
@@ -105,7 +118,6 @@ function refresh(){
    var pct=d.joined?Math.min(100,(d.answered||0)/d.joined*100):0;$("d-fill").style.width=pct+"%";
   }
   if(fin){
-   $("d-join").hidden=true;
    if(d.rows&&d.rows.length){
     var rk=0,prev=null,h="<table><thead><tr><th>#</th><th>First name</th><th>Score</th></tr></thead><tbody>";
     d.rows.slice(0,10).forEach(function(r,i){if(r.score!==prev){rk=i+1;prev=r.score}h+="<tr><td>"+rk+"</td><td>"+esc(r.name)+"</td><td>"+esc(r.score)+" / 5</td></tr>"});
