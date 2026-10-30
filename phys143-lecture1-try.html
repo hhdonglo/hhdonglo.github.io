@@ -59,6 +59,9 @@
 .try table{width:100%;border-collapse:collapse;margin:.6rem 0;font:1rem system-ui,sans-serif}
 .try th,.try td{padding:.45rem .6rem;border-bottom:1px solid var(--border);text-align:left}
 .try tr.me{background:var(--sky);font-weight:700}
+aside.disclaimer .sakai p{font-size:.78rem;line-height:1.4;margin:.2rem 0}
+aside.disclaimer .sakai-link{font-size:.8rem}
+#board-note:empty{display:none}
 .try .note{font:.92rem/1.5 system-ui,sans-serif;color:var(--muted)}
 .try [hidden]{display:none!important}
 </style>
@@ -90,15 +93,14 @@
   <p id="end-msg">Sending your answers. Please keep this page open.</p>
   <div id="mine" hidden>
    <p class="score" id="mine-score" style="font:700 1.6rem system-ui,sans-serif;margin:.4rem 0"></p>
-   <ol id="mine-list" style="margin:.2rem 0 .8rem;padding-left:1.4rem"></ol>
-   <p class="note" id="mine-note"></p>
+   <p id="mine-list" style="margin:.2rem 0 .8rem;font:1.05rem system-ui,sans-serif;display:flex;flex-wrap:wrap;gap:.3rem .9rem"></p>
   </div>
   <button type="button" class="go alt" id="retry" hidden>Send again</button>
   <div id="board" hidden>
    <h3>Class ranking</h3>
    <p class="note" id="board-note"></p>
    <div id="board-table"></div>
-   <button type="button" class="go alt" id="refresh">Refresh now</button>
+   <button type="button" class="go alt" id="refresh" hidden>Refresh now</button>
   </div>
  </section>
 </div>
@@ -226,7 +228,7 @@ function endPaced(){
  clearInterval(st.timer);clearInterval(st.poll);
  show("s-end");$("board").hidden=true;$("retry").hidden=true;
  $("t-end").textContent="The quiz has ended";
- $("end-msg").textContent="Checking your result.";
+ $("end-msg").hidden=false;$("end-msg").textContent="Checking your result.";
  setTimeout(function(){poll(0)},1500);
 }
 // ---- lecturer-controlled mode: one clock for the whole quiz, set and checked by the server ----
@@ -330,13 +332,13 @@ function jsonp(params,cb){
 function deliver(){
  $("retry").hidden=true;
  $("t-end").textContent="Sending your answers";
- $("end-msg").textContent="Sending your answers. Please keep this page open.";
+ $("end-msg").hidden=false;$("end-msg").textContent="Sending your answers. Please keep this page open.";
  var body=new URLSearchParams();
  body.set("name",st.name);body.set("id",st.id);body.set("code",st.code);
  st.ans.forEach(function(a,j){body.set("q"+(j+1),a)});
  fetch(SCRIPT_URL,{method:"POST",mode:"no-cors",body:body}).then(function(){setTimeout(function(){poll(0)},2500)}).catch(function(){problem("Your answers could not be sent. Check your connection and press Send again.")});
 }
-function problem(m){$("t-end").textContent="Not recorded yet";$("end-msg").textContent=m;$("retry").hidden=false}
+function problem(m){$("end-msg").hidden=false;$("t-end").textContent="Not recorded yet";$("end-msg").textContent=m;$("retry").hidden=false}
 function poll(n){
  jsonp("action=result&id="+encodeURIComponent(st.id)+"&code="+encodeURIComponent(st.code),function(d){
   if(d&&d.found){showMine(d);return}
@@ -353,36 +355,35 @@ function poll(n){
 function showMine(d){
  if(d.scoreHidden){
   $("t-end").textContent="Thank you, "+st.name;
-  $("end-msg").textContent="Your submission has been recorded. Your score and the class ranking will appear here when your lecturer releases the results.";
+  $("end-msg").textContent="Your answers are recorded. Your score will appear when your lecturer releases the results.";
   $("mine").hidden=true;$("board").hidden=true;
   clearInterval(st.live);st.live=setInterval(function(){poll(0)},6000);
   return}
  clearInterval(st.live);
  $("t-end").textContent="Thank you, "+st.name;
- $("end-msg").textContent="Your answers reached the class sheet.";
+ $("end-msg").hidden=true;
  $("mine").hidden=false;
  $("mine-score").textContent="You scored "+d.score+" out of "+d.total;
  var l=$("mine-list");l.innerHTML="";
- d.flags.forEach(function(f,i){var li=document.createElement("li");li.textContent="Question "+(i+1)+": "+(f?"correct":"not correct");l.appendChild(li)});
- $("mine-note").textContent=(d.outcome==="duplicate"?"You had already submitted these questions, so this is your first attempt, the one that counts. ":"Only your first attempt counts. ")+"The right answers are not shown here; your lecturer will go through them.";
+ d.flags.forEach(function(f,i){var li=document.createElement("span");li.textContent="Q"+(i+1)+(f?" \u2713":" \u2717");li.setAttribute("aria-label","Question "+(i+1)+(f?" correct":" not correct"));l.appendChild(li)});
  checkRanking();startLive();
 }
 function checkRanking(){
  $("board").hidden=false;
  jsonp("action=ranking&code="+encodeURIComponent(st.code)+"&id="+encodeURIComponent(st.id),function(d){
   if(d&&d.rows){
-   if(d.hidden){$("board-table").innerHTML="";$("board-note").textContent=d.waitRelease?"The class ranking will appear here when your lecturer releases the results.":"Your lecturer has hidden the class ranking for now.";return}
+   if(d.hidden){$("board-table").innerHTML="";$("board-note").textContent=d.waitRelease?"The ranking will appear when your lecturer releases the results.":"The ranking is hidden for now.";return}
    drawBoard(d.rows,d.closed);return}
   loadBoard(); // an older receiver cannot send the ranking; read the published sheet instead
  });
 }
 function drawBoard(rows,final){
  var tb=$("board-table"),note=$("board-note");
- if(!rows.length){tb.innerHTML="";note.textContent="No scores yet. This list updates by itself.";return}
+ if(!rows.length){tb.innerHTML="";note.textContent="No scores yet.";return}
  var rk=0,prev=null,html="<table><thead><tr><th>#</th><th>First name</th><th>Score</th></tr></thead><tbody>";
  rows.forEach(function(r,i){if(r.score!==prev){rk=i+1;prev=r.score}html+="<tr"+(r.me?' class="me"':"")+"><td>"+rk+"</td><td>"+esc(r.name)+"</td><td>"+esc(r.score)+" / 5</td></tr>"});
  tb.innerHTML=html+"</tbody></table>";
- note.textContent=(final?"Final ranking. ":"Live ranking, updating by itself every 15 seconds. ")+"Only first attempts count. Updated "+new Date().toLocaleTimeString()+".";
+ note.textContent="";
 }
 function startLive(){clearInterval(st.live);st.live=setInterval(checkRanking,15000)}
 $("retry").addEventListener("click",deliver);
@@ -409,7 +410,7 @@ function loadBoard(cb){cb=cb||function(){};
   var rk=0,prev=null,html="<table><thead><tr><th>#</th><th>First name</th><th>Join code</th><th>Score</th></tr></thead><tbody>";
   mine.forEach(function(r,i){if(r.s!==prev){rk=i+1;prev=r.s}html+="<tr"+(r.me?' class="me"':"")+"><td>"+rk+"</td><td>"+esc(r.n)+"</td><td>"+esc(r.c)+"</td><td>"+esc(r.s)+" / 5</td></tr>"});
   tb.innerHTML=html+"</tbody></table>";cb(mine.some(function(r){return r.me}));
-  note.textContent="Updated "+new Date().toLocaleTimeString()+". Only first attempts count.";
+  note.textContent="";
  }).catch(function(){note.textContent="The ranking could not be loaded just now. Try the refresh button in a moment.";cb(false)});
 }
 $("refresh").addEventListener("click",checkRanking);
