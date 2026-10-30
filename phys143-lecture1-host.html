@@ -68,7 +68,7 @@
   <div id="h-ctl" hidden>
    <section class="panel">
     <div class="row">
-     <div><p class="lbl">Join code</p><p class="big-n" id="h-showcode"></p><img id="h-qr" src="assets/figures/phys143-l1-try-qr.svg" alt="QR code to join the quiz" width="110" height="110" style="background:#fff;border:1px solid var(--border);border-radius:6px;padding:3px;margin-top:.3rem"></div>
+     <div><p class="lbl">Join code</p><p class="big-n" id="h-showcode"></p><img id="h-qr" src="assets/figures/phys143-l1-try-qr.svg" alt="QR code to join the quiz" width="200" height="200" style="background:#fff;border:1px solid var(--border);border-radius:6px;padding:3px;margin-top:.3rem"></div>
      <div><p class="lbl">Quiz state</p><p><span class="badge" id="h-state">...</span></p></div>
      <div><p class="lbl">Question</p><p class="big-n" id="h-q">0 / 5</p></div>
      <div><p class="lbl">Time left</p><p class="clock" id="h-clock">--</p></div>
@@ -79,6 +79,7 @@
     </div>
     <p>
      <button class="go alt" data-a="lobby">Open lobby</button>
+     <button class="go alt" data-a="newround" data-confirm="Start a new round? The responses so far are moved to the Archive tab (not deleted) and the quiz goes back to the lobby.">New round (back to lobby)</button>
      <button class="go big" data-a="start" id="b-start">Start quiz</button>
      <button class="go big" data-a="next" id="b-next">Next question</button>
      <button class="go alt" data-a="pause" id="b-pause">Pause</button>

@@ -5,7 +5,7 @@
 // Key: Join Code | Q1 to Q5 (correct letters) | Ranking (Hidden hides it) | State (legacy: Waiting, Started, Stopped) ... J2 = host key.
 // Quiz_Control (one row per lecturer-controlled quiz, written by the host dashboard; the server is the authority):
 //   join_code | status | duration_min | end_time_ms | remaining_ms | allow_late_join | show_score | show_leaderboard | message | title | updated
-//   + current_q | q_seconds (0 = no question timer) | q_deadline_ms | q_remaining_ms | mode (paced or timed)
+//   + current_q | q_seconds (0 = no question timer) | q_deadline_ms | q_remaining_ms | mode (paced or timed) | round (a new round archives the old responses)
 //   status: Draft, Ready, Lobby, Running, Paused, Ended, Released.
 //   paced (default): the lecturer moves the whole class from question to question; answers go to the Answers tab as they are given
 //   and are compiled into Form Responses 1 (with the Score) when the quiz ends. timed: one clock for all five questions.
@@ -145,7 +145,7 @@ function out_(t) { return ContentService.createTextOutput(t); }
 
 // ---------- Quiz_Control: the server decides what state a quiz is in ----------
 
-var CTL_HEADER = ['join_code', 'status', 'duration_min', 'end_time_ms', 'remaining_ms', 'allow_late_join', 'show_score', 'show_leaderboard', 'message', 'title', 'updated', 'current_q', 'q_seconds', 'q_deadline_ms', 'q_remaining_ms', 'mode'];
+var CTL_HEADER = ['join_code', 'status', 'duration_min', 'end_time_ms', 'remaining_ms', 'allow_late_join', 'show_score', 'show_leaderboard', 'message', 'title', 'updated', 'current_q', 'q_seconds', 'q_deadline_ms', 'q_remaining_ms', 'mode', 'round'];
 
 function controlSheet_() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -211,7 +211,7 @@ function ctlAct_(p, code) {
   if (act === 'init') {
     if (c) return { ok: true, status: ctlStatus_(c) };
     var sh = controlSheet_();
-    sh.appendRow([code, 'Ready', 10, 0, 10 * 60000, 'Yes', 'OnRelease', 'OnRelease', '', '', new Date().toISOString(), 0, 60, 0, 0, 'paced']);
+    sh.appendRow([code, 'Ready', 10, 0, 10 * 60000, 'Yes', 'OnRelease', 'OnRelease', '', '', new Date().toISOString(), 0, 60, 0, 0, 'paced', 0]);
     log_('control:init', 'host', '', code);
     return { ok: true, status: ctlStatus_(ctl_(code)) };
   }
@@ -268,6 +268,19 @@ function ctlAct_(p, code) {
     if (['draft', 'ready', 'lobby'].indexOf(s) < 0) return { ok: false, why: 'cannot reset after it has started' };
     c.v[1] = 'Ready'; c.v[3] = 0; c.v[4] = dur; c.v[11] = 0; c.v[13] = 0;
   }
+  else if (act === 'newround') { // keep every old response in the Archive tab, clear the live state, back to the lobby
+    var arch = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Archive') || SpreadsheetApp.getActiveSpreadsheet().insertSheet('Archive');
+    if (arch.getLastRow() === 0) arch.appendRow(['Archived', 'Round', 'Timestamp', 'First Name', 'ID', 'Join Code', 'Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Score']);
+    var rsh = responses_(), rn = rsh.getLastRow(), moved = 0, stamp = new Date();
+    for (var ri = rn; ri >= 2; ri--) {
+      var rv = rsh.getRange(ri, 1, 1, 10).getValues()[0];
+      if (String(rv[3]).trim().toUpperCase() === code) { arch.appendRow([stamp, Number(c.v[16]) || 0].concat(rv)); rsh.deleteRow(ri); moved++; }
+    }
+    var ps = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(PRESENCE_TAB);
+    if (ps) for (var pi = ps.getLastRow(); pi >= 2; pi--) if (String(ps.getRange(pi, 4).getValue()).trim().toUpperCase() === code) ps.deleteRow(pi);
+    c.v[16] = (Number(c.v[16]) || 0) + 1; c.v[1] = 'Lobby'; c.v[3] = 0; c.v[4] = dur; c.v[11] = 0; c.v[13] = 0; c.v[14] = 0; c.v[8] = '';
+    detail = 'round ' + c.v[16] + ', ' + moved + ' responses archived';
+  }
   else if (act === 'message') { c.v[8] = clean_(p.text, 200); detail = c.v[8]; }
   else if (act === 'set') { // duration, late joining, when scores and ranking show
     var field = String(p.field || ''), val = clean_(p.value, 30);
@@ -288,12 +301,13 @@ function ctlAct_(p, code) {
 
 // ---------- Paced answers: stored as given, compiled into Form Responses 1 when the quiz ends ----------
 
-function latestAnswers_(code) { // {id: {name, ans:[5]}} from the Answers tab; the last answer to each question wins
+function latestAnswers_(code) { // {id: {name, ans:[5]}} for the current round; the last answer to each question wins
   var out = {}, sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ANSWERS_TAB);
   if (!sh || sh.getLastRow() < 2) return out;
-  var rows = sh.getRange(2, 2, sh.getLastRow() - 1, 5).getValues(); // ID, First Name, Join Code, Q, Answer
+  var cc = ctl_(code), round = cc ? Number(cc.v[16]) || 0 : 0;
+  var rows = sh.getRange(2, 2, sh.getLastRow() - 1, 6).getValues(); // ID, First Name, Join Code, Q, Answer, Round
   for (var i = 0; i < rows.length; i++) {
-    if (String(rows[i][2]).trim().toUpperCase() !== code) continue;
+    if (String(rows[i][2]).trim().toUpperCase() !== code || (Number(rows[i][5]) || 0) !== round) continue;
     var id = String(rows[i][0]).trim(), q = Number(rows[i][3]);
     if (!out[id]) out[id] = { name: String(rows[i][1]), ans: ['', '', '', '', ''] };
     if (q >= 1 && q <= 5) out[id].ans[q - 1] = String(rows[i][4]);
@@ -394,7 +408,7 @@ function doPost(e) {
     if (Number(ca.v[11]) !== qn) return fin_('wrong question');
     if (Number(ca.v[13]) && Date.now() > Number(ca.v[13]) + GRACE_MS) return fin_('question closed');
     if (!allowLate_(ca) && !hasPresence_(code, id)) return fin_('not joined');
-    append_(ANSWERS_TAB, ['Timestamp', 'ID', 'First Name', 'Join Code', 'Q', 'Answer'], [new Date(), id, name, code, qn, al]);
+    append_(ANSWERS_TAB, ['Timestamp', 'ID', 'First Name', 'Join Code', 'Q', 'Answer', 'Round'], [new Date(), id, name, code, qn, al, Number(ca.v[16]) || 0]);
     return out_('ok');
   }
   if (p.kind === 'join' || p.kind === 'progress') { // lobby and live participation
