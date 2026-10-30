@@ -172,8 +172,8 @@ function send(){
  function ok(){if(done)return;done=true;clearTimeout(to);st.sent=true;
   try{sessionStorage.setItem("try-sent:"+st.id+":"+st.code,"1")}catch(x){}
   $("t-end").textContent="Thank you, "+st.name;
-  $("end-msg").textContent="Your answers have been sent. Your score is worked out on the class sheet, not on this page, so give it a moment and then refresh the ranking.";
-  $("retry").hidden=true;$("board").hidden=false;loadBoard();}
+  $("end-msg").textContent="Your answers were sent from this page. I am now checking that they reached the class sheet. This can take up to a minute.";
+  $("retry").hidden=true;$("board").hidden=false;verify(0);}
  fr.onload=function(){if(f.dataset.go)ok()};
  to=setTimeout(function(){if(!done){$("end-msg").textContent="I could not confirm that your answers were sent. Check your connection, then try again. Only the first attempt counts, so sending twice does no harm.";$("retry").hidden=false}},12000);
  f.dataset.go="1";f.submit();
@@ -189,23 +189,30 @@ function parseCSV(t){
  if(c!==""||row.length){row.push(c);r.push(row)}
  return r;
 }
-function loadBoard(){
+function loadBoard(cb){cb=cb||function(){};
  var note=$("board-note"),tb=$("board-table");note.textContent="Loading the ranking.";tb.innerHTML="";
  fetch(LEADERBOARD_CSV+(LEADERBOARD_CSV.indexOf("?")<0?"?":"&")+"t="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw 0;return r.text()}).then(function(t){
   var rows=parseCSV(t).filter(function(r){return r.join("").trim()});
   var h=(rows[0]||[]).map(function(x){return x.trim().toLowerCase()});
   var ni=h.indexOf("first name"),ci=h.indexOf("join code"),si=h.indexOf("score");
-  if(ni<0||ci<0||si<0){note.textContent="The class ranking is not available yet. Your answers have been recorded.";return}
+  if(ni<0||ci<0||si<0){note.textContent="The class ranking is not available yet.";cb(false);return}
   var mine=rows.slice(1).filter(function(r){return (r[ci]||"").trim().toUpperCase()===st.code}).map(function(r){return{n:(r[ni]||"").trim(),c:(r[ci]||"").trim(),s:parseFloat(r[si]),me:(r[ni]||"").trim().toLowerCase()===st.name.toLowerCase()}}).filter(function(r){return !isNaN(r.s)});
   mine.sort(function(a,b){return b.s-a.s||a.n.localeCompare(b.n)});
-  if(!mine.length){note.textContent="No scores yet for "+st.code+". Yours may still be on its way; try refreshing in a moment.";return}
+  if(!mine.length){note.textContent="No scores yet for "+st.code+". Yours may still be on its way; try refreshing in a moment.";cb(false);return}
   var rk=0,prev=null,html="<table><thead><tr><th>#</th><th>First name</th><th>Join code</th><th>Score</th></tr></thead><tbody>";
   mine.forEach(function(r,i){if(r.s!==prev){rk=i+1;prev=r.s}html+="<tr"+(r.me?' class="me"':"")+"><td>"+rk+"</td><td>"+esc(r.n)+"</td><td>"+esc(r.c)+"</td><td>"+esc(r.s)+" / 5</td></tr>"});
-  tb.innerHTML=html+"</tbody></table>";
+  tb.innerHTML=html+"</tbody></table>";cb(mine.some(function(r){return r.me}));
   note.textContent="Updated "+new Date().toLocaleTimeString()+". Only first attempts count.";
- }).catch(function(){note.textContent="The ranking could not be loaded just now. Try the refresh button in a moment."});
+ }).catch(function(){note.textContent="The ranking could not be loaded just now. Try the refresh button in a moment.";cb(false)});
 }
-$("refresh").addEventListener("click",loadBoard);
+function verify(n){
+ loadBoard(function(found){
+  if(found){$("end-msg").textContent="Your answers have reached the class sheet and your score is on the ranking below.";return}
+  if(n<8){setTimeout(function(){verify(n+1)},8000);return}
+  $("end-msg").textContent="I could not find you on the ranking yet. Your answers may not have arrived. Press Refresh once more in a minute; if you are still missing, tell your lecturer before you leave.";
+ });
+}
+$("refresh").addEventListener("click",function(){loadBoard()});
 })();
 </script>
 <aside class="disclaimer" aria-label="Disclaimer"><div class="wrap sakai" role="note"><p><strong>Disclaimer.</strong> This is an independent personal website, open to anyone who finds it useful. Official course information and instructions for registered students are provided on Sakai. Students at the University of Ghana should visit Sakai for official course information.</p><a class="sakai-link" href="https://sakai.ug.edu.gh/portal/site/!gateway/tool/55840c0d-ea44-4827-84cb-5270d764ecf7" target="_blank" rel="noopener">Open PHYS 143 on Sakai</a></div></aside>
