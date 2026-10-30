@@ -30,3 +30,10 @@ Keep a private **Totals** tab in the sheet. Never publish it, because it holds s
 - The code check runs in the browser. It stops casual mistakes, not a determined guess. The sheet must ignore responses with unknown codes.
 - Only a student's first attempt per ID and join code should count. The sheet handles that.
 - Answer letters live only in the private Key tab.
+
+## Running a quiz live from your computer
+Open `phys143-lecture1-host.html` (copy it for another quiz and change the QR image). Enter the join code and the host key (Key tab, cell J2, made by `setup`). The screen shows the QR code, the join code in large type, the quiz state, how many have joined and submitted, who has joined but not yet submitted, and the live ranking, refreshed every 5 seconds.
+- **Waiting**: students who join see "waiting for your lecturer to start".
+- **Start quiz**: their quiz begins by itself.
+- **Stop quiz**: new submissions are refused.
+The state lives in Key column H (Waiting, Started, Stopped; blank counts as Started). You can also change it by hand in the sheet. The host page needs the receiver script to be redeployed as a new version. The host key is sent to the script in the web address, so keep it private and change it in Key!J2 if it leaks.

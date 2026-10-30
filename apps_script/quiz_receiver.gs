@@ -7,7 +7,7 @@
 // Form Responses 1 columns: Timestamp, First Name, ID, Join Code, Q1 to Q5, Score.
 
 var RESPONSES_TAB = 'Form Responses 1';
-var KEY_TAB = 'Key'; // private: Join Code | Q1 | Q2 | Q3 | Q4 | Q5 | Ranking (Open or Closed), one row per quiz
+var KEY_TAB = 'Key'; // private: Join Code | Q1 to Q5 | Ranking (Hidden hides it) | State (Waiting, Started, Stopped; blank = Started), one row per quiz. J2 holds the host key.
 var LETTERS = ['A', 'B', 'C', 'D', 'E'];
 var NOTIFY_EMAIL = 'hkdonglo@gmail.com'; // new reports are emailed here
 
@@ -59,10 +59,18 @@ function lastOutcome_(id, code) {
   return '';
 }
 
+function state_(key) { return String(key[7]).trim().toLowerCase() || 'started'; }
+
+function hostOk_(p) {
+  var ks = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(KEY_TAB);
+  var hk = ks ? String(ks.getRange(2, 10).getValue()).trim() : '';
+  return !!hk && String(p.hostkey || '').trim() === hk;
+}
+
 function keyRow_(code) {
   var ks = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(KEY_TAB);
   if (!ks || ks.getLastRow() < 2) return null;
-  var rows = ks.getRange(2, 1, ks.getLastRow() - 1, 7).getValues();
+  var rows = ks.getRange(2, 1, ks.getLastRow() - 1, 8).getValues();
   for (var i = 0; i < rows.length; i++) {
     if (String(rows[i][0]).trim().toUpperCase() === code) return rows[i];
   }
@@ -100,12 +108,15 @@ function setup() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var ks = ss.getSheetByName(KEY_TAB) || ss.insertSheet(KEY_TAB);
   if (ks.getLastRow() === 0) ks.appendRow(['Join Code', 'Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Ranking']);
+  ks.getRange(1, 8).setValue('State');
+  ks.getRange(1, 10).setValue('Host key');
+  if (!String(ks.getRange(2, 10).getValue()).trim()) ks.getRange(2, 10).setValue(Math.random().toString(36).slice(2, 10));
   if (ks.getLastRow() < 2) ks.appendRow(['2627', '', '', '', '', '', 'Open']);
   var rs = responses_();
   if (!rs.getRange(1, 10).getValue()) rs.getRange(1, 10).setValue('Score');
   var names = ss.getSheets().map(function (x) { return x.getName(); });
-  var msg = 'Setup finished. Key tab: ' + KEY_TAB + ' (type the correct letters in row 2). Responses tab: ' + rs.getName() + '. Tabs in this file: ' + names.join(', ') + '.';
-  log_('setup', msg, '', '');
+  var msg = 'Setup finished. Host key (also in Key!J2): ' + ks.getRange(2, 10).getValue() + '. Key tab: ' + KEY_TAB + ' (type the correct letters in row 2). Responses tab: ' + rs.getName() + '. Tabs in this file: ' + names.join(', ') + '.';
+  log_('setup', msg.replace(/Host key[^.]*\./, 'Host key shown in Key!J2.'), '', '');
   try { SpreadsheetApp.getUi().alert(msg); } catch (err) { /* not run from the sheet */ }
   return msg;
 }
@@ -139,6 +150,11 @@ function doPost(e) {
       lk.releaseLock();
     }
   }
+  if (p.kind === 'join') {
+    var jn = clean_(p.name, 40), ji = clean_(p.id, 20), jc = clean_(p.code, 30).toUpperCase();
+    if (jn && ji && keyRow_(jc)) log_('joined', jn, ji, jc);
+    return out_('ok');
+  }
   function fin_(o) { log_(o, name, id, code); return out_(o); }
   var name = clean_(p.name, 40), id = clean_(p.id, 20), code = clean_(p.code, 30).toUpperCase();
   if (!name || !id || !code) return fin_('missing');
@@ -148,6 +164,8 @@ function doPost(e) {
   try {
     var key = keyRow_(code);
     if (!key) return fin_('bad code');
+    if (state_(key) === 'waiting') return fin_('not started');
+    if (state_(key) === 'stopped') return fin_('quiz closed');
 
     var sh = responses_();
     var n = sh.getLastRow();
@@ -181,7 +199,7 @@ function doGet(e) {
   if (p.action === 'status') {
     var k = keyRow_(code);
     var v = k ? String(k[6]).trim().toLowerCase() : '';
-    return jsonp_(e, { hidden: v === 'hidden', closed: v === 'closed' });
+    return jsonp_(e, { hidden: v === 'hidden', closed: v === 'closed', state: k ? state_(k) : '' });
   }
   if (p.action === 'ranking') { // live class ranking for one join code: first names and scores only
     var rk = keyRow_(code), me = clean_(p.id, 20);
@@ -198,6 +216,44 @@ function doGet(e) {
     }
     list.sort(function (x, y) { return y.score - x.score || x.name.localeCompare(y.name); });
     return jsonp_(e, { hidden: false, closed: String(rk[6]).trim().toLowerCase() === 'closed', rows: list.slice(0, 300) });
+  }
+  if (p.action === 'control') { // host only: set the quiz state
+    var want = String(p.state || '').toLowerCase();
+    if (!hostOk_(p) || ['waiting', 'started', 'stopped'].indexOf(want) < 0) return jsonp_(e, { ok: false });
+    var ks2 = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(KEY_TAB);
+    var codes = ks2.getRange(2, 1, ks2.getLastRow() - 1, 1).getValues();
+    for (var c = 0; c < codes.length; c++) {
+      if (String(codes[c][0]).trim().toUpperCase() === code) {
+        ks2.getRange(c + 2, 8).setValue(want.charAt(0).toUpperCase() + want.slice(1));
+        return jsonp_(e, { ok: true, state: want });
+      }
+    }
+    return jsonp_(e, { ok: false });
+  }
+  if (p.action === 'host') { // host only: who has joined, who has submitted, the ranking
+    var hk = keyRow_(code);
+    if (!hostOk_(p) || !hk) return jsonp_(e, { ok: false });
+    var joined = {}, jl = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Log');
+    if (jl && jl.getLastRow() > 1) {
+      var lg = jl.getRange(2, 2, jl.getLastRow() - 1, 4).getValues();
+      for (var q2 = 0; q2 < lg.length; q2++) {
+        if (lg[q2][0] === 'joined' && String(lg[q2][3]).trim().toUpperCase() === code) joined[String(lg[q2][2]).trim()] = String(lg[q2][1]);
+      }
+    }
+    var hs = responses_(), done = {}, rows2 = [];
+    if (hs.getLastRow() > 1) {
+      var hd = hs.getRange(2, 1, hs.getLastRow() - 1, 10).getValues();
+      for (var h2 = 0; h2 < hd.length; h2++) {
+        if (String(hd[h2][3]).trim().toUpperCase() === code) {
+          done[String(hd[h2][2]).trim()] = true;
+          rows2.push({ name: String(hd[h2][1]), score: Number(hd[h2][9]) });
+          joined[String(hd[h2][2]).trim()] = joined[String(hd[h2][2]).trim()] || String(hd[h2][1]);
+        }
+      }
+    }
+    rows2.sort(function (x, y) { return y.score - x.score || x.name.localeCompare(y.name); });
+    var waiting = Object.keys(joined).filter(function (k2) { return !done[k2]; }).map(function (k2) { return joined[k2]; });
+    return jsonp_(e, { ok: true, state: state_(hk), joined: Object.keys(joined).length, submitted: rows2.length, notYet: waiting, rows: rows2.slice(0, 300) });
   }
   if (p.action === 'result') {
     var id = clean_(p.id, 20), key = keyRow_(code);
