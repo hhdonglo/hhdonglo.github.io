@@ -43,3 +43,12 @@ The host key travels in the web address, so keep it private and change it in Key
 
 ## End of semester: the Totals tab (automatic)
 The private **Totals** tab is rebuilt by the script every time a quiz ends or a legacy submission arrives, and by the **PHYS 143, Refresh totals** menu in the sheet. One row per student ID: First name, Quizzes taken, one column per quiz code with the counted score, Total, Out of (5 per quiz taken) and Average %. If a student has several rounds for one code, Key!K2 says which counts: **Best** (default) or **Latest**. The tab is never published and the quiz pages never read it. To download it: open the Totals tab, File, Download, Comma-separated values (this saves the current tab only), or Microsoft Excel (saves the whole file). Delete test rows (ZZ names) from Form Responses 1 first, then press Refresh totals.
+
+## Weekly quizzes of 5 to 20 questions (the normal way now)
+One quiz page, one dashboard, one display for every week. To run a new quiz:
+1. In the private **Key** tab add a row with a new join code in column A (leave the letters B to F empty) and Open in G.
+2. Open the dashboard, enter that code and the host key, and press "Switch on lecturer control".
+3. In the settings panel choose the **Week** (the week number is the lecture number, listed in `apps_script/live_quizzes.json` under `weeks`) and the **Number of questions** (5 up to 20, at most what that week's practice bank holds). Do this before Start.
+4. Open the lobby and run it as usual. When you press Start, the questions are drawn at random from that week's practice bank (a fresh draw each round); the correct answers and the explanations with their Review pointers come from the bank.
+The questions and answers therefore live in `quizzes/lectureN.json`, which is public (practice pages show them already). Answers are checked on the server and sent to students only during Review. Totals shows one column per week quiz, such as "Week 2 Motion (3814)", with scores out of N.
+Code 2627 stays a fixed five-question Lecture 1 quiz: its questions are in `live_quizzes.json` and its correct letters are in the Key tab. There is no join-code hash in the page any more: the server decides whether a code is valid. A new week needs only the bank file `quizzes/lectureN.json` (at least five questions) and its entry under `weeks`.

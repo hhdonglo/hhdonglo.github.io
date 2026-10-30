@@ -6,7 +6,7 @@
 // Quiz_Control (one row per lecturer-controlled quiz, written by the host dashboard; the server is the authority):
 //   join_code | status | duration_min | end_time_ms | remaining_ms | allow_late_join | show_score | show_leaderboard | message | title | updated
 //   (student records are never deleted: each quiz run is a round; the ranking, first-attempt rule and results use the current round)
-//   + current_q | q_seconds (0 = no question timer) | q_deadline_ms | q_remaining_ms | mode (paced or timed) | round (a new round archives the old responses) | review_q (0 = off; 1 to 5 = the lecturer is going over that question)
+//   + current_q | q_seconds (0 = no question timer) | q_deadline_ms | q_remaining_ms | mode (paced or timed) | round (a new round archives the old responses) | review_q (0 = off; 1 to N = the lecturer is going over that question) | n_questions (5 to 20) | question_ids (chosen when the quiz starts) | week (which week's practice bank to draw from)
 //   status: Draft, Ready, Lobby, Running, Paused, Ended, Released.
 //   paced (default): the lecturer moves the whole class from question to question; answers go to the Answers tab as they are given
 //   and are compiled into Form Responses 1 (with the Score) when the quiz ends. timed: one clock for all five questions.
@@ -93,16 +93,19 @@ function keyRow_(code) {
   return null;
 }
 
-function mark_(key, row) { // row = [Q1..Q5]; returns [1,0,...] without revealing the key
-  var out = [];
-  for (var q = 0; q < 5; q++) {
-    var k = String(key[1 + q]).trim().toUpperCase();
-    out.push(k && String(row[q]).trim().toUpperCase() === k ? 1 : 0);
-  }
-  return out;
+// The responses tab: by name, else the first tab whose header row starts Timestamp, First Name; else created.
+// One stored response: the first five answers sit in Q1 to Q5 as before; Answers holds all N letters ('-' = blank).
+function rowFor_(ts, name, id, code, ans, score, rnd, n, week) {
+  var f = []; for (var i = 0; i < 5; i++) f.push(ans[i] || '');
+  return [ts, name, id, code].concat(f, [score, rnd, n, ans.map(function (a) { return a || '-'; }).join(''), week || '']);
 }
 
-// The responses tab: by name, else the first tab whose header row starts Timestamp, First Name; else created.
+function parseAnswers_(row) { // from a stored row [ID, Join Code, Q1..Q5, Score, Round, N, Answers]
+  var str = String(row[10] || '');
+  if (str) return str.split('').map(function (ch) { return ch === '-' ? '' : ch; });
+  return row.slice(2, 7);
+}
+
 function roundOf_(code) { var c = ctl_(code); return c ? Number(c.v[16]) || 0 : 0; }
 
 function responses_() {
@@ -117,7 +120,7 @@ function responses_() {
     }
   }
   sh = ss.insertSheet(RESPONSES_TAB);
-  sh.appendRow(['Timestamp', 'First Name', 'ID', 'Join Code', 'Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Score', 'Round']);
+  sh.appendRow(['Timestamp', 'First Name', 'ID', 'Join Code', 'Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Score', 'Round', 'Questions', 'Answers', 'Week']);
   return sh;
 }
 
@@ -137,7 +140,7 @@ function setup() {
   if (xs.getLastRow() === 0) xs.appendRow(['Join Code', 'Question', 'Explanation']);
   var rs = responses_();
   if (!rs.getRange(1, 10).getValue()) rs.getRange(1, 10).setValue('Score');
-  rs.getRange(1, 11).setValue('Round');
+  rs.getRange(1, 11, 1, 4).setValues([['Round', 'Questions', 'Answers', 'Week']]);
   refreshTotals();
   var names = ss.getSheets().map(function (x) { return x.getName(); });
   var msg = 'Setup finished. Host key (also in Key!J2): ' + ks.getRange(2, 10).getValue() + '. Responses tab: ' + rs.getName() + '. Tabs in this file: ' + names.join(', ') + '.';
@@ -157,7 +160,7 @@ function out_(t) { return ContentService.createTextOutput(t); }
 
 // ---------- Quiz_Control: the server decides what state a quiz is in ----------
 
-var CTL_HEADER = ['join_code', 'status', 'duration_min', 'end_time_ms', 'remaining_ms', 'allow_late_join', 'show_score', 'show_leaderboard', 'message', 'title', 'updated', 'current_q', 'q_seconds', 'q_deadline_ms', 'q_remaining_ms', 'mode', 'round', 'review_q'];
+var CTL_HEADER = ['join_code', 'status', 'duration_min', 'end_time_ms', 'remaining_ms', 'allow_late_join', 'show_score', 'show_leaderboard', 'message', 'title', 'updated', 'current_q', 'q_seconds', 'q_deadline_ms', 'q_remaining_ms', 'mode', 'round', 'review_q', 'n_questions', 'question_ids', 'week'];
 
 function controlSheet_() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -212,8 +215,69 @@ function ctlStatus_(c) {
     allowLate: allowLate_(c), showScore: visible_(c, 'show_score'), showBoard: visible_(c, 'show_leaderboard')
   };
   o.reviewQ = Number(c.v[17]) || 0;
-  if (paced_(c)) { o.currentQ = Number(c.v[11]) || 0; o.totalQ = 5; o.qSeconds = Number(c.v[12]) || 0; o.qDeadline = Number(c.v[13]) || 0; }
+  if (paced_(c)) { o.currentQ = Number(c.v[11]) || 0; o.totalQ = quizN_(c); o.qids = qids_(c); o.qSeconds = Number(c.v[12]) || 0; o.qDeadline = Number(c.v[13]) || 0; }
   return o;
+}
+
+// ---------- How many questions, and which ----------
+// apps_script/live_quizzes.json: "_default" draws from the practice bank; a code can list its own ids or carry
+// its own inline questions (answers for those come from the Key tab). The lecturer sets 5 to 20 questions.
+
+function quizN_(c) { return Math.max(1, Math.min(20, Number(c.v[18]) || 5)); }
+function qids_(c) { return String(c.v[19] || '').split(',').filter(String); }
+function weekOf_(c) { return c ? Number(c.v[20]) || 1 : 1; }
+function liveEntry_(code, c) { // a code with its own entry (fixed questions) wins; otherwise the week's practice bank
+  var m = siteJson_('/apps_script/live_quizzes.json');
+  if (m[code]) return m[code];
+  var w = weekOf_(c);
+  return { bank: 'lecture' + w, ids: 'all', week: w };
+}
+function bankList_(name) { return siteJson_('/quizzes/' + name + '.json').questions; }
+function poolIds_(entry) { return Array.isArray(entry.ids) ? entry.ids : bankList_(entry.bank).map(function (q) { return q.id; }); }
+
+function maxN_(code, c) {
+  try { var e = liveEntry_(code, c); if (!e) return 5; return e.inline ? e.inline.length : Math.max(5, Math.min(20, poolIds_(e).length)); } catch (err) { return 5; }
+}
+
+function shuffle_(arr, seedStr) { // the same seed always gives the same order
+  var h = 1779033703 ^ seedStr.length;
+  for (var i = 0; i < seedStr.length; i++) { h = Math.imul(h ^ seedStr.charCodeAt(i), 3432918353); h = (h << 13) | (h >>> 19); }
+  function rnd() { h = Math.imul(h ^ (h >>> 16), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909); return ((h ^= h >>> 16) >>> 0) / 4294967296; }
+  var a = arr.slice();
+  for (var k = a.length - 1; k > 0; k--) { var j = Math.floor(rnd() * (k + 1)), t = a[k]; a[k] = a[j]; a[j] = t; }
+  return a;
+}
+
+// Choose the questions for this run: inline quizzes use their own list; others draw N from the pool, a fresh draw each round.
+function chooseQuestions_(code, c) {
+  var e = null; try { e = liveEntry_(code, c); } catch (err) { /* offline: fall back to five generic slots */ }
+  if (!e) { c.v[18] = 5; c.v[19] = ''; return; }
+  if (e.inline) { c.v[18] = e.inline.length; c.v[19] = e.ids.slice(0, e.inline.length).join(','); return; }
+  var pool = poolIds_(e), n = Math.max(5, Math.min(maxN_(code, c), quizN_(c)));
+  c.v[18] = n; c.v[19] = shuffle_(pool, code + ':' + (Number(c.v[16]) || 0)).slice(0, n).join(',');
+}
+
+// The correct letter for each of the quiz's N questions, never sent to students except during review.
+function lettersFor_(code, c) {
+  var n = c ? quizN_(c) : 5, key = keyRow_(code), keyL = [], out = [], i;
+  for (i = 0; i < 5; i++) keyL.push(key ? String(key[1 + i]).trim().toUpperCase() : '');
+  var e = null; try { e = c ? liveEntry_(code, c) : null; } catch (err) { e = null; }
+  if (c && e && !e.inline) { // practice-bank questions carry their own correct answer
+    var ids = qids_(c), bank = bankList_(e.bank);
+    for (i = 0; i < n; i++) {
+      var q = null; for (var b = 0; b < bank.length; b++) if (bank[b].id === ids[i]) { q = bank[b]; break; }
+      out.push(q && q.answer != null ? LETTERS[q.answer] : '');
+    }
+    return out;
+  }
+  for (i = 0; i < n; i++) out.push(keyL[i] || '');
+  return out;
+}
+
+function mark_(letters, row) { // [1,0,...] for each question, without revealing the letters
+  var out = [];
+  for (var q = 0; q < letters.length; q++) out.push(letters[q] && String(row[q] || '').trim().toUpperCase() === letters[q] ? 1 : 0);
+  return out;
 }
 
 // Host-only changes. Every change is written to the audit log.
@@ -224,7 +288,7 @@ function ctlAct_(p, code) {
   if (act === 'init') {
     if (c) return { ok: true, status: ctlStatus_(c) };
     var sh = controlSheet_();
-    sh.appendRow([code, 'Ready', 10, 0, 10 * 60000, 'Yes', 'OnRelease', 'OnRelease', '', '', new Date().toISOString(), 0, 60, 0, 0, 'paced', 0, 0]);
+    sh.appendRow([code, 'Ready', 10, 0, 10 * 60000, 'Yes', 'OnRelease', 'OnRelease', '', '', new Date().toISOString(), 0, 60, 0, 0, 'paced', 0, 0, 5, '', 1]);
     log_('control:init', 'host', '', code);
     return { ok: true, status: ctlStatus_(ctl_(code)) };
   }
@@ -236,11 +300,11 @@ function ctlAct_(p, code) {
   else if (act === 'start') {
     if (['ready', 'lobby', 'draft'].indexOf(s) < 0) return { ok: false, why: 'can only start from Ready or Lobby (now ' + s + ')' };
     c.v[1] = 'Running'; c.v[3] = now + dur; c.v[4] = dur;
-    if (pc) { c.v[11] = 1; c.v[13] = qms ? now + qms : 0; detail = 'question 1'; }
+    if (pc) { chooseQuestions_(code, c); c.v[11] = 1; c.v[13] = qms ? now + qms : 0; detail = 'question 1'; }
   }
   else if (act === 'next') { // paced only: move the whole class on
     if (!pc || s !== 'running') return { ok: false, why: 'start the quiz first' };
-    if ((Number(c.v[11]) || 0) >= 5) { finalize_(code); c.v[1] = 'Ended'; detail = 'after question 5'; }
+    if ((Number(c.v[11]) || 0) >= quizN_(c)) { finalize_(code); c.v[1] = 'Ended'; detail = 'after question ' + quizN_(c); }
     else { c.v[11] = (Number(c.v[11]) || 0) + 1; c.v[13] = qms ? now + qms : 0; detail = 'question ' + c.v[11]; }
   }
   else if (act === 'pause') {
@@ -293,7 +357,7 @@ function ctlAct_(p, code) {
   }
   else if (act === 'reviewnext' || act === 'reviewprev') {
     if (!(Number(c.v[17]) > 0)) return { ok: false, why: 'review is not on' };
-    c.v[17] = Math.max(1, Math.min(5, Number(c.v[17]) + (act === 'reviewnext' ? 1 : -1))); detail = 'question ' + c.v[17];
+    c.v[17] = Math.max(1, Math.min(quizN_(c), Number(c.v[17]) + (act === 'reviewnext' ? 1 : -1))); detail = 'question ' + c.v[17];
   }
   else if (act === 'reviewoff') { c.v[17] = 0; }
   else if (act === 'message') { c.v[8] = clean_(p.text, 200); detail = c.v[8]; }
@@ -304,6 +368,8 @@ function ctlAct_(p, code) {
     else if (field === 'show_score' || field === 'show_leaderboard') c.v[field === 'show_score' ? 6 : 7] = /^i/i.test(val) ? 'Immediate' : (/^n/i.test(val) ? 'Never' : 'OnRelease');
     else if (field === 'title') c.v[9] = val;
     else if (field === 'q_seconds') { var qs = Math.max(0, Math.min(600, Number(val) || 0)); c.v[12] = qs; val = String(qs); }
+    else if (field === 'week') { var wk = Math.max(1, Number(val) || 1); var wl = siteJson_('/apps_script/live_quizzes.json').weeks || {}; if (!wl[String(wk)]) return { ok: false, why: 'no practice bank for that week' }; c.v[20] = wk; c.v[19] = ''; c.v[18] = Math.max(5, Math.min(maxN_(code, c), quizN_(c))); val = String(wk); }
+    else if (field === 'n_questions') { var nn = Math.max(5, Math.min(maxN_(code, c), Number(val) || 5)); c.v[18] = nn; val = String(nn); }
     else if (field === 'mode') c.v[15] = /^t/i.test(val) ? 'timed' : 'paced';
     else return { ok: false, why: 'unknown setting' };
     detail = field + '=' + val;
@@ -319,22 +385,23 @@ function ctlAct_(p, code) {
 function latestAnswers_(code) { // {id: {name, ans:[5]}} for the current round; the last answer to each question wins
   var out = {}, sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ANSWERS_TAB);
   if (!sh || sh.getLastRow() < 2) return out;
-  var cc = ctl_(code), round = cc ? Number(cc.v[16]) || 0 : 0;
+  var cc = ctl_(code), round = cc ? Number(cc.v[16]) || 0 : 0, N = cc ? quizN_(cc) : 5;
   var rows = sh.getRange(2, 2, sh.getLastRow() - 1, 6).getValues(); // ID, First Name, Join Code, Q, Answer, Round
   for (var i = 0; i < rows.length; i++) {
     if (String(rows[i][2]).trim().toUpperCase() !== code || (Number(rows[i][5]) || 0) !== round) continue;
     var id = String(rows[i][0]).trim(), q = Number(rows[i][3]);
-    if (!out[id]) out[id] = { name: String(rows[i][1]), ans: ['', '', '', '', ''] };
-    if (q >= 1 && q <= 5) out[id].ans[q - 1] = String(rows[i][4]);
+    if (!out[id]) out[id] = { name: String(rows[i][1]), ans: new Array(N).join(',').split(',') };
+    if (q >= 1 && q <= N) out[id].ans[q - 1] = String(rows[i][4]);
   }
   return out;
 }
 
 function finalize_(code) {
-  var key = keyRow_(code), got = latestAnswers_(code);
+  var key = keyRow_(code), got = latestAnswers_(code), cf = ctl_(code);
   if (!key) return;
+  var letters = lettersFor_(code, cf), nq = cf ? quizN_(cf) : 5, wk = cf ? weekOf_(cf) : '';
   var sh = responses_(), n = sh.getLastRow(), have = {};
-  if (n === 0) { sh.appendRow(['Timestamp', 'First Name', 'ID', 'Join Code', 'Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Score', 'Round']); n = 1; }
+  if (n === 0) { sh.appendRow(['Timestamp', 'First Name', 'ID', 'Join Code', 'Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Score', 'Round', 'Questions', 'Answers', 'Week']); n = 1; }
   else if (!sh.getRange(1, 10).getValue()) sh.getRange(1, 10).setValue('Score');
   var rnd = roundOf_(code);
   if (n > 1) {
@@ -342,9 +409,9 @@ function finalize_(code) {
     for (var j = 0; j < seen.length; j++) if (String(seen[j][1]).trim().toUpperCase() === code && (Number(seen[j][8]) || 0) === rnd) have[String(seen[j][0]).trim()] = j + 2;
   }
   Object.keys(got).forEach(function (id) {
-    var a = got[id], score = mark_(key, a.ans).reduce(function (x, y) { return x + y; }, 0);
-    if (have[id]) sh.getRange(have[id], 5, 1, 6).setValues([a.ans.concat([score])]); // a reopened quiz is compiled again
-    else sh.appendRow([new Date(), a.name, id, code].concat(a.ans, [score, rnd]));
+    var a = got[id], score = mark_(letters, a.ans).reduce(function (x, y) { return x + y; }, 0), rw = rowFor_(new Date(), a.name, id, code, a.ans, score, rnd, nq, wk);
+    if (have[id]) sh.getRange(have[id], 5, 1, 10).setValues([rw.slice(4)]); // a reopened quiz is compiled again
+    else sh.appendRow(rw);
     presence_(code, id, a.name, 'submitted');
   });
   totalsSafe_();
@@ -366,24 +433,28 @@ function answerCounts_(code, q) { // how many have answered question q, and the 
 function refreshTotals() {
   var ss = SpreadsheetApp.getActiveSpreadsheet(), rs = responses_(), n = rs.getLastRow();
   var ks = ss.getSheetByName(KEY_TAB), mode = ks ? String(ks.getRange(2, 11).getValue()).trim().toLowerCase() : '';
-  var latest = mode === 'latest';
-  var data = n > 1 ? rs.getRange(2, 1, n - 1, 11).getValues() : []; // Timestamp, First Name, ID, Join Code, Q1 to Q5, Score, Round
-  var students = {}, codes = {};
+  var latest = mode === 'latest', weeks = {};
+  try { weeks = siteJson_('/apps_script/live_quizzes.json').weeks || {}; } catch (err) { /* titles are a nicety */ }
+  var data = n > 1 ? rs.getRange(2, 1, n - 1, 14).getValues() : []; // Timestamp, First Name, ID, Join Code, Q1 to Q5, Score, Round, Questions, Answers, Week
+  var students = {}, cols = {};
   data.forEach(function (r) {
     var id = String(r[2]).trim(), code = String(r[3]).trim().toUpperCase();
     if (!id || !code || r[9] === '') return;
-    var score = Number(r[9]), rnd = Number(r[10]) || 0, st = students[id] || (students[id] = { name: '', best: {} });
+    var week = Number(r[13]) || 0, ck = (week ? 'W' + week + ':' : 'Q:') + code;
+    var score = Number(r[9]), rnd = Number(r[10]) || 0, nq = Number(r[11]) || 5;
+    cols[ck] = { week: week, code: code };
+    var st = students[id] || (students[id] = { name: '', best: {} });
     st.name = String(r[1]) || st.name;
-    codes[code] = true;
-    var cur = st.best[code];
-    if (!cur || (latest ? rnd >= cur.rnd : score > cur.score)) st.best[code] = { score: score, rnd: rnd };
+    var cur = st.best[ck];
+    if (!cur || (latest ? rnd >= cur.rnd : score / nq > cur.score / cur.n)) st.best[ck] = { score: score, rnd: rnd, n: nq };
   });
-  var codeList = Object.keys(codes).sort();
-  var header = ['Student ID', 'First name', 'Quizzes taken'].concat(codeList.map(function (c) { return 'Quiz ' + c; }), ['Total', 'Out of', 'Average %']);
+  var keys = Object.keys(cols).sort(function (a, b) { return (cols[a].week - cols[b].week) || cols[a].code.localeCompare(cols[b].code); });
+  var label = function (k) { var c = cols[k]; return c.week ? 'Week ' + c.week + (weeks[String(c.week)] ? ' ' + weeks[String(c.week)] : '') + ' (' + c.code + ')' : 'Quiz ' + c.code; };
+  var header = ['Student ID', 'First name', 'Quizzes taken'].concat(keys.map(label), ['Total', 'Out of', 'Average %']);
   var rows = Object.keys(students).sort(function (a, b) { return a.localeCompare(b, undefined, { numeric: true }); }).map(function (id) {
-    var st = students[id], taken = 0, total = 0;
-    var cells = codeList.map(function (c) { var b = st.best[c]; if (!b) return ''; taken++; total += b.score; return b.score; });
-    return [id, st.name, taken].concat(cells, [total, taken * 5, taken ? Math.round(total / (taken * 5) * 1000) / 10 : '']);
+    var st = students[id], taken = 0, total = 0, outOf = 0;
+    var cells = keys.map(function (k) { var b = st.best[k]; if (!b) return ''; taken++; total += b.score; outOf += b.n; return b.score + ' / ' + b.n; });
+    return [id, st.name, taken].concat(cells, [total, outOf, outOf ? Math.round(total / outOf * 1000) / 10 : '']);
   });
   var ts = ss.getSheetByName(TOTALS_TAB) || ss.insertSheet(TOTALS_TAB);
   ts.clearContents();
@@ -457,8 +528,8 @@ function doPost(e) {
 
   if (p.kind === 'answer') { // paced quiz: one answer to the question that is open right now
     var qn = Number(p.q), al = String(p.answer || '').trim().toUpperCase();
-    if (!name || !id || !keyRow_(code) || LETTERS.indexOf(al) < 0 || !(qn >= 1 && qn <= 5)) return fin_('bad answer');
     var ca = ctl_(code);
+    if (!name || !id || !keyRow_(code) || LETTERS.indexOf(al) < 0 || !(qn >= 1 && qn <= (ca ? quizN_(ca) : 5))) return fin_('bad answer');
     if (!ca || !paced_(ca)) return fin_('not paced');
     if (eff_(ca) !== 'running') return fin_('not open');
     if (Number(ca.v[11]) !== qn) return fin_('wrong question');
@@ -516,10 +587,10 @@ function doPost(e) {
       var a = String(p['q' + q] || '').trim().toUpperCase();
       ans.push(LETTERS.indexOf(a) >= 0 ? a : '');
     }
-    var score = mark_(key, ans).reduce(function (x, y) { return x + y; }, 0);
-    if (n === 0) sh.appendRow(['Timestamp', 'First Name', 'ID', 'Join Code', 'Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Score', 'Round']);
+    var score = mark_(lettersFor_(code, null), ans).reduce(function (x, y) { return x + y; }, 0);
+    if (n === 0) sh.appendRow(['Timestamp', 'First Name', 'ID', 'Join Code', 'Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Score', 'Round', 'Questions', 'Answers', 'Week']);
     else if (!sh.getRange(1, 10).getValue()) sh.getRange(1, 10).setValue('Score');
-    sh.appendRow([new Date(), name, id, code].concat(ans, [score, rnd]));
+    sh.appendRow(rowFor_(new Date(), name, id, code, ans, score, rnd, 5, ''));
     presence_(code, id, name, 'submitted');
     totalsSafe_();
     return fin_('ok');
@@ -532,7 +603,7 @@ function doPost(e) {
 // (quizzes/lecture1.json, matched through apps_script/live_quizzes.json), so there is one source and nothing to paste.
 function siteJson_(path) {
   var cache = CacheService.getScriptCache(), raw = cache.get('site:' + path);
-  if (!raw) { raw = UrlFetchApp.fetch(SITE + path + '?t=' + Date.now(), { muteHttpExceptions: true }).getContentText(); cache.put('site:' + path, raw.slice(0, 90000), 300); }
+  if (!raw) { raw = UrlFetchApp.fetch(SITE + path + '?t=' + Date.now(), { muteHttpExceptions: true }).getContentText(); if (raw.length < 95000) cache.put('site:' + path, raw, 300); }
   return JSON.parse(raw);
 }
 
@@ -540,13 +611,14 @@ function plainText_(t) { return String(t || '').replace(/<[^>]+>/g, '').replace(
 
 function bankExplanation_(code, q) { // {text, error}
   try {
-    var map = siteJson_('/apps_script/live_quizzes.json')[code];
-    if (!map || !map.ids || !map.ids[q - 1]) return { text: '', error: 'no practice-bank question is listed for this quiz in apps_script/live_quizzes.json' };
-    var bank = siteJson_('/quizzes/' + map.bank + '.json').questions;
+    var c = ctl_(code), e = liveEntry_(code, c);
+    var id = e.inline ? e.ids[q - 1] : (c ? qids_(c)[q - 1] : '');
+    if (!id) return { text: '', error: 'no practice-bank question is listed for this question' };
+    var bank = bankList_(e.bank);
     for (var i = 0; i < bank.length; i++) {
-      if (bank[i].id === map.ids[q - 1]) return { text: plainText_(bank[i].exp) + (bank[i].ref ? ' Review: ' + plainText_(bank[i].ref) : ''), error: '' };
+      if (bank[i].id === id) return { text: plainText_(bank[i].exp) + (bank[i].ref ? ' Review: ' + plainText_(bank[i].ref) : ''), error: '' };
     }
-    return { text: '', error: 'bank question ' + map.ids[q - 1] + ' was not found' };
+    return { text: '', error: 'bank question ' + id + ' was not found' };
   } catch (err) { return { text: '', error: String(err).slice(0, 160) }; }
 }
 
@@ -565,7 +637,7 @@ function reviewData_(code, id) {
   }
   var err = '';
   if (!expl) { var bx = bankExplanation_(code, q); expl = bx.text; err = bx.error; }
-  return { q: q, correct: String(key[q]).trim().toUpperCase(), dist: dist, answered: n, mine: id && got[id] ? got[id].ans[q - 1] : '', explanation: expl, explanationError: err };
+  return { q: q, correct: lettersFor_(code, c)[q - 1] || '', dist: dist, answered: n, mine: id && got[id] ? got[id].ans[q - 1] : '', explanation: expl, explanationError: err };
 }
 
 // ---------- GET (JSONP): status, own result, ranking, host and display data ----------
@@ -573,10 +645,10 @@ function reviewData_(code, id) {
 function ranking_(code, me) {
   var rsh = responses_(), list = [];
   if (rsh.getLastRow() > 1) {
-    var rnd = roundOf_(code), data = rsh.getRange(2, 1, rsh.getLastRow() - 1, 11).getValues(); // Timestamp, First Name, ID, Join Code, Q1 to Q5, Score, Round
+    var rnd = roundOf_(code), data = rsh.getRange(2, 1, rsh.getLastRow() - 1, 14).getValues(); // Timestamp, First Name, ID, Join Code, Q1 to Q5, Score, Round, Questions, Answers, Week
     for (var r = 0; r < data.length; r++) {
       if (String(data[r][3]).trim().toUpperCase() === code && data[r][9] !== '' && (Number(data[r][10]) || 0) === rnd) {
-        list.push({ name: String(data[r][1]), score: Number(data[r][9]), me: !!me && String(data[r][2]).trim() === me });
+        list.push({ name: String(data[r][1]), score: Number(data[r][9]), n: Number(data[r][11]) || 5, me: !!me && String(data[r][2]).trim() === me });
       }
     }
   }
@@ -606,10 +678,21 @@ function doGet(e) {
 
   if (p.action === 'status') {
     var c = ctl_(code);
-    if (c) return jsonp_(e, ctlStatus_(c));
+    if (c) { var cs = ctlStatus_(c); cs.known = true; return jsonp_(e, cs); }
     var k = keyRow_(code);
     var v = k ? String(k[6]).trim().toLowerCase() : '';
-    return jsonp_(e, { timed: false, hidden: v === 'hidden', closed: v === 'closed', state: k ? state_(k) : '' });
+    return jsonp_(e, { timed: false, known: !!k, hidden: v === 'hidden', closed: v === 'closed', state: k ? state_(k) : '' });
+  }
+
+  if (p.action === 'questions') { // the quiz's question text (no answers), once it has started
+    var cq = ctl_(code);
+    if (!cq || (eff_(cq) === 'ready' || eff_(cq) === 'lobby' || eff_(cq) === 'draft')) return jsonp_(e, { questions: [] });
+    try {
+      var le = liveEntry_(code, cq), qs = [];
+      if (le.inline) qs = le.inline.map(function (x) { return { stem: x.stem, opts: x.opts }; });
+      else { var bk = bankList_(le.bank); qs = qids_(cq).map(function (qid) { for (var i = 0; i < bk.length; i++) if (bk[i].id === qid) return { stem: bk[i].q, opts: bk[i].options }; return { stem: '(question missing)', opts: [] }; }); }
+      return jsonp_(e, { questions: qs });
+    } catch (err) { return jsonp_(e, { questions: [], error: String(err).slice(0, 160) }); }
   }
 
   if (p.action === 'review') return jsonp_(e, reviewData_(code, clean_(p.id, 20)));
@@ -655,7 +738,9 @@ function doGet(e) {
     var ch = ctl_(code), cn = counts_(code), rows2 = ranking_(code, '');
     var out = { ok: true, review: ch ? reviewData_(code, '') : { q: 0 }, controlled: !!ch, joined: cn.joined, inprogress: cn.inprogress, submitted: cn.submitted, notYet: cn.notYet, rows: rows2 };
     if (ch && paced_(ch) && Number(ch.v[11]) > 0) { var ac = answerCounts_(code, Number(ch.v[11])); out.answered = ac.answered; out.dist = ac.dist; }
-    if (ch) { out.status = ctlStatus_(ch); out.state = out.status.state; out.settings = { duration: Number(ch.v[2]), allowLate: ch.v[5], showScore: ch.v[6], showBoard: ch.v[7] }; }
+    if (ch) { out.status = ctlStatus_(ch); out.state = out.status.state; var wks = {}; try { wks = siteJson_('/apps_script/live_quizzes.json').weeks || {}; } catch (er) { /* no list */ }
+    var le2 = null; try { le2 = liveEntry_(code, ch); } catch (er) { /* offline */ }
+    out.weeks = wks; out.week = weekOf_(ch); out.maxN = maxN_(code, ch); out.fixed = !!(le2 && le2.inline); out.settings = { n: quizN_(ch), duration: Number(ch.v[2]), allowLate: ch.v[5], showScore: ch.v[6], showBoard: ch.v[7] }; }
     else out.state = state_(hk);
     return jsonp_(e, out);
   }
@@ -672,12 +757,12 @@ function doGet(e) {
     var id = clean_(p.id, 20), key = keyRow_(code), cx = ctl_(code);
     var sh = responses_();
     if (key && id && sh && sh.getLastRow() > 1) {
-      var rnd2 = roundOf_(code), rows = sh.getRange(2, 3, sh.getLastRow() - 1, 9).getValues(); // ID, Join Code, Q1 to Q5, Score, Round
+      var rnd2 = roundOf_(code), rows = sh.getRange(2, 3, sh.getLastRow() - 1, 12).getValues(); // ID, Join Code, Q1 to Q5, Score, Round, Questions, Answers, Week
       for (var i = 0; i < rows.length; i++) {
         if (String(rows[i][0]).trim() === id && String(rows[i][1]).trim().toUpperCase() === code && (Number(rows[i][8]) || 0) === rnd2) {
           if (cx && !visible_(cx, 'show_score')) return jsonp_(e, { found: true, scoreHidden: true, outcome: lastOutcome_(id, code) });
-          var flags = mark_(key, rows[i].slice(2, 7));
-          return jsonp_(e, { found: true, score: flags.reduce(function (x, y) { return x + y; }, 0), total: 5, flags: flags, outcome: lastOutcome_(id, code) });
+          var flags = mark_(lettersFor_(code, cx), parseAnswers_(rows[i]));
+          return jsonp_(e, { found: true, score: flags.reduce(function (x, y) { return x + y; }, 0), total: flags.length, flags: flags, outcome: lastOutcome_(id, code) });
         }
       }
     }

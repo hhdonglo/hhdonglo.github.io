@@ -125,6 +125,8 @@ header.banner,nav.jump,footer,aside.disclaimer,#host-title,.sec-sub{display:none
     <label for="h-msg">Message to all students</label>
     <input type="text" id="h-msg" maxlength="200"> <button class="go alt" id="h-msgbtn">Send message</button> <button class="go alt" id="h-msgclr">Clear</button>
     <div class="row">
+     <div><label for="h-week">Week</label><select id="h-week"></select></div>
+     <div><label for="h-n">Number of questions</label><select id="h-n"></select></div>
      <div><label for="h-qs">Seconds per question (0 = no timer)</label><select id="h-qs"><option>0</option><option>30</option><option>45</option><option>60</option><option>90</option><option>120</option><option>180</option></select></div>
      <div><label for="h-late">Late joining</label><select id="h-late"><option>Yes</option><option>No</option></select></div>
      <div><label for="h-ss">Student score shown</label><select id="h-ss"><option>OnRelease</option><option>Immediate</option><option>Never</option></select></div>
@@ -194,13 +196,15 @@ function refresh(first){
    if(r==="off"&&st.reviewQ>0)b.hidden=true;
   });
   $("h-state").textContent=(LABEL[s]||s)+(s==="lobby"?": "+d.joined:"")+(st.reviewQ>0?" \u00b7 reviewing question "+st.reviewQ:"");
-  var Q=window.QUIZ_L1&&window.QUIZ_L1[(st.currentQ||0)-1];
+  var qkey=cfg.code+"|"+(st.qids||[]).join(",");
+  if(st.qids&&st.qids.length&&cfg.qkey!==qkey){cfg.qkey=qkey;jsonp("action=questions&code="+encodeURIComponent(cfg.code),function(r){cfg.qs=(r&&r.questions)||[];refresh(false)})}
+  var Q=cfg.qs&&cfg.qs[(st.currentQ||0)-1];
   $("h-prev").hidden=!(Q&&live);
   if(Q){$("h-prevstem").innerHTML=Q.stem;$("h-prevopts").innerHTML=Q.opts.map(function(o,i){return '<p style="margin:.2rem 0"><b>'+"ABCDE"[i]+'</b>&nbsp; '+o+'</p>'}).join("")}
-  var rv=d.review&&d.review.q>0&&(s==="ended"||s==="released")?d.review:null,Qr=rv&&window.QUIZ_L1[rv.q-1];
+  var rv=d.review&&d.review.q>0&&(s==="ended"||s==="released")?d.review:null,Qr=rv&&cfg.qs&&cfg.qs[rv.q-1];
   $("h-rev").hidden=!Qr;
   if(Qr){
-   var rh='<p class="lbl">Reviewing question '+rv.q+' of 5 ('+rv.answered+' answered)</p><div style="font-size:1.15rem;margin:.3rem 0">'+Qr.stem+'</div>';
+   var rh='<p class="lbl">Reviewing question '+rv.q+' of '+(st.totalQ||5)+' ('+rv.answered+' answered)</p><div style="font-size:1.15rem;margin:.3rem 0">'+Qr.stem+'</div>';
    Qr.opts.forEach(function(o,i){var k="ABCDE"[i];rh+='<div class="ro'+(k===rv.correct?" ok":"")+'"><b>'+k+'</b><span>'+o+'</span><span class="n">'+(k===rv.correct?"\u2713 ":"")+(rv.dist[k]||0)+'</span></div>'});
    rh+=rv.explanation?'<p style="border-left:4px solid var(--brown-edge);padding:.2rem .8rem">'+esc(rv.explanation)+'</p>':'<p class="err">No explanation shown to students: '+esc(rv.explanationError||"none found")+'</p>';
    $("h-rev").innerHTML=rh;
@@ -210,9 +214,16 @@ function refresh(first){
   if(dist){var mx=Math.max(1,dist.A,dist.B,dist.C,dist.D,dist.E);"ABCDE".split("").forEach(function(k){h+='<div class="bar"><b style="width:1.2rem">'+k+'</b><i style="width:'+Math.round(dist[k]/mx*260)+'px"></i> '+dist[k]+'</div>'});}
   $("h-dist").innerHTML=h;
   $("h-names").textContent=d.notYet&&d.notYet.length?"Participants: "+d.notYet.join(", "):"";
+  var pre=(s==="ready"||s==="lobby"||s==="draft");
+  var wk=Object.keys(d.weeks||{}).sort(function(a,b){return a-b}),wsig=wk.join(",")+"|"+d.maxN;
+  if(cfg.wsig!==wsig){cfg.wsig=wsig;
+   $("h-week").innerHTML=wk.map(function(k){return '<option value="'+k+'">Week '+k+': '+esc(d.weeks[k])+'</option>'}).join("");
+   var no="";for(var n=5;n<=d.maxN;n++)no+='<option>'+n+'</option>';$("h-n").innerHTML=no}
+  $("h-week").disabled=!pre||d.fixed;$("h-n").disabled=!pre||d.fixed;
+  setSel("h-week",d.week);setSel("h-n",d.settings&&d.settings.n);
   setSel("h-qs",st.qSeconds);setSel("h-late",d.settings&&d.settings.allowLate);setSel("h-ss",d.settings&&d.settings.showScore);setSel("h-sb",d.settings&&d.settings.showBoard);
   var rk=0,prev=null,t="<table><thead><tr><th>#</th><th>First name</th><th>Score</th></tr></thead><tbody>";
-  d.rows.forEach(function(r,i){if(r.score!==prev){rk=i+1;prev=r.score}t+="<tr><td>"+rk+"</td><td>"+esc(r.name)+"</td><td>"+esc(r.score)+" / 5</td></tr>"});
+  d.rows.forEach(function(r,i){if(r.score!==prev){rk=i+1;prev=r.score}t+="<tr><td>"+rk+"</td><td>"+esc(r.name)+"</td><td>"+esc(r.score)+" / "+(r.n||5)+"</td></tr>"});
   $("h-rank").innerHTML=d.rows.length?t+"</tbody></table>":'<p class="note">The ranking appears here when the quiz ends.</p>';
   $("h-upd").textContent="Updates every 4 seconds. Last update "+new Date().toLocaleTimeString()+".";
  });
@@ -239,7 +250,7 @@ Array.prototype.forEach.call(document.querySelectorAll("[data-a]"),function(b){
 });
 $("h-msgbtn").addEventListener("click",function(){act("message","&text="+encodeURIComponent($("h-msg").value))});
 $("h-msgclr").addEventListener("click",function(){$("h-msg").value="";act("message","&text=")});
-[["h-qs","q_seconds"],["h-late","allow_late_join"],["h-ss","show_score"],["h-sb","show_leaderboard"]].forEach(function(x){
+[["h-week","week"],["h-n","n_questions"],["h-qs","q_seconds"],["h-late","allow_late_join"],["h-ss","show_score"],["h-sb","show_leaderboard"]].forEach(function(x){
  $(x[0]).addEventListener("change",function(){act("set","&field="+x[1]+"&value="+encodeURIComponent($(x[0]).value))});
 });
 })();

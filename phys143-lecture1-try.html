@@ -116,11 +116,8 @@ aside.disclaimer .sakai-link{font-size:.8rem}
 var SCRIPT_URL="https://script.google.com/macros/s/AKfycbzso5-FCU4erf_grbktH-AH-RKaPDap7TfJAw_TOSxNarTrJDe-PgyBzgIH7Fj2fjZ3/exec"; // Apps Script web app address (see apps_script/quiz_receiver.gs)
 var LEADERBOARD_CSV="https://docs.google.com/spreadsheets/d/e/2PACX-1vR6SZQewzCDwqP5zfu1uycwaOb_ZEoJgXwLAhEWN4qBwT0zo89MDERju8cBM2Vne6w1-rje6gCZI5X-/pub?gid=1903986573&single=true&output=csv";
 var SECONDS=60;
-// accepted join codes, stored as SHA-256 of "phys143-try:" + CODE (uppercase); add one per quiz
-var ACCEPTED=["65813372d2a0cbf4b1c69eaae826d53ad0855d22c157cb7c755b5d5985d4b443"];
-function sha(c){var b=new TextEncoder().encode("phys143-try:"+c);return crypto.subtle.digest("SHA-256",b).then(function(d){return Array.prototype.map.call(new Uint8Array(d),function(x){return("0"+x.toString(16)).slice(-2)}).join("")})}
 var D=function(s){return s};
-var QS=window.QUIZ_L1;
+var QS=window.QUIZ_L1||[];
 var L="ABCDE";
 var $=function(i){return document.getElementById(i)};
 var st={name:"",id:"",code:"",ans:[],i:0,t:SECONDS,timer:null,sent:false};
@@ -132,15 +129,14 @@ $("f-start").addEventListener("submit",function(e){
  var er=$("err");
  if(!n||!d||!c){er.textContent="Please fill in your first name, ID and the join code.";er.hidden=false;return}
  er.hidden=true;
- sha(c).then(function(h){
-  if(ACCEPTED.indexOf(h)<0){er.textContent="That join code is not correct. Check the code shown on the slide and try again.";er.hidden=false;return}
-  st.name=n;st.id=d;st.code=c;st.ans=[];st.i=0;
-  gate();
- }).catch(function(){er.textContent="This browser cannot check the join code. Please try another browser.";er.hidden=false});
+ st.name=n;st.id=d;st.code=c;st.ans=[];st.i=0;
+ gate();
 });
 function gate(){
  var er=$("err"),btn=$("f-start").querySelector("button");
  jsonp("action=status&code="+encodeURIComponent(st.code),function(d){
+  if(d&&d.known===false){btn.disabled=false;er.textContent="That join code is not correct. Check the code on the screen and try again.";er.hidden=false;return}
+  if(!d){btn.disabled=false;er.textContent="Could not reach the class sheet. Check your connection and try again.";er.hidden=false;return}
   function wait(m){btn.disabled=true;er.textContent=m;er.hidden=false;if(!st.joined){st.joined=true;join()}setTimeout(gate,3000)}
   function stop(m){btn.disabled=false;er.textContent=m;er.hidden=false}
   if(d&&(d.timed||d.paced)){
@@ -167,12 +163,16 @@ function join(kind){
 }
 // ---- lecturer-paced mode: the lecturer moves the whole class from question to question ----
 function startPaced(d){
- st.paced=true;st.ans=["","","","",""];st.curQ=0;st.ended=false;
- join("progress");show("s-q");
- $("prev").hidden=true;$("next").hidden=true;
- applyPaced(d);
- clearInterval(st.timer);clearInterval(st.poll);
- st.timer=setInterval(pacedTick,500);st.poll=setInterval(pacedPoll,2000);
+ st.paced=true;st.curQ=0;st.ended=false;
+ jsonp("action=questions&code="+encodeURIComponent(st.code),function(r){
+  if(r&&r.questions&&r.questions.length)QS=r.questions;
+  st.ans=[];for(var i=0;i<QS.length;i++)st.ans.push("");
+  join("progress");show("s-q");
+  $("prev").hidden=true;$("next").hidden=true;
+  applyPaced(d);
+  clearInterval(st.timer);clearInterval(st.poll);
+  st.timer=setInterval(pacedTick,500);st.poll=setInterval(pacedPoll,2000);
+ });
 }
 function pacedClosed(){
  if(st.paused)return true;
@@ -403,7 +403,7 @@ function drawBoard(rows,final){
  var tb=$("board-table"),note=$("board-note");
  if(!rows.length){tb.innerHTML="";note.textContent="No scores yet.";return}
  var rk=0,prev=null,html="<table><thead><tr><th>#</th><th>First name</th><th>Score</th></tr></thead><tbody>";
- rows.forEach(function(r,i){if(r.score!==prev){rk=i+1;prev=r.score}html+="<tr"+(r.me?' class="me"':"")+"><td>"+rk+"</td><td>"+esc(r.name)+"</td><td>"+esc(r.score)+" / 5</td></tr>"});
+ rows.forEach(function(r,i){if(r.score!==prev){rk=i+1;prev=r.score}html+="<tr"+(r.me?' class="me"':"")+"><td>"+rk+"</td><td>"+esc(r.name)+"</td><td>"+esc(r.score)+" / "+(r.n||5)+"</td></tr>"});
  tb.innerHTML=html+"</tbody></table>";
  note.textContent="";
 }
