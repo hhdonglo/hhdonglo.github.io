@@ -381,6 +381,36 @@
       "exp": "South-west is 225° measured anticlockwise from the +x axis (east), so D<sub>x</sub> = D cos 225° = −7.07 m and D<sub>y</sub> = D sin 225° = −7.07 m. Both components are negative, as they must be for a vector that points south and west. The other forms have the wrong signs or the wrong angle.",
       "ref": "Lecture 1 deck, slide ‘Your turn: angles measured from other axes’ and ‘Toolkit 3: components’",
       "source": "Past exam: PHYS 143 2018/2019, question 2"
+    },
+    {
+      "id": "L1-T-A2",
+      "type": "calc",
+      "q": "A walker goes 3.0 km east, then 4.0 km at 30° north of west. What is the magnitude of the net displacement, and its direction measured anticlockwise from east (+x)?",
+      "options": [
+        "2.05 km at 77°",
+        "2.05 km at 103°",
+        "7.0 km at 150°",
+        "2.05 km at 257°"
+      ],
+      "answer": 1,
+      "exp": "R<sub>x</sub> = 3.0 − 4.0 cos 30° = −0.46 km and R<sub>y</sub> = 4.0 sin 30° = +2.00 km. R = √(0.46² + 2.00²) = 2.05 km. R<sub>x</sub> is negative and R<sub>y</sub> positive, so R lies in the second quadrant: θ = 180° − 77.0° = 103°. The calculator’s 77° is only the reference angle.",
+      "ref": "Lecture 1 tutorial, worked solution A2",
+      "source": "Lecture 1 tutorial, problem A2"
+    },
+    {
+      "id": "L1-T-A5",
+      "type": "calc",
+      "q": "A box is pulled through 12 m along a straight line by a constant 50 N force that makes an angle of 25° with the displacement. How much work does the force do?",
+      "options": [
+        "254 J",
+        "544 J",
+        "595 J",
+        "600 J"
+      ],
+      "answer": 1,
+      "exp": "W = F s cos φ = (50 N)(12 m) cos 25° = 544 J. Only the component of the force along the motion does work, so W is less than Fs = 600 J. The value 595 J comes from a calculator left in radian mode, and 254 J from using sin 25° instead of cos 25°.",
+      "ref": "Lecture 1 tutorial, worked solution A5",
+      "source": "Lecture 1 tutorial, problem A5"
     }
   ]
 }

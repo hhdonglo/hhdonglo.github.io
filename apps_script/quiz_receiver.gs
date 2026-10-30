@@ -17,7 +17,8 @@ var KEY_TAB = 'Key';
 var CONTROL_TAB = 'Quiz_Control';
 var PRESENCE_TAB = 'Presence';
 var ANSWERS_TAB = 'Answers';
-var EXPL_TAB = 'Explanations'; // private to edit: join code | question number | explanation shown during the review
+var EXPL_TAB = 'Explanations'; // optional override: join code | question number | explanation. Normally empty.
+var SITE = 'https://hhdonglo.github.io'; // explanations come from the practice bank listed in apps_script/live_quizzes.json
 var LETTERS = ['A', 'B', 'C', 'D', 'E'];
 var NOTIFY_EMAIL = 'hkdonglo@gmail.com'; // new reports are emailed here
 var GRACE_MS = 15000; // a submission may arrive this long after the deadline (network delay)
@@ -483,6 +484,28 @@ function doPost(e) {
   }
 }
 
+// The explanation for question q of a live quiz: the Explanations tab if it has a row, else the practice bank
+// (quizzes/lecture1.json, matched through apps_script/live_quizzes.json), so there is one source and nothing to paste.
+function siteJson_(path) {
+  var cache = CacheService.getScriptCache(), raw = cache.get('site:' + path);
+  if (!raw) { raw = UrlFetchApp.fetch(SITE + path + '?t=' + Date.now(), { muteHttpExceptions: true }).getContentText(); cache.put('site:' + path, raw.slice(0, 90000), 300); }
+  return JSON.parse(raw);
+}
+
+function plainText_(t) { return String(t || '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim(); }
+
+function bankExplanation_(code, q) {
+  try {
+    var map = siteJson_('/apps_script/live_quizzes.json')[code];
+    if (!map || !map.ids || !map.ids[q - 1]) return '';
+    var bank = siteJson_('/quizzes/' + map.bank + '.json').questions;
+    for (var i = 0; i < bank.length; i++) {
+      if (bank[i].id === map.ids[q - 1]) return plainText_(bank[i].exp) + (bank[i].ref ? ' Review: ' + plainText_(bank[i].ref) : '');
+    }
+  } catch (err) { /* no explanation is better than an error in front of the class */ }
+  return '';
+}
+
 // What the class sees while the lecturer goes over a question: the correct letter, the spread of answers,
 // the viewer's own answer, and the explanation. Nothing here is sent unless review is switched on.
 function reviewData_(code, id) {
@@ -496,6 +519,7 @@ function reviewData_(code, id) {
     var rows = es.getRange(2, 1, es.getLastRow() - 1, 3).getValues();
     for (var i = 0; i < rows.length; i++) if (String(rows[i][0]).trim().toUpperCase() === code && Number(rows[i][1]) === q) expl = String(rows[i][2]);
   }
+  if (!expl) expl = bankExplanation_(code, q);
   return { q: q, correct: String(key[q]).trim().toUpperCase(), dist: dist, answered: n, mine: id && got[id] ? got[id].ans[q - 1] : '', explanation: expl };
 }
 
