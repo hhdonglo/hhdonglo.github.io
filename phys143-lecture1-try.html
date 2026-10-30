@@ -95,7 +95,7 @@
    <h3>Class ranking</h3>
    <p class="note" id="board-note"></p>
    <div id="board-table"></div>
-   <button type="button" class="go alt" id="refresh">Refresh ranking</button>
+   <button type="button" class="go alt" id="refresh">Refresh now</button>
   </div>
  </section>
 </div>
@@ -206,16 +206,26 @@ function showMine(d){
  var l=$("mine-list");l.innerHTML="";
  d.flags.forEach(function(f,i){var li=document.createElement("li");li.textContent="Question "+(i+1)+": "+(f?"correct":"not correct");l.appendChild(li)});
  $("mine-note").textContent=(d.outcome==="duplicate"?"You had already submitted these questions, so this is your first attempt, the one that counts. ":"Only your first attempt counts. ")+"The right answers are not shown here; your lecturer will go through them.";
- checkRanking();
+ checkRanking();startLive();
 }
 function checkRanking(){
  $("board").hidden=false;
- jsonp("action=status&code="+encodeURIComponent(st.code),function(d){
-  if(d&&d.closed){loadBoard();return}
-  $("board-table").innerHTML="";
-  $("board-note").textContent=d?"The class ranking will appear here when your lecturer closes the quiz. Press the button to check again.":"I could not check the ranking just now. Press the button to try again.";
+ jsonp("action=ranking&code="+encodeURIComponent(st.code)+"&id="+encodeURIComponent(st.id),function(d){
+  if(d&&d.rows){
+   if(d.hidden){$("board-table").innerHTML="";$("board-note").textContent="Your lecturer has hidden the class ranking for now.";return}
+   drawBoard(d.rows,d.closed);return}
+  loadBoard(); // an older receiver cannot send the ranking; read the published sheet instead
  });
 }
+function drawBoard(rows,final){
+ var tb=$("board-table"),note=$("board-note");
+ if(!rows.length){tb.innerHTML="";note.textContent="No scores yet. This list updates by itself.";return}
+ var rk=0,prev=null,html="<table><thead><tr><th>#</th><th>First name</th><th>Score</th></tr></thead><tbody>";
+ rows.forEach(function(r,i){if(r.score!==prev){rk=i+1;prev=r.score}html+="<tr"+(r.me?' class="me"':"")+"><td>"+rk+"</td><td>"+esc(r.name)+"</td><td>"+esc(r.score)+" / 5</td></tr>"});
+ tb.innerHTML=html+"</tbody></table>";
+ note.textContent=(final?"Final ranking. ":"Live ranking, updating by itself every 15 seconds. ")+"Only first attempts count. Updated "+new Date().toLocaleTimeString()+".";
+}
+function startLive(){clearInterval(st.live);st.live=setInterval(checkRanking,15000)}
 $("retry").addEventListener("click",deliver);
 function parseCSV(t){
  var r=[],row=[],c="",q=false;

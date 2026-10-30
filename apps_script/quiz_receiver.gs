@@ -173,13 +173,31 @@ function doPost(e) {
 }
 
 // GET: ?action=result&id=..&code=.. gives that student's own score and right/wrong flags;
-//      ?action=status&code=.. says whether the ranking has been opened. Both answer as JSONP (callback=...).
+//      ?action=ranking&code=..&id=.. gives the live class ranking (first names and scores; Key column G = Hidden turns it off);
+//      ?action=status&code=.. says whether the ranking is hidden or final. Both answer as JSONP (callback=...).
 function doGet(e) {
   var p = (e && e.parameter) || {};
   var code = clean_(p.code, 30).toUpperCase();
   if (p.action === 'status') {
     var k = keyRow_(code);
-    return jsonp_(e, { closed: !!k && String(k[6]).trim().toLowerCase() === 'closed' });
+    var v = k ? String(k[6]).trim().toLowerCase() : '';
+    return jsonp_(e, { hidden: v === 'hidden', closed: v === 'closed' });
+  }
+  if (p.action === 'ranking') { // live class ranking for one join code: first names and scores only
+    var rk = keyRow_(code), me = clean_(p.id, 20);
+    if (!rk) return jsonp_(e, { hidden: false, rows: [] });
+    if (String(rk[6]).trim().toLowerCase() === 'hidden') return jsonp_(e, { hidden: true, rows: [] });
+    var rsh = responses_(), list = [];
+    if (rsh.getLastRow() > 1) {
+      var data = rsh.getRange(2, 1, rsh.getLastRow() - 1, 10).getValues(); // Timestamp, First Name, ID, Join Code, Q1 to Q5, Score
+      for (var r = 0; r < data.length; r++) {
+        if (String(data[r][3]).trim().toUpperCase() === code && data[r][9] !== '') {
+          list.push({ name: String(data[r][1]), score: Number(data[r][9]), me: String(data[r][2]).trim() === me });
+        }
+      }
+    }
+    list.sort(function (x, y) { return y.score - x.score || x.name.localeCompare(y.name); });
+    return jsonp_(e, { hidden: false, closed: String(rk[6]).trim().toLowerCase() === 'closed', rows: list.slice(0, 300) });
   }
   if (p.action === 'result') {
     var id = clean_(p.id, 20), key = keyRow_(code);
