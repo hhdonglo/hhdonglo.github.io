@@ -24,12 +24,23 @@ function append_(tab, header, row) {
 }
 
 function mailReport_(sh, r) {
+  var row = sh.getLastRow(), status;
   try {
-    var link = SpreadsheetApp.getActiveSpreadsheet().getUrl() + '#gid=' + sh.getSheetId() + '&range=A' + sh.getLastRow();
+    var link = SpreadsheetApp.getActiveSpreadsheet().getUrl() + '#gid=' + sh.getSheetId() + '&range=A' + row;
     MailApp.sendEmail(NOTIFY_EMAIL, 'PHYS 143 report: ' + r.lecture + ', ' + r.qid,
       'A student reported a problem.\n\nTime: ' + r.time + '\nPage: ' + r.page + '\nLecture: ' + r.lecture + '\nQuestion id: ' + r.qid +
       '\nQuestion: ' + r.question + '\nAnswer shown: ' + r.answer + '\n\nComment:\n' + r.comment + '\n\nOpen the row: ' + link);
-  } catch (err) { /* the row is already saved; a mail failure must not lose it */ }
+    status = 'email sent';
+  } catch (err) {
+    status = 'email failed: ' + String(err).slice(0, 200); // the row is already saved; show why the email failed
+  }
+  sh.getRange(1, 8).setValue('Email');
+  sh.getRange(row, 8).setValue(status);
+}
+
+// Run this once from the editor (choose testEmail, press Run) to grant the email permission and check delivery.
+function testEmail() {
+  MailApp.sendEmail(NOTIFY_EMAIL, 'PHYS 143 test email', 'If you can read this, report emails will reach you. Remaining daily quota: ' + MailApp.getRemainingDailyQuota());
 }
 
 function doPost(e) {
