@@ -219,7 +219,7 @@ function refresh(first){
   if(cfg.wsig!==wsig){cfg.wsig=wsig;
    $("h-week").innerHTML=wk.map(function(k){return '<option value="'+k+'">Week '+k+': '+esc(d.weeks[k])+'</option>'}).join("");
    var no="";for(var n=5;n<=d.maxN;n++)no+='<option>'+n+'</option>';$("h-n").innerHTML=no}
-  $("h-week").disabled=!pre||d.fixed;$("h-n").disabled=!pre||d.fixed;
+  $("h-week").disabled=!pre||d.fixed||d.weekLocked;$("h-n").disabled=!pre||d.fixed;
   setSel("h-week",d.week);setSel("h-n",d.settings&&d.settings.n);
   setSel("h-qs",st.qSeconds);setSel("h-late",d.settings&&d.settings.allowLate);setSel("h-ss",d.settings&&d.settings.showScore);setSel("h-sb",d.settings&&d.settings.showBoard);
   var rk=0,prev=null,t="<table><thead><tr><th>#</th><th>First name</th><th>Score</th></tr></thead><tbody>";

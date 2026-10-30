@@ -83,6 +83,14 @@ function hostOk_(p) {
   return !!hk && String(p.hostkey || '').trim() === hk;
 }
 
+// A join code of the form 2627 + week number (26271 = Week 1, 26272 = Week 2, ..., 262710 = Week 10) is valid
+// for any week that has a practice bank, with no Key row to add. The week comes from the code.
+function weekFromCode_(code) {
+  var m = /^2627(\d{1,2})$/.exec(String(code));
+  if (!m) return 0;
+  try { var wk = siteJson_('/apps_script/live_quizzes.json').weeks || {}; return wk[String(Number(m[1]))] ? Number(m[1]) : 0; } catch (err) { return 0; }
+}
+
 function keyRow_(code) {
   var ks = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(KEY_TAB);
   if (!ks || ks.getLastRow() < 2) return null;
@@ -90,7 +98,7 @@ function keyRow_(code) {
   for (var i = 0; i < rows.length; i++) {
     if (String(rows[i][0]).trim().toUpperCase() === code) return rows[i];
   }
-  return null;
+  return weekFromCode_(code) ? [code, '', '', '', '', '', 'Open', ''] : null;
 }
 
 // The responses tab: by name, else the first tab whose header row starts Timestamp, First Name; else created.
@@ -229,7 +237,7 @@ function weekOf_(c) { return c ? Number(c.v[20]) || 1 : 1; }
 function liveEntry_(code, c) { // a code with its own entry (fixed questions) wins; otherwise the week's practice bank
   var m = siteJson_('/apps_script/live_quizzes.json');
   if (m[code]) return m[code];
-  var w = weekOf_(c);
+  var w = weekFromCode_(code) || weekOf_(c);
   return { bank: 'lecture' + w, ids: 'all', week: w };
 }
 function bankList_(name) { return siteJson_('/quizzes/' + name + '.json').questions; }
@@ -288,7 +296,7 @@ function ctlAct_(p, code) {
   if (act === 'init') {
     if (c) return { ok: true, status: ctlStatus_(c) };
     var sh = controlSheet_();
-    sh.appendRow([code, 'Ready', 10, 0, 10 * 60000, 'Yes', 'OnRelease', 'OnRelease', '', '', new Date().toISOString(), 0, 60, 0, 0, 'paced', 0, 0, 5, '', 1]);
+    sh.appendRow([code, 'Ready', 10, 0, 10 * 60000, 'Yes', 'OnRelease', 'OnRelease', '', '', new Date().toISOString(), 0, 60, 0, 0, 'paced', 0, 0, 5, '', weekFromCode_(code) || 1]);
     log_('control:init', 'host', '', code);
     return { ok: true, status: ctlStatus_(ctl_(code)) };
   }
@@ -368,6 +376,7 @@ function ctlAct_(p, code) {
     else if (field === 'show_score' || field === 'show_leaderboard') c.v[field === 'show_score' ? 6 : 7] = /^i/i.test(val) ? 'Immediate' : (/^n/i.test(val) ? 'Never' : 'OnRelease');
     else if (field === 'title') c.v[9] = val;
     else if (field === 'q_seconds') { var qs = Math.max(0, Math.min(600, Number(val) || 0)); c.v[12] = qs; val = String(qs); }
+    else if (field === 'week' && weekFromCode_(code)) return { ok: false, why: 'the week is set by the join code' };
     else if (field === 'week') { var wk = Math.max(1, Number(val) || 1); var wl = siteJson_('/apps_script/live_quizzes.json').weeks || {}; if (!wl[String(wk)]) return { ok: false, why: 'no practice bank for that week' }; c.v[20] = wk; c.v[19] = ''; c.v[18] = Math.max(5, Math.min(maxN_(code, c), quizN_(c))); val = String(wk); }
     else if (field === 'n_questions') { var nn = Math.max(5, Math.min(maxN_(code, c), Number(val) || 5)); c.v[18] = nn; val = String(nn); }
     else if (field === 'mode') c.v[15] = /^t/i.test(val) ? 'timed' : 'paced';
@@ -680,6 +689,7 @@ function doGet(e) {
     var c = ctl_(code);
     if (c) { var cs = ctlStatus_(c); cs.known = true; return jsonp_(e, cs); }
     var k = keyRow_(code);
+    if (k && weekFromCode_(code)) return jsonp_(e, { paced: true, timed: false, known: true, state: 'ready', allowLate: true });
     var v = k ? String(k[6]).trim().toLowerCase() : '';
     return jsonp_(e, { timed: false, known: !!k, hidden: v === 'hidden', closed: v === 'closed', state: k ? state_(k) : '' });
   }
@@ -735,12 +745,14 @@ function doGet(e) {
   if (p.action === 'host') { // host only: control state, participation, ranking
     var hk = keyRow_(code);
     if (!hostOk_(p) || !hk) return jsonp_(e, { ok: false });
-    var ch = ctl_(code), cn = counts_(code), rows2 = ranking_(code, '');
+    var ch = ctl_(code);
+    if (!ch && weekFromCode_(code)) { ctlAct_({ act: 'init' }, code); ch = ctl_(code); }
+    var cn = counts_(code), rows2 = ranking_(code, '');
     var out = { ok: true, review: ch ? reviewData_(code, '') : { q: 0 }, controlled: !!ch, joined: cn.joined, inprogress: cn.inprogress, submitted: cn.submitted, notYet: cn.notYet, rows: rows2 };
     if (ch && paced_(ch) && Number(ch.v[11]) > 0) { var ac = answerCounts_(code, Number(ch.v[11])); out.answered = ac.answered; out.dist = ac.dist; }
     if (ch) { out.status = ctlStatus_(ch); out.state = out.status.state; var wks = {}; try { wks = siteJson_('/apps_script/live_quizzes.json').weeks || {}; } catch (er) { /* no list */ }
     var le2 = null; try { le2 = liveEntry_(code, ch); } catch (er) { /* offline */ }
-    out.weeks = wks; out.week = weekOf_(ch); out.maxN = maxN_(code, ch); out.fixed = !!(le2 && le2.inline); out.settings = { n: quizN_(ch), duration: Number(ch.v[2]), allowLate: ch.v[5], showScore: ch.v[6], showBoard: ch.v[7] }; }
+    out.weeks = wks; out.weekLocked = !!weekFromCode_(code); out.week = weekFromCode_(code) || weekOf_(ch); out.maxN = maxN_(code, ch); out.fixed = !!(le2 && le2.inline); out.settings = { n: quizN_(ch), duration: Number(ch.v[2]), allowLate: ch.v[5], showScore: ch.v[6], showBoard: ch.v[7] }; }
     else out.state = state_(hk);
     return jsonp_(e, out);
   }
