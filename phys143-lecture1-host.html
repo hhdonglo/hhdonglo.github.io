@@ -66,6 +66,17 @@
    <button class="go" id="h-initbtn">Switch on lecturer control</button>
   </section>
   <div id="h-ctl" hidden>
+   <section class="panel" id="h-stale" hidden style="border-top-color:#b3261e">
+    <p><b>This quiz is already <span id="h-stalestate"></span>.</b> That state was left over from an earlier session or a test. To start clean, press New round: the old responses go to the Archive tab and the quiz returns to the lobby.</p>
+    <button class="go big" id="h-stalebtn">New round (back to lobby)</button>
+   </section>
+   <section class="panel" id="h-lobby" hidden style="text-align:center">
+    <p class="lbl">Lobby: students scan to join</p>
+    <div class="row" style="justify-content:center;align-items:center">
+     <img id="h-lobbyqr" src="assets/figures/phys143-l1-try-qr.svg" alt="QR code to join the quiz" width="300" height="300" style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:6px">
+     <div><p class="lbl">Join code</p><p style="font:700 4.5rem/1.1 ui-monospace,Menlo,monospace;margin:.1rem 0" id="h-lobbycode"></p><p class="lbl">Joined</p><p class="big-n" id="h-lobbyn">0</p><p class="note">hhdonglo.github.io/phys143-lecture1-try.html</p></div>
+    </div>
+   </section>
    <section class="panel">
     <div class="row">
      <div><p class="lbl">Join code</p><p class="big-n" id="h-showcode"></p><img id="h-qr" src="assets/figures/phys143-l1-try-qr.svg" alt="QR code to join the quiz" width="200" height="200" style="background:#fff;border:1px solid var(--border);border-radius:6px;padding:3px;margin-top:.3rem"></div>
@@ -157,6 +168,9 @@ function refresh(first){
   if(!d.controlled)return;
   cfg.c=d.status;cfg.at=Date.now();
   var st=d.status,s=st.state;
+  var lob=(s==="lobby"||s==="ready"||s==="draft");
+  $("h-lobby").hidden=!lob;$("h-lobbycode").textContent=cfg.code;$("h-lobbyn").textContent=d.joined;
+  $("h-stale").hidden=lob||!!cfg.stalehide;$("h-stalestate").textContent=(LABEL[s]||s).toLowerCase();
   $("h-showcode").textContent=cfg.code;$("h-qr").hidden=!(s==="lobby"||s==="ready"||s==="draft");$("h-state").textContent=LABEL[s]||s;
   $("h-q").textContent=(st.currentQ||0)+" / "+(st.totalQ||5);
   var run=s==="running",pz=s==="paused",pre=s==="ready"||s==="lobby"||s==="draft",fin=s==="ended"||s==="released";
@@ -198,6 +212,7 @@ $("h-form").addEventListener("submit",function(e){
  $("h-err").hidden=true;$("h-disp").href="phys143-lecture1-display.html?code="+encodeURIComponent(cfg.code);refresh(true);
 });
 $("h-initbtn").addEventListener("click",function(){act("init")});
+$("h-stalebtn").addEventListener("click",function(){if(window.confirm("Start a new round? The responses so far are moved to the Archive tab (not deleted) and the quiz goes back to the lobby."))act("newround")});
 Array.prototype.forEach.call(document.querySelectorAll("[data-a]"),function(b){
  b.addEventListener("click",function(){
   var c=b.getAttribute("data-confirm");if(c&&!window.confirm(c))return;
