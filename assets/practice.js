@@ -102,6 +102,10 @@
       E.answer + '=' + encodeURIComponent(shown)];
     return REPORT_FORM.FORM_URL + '?' + parts.join('&');
   }
+  function reportFields(n, quiz, q, sel) {
+    return { lecture: lab(n) + (LECTURES[n] ? ': ' + LECTURES[n] : ''), qid: q.id, question: clip(q.q, 500),
+      answer: clip(q.options[q.answer], 200) + (sel != null && sel !== q.answer ? ' (my answer: ' + clip(q.options[sel], 200) + ')' : '') };
+  }
   function reportNote() {
     if (!reportLive || document.getElementById('quiz-report-note')) return;
     var p = el('p', { id: 'quiz-report-note', 'class': 'note quiz-note' },
@@ -219,12 +223,31 @@
       li.appendChild(b); ul.appendChild(li); buttons.push(b);
     });
     app.appendChild(ul);
-    var repA = null;
+    var repA = null, curSel = null;
     if (reportLive) {
       repA = el('a', { 'class': 'btn report-btn', href: reportUrl(n, quiz, q, null), target: '_blank', rel: 'noopener noreferrer', title: 'Report a problem or suggest a correction', 'aria-label': 'Report a problem or suggest a correction (opens a form in a new tab)' }, '<span aria-hidden="true">⚑</span> Report a problem');
     }
     var fb = el('div', { 'class': 'fb-wrap', role: 'status' });
     app.appendChild(fb);
+    function openReport() {
+      if (document.getElementById('report-panel')) { document.getElementById('report-text').focus(); return; }
+      var P = el('div', { id: 'report-panel', 'class': 'note quiz-note' },
+        '<label for="report-text"><strong>Report a problem</strong></label> ' +
+        '<textarea id="report-text" rows="3" maxlength="1000" style="width:100%;max-width:36rem;display:block;margin:.4rem 0"></textarea>' +
+        '<button type="button" class="btn" id="report-send">Send report</button> <button type="button" class="btn" id="report-cancel">Cancel</button>' +
+        '<p id="report-state" role="status"></p>');
+      nav.parentNode.insertBefore(P, nav.nextSibling);
+      var st = P.querySelector('#report-state');
+      P.querySelector('#report-cancel').addEventListener('click', function () { P.parentNode.removeChild(P); });
+      P.querySelector('#report-send').addEventListener('click', function () {
+        var f = reportFields(n, quiz, q, curSel); f.comment = P.querySelector('#report-text').value;
+        st.textContent = 'Sending.';
+        window.PHYS143_TRACK.post('report', f, function (ok) {
+          st.innerHTML = ok ? 'Report sent to the lecturer. Thank you.' : 'The report could not be sent. You can <a href="' + reportUrl(n, quiz, q, curSel) + '" target="_blank" rel="noopener noreferrer">use the form instead</a>.';
+        });
+      });
+      P.querySelector('#report-text').focus();
+    }
     var nav = el('div', { 'class': 'row' });
     app.appendChild(nav);
 
@@ -248,6 +271,7 @@
       }
       d.appendChild(el('p', null, q.exp));
       if (q.ref) d.appendChild(el('p', { 'class': 'ref' }, 'Review: ' + q.ref));
+      curSel = sel;
       if (repA) repA.href = reportUrl(n, quiz, q, sel);
       fb.innerHTML = '';
       fb.appendChild(d);
@@ -257,6 +281,7 @@
       nav.appendChild(nb);
       nav.appendChild(btn('Save and leave', '', function () { currentKeys = null; intro(n, quiz); }));
       if (repA) nav.appendChild(repA);
+      if (repA && window.PHYS143_TRACK && window.PHYS143_TRACK.post) repA.addEventListener('click', function (ev) { ev.preventDefault(); openReport(); });
       nb.focus();
     }
 

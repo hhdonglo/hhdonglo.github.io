@@ -49,28 +49,29 @@
     input.addEventListener('keydown', function (ev) { if (ev.key === 'Enter') { ev.preventDefault(); box.querySelector('#track-save').click(); } });
   }
 
+  /* One shared route for attempts and reports: the lecturer's Apps Script web app, no Submit step for the student.
+     done(true) once the request has left the browser, done(false) if it could not be sent. */
+  var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzso5-FCU4erf_grbktH-AH-RKaPDap7TfJAw_TOSxNarTrJDe-PgyBzgIH7Fj2fjZ3/exec';
+  function post(kind, fields, done) {
+    var body = new URLSearchParams();
+    body.append('kind', kind);
+    Object.keys(fields).forEach(function (k) { body.append(k, fields[k]); });
+    try {
+      fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', credentials: 'omit', body: body })
+        .then(function () { done(true); }, function () { done(false); });
+    } catch (e) { done(false); }
+  }
+
   /* Send one record for a completed attempt. Returns false (and sends nothing) when no ID is stored.
      done(true) after the request leaves the browser, done(false) if it could not be sent. */
   function send(rec, done) {
     var id = enabled ? clean(getId()) : '';
     if (!id) return false;
     if (preview && !live) { window.setTimeout(function () { done(true); }, 0); return true; }
-    var E = TRACK_FORM.ENTRY, body = new URLSearchParams();
-    body.append(E.id, id);
-    body.append(E.quiz, rec.quiz);
-    body.append(E.attempt, String(rec.attempt));
-    body.append(E.score, String(rec.score));
-    body.append(E.total, String(rec.total));
-    body.append(E.seconds, rec.seconds == null ? '' : String(rec.seconds));
-    body.append(E.when, new Date().toISOString());
-    body.append(E.wrong, (rec.wrong || []).join(', '));
-    var url = TRACK_FORM.FORM_URL.replace(/\/viewform.*$/, '/formResponse');
-    try {
-      fetch(url, { method: 'POST', mode: 'no-cors', credentials: 'omit', body: body })
-        .then(function () { done(true); }, function () { done(false); });
-    } catch (e) { done(false); }
+    post('attempt', { id: id, quiz: rec.quiz, attempt: String(rec.attempt), score: String(rec.score), total: String(rec.total),
+      seconds: rec.seconds == null ? '' : String(rec.seconds), wrong: (rec.wrong || []).join(', ') }, done);
     return true;
   }
 
-  window.PHYS143_TRACK = { mount: mount, send: send, enabled: enabled };
+  window.PHYS143_TRACK = { mount: mount, send: send, post: post, enabled: enabled };
 })();

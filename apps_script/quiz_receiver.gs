@@ -1,6 +1,7 @@
 // PHYS 143 try-questions receiver. Bound to the "PHYS 143 Quizzes (Responses)" Sheet.
 // Appends one row per first attempt to "Form Responses 1":
 // Timestamp, First Name, ID, Join Code, Q1, Q2, Q3, Q4, Q5.
+// Also records practice-page reports ("Reports" tab) and optional-ID attempts ("Attempts" tab), chosen by the kind field.
 // Accepted join codes are listed in column A of a private tab named "Codes" (one per row, no header).
 
 var RESPONSES_TAB = 'Form Responses 1';
@@ -13,8 +14,32 @@ function clean_(v, max) {
   return s;
 }
 
+function append_(tab, header, row) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sh = ss.getSheetByName(tab) || ss.insertSheet(tab);
+  if (sh.getLastRow() === 0) sh.appendRow(header);
+  sh.appendRow(row);
+}
+
 function doPost(e) {
   var p = (e && e.parameter) || {};
+  if (p.kind === 'report' || p.kind === 'attempt') {
+    var lk = LockService.getScriptLock();
+    lk.waitLock(20000);
+    try {
+      if (p.kind === 'report') {
+        append_('Reports', ['Timestamp', 'Lecture', 'Question id', 'Question', 'Answer shown', 'Comment'],
+          [new Date(), clean_(p.lecture, 80), clean_(p.qid, 40), clean_(p.question, 500), clean_(p.answer, 300), clean_(p.comment, 1000)]);
+      } else {
+        if (!clean_(p.id, 30)) return out_('missing');
+        append_('Attempts', ['Timestamp', 'Student ID', 'Quiz', 'Attempt', 'Score', 'Total', 'Seconds', 'Wrong question ids'],
+          [new Date(), clean_(p.id, 30), clean_(p.quiz, 80), clean_(p.attempt, 10), clean_(p.score, 10), clean_(p.total, 10), clean_(p.seconds, 10), clean_(p.wrong, 300)]);
+      }
+      return out_('ok');
+    } finally {
+      lk.releaseLock();
+    }
+  }
   var name = clean_(p.name, 40), id = clean_(p.id, 20), code = clean_(p.code, 30).toUpperCase();
   if (!name || !id || !code) return out_('missing');
 
