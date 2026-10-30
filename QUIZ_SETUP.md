@@ -18,6 +18,14 @@ The join code is what keeps quizzes apart on the sheet. Pick a fresh code for ea
 8. **Sheet: Leaderboard.** It should list First Name, Join Code and Score only. The page shows each student the rows that share their own join code, so quizzes never mix on the screen.
 9. **Test, then publish.** Open the page locally, try a wrong code (it must refuse) and the right code, then push. Do one full test submission and check the row reaches Form Responses 1 and the Leaderboard. Delete test rows afterwards.
 
+## End of semester: totals across quizzes
+Keep a private **Totals** tab in the sheet. Never publish it, because it holds student IDs.
+- One row per student ID, one column per quiz code (3814, 2627 and so on), and a Total column at the end.
+- Each cell is that student's score for that code, taken from the scored responses. A student who skipped a quiz gets 0 or a blank.
+- Because only the first attempt per ID and join code counts, each cell holds one score.
+- Total is the sum of the quiz columns. Add one column for each new quiz code.
+- The public Leaderboard stays per quiz and shows first names only, with no IDs.
+
 ## Limits to remember
 - The code check runs in the browser. It stops casual mistakes, not a determined guess. The sheet must ignore responses with unknown codes.
 - Only a student's first attempt per ID and join code should count. The sheet handles that.
