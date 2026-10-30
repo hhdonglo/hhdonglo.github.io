@@ -78,9 +78,10 @@
  <section class="panel" id="s-q" aria-live="polite" hidden>
   <div class="bar"><span id="qn">Question 1 of 5</span><span class="clock" id="clock" role="timer">1:00</span></div>
   <div class="track"><i id="fill"></i></div>
+  <p class="note" id="banner" role="status" hidden></p>
   <p class="stem" id="stem"></p>
   <div class="opts" id="opts" role="radiogroup" aria-label="Answer options"></div>
-  <button type="button" class="go" id="next" disabled>Next</button>
+  <button type="button" class="go alt" id="prev" hidden>Back</button> <button type="button" class="go" id="next" disabled>Next</button>
  </section>
  <section class="panel" id="s-end" hidden>
   <h3 id="t-end">Sending your answers</h3>
@@ -141,21 +142,85 @@ $("f-start").addEventListener("submit",function(e){
 function gate(){
  var er=$("err"),btn=$("f-start").querySelector("button");
  jsonp("action=status&code="+encodeURIComponent(st.code),function(d){
-  var state=d&&d.state?d.state:"started";
-  if(state==="stopped"){btn.disabled=false;er.textContent="This quiz is closed. Ask your lecturer.";er.hidden=false;return}
-  if(state==="waiting"){
-   btn.disabled=true;er.textContent="You are in, "+st.name+". Waiting for your lecturer to start the quiz. This page will begin by itself.";er.hidden=false;
+  function wait(m){btn.disabled=true;er.textContent=m;er.hidden=false;if(!st.joined){st.joined=true;join()}setTimeout(gate,3000)}
+  function stop(m){btn.disabled=false;er.textContent=m;er.hidden=false}
+  if(d&&d.timed){
+   var s=d.state;
+   if(s==="ended"||s==="released"){stop("This quiz is closed. Ask your lecturer.");return}
+   if(s==="paused"&&!st.joined){stop("This quiz is paused. Ask your lecturer.");return}
+   if(s==="paused"){wait("The quiz is paused by your lecturer. This page will continue by itself.");return}
+   if(s!=="running"){wait("You are in, "+st.name+". Waiting for your lecturer to start the quiz. This page will begin by itself.");return}
+   if(!st.joined&&!d.allowLate){stop("This quiz has already started and late joining is closed. Ask your lecturer.");return}
+   btn.disabled=false;er.hidden=true;
    if(!st.joined){st.joined=true;join()}
-   setTimeout(gate,3000);return}
+   startTimed(d);return}
+  var state=d&&d.state?d.state:"started";
+  if(state==="stopped"){stop("This quiz is closed. Ask your lecturer.");return}
+  if(state==="waiting"){wait("You are in, "+st.name+". Waiting for your lecturer to start the quiz. This page will begin by itself.");return}
   btn.disabled=false;er.hidden=true;
   if(!st.joined){st.joined=true;join()}
   ask();
  });
 }
-function join(){
- var b=new URLSearchParams();b.set("kind","join");b.set("name",st.name);b.set("id",st.id);b.set("code",st.code);
+function join(kind){
+ var b=new URLSearchParams();b.set("kind",kind||"join");b.set("name",st.name);b.set("id",st.id);b.set("code",st.code);
  try{fetch(SCRIPT_URL,{method:"POST",mode:"no-cors",body:b}).catch(function(){})}catch(x){}
 }
+// ---- lecturer-controlled mode: one clock for the whole quiz, set and checked by the server ----
+function startTimed(d){
+ st.timed=true;st.i=0;st.ans=["","","","",""];st.submitted=false;
+ applyStatus(d);join("progress");
+ $("prev").hidden=false;show("s-q");renderTimed();
+ clearInterval(st.timer);clearInterval(st.poll);
+ st.timer=setInterval(timedTick,500);st.poll=setInterval(timedPoll,3000);
+}
+function applyStatus(d){
+ st.off=d.serverNow-Date.now();st.endT=d.endTime;st.paused=d.state==="paused";st.remain=d.remainingMs;st.total=(d.duration||1)*60000;
+ var b=$("banner");
+ if(st.paused){b.textContent="The quiz is paused by your lecturer. The clock has stopped.";b.hidden=false}
+ else if(d.message){b.textContent="Message from your lecturer: "+d.message;b.hidden=false}
+ else b.hidden=true;
+}
+function renderTimed(){
+ var q=QS[st.i];
+ $("qn").textContent="Question "+(st.i+1)+" of "+QS.length;
+ $("stem").innerHTML=q.stem;
+ var o=$("opts");o.innerHTML="";
+ q.opts.forEach(function(t,j){
+  var b=document.createElement("button");b.type="button";b.className="opt";b.setAttribute("role","radio");
+  b.setAttribute("aria-checked",st.ans[st.i]===L[j]?"true":"false");
+  b.innerHTML="<b>"+L[j]+"</b><span>"+t+"</span>";
+  b.addEventListener("click",function(){
+   if(st.paused||st.submitted)return;
+   st.ans[st.i]=L[j];Array.prototype.forEach.call(o.children,function(c){c.setAttribute("aria-checked",c===b?"true":"false")});
+  });
+  o.appendChild(b);
+ });
+ $("prev").disabled=st.i===0;
+ $("next").disabled=false;
+ $("next").textContent=(st.i===QS.length-1)?"Submit answers":"Next question";
+}
+function timedTick(){
+ var left=st.paused?st.remain:st.endT-(Date.now()+st.off);
+ left=Math.max(0,left);var t=Math.ceil(left/1000),m=Math.floor(t/60),s=t%60;
+ $("clock").textContent=m+":"+(s<10?"0":"")+s;$("clock").className="clock"+(t<=30?" low":"");
+ $("fill").style.width=Math.min(100,left/st.total*100)+"%";
+ if(!st.paused&&left<=0)submitTimed();
+}
+function timedPoll(){
+ if(st.submitted)return;
+ jsonp("action=status&code="+encodeURIComponent(st.code),function(d){
+  if(!d||!d.timed||st.submitted)return;
+  applyStatus(d);
+  if(d.state==="ended"||d.state==="released")submitTimed();
+ });
+}
+function submitTimed(){
+ if(st.submitted)return;st.submitted=true;
+ clearInterval(st.timer);clearInterval(st.poll);
+ finish();
+}
+$("prev").addEventListener("click",function(){if(st.timed&&st.i>0){st.i--;renderTimed()}});
 function ask(){
  var q=QS[st.i];show("s-q");
  $("qn").textContent="Question "+(st.i+1)+" of "+QS.length;
@@ -182,11 +247,12 @@ function tick(first){
  if(!first&&st.t<=0)advance();
 }
 function advance(){
+ if(st.timed){if(st.i<QS.length-1){st.i++;renderTimed()}else submitTimed();return}
  clearInterval(st.timer);
  st.ans[st.i]=st.pick||"";
  if(st.i<QS.length-1){st.i++;ask()}else finish();
 }
-$("next").addEventListener("click",function(){if(!$("next").disabled)advance()});
+$("next").addEventListener("click",function(){if(!$("next").disabled&&!st.paused)advance()});
 function finish(){
  show("s-end");
  $("board").hidden=true;
@@ -212,6 +278,8 @@ function poll(n){
  jsonp("action=result&id="+encodeURIComponent(st.id)+"&code="+encodeURIComponent(st.code),function(d){
   if(d&&d.found){showMine(d);return}
   if(d&&(d.keyMissing||d.outcome==="bad code")){problem("The class sheet did not recognise this join code, so your answers were not recorded. Tell your lecturer.");return}
+  if(d&&d.outcome==="paused"){problem("The quiz was paused when your answers arrived, so they were not recorded. Press Send again once your lecturer resumes.");return}
+  if(d&&d.outcome==="not joined"){problem("You joined after the quiz started and late joining is closed, so your answers were not recorded. Tell your lecturer.");return}
   if(d&&d.outcome==="quiz closed"){problem("The quiz closed before your answers arrived, so they were not recorded. Tell your lecturer.");return}
   if(d&&d.outcome&&d.outcome!=="ok"&&d.outcome!=="duplicate"){problem("The class sheet could not record your answers ("+d.outcome+"). Tell your lecturer.");return}
   if(n<14){setTimeout(function(){poll(n+1)},3000);return}
@@ -219,6 +287,13 @@ function poll(n){
  });
 }
 function showMine(d){
+ if(d.scoreHidden){
+  $("t-end").textContent="Thank you, "+st.name;
+  $("end-msg").textContent="Your submission has been recorded. Your score and the class ranking will appear here when your lecturer releases the results.";
+  $("mine").hidden=true;$("board").hidden=true;
+  clearInterval(st.live);st.live=setInterval(function(){poll(0)},6000);
+  return}
+ clearInterval(st.live);
  $("t-end").textContent="Thank you, "+st.name;
  $("end-msg").textContent="Your answers reached the class sheet.";
  $("mine").hidden=false;
@@ -232,7 +307,7 @@ function checkRanking(){
  $("board").hidden=false;
  jsonp("action=ranking&code="+encodeURIComponent(st.code)+"&id="+encodeURIComponent(st.id),function(d){
   if(d&&d.rows){
-   if(d.hidden){$("board-table").innerHTML="";$("board-note").textContent="Your lecturer has hidden the class ranking for now.";return}
+   if(d.hidden){$("board-table").innerHTML="";$("board-note").textContent=d.waitRelease?"The class ranking will appear here when your lecturer releases the results.":"Your lecturer has hidden the class ranking for now.";return}
    drawBoard(d.rows,d.closed);return}
   loadBoard(); // an older receiver cannot send the ranking; read the published sheet instead
  });
