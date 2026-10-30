@@ -48,6 +48,9 @@
 .host th,.host td{padding:.35rem .6rem;border-bottom:1px solid var(--border);text-align:left}
 .host .bar{display:flex;align-items:center;gap:.6rem;margin:.2rem 0;font:1rem system-ui,sans-serif}
 .host .bar i{display:block;height:16px;background:var(--brown-fill);border-radius:3px;min-width:2px}
+header.banner,nav.jump,footer,aside.disclaimer,#host-title,.sec-sub{display:none!important}
+.host .ctlbar{position:sticky;bottom:0;background:var(--surface);padding:.5rem 0;border-top:1px solid var(--border);margin-top:.6rem}
+#h-qr{width:min(65vh,560px)!important;height:min(65vh,560px)!important;max-width:92%}
 .host .note{font:.92rem/1.5 system-ui,sans-serif;color:var(--muted)}
 .host [hidden]{display:none!important}
 </style>
@@ -86,7 +89,7 @@
      <div id="h-prevstem" style="font-size:1.15rem;margin:.3rem 0"></div>
      <div id="h-prevopts"></div>
     </div>
-    <p>
+    <p class="ctlbar">
      <button class="go alt" data-a="lobby" data-show="ready,draft">Open lobby</button>
      <button class="go big" data-a="start" data-show="ready,draft,lobby">Start quiz</button>
      <button class="go big" data-a="next" data-show="running">Next question</button>
