@@ -62,6 +62,13 @@
 aside.disclaimer .sakai p{font-size:.78rem;line-height:1.4;margin:.2rem 0}
 aside.disclaimer .sakai-link{font-size:.8rem}
 #board-note:empty{display:none}
+.reviewing #mine,.reviewing #board,.reviewing #end-msg,.reviewing #retry{display:none!important}
+#review .ro{display:flex;gap:.6rem;align-items:flex-start;padding:.5rem .7rem;margin:.35rem 0;border:1.5px solid var(--border);border-radius:6px}
+#review .ro.ok{border-color:#2e7d32;background:rgba(46,125,50,.12)}
+#review .ro.mine:not(.ok){border-color:#b3261e}
+#review .ro b{font:700 1rem system-ui,sans-serif;min-width:1.3rem}
+#review .tag{margin-left:auto;font:600 .8rem system-ui,sans-serif;white-space:nowrap;text-align:right}
+#review .why{border-left:4px solid var(--brown-edge);padding:.3rem .8rem;margin:.8rem 0}
 .try .note{font:.92rem/1.5 system-ui,sans-serif;color:var(--muted)}
 .try [hidden]{display:none!important}
 </style>
@@ -91,6 +98,7 @@ aside.disclaimer .sakai-link{font-size:.8rem}
  <section class="panel" id="s-end" hidden>
   <h3 id="t-end">Sending your answers</h3>
   <p id="end-msg">Sending your answers. Please keep this page open.</p>
+  <div id="review" hidden></div>
   <div id="mine" hidden>
    <p class="score" id="mine-score" style="font:700 1.6rem system-ui,sans-serif;margin:.4rem 0"></p>
    <p id="mine-list" style="margin:.2rem 0 .8rem;font:1.05rem system-ui,sans-serif;display:flex;flex-wrap:wrap;gap:.3rem .9rem"></p>
@@ -223,6 +231,21 @@ function pacedPoll(){
  if(st.ended)return;
  jsonp("action=status&code="+encodeURIComponent(st.code),function(d){if(d&&(d.paced||d.timed)&&!st.ended)applyPaced(d)});
 }
+function reviewDraw(d){
+ var box=$("review"),end=$("s-end");
+ if(!d||!d.q){box.hidden=true;end.classList.remove("reviewing");return}
+ var Q=QS[d.q-1];if(!Q)return;
+ var h='<p class="lbl">Review: question '+d.q+' of '+QS.length+'</p><div style="font-size:1.05rem;margin:.4rem 0 .6rem">'+Q.stem+'</div>';
+ Q.opts.forEach(function(o,i){
+  var k=L[i],ok=k===d.correct,me=k===d.mine,n=d.dist&&d.dist[k]||0;
+  h+='<div class="ro'+(ok?" ok":"")+(me?" mine":"")+'"><b>'+k+'</b><span>'+o+'</span><span class="tag">'+(ok?"\u2713 correct<br>":"")+(me?"your answer<br>":"")+n+" chose this</span></div>"
+ });
+ if(d.explanation)h+='<div class="why">'+esc(d.explanation)+'</div>';
+ box.innerHTML=h;box.hidden=false;end.classList.add("reviewing");
+}
+function pollReview(){
+ jsonp("action=review&code="+encodeURIComponent(st.code)+"&id="+encodeURIComponent(st.id),reviewDraw);
+}
 function endPaced(){
  if(st.ended)return;st.ended=true;
  clearInterval(st.timer);clearInterval(st.poll);
@@ -230,6 +253,7 @@ function endPaced(){
  $("t-end").textContent="The quiz has ended";
  $("end-msg").hidden=false;$("end-msg").textContent="Checking your result.";
  setTimeout(function(){poll(0)},1500);
+ pollReview();clearInterval(st.rev);st.rev=setInterval(pollReview,3000);
 }
 // ---- lecturer-controlled mode: one clock for the whole quiz, set and checked by the server ----
 function startTimed(d){

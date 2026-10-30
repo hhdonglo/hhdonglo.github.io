@@ -101,6 +101,10 @@ header.banner,nav.jump,footer,aside.disclaimer,#host-title,.sec-sub{display:none
      <button class="go alt" data-a="end" data-show="running,paused" data-confirm="End the quiz now? Answers so far are marked.">End quiz</button>
      <button class="go big" data-a="release" data-show="ended">Release results</button>
      <button class="go alt" data-a="reopen" data-min="2" data-show="ended,released" data-confirm="Reopen the quiz for 2 more minutes? This is logged.">Reopen</button>
+     <button class="go big" data-a="review" data-show="ended,released" data-rev="off">Review answers</button>
+     <button class="go alt" data-a="reviewprev" data-show="ended,released" data-rev="on">Previous question</button>
+     <button class="go big" data-a="reviewnext" data-show="ended,released" data-rev="on">Next question</button>
+     <button class="go alt" data-a="reviewoff" data-show="ended,released" data-rev="on">Stop review</button>
      <button class="go alt" data-a="newround" data-show="ended,released,paused" data-confirm="Start a new round? The responses so far are moved to the Archive tab (not deleted) and the quiz goes back to the lobby.">New round</button>
     </p>
     <p class="note" id="h-msgline" role="status"></p>
@@ -174,7 +178,11 @@ function refresh(first){
   $("h-q").textContent=(st.currentQ||0)+" / "+(st.totalQ||5);
   Array.prototype.forEach.call(document.querySelectorAll("[data-show]"),function(b){
    b.hidden=b.getAttribute("data-show").split(",").indexOf(s)<0;
+   var r=b.getAttribute("data-rev");
+   if(r==="on"&&!(st.reviewQ>0))b.hidden=true;
+   if(r==="off"&&st.reviewQ>0)b.hidden=true;
   });
+  $("h-state").textContent=(LABEL[s]||s)+(st.reviewQ>0?" \u00b7 reviewing question "+st.reviewQ:"");
   var Q=window.QUIZ_L1&&window.QUIZ_L1[(st.currentQ||0)-1];
   $("h-prev").hidden=!(Q&&live);
   if(Q){$("h-prevstem").innerHTML=Q.stem;$("h-prevopts").innerHTML=Q.opts.map(function(o,i){return '<p style="margin:.2rem 0"><b>'+"ABCDE"[i]+'</b>&nbsp; '+o+'</p>'}).join("")}

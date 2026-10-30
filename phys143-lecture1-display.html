@@ -48,6 +48,11 @@ main>.wrap{max-width:none!important;padding:0 1.5rem}
 .disp .addr{font:1.5rem ui-monospace,Menlo,monospace}
 .disp table{margin:0 auto;border-collapse:collapse;font:1.6rem system-ui,sans-serif;min-width:24rem}
 .disp th,.disp td{padding:.4rem 1rem;border-bottom:1px solid var(--border);text-align:left}
+#d-review .ro{display:flex;gap:1rem;align-items:center;padding:.5rem 1rem;margin:.5rem 0;border:3px solid var(--border);border-radius:10px;font-size:2.2rem}
+#d-review .ro.ok{border-color:#2e7d32;background:rgba(46,125,50,.14)}
+#d-review .ro b{min-width:2.4rem}
+#d-review .ro .n{margin-left:auto;font:700 2rem system-ui,sans-serif;white-space:nowrap}
+#d-review .why{border-left:8px solid var(--brown-edge);padding:.4rem 1.2rem;margin-top:1rem;font-size:2.1rem;line-height:1.35}
 .disp .progress{height:12px;background:var(--sky);border-radius:7px;overflow:hidden;max-width:36rem;margin:.6rem auto}
 .disp .progress i{display:block;height:100%;background:var(--brown-fill);width:0}
 .disp [hidden]{display:none!important}
@@ -79,6 +84,7 @@ main>.wrap{max-width:none!important;padding:0 1.5rem}
       <div id="d-opts" style="font-size:3rem;line-height:1.4"></div>
      </div>
     </section>
+    <section class="panel" id="d-review" hidden style="text-align:left"></section>
     <section class="panel" id="d-end" hidden>
      <p class="state" id="d-endmsg"></p>
      <div id="d-rank"></div>
@@ -108,7 +114,15 @@ function refresh(){
   var st=d.status;cfg.c=st;cfg.at=Date.now();
   var s=st?st.state:"started",live=s==="running"||s==="paused",fin=s==="ended"||s==="released";
   $("d-join").hidden=live||fin;
-  $("d-live").hidden=!live;$("d-end").hidden=!fin;if(!live)$("d-quest").hidden=true;
+  var rv=d.review&&d.review.q&&fin?d.review:null;
+  if(rv){
+   var Q=window.QUIZ_L1[rv.q-1],h='<p class="lbl" style="text-align:center">Question '+rv.q+' of 5</p><div style="font-size:2.6rem;line-height:1.3;margin:.4rem 0 .8rem">'+Q.stem+'</div>';
+   Q.opts.forEach(function(o,i){var k="ABCDE"[i];h+='<div class="ro'+(k===rv.correct?" ok":"")+'"><b>'+k+'</b><span>'+o+'</span><span class="n">'+(k===rv.correct?"\u2713  ":"")+(rv.dist[k]||0)+'</span></div>'});
+   if(rv.explanation)h+='<div class="why">'+esc(rv.explanation)+'</div>';
+   $("d-review").innerHTML=h;
+  }
+  $("d-review").hidden=!rv;
+  $("d-live").hidden=!live;$("d-end").hidden=!fin||!!rv;if(!live)$("d-quest").hidden=true;
   if(live){
    $("d-qlbl").textContent="Question "+(st.currentQ||0)+" of "+(st.totalQ||5);
    var Q=window.QUIZ_L1&&window.QUIZ_L1[(st.currentQ||0)-1];

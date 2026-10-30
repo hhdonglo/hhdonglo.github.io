@@ -5,7 +5,7 @@
 // Key: Join Code | Q1 to Q5 (correct letters) | Ranking (Hidden hides it) | State (legacy: Waiting, Started, Stopped) ... J2 = host key.
 // Quiz_Control (one row per lecturer-controlled quiz, written by the host dashboard; the server is the authority):
 //   join_code | status | duration_min | end_time_ms | remaining_ms | allow_late_join | show_score | show_leaderboard | message | title | updated
-//   + current_q | q_seconds (0 = no question timer) | q_deadline_ms | q_remaining_ms | mode (paced or timed) | round (a new round archives the old responses)
+//   + current_q | q_seconds (0 = no question timer) | q_deadline_ms | q_remaining_ms | mode (paced or timed) | round (a new round archives the old responses) | review_q (0 = off; 1 to 5 = the lecturer is going over that question)
 //   status: Draft, Ready, Lobby, Running, Paused, Ended, Released.
 //   paced (default): the lecturer moves the whole class from question to question; answers go to the Answers tab as they are given
 //   and are compiled into Form Responses 1 (with the Score) when the quiz ends. timed: one clock for all five questions.
@@ -17,6 +17,7 @@ var KEY_TAB = 'Key';
 var CONTROL_TAB = 'Quiz_Control';
 var PRESENCE_TAB = 'Presence';
 var ANSWERS_TAB = 'Answers';
+var EXPL_TAB = 'Explanations'; // private to edit: join code | question number | explanation shown during the review
 var LETTERS = ['A', 'B', 'C', 'D', 'E'];
 var NOTIFY_EMAIL = 'hkdonglo@gmail.com'; // new reports are emailed here
 var GRACE_MS = 15000; // a submission may arrive this long after the deadline (network delay)
@@ -125,6 +126,8 @@ function setup() {
   if (!String(ks.getRange(2, 10).getValue()).trim()) ks.getRange(2, 10).setValue(Math.random().toString(36).slice(2, 10));
   if (ks.getLastRow() < 2) ks.appendRow(['2627', '', '', '', '', '', 'Open']);
   controlSheet_();
+  var xs = ss.getSheetByName(EXPL_TAB) || ss.insertSheet(EXPL_TAB);
+  if (xs.getLastRow() === 0) xs.appendRow(['Join Code', 'Question', 'Explanation']);
   var rs = responses_();
   if (!rs.getRange(1, 10).getValue()) rs.getRange(1, 10).setValue('Score');
   var names = ss.getSheets().map(function (x) { return x.getName(); });
@@ -145,7 +148,7 @@ function out_(t) { return ContentService.createTextOutput(t); }
 
 // ---------- Quiz_Control: the server decides what state a quiz is in ----------
 
-var CTL_HEADER = ['join_code', 'status', 'duration_min', 'end_time_ms', 'remaining_ms', 'allow_late_join', 'show_score', 'show_leaderboard', 'message', 'title', 'updated', 'current_q', 'q_seconds', 'q_deadline_ms', 'q_remaining_ms', 'mode', 'round'];
+var CTL_HEADER = ['join_code', 'status', 'duration_min', 'end_time_ms', 'remaining_ms', 'allow_late_join', 'show_score', 'show_leaderboard', 'message', 'title', 'updated', 'current_q', 'q_seconds', 'q_deadline_ms', 'q_remaining_ms', 'mode', 'round', 'review_q'];
 
 function controlSheet_() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -199,6 +202,7 @@ function ctlStatus_(c) {
     duration: Number(c.v[2]) || 0, message: String(c.v[8] || ''), title: String(c.v[9] || ''),
     allowLate: allowLate_(c), showScore: visible_(c, 'show_score'), showBoard: visible_(c, 'show_leaderboard')
   };
+  o.reviewQ = Number(c.v[17]) || 0;
   if (paced_(c)) { o.currentQ = Number(c.v[11]) || 0; o.totalQ = 5; o.qSeconds = Number(c.v[12]) || 0; o.qDeadline = Number(c.v[13]) || 0; }
   return o;
 }
@@ -211,7 +215,7 @@ function ctlAct_(p, code) {
   if (act === 'init') {
     if (c) return { ok: true, status: ctlStatus_(c) };
     var sh = controlSheet_();
-    sh.appendRow([code, 'Ready', 10, 0, 10 * 60000, 'Yes', 'OnRelease', 'OnRelease', '', '', new Date().toISOString(), 0, 60, 0, 0, 'paced', 0]);
+    sh.appendRow([code, 'Ready', 10, 0, 10 * 60000, 'Yes', 'OnRelease', 'OnRelease', '', '', new Date().toISOString(), 0, 60, 0, 0, 'paced', 0, 0]);
     log_('control:init', 'host', '', code);
     return { ok: true, status: ctlStatus_(ctl_(code)) };
   }
@@ -278,9 +282,18 @@ function ctlAct_(p, code) {
     }
     var ps = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(PRESENCE_TAB);
     if (ps) for (var pi = ps.getLastRow(); pi >= 2; pi--) if (String(ps.getRange(pi, 4).getValue()).trim().toUpperCase() === code) ps.deleteRow(pi);
-    c.v[16] = (Number(c.v[16]) || 0) + 1; c.v[1] = 'Lobby'; c.v[3] = 0; c.v[4] = dur; c.v[11] = 0; c.v[13] = 0; c.v[14] = 0; c.v[8] = '';
+    c.v[16] = (Number(c.v[16]) || 0) + 1; c.v[1] = 'Lobby'; c.v[3] = 0; c.v[4] = dur; c.v[11] = 0; c.v[13] = 0; c.v[14] = 0; c.v[8] = ''; c.v[17] = 0;
     detail = 'round ' + c.v[16] + ', ' + moved + ' responses archived';
   }
+  else if (act === 'review') { // go over the answers with the class: only after the quiz has ended
+    if (s !== 'ended' && s !== 'released') return { ok: false, why: 'end the quiz first' };
+    c.v[17] = 1; detail = 'question 1';
+  }
+  else if (act === 'reviewnext' || act === 'reviewprev') {
+    if (!(Number(c.v[17]) > 0)) return { ok: false, why: 'review is not on' };
+    c.v[17] = Math.max(1, Math.min(5, Number(c.v[17]) + (act === 'reviewnext' ? 1 : -1))); detail = 'question ' + c.v[17];
+  }
+  else if (act === 'reviewoff') { c.v[17] = 0; }
   else if (act === 'message') { c.v[8] = clean_(p.text, 200); detail = c.v[8]; }
   else if (act === 'set') { // duration, late joining, when scores and ranking show
     var field = String(p.field || ''), val = clean_(p.value, 30);
@@ -470,6 +483,22 @@ function doPost(e) {
   }
 }
 
+// What the class sees while the lecturer goes over a question: the correct letter, the spread of answers,
+// the viewer's own answer, and the explanation. Nothing here is sent unless review is switched on.
+function reviewData_(code, id) {
+  var c = ctl_(code), key = keyRow_(code);
+  var q = c ? Number(c.v[17]) || 0 : 0, st = c ? eff_(c) : '';
+  if (!c || !key || q < 1 || (st !== 'ended' && st !== 'released')) return { q: 0 };
+  var got = latestAnswers_(code), dist = { A: 0, B: 0, C: 0, D: 0, E: 0 }, n = 0;
+  Object.keys(got).forEach(function (k) { var a = got[k].ans[q - 1]; if (a) { n++; if (dist[a] !== undefined) dist[a]++; } });
+  var expl = '', es = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(EXPL_TAB);
+  if (es && es.getLastRow() > 1) {
+    var rows = es.getRange(2, 1, es.getLastRow() - 1, 3).getValues();
+    for (var i = 0; i < rows.length; i++) if (String(rows[i][0]).trim().toUpperCase() === code && Number(rows[i][1]) === q) expl = String(rows[i][2]);
+  }
+  return { q: q, correct: String(key[q]).trim().toUpperCase(), dist: dist, answered: n, mine: id && got[id] ? got[id].ans[q - 1] : '', explanation: expl };
+}
+
 // ---------- GET (JSONP): status, own result, ranking, host and display data ----------
 
 function ranking_(code, me) {
@@ -513,6 +542,8 @@ function doGet(e) {
     var v = k ? String(k[6]).trim().toLowerCase() : '';
     return jsonp_(e, { timed: false, hidden: v === 'hidden', closed: v === 'closed', state: k ? state_(k) : '' });
   }
+
+  if (p.action === 'review') return jsonp_(e, reviewData_(code, clean_(p.id, 20)));
 
   if (p.action === 'ranking') { // live class ranking for one join code: first names and scores only
     var rk = keyRow_(code), me = clean_(p.id, 20), cr = ctl_(code);
@@ -564,7 +595,7 @@ function doGet(e) {
     var cd = ctl_(code);
     if (!keyRow_(code)) return jsonp_(e, { ok: false });
     var dn = counts_(code), dr = { ok: true, controlled: !!cd, joined: dn.joined, inprogress: dn.inprogress, submitted: dn.submitted, rows: [] };
-    if (cd) { dr.status = ctlStatus_(cd); if (visible_(cd, 'show_leaderboard')) dr.rows = ranking_(code, '').slice(0, 20); }
+    if (cd) { dr.review = reviewData_(code, ''); dr.status = ctlStatus_(cd); if (visible_(cd, 'show_leaderboard')) dr.rows = ranking_(code, '').slice(0, 20); }
     return jsonp_(e, dr);
   }
 
