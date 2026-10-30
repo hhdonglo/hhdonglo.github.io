@@ -33,7 +33,7 @@
 .host .panel{background:var(--surface);border:1px solid var(--border);border-top:5px solid var(--brown-edge);border-radius:8px;padding:1.1rem 1.3rem;box-shadow:var(--shadow);margin-bottom:1rem}
 .host label{display:block;font:600 .9rem system-ui,sans-serif;margin:.6rem 0 .2rem}
 .host input[type=text],.host select{min-height:42px;padding:.35rem .6rem;border:1.5px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font:1rem system-ui,sans-serif}
-.host input[type=text]{width:100%;max-width:22rem}
+.host input[type=text],.host input[type=password]{width:100%;max-width:22rem}
 .host .go{min-height:44px;padding:.45rem 1.1rem;border:2px solid var(--brown-fill);border-radius:6px;background:var(--brown-fill);color:#fff;font:600 1rem system-ui,sans-serif;cursor:pointer;margin:.3rem .3rem 0 0}
 .host .go.alt{background:var(--btn-bg);color:var(--btn-text)}
 .host .go.big{min-height:56px;font-size:1.2rem;padding:.6rem 1.6rem}
@@ -58,7 +58,7 @@ header.banner,nav.jump,footer,aside.disclaimer,#host-title,.sec-sub{display:none
  <section class="panel" id="h-setup">
   <form id="h-form" autocomplete="off">
    <label for="h-code">Join code</label><input type="text" id="h-code" maxlength="30">
-   <label for="h-key">Host key (Key tab, cell J2)</label><input type="text" id="h-key" maxlength="40">
+   <label for="h-key">Host key (the one you set in the Key tab, cell J2)</label><input type="password" id="h-key" maxlength="40" autocomplete="new-password" autocapitalize="none" spellcheck="false">
    <p><button class="go" type="submit">Open the dashboard</button></p>
    <p class="note" id="h-err" role="alert" hidden></p>
   </form>
