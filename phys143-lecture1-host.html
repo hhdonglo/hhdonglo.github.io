@@ -43,7 +43,7 @@
 .host .big-n{font:700 2.6rem/1 system-ui,sans-serif}
 .host .clock{font:700 3rem/1 ui-monospace,Menlo,monospace;color:var(--brown)}
 @media (prefers-color-scheme:dark){.host .clock{color:#e9c9a8}}
-.host .badge{display:inline-block;padding:.15rem .8rem;border-radius:999px;font:700 1rem system-ui,sans-serif;background:var(--sky);color:var(--text)}
+.host .badge{text-transform:none;letter-spacing:0;display:inline-block;padding:.15rem .8rem;border-radius:999px;font:700 1rem system-ui,sans-serif;background:var(--sky);color:var(--text)}
 .host table{width:100%;border-collapse:collapse;font:1rem system-ui,sans-serif}
 .host th,.host td{padding:.35rem .6rem;border-bottom:1px solid var(--border);text-align:left}
 .host .bar{display:flex;align-items:center;gap:.6rem;margin:.2rem 0;font:1rem system-ui,sans-serif}
@@ -81,7 +81,7 @@ header.banner,nav.jump,footer,aside.disclaimer,#host-title,.sec-sub{display:none
       <p class="note" id="h-link">hhdonglo.github.io/phys143-lecture1-try.html</p>
       <p><span class="badge" id="h-state">...</span></p>
      </div>
-     <div><p class="lbl">Joined</p><p class="big-n" id="h-joined">0</p></div>
+     <div><p class="lbl">Participants</p><p class="big-n" id="h-joined">0</p></div>
      <div id="h-qbox" hidden><p class="lbl">Question</p><p class="big-n" id="h-q">0 / 5</p></div>
      <div id="h-tbox" hidden><p class="lbl">Time left</p><p class="clock" id="h-clock">--</p></div>
     </div>
@@ -196,7 +196,7 @@ function refresh(first){
   var dist=d.dist,h="";
   if(dist){var mx=Math.max(1,dist.A,dist.B,dist.C,dist.D,dist.E);"ABCDE".split("").forEach(function(k){h+='<div class="bar"><b style="width:1.2rem">'+k+'</b><i style="width:'+Math.round(dist[k]/mx*260)+'px"></i> '+dist[k]+'</div>'});}
   $("h-dist").innerHTML=h;
-  $("h-names").textContent=d.notYet&&d.notYet.length?"Joined: "+d.notYet.join(", "):"";
+  $("h-names").textContent=d.notYet&&d.notYet.length?"Participants: "+d.notYet.join(", "):"";
   setSel("h-qs",st.qSeconds);setSel("h-late",d.settings&&d.settings.allowLate);setSel("h-ss",d.settings&&d.settings.showScore);setSel("h-sb",d.settings&&d.settings.showBoard);
   var rk=0,prev=null,t="<table><thead><tr><th>#</th><th>First name</th><th>Score</th></tr></thead><tbody>";
   d.rows.forEach(function(r,i){if(r.score!==prev){rk=i+1;prev=r.score}t+="<tr><td>"+rk+"</td><td>"+esc(r.name)+"</td><td>"+esc(r.score)+" / 5</td></tr>"});
