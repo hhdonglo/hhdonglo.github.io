@@ -138,7 +138,7 @@ R.lecture=function(el,d,site){
   var out='';
   if(soon){out+='<div class="ov-card"><p>This lecture will be added when it is ready.</p></div>'}
   else{
-    out+='<div class="lecture-buttons" role="group" aria-label="Lecture resources">'+lbtn(l.slides,"Lecture slides",n,true)+lbtn(l.supplement,"Supplementary note",n)+(l.reference?lbtn(l.reference,"Reference slides",n):"")+lbtn(l.tutorial,"Tutorial sheet",n)+lbtn(l.practice==="soon"?"":ppage(n),"Practice questions",n)+'</div>';
+    out+='<div class="lecture-buttons" role="group" aria-label="Lecture resources">'+lbtn(l.slides,"Lecture slides",n,true)+(l.handout?lbtn(l.handout,"Handout",n):"")+lbtn(l.supplement,"Supplementary note",n)+(l.reference?lbtn(l.reference,"Reference slides",n):"")+lbtn(l.tutorial,"Tutorial sheet",n)+lbtn(l.practice==="soon"?"":ppage(n),"Practice questions",n)+'</div>';
     out+='<details class="fold" id="objectives" open><summary>Learning objectives</summary><div class="ov-card"><p>Students should be able to:</p>'+list(l.outcomes||[],"")+'</div></details>';
     var focus=l.contact_focus||[];
     (d.contacts||[]).forEach(function(c,k){
