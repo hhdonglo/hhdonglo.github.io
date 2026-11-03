@@ -66,15 +66,6 @@ body.focus main{padding-top:1rem}
   <p><button class="go big" type="button" id="a-start">Start attendance</button></p>
   <p class="note" id="a-last"></p>
  </section>
- <section class="panel" id="a-setup" hidden>
-  <p class="lbl">Scan to open the check-in page</p>
-  <p><img class="qr" src="assets/figures/phys143-attend-qr.svg" alt="QR code to open the check-in page" width="340" height="340"></p>
-  <p class="addr">hhdonglo.github.io/phys143-attend.html</p>
-  <label for="a-code">Type a code for students to enter</label>
-  <p><input class="codein" type="text" id="a-code" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false"></p>
-  <p><button class="go big" type="button" id="a-open">Open check-in</button> <button class="go alt" type="button" id="a-cancel">Cancel</button></p>
-  <p class="note" id="a-setupmsg" role="status"></p>
- </section>
  <section class="panel" id="a-live" hidden>
   <p class="lbl">Scan, then enter your student ID and this code</p>
   <p><img class="qr" src="assets/figures/phys143-attend-qr.svg" alt="QR code to open the check-in page" width="340" height="340"></p>
@@ -101,7 +92,7 @@ var KEY="";try{KEY=sessionStorage.getItem("phys143_hk")||""}catch(x){}
 function saveKey(k){KEY=k;try{sessionStorage.setItem("phys143_hk",k)}catch(x){}}
 function signOut(){KEY="";try{sessionStorage.removeItem("phys143_hk")}catch(x){}location.href="phys143-lecturer.html"}
 
-var timer=null,show=function(id){["a-login","a-idle","a-setup","a-live"].forEach(function(x){$(x).hidden=(x!==id)})};
+var timer=null,show=function(id){["a-login","a-idle","a-live"].forEach(function(x){$(x).hidden=(x!==id)})};
 function call(act,extra,cb){jsonp("action="+act+"&hostkey="+encodeURIComponent(KEY)+(extra||""),cb)}
 function draw(d){
  var ss=d&&d.session,open=ss&&ss.status==="Open";
@@ -111,7 +102,7 @@ function draw(d){
   show("a-live");if(!timer)timer=setInterval(poll,5000);
  } else {
   if(timer){clearInterval(timer);timer=null}
-  if($("a-setup").hidden)show("a-idle");
+  show("a-idle");
  }
 }
 function poll(){call("attend_status","",function(d){if(d&&d.ok)draw(d)})}
@@ -131,16 +122,12 @@ $("a-form").addEventListener("submit",function(e){
   else{$("a-err").textContent=d?"That key was not accepted.":"Could not reach the class sheet. Check the connection.";$("a-err").hidden=false}
  });
 });
-$("a-start").addEventListener("click",function(){$("a-code").value=String(1000+Math.floor(Math.random()*9000));$("a-setupmsg").textContent="";show("a-setup");$("a-code").focus();$("a-code").select()});
-$("a-cancel").addEventListener("click",function(){begin()});
-$("a-code").addEventListener("input",function(){var v=$("a-code").value.toUpperCase().replace(/[^A-Z0-9]/g,"");if(v!==$("a-code").value)$("a-code").value=v});
-$("a-open").addEventListener("click",function(){
- var c=$("a-code").value.trim();
- if(c.length<3){$("a-setupmsg").textContent="Use at least 3 letters or digits.";return}
- $("a-setupmsg").textContent="Opening...";
- call("attend_open","&acode="+encodeURIComponent(c),function(d){
-  if(!d){$("a-setupmsg").textContent="Could not reach the class sheet. Try again.";return}
-  if(!d.ok){$("a-setupmsg").textContent="Not opened: "+(d.why||"refused")+".";return}
+$("a-start").addEventListener("click",function(){
+ $("a-start").disabled=true;$("a-last").textContent="Starting...";
+ call("attend_open","",function(d){ // the sheet makes a new random code each time, never one used before
+  $("a-start").disabled=false;
+  if(!d){$("a-last").textContent="Could not reach the class sheet. Try again.";return}
+  if(!d.ok){$("a-last").textContent="Not started: "+(d.why||"refused")+".";return}
   $("a-msg").textContent="";draw(d);
  });
 });

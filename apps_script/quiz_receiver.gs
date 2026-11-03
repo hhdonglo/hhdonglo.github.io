@@ -733,9 +733,9 @@ function attByCode_(code) { // the session with this code, or null; cached a few
   return found;
 }
 
-function attColumn_(label) {
-  var l = String(label || '').trim(), m = /^(?:wk|week)?\s*(\d+)$/i.exec(l);
-  return m ? 'Attendance Wk ' + Number(m[1]) + ' [1]' : 'Attendance ' + (l || Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd')) + ' [1]';
+function attColumn_(label) { // the Attendance header: the date; a second session on the same day reads "03/11/2026 #2"
+  var m = /^(.*) #(\d+)$/.exec(String(label || '').trim());
+  return m ? (Number(m[2]) > 1 ? m[1] + ' #' + m[2] : m[1]) : String(label || '').trim();
 }
 
 function attPresent_(label) { // {id: true} for one session, from the log
@@ -752,26 +752,28 @@ function attStatus_() { // the open session if there is one, else the latest, wi
   if (!cur) return { ok: true, session: null };
   var present = attPresent_(cur.label), roster = {}; rosterRows_().forEach(function (r) { roster[r[0]] = 1; });
   var on = 0, off = 0; Object.keys(present).forEach(function (id) { if (roster[id]) on++; else off++; });
-  return { ok: true, session: { code: cur.code, label: cur.label, status: cur.status, present: on, notOnList: off, rosterSize: Object.keys(roster).length } };
+  return { ok: true, session: { code: cur.code, label: attColumn_(cur.label), status: cur.status, present: on, notOnList: off, rosterSize: Object.keys(roster).length } };
 }
 
 function attOpen_(p) {
   var rows = attRows_(), open = null; rows.forEach(function (r) { if (r.status === 'Open') open = r; });
   if (open) return { ok: false, why: 'a session is already open: close it first', session: { code: open.code, label: open.label } };
-  if (!rosterRows_().length) return { ok: false, why: 'the Roster tab is empty: paste Student ID and Name into it first' };
+  if (!rosterRows_().length) return { ok: false, why: 'the Roster tab is empty: run roster_sync.sh to add the Student IDs first' };
+  // A fresh random code for every session, never one used before (by any earlier session or by a quiz).
+  var used = function (c) { return !!keyRow_(c) || rows.some(function (r) { return r.code === c; }); };
   var code = String(p.acode || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12);
-  if (code && code.length < 3) return { ok: false, why: 'the code needs at least 3 letters or digits' };
-  var used = function (c) { return !!keyRow_(c) || rows.some(function (r) { return r.code === c && r.status === 'Open'; }); }; // a code from a closed session may be reused
-  if (code && used(code)) return { ok: false, why: 'that code is already used by a quiz' };
-  for (var t = 0; !code && t < 50; t++) { var c = String(1000 + Math.floor(Math.random() * 9000)); if (!used(c)) code = c; }
+  if (code && (code.length < 3 || used(code))) return { ok: false, why: 'that code is too short or was used before' };
+  for (var t = 0; !code && t < 200; t++) { var c = String(1000 + Math.floor(Math.random() * 9000)); if (!used(c)) code = c; }
+  for (var t2 = 0; !code && t2 < 200; t2++) { var c2 = String(10000 + Math.floor(Math.random() * 90000)); if (!used(c2)) code = c2; }
   if (!code) return { ok: false, why: 'could not find a free code' };
-  var tz = Session.getScriptTimeZone(), label = Utilities.formatDate(new Date(), tz, 'yyyy-MM-dd'); // the session is named by its date; a second one the same day also gets the time
-  if (rows.some(function (r) { return r.label === label; })) label += ' ' + Utilities.formatDate(new Date(), tz, 'HH:mm');
-  if (rows.some(function (r) { return r.label === label; })) label += ':' + Utilities.formatDate(new Date(), tz, 'ss'); // never reuse a label: it names the Attendance column
+  // The session key is "dd/MM/yyyy #n": the "#n" keeps the sheet from turning it into a date, and n counts sessions on the same day.
+  var base = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'dd/MM/yyyy'), n = 1;
+  rows.forEach(function (r) { if (r.label.indexOf(base + ' #') === 0) n++; });
+  var label = base + ' #' + n;
   attSheet_().appendRow([code, label, 'Open', new Date().toISOString(), '']);
   try { CacheService.getScriptCache().remove('att:' + code); } catch (err) { /* cache only */ }
   log_('attendance:open', label, '', code);
-  return { ok: true, session: { code: code, label: label, status: 'Open', present: 0, notOnList: 0 } };
+  return { ok: true, session: { code: code, label: attColumn_(label), status: 'Open', present: 0, notOnList: 0 } };
 }
 
 function attClose_() {
@@ -779,29 +781,32 @@ function attClose_() {
   if (!cur) return { ok: false, why: 'no attendance session is open' };
   var present = attPresent_(cur.label), roster = rosterRows_(), col = attColumn_(cur.label), ss = SpreadsheetApp.getActiveSpreadsheet();
   var as = ss.getSheetByName(ATT_TAB) || ss.insertSheet(ATT_TAB);
-  if (as.getLastRow() === 0) { as.getRange(1, 1, 1, 2).setValues([['Student ID', 'Name']]); as.setFrozenRows(1); }
-  var head = as.getRange(1, 1, 1, Math.max(2, as.getLastColumn())).getValues()[0].map(function (h) { return String(h).trim(); });
-  var ci = head.indexOf(col) + 1; if (ci < 3) { ci = head.length + 1; as.getRange(1, ci).setValue(col); }
+  if (as.getLastRow() === 0) { as.getRange(1, 1).setValue('Student ID'); as.setFrozenRows(1); as.setFrozenColumns(1); }
+  var head = as.getRange(1, 1, 1, Math.max(1, as.getLastColumn())).getValues()[0].map(function (h) { return String(h).trim(); });
+  if (head[1] === 'Name' && as.getLastRow() > 1 && as.getRange(2, 2, as.getLastRow() - 1, 1).getValues().every(function (r) { return !String(r[0]).trim(); })) { // an older tab with an empty Name column
+    as.deleteColumn(2); head = as.getRange(1, 1, 1, Math.max(1, as.getLastColumn())).getValues()[0].map(function (h) { return String(h).trim(); });
+  }
+  var ci = head.indexOf(col) + 1; if (ci < 2) { ci = Math.max(2, head.length + 1); as.getRange(1, ci).setNumberFormat('@').setValue(col); }
   var have = {}, n = as.getLastRow();
   if (n > 1) as.getRange(2, 1, n - 1, 1).getValues().forEach(function (r, i) { have[normId_(r[0])] = i + 2; });
-  var add = []; roster.forEach(function (r) { if (!have[r[0]]) { have[r[0]] = 1; add.push([r[0], r[1]]); } });
-  if (add.length) { as.getRange(as.getLastRow() + 1, 1, add.length, 1).setNumberFormat('@'); as.getRange(as.getLastRow() + 1, 1, add.length, 2).setValues(add); }
+  var add = []; roster.forEach(function (r) { if (!have[r[0]]) { have[r[0]] = 1; add.push([r[0]]); } });
+  if (add.length) { var a0 = as.getLastRow() + 1; as.getRange(a0, 1, add.length, 1).setNumberFormat('@'); as.getRange(a0, 1, add.length, 1).setValues(add); }
   n = as.getLastRow();
   var ids = n > 1 ? as.getRange(2, 1, n - 1, 1).getValues() : [], vals = ids.map(function (r) { return [present[normId_(r[0])] ? 1 : 0]; });
-  if (vals.length) as.getRange(2, ci, vals.length, 1).setValues(vals);
+  if (vals.length) as.getRange(2, ci, vals.length, 1).setValues(vals); // every student in the list gets a 1 or a 0
   var onList = {}; roster.forEach(function (r) { onList[r[0]] = 1; });
   var offIds = Object.keys(present).filter(function (id) { return !onList[id]; }), nl = ss.getSheetByName(NOTLIST_TAB);
   if (offIds.length) {
     if (!nl) { nl = ss.insertSheet(NOTLIST_TAB); nl.appendRow(['Timestamp', 'Session', 'Student ID']); nl.setFrozenRows(1); }
     var seen = {}; if (nl.getLastRow() > 1) nl.getRange(2, 2, nl.getLastRow() - 1, 2).getValues().forEach(function (r) { seen[String(r[0]) + '|' + normId_(r[1])] = true; });
-    var rowsNl = offIds.filter(function (id) { return !seen[cur.label + '|' + id]; }).map(function (id) { return [new Date(), cur.label, id]; });
-    if (rowsNl.length) { var r0 = nl.getLastRow() + 1; nl.getRange(r0, 3, rowsNl.length, 1).setNumberFormat('@'); nl.getRange(r0, 1, rowsNl.length, 3).setValues(rowsNl).setBackground('#f4c7c3'); }
+    var rowsNl = offIds.filter(function (id) { return !seen[col + '|' + id]; }).map(function (id) { return [new Date(), col, id]; });
+    if (rowsNl.length) { var r0 = nl.getLastRow() + 1; nl.getRange(r0, 2, rowsNl.length, 2).setNumberFormat('@'); nl.getRange(r0, 1, rowsNl.length, 3).setValues(rowsNl).setBackground('#f4c7c3'); }
   }
   var sh = attSheet_(); sh.getRange(cur.row, 3).setValue('Closed'); sh.getRange(cur.row, 5).setValue(new Date().toISOString());
   try { CacheService.getScriptCache().remove('att:' + cur.code); } catch (err) { /* cache only */ }
   var pres = 0; roster.forEach(function (r) { if (present[r[0]]) pres++; });
-  log_('attendance:close', cur.label, '', cur.code);
-  return { ok: true, session: { code: cur.code, label: cur.label, status: 'Closed', present: pres, absent: roster.length - pres, notOnList: offIds.length, column: col } };
+  log_('attendance:close', col, '', cur.code);
+  return { ok: true, session: { code: cur.code, label: col, status: 'Closed', present: pres, absent: roster.length - pres, notOnList: offIds.length, column: col } };
 }
 
 // ---------- POST: answers, joins, progress, reports, attempts ----------
