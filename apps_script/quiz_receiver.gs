@@ -726,11 +726,13 @@ function attOpen_(p) {
   if (!rosterRows_().length) return { ok: false, why: 'the Roster tab is empty: paste Student ID and Name into it first' };
   var code = String(p.acode || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12);
   if (code && code.length < 3) return { ok: false, why: 'the code needs at least 3 letters or digits' };
-  var used = function (c) { return !!keyRow_(c) || rows.some(function (r) { return r.code === c; }); };
-  if (code && used(code)) return { ok: false, why: 'that code is already used by a quiz or an earlier session' };
+  var used = function (c) { return !!keyRow_(c) || rows.some(function (r) { return r.code === c && r.status === 'Open'; }); }; // a code from a closed session may be reused
+  if (code && used(code)) return { ok: false, why: 'that code is already used by a quiz' };
   for (var t = 0; !code && t < 50; t++) { var c = String(1000 + Math.floor(Math.random() * 9000)); if (!used(c)) code = c; }
   if (!code) return { ok: false, why: 'could not find a free code' };
-  var label = clean_(p.label, 40) || Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd');
+  var tz = Session.getScriptTimeZone(), label = Utilities.formatDate(new Date(), tz, 'yyyy-MM-dd'); // the session is named by its date; a second one the same day also gets the time
+  if (rows.some(function (r) { return r.label === label; })) label += ' ' + Utilities.formatDate(new Date(), tz, 'HH:mm');
+  if (rows.some(function (r) { return r.label === label; })) label += ':' + Utilities.formatDate(new Date(), tz, 'ss'); // never reuse a label: it names the Attendance column
   attSheet_().appendRow([code, label, 'Open', new Date().toISOString(), '']);
   try { CacheService.getScriptCache().remove('att:' + code); } catch (err) { /* cache only */ }
   log_('attendance:open', label, '', code);
@@ -976,6 +978,7 @@ function doGet(e) {
     append_(ATT_LOG_TAB, ['Timestamp', 'Session', 'Student ID', 'On roster'], [new Date(), asn.label, aid, rosterSet_()[aid] ? 'Yes' : 'No']); // appendRow is atomic: no lock for 200 students at once
     return jsonp_(e, { ok: true, id: aid });
   }
+  if (p.action === 'hostcheck') return jsonp_(e, { ok: hostOk_(p) }); // the lecturer menu: is this key right?
   if (p.action === 'attend_status' || p.action === 'attend_open' || p.action === 'attend_close') { // host only
     if (!hostOk_(p)) return jsonp_(e, { ok: false, why: 'host key not accepted' });
     if (p.action === 'attend_status') return jsonp_(e, attStatus_());

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light dark">
+<title>Lecturer menu | Hope Donglo</title>
+<meta name="description" content="Lecturer menu.">
+<link rel="icon" href="assets/logo/hd-favicon.svg" type="image/svg+xml">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/logo/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/logo/favicon-16.png">
+<link rel="apple-touch-icon" href="assets/logo/apple-touch-icon.png">
+<link rel="stylesheet" href="assets/site.css">
+<script>if(!location.hash){if("scrollRestoration" in history)history.scrollRestoration="manual";window.addEventListener("pageshow",function(){if(!location.hash)window.scrollTo({top:0,left:0,behavior:"instant"})});}</script>
+</head>
+<body class="focus">
+<a class="skip" href="#main">Skip to content</a>
+<header class="banner slim">
+<div class="wrap">
+<a class="brand-logo" href="index.html" aria-label="Home"><picture><source media="(max-width:700px)" srcset="assets/logo/hd-favicon.svg"><img src="assets/logo/hd-logo-horizontal.svg" width="233" height="56" alt="HD. Nuclear Physics, Scientific Computing"></picture></a>
+<h1><a class="home-link" href="index.html">Hope Donglo</a></h1>
+<p class="course" data-render="banner-field">At the Edge of the Periodic Table</p>
+</div>
+</header>
+<nav class="jump" id="jump" aria-label="Sections"><div class="wrap"><button type="button" class="menu-btn" aria-expanded="false" aria-controls="jump-links"><span>Menu</span><span class="dots" aria-hidden="true">&#8943;</span></button><div class="links" id="jump-links"><a href="index.html">Home</a><div class="dd" data-key="research.html"><a href="research.html">Research</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Research links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="research.html#questions">Research Questions</a></li><li><a href="research.html#reaction-dynamics">Nuclear Reaction Dynamics</a></li><li><a href="research.html#uncertainty">Uncertainty Quantification</a></li><li><a href="earlier-research.html">Earlier Research</a></li></ul></div><div class="dd" data-key="projects.html"><a href="projects.html">Projects</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Projects links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="kewpie3.html">KEWPIE3</a></li><li><a href="projects.html#research-projects">Current Research</a></li></ul></div><div class="dd" data-key="data-engineering.html"><a href="data-engineering.html">Scientific Computing</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Scientific Computing links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="data-engineering.html#pipelines">Data Engineering</a></li><li><a href="data-engineering.html#retrieval">Machine Learning</a></li><li><a href="data-engineering.html#analysis">Data Analysis</a></li></ul></div><div class="dd" data-key="teaching.html"><a href="teaching.html" aria-current="true">Teaching</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Teaching links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="teaching.html#lecture-courses">Courses</a></li><li><a href="phys143.html#weekly">Lecture Notes</a></li><li><a href="mock-exam.html">Mock exam</a></li></ul></div><div class="dd" data-key="publications.html"><a href="publications.html">Publications</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Publications links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="publications.html#journal-articles">Journal Articles</a></li><li><a href="publications.html#preprints">Preprints</a></li><li><a href="publications.html#theses">Theses</a></li></ul></div><div class="dd" data-key="students.html"><a href="students.html">Students</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Students links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="students.html#undergraduate">Supervision</a></li><li><a href="students.html#research-projects">Project Opportunities</a></li></ul></div><a href="about.html">About</a><a href="cv.html" class="util first">CV</a><a href="contact.html" class="util">Contact</a></div></div></nav>
+<main id="main"><div class="wrap">
+<style>
+.host{max-width:46rem;margin:0 auto}
+.host .panel{background:var(--surface);border:1px solid var(--border);border-top:5px solid var(--brown-edge);border-radius:8px;padding:1.2rem 1.4rem;box-shadow:var(--shadow);margin-bottom:1rem}
+.host label{display:block;font:600 .95rem system-ui,sans-serif;margin:.6rem 0 .25rem}
+.host input[type=password],.host input[type=text]{width:100%;max-width:22rem;min-height:44px;padding:.4rem .6rem;border:1.5px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font:1rem system-ui,sans-serif}
+.host .go{min-height:48px;padding:.5rem 1.4rem;border:2px solid var(--brown-fill);border-radius:6px;background:var(--brown-fill);color:#fff;font:600 1.05rem system-ui,sans-serif;cursor:pointer;margin:.3rem .4rem 0 0;text-decoration:none;display:inline-block}
+.host .go.alt{background:var(--btn-bg);color:var(--btn-text)}
+.host .go.big{min-height:64px;font-size:1.3rem;padding:.7rem 1.8rem}
+.host .choices{display:flex;flex-wrap:wrap;gap:1rem}
+.host .choices .go{flex:1 1 14rem;text-align:center;min-height:96px;font-size:1.4rem;display:flex;align-items:center;justify-content:center}
+.host .note{font:.92rem/1.5 system-ui,sans-serif;color:var(--muted)}
+.host [hidden]{display:none!important}
+body.focus header.banner,body.focus nav.jump,body.focus .crumb,body.focus .sec-sub,body.focus aside.disclaimer,body.focus footer,body.focus a.skip,body.focus main h2{display:none!important}
+body.focus main{padding-top:1rem}
+</style>
+<div class="host">
+ <section class="panel" id="m-login">
+  <h3 style="margin:.1rem 0 .4rem">Lecturer login</h3>
+  <form id="m-form" autocomplete="off">
+   <label for="m-key">Key</label><input type="password" id="m-key" maxlength="40" autocomplete="new-password" autocapitalize="none" spellcheck="false">
+   <p><button class="go" type="submit">Log in</button></p>
+   <p class="note" id="m-err" role="alert" hidden></p>
+  </form>
+ </section>
+ <section class="panel" id="m-choice" hidden>
+  <h3 style="margin:.1rem 0 .8rem">What would you like to do?</h3>
+  <div class="choices"><a class="go" href="phys143-quiz-host.html">Run quiz</a><a class="go" href="phys143-attendance.html">Take attendance</a></div>
+  <p><button class="go alt" type="button" id="m-out">Log out</button></p>
+ </section>
+</div>
+<script>
+(function(){
+"use strict";
+var SCRIPT_URL="https://script.google.com/macros/s/AKfycbzso5-FCU4erf_grbktH-AH-RKaPDap7TfJAw_TOSxNarTrJDe-PgyBzgIH7Fj2fjZ3/exec";
+var $=function(i){return document.getElementById(i)};
+function jsonp(params,cb){
+ var n="cb"+Date.now()+Math.floor(Math.random()*1e6),sc=document.createElement("script"),done=false;
+ function end(d){if(done)return;done=true;delete window[n];if(sc.parentNode)sc.parentNode.removeChild(sc);cb(d)}
+ window[n]=end;sc.onerror=function(){end(null)};
+ sc.src=SCRIPT_URL+"?"+params+"&callback="+n+"&_="+Date.now();document.head.appendChild(sc);
+}
+var KEY="";try{KEY=sessionStorage.getItem("phys143_hk")||""}catch(x){}
+function saveKey(k){KEY=k;try{sessionStorage.setItem("phys143_hk",k)}catch(x){}}
+function signOut(){KEY="";try{sessionStorage.removeItem("phys143_hk")}catch(x){}location.href="phys143-lecturer.html"}
+
+function ok(){$("m-login").hidden=true;$("m-choice").hidden=false}
+function check(k,first){
+ jsonp("action=hostcheck&hostkey="+encodeURIComponent(k),function(d){
+  if(d&&d.ok){saveKey(k);ok();return}
+  if(first){$("m-err").textContent=d?"That key was not accepted.":"Could not reach the class sheet. Check the connection.";$("m-err").hidden=false}
+  else{try{sessionStorage.removeItem("phys143_hk")}catch(x){}}
+ });
+}
+$("m-form").addEventListener("submit",function(e){e.preventDefault();var k=$("m-key").value.trim();if(!k){$("m-err").textContent="Enter the key.";$("m-err").hidden=false;return}$("m-err").hidden=true;check(k,true)});
+$("m-out").addEventListener("click",signOut);
+if(KEY)check(KEY,false);
+})();
+</script>
+</div>
+</main>
+
+
+<footer data-render="footer"><div class="wrap"><div class="foot-grid"><div><p class="foot-name">Hope Donglo, PhD</p><p>Lecturer in Physics · University of Ghana</p></div><nav aria-label="Footer"><ul><li><a href="research.html">Research</a></li><li><a href="projects.html">Projects</a></li><li><a href="data-engineering.html">Scientific Computing</a></li><li><a href="teaching.html">Teaching</a></li><li><a href="publications.html">Publications</a></li><li><a href="students.html">Students</a></li><li><a href="about.html">About</a></li><li><a href="cv.html">CV</a></li><li><a href="contact.html">Contact</a></li></ul></nav><ul class="foot-ext"><li><a href="https://scholar.google.com/citations?user=QW32BboAAAAJ&amp;hl=en" rel="noopener">Google Scholar ↗</a></li><li><a href="https://orcid.org/0009-0003-6142-8780" rel="noopener">ORCID ↗</a></li><li><a href="https://github.com/hhdonglo" rel="noopener">GitHub ↗</a></li><li><a href="https://www.linkedin.com/in/hopedonglo" rel="noopener">LinkedIn ↗</a></li><li><a href="https://phyanalytics.com/" rel="noopener">PhyAnalytics ↗</a></li></ul></div><p class="foot-note">© 2026 Hope Donglo · Anonymous visit counts, no cookies</p></div></footer>
+<script src="assets/render.js"></script>
+<script src="assets/site.js"></script>
+<script src="assets/tracking.js"></script>
+</body>
+</html>
