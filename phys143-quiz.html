@@ -102,7 +102,7 @@ body.focus .try .fun{display:block}
   <div class="wr">
    <h3 id="t-att" class="hello">Attendance recorded</h3>
    <p role="status"><span id="att-msg">Thank you. Your attendance has been recorded for student ID </span> <b id="att-id"></b>.</p>
-   <p class="note">If that ID is not yours, tell your lecturer. You can close this page.</p>
+   <p class="note">You can close this page.</p>
   </div>
  </section>
  <section class="panel" id="s-wait" aria-labelledby="t-wait" hidden>
@@ -198,7 +198,7 @@ function doAttend(d,btn,er){ // an attendance code: only the student ID is used;
  jsonp("action=attend&code="+encodeURIComponent(st.code)+"&id="+encodeURIComponent(st.id),function(r){
   if(!r){btn.disabled=false;er.textContent="Could not reach the class sheet. Check your connection and try again.";er.hidden=false;return}
   if(!r.ok){btn.disabled=false;er.textContent=r.why==="closed"?"Attendance for this code is closed.":(r.why==="bad id"?"That does not look like a student ID. Check it and try again.":"That code is not correct.");er.hidden=false;return}
-  $("att-id").textContent=r.id;$("t-att").textContent=r.onList===false?"Marked present":"Attendance recorded";$("att-msg").textContent=r.onList===false?"Your ID is not on the class list. Please see your lecturer. Student ID ":"Thank you. Your attendance has been recorded for student ID ";show("s-att");
+  $("att-id").textContent=r.id;$("t-att").textContent="Marked present";$("att-msg").textContent=r.onList===false?"Your ID is not on the class list. Please see your lecturer. Student ID ":"Student ID ";show("s-att");
  });
 }
 function roomShow(m,n,closed){

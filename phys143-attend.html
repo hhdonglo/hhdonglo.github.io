@@ -65,10 +65,8 @@ body.focus main{padding-top:1.2rem}
  </section>
  <section class="panel done" id="c-done" aria-live="polite" hidden>
   <p class="tick" aria-hidden="true">&#10003;</p>
-  <h3>Attendance recorded</h3>
-  <p>Student ID <b id="c-sid"></b> is marked present.</p>
-  <p class="note">If that is not your ID, tap below and enter it again.</p>
-  <button type="button" class="go alt" id="c-again">Enter the ID again</button>
+  <h3>Marked present</h3>
+  <p>Student ID <b id="c-sid"></b></p>
  </section>
 </div>
 <script>
@@ -98,7 +96,7 @@ $("c-form").addEventListener("submit",function(e){
  });
 });
 function again(){$("c-done").hidden=true;$("c-missing").hidden=true;$("c-form-wrap").hidden=false;$("c-id").value="";$("c-id").focus()}
-$("c-again").addEventListener("click",again);$("c-again2").addEventListener("click",again);
+$("c-again2").addEventListener("click",again);
 })();
 </script>
 </div>
