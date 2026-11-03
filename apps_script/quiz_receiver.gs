@@ -1,7 +1,7 @@
 // PHYS 143 quiz receiver. Bound to the "PHYS 143 Quizzes (Responses)" Sheet.
 //
 // Tabs: Form Responses 1 (Timestamp, First Name, ID, Join Code, Q1 to Q5, Score), Key (private), Quiz_Control (private),
-//       Presence, Log, Reports, Attempts, Roster, Attendance_Control, Attendance_Log, Attendance, Not_On_List (attendance check-in, see the Attendance section), Master (one row per student, one column per quiz; a new try replaces that cell; switch Key!L2 = On or Off).
+//       Presence, Log, Reports, Attempts, Roster, Attendance_Control, Attendance_Log, Attendance, Not_On_List (attendance check-in, see the Attendance section), Scores (clean grid: Student ID, Total, then one column per quiz, IDs only), Master (one row per student, one column per quiz; a new try replaces that cell; switch Key!L2 = On or Off).
 // Key: Join Code | Q1 to Q5 (correct letters) | Ranking (Hidden hides it) | State (legacy: Waiting, Started, Stopped) ... J2 = host key.
 // Quiz_Control (one row per lecturer-controlled quiz, written by the host dashboard; the server is the authority):
 //   join_code | status | duration_min | end_time_ms | remaining_ms | allow_late_join | show_score | show_leaderboard | message | title | updated
@@ -189,15 +189,91 @@ function updateMaster_(entries) {
       sh.getRange(row, 3).setValue(new Date());
       sh.getRange(row, col).setValue(e.score + ' / ' + e.n);
     });
+    updateScores_(entries);
   } catch (err) { /* the master sheet must never stop a submission */ }
 }
 
-// Run once from the editor to fill Master from the live quizzes already in Form Responses 1 (the latest round for each student and quiz wins).
-function rebuildMaster() {
-  var rs = responses_(), n = rs.getLastRow();
-  if (n < 2) return 'No responses yet.';
-  var data = rs.getRange(2, 1, n - 1, 14).getValues(), latest = {}, entries = [];
-  data.forEach(function (r) { // Timestamp, Name, ID, Code, Q1 to Q5, Score, Round, Questions, Answers, Week
+// ---------- Scores: the clean grid, Student ID in column A and one column per quiz, IDs only ----------
+// Tab "Scores": Student ID | Total | Out of | Average % | then one column per quiz, added automatically the first time that quiz is seen.
+// Rows 1 to 3 are the header: the heading (date and quiz name for a live quiz, e.g. "03/11/2026 Week 1 Vectors"; "Practice 1 Vectors"; "Mock exam"),
+// a short key used to match the column, and the "out of" for that quiz. Every rostered ID has a row from the start; a blank cell means not taken.
+// A new try by the same student replaces that cell. Total, Out of and Average % count the live quizzes only (practice and mock are for practice). No names are stored here. Same switch as Master (Key!L2).
+var SCORES_TAB = 'Scores';
+
+function scoreKey_(label) {
+  var m;
+  if ((m = /^Week (\d+)$/.exec(label))) return 'W' + m[1];
+  if ((m = /^Practice (\d+)$/.exec(label))) return 'P' + m[1];
+  if (label === 'Practice Intro') return 'P0';
+  if (label === 'Mock exam') return 'MOCK';
+  if ((m = /^Quiz (.+)$/.exec(label))) return 'Q:' + m[1];
+  return label;
+}
+
+function scoreHeader_(label, live, weeks, today) {
+  var m, t;
+  if ((m = /^Week (\d+)$/.exec(label))) { t = weeks[String(Number(m[1]))]; return today + ' ' + label + (t ? ' ' + t : ''); }
+  if ((m = /^Practice (\d+)$/.exec(label))) { t = weeks[String(Number(m[1]))]; return label + (t ? ' ' + t : ''); }
+  return live ? today + ' ' + label : label;
+}
+
+// entries: [{id, label, score, n}]. The grid is read once, changed in memory and written back: a few rows for a single result, the whole grid for a class.
+function updateScores_(entries) {
+  try {
+    if (!entries.length || !masterOn_()) return;
+    var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(SCORES_TAB) || ss.insertSheet(SCORES_TAB);
+    var weeks = {}; try { weeks = siteJson_('/apps_script/live_quizzes.json').weeks || {}; } catch (err) { /* headings are a nicety */ }
+    var grid, whole = false;
+    if (sh.getLastRow() < 3) {
+      grid = [['Student ID', 'Total', 'Out of', 'Average %'], ['key', '', '', ''], ['Out of', '', '', '']];
+      rosterRows_().forEach(function (r) { grid.push([r[0], '', '', '']); });
+      whole = true;
+    } else grid = sh.getRange(1, 1, sh.getLastRow(), Math.max(4, sh.getLastColumn())).getValues();
+    var W = 4; grid.forEach(function (r) { W = Math.max(W, r.length); });
+    var pad = function (r) { while (r.length < W) r.push(''); };
+    var today = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'dd/MM/yyyy');
+    var rowOf = {}, touched = {}, headChanged = false, firstNew = grid.length;
+    grid.forEach(function (r, i) { pad(r); if (i >= 3) rowOf[normId_(r[0])] = i; });
+    entries.forEach(function (e) {
+      var id = normId_(e.id), label = String(e.label || '').trim();
+      if (!id || !label || isNaN(Number(e.score))) return;
+      var key = scoreKey_(label), live = /^(Week \d|Quiz )/.test(label), head = scoreHeader_(label, live, weeks, today), c = -1;
+      for (var j = 4; j < W; j++) if (String(grid[1][j]) === key) { c = j; break; }
+      if (c < 0) { c = W; W++; grid.forEach(pad); grid[0][c] = head; grid[1][c] = key; grid[2][c] = Number(e.n) || ''; headChanged = true; }
+      else {
+        if (live && grid[0][c] !== head) { grid[0][c] = head; headChanged = true; }
+        if ((Number(grid[2][c]) || 0) < Number(e.n)) { grid[2][c] = Number(e.n); headChanged = true; }
+      }
+      var r = rowOf[id];
+      if (r === undefined) { var nr = []; pad(nr); nr[0] = id; grid.push(nr); r = grid.length - 1; rowOf[id] = r; }
+      grid[r][c] = Number(e.score); touched[r] = true;
+    });
+    var total = function (r) {
+      var tot = 0, out = 0, any = false;
+      for (var j = 4; j < W; j++) { var v = grid[r][j], kk = String(grid[1][j]); if (kk.charAt(0) !== 'W' && kk.indexOf('Q:') !== 0) continue; /* only live quizzes count towards the total; practice and mock are for practice */ if (v !== '' && !isNaN(Number(v))) { tot += Number(v); out += Number(grid[2][j]) || 0; any = true; } }
+      grid[r][1] = any ? tot : ''; grid[r][2] = any ? out : ''; grid[r][3] = any && out ? Math.round(tot / out * 1000) / 10 : '';
+    };
+    var rows = headChanged ? grid.map(function (r, i) { return i; }).slice(3) : Object.keys(touched).map(Number);
+    rows.forEach(total);
+    if (sh.getMaxColumns() < W) sh.insertColumnsAfter(sh.getMaxColumns(), W - sh.getMaxColumns());
+    if (sh.getMaxRows() < grid.length) sh.insertRowsAfter(sh.getMaxRows(), grid.length - sh.getMaxRows());
+    if (whole || headChanged || Object.keys(touched).length > 20) {
+      sh.getRange(4, 1, Math.max(1, grid.length - 3), 1).setNumberFormat('@');
+      sh.getRange(1, 1, grid.length, W).setValues(grid);
+      sh.setFrozenRows(3); sh.setFrozenColumns(1);
+    } else {
+      Object.keys(touched).map(Number).forEach(function (r) {
+        sh.getRange(r + 1, 1).setNumberFormat('@');
+        sh.getRange(r + 1, 1, 1, W).setValues([grid[r]]);
+      });
+    }
+  } catch (err) { /* the scores sheet must never stop a submission */ }
+}
+
+// Every student's latest live result (the latest round wins) and latest practice or mock result (those sent with a student ID).
+function collectResults_() {
+  var rs = responses_(), n = rs.getLastRow(), entries = [], latest = {};
+  (n > 1 ? rs.getRange(2, 1, n - 1, 14).getValues() : []).forEach(function (r) { // Timestamp, Name, ID, Code, Q1 to Q5, Score, Round, Questions, Answers, Week
     var id = String(r[2]).trim(), code = String(r[3]).trim().toUpperCase();
     if (!id || !code || r[9] === '') return;
     var week = Number(r[13]) || 0, k = id + '|' + (week ? 'W' + week : code), rnd = Number(r[10]) || 0, ts = new Date(r[0]).getTime() || 0;
@@ -205,8 +281,33 @@ function rebuildMaster() {
     if (!cur || rnd > cur.rnd || (rnd === cur.rnd && ts >= cur.ts)) latest[k] = { rnd: rnd, ts: ts, id: id, name: String(r[1]), label: week ? 'Week ' + week : 'Quiz ' + code, score: Number(r[9]), n: Number(r[11]) || 5 };
   });
   Object.keys(latest).forEach(function (k) { var x = latest[k]; entries.push({ id: x.id, name: x.name, label: x.label, score: x.score, n: x.n }); });
+  var at = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Attempts');
+  if (at && at.getLastRow() > 1) {
+    var best = {};
+    at.getRange(2, 1, at.getLastRow() - 1, 6).getValues().forEach(function (r) { // Timestamp, Student ID, Quiz, Attempt, Score, Total
+      var id = normId_(r[1]), lab = masterLabel_(String(r[2])), ts = new Date(r[0]).getTime() || 0;
+      if (!id || !lab || r[4] === '') return;
+      var k = id + '|' + lab; if (!best[k] || ts >= best[k].ts) best[k] = { ts: ts, id: id, label: lab, score: Number(r[4]), n: Number(r[5]) || 0 };
+    });
+    Object.keys(best).forEach(function (k) { var x = best[k]; entries.push({ id: x.id, name: '', label: x.label, score: x.score, n: x.n }); });
+  }
+  return entries;
+}
+
+// Run once from the editor: fills the Scores grid from everything already recorded (fast, one write).
+function rebuildScores() {
+  var entries = collectResults_();
+  if (!entries.length) return 'No results yet.';
+  updateScores_(entries);
+  return 'Scores updated with ' + entries.length + ' results.';
+}
+
+// Run once from the editor to fill Master (and Scores) from the results already recorded; slower than rebuildScores.
+function rebuildMaster() {
+  var entries = collectResults_();
+  if (!entries.length) return 'No results yet.';
   updateMaster_(entries);
-  return 'Master updated with ' + entries.length + ' results.';
+  return 'Master and Scores updated with ' + entries.length + ' results.';
 }
 
 function parseAnswers_(row) { // from a stored row [ID, Join Code, Q1..Q5, Score, Round, N, Answers]
