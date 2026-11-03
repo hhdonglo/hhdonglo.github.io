@@ -75,6 +75,13 @@ body.focus main{padding-top:1rem}
    <p><button class="go" type="submit">Open the dashboard</button></p>
    <p class="note" id="h-err" role="alert" hidden></p>
   </form>
+   <details style="margin-top:1rem"><summary>Change the host key</summary>
+    <label for="h-cur">Current host key</label><input type="password" id="h-cur" maxlength="40" autocomplete="new-password" autocapitalize="none" spellcheck="false">
+    <label for="h-new">New host key (12 to 40 characters)</label><input type="password" id="h-new" maxlength="40" autocomplete="new-password" autocapitalize="none" spellcheck="false">
+    <label for="h-new2">Repeat the new host key</label><input type="password" id="h-new2" maxlength="40" autocomplete="new-password" autocapitalize="none" spellcheck="false">
+    <p><button class="go alt" type="button" id="h-setkey">Change the host key</button></p>
+    <p class="note" id="h-keymsg" role="status"></p>
+   </details>
  </section>
  <div id="h-main" hidden>
   <section class="panel" id="h-att">
@@ -181,6 +188,17 @@ function jsonp(params,cb){
  window[n]=end;sc.onerror=function(){end(null)};
  sc.src=SCRIPT_URL+"?"+params+"&callback="+n+"&_="+Date.now();document.head.appendChild(sc);
 }
+$("h-setkey").addEventListener("click",function(){
+ var c=$("h-cur").value.trim(),n=$("h-new").value.trim(),m=$("h-new2").value.trim(),o=$("h-keymsg");
+ if(n.length<12||n.length>40){o.textContent="The new key must have 12 to 40 characters.";return}
+ if(n!==m){o.textContent="The two new keys do not match.";return}
+ o.textContent="Working...";
+ jsonp("action=setkey&hostkey="+encodeURIComponent(c)+"&newkey="+encodeURIComponent(n),function(d){
+  if(!d){o.textContent="Could not reach the class sheet.";return}
+  if(d.ok){o.textContent="Host key changed. Use the new key from now on.";$("h-cur").value=$("h-new").value=$("h-new2").value=""}
+  else o.textContent="Not changed: "+(d.why||"refused")+".";
+ });
+});
 var LABEL={draft:"Draft",ready:"Ready",lobby:"Number of participants",running:"Running",paused:"Paused",ended:"Ended",released:"Results released",waiting:"Waiting",started:"Started",stopped:"Stopped"};
 function q(){return "code="+encodeURIComponent(cfg.code)+"&hostkey="+encodeURIComponent(cfg.key)}
 function act(a,extra,cb){
