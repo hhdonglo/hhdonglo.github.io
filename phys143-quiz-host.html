@@ -311,7 +311,7 @@ $("h-proj-close").addEventListener("click",function(){$("h-proj-view").hidden=tr
 document.addEventListener("keydown",function(e){if(e.key==="Escape"&&!$("h-proj-view").hidden)$("h-proj-close").click()});
 $("h-form").addEventListener("submit",function(e){
  e.preventDefault();cfg.code=$("h-code").value.trim().toUpperCase();cfg.key=$("h-key").value.trim();
- if(!cfg.code||!cfg.key){$("h-err").textContent="Enter the join code and the host key.";$("h-err").hidden=false;return}
+ if(!cfg.code||!cfg.key){$("h-err").textContent="Enter the join code and the key.";$("h-err").hidden=false;return}
  $("h-err").hidden=true;refresh(true);
 });
 $("h-initbtn").addEventListener("click",function(){act("init")});
