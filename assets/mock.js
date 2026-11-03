@@ -23,6 +23,7 @@
   };
 
   var app = document.getElementById('quiz-app');
+  if (app) document.body.classList.add('focus');
   if (!app) return;
 
   /* ---------- storage (every access guarded) ---------- */
@@ -61,7 +62,8 @@
   }
   function plain(html) { var d = document.createElement('div'); d.innerHTML = html; return d.textContent; }
   function clip(t, n) { t = plain(String(t == null ? '' : t)).replace(/\s+/g, ' ').trim(); return t.length > n ? t.slice(0, n - 1) + '…' : t; }
-  function clear() { app.innerHTML = ''; document.body.classList.remove('focus'); }
+  function clear() { app.innerHTML = ''; document.body.classList.add('focus'); app.appendChild(el('p', { 'class': 'fun-line' }, "Let's have fun")); }
+  function chrome() { document.body.classList.remove('focus'); var f = app.querySelector('.fun-line'); if (f) f.parentNode.removeChild(f); }
   function pad(n) { return (n < 10 ? '0' : '') + n; }
   function clock(ms) {
     var s = Math.max(0, Math.ceil(ms / 1000)), h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60);
@@ -184,8 +186,6 @@
   function exam(run) {
     stopTick();
     clear();
-    document.body.classList.add('focus');
-    app.appendChild(el('p', { 'class': 'fun-line' }, "Let's have fun"));
     document.title = 'Mock exam | PHYS 143 | Hope Donglo';
     var total = run.ids.length;
     var bar = el('div', { 'class': 'mock-bar' });
@@ -319,7 +319,7 @@
 
   function result(r) {
     stopTick();
-    clear();
+    clear(); chrome();
     document.title = 'Mock exam score | PHYS 143 | Hope Donglo';
     app.appendChild(el('h3', { 'data-focus': '' }, 'Mock exam: your result'));
     app.appendChild(el('p', { 'class': 'score' }, r.score + ' out of ' + r.total));
@@ -364,11 +364,11 @@
   /* ---------- start ---------- */
   if (window.PHYS143_TRACK) window.PHYS143_TRACK.mount(app);
   loadPool(function () {
-    if (!pool || poolSize() === 0) { clear(); app.appendChild(el('p', null, 'The mock exam is not available at the moment.')); return; }
+    if (!pool || poolSize() === 0) { clear(); chrome(); app.appendChild(el('p', null, 'The mock exam is not available at the moment.')); return; }
     var run = store.run;
     if (run && run.ids && run.start && run.ids.every(function (id) { return pool.byId[id]; })) {
       if (run.start + EXAM_MS <= Date.now()) { submit(run, 'time'); return; }
       intro();
     } else { store.run = null; intro(); }
-  }, function () { clear(); app.appendChild(el('p', null, 'The mock exam could not be loaded. Please check your connection and reload the page.')); });
+  }, function () { clear(); chrome(); app.appendChild(el('p', null, 'The mock exam could not be loaded. Please check your connection and reload the page.')); });
 })();

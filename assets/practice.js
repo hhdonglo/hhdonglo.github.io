@@ -17,6 +17,7 @@
   var TYPE_LABEL = { concept: 'Concept', calc: 'Calculation', graph: 'Graph or diagram', misconception: 'Common misconception' };
 
   var app = document.getElementById('quiz-app');
+  if (app) document.body.classList.add('focus');
   if (!app) return;
   var started = false;
   window.PHYS143_QUIZ = window.PHYS143_QUIZ || {};
@@ -70,7 +71,8 @@
     b.addEventListener('click', fn);
     return b;
   }
-  function clear() { app.innerHTML = ''; document.body.classList.remove('focus'); }
+  function clear() { app.innerHTML = ''; document.body.classList.add('focus'); app.appendChild(el('p', { 'class': 'fun-line' }, "Let's have fun")); }
+  function chrome() { document.body.classList.remove('focus'); var f = app.querySelector('.fun-line'); if (f) f.parentNode.removeChild(f); }
   function plain(html) { var d = document.createElement('div'); d.innerHTML = html; return d.textContent; }
   function setTitle() { /* the lecture page keeps its own title */ }
   function focusHeading() {
@@ -125,7 +127,7 @@
   /* ---------- views ---------- */
   function unavailable(n) {
     setTitle(lab(n));
-    clear();
+    clear(); chrome();
     app.appendChild(el('h3', { 'data-focus': '' }, lab(n) + (LECTURES[n] ? ': ' + LECTURES[n] : '')));
     app.appendChild(el('p', null, LECTURES[n]
       ? 'The practice questions for this lecture are not available yet. Please check again later.'
@@ -195,8 +197,6 @@
     var chosen = answered ? run.answers[pos0] : null;
     setTitle(lab(n) + ' question ' + (run.idx + 1));
     clear();
-    document.body.classList.add('focus');
-    app.appendChild(el('p', { 'class': 'fun-line' }, "Let's have fun"));
 
     var total = run.order.length;
     var prog = el('div', { 'class': 'progress' });
@@ -342,7 +342,7 @@
     saveStore();
 
     setTitle(lab(n) + ' score');
-    clear();
+    clear(); chrome();
     app.appendChild(el('h3', { 'data-focus': '' }, lab(n) + ': your score'));
     app.appendChild(el('p', { 'class': 'score' }, score + ' out of ' + total));
     var pct = Math.round(100 * score / total);

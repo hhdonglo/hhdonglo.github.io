@@ -15,7 +15,7 @@
 <script>if(!location.hash){if("scrollRestoration" in history)history.scrollRestoration="manual";window.addEventListener("pageshow",function(){if(!location.hash)window.scrollTo({top:0,left:0,behavior:"instant"})});}</script>
 <script src="assets/quiz-l1-questions.js"></script>
 </head>
-<body>
+<body class="focus">
 <a class="skip" href="#main">Skip to content</a>
 <header class="banner slim">
 <div class="wrap">
@@ -144,7 +144,7 @@ var QS=window.QUIZ_L1||[];
 var L="ABCDE";
 var $=function(i){return document.getElementById(i)};
 var st={name:"",id:"",code:"",ans:[],i:0,t:SECONDS,timer:null,sent:false};
-function show(id){document.body.classList.toggle("focus",id==="s-wait"||id==="s-q");["s-start","s-wait","s-q","s-end"].forEach(function(x){$(x).hidden=(x!==id)});window.scrollTo(0,0)}
+function show(id){document.body.classList.toggle("focus",id!=="s-end");["s-start","s-wait","s-q","s-end"].forEach(function(x){$(x).hidden=(x!==id)});window.scrollTo(0,0)}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 $("f-start").addEventListener("submit",function(e){
  e.preventDefault();
@@ -183,7 +183,6 @@ function gate(){
 }
 function roomShow(m,n,closed){
  if($("s-wait").hidden)show("s-wait");
- document.body.classList.toggle("focus",!closed);
  $("t-wait").textContent="Welcome, "+st.name;
  $("wr-msg").textContent=m||"Your lecturer will start the quiz shortly. This page will begin by itself.";
  $("wr-n").textContent=n?"This quiz has "+n+" question"+(n===1?"":"s")+".":"";
