@@ -15,7 +15,7 @@
 <script>if(!location.hash){if("scrollRestoration" in history)history.scrollRestoration="manual";window.addEventListener("pageshow",function(){if(!location.hash)window.scrollTo({top:0,left:0,behavior:"instant"})});}</script>
 <script src="assets/quiz-l1-questions.js"></script>
 </head>
-<body>
+<body class="focus">
 <a class="skip" href="#main">Skip to content</a>
 <header class="banner slim">
 <div class="wrap">
@@ -27,7 +27,7 @@
 <nav class="jump" id="jump" aria-label="Sections"><div class="wrap"><button type="button" class="menu-btn" aria-expanded="false" aria-controls="jump-links"><span>Menu</span><span class="dots" aria-hidden="true">&#8943;</span></button><div class="links" id="jump-links"><a href="index.html">Home</a><div class="dd" data-key="research.html"><a href="research.html">Research</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Research links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="research.html#questions">Research Questions</a></li><li><a href="research.html#reaction-dynamics">Nuclear Reaction Dynamics</a></li><li><a href="research.html#uncertainty">Uncertainty Quantification</a></li><li><a href="earlier-research.html">Earlier Research</a></li></ul></div><div class="dd" data-key="projects.html"><a href="projects.html">Projects</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Projects links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="kewpie3.html">KEWPIE3</a></li><li><a href="projects.html#research-projects">Current Research</a></li></ul></div><div class="dd" data-key="data-engineering.html"><a href="data-engineering.html">Scientific Computing</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Scientific Computing links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="data-engineering.html#pipelines">Data Engineering</a></li><li><a href="data-engineering.html#retrieval">Machine Learning</a></li><li><a href="data-engineering.html#analysis">Data Analysis</a></li></ul></div><div class="dd" data-key="teaching.html"><a href="teaching.html" aria-current="true">Teaching</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Teaching links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="teaching.html#lecture-courses">Courses</a></li><li><a href="phys143.html#weekly">Lecture Notes</a></li><li><a href="mock-exam.html">Mock exam</a></li></ul></div><div class="dd" data-key="publications.html"><a href="publications.html">Publications</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Publications links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="publications.html#journal-articles">Journal Articles</a></li><li><a href="publications.html#preprints">Preprints</a></li><li><a href="publications.html#theses">Theses</a></li></ul></div><div class="dd" data-key="students.html"><a href="students.html">Students</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Students links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="students.html#undergraduate">Supervision</a></li><li><a href="students.html#research-projects">Project Opportunities</a></li></ul></div><a href="about.html">About</a><a href="cv.html" class="util first">CV</a><a href="contact.html" class="util">Contact</a></div></div></nav>
 <main id="main"><div class="wrap">
 <h2 id="host-title">Lecture 01 — Quiz administration</h2>
-<p class="sec-sub">Private lecturer dashboard. Keep this on your own screen; the projector shows <a id="h-disp" href="phys143-lecture1-display.html" target="_blank" rel="noopener">the display page</a>.</p>
+<p class="sec-sub">Private lecturer dashboard. Keep this on your own screen. Use Projector window below for the class screen.</p>
 <style>
 .host{max-width:62rem;margin:0 auto}
 .host .panel{background:var(--surface);border:1px solid var(--border);border-top:5px solid var(--brown-edge);border-radius:8px;padding:1.1rem 1.3rem;box-shadow:var(--shadow);margin-bottom:1rem}
@@ -56,9 +56,18 @@ header.banner,nav.jump,footer,aside.disclaimer,#host-title,.sec-sub{display:none
 .host .ctlbar{position:sticky;bottom:0;background:var(--surface);padding:.5rem 0;border-top:1px solid var(--border);margin-top:.6rem}
 #h-qr{width:min(65vh,560px)!important;height:min(65vh,560px)!important;max-width:92%}
 .host .note{font:.92rem/1.5 system-ui,sans-serif;color:var(--muted)}
+body.focus header.banner,body.focus nav.jump,body.focus .crumb,body.focus .sec-sub,body.focus aside.disclaimer,body.focus footer,body.focus a.skip{display:none!important}
+body.focus main{padding-top:1rem}
+.host .projbar{display:flex;flex-wrap:wrap;gap:.5rem;margin:0 0 1rem}
+#h-proj-view{position:fixed;inset:0;z-index:50;background:var(--bg,#111);display:flex;flex-direction:column}
+#h-proj-view[hidden]{display:none}
+#h-proj-view iframe{flex:1;border:0;width:100%}
+#h-proj-view button{position:absolute;top:.6rem;right:.6rem;opacity:.55}
+#h-proj-view button:hover,#h-proj-view button:focus{opacity:1}
 .host [hidden]{display:none!important}
 </style>
 <div class="host">
+<div id="h-proj-view" hidden><button class="go alt" type="button" id="h-proj-close">Close projector view</button><iframe id="h-proj-frame" title="Projector view"></iframe></div>
  <section class="panel" id="h-setup">
   <form id="h-form" autocomplete="off">
    <label for="h-code">Join code</label><input type="text" id="h-code" maxlength="30">
@@ -68,6 +77,7 @@ header.banner,nav.jump,footer,aside.disclaimer,#host-title,.sec-sub{display:none
   </form>
  </section>
  <div id="h-main" hidden>
+  <p class="projbar"><button class="go alt" type="button" id="h-proj-win">Projector window</button><button class="go alt" type="button" id="h-proj-here">Show projector view here</button></p>
   <section class="panel" id="h-init" hidden>
    <p>This quiz is not lecturer-controlled yet. Students can still take it the older way. To run it question by question from this screen, switch it on.</p>
    <button class="go" id="h-initbtn">Switch on lecturer control</button>
@@ -235,10 +245,15 @@ setInterval(function(){
  var left=Math.max(0,st.qDeadline-(st.serverNow+(Date.now()-cfg.at))),t=Math.ceil(left/1000);
  el.textContent=Math.floor(t/60)+":"+("0"+t%60).slice(-2);
 },500);
+function dispUrl(){return "phys143-lecture1-display.html?code="+encodeURIComponent(cfg.code)}
+$("h-proj-win").addEventListener("click",function(){window.open(dispUrl(),"phys143-display","popup,width=1280,height=720")});
+$("h-proj-here").addEventListener("click",function(){$("h-proj-frame").src=dispUrl();$("h-proj-view").hidden=false;$("h-proj-close").focus()});
+$("h-proj-close").addEventListener("click",function(){$("h-proj-view").hidden=true;$("h-proj-frame").removeAttribute("src")});
+document.addEventListener("keydown",function(e){if(e.key==="Escape"&&!$("h-proj-view").hidden)$("h-proj-close").click()});
 $("h-form").addEventListener("submit",function(e){
  e.preventDefault();cfg.code=$("h-code").value.trim().toUpperCase();cfg.key=$("h-key").value.trim();
  if(!cfg.code||!cfg.key){$("h-err").textContent="Enter the join code and the host key.";$("h-err").hidden=false;return}
- $("h-err").hidden=true;$("h-disp").href="phys143-lecture1-display.html?code="+encodeURIComponent(cfg.code);refresh(true);
+ $("h-err").hidden=true;refresh(true);
 });
 $("h-initbtn").addEventListener("click",function(){act("init")});
 $("h-stalebtn").addEventListener("click",function(){if(window.confirm("Start a new round? The responses so far are moved to the Archive tab (not deleted) and the quiz goes back to the lobby."))act("newround")});
