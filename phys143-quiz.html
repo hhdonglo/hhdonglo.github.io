@@ -161,7 +161,7 @@ function gate(){
   if(d&&d.known===false){btn.disabled=false;er.textContent="That join code is not correct. Check the code on the screen and try again.";er.hidden=false;return}
   if(!d){btn.disabled=false;er.textContent="Could not reach the class sheet. Check your connection and try again.";er.hidden=false;return}
   var nq=d.totalQ||QS.length;
-  function wait(m){btn.disabled=true;er.hidden=true;if(!st.joined){st.joined=true;join()}roomShow(m,nq);setTimeout(gate,3000)}
+  function wait(m){btn.disabled=true;er.hidden=true;if(!st.joined){st.joined=true;join()}roomShow(m,nq);setTimeout(gate,2000)}
   function stop(m){btn.disabled=false;if(st.joined){roomShow(m,nq,true);return}er.textContent=m;er.hidden=false}
   if(d&&(d.timed||d.paced)){
    var s=d.state;
@@ -172,6 +172,7 @@ function gate(){
    if(!st.joined&&!d.allowLate){stop("This quiz has already started and late joining is closed. Ask your lecturer.");return}
    btn.disabled=false;er.hidden=true;
    if(!st.joined){st.joined=true;join()}
+   roomShow("The quiz has started. Loading your first question.",nq);
    if(d.paced)startPaced(d);else startTimed(d);return}
   var state=d&&d.state?d.state:"started";
   if(state==="stopped"){stop("This quiz is closed. Ask your lecturer.");return}
@@ -196,6 +197,7 @@ function join(kind){
 function startPaced(d){
  st.paced=true;st.curQ=0;st.ended=false;
  jsonp("action=questions&code="+encodeURIComponent(st.code),function(r){
+  if(!r&&(st.qTries=(st.qTries||0)+1)<=4){roomShow("The quiz has started. Loading your first question.",d.totalQ||QS.length);setTimeout(function(){startPaced(d)},1500);return}
   if(r&&r.questions&&r.questions.length)QS=r.questions;
   st.ans=[];for(var i=0;i<QS.length;i++)st.ans.push("");
   join("progress");show("s-q");
