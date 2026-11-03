@@ -70,6 +70,14 @@ aside.disclaimer .sakai-link{font-size:.8rem}
 #review .tag{margin-left:auto;font:600 .8rem system-ui,sans-serif;white-space:nowrap;text-align:right}
 #review .why{border-left:4px solid var(--brown-edge);padding:.3rem .8rem;margin:.8rem 0}
 .try .note{font:.92rem/1.5 system-ui,sans-serif;color:var(--muted)}
+.try .wr{text-align:center;padding:.4rem 0 .2rem}
+.try .wr .hello{font:700 1.4rem system-ui,sans-serif;margin:.2rem 0 .4rem}
+.try .wr .nq{font:600 1rem system-ui,sans-serif;margin:.6rem 0;color:var(--muted)}
+.try .dots{display:flex;justify-content:center;gap:.5rem;margin:1.1rem 0 .5rem}
+.try .dots i{width:12px;height:12px;border-radius:50%;background:var(--brown-fill);opacity:.25;animation:wr 1.2s infinite ease-in-out}
+.try .dots i:nth-child(2){animation-delay:.2s}.try .dots i:nth-child(3){animation-delay:.4s}
+@keyframes wr{0%,80%,100%{opacity:.25;transform:scale(.8)}40%{opacity:1;transform:scale(1.1)}}
+@media (prefers-reduced-motion:reduce){.try .dots i{animation:none;opacity:.6}}
 .try [hidden]{display:none!important}
 </style>
 <div class="try" id="try-app">
@@ -83,6 +91,15 @@ aside.disclaimer .sakai-link{font-size:.8rem}
    <button type="submit" class="go">Join</button>
   </form>
   <details class="note" style="margin-top:.8rem"><summary>How it works</summary><p>Your lecturer shows one question at a time. Choose an answer before the clock runs out. Only your first attempt counts.</p></details>
+ </section>
+ <section class="panel" id="s-wait" aria-labelledby="t-wait" hidden>
+  <div class="wr">
+   <h3 id="t-wait" class="hello">Welcome</h3>
+   <p id="wr-msg" role="status">Your lecturer will start the quiz shortly. This page will begin by itself.</p>
+   <p class="nq" id="wr-n"></p>
+   <div class="dots" id="wr-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+  </div>
+  <details class="note" style="margin-top:.8rem" open><summary>How it works</summary><p>Your lecturer shows one question at a time. Choose an answer before the clock runs out. Only your first attempt counts.</p></details>
  </section>
  <section class="panel" id="s-q" aria-live="polite" hidden>
   <div class="bar"><span id="qn">Question 1 of 5</span><span class="clock" id="clock" role="timer">1:00</span></div>
@@ -121,7 +138,7 @@ var QS=window.QUIZ_L1||[];
 var L="ABCDE";
 var $=function(i){return document.getElementById(i)};
 var st={name:"",id:"",code:"",ans:[],i:0,t:SECONDS,timer:null,sent:false};
-function show(id){["s-start","s-q","s-end"].forEach(function(x){$(x).hidden=(x!==id)});window.scrollTo(0,0)}
+function show(id){["s-start","s-wait","s-q","s-end"].forEach(function(x){$(x).hidden=(x!==id)});window.scrollTo(0,0)}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 $("f-start").addEventListener("submit",function(e){
  e.preventDefault();
@@ -137,25 +154,33 @@ function gate(){
  jsonp("action=status&code="+encodeURIComponent(st.code),function(d){
   if(d&&d.known===false){btn.disabled=false;er.textContent="That join code is not correct. Check the code on the screen and try again.";er.hidden=false;return}
   if(!d){btn.disabled=false;er.textContent="Could not reach the class sheet. Check your connection and try again.";er.hidden=false;return}
-  function wait(m){btn.disabled=true;er.textContent=m;er.hidden=false;if(!st.joined){st.joined=true;join()}setTimeout(gate,3000)}
-  function stop(m){btn.disabled=false;er.textContent=m;er.hidden=false}
+  var nq=d.totalQ||QS.length;
+  function wait(m){btn.disabled=true;er.hidden=true;if(!st.joined){st.joined=true;join()}roomShow(m,nq);setTimeout(gate,3000)}
+  function stop(m){btn.disabled=false;if(st.joined){roomShow(m,nq,true);return}er.textContent=m;er.hidden=false}
   if(d&&(d.timed||d.paced)){
    var s=d.state;
    if(s==="ended"||s==="released"){stop("This quiz is closed. Ask your lecturer.");return}
    if(s==="paused"&&!st.joined){stop("This quiz is paused. Ask your lecturer.");return}
    if(s==="paused"){wait("The quiz is paused by your lecturer. This page will continue by itself.");return}
-   if(s!=="running"){wait("You are in, "+st.name+". Waiting for your lecturer to start the quiz. This page will begin by itself.");return}
+   if(s!=="running"){wait("");return}
    if(!st.joined&&!d.allowLate){stop("This quiz has already started and late joining is closed. Ask your lecturer.");return}
    btn.disabled=false;er.hidden=true;
    if(!st.joined){st.joined=true;join()}
    if(d.paced)startPaced(d);else startTimed(d);return}
   var state=d&&d.state?d.state:"started";
   if(state==="stopped"){stop("This quiz is closed. Ask your lecturer.");return}
-  if(state==="waiting"){wait("You are in, "+st.name+". Waiting for your lecturer to start the quiz. This page will begin by itself.");return}
+  if(state==="waiting"){wait("");return}
   btn.disabled=false;er.hidden=true;
   if(!st.joined){st.joined=true;join()}
   ask();
  });
+}
+function roomShow(m,n,closed){
+ if($("s-wait").hidden)show("s-wait");
+ $("t-wait").textContent="Welcome, "+st.name;
+ $("wr-msg").textContent=m||"Your lecturer will start the quiz shortly. This page will begin by itself.";
+ $("wr-n").textContent=n?"This quiz has "+n+" question"+(n===1?"":"s")+".":"";
+ $("wr-dots").hidden=!!closed;
 }
 function join(kind){
  var b=new URLSearchParams();b.set("kind",kind||"join");b.set("name",st.name);b.set("id",st.id);b.set("code",st.code);
