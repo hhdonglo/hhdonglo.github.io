@@ -80,7 +80,38 @@ function state_(key) { return String(key[7]).trim().toLowerCase() || 'started'; 
 function hostOk_(p) {
   var ks = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(KEY_TAB);
   var hk = ks ? String(ks.getRange(2, 10).getValue()).trim() : '';
-  return !!hk && String(p.hostkey || '').trim() === hk;
+  if (!hk) return false;
+  var cache = CacheService.getScriptCache();
+  var fails = Number(cache.get('hostfails') || 0);
+  if (fails >= 30) return false; // locked for 10 minutes after 30 wrong keys
+  var given = String(p.hostkey || '').trim();
+  var ok;
+  if (hk.indexOf('sha256:') === 0) { // hashed form: sha256:salt:hex
+    var parts = hk.split(':');
+    ok = parts.length === 3 && hashKey_(parts[1], given) === parts[2];
+  } else { // legacy plain key typed in the Sheet
+    ok = given === hk;
+  }
+  if (!ok) cache.put('hostfails', String(fails + 1), 600);
+  return ok;
+}
+
+function hashKey_(salt, key) {
+  var d = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, salt + ':' + key, Utilities.Charset.UTF_8);
+  return d.map(function (b) { return ('0' + (b & 0xff).toString(16)).slice(-2); }).join('');
+}
+
+// Host only: change the host key. Needs the current key; stores salt and hash in Key!J2, never the plain key.
+function setHostKey_(p) {
+  var nk = String(p.newkey || '').trim();
+  if (nk.length < 12 || nk.length > 40) return { ok: false, why: 'new key must be 12 to 40 characters' };
+  if (nk === String(p.hostkey || '').trim()) return { ok: false, why: 'new key must differ from the current key' };
+  var ks = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(KEY_TAB);
+  var salt = Utilities.getUuid();
+  ks.getRange(2, 10).setNumberFormat('@').setValue('sha256:' + salt + ':' + hashKey_(salt, nk));
+  CacheService.getScriptCache().remove('hostfails');
+  log_('host key changed', '', '', '');
+  return { ok: true };
 }
 
 // A join code of the form 2627 + week number (26271 = Week 1, 26272 = Week 2, ..., 262710 = Week 10) is valid
@@ -716,6 +747,13 @@ function doGet(e) {
     }
     if (String(rk[6]).trim().toLowerCase() === 'hidden') return jsonp_(e, { hidden: true, rows: [] });
     return jsonp_(e, { hidden: false, closed: String(rk[6]).trim().toLowerCase() === 'closed', rows: ranking_(code, me) });
+  }
+
+  if (p.action === 'setkey') { // host only; current key required
+    if (!hostOk_(p)) return jsonp_(e, { ok: false, why: 'current key not accepted' });
+    var lk2 = LockService.getScriptLock();
+    lk2.waitLock(20000);
+    try { return jsonp_(e, setHostKey_(p)); } finally { lk2.releaseLock(); }
   }
 
   if (p.action === 'control') { // host only
