@@ -71,15 +71,15 @@ body.focus main{padding-top:1rem}
  <section class="panel" id="h-setup">
   <form id="h-form" autocomplete="off">
    <label for="h-code">Join code</label><input type="text" id="h-code" maxlength="30">
-   <label for="h-key">Host key (the one you set in the Key tab, cell J2)</label><input type="password" id="h-key" maxlength="40" autocomplete="new-password" autocapitalize="none" spellcheck="false">
+   <label for="h-key">Key</label><input type="password" id="h-key" maxlength="40" autocomplete="new-password" autocapitalize="none" spellcheck="false">
    <p><button class="go" type="submit">Open the dashboard</button></p>
    <p class="note" id="h-err" role="alert" hidden></p>
   </form>
-   <details style="margin-top:1rem"><summary>Change the host key</summary>
-    <label for="h-cur">Current host key</label><input type="password" id="h-cur" maxlength="40" autocomplete="new-password" autocapitalize="none" spellcheck="false">
-    <label for="h-new">New host key (12 to 40 characters)</label><input type="password" id="h-new" maxlength="40" autocomplete="new-password" autocapitalize="none" spellcheck="false">
-    <label for="h-new2">Repeat the new host key</label><input type="password" id="h-new2" maxlength="40" autocomplete="new-password" autocapitalize="none" spellcheck="false">
-    <p><button class="go alt" type="button" id="h-setkey">Change the host key</button></p>
+   <details style="margin-top:1rem"><summary>Change the key</summary>
+    <label for="h-cur">Current key</label><input type="password" id="h-cur" maxlength="40" autocomplete="new-password" autocapitalize="none" spellcheck="false">
+    <label for="h-new">New key (12 to 40 characters)</label><input type="password" id="h-new" maxlength="40" autocomplete="new-password" autocapitalize="none" spellcheck="false">
+    <label for="h-new2">Repeat the new key</label><input type="password" id="h-new2" maxlength="40" autocomplete="new-password" autocapitalize="none" spellcheck="false">
+    <p><button class="go alt" type="button" id="h-setkey">Change the key</button></p>
     <p class="note" id="h-keymsg" role="status"></p>
    </details>
  </section>
@@ -195,7 +195,7 @@ $("h-setkey").addEventListener("click",function(){
  o.textContent="Working...";
  jsonp("action=setkey&hostkey="+encodeURIComponent(c)+"&newkey="+encodeURIComponent(n),function(d){
   if(!d){o.textContent="Could not reach the class sheet.";return}
-  if(d.ok){o.textContent="Host key changed. Use the new key from now on.";$("h-cur").value=$("h-new").value=$("h-new2").value=""}
+  if(d.ok){o.textContent="Key changed. Use the new key from now on.";$("h-cur").value=$("h-new").value=$("h-new2").value=""}
   else o.textContent="Not changed: "+(d.why||"refused")+".";
  });
 });
@@ -212,7 +212,7 @@ function setSel(id,v){var e=$(id);if(document.activeElement!==e&&v!=null)e.value
 function refresh(first){
  jsonp("action=host&"+q(),function(d){
   if(!d||!d.ok){
-   if(first){$("h-err").textContent=d?"That join code or host key was not accepted.":"Could not reach the class sheet. Check the connection.";$("h-err").hidden=false}
+   if(first){$("h-err").textContent=d?"That join code or key was not accepted.":"Could not reach the class sheet. Check the connection.";$("h-err").hidden=false}
    else $("h-upd").textContent="Could not refresh just now; trying again.";
    return}
   $("h-setup").hidden=true;$("h-main").hidden=false;
@@ -311,7 +311,7 @@ $("h-proj-close").addEventListener("click",function(){$("h-proj-view").hidden=tr
 document.addEventListener("keydown",function(e){if(e.key==="Escape"&&!$("h-proj-view").hidden)$("h-proj-close").click()});
 $("h-form").addEventListener("submit",function(e){
  e.preventDefault();cfg.code=$("h-code").value.trim().toUpperCase();cfg.key=$("h-key").value.trim();
- if(!cfg.code||!cfg.key){$("h-err").textContent="Enter the join code and the host key.";$("h-err").hidden=false;return}
+ if(!cfg.code||!cfg.key){$("h-err").textContent="Enter the join code and the key.";$("h-err").hidden=false;return}
  $("h-err").hidden=true;refresh(true);
 });
 $("h-initbtn").addEventListener("click",function(){act("init")});
