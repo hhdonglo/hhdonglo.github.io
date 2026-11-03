@@ -321,19 +321,19 @@
     {
       "id": "L1-20",
       "type": "calc",
-      "q": "A crate is pulled 5.0 m along a horizontal floor by a rope that exerts a constant force of 40 N at 60° above the horizontal. What is F · d, the work done by the rope?",
+      "q": "Two vectors <b>A</b> and <b>B</b> have magnitudes 40 m and 5.0 m. The angle between them, with their tails together, is 60°. What is the scalar product <b>A</b> · <b>B</b>?",
       "options": [
-        "173 J",
-        "100 J",
-        "200 J",
-        "−190 J"
+        "173 m²",
+        "100 m²",
+        "200 m²",
+        "−190 m²"
       ],
       "answer": 1,
-      "exp": "Only the component of the force along the displacement contributes: F·d = F d cos θ = (40)(5.0) cos 60° = 100 J. Using sine gives the contribution of the vertical component. Ignoring the angle gives the largest possible value, 200 J. The negative value −190 J comes from a calculator in radian mode.",
-      "ref": "Lecture 1 deck, slide ‘Integrated problem: pulling a crate’",
+      "exp": "The scalar product is A · B = A B cos θ = (40)(5.0) cos 60° = 100 m². Only the part of one vector along the other contributes. Using sine gives the perpendicular part. Ignoring the angle gives the largest possible value, 200 m². The negative value −190 m² comes from a calculator in radian mode.",
+      "ref": "Lecture 1 deck, slide ‘The dot product’",
       "calc": {
         "value": 100.00000000000003,
-        "unit": "J",
+        "unit": "m²",
         "sf": 3
       }
     },
@@ -400,15 +400,15 @@
     {
       "id": "L1-T-A5",
       "type": "calc",
-      "q": "A box is pulled through 12 m along a straight line by a constant 50 N force that makes an angle of 25° with the displacement. How much work does the force do?",
+      "q": "Two vectors <b>A</b> and <b>B</b> have magnitudes 50 m and 12 m. The angle between them, with their tails together, is 25°. What is the scalar product <b>A</b> · <b>B</b>?",
       "options": [
-        "254 J",
-        "544 J",
-        "595 J",
-        "600 J"
+        "254 m²",
+        "544 m²",
+        "595 m²",
+        "600 m²"
       ],
       "answer": 1,
-      "exp": "W = F s cos φ = (50 N)(12 m) cos 25° = 544 J. Only the component of the force along the motion does work, so W is less than Fs = 600 J. The value 595 J comes from a calculator left in radian mode, and 254 J from using sin 25° instead of cos 25°.",
+      "exp": "A · B = A B cos θ = (50 m)(12 m) cos 25° = 544 m². Only the part of one vector along the other contributes, so the result is less than A B = 600 m². The value 595 m² comes from a calculator left in radian mode, and 254 m² from using sin 25° instead of cos 25°.",
       "ref": "Lecture 1 tutorial, worked solution A5",
       "source": "Lecture 1 tutorial, problem A5"
     }

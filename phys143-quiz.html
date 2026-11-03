@@ -90,13 +90,20 @@ body.focus .try .fun{display:block}
  <section class="panel" id="s-start" aria-labelledby="t-start">
   <h3 id="t-start">Join the quiz</h3>
   <form id="f-start" autocomplete="off" novalidate>
-   <label for="in-name">First name</label><input type="text" id="in-name" maxlength="40" placeholder="Ama" required>
+   <label for="in-name">First name <span class="note">(quizzes only)</span></label><input type="text" id="in-name" maxlength="40" placeholder="Ama" required>
    <label for="in-id">Student ID</label><input type="text" id="in-id" maxlength="20" inputmode="numeric" placeholder="ID number" required>
    <label for="in-code">Join code</label><input type="text" id="in-code" maxlength="30" placeholder="Code from the screen" required>
    <p class="note" id="err" role="alert" hidden></p>
    <button type="submit" class="go">Join</button>
   </form>
   <details class="note" style="margin-top:.8rem"><summary>How it works</summary><p>Your lecturer shows one question at a time. Choose an answer before the clock runs out. Only your first attempt counts.</p></details>
+ </section>
+ <section class="panel" id="s-att" aria-labelledby="t-att" hidden>
+  <div class="wr">
+   <h3 id="t-att" class="hello">Attendance recorded</h3>
+   <p role="status">Thank you. Your attendance has been recorded for student ID <b id="att-id"></b>.</p>
+   <p class="note">If that ID is not yours, tell your lecturer. You can close this page.</p>
+  </div>
  </section>
  <section class="panel" id="s-wait" aria-labelledby="t-wait" hidden>
   <div class="wr">
@@ -144,13 +151,13 @@ var QS=window.QUIZ_L1||[];
 var L="ABCDE";
 var $=function(i){return document.getElementById(i)};
 var st={name:"",id:"",code:"",ans:[],i:0,t:SECONDS,timer:null,sent:false};
-function show(id){document.body.classList.toggle("focus",id!=="s-end");["s-start","s-wait","s-q","s-end"].forEach(function(x){$(x).hidden=(x!==id)});window.scrollTo(0,0)}
+function show(id){document.body.classList.toggle("focus",id!=="s-end");["s-start","s-wait","s-q","s-end","s-att"].forEach(function(x){$(x).hidden=(x!==id)});window.scrollTo(0,0)}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 $("f-start").addEventListener("submit",function(e){
  e.preventDefault();
  var n=$("in-name").value.trim(),d=$("in-id").value.trim(),c=$("in-code").value.trim().toUpperCase();
  var er=$("err");
- if(!n||!d||!c){er.textContent="Please fill in your first name, ID and the join code.";er.hidden=false;return}
+ if(!d||!c){er.textContent="Please fill in your student ID and the code. Your first name is needed for quizzes.";er.hidden=false;return}
  er.hidden=true;
  st.name=n;st.id=d;st.code=c;st.ans=[];st.i=0;
  gate();
@@ -160,13 +167,16 @@ function gate(){
  jsonp("action=status&code="+encodeURIComponent(st.code),function(d){
   if(d&&d.known===false){btn.disabled=false;er.textContent="That join code is not correct. Check the code on the screen and try again.";er.hidden=false;return}
   if(!d){btn.disabled=false;er.textContent="Could not reach the class sheet. Check your connection and try again.";er.hidden=false;return}
+  if(d.attendance){doAttend(d,btn,er);return}
+  if(!st.name){btn.disabled=false;er.textContent="Please enter your first name for the quiz.";er.hidden=false;return}
   var nq=d.totalQ||QS.length;
-  function wait(m){btn.disabled=true;er.hidden=true;if(!st.joined){st.joined=true;join()}roomShow(m,nq);setTimeout(gate,2000)}
+  function wait(m){btn.disabled=true;er.hidden=true;if(!st.joined){st.joined=true;join()}roomShow(m,nq);setTimeout(gate,4000+Math.floor(Math.random()*2000))}
   function stop(m){btn.disabled=false;if(st.joined){roomShow(m,nq,true);return}er.textContent=m;er.hidden=false}
   if(d&&(d.timed||d.paced)){
    var s=d.state;
    if(s==="ended"||s==="released"){stop("This quiz is closed. Ask your lecturer.");return}
    if(s==="paused"&&!st.joined){stop("This quiz is paused. Ask your lecturer.");return}
+   if((s==="ready"||s==="draft")&&!st.joined){stop("This quiz is not open yet. Check the join code with your lecturer, or try again when the lobby is open.");return}
    if(s==="paused"){wait("The quiz is paused by your lecturer. This page will continue by itself.");return}
    if(s!=="running"){wait("");return}
    if(!st.joined&&!d.allowLate){stop("This quiz has already started and late joining is closed. Ask your lecturer.");return}
@@ -182,6 +192,15 @@ function gate(){
   ask();
  });
 }
+function doAttend(d,btn,er){ // an attendance code: only the student ID is used; the lecturer closes the session
+ if(d.state!=="open"){btn.disabled=false;er.textContent="Attendance for this code is closed.";er.hidden=false;return}
+ btn.disabled=true;er.hidden=true;
+ jsonp("action=attend&code="+encodeURIComponent(st.code)+"&id="+encodeURIComponent(st.id),function(r){
+  if(!r){btn.disabled=false;er.textContent="Could not reach the class sheet. Check your connection and try again.";er.hidden=false;return}
+  if(!r.ok){btn.disabled=false;er.textContent=r.why==="closed"?"Attendance for this code is closed.":(r.why==="bad id"?"That does not look like a student ID. Check it and try again.":"That code is not correct.");er.hidden=false;return}
+  $("att-id").textContent=r.id;show("s-att");
+ });
+}
 function roomShow(m,n,closed){
  if($("s-wait").hidden)show("s-wait");
  $("t-wait").textContent="Welcome, "+st.name;
@@ -191,7 +210,8 @@ function roomShow(m,n,closed){
 }
 function join(kind){
  var b=new URLSearchParams();b.set("kind",kind||"join");b.set("name",st.name);b.set("id",st.id);b.set("code",st.code);
- try{fetch(SCRIPT_URL,{method:"POST",mode:"no-cors",body:b}).catch(function(){})}catch(x){}
+ var send=function(){try{fetch(SCRIPT_URL,{method:"POST",mode:"no-cors",body:b}).catch(function(){})}catch(x){}};
+ if((kind||"join")==="join")setTimeout(send,Math.floor(Math.random()*4000));else send(); // a whole class joins at once, so spread the joins over a few seconds
 }
 // ---- lecturer-paced mode: the lecturer moves the whole class from question to question ----
 function startPaced(d){
@@ -204,7 +224,7 @@ function startPaced(d){
   $("prev").hidden=true;$("next").hidden=true;
   applyPaced(d);
   clearInterval(st.timer);clearInterval(st.poll);
-  st.timer=setInterval(pacedTick,500);st.poll=setInterval(pacedPoll,2000);
+  st.timer=setInterval(pacedTick,500);setTimeout(function(){if(!st.ended){clearInterval(st.poll);st.poll=setInterval(pacedPoll,3500)}},Math.floor(Math.random()*3000)); // spread 200 phones over the interval
  });
 }
 function pacedClosed(){
@@ -284,7 +304,7 @@ function endPaced(){
  $("t-end").textContent="The quiz has ended";
  $("end-msg").hidden=false;$("end-msg").textContent="Checking your result.";
  setTimeout(function(){poll(0)},1500);
- pollReview();clearInterval(st.rev);st.rev=setInterval(pollReview,3000);
+ setTimeout(pollReview,Math.floor(Math.random()*3000));clearInterval(st.rev);st.rev=setInterval(pollReview,5000);
 }
 // ---- lecturer-controlled mode: one clock for the whole quiz, set and checked by the server ----
 function startTimed(d){
@@ -292,7 +312,7 @@ function startTimed(d){
  applyStatus(d);join("progress");
  $("prev").hidden=false;show("s-q");renderTimed();
  clearInterval(st.timer);clearInterval(st.poll);
- st.timer=setInterval(timedTick,500);st.poll=setInterval(timedPoll,3000);
+ st.timer=setInterval(timedTick,500);st.poll=setInterval(timedPoll,4000);
 }
 function applyStatus(d){
  st.off=d.serverNow-Date.now();st.endT=d.endTime;st.paused=d.state==="paused";st.remain=d.remainingMs;st.total=(d.duration||1)*60000;

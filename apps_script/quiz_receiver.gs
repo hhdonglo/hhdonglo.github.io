@@ -1,7 +1,7 @@
 // PHYS 143 quiz receiver. Bound to the "PHYS 143 Quizzes (Responses)" Sheet.
 //
 // Tabs: Form Responses 1 (Timestamp, First Name, ID, Join Code, Q1 to Q5, Score), Key (private), Quiz_Control (private),
-//       Presence, Log, Reports, Attempts.
+//       Presence, Log, Reports, Attempts, Roster, Attendance_Control, Attendance_Log, Attendance, Not_On_List (attendance check-in, see the Attendance section), Master (one row per student, one column per quiz; a new try replaces that cell; switch Key!L2 = On or Off).
 // Key: Join Code | Q1 to Q5 (correct letters) | Ranking (Hidden hides it) | State (legacy: Waiting, Started, Stopped) ... J2 = host key.
 // Quiz_Control (one row per lecturer-controlled quiz, written by the host dashboard; the server is the authority):
 //   join_code | status | duration_min | end_time_ms | remaining_ms | allow_late_join | show_score | show_leaderboard | message | title | updated
@@ -92,13 +92,17 @@ function weekFromCode_(code) {
 }
 
 function keyRow_(code) {
+  var kc = null, kk = 'key:' + code;
+  try { kc = CacheService.getScriptCache(); var kh = kc.get(kk); if (kh) return JSON.parse(kh); } catch (err) { kc = null; }
   var ks = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(KEY_TAB);
   if (!ks || ks.getLastRow() < 2) return null;
-  var rows = ks.getRange(2, 1, ks.getLastRow() - 1, 8).getValues();
+  var rows = ks.getRange(2, 1, ks.getLastRow() - 1, 8).getValues(), found = null;
   for (var i = 0; i < rows.length; i++) {
-    if (String(rows[i][0]).trim().toUpperCase() === code) return rows[i];
+    if (String(rows[i][0]).trim().toUpperCase() === code) { found = rows[i]; break; }
   }
-  return weekFromCode_(code) ? [code, '', '', '', '', '', 'Open', ''] : null;
+  if (!found && weekFromCode_(code)) found = [code, '', '', '', '', '', 'Open', ''];
+  if (found && kc) { try { kc.put(kk, JSON.stringify(found), 20); } catch (err) { /* cache only */ } } // a Key edit shows within 20 s
+  return found;
 }
 
 // The responses tab: by name, else the first tab whose header row starts Timestamp, First Name; else created.
@@ -106,6 +110,72 @@ function keyRow_(code) {
 function rowFor_(ts, name, id, code, ans, score, rnd, n, week) {
   var f = []; for (var i = 0; i < 5; i++) f.push(ans[i] || '');
   return [ts, name, id, code].concat(f, [score, rnd, n, ans.map(function (a) { return a || '-'; }).join(''), week || '']);
+}
+
+// ---------- Master: one sheet for all quizzes, one row per student, one column per quiz ----------
+// Tab "Master": Student ID | Name | Last updated | then one column per quiz, added automatically the first time that quiz is seen:
+//   live quizzes "Week N" (or "Quiz <code>" for a code with no week), practice pages "Practice N" ("Practice Intro" for the introduction),
+//   and "Mock exam". A new try by the same student replaces that quiz's cell ("score / out of"); students are matched by ID.
+// Switch: Key!L2 = On (default) or Off.
+var MASTER_TAB = 'Master';
+
+function masterOn_() {
+  try {
+    var ks = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(KEY_TAB);
+    return !ks || String(ks.getRange(2, 12).getValue()).trim().toLowerCase() !== 'off';
+  } catch (err) { return true; }
+}
+
+function masterLabel_(quiz) { // a practice or mock quiz name from the pages -> its column, or '' when it should not be recorded
+  var q = String(quiz || '').trim();
+  if (/mock/i.test(q)) return 'Mock exam';
+  if (/\(missed/i.test(q)) return ''; // a run of only the missed questions is not a full attempt
+  var m = /^Lecture\s+(\d+)/i.exec(q);
+  if (m) return 'Practice ' + Number(m[1]);
+  if (/^Introduction/i.test(q)) return 'Practice Intro';
+  return q ? 'Practice ' + q : '';
+}
+
+// entries: [{id, name, label, score, n}]. Rows are matched by ID, columns by header text (created when missing), the cell is overwritten.
+function updateMaster_(entries) {
+  try {
+    if (!entries.length || !masterOn_()) return;
+    var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(MASTER_TAB) || ss.insertSheet(MASTER_TAB);
+    if (sh.getLastRow() === 0) { sh.getRange(1, 1, 1, 3).setValues([['Student ID', 'Name', 'Last updated']]); sh.setFrozenRows(1); sh.setFrozenColumns(2); }
+    entries.forEach(function (e) {
+      var id = String(e.id || '').trim(), label = String(e.label || '').trim();
+      if (!id || !label) return;
+      var lastCol = Math.max(3, sh.getLastColumn()), head = sh.getRange(1, 1, 1, lastCol).getValues()[0].map(function (h) { return String(h).trim(); });
+      var col = head.indexOf(label) + 1;
+      if (col < 4) { col = lastCol + 1; sh.getRange(1, col).setValue(label); } // never matches the three fixed columns
+      var n = sh.getLastRow(), row = 0;
+      if (n > 1) {
+        var ids = sh.getRange(2, 1, n - 1, 1).getValues();
+        for (var i = 0; i < ids.length; i++) if (String(ids[i][0]).trim() === id) { row = i + 2; break; }
+      }
+      if (!row) { row = n + 1; sh.getRange(row, 1).setNumberFormat('@').setValue(id); }
+      if (e.name) sh.getRange(row, 2).setValue(e.name);
+      sh.getRange(row, 3).setValue(new Date());
+      sh.getRange(row, col).setValue(e.score + ' / ' + e.n);
+    });
+  } catch (err) { /* the master sheet must never stop a submission */ }
+}
+
+// Run once from the editor to fill Master from the live quizzes already in Form Responses 1 (the latest round for each student and quiz wins).
+function rebuildMaster() {
+  var rs = responses_(), n = rs.getLastRow();
+  if (n < 2) return 'No responses yet.';
+  var data = rs.getRange(2, 1, n - 1, 14).getValues(), latest = {}, entries = [];
+  data.forEach(function (r) { // Timestamp, Name, ID, Code, Q1 to Q5, Score, Round, Questions, Answers, Week
+    var id = String(r[2]).trim(), code = String(r[3]).trim().toUpperCase();
+    if (!id || !code || r[9] === '') return;
+    var week = Number(r[13]) || 0, k = id + '|' + (week ? 'W' + week : code), rnd = Number(r[10]) || 0, ts = new Date(r[0]).getTime() || 0;
+    var cur = latest[k];
+    if (!cur || rnd > cur.rnd || (rnd === cur.rnd && ts >= cur.ts)) latest[k] = { rnd: rnd, ts: ts, id: id, name: String(r[1]), label: week ? 'Week ' + week : 'Quiz ' + code, score: Number(r[9]), n: Number(r[11]) || 5 };
+  });
+  Object.keys(latest).forEach(function (k) { var x = latest[k]; entries.push({ id: x.id, name: x.name, label: x.label, score: x.score, n: x.n }); });
+  updateMaster_(entries);
+  return 'Master updated with ' + entries.length + ' results.';
 }
 
 function parseAnswers_(row) { // from a stored row [ID, Join Code, Q1..Q5, Score, Round, N, Answers]
@@ -143,6 +213,11 @@ function setup() {
   if (ks.getLastRow() < 2) ks.appendRow(['2627', '', '', '', '', '', 'Open']);
   ks.getRange(1, 11).setValue('Totals count (Best or Latest)');
   if (!String(ks.getRange(2, 11).getValue()).trim()) ks.getRange(2, 11).setValue('Best');
+  ks.getRange(1, 12).setValue('Master sheet (On or Off)');
+  if (!String(ks.getRange(2, 12).getValue()).trim()) ks.getRange(2, 12).setValue('On');
+  var rost = ss.getSheetByName(ROSTER_TAB) || ss.insertSheet(ROSTER_TAB); // private: paste Student ID and Name here for attendance
+  if (rost.getLastRow() === 0) rost.getRange(1, 1, 1, 2).setValues([['Student ID', 'Name']]);
+  attSheet_();
   controlSheet_();
   var xs = ss.getSheetByName(EXPL_TAB) || ss.insertSheet(EXPL_TAB);
   if (xs.getLastRow() === 0) xs.appendRow(['Join Code', 'Question', 'Explanation']);
@@ -178,12 +253,29 @@ function controlSheet_() {
 }
 
 // Returns {sh, row, v} for a code, or null when the quiz has no control row (older behaviour).
-function ctl_(code) {
+// Reads are cached for a few seconds so that hundreds of students polling at once do not each read the sheet. Every ctlSave_ clears the cache,
+// so lecturer actions take effect at once. ctl_(code, true) skips the cache (used by lecturer actions that change state).
+function ctl_(code, fresh) {
+  var cache = null, ck = 'ctl:' + code;
+  try { cache = CacheService.getScriptCache(); } catch (err) { cache = null; }
+  if (cache && !fresh) {
+    var raw = cache.get(ck);
+    if (raw) {
+      try {
+        var o = JSON.parse(raw);
+        Object.defineProperty(o, 'sh', { get: function () { return SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONTROL_TAB); } });
+        return o;
+      } catch (err) { /* fall through to the sheet */ }
+    }
+  }
   var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONTROL_TAB);
   if (!sh || sh.getLastRow() < 2) return null;
   var rows = sh.getRange(2, 1, sh.getLastRow() - 1, CTL_HEADER.length).getValues();
   for (var i = 0; i < rows.length; i++) {
-    if (String(rows[i][0]).trim().toUpperCase() === code) return { sh: sh, row: i + 2, v: rows[i] };
+    if (String(rows[i][0]).trim().toUpperCase() === code) {
+      if (cache) { try { cache.put(ck, JSON.stringify({ row: i + 2, v: rows[i] }), 8); } catch (err) { /* caching is an optimisation */ } }
+      return { sh: sh, row: i + 2, v: rows[i] };
+    }
   }
   return null;
 }
@@ -191,6 +283,7 @@ function ctl_(code) {
 function ctlSave_(c) {
   c.v[10] = new Date().toISOString();
   c.sh.getRange(c.row, 1, 1, CTL_HEADER.length).setValues([c.v]);
+  try { var k = String(c.v[0]).trim().toUpperCase(); CacheService.getScriptCache().removeAll(['ctl:' + k, 'st:' + k]); } catch (err) { /* cache only */ }
 }
 
 // ready, lobby, running, paused, ended, released, draft; a Running quiz past its deadline reads as ended.
@@ -257,6 +350,14 @@ function shuffle_(arr, seedStr) { // the same seed always gives the same order
 }
 
 // Choose the questions for this run: inline quizzes use their own list; others draw N from the pool, a fresh draw each round.
+// After "reset, same questions" the next Start keeps the questions already chosen for this code (one use, tied to the round).
+function keepQs_(code, c) {
+  var props = PropertiesService.getScriptProperties(), k = 'keep:' + code;
+  var ok = props.getProperty(k) === String(Number(c.v[16]) || 0) && qids_(c).length === quizN_(c);
+  props.deleteProperty(k);
+  return ok;
+}
+
 function chooseQuestions_(code, c) {
   var e = null; try { e = liveEntry_(code, c); } catch (err) { /* offline: fall back to five generic slots */ }
   if (!e) { c.v[18] = 5; c.v[19] = ''; return; }
@@ -292,13 +393,13 @@ function mark_(letters, row) { // [1,0,...] for each question, without revealing
 function ctlAct_(p, code) {
   var key = keyRow_(code);
   if (!key) return { ok: false, why: 'no such code' };
-  var act = String(p.act || '').toLowerCase(), c = ctl_(code), now = Date.now();
+  var act = String(p.act || '').toLowerCase(), c = ctl_(code, true), now = Date.now();
   if (act === 'init') {
     if (c) return { ok: true, status: ctlStatus_(c) };
     var sh = controlSheet_();
     sh.appendRow([code, 'Ready', 10, 0, 10 * 60000, 'Yes', 'OnRelease', 'OnRelease', '', '', new Date().toISOString(), 0, 60, 0, 0, 'paced', 0, 0, 5, '', weekFromCode_(code) || 1]);
     log_('control:init', 'host', '', code);
-    return { ok: true, status: ctlStatus_(ctl_(code)) };
+    return { ok: true, status: ctlStatus_(ctl_(code, true)) };
   }
   if (!c) return { ok: false, why: 'not lecturer-controlled yet' };
   var s = eff_(c), dur = (Number(c.v[2]) || 10) * 60000, min = Math.max(0, Math.min(60, Number(p.min) || 0)) * 60000, detail = '';
@@ -308,7 +409,7 @@ function ctlAct_(p, code) {
   else if (act === 'start') {
     if (['ready', 'lobby', 'draft'].indexOf(s) < 0) return { ok: false, why: 'can only start from Ready or Lobby (now ' + s + ')' };
     c.v[1] = 'Running'; c.v[3] = now + dur; c.v[4] = dur;
-    if (pc) { chooseQuestions_(code, c); c.v[11] = 1; c.v[13] = qms ? now + qms : 0; detail = 'question 1'; }
+    if (pc) { if (!keepQs_(code, c)) chooseQuestions_(code, c); c.v[11] = 1; c.v[13] = qms ? now + qms : 0; detail = 'question 1'; }
   }
   else if (act === 'next') { // paced only: move the whole class on
     if (!pc || s !== 'running') return { ok: false, why: 'start the quiz first' };
@@ -352,6 +453,16 @@ function ctlAct_(p, code) {
   else if (act === 'reset') { // before it starts only; submissions are never deleted
     if (['draft', 'ready', 'lobby'].indexOf(s) < 0) return { ok: false, why: 'cannot reset after it has started' };
     c.v[1] = 'Ready'; c.v[3] = 0; c.v[4] = dur; c.v[11] = 0; c.v[13] = 0;
+  }
+  else if (act === 'restart' || act === 'restartsame') { // stop and reset from any state: the answers so far are compiled, then a new round starts in the lobby
+    if ((s === 'running' || s === 'paused') && pc) finalize_(code);
+    var ps2 = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(PRESENCE_TAB);
+    if (ps2) for (var pj = ps2.getLastRow(); pj >= 2; pj--) if (String(ps2.getRange(pj, 4).getValue()).trim().toUpperCase() === code) ps2.deleteRow(pj);
+    var sameQs = act === 'restartsame' && qids_(c).length > 0 && qids_(c).length === quizN_(c);
+    c.v[16] = (Number(c.v[16]) || 0) + 1; c.v[1] = 'Lobby'; c.v[3] = 0; c.v[4] = dur; c.v[11] = 0; c.v[13] = 0; c.v[14] = 0; c.v[8] = ''; c.v[17] = 0;
+    var props = PropertiesService.getScriptProperties();
+    if (sameQs) props.setProperty('keep:' + code, String(c.v[16])); else props.deleteProperty('keep:' + code);
+    detail = 'round ' + c.v[16] + (sameQs ? ', same questions' : ', new questions');
   }
   else if (act === 'newround') { // student records are kept; a new round starts the class ranking again from zero
     var ps = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(PRESENCE_TAB);
@@ -417,12 +528,15 @@ function finalize_(code) {
     var seen = sh.getRange(2, 3, n - 1, 9).getValues(); // ID, Join Code, ..., Round
     for (var j = 0; j < seen.length; j++) if (String(seen[j][1]).trim().toUpperCase() === code && (Number(seen[j][8]) || 0) === rnd) have[String(seen[j][0]).trim()] = j + 2;
   }
+  var logRows = []; // entries for the Master sheet
   Object.keys(got).forEach(function (id) {
-    var a = got[id], score = mark_(letters, a.ans).reduce(function (x, y) { return x + y; }, 0), rw = rowFor_(new Date(), a.name, id, code, a.ans, score, rnd, nq, wk);
+    var a = got[id], marks = mark_(letters, a.ans), score = marks.reduce(function (x, y) { return x + y; }, 0), rw = rowFor_(new Date(), a.name, id, code, a.ans, score, rnd, nq, wk);
+    logRows.push({ id: id, name: a.name, label: wk ? 'Week ' + wk : 'Quiz ' + code, score: score, n: nq });
     if (have[id]) sh.getRange(have[id], 5, 1, 10).setValues([rw.slice(4)]); // a reopened quiz is compiled again
     else sh.appendRow(rw);
     presence_(code, id, a.name, 'submitted');
   });
+  updateMaster_(logRows);
   totalsSafe_();
 }
 
@@ -508,6 +622,120 @@ function hasPresence_(code, id) {
   return false;
 }
 
+// ---------- Attendance: a check-in code, the student enters an ID, 1 if present, 0 when the session is closed ----------
+// Tabs (all private): Roster (Student ID | Name, pasted from attendance-list.csv columns A and B), Attendance_Control (one row per session:
+// Code | Label | Status | Opened | Closed), Attendance_Log (every check-in), Attendance (one row per rostered student, one column per session,
+// "Attendance Wk N [1]" = 1 present, 0 absent, the format the Sakai gradebook imports), Not_On_List (IDs that checked in but are not on the roster).
+// The lecturer opens a session from the host page with a code to announce in class; students enter that code and their ID on the quiz page.
+var ROSTER_TAB = 'Roster', ATT_CTL_TAB = 'Attendance_Control', ATT_LOG_TAB = 'Attendance_Log', ATT_TAB = 'Attendance', NOTLIST_TAB = 'Not_On_List';
+
+function normId_(s) { return String(s == null ? '' : s).replace(/\D/g, ''); }
+
+function rosterRows_() { // [[id, name], ...] straight from the Roster tab
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ROSTER_TAB);
+  if (!sh || sh.getLastRow() < 1) return [];
+  var v = sh.getRange(1, 1, sh.getLastRow(), 2).getValues(), out = [];
+  v.forEach(function (r) { var id = normId_(r[0]); if (id.length >= 4) out.push([id, String(r[1] || '').trim()]); }); // the header row has no digits and is skipped
+  return out;
+}
+
+function rosterSet_() { // {id: 1}, cached for five minutes
+  var cache = null; try { cache = CacheService.getScriptCache(); var h = cache.get('roster'); if (h) return JSON.parse(h); } catch (err) { cache = null; }
+  var set = {}; rosterRows_().forEach(function (r) { set[r[0]] = 1; });
+  if (cache) { try { cache.put('roster', JSON.stringify(set), 300); } catch (err) { /* roster larger than the cache limit: read the sheet each time */ } }
+  return set;
+}
+
+function attSheet_() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(ATT_CTL_TAB);
+  if (!sh) { sh = ss.insertSheet(ATT_CTL_TAB); sh.appendRow(['Code', 'Label', 'Status', 'Opened', 'Closed']); }
+  return sh;
+}
+
+function attRows_() { // [{row, code, label, status}]
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_CTL_TAB);
+  if (!sh || sh.getLastRow() < 2) return [];
+  return sh.getRange(2, 1, sh.getLastRow() - 1, 3).getValues().map(function (r, i) { return { row: i + 2, code: String(r[0]).trim().toUpperCase(), label: String(r[1]), status: String(r[2]).trim() }; });
+}
+
+function attByCode_(code) { // the session with this code, or null; cached a few seconds (also caches "none", since every unknown code asks)
+  if (!code) return null;
+  var cache = null, k = 'att:' + code;
+  try { cache = CacheService.getScriptCache(); var h = cache.get(k); if (h) return h === '0' ? null : JSON.parse(h); } catch (err) { cache = null; }
+  var found = null; attRows_().forEach(function (r) { if (r.code === code) found = r; });
+  if (cache) { try { cache.put(k, found ? JSON.stringify(found) : '0', 5); } catch (err) { /* cache only */ } }
+  return found;
+}
+
+function attColumn_(label) {
+  var l = String(label || '').trim(), m = /^(?:wk|week)?\s*(\d+)$/i.exec(l);
+  return m ? 'Attendance Wk ' + Number(m[1]) + ' [1]' : 'Attendance ' + (l || Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd')) + ' [1]';
+}
+
+function attPresent_(label) { // {id: true} for one session, from the log
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_LOG_TAB), got = {};
+  if (!sh || sh.getLastRow() < 2) return got;
+  sh.getRange(2, 1, sh.getLastRow() - 1, 3).getValues().forEach(function (r) { if (String(r[1]) === label) got[normId_(r[2])] = true; });
+  return got;
+}
+
+function attStatus_() { // the open session if there is one, else the latest, with live counts
+  var rows = attRows_(), cur = null;
+  rows.forEach(function (r) { if (r.status === 'Open') cur = r; });
+  if (!cur && rows.length) cur = rows[rows.length - 1];
+  if (!cur) return { ok: true, session: null };
+  var present = attPresent_(cur.label), roster = {}; rosterRows_().forEach(function (r) { roster[r[0]] = 1; });
+  var on = 0, off = 0; Object.keys(present).forEach(function (id) { if (roster[id]) on++; else off++; });
+  return { ok: true, session: { code: cur.code, label: cur.label, status: cur.status, present: on, notOnList: off, rosterSize: Object.keys(roster).length } };
+}
+
+function attOpen_(p) {
+  var rows = attRows_(), open = null; rows.forEach(function (r) { if (r.status === 'Open') open = r; });
+  if (open) return { ok: false, why: 'a session is already open: close it first', session: { code: open.code, label: open.label } };
+  if (!rosterRows_().length) return { ok: false, why: 'the Roster tab is empty: paste Student ID and Name into it first' };
+  var code = String(p.acode || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12);
+  if (code && code.length < 3) return { ok: false, why: 'the code needs at least 3 letters or digits' };
+  var used = function (c) { return !!keyRow_(c) || rows.some(function (r) { return r.code === c; }); };
+  if (code && used(code)) return { ok: false, why: 'that code is already used by a quiz or an earlier session' };
+  for (var t = 0; !code && t < 50; t++) { var c = String(1000 + Math.floor(Math.random() * 9000)); if (!used(c)) code = c; }
+  if (!code) return { ok: false, why: 'could not find a free code' };
+  var label = clean_(p.label, 40) || Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd');
+  attSheet_().appendRow([code, label, 'Open', new Date().toISOString(), '']);
+  try { CacheService.getScriptCache().remove('att:' + code); } catch (err) { /* cache only */ }
+  log_('attendance:open', label, '', code);
+  return { ok: true, session: { code: code, label: label, status: 'Open', present: 0, notOnList: 0 } };
+}
+
+function attClose_() {
+  var rows = attRows_(), cur = null; rows.forEach(function (r) { if (r.status === 'Open') cur = r; });
+  if (!cur) return { ok: false, why: 'no attendance session is open' };
+  var present = attPresent_(cur.label), roster = rosterRows_(), col = attColumn_(cur.label), ss = SpreadsheetApp.getActiveSpreadsheet();
+  var as = ss.getSheetByName(ATT_TAB) || ss.insertSheet(ATT_TAB);
+  if (as.getLastRow() === 0) { as.getRange(1, 1, 1, 2).setValues([['Student ID', 'Name']]); as.setFrozenRows(1); }
+  var head = as.getRange(1, 1, 1, Math.max(2, as.getLastColumn())).getValues()[0].map(function (h) { return String(h).trim(); });
+  var ci = head.indexOf(col) + 1; if (ci < 3) { ci = head.length + 1; as.getRange(1, ci).setValue(col); }
+  var have = {}, n = as.getLastRow();
+  if (n > 1) as.getRange(2, 1, n - 1, 1).getValues().forEach(function (r, i) { have[normId_(r[0])] = i + 2; });
+  var add = []; roster.forEach(function (r) { if (!have[r[0]]) { have[r[0]] = 1; add.push([r[0], r[1]]); } });
+  if (add.length) { as.getRange(as.getLastRow() + 1, 1, add.length, 1).setNumberFormat('@'); as.getRange(as.getLastRow() + 1, 1, add.length, 2).setValues(add); }
+  n = as.getLastRow();
+  var ids = n > 1 ? as.getRange(2, 1, n - 1, 1).getValues() : [], vals = ids.map(function (r) { return [present[normId_(r[0])] ? 1 : 0]; });
+  if (vals.length) as.getRange(2, ci, vals.length, 1).setValues(vals);
+  var onList = {}; roster.forEach(function (r) { onList[r[0]] = 1; });
+  var offIds = Object.keys(present).filter(function (id) { return !onList[id]; }), nl = ss.getSheetByName(NOTLIST_TAB);
+  if (offIds.length) {
+    if (!nl) { nl = ss.insertSheet(NOTLIST_TAB); nl.appendRow(['Timestamp', 'Session', 'Student ID']); nl.setFrozenRows(1); }
+    var seen = {}; if (nl.getLastRow() > 1) nl.getRange(2, 2, nl.getLastRow() - 1, 2).getValues().forEach(function (r) { seen[String(r[0]) + '|' + normId_(r[1])] = true; });
+    var rowsNl = offIds.filter(function (id) { return !seen[cur.label + '|' + id]; }).map(function (id) { return [new Date(), cur.label, id]; });
+    if (rowsNl.length) { var r0 = nl.getLastRow() + 1; nl.getRange(r0, 3, rowsNl.length, 1).setNumberFormat('@'); nl.getRange(r0, 1, rowsNl.length, 3).setValues(rowsNl).setBackground('#f4c7c3'); }
+  }
+  var sh = attSheet_(); sh.getRange(cur.row, 3).setValue('Closed'); sh.getRange(cur.row, 5).setValue(new Date().toISOString());
+  try { CacheService.getScriptCache().remove('att:' + cur.code); } catch (err) { /* cache only */ }
+  var pres = 0; roster.forEach(function (r) { if (present[r[0]]) pres++; });
+  log_('attendance:close', cur.label, '', cur.code);
+  return { ok: true, session: { code: cur.code, label: cur.label, status: 'Closed', present: pres, absent: roster.length - pres, notOnList: offIds.length, column: col } };
+}
+
 // ---------- POST: answers, joins, progress, reports, attempts ----------
 
 function doPost(e) {
@@ -526,6 +754,7 @@ function doPost(e) {
         if (!clean_(p.id, 30)) return out_('missing');
         append_('Attempts', ['Timestamp', 'Student ID', 'Quiz', 'Attempt', 'Score', 'Total', 'Seconds', 'Wrong question ids'],
           [new Date(), clean_(p.id, 30), clean_(p.quiz, 80), clean_(p.attempt, 10), clean_(p.score, 10), clean_(p.total, 10), clean_(p.seconds, 10), clean_(p.wrong, 300)]);
+        updateMaster_([{ id: clean_(p.id, 30), name: '', label: masterLabel_(clean_(p.quiz, 80)), score: Number(p.score) || 0, n: Number(p.total) || 0 }]);
       }
       return out_('ok');
     } finally {
@@ -550,7 +779,7 @@ function doPost(e) {
   if (p.kind === 'join' || p.kind === 'progress') { // lobby and live participation
     if (!name || !id || !keyRow_(code)) return out_('ok');
     var lj = LockService.getScriptLock();
-    lj.waitLock(20000);
+    lj.waitLock(60000); // a whole class joining at once queues here
     try {
       var cj = ctl_(code), sj = cj ? eff_(cj) : 'running';
       if (cj && !allowLate_(cj) && (sj === 'running' || sj === 'paused') && !hasPresence_(code, id)) return out_('late');
@@ -585,21 +814,24 @@ function doPost(e) {
     var sh = responses_();
     var n = sh.getLastRow();
     var rnd = roundOf_(code);
-    if (n > 1) { // first attempt per ID and join code in this round only
-      var seen = sh.getRange(2, 3, n - 1, 9).getValues();
-      for (var j = 0; j < seen.length; j++) {
-        if (String(seen[j][0]).trim() === id && String(seen[j][1]).trim().toUpperCase() === code && (Number(seen[j][8]) || 0) === rnd) return fin_('duplicate');
-      }
-    }
     var ans = [];
     for (var q = 1; q <= 5; q++) {
       var a = String(p['q' + q] || '').trim().toUpperCase();
       ans.push(LETTERS.indexOf(a) >= 0 ? a : '');
     }
-    var score = mark_(lettersFor_(code, null), ans).reduce(function (x, y) { return x + y; }, 0);
+    var marks = mark_(lettersFor_(code, null), ans), score = marks.reduce(function (x, y) { return x + y; }, 0);
+    if (n > 1) { // first attempt per ID and join code in this round only
+      var seen = sh.getRange(2, 3, n - 1, 9).getValues();
+      for (var j = 0; j < seen.length; j++) {
+        if (String(seen[j][0]).trim() === id && String(seen[j][1]).trim().toUpperCase() === code && (Number(seen[j][8]) || 0) === rnd) {
+          return fin_('duplicate');
+        }
+      }
+    }
     if (n === 0) sh.appendRow(['Timestamp', 'First Name', 'ID', 'Join Code', 'Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Score', 'Round', 'Questions', 'Answers', 'Week']);
     else if (!sh.getRange(1, 10).getValue()) sh.getRange(1, 10).setValue('Score');
     sh.appendRow(rowFor_(new Date(), name, id, code, ans, score, rnd, 5, ''));
+    updateMaster_([{ id: id, name: name, label: 'Quiz ' + code, score: score, n: 5 }]);
     presence_(code, id, name, 'submitted');
     totalsSafe_();
     return fin_('ok');
@@ -686,21 +918,50 @@ function doGet(e) {
   var code = clean_(p.code, 30).toUpperCase();
 
   if (p.action === 'status') {
+    var stc = null; try { stc = CacheService.getScriptCache(); } catch (err) { stc = null; }
+    var sthit = stc && code ? stc.get('st:' + code) : null; // a few seconds old at most; served without opening the spreadsheet
+    if (sthit) {
+      try {
+        var so = JSON.parse(sthit), nw = Date.now(); so.serverNow = nw;
+        if (so.state === 'running' && so.timed && so.endTime) so.remainingMs = Math.max(0, so.endTime - nw);
+        return jsonp_(e, so);
+      } catch (err) { /* recompute */ }
+    }
     var c = ctl_(code);
-    if (c) { var cs = ctlStatus_(c); cs.known = true; return jsonp_(e, cs); }
+    if (c) { var cs = ctlStatus_(c); cs.known = true; if (stc) { try { stc.put('st:' + code, JSON.stringify(cs), 3); } catch (err) { /* cache only */ } } return jsonp_(e, cs); }
     var k = keyRow_(code);
     if (k && weekFromCode_(code)) return jsonp_(e, { paced: true, timed: false, known: true, state: 'ready', allowLate: true });
+    if (!k) { var ats = attByCode_(code); if (ats) return jsonp_(e, { attendance: true, known: true, state: ats.status.toLowerCase() }); }
     var v = k ? String(k[6]).trim().toLowerCase() : '';
     return jsonp_(e, { timed: false, known: !!k, hidden: v === 'hidden', closed: v === 'closed', state: k ? state_(k) : '' });
+  }
+
+  if (p.action === 'attend') { // a student checks in: the attendance code and the student ID
+    var asn = attByCode_(code);
+    if (!asn) return jsonp_(e, { ok: false, why: 'unknown' });
+    if (asn.status !== 'Open') return jsonp_(e, { ok: false, why: 'closed' });
+    var aid = normId_(p.id);
+    if (aid.length < 4 || aid.length > 12) return jsonp_(e, { ok: false, why: 'bad id' });
+    append_(ATT_LOG_TAB, ['Timestamp', 'Session', 'Student ID', 'On roster'], [new Date(), asn.label, aid, rosterSet_()[aid] ? 'Yes' : 'No']); // appendRow is atomic: no lock for 200 students at once
+    return jsonp_(e, { ok: true, id: aid });
+  }
+  if (p.action === 'attend_status' || p.action === 'attend_open' || p.action === 'attend_close') { // host only
+    if (!hostOk_(p)) return jsonp_(e, { ok: false, why: 'host key not accepted' });
+    if (p.action === 'attend_status') return jsonp_(e, attStatus_());
+    var alk = LockService.getScriptLock(); alk.waitLock(20000);
+    try { return jsonp_(e, p.action === 'attend_open' ? attOpen_(p) : attClose_()); } finally { alk.releaseLock(); }
   }
 
   if (p.action === 'questions') { // the quiz's question text (no answers), once it has started
     var cq = ctl_(code);
     if (!cq || (eff_(cq) === 'ready' || eff_(cq) === 'lobby' || eff_(cq) === 'draft')) return jsonp_(e, { questions: [] });
+    var qcache = null, qck = 'qs:' + code + '|' + (Number(cq.v[16]) || 0) + '|' + qids_(cq).join(',') + '|' + (Number(cq.v[18]) || 0);
+    try { qcache = CacheService.getScriptCache(); var qhit = qcache.get(qck); if (qhit) return jsonp_(e, { questions: JSON.parse(qhit) }); } catch (err) { /* compute below */ }
     try {
       var le = liveEntry_(code, cq), qs = [];
       if (le.inline) qs = le.inline.map(function (x) { return { stem: x.stem, opts: x.opts }; });
       else { var bk = bankList_(le.bank); qs = qids_(cq).map(function (qid) { for (var i = 0; i < bk.length; i++) if (bk[i].id === qid) return { stem: bk[i].q, opts: bk[i].options }; return { stem: '(question missing)', opts: [] }; }); }
+      if (qcache) { try { qcache.put(qck, JSON.stringify(qs), 120); } catch (err) { /* cache only */ } } // 200 students ask at the same moment
       return jsonp_(e, { questions: qs });
     } catch (err) { return jsonp_(e, { questions: [], error: String(err).slice(0, 160) }); }
   }

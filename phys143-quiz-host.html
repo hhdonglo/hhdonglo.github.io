@@ -77,6 +77,20 @@ body.focus main{padding-top:1rem}
   </form>
  </section>
  <div id="h-main" hidden>
+  <section class="panel" id="h-att">
+   <h3 style="margin:.1rem 0 .5rem">Attendance check-in</h3>
+   <div id="h-att-form">
+    <label for="h-att-label">Session (week number, e.g. 6, or a date)</label><input type="text" id="h-att-label" maxlength="40" placeholder="6">
+    <label for="h-att-code">Attendance code to announce (leave blank for a random code)</label><input type="text" id="h-att-code" maxlength="12" placeholder="blank = random">
+    <p><button class="go" type="button" id="h-att-open">Start attendance</button></p>
+   </div>
+   <div id="h-att-live" hidden>
+    <p class="lbl">Attendance code</p><p style="font:700 3.4rem/1.1 ui-monospace,Menlo,monospace;margin:.1rem 0" id="h-att-showcode"></p>
+    <p id="h-att-count" role="status"></p>
+    <p><button class="go big" type="button" id="h-att-close">Close attendance and record absences</button></p>
+   </div>
+   <p class="note" id="h-att-msg" role="status"></p>
+  </section>
   <p class="projbar"><button class="go alt" type="button" id="h-proj-win">Projector window</button><button class="go alt" type="button" id="h-proj-here">Show projector view here</button></p>
   <section class="panel" id="h-init" hidden>
    <p>This quiz is not lecturer-controlled yet. Students can still take it the older way. To run it question by question from this screen, switch it on.</p>
@@ -120,6 +134,8 @@ body.focus main{padding-top:1rem}
      <button class="go alt" data-a="reviewprev" data-show="ended,released" data-rev="on">Previous question</button>
      <button class="go big" data-a="reviewnext" data-show="ended,released" data-rev="on">Next question</button>
      <button class="go alt" data-a="reviewoff" data-show="ended,released" data-rev="on">Stop review</button>
+     <button class="go alt" data-a="restartsame" data-show="lobby,running,paused,ended,released" data-confirm="Stop and reset with the SAME questions? Answers so far are kept in the sheet. The quiz goes back to the lobby.">Reset: same questions</button>
+     <button class="go alt" data-a="restart" data-show="lobby,running,paused,ended,released" data-confirm="Stop and reset with NEW questions drawn from the bank? Answers so far are kept in the sheet. The quiz goes back to the lobby.">Reset: new questions</button>
      <button class="go alt" data-a="newround" data-show="ended,released,paused" data-confirm="Start a new round? Student records are kept. The quiz goes back to the lobby and the class ranking starts again.">New round</button>
     </p>
     <p class="note" id="h-msgline" role="status"></p>
@@ -247,6 +263,29 @@ setInterval(function(){
  el.textContent=Math.floor(t/60)+":"+("0"+t%60).slice(-2);
 },500);
 window.QUIZ_HOST={code:function(){return cfg.code},act:function(a,min){act(a,min?"&min="+min:"")}};
+function attCall(act,extra,cb){jsonp("action="+act+"&hostkey="+encodeURIComponent(cfg.key)+(extra||""),function(d){cb(d)})}
+function attDraw(d){
+ var ss=d&&d.session,open=ss&&ss.status==="Open";
+ $("h-att-form").hidden=!!open;$("h-att-live").hidden=!open;
+ if(open){$("h-att-showcode").textContent=ss.code;$("h-att-count").textContent="Session "+ss.label+": "+ss.present+" present"+(ss.notOnList?", "+ss.notOnList+" not on the list":"")+(ss.rosterSize?" (roster "+ss.rosterSize+")":"")+"."}
+}
+function attRefresh(){attCall("attend_status","",function(d){if(d&&d.ok)attDraw(d)})}
+$("h-att-open").addEventListener("click",function(){
+ $("h-att-msg").textContent="Starting...";
+ attCall("attend_open","&label="+encodeURIComponent($("h-att-label").value.trim())+"&acode="+encodeURIComponent($("h-att-code").value.trim()),function(d){
+  if(!d){$("h-att-msg").textContent="Could not reach the class sheet.";return}
+  if(!d.ok){$("h-att-msg").textContent="Not started: "+(d.why||"refused")+".";return}
+  $("h-att-msg").textContent="Attendance is open. Give students the code and tell them to enter it with their student ID.";attDraw(d)})
+});
+$("h-att-close").addEventListener("click",function(){
+ if(!window.confirm("Close attendance? Everyone on the roster who has not checked in is recorded as 0."))return;
+ $("h-att-msg").textContent="Closing...";
+ attCall("attend_close","",function(d){
+  if(!d||!d.ok){$("h-att-msg").textContent="Not closed: "+((d&&d.why)||"could not reach the class sheet")+".";return}
+  var x=d.session;$("h-att-msg").textContent="Closed. "+x.present+" present, "+x.absent+" absent"+(x.notOnList?", "+x.notOnList+" not on the roster (see the Not_On_List tab)":"")+". Column: "+x.column+".";
+  $("h-att-form").hidden=false;$("h-att-live").hidden=true})
+});
+setInterval(function(){if(!$("h-main").hidden&&cfg.key)attRefresh()},6000);
 function dispUrl(){return "phys143-quiz-display.html?code="+encodeURIComponent(cfg.code)}
 $("h-proj-win").addEventListener("click",function(){window.open(dispUrl(),"phys143-display","popup,width=1280,height=720")});
 $("h-proj-here").addEventListener("click",function(){$("h-proj-frame").src=dispUrl();$("h-proj-view").hidden=false;$("h-proj-close").focus()});
