@@ -1,12 +1,12 @@
 # Adding a new try-questions quiz
 
-The Lecture 1 page `phys143-lecture1-try.html` is the template. One quiz means one page, one join code, one set of answer letters.
+The Lecture 1 page `phys143-quiz.html` is the live quiz page for every week (join code 2627 + week). One quiz means one page, one join code, one set of answer letters.
 
 ## Why one code per quiz
 The join code is what keeps quizzes apart on the sheet. Pick a fresh code for each quiz (for example 3814). A date is easy to guess and cannot separate two quizzes on the same day. Never reuse a code.
 
 ## Steps
-1. **Copy the page.** `cp phys143-lecture1-try.html phys143-lecture3-try.html` (use the right lecture or chapter).
+1. **Copy the page.** `cp phys143-quiz.html phys143-quiz-custom.html` (use the right lecture or chapter).
 2. **Change the title and text.** Edit `<title>`, the `<h2>` heading, the breadcrumb and the description at the top of the page.
 3. **Replace the questions.** In the script, edit the `QS` list. Each question has a `stem` and five `opts` (A to E). Do not put the correct letter anywhere in the page.
 4. **Set the join code.** Pick the new code and make its hash:
@@ -33,8 +33,8 @@ Keep a private **Totals** tab in the sheet. Never publish it, because it holds s
 
 ## Running a quiz live from your computer (lecturer-paced)
 Two pages, one for each screen:
-- **Dashboard** (your laptop): `phys143-lecture1-host.html`. Enter the join code and the host key (Key tab, cell J2). The first time, press "Switch on lecturer control". This adds a row for the code to the private **Quiz_Control** tab.
-- **Display** (projector): the dashboard's link, or `phys143-lecture1-display.html?code=2627`. It shows the QR code, join code and joined count, then the question number, the countdown and how many have answered, then the results once released. It never shows IDs.
+- **Dashboard** (your laptop): `phys143-quiz-host.html`. Enter the join code and the host key (Key tab, cell J2). The first time, press "Switch on lecturer control". This adds a row for the code to the private **Quiz_Control** tab.
+- **Display** (projector): the dashboard's link, or `phys143-quiz-display.html?code=2627`. It shows the QR code, join code and joined count, then the question number, the countdown and how many have answered, then the results once released. It never shows IDs.
 
 Flow: **Open lobby** (students join and wait), **Start quiz** (question 1 opens for everyone), **Next question** moves the whole class on, **Pause** freezes the clock on every student's screen and **Resume** continues, **+1/+2/+5 min** extends the question, **End quiz** marks everything, **Release results** shows scores and ranking. Every action is written to the Log tab.
 Settings on the dashboard: seconds per question (0 = no timer, default 60), late joining, and when students see their score and the ranking (OnRelease by default, or Immediate, or Never).
@@ -55,3 +55,5 @@ Every code, including 2627, now draws its questions from the chosen week's bank.
 
 ## Join codes that carry the week (no Key row needed)
 A join code of the form **2627 + week number** is valid automatically: 26271 is Week 1 (Vectors), 26272 is Week 2 (Motion), 26273 is Week 3, ... 262710 is Week 10, 262711 Week 11, 262712 Week 12. The week is set by the code and shown (locked) on the dashboard; only weeks with a practice bank are accepted. Log in to the dashboard with that code and the host key and the quiz is set up automatically, then choose the Number of questions (5 to 20) and run it. Plain **2627** is a general code with a Week chooser, using the Key row you already have. Totals shows "Week 1 Vectors (26271)" and so on. Use a different code, with its own Key row, for anything that should not follow this pattern.
+
+The old phys143-lecture1-try, -host and -display addresses still work: they redirect to the phys143-quiz pages.
