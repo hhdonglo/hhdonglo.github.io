@@ -70,7 +70,7 @@
     b.addEventListener('click', fn);
     return b;
   }
-  function clear() { app.innerHTML = ''; }
+  function clear() { app.innerHTML = ''; document.body.classList.remove('focus'); }
   function plain(html) { var d = document.createElement('div'); d.innerHTML = html; return d.textContent; }
   function setTitle() { /* the lecture page keeps its own title */ }
   function focusHeading() {
@@ -195,6 +195,8 @@
     var chosen = answered ? run.answers[pos0] : null;
     setTitle(lab(n) + ' question ' + (run.idx + 1));
     clear();
+    document.body.classList.add('focus');
+    app.appendChild(el('p', { 'class': 'fun-line' }, "Let's have fun"));
 
     var total = run.order.length;
     var prog = el('div', { 'class': 'progress' });

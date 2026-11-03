@@ -61,7 +61,7 @@
   }
   function plain(html) { var d = document.createElement('div'); d.innerHTML = html; return d.textContent; }
   function clip(t, n) { t = plain(String(t == null ? '' : t)).replace(/\s+/g, ' ').trim(); return t.length > n ? t.slice(0, n - 1) + '…' : t; }
-  function clear() { app.innerHTML = ''; }
+  function clear() { app.innerHTML = ''; document.body.classList.remove('focus'); }
   function pad(n) { return (n < 10 ? '0' : '') + n; }
   function clock(ms) {
     var s = Math.max(0, Math.ceil(ms / 1000)), h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60);
@@ -184,6 +184,8 @@
   function exam(run) {
     stopTick();
     clear();
+    document.body.classList.add('focus');
+    app.appendChild(el('p', { 'class': 'fun-line' }, "Let's have fun"));
     document.title = 'Mock exam | PHYS 143 | Hope Donglo';
     var total = run.ids.length;
     var bar = el('div', { 'class': 'mock-bar' });

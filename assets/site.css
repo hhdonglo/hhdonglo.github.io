@@ -990,3 +990,8 @@ ol.mock-review a.btn.report-btn{margin-left:0}
 nav.jump a[href="mock-exam.html"]{color:#D6B07C;font-weight:700}
 .na-cta{margin:1rem 0 0;padding:.6rem .85rem;border-left:3px solid var(--brown);background:var(--surface);font:.92rem/1.5 system-ui,sans-serif;color:var(--muted)}
 .na-cta a{font-weight:600}
+
+body.focus header.banner,body.focus nav.jump,body.focus .crumb,body.focus main h2,body.focus .sec-sub,body.focus aside.disclaimer,body.focus .na-cta,body.focus footer,body.focus a.skip{display:none!important}
+body.focus main{padding-top:1.2rem}
+.fun-line{text-align:center;font:700 1.5rem Georgia,serif;color:var(--brown);margin:.2rem 0 1rem}
+@media (prefers-color-scheme:dark){.fun-line{color:#e9c9a8}}
