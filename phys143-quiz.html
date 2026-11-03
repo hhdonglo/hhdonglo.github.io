@@ -198,7 +198,7 @@ function doAttend(d,btn,er){ // an attendance code: only the student ID is used;
  jsonp("action=attend&code="+encodeURIComponent(st.code)+"&id="+encodeURIComponent(st.id),function(r){
   if(!r){btn.disabled=false;er.textContent="Could not reach the class sheet. Check your connection and try again.";er.hidden=false;return}
   if(!r.ok){btn.disabled=false;er.textContent=r.why==="closed"?"Attendance for this code is closed.":(r.why==="bad id"?"That does not look like a student ID. Check it and try again.":"That code is not correct.");er.hidden=false;return}
-  $("att-id").textContent=r.id;$("t-att").textContent="Marked present";$("att-msg").textContent=r.onList===false?"Your ID is not on the class list. Please see your lecturer. Student ID ":"Student ID ";show("s-att");
+  $("att-id").textContent=r.id;$("t-att").textContent=r.already?"Already marked present today":"Marked present";$("att-msg").textContent=r.onList===false?"Your ID is not on the class list. Please see your lecturer. Student ID ":"Student ID ";show("s-att");
  });
 }
 function roomShow(m,n,closed){

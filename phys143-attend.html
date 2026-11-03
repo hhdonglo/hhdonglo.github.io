@@ -58,14 +58,14 @@ body.focus main{padding-top:1.2rem}
  </section>
  <section class="panel done" id="c-missing" aria-live="polite" hidden>
   <p class="tick warn" aria-hidden="true">!</p>
-  <h3>Marked present</h3>
+  <h3 id="c-mh">Marked present</h3>
   <p>Student ID <b id="c-mid"></b> is not on the class list. <b>Please see your lecturer.</b></p>
   <p class="note">If you mistyped your ID, tap below and enter it again.</p>
   <button type="button" class="go alt" id="c-again2">Enter the ID again</button>
  </section>
  <section class="panel done" id="c-done" aria-live="polite" hidden>
   <p class="tick" aria-hidden="true">&#10003;</p>
-  <h3>Marked present</h3>
+  <h3 id="c-dh">Marked present</h3>
   <p>Student ID <b id="c-sid"></b></p>
  </section>
 </div>
@@ -91,7 +91,7 @@ $("c-form").addEventListener("submit",function(e){
  jsonp("action=attend&code="+encodeURIComponent(code)+"&id="+encodeURIComponent(id),function(r){
   $("c-btn").disabled=false;
   if(!r){err("Could not reach the server. Check your connection and try again.");return}
-  if(r.ok){$("c-form-wrap").hidden=true;window.scrollTo(0,0);if(r.onList===false){$("c-mid").textContent=r.id;$("c-missing").hidden=false}else{$("c-sid").textContent=r.id;$("c-done").hidden=false}return}
+  if(r.ok){$("c-form-wrap").hidden=true;window.scrollTo(0,0);var h=r.already?"Already marked present today":"Marked present";if(r.onList===false){$("c-mid").textContent=r.id;$("c-mh").textContent=h;$("c-missing").hidden=false}else{$("c-sid").textContent=r.id;$("c-dh").textContent=h;$("c-done").hidden=false}return}
   err(r.why==="closed"?"Attendance for this code is closed.":(r.why==="bad id"?"That does not look like a student ID. Check it and try again.":"That attendance code is not correct. Check the code on the screen."));
  });
 });

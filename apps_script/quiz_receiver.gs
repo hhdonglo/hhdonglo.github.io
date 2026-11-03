@@ -738,6 +738,25 @@ function attColumn_(label) { // the Attendance header: the date; a second sessio
   return m ? (Number(m[2]) > 1 ? m[1] + ' #' + m[2] : m[1]) : String(label || '').trim();
 }
 
+// One mark per Student ID per day: has this ID already checked in during any session today? Today's IDs are kept in the cache for speed;
+// on a cache miss the log is read, so a lost cache entry never lets a repeat through.
+function attDayKey_() { return Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'dd/MM/yyyy'); }
+
+function attDayHas_(day, id) {
+  var cache = null, ck = 'attd:' + day;
+  try { cache = CacheService.getScriptCache(); var h = cache.get(ck); if (h && ('|' + h + '|').indexOf('|' + id + '|') >= 0) return true; } catch (err) { cache = null; }
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_LOG_TAB);
+  if (!sh || sh.getLastRow() < 2) return false;
+  var found = false;
+  sh.getRange(2, 2, sh.getLastRow() - 1, 2).getValues().forEach(function (r) { if (String(r[0]).indexOf(day + ' #') === 0 && normId_(r[1]) === id) found = true; });
+  if (found && cache) { try { var cur = cache.get(ck); cache.put(ck, (cur ? cur + '|' : '') + id, 43200); } catch (err) { /* cache only */ } }
+  return found;
+}
+
+function attDayAdd_(day, id) {
+  try { var cache = CacheService.getScriptCache(), ck = 'attd:' + day, cur = cache.get(ck); cache.put(ck, (cur ? cur + '|' : '') + id, 43200); } catch (err) { /* the log is the record */ }
+}
+
 function attPresent_(label) { // {id: true} for one session, from the log
   var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_LOG_TAB), got = {};
   if (!sh || sh.getLastRow() < 2) return got;
@@ -1016,8 +1035,10 @@ function doGet(e) {
     if (asn.status !== 'Open') return jsonp_(e, { ok: false, why: 'closed' });
     var aid = normId_(p.id);
     if (aid.length < 4 || aid.length > 12) return jsonp_(e, { ok: false, why: 'bad id' });
-    var onl = !!rosterSet_()[aid]; // the student is told only whether their own ID was found; nothing else about the roster
+    var onl = !!rosterSet_()[aid], day = attDayKey_(); // the student is told only whether their own ID was found; nothing else about the roster
+    if (attDayHas_(day, aid)) return jsonp_(e, { ok: true, id: aid, onList: onl, already: true }); // one mark per ID per day: nothing is added
     append_(ATT_LOG_TAB, ['Timestamp', 'Session', 'Student ID', 'On roster'], [new Date(), asn.label, aid, onl ? 'Yes' : 'No']); // appendRow is atomic: no lock for 200 students at once
+    attDayAdd_(day, aid);
     return jsonp_(e, { ok: true, id: aid, onList: onl });
   }
   if (p.action === 'hostcheck') return jsonp_(e, { ok: hostOk_(p) }); // the lecturer menu: is this key right?
