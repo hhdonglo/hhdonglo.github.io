@@ -49,6 +49,18 @@
           "button_url": "laboratory.html"
         }
       ]
+    },
+    {
+      "id": "login",
+      "heading": "Login",
+      "cards": [
+        {
+          "style": "plain",
+          "paragraphs": [
+            "[Login](phys143-lecturer.html)"
+          ]
+        }
+      ]
     }
   ]
 }

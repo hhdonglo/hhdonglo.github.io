@@ -220,18 +220,6 @@
           ]
         }
       ]
-    },
-    {
-      "id": "login",
-      "heading": "Login",
-      "cards": [
-        {
-          "style": "plain",
-          "paragraphs": [
-            "[Login](phys143-lecturer.html)"
-          ]
-        }
-      ]
     }
   ],
   "subtitle": "12 lectures · 3 weekly contacts · Practice questions"
