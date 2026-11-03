@@ -1011,8 +1011,9 @@ function doGet(e) {
     if (asn.status !== 'Open') return jsonp_(e, { ok: false, why: 'closed' });
     var aid = normId_(p.id);
     if (aid.length < 4 || aid.length > 12) return jsonp_(e, { ok: false, why: 'bad id' });
-    append_(ATT_LOG_TAB, ['Timestamp', 'Session', 'Student ID', 'On roster'], [new Date(), asn.label, aid, rosterSet_()[aid] ? 'Yes' : 'No']); // appendRow is atomic: no lock for 200 students at once
-    return jsonp_(e, { ok: true, id: aid });
+    var onl = !!rosterSet_()[aid]; // the student is told only whether their own ID was found; nothing else about the roster
+    append_(ATT_LOG_TAB, ['Timestamp', 'Session', 'Student ID', 'On roster'], [new Date(), asn.label, aid, onl ? 'Yes' : 'No']); // appendRow is atomic: no lock for 200 students at once
+    return jsonp_(e, { ok: true, id: aid, onList: onl });
   }
   if (p.action === 'hostcheck') return jsonp_(e, { ok: hostOk_(p) }); // the lecturer menu: is this key right?
   if (p.action === 'attend_status' || p.action === 'attend_open' || p.action === 'attend_close') { // host only

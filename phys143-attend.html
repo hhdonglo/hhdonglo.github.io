@@ -39,6 +39,8 @@
 @media (prefers-color-scheme:dark){.ci .err{color:#ff8a80}}
 .ci .done{text-align:center}
 .ci .done .tick{font-size:3rem;line-height:1;color:#2e7d32}
+.ci .done .tick.warn{color:#b26a00;font-weight:700}
+@media (prefers-color-scheme:dark){.ci .done .tick.warn{color:#ffb74d}}
 .ci .note{font:.92rem/1.5 system-ui,sans-serif;color:var(--muted)}
 .ci [hidden]{display:none!important}
 body.focus header.banner,body.focus nav.jump,body.focus .crumb,body.focus .sec-sub,body.focus aside.disclaimer,body.focus footer,body.focus a.skip,body.focus main h2{display:none!important}
@@ -53,6 +55,13 @@ body.focus main{padding-top:1.2rem}
    <p class="err" id="c-err" role="alert" hidden></p>
    <button type="submit" class="go" id="c-btn">Present</button>
   </form>
+ </section>
+ <section class="panel done" id="c-missing" aria-live="polite" hidden>
+  <p class="tick warn" aria-hidden="true">!</p>
+  <h3>Your ID was not found</h3>
+  <p>Student ID <b id="c-mid"></b> is not on the class list. <b>Please see your lecturer.</b></p>
+  <p class="note">If you mistyped it, tap below and enter it again.</p>
+  <button type="button" class="go alt" id="c-again2">Enter the ID again</button>
  </section>
  <section class="panel done" id="c-done" aria-live="polite" hidden>
   <p class="tick" aria-hidden="true">&#10003;</p>
@@ -84,11 +93,12 @@ $("c-form").addEventListener("submit",function(e){
  jsonp("action=attend&code="+encodeURIComponent(code)+"&id="+encodeURIComponent(id),function(r){
   $("c-btn").disabled=false;
   if(!r){err("Could not reach the server. Check your connection and try again.");return}
-  if(r.ok){$("c-sid").textContent=r.id;$("c-form-wrap").hidden=true;$("c-done").hidden=false;window.scrollTo(0,0);return}
+  if(r.ok){$("c-form-wrap").hidden=true;window.scrollTo(0,0);if(r.onList===false){$("c-mid").textContent=r.id;$("c-missing").hidden=false}else{$("c-sid").textContent=r.id;$("c-done").hidden=false}return}
   err(r.why==="closed"?"Attendance for this code is closed.":(r.why==="bad id"?"That does not look like a student ID. Check it and try again.":"That attendance code is not correct. Check the code on the screen."));
  });
 });
-$("c-again").addEventListener("click",function(){$("c-done").hidden=true;$("c-form-wrap").hidden=false;$("c-id").value="";$("c-id").focus()});
+function again(){$("c-done").hidden=true;$("c-missing").hidden=true;$("c-form-wrap").hidden=false;$("c-id").value="";$("c-id").focus()}
+$("c-again").addEventListener("click",again);$("c-again2").addEventListener("click",again);
 })();
 </script>
 </div>
