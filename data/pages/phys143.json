@@ -222,13 +222,13 @@
       ]
     },
     {
-      "id": "lecturer-login",
-      "heading": "Lecturer Login",
+      "id": "login",
+      "heading": "Login",
       "cards": [
         {
           "style": "plain",
           "paragraphs": [
-            "[Lecturer login: live quiz host](phys143-quiz-host.html). This page is public but needs the host key. It is for the course lecturer only."
+            "[Login](phys143-quiz-host.html)"
           ]
         }
       ]
