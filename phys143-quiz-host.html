@@ -182,6 +182,7 @@ function refresh(first){
    else $("h-upd").textContent="Could not refresh just now; trying again.";
    return}
   $("h-setup").hidden=true;$("h-main").hidden=false;
+  try{localStorage.setItem("phys143_quiz_code",cfg.code)}catch(x){}
   $("h-init").hidden=!!d.controlled;$("h-ctl").hidden=!d.controlled;
   if(!cfg.t)cfg.t=setInterval(function(){refresh(false)},4000);
   if(!d.controlled)return;
@@ -245,6 +246,7 @@ setInterval(function(){
  var left=Math.max(0,st.qDeadline-(st.serverNow+(Date.now()-cfg.at))),t=Math.ceil(left/1000);
  el.textContent=Math.floor(t/60)+":"+("0"+t%60).slice(-2);
 },500);
+window.QUIZ_HOST={code:function(){return cfg.code},act:function(a,min){act(a,min?"&min="+min:"")}};
 function dispUrl(){return "phys143-quiz-display.html?code="+encodeURIComponent(cfg.code)}
 $("h-proj-win").addEventListener("click",function(){window.open(dispUrl(),"phys143-display","popup,width=1280,height=720")});
 $("h-proj-here").addEventListener("click",function(){$("h-proj-frame").src=dispUrl();$("h-proj-view").hidden=false;$("h-proj-close").focus()});

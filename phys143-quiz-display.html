@@ -56,6 +56,10 @@ main>.wrap{max-width:none!important;padding:0 1.5rem}
 .disp .progress{height:12px;background:var(--sky);border-radius:7px;overflow:hidden;max-width:36rem;margin:.6rem auto}
 .disp .progress i{display:block;height:100%;background:var(--brown-fill);width:0}
 .disp [hidden]{display:none!important}
+#d-ctl{position:fixed;bottom:.6rem;left:50%;transform:translateX(-50%);display:flex;gap:.5rem;opacity:.35;transition:opacity .2s;z-index:20}
+#d-ctl:hover,#d-ctl:focus-within{opacity:1}
+#d-ctl button{min-height:44px;padding:.4rem 1.1rem;border:2px solid var(--brown-fill);border-radius:6px;background:var(--btn-bg);color:var(--btn-text);font:600 1rem system-ui,sans-serif;cursor:pointer}
+#d-ctl [hidden],#d-ctl[hidden]{display:none}
 </style>
 <div class="disp">
  <section class="panel" id="d-ask">
@@ -112,7 +116,7 @@ function refresh(){
   $("d-ask").hidden=true;$("d-main").hidden=false;$("d-showcode").textContent=cfg.code;
   $("d-joined").textContent=d.joined;$("d-joined2").textContent=d.joined;$("d-answered").textContent=d.answered||0;
   var st=d.status;cfg.c=st;cfg.at=Date.now();
-  var s=st?st.state:"started",live=s==="running"||s==="paused",fin=s==="ended"||s==="released";
+  var s=st?st.state:"started";ctlSync(s);var live=s==="running"||s==="paused",fin=s==="ended"||s==="released";
   $("d-join").hidden=live||fin;
   var qkey=cfg.code+"|"+(st&&st.qids||[]).join(",");
   if(st&&st.qids&&st.qids.length&&cfg.qkey!==qkey){cfg.qkey=qkey;jsonp("action=questions&code="+encodeURIComponent(cfg.code),function(r){cfg.qs=(r&&r.questions)||[]})}
@@ -151,7 +155,20 @@ setInterval(function(){
  el.textContent=Math.floor(t/60)+":"+("0"+t%60).slice(-2);if(t<=10)el.className="clock low";
 },300);
 $("d-form").addEventListener("submit",function(e){e.preventDefault();cfg.code=$("d-code").value.trim().toUpperCase();if(cfg.code)refresh()});
-var m=/[?&]code=([^&]+)/.exec(location.search);if(m){cfg.code=decodeURIComponent(m[1]).toUpperCase();refresh()}
+// The lecturer's host page (opener or parent) exposes QUIZ_HOST after login; a plain visitor has neither, so the page stays view-only.
+var H=null;try{var hw=window.opener&&window.opener.QUIZ_HOST?window.opener:(window.parent!==window&&window.parent.QUIZ_HOST?window.parent:null);if(hw)H=hw.QUIZ_HOST}catch(x){}
+if(H){
+ var bar=document.createElement("div");bar.id="d-ctl";bar.hidden=true;
+ bar.innerHTML='<button type="button" data-a="start" data-show="ready,draft,lobby">Start</button><button type="button" data-a="pause" data-show="running">Pause</button><button type="button" data-a="resume" data-show="paused">Resume</button><button type="button" data-a="next" data-show="running">Next question</button><button type="button" data-a="extend" data-min="1" data-show="running,paused">+1 min</button>';
+ document.body.appendChild(bar);
+ bar.addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;H.act(b.getAttribute("data-a"),b.getAttribute("data-min"));setTimeout(refresh,700);setTimeout(refresh,2000)});
+}
+function ctlSync(s){var bar=$("d-ctl");if(!bar)return;bar.hidden=false;Array.prototype.forEach.call(bar.children,function(b){b.hidden=b.getAttribute("data-show").split(",").indexOf(s)<0});}
+var m=/[?&]code=([^&]+)/.exec(location.search);
+if(m)cfg.code=decodeURIComponent(m[1]).toUpperCase();
+else if(H){try{cfg.code=String(H.code()||"").toUpperCase()}catch(x){}}
+else{try{cfg.code=String(localStorage.getItem("phys143_quiz_code")||"").toUpperCase()}catch(x){}}
+if(cfg.code)refresh();
 })();
 </script>
 </div>
