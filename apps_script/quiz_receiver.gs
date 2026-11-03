@@ -247,7 +247,7 @@ function setup() {
   ks.getRange(1, 12).setValue('Master sheet (On or Off)');
   if (!String(ks.getRange(2, 12).getValue()).trim()) ks.getRange(2, 12).setValue('On');
   var rost = ss.getSheetByName(ROSTER_TAB) || ss.insertSheet(ROSTER_TAB); // private: paste Student ID and Name here for attendance
-  if (rost.getLastRow() === 0) rost.getRange(1, 1, 1, 2).setValues([['Student ID', 'Name']]);
+  if (rost.getLastRow() === 0) rost.getRange(1, 1).setValue('Student ID'); // IDs only: attendance_tools/roster_sync.sh fills it
   attSheet_();
   controlSheet_();
   var xs = ss.getSheetByName(EXPL_TAB) || ss.insertSheet(EXPL_TAB);
@@ -654,7 +654,7 @@ function hasPresence_(code, id) {
 }
 
 // ---------- Attendance: a check-in code, the student enters an ID, 1 if present, 0 when the session is closed ----------
-// Tabs (all private): Roster (Student ID | Name, pasted from attendance-list.csv columns A and B), Attendance_Control (one row per session:
+// Tabs (all private): Roster (Student IDs only, filled by attendance_tools/roster_sync.sh), Attendance_Control (one row per session:
 // Code | Label | Status | Opened | Closed), Attendance_Log (every check-in), Attendance (one row per rostered student, one column per session,
 // "Attendance Wk N [1]" = 1 present, 0 absent, the format the Sakai gradebook imports), Not_On_List (IDs that checked in but are not on the roster).
 // The lecturer opens a session from the host page with a code to announce in class; students enter that code and their ID on the quiz page.
@@ -675,6 +675,41 @@ function rosterSet_() { // {id: 1}, cached for five minutes
   var set = {}; rosterRows_().forEach(function (r) { set[r[0]] = 1; });
   if (cache) { try { cache.put('roster', JSON.stringify(set), 300); } catch (err) { /* roster larger than the cache limit: read the sheet each time */ } }
   return set;
+}
+
+// Roster sync (used by attendance_tools/roster_sync.sh): adds the uploaded Student IDs to the Roster tab. Only IDs are stored (no names), IDs already
+// there are left alone, nothing is ever deleted (IDs missing from the upload are only counted), and nothing from the Roster is ever returned.
+// kind=roster_sync, hostkey, mode=dry|apply, rows = JSON list of Student IDs.
+function rosterSync_(p) {
+  if (!hostOk_(p)) return { ok: false, why: 'key not accepted' };
+  var rows;
+  try { rows = JSON.parse(String(p.rows || '[]')); } catch (err) { return { ok: false, why: 'could not read the list' }; }
+  if (!Array.isArray(rows) || !rows.length) return { ok: false, why: 'the list is empty' };
+  if (rows.length > 5000) return { ok: false, why: 'the list is too long (more than 5000 rows)' };
+  var up = {}, order = [], bad = 0;
+  rows.forEach(function (r) {
+    var id = normId_(Array.isArray(r) ? r[0] : r);
+    if (id.length < 4 || id.length > 12) { bad++; return; }
+    if (!up[id]) { up[id] = 1; order.push(id); }
+  });
+  if (!order.length) return { ok: false, why: 'no valid student IDs in the list' };
+  var apply = String(p.mode || '') === 'apply', lk = LockService.getScriptLock();
+  lk.waitLock(30000);
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(ROSTER_TAB) || ss.insertSheet(ROSTER_TAB);
+    if (sh.getLastRow() === 0) sh.getRange(1, 1).setValue('Student ID');
+    var have = {};
+    sh.getRange(1, 1, sh.getLastRow(), 1).getValues().forEach(function (r) { var id = normId_(r[0]); if (id.length >= 4) have[id] = 1; });
+    var added = order.filter(function (id) { return !have[id]; }).map(function (id) { return [id]; });
+    var missing = Object.keys(have).filter(function (id) { return !up[id]; }).length;
+    if (apply && added.length) {
+      var r0 = sh.getLastRow() + 1;
+      sh.getRange(r0, 1, added.length, 1).setNumberFormat('@');
+      sh.getRange(r0, 1, added.length, 1).setValues(added);
+    }
+    if (apply) { try { CacheService.getScriptCache().remove('roster'); } catch (err) { /* cache only */ } log_('roster:sync', added.length + ' added', '', ''); }
+    return { ok: true, mode: apply ? 'apply' : 'dry', added: added.length, unchanged: order.length - added.length, missing: missing, skipped: bad, total: order.length };
+  } finally { lk.releaseLock(); }
 }
 
 function attSheet_() {
@@ -773,6 +808,7 @@ function attClose_() {
 
 function doPost(e) {
   var p = (e && e.parameter) || {};
+  if (p.kind === 'roster_sync') return out_(JSON.stringify(rosterSync_(p)));
   if (p.kind === 'report' || p.kind === 'attempt') {
     var lk = LockService.getScriptLock();
     lk.waitLock(20000);
