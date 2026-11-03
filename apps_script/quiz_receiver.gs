@@ -347,6 +347,7 @@ function ctlStatus_(c) {
     allowLate: allowLate_(c), showScore: visible_(c, 'show_score'), showBoard: visible_(c, 'show_leaderboard')
   };
   o.reviewQ = Number(c.v[17]) || 0;
+  o.round = Number(c.v[16]) || 0; // changes on every reset or new round, so student pages know to start over
   if (paced_(c)) { o.currentQ = Number(c.v[11]) || 0; o.totalQ = quizN_(c); o.qids = qids_(c); o.qSeconds = Number(c.v[12]) || 0; o.qDeadline = Number(c.v[13]) || 0; }
   return o;
 }

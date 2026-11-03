@@ -151,7 +151,23 @@ var QS=window.QUIZ_L1||[];
 var L="ABCDE";
 var $=function(i){return document.getElementById(i)};
 var st={name:"",id:"",code:"",ans:[],i:0,t:SECONDS,timer:null,sent:false};
-function show(id){document.body.classList.toggle("focus",id!=="s-end");["s-start","s-wait","s-q","s-end","s-att"].forEach(function(x){$(x).hidden=(x!==id)});window.scrollTo(0,0)}
+// A reset or new round by the lecturer: the round number changes (and the quiz goes back to the lobby), so every phone starts over,
+// including phones that are on a question, waiting for the next one, or looking at their result.
+function wasReset(d){return !!d&&((d.round!==undefined&&st.round!==undefined&&d.round!==st.round)||d.state==="lobby"||d.state==="ready"||d.state==="draft")}
+function resetToWaiting(d){
+ [st.timer,st.poll,st.rev,st.live,st.watch].forEach(function(t){clearInterval(t)});st.watch=null;
+ st.paced=false;st.timed=false;st.ended=false;st.submitted=false;st.sent=false;st.curQ=0;st.i=0;st.ans=[];st.qTries=0;st.joined=false;st.round=d.round;
+ var rv=$("review");rv.hidden=true;$("s-end").classList.remove("reviewing");$("board").hidden=true;$("mine").hidden=true;$("retry").hidden=true;
+ $("banner").hidden=true;
+ gate(); // back to the waiting room; the page rejoins and starts again by itself when the lecturer starts
+}
+function watchStatus(){
+ jsonp("action=status&code="+encodeURIComponent(st.code),function(d){if(d&&(d.paced||d.timed)&&wasReset(d))resetToWaiting(d)});
+}
+function show(id){
+ if(id==="s-end"){if(!st.watch)st.watch=setInterval(watchStatus,7000+Math.floor(Math.random()*3000))}
+ else if(id!=="s-wait"&&st.watch){clearInterval(st.watch);st.watch=null}
+ document.body.classList.toggle("focus",id!=="s-end");["s-start","s-wait","s-q","s-end","s-att"].forEach(function(x){$(x).hidden=(x!==id)});window.scrollTo(0,0)}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 $("f-start").addEventListener("submit",function(e){
  e.preventDefault();
@@ -170,6 +186,7 @@ function gate(){
   if(d.attendance){doAttend(d,btn,er);return}
   if(!st.name){btn.disabled=false;er.textContent="Please enter your first name for the quiz.";er.hidden=false;return}
   var nq=d.totalQ||QS.length;
+  if(d.round!==undefined)st.round=d.round; // the round this run belongs to
   function wait(m){btn.disabled=true;er.hidden=true;if(!st.joined){st.joined=true;join()}roomShow(m,nq);setTimeout(gate,4000+Math.floor(Math.random()*2000))}
   function stop(m){btn.disabled=false;if(st.joined){roomShow(m,nq,true);return}er.textContent=m;er.hidden=false}
   if(d&&(d.timed||d.paced)){
@@ -280,7 +297,7 @@ function pacedTick(){
 }
 function pacedPoll(){
  if(st.ended)return;
- jsonp("action=status&code="+encodeURIComponent(st.code),function(d){if(d&&(d.paced||d.timed)&&!st.ended)applyPaced(d)});
+ jsonp("action=status&code="+encodeURIComponent(st.code),function(d){if(!d||!(d.paced||d.timed)||st.ended)return;if(wasReset(d))resetToWaiting(d);else applyPaced(d)});
 }
 function reviewDraw(d){
  var box=$("review"),end=$("s-end");
@@ -351,6 +368,7 @@ function timedPoll(){
  if(st.submitted)return;
  jsonp("action=status&code="+encodeURIComponent(st.code),function(d){
   if(!d||!d.timed||st.submitted)return;
+  if(wasReset(d)){resetToWaiting(d);return}
   applyStatus(d);
   if(d.state==="ended"||d.state==="released")submitTimed();
  });
