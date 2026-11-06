@@ -139,13 +139,21 @@ $("a-form").addEventListener("submit",function(e){
  });
 });
 $("a-start").addEventListener("click",function(){
- $("a-start").disabled=true;$("a-last").textContent="Starting...";
- call("attend_open","",function(d){ // the sheet makes a new random code each time, never one used before
+ $("a-start").disabled=true;$("a-last").textContent="Getting the classroom location...";
+ var go=function(extra,note){
+ $("a-last").textContent="Starting...";
+ call("attend_open",extra,function(d){ // the sheet makes a new random code each time, never one used before
   $("a-start").disabled=false;
   if(!d){$("a-last").textContent="Could not reach the class sheet. Try again.";return}
   if(!d.ok){$("a-last").textContent="Not started: "+(d.why||"refused")+".";return}
-  $("a-msg").textContent="";draw(d);
+  $("a-msg").textContent=note||(d.session&&d.session.geo&&d.session.geo!=="off"?"Location check on ("+d.session.geo+", "+d.session.radius+" m).":"");draw(d);
  });
+ };
+ // The browser asks once for this device's location; students are compared with it. Without it the session still starts, with no location check.
+ if(!navigator.geolocation){go("","No location available: the location check is off for this session.");return}
+ navigator.geolocation.getCurrentPosition(function(p){
+  go("&lat="+p.coords.latitude.toFixed(5)+"&lon="+p.coords.longitude.toFixed(5),p.coords.accuracy>200?"Classroom location is rough (about "+Math.round(p.coords.accuracy)+" m). Check the result with a student's phone.":"");
+ },function(){go("","Location was not allowed: the location check is off for this session. Allow location for this page and restart to turn it on.")},{enableHighAccuracy:true,timeout:15000,maximumAge:0});
 });
 $("a-close").addEventListener("click",function(){
  if(!window.confirm("Close attendance? Everyone on the roster who has not checked in is recorded as 0."))return;

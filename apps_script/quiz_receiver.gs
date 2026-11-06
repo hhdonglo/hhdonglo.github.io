@@ -816,7 +816,7 @@ function rosterSync_(p) {
 
 function attSheet_() {
   var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(ATT_CTL_TAB);
-  if (!sh) { sh = ss.insertSheet(ATT_CTL_TAB); sh.appendRow(['Code', 'Label', 'Status', 'Opened', 'Closed', 'Secret']); }
+  if (!sh) { sh = ss.insertSheet(ATT_CTL_TAB); sh.appendRow(['Code', 'Label', 'Status', 'Opened', 'Closed', 'Secret', 'Lat', 'Lon', 'Radius m']); }
   if (!String(sh.getRange(1, 6).getValue()).trim()) sh.getRange(1, 6).setValue('Secret'); // the per-session secret that makes the on-screen code rotate: keep this tab private
   return sh;
 }
@@ -824,7 +824,7 @@ function attSheet_() {
 function attRows_() { // [{row, code, label, status}]
   var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_CTL_TAB);
   if (!sh || sh.getLastRow() < 2) return [];
-  return sh.getRange(2, 1, sh.getLastRow() - 1, 6).getValues().map(function (r, i) { return { row: i + 2, code: String(r[0]).trim().toUpperCase(), label: String(r[1]), status: String(r[2]).trim(), secret: String(r[5] || '') }; });
+  return sh.getRange(2, 1, sh.getLastRow() - 1, 9).getValues().map(function (r, i) { return { row: i + 2, code: String(r[0]).trim().toUpperCase(), label: String(r[1]), status: String(r[2]).trim(), secret: String(r[5] || ''), lat: r[6] === '' ? null : Number(r[6]), lon: r[7] === '' ? null : Number(r[7]), radius: Number(r[8]) || 0 }; });
 }
 
 function attByCode_(code) { // the session with this code, or null; cached a few seconds (also caches "none", since every unknown code asks)
@@ -903,9 +903,14 @@ function attCheckIn_(p, code) { // the student side of the check-in: the code, t
   if (!attCodeOk_(ses, code)) { attFailAdd_('d' + dev); attFailAdd_('i' + aid); return { ok: false, why: 'bad code' }; }
   var onl = !!rosterSet_()[aid], day = attDayKey_(); // the student is told only whether their own ID was found; nothing else about the roster
   if (attDayHas_(day, aid)) return { ok: true, id: aid, onList: onl, already: true }; // one mark per ID per day: nothing is added
+  var geo = attGeo_(ses, p);
+  if (geo.state === 'far' || geo.state === 'none') {
+    attFlag_(ses.label, aid, dev, 'location: ' + attGeoText_(geo) + (ATT_GEO_MODE === 'enforce' ? ' (refused)' : ' (accepted)'));
+    if (ATT_GEO_MODE === 'enforce') return { ok: false, why: geo.state === 'far' ? 'too far' : 'no location' };
+  }
   var others = attDeviceIds_(ses.label, dev), n = Object.keys(others).length;
   if (n >= ATT_DEVICE_IDS) { attFlag_(ses.label, aid, dev, 'device already used for ' + Object.keys(others).join(', ')); return { ok: false, why: 'device used' }; }
-  append_(ATT_LOG_TAB, ['Timestamp', 'Session', 'Student ID', 'On roster', 'Device'], [new Date(), ses.label, aid, onl ? 'Yes' : 'No', dev]); // appendRow is atomic: no lock for 200 students at once
+  append_(ATT_LOG_TAB, ['Timestamp', 'Session', 'Student ID', 'On roster', 'Device', 'Location'], [new Date(), ses.label, aid, onl ? 'Yes' : 'No', dev, attGeoText_(geo)]); // appendRow is atomic: no lock for 200 students at once
   attDayAdd_(day, aid);
   return { ok: true, id: aid, onList: onl };
 }
@@ -917,6 +922,30 @@ function attFlagDevices_(label) { // at closing: devices that checked in more th
   Object.keys(by).forEach(function (d) { if (by[d].length > ATT_DEVICE_IDS) { n++; attFlag_(label, by[d].join(', '), d, 'one device, ' + by[d].length + ' IDs (check in the log)'); } });
   return n;
 }
+
+// ---------- Attendance location check (optional): is the phone near the classroom? ----------
+// The host page sends the classroom position when a session starts (the browser asks the lecturer once). The check-in page sends the student's position;
+// the script keeps only the distance in metres and ok/far/none, never the student's coordinates. The classroom position stays in the private
+// Attendance_Control tab (columns G to I). ATT_GEO_MODE: 'off' = ignore location; 'flag' = accept everyone, record the result (log column F) and list far or
+// missing ones in Attendance_Flags; 'enforce' = refuse a check-in that is too far or has no location. The phone's reported accuracy is subtracted from
+// the distance (at most ATT_GEO_ACC_CAP metres), so a weak indoor GPS fix is not punished.
+var ATT_GEO_MODE = 'flag', ATT_GEO_RADIUS_M = 250, ATT_GEO_ACC_CAP = 150;
+
+function attMetres_(la1, lo1, la2, lo2) { // haversine distance in metres
+  var R = 6371000, r = Math.PI / 180, dLa = (la2 - la1) * r, dLo = (lo2 - lo1) * r;
+  var a = Math.sin(dLa / 2) * Math.sin(dLa / 2) + Math.cos(la1 * r) * Math.cos(la2 * r) * Math.sin(dLo / 2) * Math.sin(dLo / 2);
+  return Math.round(2 * R * Math.asin(Math.min(1, Math.sqrt(a))));
+}
+
+function attGeo_(ses, p) { // {state: 'off' | 'ok' | 'far' | 'none', dist}
+  if (ATT_GEO_MODE === 'off' || ses.lat == null || ses.lon == null || isNaN(ses.lat) || isNaN(ses.lon)) return { state: 'off', dist: 0 };
+  var la = Number(p.lat), lo = Number(p.lon), acc = Math.max(0, Math.min(Number(p.acc) || 0, ATT_GEO_ACC_CAP));
+  if (p.lat === undefined || p.lat === '' || isNaN(la) || isNaN(lo) || Math.abs(la) > 90 || Math.abs(lo) > 180) return { state: 'none', dist: 0 };
+  var d = attMetres_(ses.lat, ses.lon, la, lo), rad = ses.radius || ATT_GEO_RADIUS_M;
+  return { state: d - acc <= rad ? 'ok' : 'far', dist: d };
+}
+
+function attGeoText_(g) { return g.state === 'off' ? '' : (g.state === 'none' ? 'no location' : g.state + ' ' + g.dist + ' m'); }
 
 function attColumn_(label) { // the Attendance header: the date; a second session on the same day reads "03/11/2026 #2"
   var m = /^(.*) #(\d+)$/.exec(String(label || '').trim());
@@ -957,7 +986,7 @@ function attStatus_() { // the open session if there is one, else the latest, wi
   var present = attPresent_(cur.label), roster = {}; rosterRows_().forEach(function (r) { roster[r[0]] = 1; });
   var on = 0, off = 0; Object.keys(present).forEach(function (id) { if (roster[id]) on++; else off++; });
   var live = cur.status === 'Open' && cur.secret, now = Date.now(), slot = attSlot_(now);
-  return { ok: true, session: { code: live ? attCodeFor_(cur.secret, slot) : cur.code, rotates: !!live, link: live ? attLinkFor_(cur.secret, slot) : '', secondsLeft: live ? Math.max(1, Math.ceil(((slot + 1) * ATT_SLOT_SEC * 1000 - now) / 1000)) : 0, label: attColumn_(cur.label), status: cur.status, present: on, notOnList: off, rosterSize: Object.keys(roster).length } };
+  return { ok: true, session: { code: live ? attCodeFor_(cur.secret, slot) : cur.code, rotates: !!live, link: live ? attLinkFor_(cur.secret, slot) : '', secondsLeft: live ? Math.max(1, Math.ceil(((slot + 1) * ATT_SLOT_SEC * 1000 - now) / 1000)) : 0, label: attColumn_(cur.label), status: cur.status, geo: cur.lat != null && ATT_GEO_MODE !== 'off' ? ATT_GEO_MODE : 'off', present: on, notOnList: off, rosterSize: Object.keys(roster).length } };
 }
 
 function attOpen_(p) {
@@ -976,12 +1005,14 @@ function attOpen_(p) {
   rows.forEach(function (r) { if (r.label.indexOf(base + ' #') === 0) n++; });
   var label = base + ' #' + n;
   var secret = Utilities.getUuid() + Utilities.getUuid();
-  try { var lg = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_LOG_TAB); if (lg && lg.getLastRow() > 0 && !String(lg.getRange(1, 5).getValue()).trim()) lg.getRange(1, 5).setValue('Device'); } catch (err) { /* header only */ }
-  attSheet_().appendRow([code, label, 'Open', new Date().toISOString(), '', secret]);
+  try { var lg = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_LOG_TAB); if (lg && lg.getLastRow() > 0 && !String(lg.getRange(1, 5).getValue()).trim()) lg.getRange(1, 5).setValue('Device'); if (lg && lg.getLastRow() > 0 && !String(lg.getRange(1, 6).getValue()).trim()) lg.getRange(1, 6).setValue('Location'); } catch (err) { /* header only */ }
+  var hla = p.lat === undefined || p.lat === '' ? NaN : Number(p.lat), hlo = Number(p.lon), hasGeo = !isNaN(hla) && !isNaN(hlo) && Math.abs(hla) <= 90 && Math.abs(hlo) <= 180;
+  var rad = Math.max(50, Math.min(Number(p.radius) || ATT_GEO_RADIUS_M, 5000));
+  attSheet_().appendRow([code, label, 'Open', new Date().toISOString(), '', secret, hasGeo ? hla : '', hasGeo ? hlo : '', hasGeo ? rad : '']);
   try { var oc = CacheService.getScriptCache(); oc.remove('att:' + code); oc.remove('att:open'); } catch (err) { /* cache only */ }
   log_('attendance:open', label, '', 'rotating');
   var sl = attSlot_(), now0 = Date.now();
-  return { ok: true, session: { code: attCodeFor_(secret, sl), rotates: true, link: attLinkFor_(secret, sl), secondsLeft: Math.max(1, Math.ceil(((sl + 1) * ATT_SLOT_SEC * 1000 - now0) / 1000)), label: attColumn_(label), status: 'Open', present: 0, notOnList: 0 } };
+  return { ok: true, session: { code: attCodeFor_(secret, sl), rotates: true, link: attLinkFor_(secret, sl), secondsLeft: Math.max(1, Math.ceil(((sl + 1) * ATT_SLOT_SEC * 1000 - now0) / 1000)), label: attColumn_(label), status: 'Open', present: 0, notOnList: 0, geo: hasGeo && ATT_GEO_MODE !== 'off' ? ATT_GEO_MODE : 'off', radius: hasGeo ? rad : 0 } };
 }
 
 function attClose_() {
