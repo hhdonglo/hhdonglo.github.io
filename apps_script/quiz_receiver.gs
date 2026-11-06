@@ -816,14 +816,15 @@ function rosterSync_(p) {
 
 function attSheet_() {
   var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(ATT_CTL_TAB);
-  if (!sh) { sh = ss.insertSheet(ATT_CTL_TAB); sh.appendRow(['Code', 'Label', 'Status', 'Opened', 'Closed']); }
+  if (!sh) { sh = ss.insertSheet(ATT_CTL_TAB); sh.appendRow(['Code', 'Label', 'Status', 'Opened', 'Closed', 'Secret']); }
+  if (!String(sh.getRange(1, 6).getValue()).trim()) sh.getRange(1, 6).setValue('Secret'); // the per-session secret that makes the on-screen code rotate: keep this tab private
   return sh;
 }
 
 function attRows_() { // [{row, code, label, status}]
   var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_CTL_TAB);
   if (!sh || sh.getLastRow() < 2) return [];
-  return sh.getRange(2, 1, sh.getLastRow() - 1, 3).getValues().map(function (r, i) { return { row: i + 2, code: String(r[0]).trim().toUpperCase(), label: String(r[1]), status: String(r[2]).trim() }; });
+  return sh.getRange(2, 1, sh.getLastRow() - 1, 6).getValues().map(function (r, i) { return { row: i + 2, code: String(r[0]).trim().toUpperCase(), label: String(r[1]), status: String(r[2]).trim(), secret: String(r[5] || '') }; });
 }
 
 function attByCode_(code) { // the session with this code, or null; cached a few seconds (also caches "none", since every unknown code asks)
@@ -833,6 +834,74 @@ function attByCode_(code) { // the session with this code, or null; cached a few
   var found = null; attRows_().forEach(function (r) { if (r.code === code) found = r; });
   if (cache) { try { cache.put(k, found ? JSON.stringify(found) : '0', 5); } catch (err) { /* cache only */ } }
   return found;
+}
+
+// ---------- Attendance hardening: a code that rotates, one device per ID, a rate limit, a Flags tab ----------
+// The code on the projector is derived from the session secret and the clock: ATT_SLOT_SEC seconds per code. The check-in accepts the current code and
+// the one before it (ATT_GRACE_SLOTS), so a student who is typing while the code changes is not turned away. The link and QR code stay fixed and
+// carry no code, so passing the link on gives an absentee nothing without a live code. Rejected attempts go to the Flags tab and never reach the log
+// that counts presence. Device token: a random value the check-in page keeps in the phone's browser; one token may check in only one Student ID per session.
+var ATT_FLAGS_TAB = 'Attendance_Flags', ATT_SLOT_SEC = 30, ATT_GRACE_SLOTS = 1, ATT_DEVICE_IDS = 1, ATT_MAX_FAILS = 6;
+
+function attSlot_(t) { return Math.floor((t || Date.now()) / (ATT_SLOT_SEC * 1000)); }
+
+function attCodeFor_(secret, slot) { // four digits, from HMAC-SHA256(secret, slot)
+  var b = Utilities.computeHmacSha256Signature('att:' + slot, secret), n = 0;
+  for (var i = 0; i < 4; i++) n = n * 256 + (b[i] & 255);
+  return ('0000' + (n % 10000)).slice(-4);
+}
+
+function attOpenSession_() { // the open session (with its secret), cached a few seconds because every student asks at once
+  var cache = null; try { cache = CacheService.getScriptCache(); var h = cache.get('att:open'); if (h) return h === '0' ? null : JSON.parse(h); } catch (err) { cache = null; }
+  var cur = null; attRows_().forEach(function (r) { if (r.status === 'Open') cur = r; });
+  if (cache) { try { cache.put('att:open', cur ? JSON.stringify(cur) : '0', 5); } catch (err) { /* cache only */ } }
+  return cur;
+}
+
+function attCodeOk_(ses, code) { // true for the current code and the one before it; false if there is no secret (an old session) so a leaked fixed code never works
+  if (!ses || !ses.secret || !code) return false;
+  var slot = attSlot_();
+  for (var d = 0; d <= ATT_GRACE_SLOTS; d++) if (attCodeFor_(ses.secret, slot - d) === code) return true;
+  return false;
+}
+
+function attFlag_(label, id, dev, why) {
+  try { append_(ATT_FLAGS_TAB, ['Timestamp', 'Session', 'Student ID', 'Device', 'Reason'], [new Date(), label, id, String(dev || '').slice(0, 8), why]); } catch (err) { /* flags must never stop a check-in */ }
+}
+
+function attFails_(key) { try { return Number(CacheService.getScriptCache().get('attf:' + key) || 0); } catch (err) { return 0; } }
+function attFailAdd_(key) { try { var c = CacheService.getScriptCache(); c.put('attf:' + key, String(Number(c.get('attf:' + key) || 0) + 1), 600); } catch (err) { /* cache only */ } }
+
+function attDeviceIds_(label, dev) { // the IDs this device token has already checked in this session, from the log
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_LOG_TAB), got = {};
+  if (!sh || sh.getLastRow() < 2 || sh.getLastColumn() < 5) return got;
+  sh.getRange(2, 2, sh.getLastRow() - 1, 4).getValues().forEach(function (r) { if (String(r[0]) === label && String(r[3]) === dev) got[normId_(r[1])] = true; });
+  return got;
+}
+
+function attCheckIn_(p, code) { // the student side of the check-in: the code, the ID and the device token
+  var ses = attOpenSession_();
+  if (!ses) return { ok: false, why: 'closed' };
+  var aid = normId_(p.id), dev = String(p.dev || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 40);
+  if (aid.length < 4 || aid.length > 12) return { ok: false, why: 'bad id' };
+  if (dev.length < 16) return { ok: false, why: 'update page' }; // an old cached page without a device token: reload
+  if (attFails_('d' + dev) >= ATT_MAX_FAILS || attFails_('i' + aid) >= ATT_MAX_FAILS) return { ok: false, why: 'slow down' };
+  if (!attCodeOk_(ses, code)) { attFailAdd_('d' + dev); attFailAdd_('i' + aid); return { ok: false, why: 'bad code' }; }
+  var onl = !!rosterSet_()[aid], day = attDayKey_(); // the student is told only whether their own ID was found; nothing else about the roster
+  if (attDayHas_(day, aid)) return { ok: true, id: aid, onList: onl, already: true }; // one mark per ID per day: nothing is added
+  var others = attDeviceIds_(ses.label, dev), n = Object.keys(others).length;
+  if (n >= ATT_DEVICE_IDS) { attFlag_(ses.label, aid, dev, 'device already used for ' + Object.keys(others).join(', ')); return { ok: false, why: 'device used' }; }
+  append_(ATT_LOG_TAB, ['Timestamp', 'Session', 'Student ID', 'On roster', 'Device'], [new Date(), ses.label, aid, onl ? 'Yes' : 'No', dev]); // appendRow is atomic: no lock for 200 students at once
+  attDayAdd_(day, aid);
+  return { ok: true, id: aid, onList: onl };
+}
+
+function attFlagDevices_(label) { // at closing: devices that checked in more than one ID (catches two phones' taps that raced), added to the Flags tab
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_LOG_TAB), by = {}, n = 0;
+  if (!sh || sh.getLastRow() < 2 || sh.getLastColumn() < 5) return 0;
+  sh.getRange(2, 2, sh.getLastRow() - 1, 4).getValues().forEach(function (r) { var d = String(r[3]); if (String(r[0]) === label && d) (by[d] = by[d] || []).push(normId_(r[1])); });
+  Object.keys(by).forEach(function (d) { if (by[d].length > ATT_DEVICE_IDS) { n++; attFlag_(label, by[d].join(', '), d, 'one device, ' + by[d].length + ' IDs (check in the log)'); } });
+  return n;
 }
 
 function attColumn_(label) { // the Attendance header: the date; a second session on the same day reads "03/11/2026 #2"
@@ -873,7 +942,8 @@ function attStatus_() { // the open session if there is one, else the latest, wi
   if (!cur) return { ok: true, session: null };
   var present = attPresent_(cur.label), roster = {}; rosterRows_().forEach(function (r) { roster[r[0]] = 1; });
   var on = 0, off = 0; Object.keys(present).forEach(function (id) { if (roster[id]) on++; else off++; });
-  return { ok: true, session: { code: cur.code, label: attColumn_(cur.label), status: cur.status, present: on, notOnList: off, rosterSize: Object.keys(roster).length } };
+  var live = cur.status === 'Open' && cur.secret, now = Date.now(), slot = attSlot_(now);
+  return { ok: true, session: { code: live ? attCodeFor_(cur.secret, slot) : cur.code, rotates: !!live, secondsLeft: live ? Math.max(1, Math.ceil(((slot + 1) * ATT_SLOT_SEC * 1000 - now) / 1000)) : 0, label: attColumn_(cur.label), status: cur.status, present: on, notOnList: off, rosterSize: Object.keys(roster).length } };
 }
 
 function attOpen_(p) {
@@ -891,10 +961,13 @@ function attOpen_(p) {
   var base = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'dd/MM/yyyy'), n = 1;
   rows.forEach(function (r) { if (r.label.indexOf(base + ' #') === 0) n++; });
   var label = base + ' #' + n;
-  attSheet_().appendRow([code, label, 'Open', new Date().toISOString(), '']);
-  try { CacheService.getScriptCache().remove('att:' + code); } catch (err) { /* cache only */ }
-  log_('attendance:open', label, '', code);
-  return { ok: true, session: { code: code, label: attColumn_(label), status: 'Open', present: 0, notOnList: 0 } };
+  var secret = Utilities.getUuid() + Utilities.getUuid();
+  try { var lg = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_LOG_TAB); if (lg && lg.getLastRow() > 0 && !String(lg.getRange(1, 5).getValue()).trim()) lg.getRange(1, 5).setValue('Device'); } catch (err) { /* header only */ }
+  attSheet_().appendRow([code, label, 'Open', new Date().toISOString(), '', secret]);
+  try { var oc = CacheService.getScriptCache(); oc.remove('att:' + code); oc.remove('att:open'); } catch (err) { /* cache only */ }
+  log_('attendance:open', label, '', 'rotating');
+  var sl = attSlot_(), now0 = Date.now();
+  return { ok: true, session: { code: attCodeFor_(secret, sl), rotates: true, secondsLeft: Math.max(1, Math.ceil(((sl + 1) * ATT_SLOT_SEC * 1000 - now0) / 1000)), label: attColumn_(label), status: 'Open', present: 0, notOnList: 0 } };
 }
 
 function attClose_() {
@@ -924,10 +997,10 @@ function attClose_() {
     if (rowsNl.length) { var r0 = nl.getLastRow() + 1; nl.getRange(r0, 2, rowsNl.length, 2).setNumberFormat('@'); nl.getRange(r0, 1, rowsNl.length, 3).setValues(rowsNl).setBackground('#f4c7c3'); }
   }
   var sh = attSheet_(); sh.getRange(cur.row, 3).setValue('Closed'); sh.getRange(cur.row, 5).setValue(new Date().toISOString());
-  try { CacheService.getScriptCache().remove('att:' + cur.code); } catch (err) { /* cache only */ }
-  var pres = 0; roster.forEach(function (r) { if (present[r[0]]) pres++; });
-  log_('attendance:close', col, '', cur.code);
-  return { ok: true, session: { code: cur.code, label: col, status: 'Closed', present: pres, absent: roster.length - pres, notOnList: offIds.length, column: col } };
+  try { var cc = CacheService.getScriptCache(); cc.remove('att:' + cur.code); cc.remove('att:open'); } catch (err) { /* cache only */ }
+  var flagged = attFlagDevices_(cur.label), pres = 0; roster.forEach(function (r) { if (present[r[0]]) pres++; });
+  log_('attendance:close', col, '', 'rotating');
+  return { ok: true, session: { code: cur.code, label: col, status: 'Closed', present: pres, absent: roster.length - pres, notOnList: offIds.length, flagged: flagged, column: col } };
 }
 
 // ---------- POST: answers, joins, progress, reports, attempts ----------
@@ -1131,18 +1204,7 @@ function doGet(e) {
     return jsonp_(e, { timed: false, known: !!k, hidden: v === 'hidden', closed: v === 'closed', state: k ? state_(k) : '' });
   }
 
-  if (p.action === 'attend') { // a student checks in: the attendance code and the student ID
-    var asn = attByCode_(code);
-    if (!asn) return jsonp_(e, { ok: false, why: 'unknown' });
-    if (asn.status !== 'Open') return jsonp_(e, { ok: false, why: 'closed' });
-    var aid = normId_(p.id);
-    if (aid.length < 4 || aid.length > 12) return jsonp_(e, { ok: false, why: 'bad id' });
-    var onl = !!rosterSet_()[aid], day = attDayKey_(); // the student is told only whether their own ID was found; nothing else about the roster
-    if (attDayHas_(day, aid)) return jsonp_(e, { ok: true, id: aid, onList: onl, already: true }); // one mark per ID per day: nothing is added
-    append_(ATT_LOG_TAB, ['Timestamp', 'Session', 'Student ID', 'On roster'], [new Date(), asn.label, aid, onl ? 'Yes' : 'No']); // appendRow is atomic: no lock for 200 students at once
-    attDayAdd_(day, aid);
-    return jsonp_(e, { ok: true, id: aid, onList: onl });
-  }
+  if (p.action === 'attend') return jsonp_(e, attCheckIn_(p, code)); // a student checks in: the rotating code, the student ID and the device token
   if (p.action === 'hostcheck') return jsonp_(e, { ok: hostOk_(p) }); // the lecturer menu: is this key right?
   if (p.action === 'attend_status' || p.action === 'attend_open' || p.action === 'attend_close') { // host only
     if (!hostOk_(p)) return jsonp_(e, { ok: false, why: 'host key not accepted' });
