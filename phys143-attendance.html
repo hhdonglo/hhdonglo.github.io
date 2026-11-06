@@ -67,10 +67,11 @@ body.focus main{padding-top:1rem}
   <p class="note" id="a-last"></p>
  </section>
  <section class="panel" id="a-live" hidden>
-  <p class="lbl">Scan, then enter your student ID and this code</p>
+  <p class="lbl">Scan, then enter your student ID and the code below. The code changes every 30 seconds.</p>
   <p><img class="qr" src="assets/figures/phys143-attend-qr.svg" alt="QR code to open the check-in page" width="340" height="340"></p>
   <p class="addr">hhdonglo.github.io/phys143-attend.html</p>
   <p class="lbl">Attendance code</p><p class="code" id="a-showcode"></p>
+  <p class="note" id="a-tick" role="status"></p>
   <p class="count" id="a-count" role="status"></p>
   <p><button class="go big" type="button" id="a-close">Close attendance and record absences</button></p>
   <p class="note" id="a-msg" role="status"></p>
@@ -92,18 +93,24 @@ var KEY="";try{KEY=sessionStorage.getItem("phys143_hk")||""}catch(x){}
 function saveKey(k){KEY=k;try{sessionStorage.setItem("phys143_hk",k)}catch(x){}}
 function signOut(){KEY="";try{sessionStorage.removeItem("phys143_hk")}catch(x){}location.href="phys143-lecturer.html"}
 
-var timer=null,show=function(id){["a-login","a-idle","a-live"].forEach(function(x){$(x).hidden=(x!==id)})};
+var timer=null,tk=null,left=0,stamp=0,show=function(id){["a-login","a-idle","a-live"].forEach(function(x){$(x).hidden=(x!==id)})};
 function call(act,extra,cb){jsonp("action="+act+"&hostkey="+encodeURIComponent(KEY)+(extra||""),cb)}
 function draw(d){
  var ss=d&&d.session,open=ss&&ss.status==="Open";
  if(open){
   $("a-showcode").textContent=ss.code;
+  left=ss.rotates?ss.secondsLeft:0;stamp=Date.now();tickDraw();if(!tk)tk=setInterval(tickDraw,1000);
   $("a-count").textContent=ss.present+" present"+(ss.notOnList?", "+ss.notOnList+" not on the list":"");
-  show("a-live");if(!timer)timer=setInterval(poll,5000);
+  show("a-live");if(!timer)timer=setInterval(poll,4000);
  } else {
-  if(timer){clearInterval(timer);timer=null}
+  if(timer){clearInterval(timer);timer=null}if(tk){clearInterval(tk);tk=null}
   show("a-idle");
  }
+}
+function tickDraw(){
+ var r=left-Math.floor((Date.now()-stamp)/1000);
+ $("a-tick").textContent=left?"New code in "+Math.max(r,0)+" s":"";
+ if(left&&r<=0){left=0;poll()}
 }
 function poll(){call("attend_status","",function(d){if(d&&d.ok)draw(d)})}
 function begin(){
@@ -136,7 +143,7 @@ $("a-close").addEventListener("click",function(){
  $("a-msg").textContent="Closing...";
  call("attend_close","",function(d){
   if(!d||!d.ok){$("a-msg").textContent="Not closed: "+((d&&d.why)||"could not reach the class sheet")+".";return}
-  var x=d.session;$("a-last").textContent="Closed. "+x.present+" present, "+x.absent+" absent"+(x.notOnList?", "+x.notOnList+" not on the roster (see the Not_On_List tab)":"")+".";
+  var x=d.session;$("a-last").textContent="Closed. "+x.present+" present, "+x.absent+" absent"+(x.notOnList?", "+x.notOnList+" not on the roster (see the Not_On_List tab)":"")+"."+(x.flagged?" "+x.flagged+" device(s) checked in more than one ID: see the Attendance_Flags tab.":"");
   if(timer){clearInterval(timer);timer=null}show("a-idle");
  });
 });
