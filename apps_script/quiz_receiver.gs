@@ -841,7 +841,7 @@ function attByCode_(code) { // the session with this code, or null; cached a few
 // the one before it (ATT_GRACE_SLOTS), so a student who is typing while the code changes is not turned away. The link and QR code stay fixed and
 // carry no code, so passing the link on gives an absentee nothing without a live code. Rejected attempts go to the Flags tab and never reach the log
 // that counts presence. Device token: a random value the check-in page keeps in the phone's browser; one token may check in only one Student ID per session.
-var ATT_FLAGS_TAB = 'Attendance_Flags', ATT_SLOT_SEC = 30, ATT_GRACE_SLOTS = 1, ATT_DEVICE_IDS = 1, ATT_MAX_FAILS = 6;
+var ATT_FLAGS_TAB = 'Attendance_Flags', ATT_SLOT_SEC = 30, ATT_GRACE_SLOTS = 1, ATT_LINK_GRACE_SLOTS = 2, ATT_DEVICE_IDS = 1, ATT_MAX_FAILS = 6;
 
 function attSlot_(t) { return Math.floor((t || Date.now()) / (ATT_SLOT_SEC * 1000)); }
 
@@ -849,6 +849,19 @@ function attCodeFor_(secret, slot) { // four digits, from HMAC-SHA256(secret, sl
   var b = Utilities.computeHmacSha256Signature('att:' + slot, secret), n = 0;
   for (var i = 0; i < 4; i++) n = n * 256 + (b[i] & 255);
   return ('0000' + (n % 10000)).slice(-4);
+}
+
+function attLinkFor_(secret, slot) { // the token in the QR link: eight hex characters from HMAC-SHA256(secret, 'qr:' + slot)
+  var b = Utilities.computeHmacSha256Signature('qr:' + slot, secret), h = '';
+  for (var i = 0; i < 4; i++) h += ('0' + (b[i] & 255).toString(16)).slice(-2);
+  return h;
+}
+
+function attLinkOk_(ses, tok) { // the link scanned from the screen: this cycle's token or one of the two before it (about 60 to 90 s)
+  if (!ses || !ses.secret || !tok) return false;
+  var slot = attSlot_();
+  for (var d = 0; d <= ATT_LINK_GRACE_SLOTS; d++) if (attLinkFor_(ses.secret, slot - d) === tok) return true;
+  return false;
 }
 
 function attOpenSession_() { // the open session (with its secret), cached a few seconds because every student asks at once
@@ -885,6 +898,7 @@ function attCheckIn_(p, code) { // the student side of the check-in: the code, t
   var aid = normId_(p.id), dev = String(p.dev || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 40);
   if (aid.length < 4 || aid.length > 12) return { ok: false, why: 'bad id' };
   if (dev.length < 16) return { ok: false, why: 'update page' }; // an old cached page without a device token: reload
+  if (!attLinkOk_(ses, String(p.t || '').replace(/[^0-9a-f]/g, '').slice(0, 8))) return { ok: false, why: 'old link' }; // the QR changes every cycle: a forwarded link goes stale
   if (attFails_('d' + dev) >= ATT_MAX_FAILS || attFails_('i' + aid) >= ATT_MAX_FAILS) return { ok: false, why: 'slow down' };
   if (!attCodeOk_(ses, code)) { attFailAdd_('d' + dev); attFailAdd_('i' + aid); return { ok: false, why: 'bad code' }; }
   var onl = !!rosterSet_()[aid], day = attDayKey_(); // the student is told only whether their own ID was found; nothing else about the roster
@@ -943,7 +957,7 @@ function attStatus_() { // the open session if there is one, else the latest, wi
   var present = attPresent_(cur.label), roster = {}; rosterRows_().forEach(function (r) { roster[r[0]] = 1; });
   var on = 0, off = 0; Object.keys(present).forEach(function (id) { if (roster[id]) on++; else off++; });
   var live = cur.status === 'Open' && cur.secret, now = Date.now(), slot = attSlot_(now);
-  return { ok: true, session: { code: live ? attCodeFor_(cur.secret, slot) : cur.code, rotates: !!live, secondsLeft: live ? Math.max(1, Math.ceil(((slot + 1) * ATT_SLOT_SEC * 1000 - now) / 1000)) : 0, label: attColumn_(cur.label), status: cur.status, present: on, notOnList: off, rosterSize: Object.keys(roster).length } };
+  return { ok: true, session: { code: live ? attCodeFor_(cur.secret, slot) : cur.code, rotates: !!live, link: live ? attLinkFor_(cur.secret, slot) : '', secondsLeft: live ? Math.max(1, Math.ceil(((slot + 1) * ATT_SLOT_SEC * 1000 - now) / 1000)) : 0, label: attColumn_(cur.label), status: cur.status, present: on, notOnList: off, rosterSize: Object.keys(roster).length } };
 }
 
 function attOpen_(p) {
@@ -967,7 +981,7 @@ function attOpen_(p) {
   try { var oc = CacheService.getScriptCache(); oc.remove('att:' + code); oc.remove('att:open'); } catch (err) { /* cache only */ }
   log_('attendance:open', label, '', 'rotating');
   var sl = attSlot_(), now0 = Date.now();
-  return { ok: true, session: { code: attCodeFor_(secret, sl), rotates: true, secondsLeft: Math.max(1, Math.ceil(((sl + 1) * ATT_SLOT_SEC * 1000 - now0) / 1000)), label: attColumn_(label), status: 'Open', present: 0, notOnList: 0 } };
+  return { ok: true, session: { code: attCodeFor_(secret, sl), rotates: true, link: attLinkFor_(secret, sl), secondsLeft: Math.max(1, Math.ceil(((sl + 1) * ATT_SLOT_SEC * 1000 - now0) / 1000)), label: attColumn_(label), status: 'Open', present: 0, notOnList: 0 } };
 }
 
 function attClose_() {
