@@ -841,7 +841,8 @@ function attByCode_(code) { // the session with this code, or null; cached a few
 // the one before it (ATT_GRACE_SLOTS), so a student who is typing while the code changes is not turned away. The link and QR code stay fixed and
 // carry no code, so passing the link on gives an absentee nothing without a live code. Rejected attempts go to the Flags tab and never reach the log
 // that counts presence. Device token: a random value the check-in page keeps in the phone's browser; one token may check in only one Student ID per session.
-var ATT_FLAGS_TAB = 'Attendance_Flags', ATT_SLOT_SEC = 30, ATT_GRACE_SLOTS = 1, ATT_LINK_GRACE_SLOTS = 2, ATT_DEVICE_IDS = 1, ATT_MAX_FAILS = 6;
+var ATT_FLAGS_TAB = 'Attendance_Flags', ATT_SLOT_SEC = 30, ATT_GRACE_SLOTS = 1, ATT_LINK_GRACE_SLOTS = 2, ATT_REQUIRE_LINK = true, // false: accept check-ins without the QR token (the rotating code is still required)
+     ATT_DEVICE_IDS = 1, ATT_MAX_FAILS = 6;
 
 function attSlot_(t) { return Math.floor((t || Date.now()) / (ATT_SLOT_SEC * 1000)); }
 
@@ -898,7 +899,7 @@ function attCheckIn_(p, code) { // the student side of the check-in: the code, t
   var aid = normId_(p.id), dev = String(p.dev || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 40);
   if (aid.length < 4 || aid.length > 12) return { ok: false, why: 'bad id' };
   if (dev.length < 16) return { ok: false, why: 'update page' }; // an old cached page without a device token: reload
-  if (!attLinkOk_(ses, String(p.t || '').replace(/[^0-9a-f]/g, '').slice(0, 8))) return { ok: false, why: 'old link' }; // the QR changes every cycle: a forwarded link goes stale
+  if (ATT_REQUIRE_LINK && !attLinkOk_(ses, String(p.t || '').replace(/[^0-9a-f]/g, '').slice(0, 8))) return { ok: false, why: 'old link' }; // the QR changes every cycle: a forwarded link goes stale
   if (attFails_('d' + dev) >= ATT_MAX_FAILS || attFails_('i' + aid) >= ATT_MAX_FAILS) return { ok: false, why: 'slow down' };
   if (!attCodeOk_(ses, code)) { attFailAdd_('d' + dev); attFailAdd_('i' + aid); return { ok: false, why: 'bad code' }; }
   var onl = !!rosterSet_()[aid], day = attDayKey_(); // the student is told only whether their own ID was found; nothing else about the roster
