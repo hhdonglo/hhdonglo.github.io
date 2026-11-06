@@ -79,6 +79,7 @@ function devToken(){var t="";try{t=localStorage.getItem("phys143_dev")||""}catch
  if(t.length<16){var a=new Uint8Array(12);(window.crypto||window.msCrypto).getRandomValues(a);t="";for(var i=0;i<a.length;i++)t+=("0"+a[i].toString(16)).slice(-2);try{localStorage.setItem("phys143_dev",t)}catch(x){}}
  return t}
 var DEV=devToken();
+var TOK=(/[?&]t=([0-9a-f]{1,8})/.exec(location.search)||[0,""])[1];
 function jsonp(params,cb){
  var n="cb"+Date.now()+Math.floor(Math.random()*1e6),sc=document.createElement("script"),done=false;
  function end(d){if(done)return;done=true;delete window[n];if(sc.parentNode)sc.parentNode.removeChild(sc);cb(d)}
@@ -93,11 +94,11 @@ $("c-form").addEventListener("submit",function(e){
  var id=$("c-id").value.trim(),code=$("c-code").value.trim().toUpperCase();
  if(!id||!code){err("Please enter your student ID and the attendance code.");return}
  $("c-btn").disabled=true;
- jsonp("action=attend&code="+encodeURIComponent(code)+"&id="+encodeURIComponent(id)+"&dev="+DEV,function(r){
+ jsonp("action=attend&code="+encodeURIComponent(code)+"&id="+encodeURIComponent(id)+"&dev="+DEV+"&t="+TOK,function(r){
   $("c-btn").disabled=false;
   if(!r){err("Could not reach the server. Check your connection and try again.");return}
   if(r.ok){$("c-form-wrap").hidden=true;window.scrollTo(0,0);var h=r.already?"Already marked present today":"Marked present";if(r.onList===false){$("c-mid").textContent=r.id;$("c-mh").textContent=h;$("c-missing").hidden=false}else{$("c-sid").textContent=r.id;$("c-dh").textContent=h;$("c-done").hidden=false}return}
-  err(r.why==="closed"?"Attendance is closed.":(r.why==="slow down"?"Too many wrong codes. Wait a few minutes, then try again.":(r.why==="device used"?"This phone has already checked in another student. Please see your lecturer.":(r.why==="update page"?"Please reload this page and try again.":(r.why==="bad id"?"That does not look like a student ID. Check it and try again.":"That code is not correct or has expired. The code changes every 30 seconds: type the one now on the screen."))));
+  err(r.why==="closed"?"Attendance is closed.":(r.why==="slow down"?"Too many wrong codes. Wait a few minutes, then try again.":(r.why==="device used"?"This phone has already checked in another student. Please see your lecturer.":(r.why==="old link"?"This link has expired. Scan the QR code on the screen again.":(r.why==="update page"?"Please reload this page and try again.":(r.why==="bad id"?"That does not look like a student ID. Check it and try again.":"That code is not correct or has expired. The code changes every 30 seconds: type the one now on the screen.")))));
  });
 });
 function again(){$("c-done").hidden=true;$("c-missing").hidden=true;$("c-form-wrap").hidden=false;$("c-id").value="";$("c-id").focus()}
