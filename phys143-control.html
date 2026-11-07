@@ -43,6 +43,8 @@
 .cc .note{font-size:.9rem;line-height:1.5;color:var(--muted)}
 .cc label.cb{display:flex;gap:.5rem;align-items:center;min-height:44px}
 .cc .wide,.cc .panel.open{grid-column:1/-1}.cc iframe{width:100%;height:80vh;min-height:30rem;border:1px solid var(--border);border-radius:6px;margin-top:.6rem;background:var(--surface)}
+.cc .go.sm{min-height:40px;padding:.3rem .8rem;font-size:.9rem}
+.cc details.held{margin:.6rem 0 .2rem}.cc details.held summary{cursor:pointer;font-size:.95rem;min-height:36px;display:flex;align-items:center}.cc details.held li{font-size:.88rem;padding:.3rem 0}
 .cc [hidden]{display:none!important}
 body.focus header.banner,body.focus nav.jump,body.focus .crumb,body.focus .sec-sub,body.focus aside.disclaimer,body.focus footer,body.focus a.skip,body.focus main h2{display:none!important}
 body.focus main{padding-top:0}
@@ -71,13 +73,14 @@ body.focus main{padding-top:0}
    <button class="go" type="button" id="k-run">Run checks</button>
   </section>
   <section class="panel" id="p-att"><h3>Attendance</h3>
-   <p class="note">Opens the attendance controls here. For the projector, use "Open in its own window", move that window to the projector and keep this one on your laptop. Closing asks you to confirm.</p>
+   <p class="note">Open the attendance controls here, or in their own window for the projector. Closing asks you to confirm.</p>
    <button class="go" type="button" data-panel="p-att" data-embed="e-att" data-src="phys143-attendance.html">Show attendance here</button>
    <a class="go alt" href="phys143-attendance.html" target="_blank" rel="noopener">Open in its own window</a>
-   <p class="note">Attendance held until you submit it. Nothing is written to the Attendance sheet before then.</p>
-   <ul id="h-list"><li class="note">Checking.</li></ul>
-   <button class="go" type="button" id="h-sa">Submit attendance</button>
-   <button class="go alt" type="button" id="h-da">Discard unsubmitted attendance</button>
+   <details class="held" id="h-det"><summary id="h-sum">Held sessions: checking</summary>
+    <p class="note">Held until you submit. Nothing is written to the Attendance sheet before then.</p>
+    <ul id="h-list"><li class="note">Checking.</li></ul></details>
+   <button class="go sm" type="button" id="h-sa">Submit attendance</button>
+   <button class="go alt sm" type="button" id="h-da">Discard unsubmitted</button>
    <p class="note" id="h-msg" role="status"></p>
    <div id="e-att"></div>
   </section>
@@ -195,11 +198,13 @@ $("k-run").addEventListener("click",function(){
 // ---- held results: released only when the lecturer says so ----
 function heldLoad(){
  jsonp("action=held_status&"+hk(),function(d){
-  if(!d||d.ok!==true){var m='<li class="note">'+esc(d&&d.why?d.why:"No answer. If the script is old, paste the new one and deploy a new version.")+'</li>';$("h-list").innerHTML=m;$("h-ql").innerHTML=m;return}
+  if(!d||d.ok!==true){var m='<li class="note">'+esc(d&&d.why?d.why:"No answer. If the script is old, paste the new one and deploy a new version.")+'</li>';$("h-list").innerHTML=m;$("h-sum").textContent="Held sessions: unavailable";$("h-ql").innerHTML=m;return}
   $("h-ql").innerHTML="<li><span>Quiz results held: "+d.quiz+"</span></li>";
   var L=[];
-  if(d.sessions.length)d.sessions.forEach(function(x){L.push("<li><span>Attendance held, session "+esc(x.label)+": "+x.present+" checked in</span></li>")});
-  else L.push("<li><span>Attendance held: none</span></li>");
+  var tot=0;
+  if(d.sessions.length)d.sessions.forEach(function(x){tot+=x.present;L.push("<li><span>"+esc(x.label)+": "+x.present+" checked in</span></li>")});
+  else L.push("<li><span>None</span></li>");
+  $("h-sum").textContent=d.sessions.length?"Held sessions: "+d.sessions.length+", "+tot+" checked in":"Held sessions: none";
   $("h-list").innerHTML=L.join("");
  });
 }
