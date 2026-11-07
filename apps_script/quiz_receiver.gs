@@ -873,9 +873,11 @@ function rosterSet_() { // {id: 1}, cached for five minutes
   return set;
 }
 
-// Roster sync (used by attendance_tools/roster_sync.sh): adds the uploaded Student IDs to the Roster tab. Only IDs are stored (no names), IDs already
-// there are left alone, nothing is ever deleted (IDs missing from the upload are only counted), and nothing from the Roster is ever returned.
-// kind=roster_sync, hostkey, mode=dry|apply, rows = JSON list of Student IDs.
+// Roster sync (used by attendance_tools/roster_sync.sh): adds the uploaded Student IDs to the Roster tab. Only IDs are stored (no names), and nothing
+// from the Roster is ever returned. By default nothing is deleted (IDs missing from the upload are only counted).
+// Class section: the Roster must hold only the lecturer's own section. Upload the section's own export (for example PHYS143_GROUP_E.csv) with
+// replace=yes and mode=apply: the Roster then becomes exactly that list (other IDs are removed from the Roster only; Attendance, Scores and Master rows are left alone).
+// kind=roster_sync, hostkey, mode=dry|apply, replace=yes (optional), rows = JSON list of Student IDs.
 function rosterSync_(p) {
   if (!hostOk_(p)) return { ok: false, why: 'key not accepted' };
   var rows;
@@ -898,13 +900,20 @@ function rosterSync_(p) {
     sh.getRange(1, 1, sh.getLastRow(), 1).getValues().forEach(function (r) { var id = normId_(r[0]); if (id.length >= 4) have[id] = 1; });
     var added = order.filter(function (id) { return !have[id]; }).map(function (id) { return [id]; });
     var missing = Object.keys(have).filter(function (id) { return !up[id]; }).length;
+    var replace = String(p.replace || '') === 'yes', removed = 0;
+    if (replace && apply && missing) { // keep the header and the rows whose ID is in the upload (names in column B, if any, stay with their row)
+      var all = sh.getRange(1, 1, sh.getLastRow(), Math.max(2, sh.getLastColumn())).getValues(), keep = [];
+      all.forEach(function (r, i) { var id = normId_(r[0]); if (i === 0 && id.length < 4) keep.push(r); else if (id.length >= 4 && up[id]) keep.push(r); else removed++; });
+      sh.getRange(1, 1, all.length, all[0].length).clearContent();
+      if (keep.length) { sh.getRange(1, 1, keep.length, 1).setNumberFormat('@'); sh.getRange(1, 1, keep.length, keep[0].length).setValues(keep); }
+    }
     if (apply && added.length) {
       var r0 = sh.getLastRow() + 1;
       sh.getRange(r0, 1, added.length, 1).setNumberFormat('@');
       sh.getRange(r0, 1, added.length, 1).setValues(added);
     }
     if (apply) { try { CacheService.getScriptCache().remove('roster'); } catch (err) { /* cache only */ } log_('roster:sync', added.length + ' added', '', ''); }
-    return { ok: true, mode: apply ? 'apply' : 'dry', added: added.length, unchanged: order.length - added.length, missing: missing, skipped: bad, total: order.length };
+    return { ok: true, mode: apply ? 'apply' : 'dry', replace: replace, added: added.length, unchanged: order.length - added.length, missing: missing, removed: replace ? (apply ? removed : missing) : 0, skipped: bad, total: order.length };
   } finally { lk.releaseLock(); }
 }
 
@@ -983,6 +992,20 @@ function attPurgeSemester() {
   PropertiesService.getScriptProperties().deleteProperty('att_salt');
   try { CacheService.getScriptCache().removeAll(['att:open', 'roster']); } catch (err) { /* cache only */ }
   ui.alert('Done. Cleared ' + n + ' place(s) and the hash salt.');
+}
+
+// End-of-semester clean-up of student records that are not the course record: run clearSemesterRecords from the editor (answer Yes). It deletes every row
+// (not the header) of Attendance_Log, Not_On_List, Reports, Attempts and Staged_Quiz. The Attendance, Scores and Master tabs and the Roster are NOT touched:
+// export what you need first. Replace the Roster at the start of the next term with a new section sync (replace=yes).
+function clearSemesterRecords() {
+  var ui = SpreadsheetApp.getUi();
+  if (ui.alert('Delete all rows of Attendance_Log, Not_On_List, Reports, Attempts and Staged_Quiz?', 'Attendance, Scores, Master and Roster are kept. This cannot be undone.', ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
+  var ss = SpreadsheetApp.getActiveSpreadsheet(), n = 0;
+  [ATT_LOG_TAB, NOTLIST_TAB, 'Reports', 'Attempts', STAGED_TAB].forEach(function (name) {
+    var sh = ss.getSheetByName(name);
+    if (sh && sh.getLastRow() > 1) { sh.deleteRows(2, sh.getLastRow() - 1); n++; }
+  });
+  ui.alert('Done. Cleared ' + n + ' tab(s).');
 }
 
 function attFlag_(label, id, dev, why) {
