@@ -53,6 +53,13 @@ body.focus main{padding-top:1.2rem}
    <label for="c-id">Student ID</label><input type="text" id="c-id" maxlength="12" inputmode="numeric" autocomplete="off" placeholder="Your ID number">
    <p class="err" id="c-err" role="alert" hidden></p>
    <button type="submit" class="go" id="c-btn">Present</button>
+   <details class="note" id="c-priv"><summary>How your data is used</summary>
+    <p><b>Purpose:</b> to record that you attended this class.</p>
+    <p><b>What is kept:</b> your student ID, the date and time, whether you were within range of the classroom (a distance in metres, never where you are), and a scrambled code for your phone, used only to stop one phone checking in several students. A random code is stored in your phone's browser for this. Your location is used once and is not stored.</p>
+    <p><b>Who sees it:</b> the lecturer only. Student IDs are never shown publicly.</p>
+    <p><b>How long:</b> the phone codes and any flags are deleted at the end of the semester. The attendance mark is kept with the course record.</p>
+    <p><b>Questions or corrections:</b> hdonglo@ug.edu.gh. This follows the Data Protection Act, 2012 (Act 843).</p>
+   </details>
    <p class="note">Your phone may ask for your location. It is used once to confirm you are in the room; only the distance is kept, not where you are.</p>
   </form>
  </section>
@@ -101,7 +108,7 @@ $("c-form").addEventListener("submit",function(e){
  if(!TOK){err("Scan the QR code on the screen to open this page.");return}
  $("c-btn").disabled=true;
  var send=function(pos){
- var loc=pos?"&lat="+pos.lat.toFixed(5)+"&lon="+pos.lon.toFixed(5)+"&acc="+Math.round(pos.acc):"";
+ var loc=pos?"&lat="+pos.lat.toFixed(4)+"&lon="+pos.lon.toFixed(4)+"&acc="+Math.round(pos.acc):""; // about 11 m: no more precision than the check needs
  jsonp("action=attend&id="+encodeURIComponent(id)+"&dev="+DEV+"&t="+TOK+loc,function(r){
   $("c-btn").disabled=false;
   if(!r){err("Could not reach the server. Check your connection and try again.");return}

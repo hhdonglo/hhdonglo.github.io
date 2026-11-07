@@ -865,6 +865,32 @@ function attOpenSession_() { // the open session, cached a few seconds because e
   return cur;
 }
 
+// ---------- Attendance privacy ----------
+// The phone's device token is never stored as sent: only a salted hash (16 hex characters) goes into the sheet, so the sheet cannot be used to follow a phone
+// across sessions once the salt is deleted. The salt is a random value kept in the script's private properties.
+function attDevHash_(dev) {
+  var props = PropertiesService.getScriptProperties(), salt = props.getProperty('att_salt');
+  if (!salt) { salt = Utilities.getUuid() + Utilities.getUuid(); props.setProperty('att_salt', salt); }
+  var b = Utilities.computeHmacSha256Signature(String(dev), salt), h = '';
+  for (var i = 0; i < 8; i++) h += ('0' + (b[i] & 255).toString(16)).slice(-2);
+  return h;
+}
+
+// End-of-semester clean-up: run attPurgeSemester from the editor (choose it, press Run, answer Yes). It empties the Device column of Attendance_Log,
+// deletes every row of Attendance_Flags, clears the classroom position and session secrets in Attendance_Control, and deletes the hash salt. The attendance
+// marks (Attendance tab) and the Student ID and time rows of Attendance_Log are NOT touched: they are the course record.
+function attPurgeSemester() {
+  var ui = SpreadsheetApp.getUi();
+  if (ui.alert('Delete device codes, flags, classroom positions and session secrets?', 'Attendance marks are kept.', ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
+  var ss = SpreadsheetApp.getActiveSpreadsheet(), n = 0, lg = ss.getSheetByName(ATT_LOG_TAB), fl = ss.getSheetByName(ATT_FLAGS_TAB), ct = ss.getSheetByName(ATT_CTL_TAB);
+  if (lg && lg.getLastRow() > 1 && lg.getLastColumn() >= 5) { lg.getRange(2, 5, lg.getLastRow() - 1, 1).clearContent(); n++; }
+  if (fl && fl.getLastRow() > 1) { fl.deleteRows(2, fl.getLastRow() - 1); n++; }
+  if (ct && ct.getLastRow() > 1) { ct.getRange(2, 6, ct.getLastRow() - 1, 4).clearContent(); n++; } // Secret, Lat, Lon, Radius m
+  PropertiesService.getScriptProperties().deleteProperty('att_salt');
+  try { CacheService.getScriptCache().removeAll(['att:open', 'roster']); } catch (err) { /* cache only */ }
+  ui.alert('Done. Cleared ' + n + ' place(s) and the hash salt.');
+}
+
 function attFlag_(label, id, dev, why) {
   try { append_(ATT_FLAGS_TAB, ['Timestamp', 'Session', 'Student ID', 'Device', 'Reason'], [new Date(), label, id, String(dev || '').slice(0, 8), why]); } catch (err) { /* flags must never stop a check-in */ }
 }
@@ -885,6 +911,7 @@ function attCheckIn_(p, code) { // the student side of the check-in: the code, t
   var aid = normId_(p.id), dev = String(p.dev || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 40);
   if (aid.length < 4 || aid.length > 12) return { ok: false, why: 'bad id' };
   if (dev.length < 16) return { ok: false, why: 'update page' }; // an old cached page without a device token: reload
+  dev = attDevHash_(dev); // only the salted hash is ever stored
   if (attFails_('d' + dev) >= ATT_MAX_FAILS || attFails_('i' + aid) >= ATT_MAX_FAILS) return { ok: false, why: 'slow down' };
   if (!attLinkOk_(ses, String(p.t || '').replace(/[^0-9a-f]/g, '').slice(0, 8))) { attFailAdd_('d' + dev); attFailAdd_('i' + aid); return { ok: false, why: 'old link' }; } // scan the live QR code again
   var onl = !!rosterSet_()[aid], day = attDayKey_(); // the student is told only whether their own ID was found; nothing else about the roster
@@ -1236,7 +1263,7 @@ function doGet(e) {
     return jsonp_(e, { timed: false, known: !!k, hidden: v === 'hidden', closed: v === 'closed', state: k ? state_(k) : '' });
   }
 
-  if (p.action === 'attend') return jsonp_(e, attCheckIn_(p, code)); // a student checks in: the rotating code, the student ID and the device token
+  if (p.action === 'attend') return jsonp_(e, attCheckIn_(p, code)); // a student checks in: the Student ID, the QR token, the device token and the phone's rounded location
   if (p.action === 'hostcheck') return jsonp_(e, { ok: hostOk_(p) }); // the lecturer menu: is this key right?
   if (p.action === 'attend_status' || p.action === 'attend_open' || p.action === 'attend_close') { // host only
     if (!hostOk_(p)) return jsonp_(e, { ok: false, why: 'host key not accepted' });
