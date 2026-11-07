@@ -901,7 +901,7 @@ function attFlagDevices_(label) { // at closing: devices that checked in more th
 // Attendance_Control tab (columns G to I). ATT_GEO_MODE: 'off' = ignore location; 'flag' = accept everyone, record the result (log column F) and list far or
 // missing ones in Attendance_Flags; 'enforce' (the default) = refuse a check-in that is too far or has no location (the lecturer marks those students by hand). The phone's reported accuracy is subtracted from
 // the distance (at most ATT_GEO_ACC_CAP metres), so a weak indoor GPS fix is not punished.
-var ATT_GEO_MODE = 'enforce', ATT_GEO_RADIUS_M = 250, ATT_GEO_ACC_CAP = 150;
+var ATT_GEO_MODE = 'enforce', ATT_GEO_RADIUS_M = 1000, ATT_GEO_ACC_CAP = 150;
 
 function attMetres_(la1, lo1, la2, lo2) { // haversine distance in metres
   var R = 6371000, r = Math.PI / 180, dLa = (la2 - la1) * r, dLo = (lo2 - lo1) * r;
