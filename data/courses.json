@@ -1,0 +1,49 @@
+{
+ "_note": "One entry per course. Public data only: no keys, no student data, no host links. Set status to current to show a course on the Teaching page; any other value hides it.",
+ "courses": [
+  {
+   "id": "phys143",
+   "code": "PHYS 143",
+   "title": "Mechanics and Thermal Physics",
+   "type": "lecture",
+   "status": "current",
+   "kicker": "Lecture course",
+   "summary": "Twelve lectures following Young and Freedman, *University Physics*, each with a slide deck, a tutorial sheet, a supplementary note and practice questions.",
+   "page": "phys143.html",
+   "button_label": "Overview →"
+  },
+  {
+   "id": "phys105",
+   "code": "PHYS 105",
+   "title": "Practical Physics",
+   "type": "lab",
+   "status": "current",
+   "kicker": "Laboratory course",
+   "summary": "Laboratory resources and uncertainty analysis lectures.",
+   "page": "laboratory.html#phys105",
+   "button_label": "Open Laboratory Resources →"
+  },
+  {
+   "id": "phys106",
+   "code": "PHYS 106",
+   "title": "Practical Physics",
+   "type": "lab",
+   "status": "current",
+   "kicker": "Laboratory course",
+   "summary": "Laboratory resources and uncertainty analysis lectures.",
+   "page": "laboratory.html#phys106",
+   "button_label": "Open Laboratory Resources →"
+  },
+  {
+   "id": "phys205",
+   "code": "PHYS 205",
+   "title": "Practical Physics",
+   "type": "lab",
+   "status": "current",
+   "kicker": "Laboratory course",
+   "summary": "Laboratory resources and uncertainty analysis lectures.",
+   "page": "laboratory.html#phys205",
+   "button_label": "Open Laboratory Resources →"
+  }
+ ]
+}
