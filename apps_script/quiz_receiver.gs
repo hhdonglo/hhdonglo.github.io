@@ -1240,6 +1240,83 @@ function counts_(code) {
   return out;
 }
 
+// ---------- Portal and Control Centre support (additive: no existing action changes) ----------
+// SCRIPT_VERSION: change it whenever the script is redeployed; the Control Centre compares it with the version its page expects.
+// Key!M2 = Off hides "My results" from students (default On).
+var SCRIPT_VERSION = '2026-11-07-portal-1';
+
+function resultsOn_() {
+  try {
+    var ks = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(KEY_TAB);
+    return !ks || String(ks.getRange(2, 13).getValue()).trim().toLowerCase() !== 'off';
+  } catch (err) { return true; }
+}
+
+function portalStatus_() { // public, no secrets: is attendance open, is a live quiz open, is "My results" on. Cached 5 s.
+  var cache = null; try { cache = CacheService.getScriptCache(); var h = cache.get('portal'); if (h) return JSON.parse(h); } catch (err) { cache = null; }
+  var att = 'closed';
+  try { attRows_().forEach(function (r) { if (r.status === 'Open') att = 'open'; }); } catch (err) { /* leave closed */ }
+  var quiz = 'none';
+  try {
+    var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONTROL_TAB);
+    if (sh && sh.getLastRow() > 1) {
+      sh.getRange(2, 1, sh.getLastRow() - 1, CTL_HEADER.length).getValues().forEach(function (v) {
+        var st = eff_({ v: v }); // lobby, running or paused counts as open; the join code is never returned
+        if (st === 'lobby' || st === 'running' || st === 'paused') quiz = st;
+      });
+    }
+  } catch (err) { /* leave none */ }
+  var o = { portal: 1, attendance: att, quiz: quiz, results: resultsOn_(), version: SCRIPT_VERSION };
+  if (cache) { try { cache.put('portal', JSON.stringify(o), 5); } catch (err) { /* cache only */ } }
+  return o;
+}
+
+// A student's own attendance and quiz scores, found by ID. Same failure limit as check-in. Returns nothing about any other student.
+function portalResults_(p) {
+  if (!resultsOn_()) return { ok: false, why: 'results off' };
+  var id = normId_(p.id);
+  if (id.length < 4 || id.length > 12) return { ok: false, why: 'bad id' };
+  if (attFails_('r' + id) >= ATT_MAX_FAILS) return { ok: false, why: 'slow down' };
+  if (!rosterSet_()[id]) { attFailAdd_('r' + id); return { ok: false, why: 'not on list' }; }
+  var ss = SpreadsheetApp.getActiveSpreadsheet(), out = { ok: true, attendance: [], quizzes: [] };
+  var at = ss.getSheetByName(ATT_TAB);
+  if (at && at.getLastRow() > 1 && at.getLastColumn() > 1) {
+    var g = at.getRange(1, 1, at.getLastRow(), at.getLastColumn()).getValues();
+    for (var i = 1; i < g.length; i++) if (normId_(g[i][0]) === id) {
+      for (var c = 1; c < g[0].length; c++) if (g[i][c] !== '' && String(g[0][c]).trim()) out.attendance.push([String(g[0][c]).trim(), Number(g[i][c]) ? 1 : 0]);
+      break;
+    }
+  }
+  var sc = ss.getSheetByName(SCORES_TAB);
+  if (sc && sc.getLastRow() > 3 && sc.getLastColumn() > 4) {
+    var s = sc.getRange(1, 1, sc.getLastRow(), sc.getLastColumn()).getValues();
+    for (var r = 3; r < s.length; r++) if (normId_(s[r][0]) === id) {
+      for (var k = 4; k < s[0].length; k++) if (s[r][k] !== '' && String(s[0][k]).trim()) out.quizzes.push([String(s[0][k]).trim(), s[r][k] + (s[2][k] !== '' ? ' / ' + s[2][k] : '')]);
+      break;
+    }
+  }
+  return out;
+}
+
+// Host only: the checks behind the Control Centre's "Run checks" button. Reads only; nothing is changed.
+function preclass_(p) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet(), o = { ok: true, version: SCRIPT_VERSION, serverNow: Date.now() };
+  try { o.rosterCount = rosterRows_().length; } catch (err) { o.rosterCount = -1; }
+  o.masterOn = masterOn_(); o.resultsOn = resultsOn_();
+  try { o.totalsMode = String(ss.getSheetByName(KEY_TAB).getRange(2, 11).getValue()).trim() || 'Best'; } catch (err) { o.totalsMode = 'Best'; }
+  var w = String(p.week || '').replace(/\D/g, '').slice(0, 2);
+  if (w) {
+    o.week = Number(w); o.weekListed = false; o.bankQuestions = 0;
+    try {
+      var weeks = siteJson_('/apps_script/live_quizzes.json').weeks || {};
+      o.weekListed = !!weeks[w];
+      if (o.weekListed) { var b = siteJson_('/quizzes/lecture' + w + '.json'); o.bankQuestions = (b.questions || []).length; }
+    } catch (err) { o.bankError = true; }
+  }
+  var ps = portalStatus_(); o.attendance = ps.attendance; o.quiz = ps.quiz;
+  return o;
+}
+
 function doGet(e) {
   var p = (e && e.parameter) || {};
   var code = clean_(p.code, 30).toUpperCase();
@@ -1262,6 +1339,11 @@ function doGet(e) {
     var v = k ? String(k[6]).trim().toLowerCase() : '';
     return jsonp_(e, { timed: false, known: !!k, hidden: v === 'hidden', closed: v === 'closed', state: k ? state_(k) : '' });
   }
+
+  if (p.action === 'version') return jsonp_(e, { ok: true, version: SCRIPT_VERSION }); // the Control Centre: does the page match this script?
+  if (p.action === 'portal_status') return jsonp_(e, portalStatus_()); // the student portal banner
+  if (p.action === 'my_results') return jsonp_(e, portalResults_(p)); // a student's own attendance and quiz scores
+  if (p.action === 'preclass') return jsonp_(e, hostOk_(p) ? preclass_(p) : { ok: false, why: 'host key not accepted' });
 
   if (p.action === 'attend') return jsonp_(e, attCheckIn_(p, code)); // a student checks in: the Student ID, the QR token, the device token and the phone's rounded location
   if (p.action === 'hostcheck') return jsonp_(e, { ok: hostOk_(p) }); // the lecturer menu: is this key right?

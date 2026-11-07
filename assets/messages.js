@@ -26,7 +26,7 @@ var M={
 // Server reason strings (the "why" field of the attend and quiz replies) to catalogue codes.
 var WHY={
  "bad id":"E1","old link":"E3","no token":"E4","no location":"E5","too far":"E6","device used":"E10",
- "closed":"E11","slow down":"E14","update page":"E15","not joined":"E13","quiz closed":"E11","bad code":"E12"
+ "not on list":"E2","results off":"E11","closed":"E11","slow down":"E14","update page":"E15","not joined":"E13","quiz closed":"E11","bad code":"E12"
 };
 function code(why){return WHY[why]||"E0"}
 // text(code) returns the message with its reference, e.g. "... (Ref E3)".
