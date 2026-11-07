@@ -88,6 +88,11 @@ The **Scores** tab is the clean grid: Student ID in column A, then Total, Out of
 - **Test before class:** start a session from your phone in the room; scan the QR code with a second phone in the room and check in with your own ID (should succeed, Location "ok"); then try the same link two minutes later (should say it expired), and try from outside the building or with location off (should be refused). If phones in the back row are refused, choose 1 km, or set `ATT_GEO_MODE = 'flag'`, Save and Deploy > New version.
 - **What it stops:** a link passed to someone away from the classroom (about 500 m or more) and any link older than about 90 seconds. **What it cannot stop:** a classmate in or near the room sending a freshly scanned link (or a photo of the screen) within that window; a phone with a faked location (easy on Android); a student in the corridor or next block within the radius; in-app QR browsers that block location (students must open the link in Chrome or Safari).
 
+### Attendance: data protection
+- Device codes are stored only as a salted hash; student coordinates are rounded and never stored (only `ok 40 m` / `far 1200 m` / `no location`). The student page has a "How your data is used" notice.
+- **End of semester:** in the Apps Script editor choose `attPurgeSemester` and press Run (this one is meant to be run) and answer Yes. It clears the Device column, all Flags rows, session secrets and classroom positions, and the hash salt. Attendance marks are kept.
+- Keep the Sheet's sharing to yourself, and never publish the Attendance, Attendance_Log, Attendance_Flags, Roster or Not_On_List tabs to the web. See `ATTENDANCE_ARCHITECTURE.md`.
+
 ## Portal and Control Centre (script additions)
 
 Script change, backward compatible: new actions `version`, `portal_status`, `my_results` and `preclass` (host key). No existing action changed. To use them: paste `apps_script/quiz_receiver.gs`, Save, Deploy > Manage deployments > edit > **New version**. If the script is not redeployed, the portal shows "Live status is not available" and the Control Centre shows a red version check.
