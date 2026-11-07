@@ -35,13 +35,13 @@
 .pt h3{margin:0 0 .5rem;font:700 .85rem system-ui,sans-serif;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
 .pt .sub,.pt .note{font:.92rem/1.5 system-ui,sans-serif;color:var(--muted)}
 .pt .card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem 1.1rem;margin:.8rem 0;box-shadow:var(--shadow)}
-.pt .courses{display:grid;gap:.6rem;padding:0;margin:0;list-style:none}
-.pt .cbtn{display:block;width:100%;min-height:56px;text-align:left;padding:.55rem .9rem;border:2px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font:inherit;cursor:pointer}
-.pt .cbtn b{display:block;font-size:1.05rem}
-.pt .cbtn span{font-size:.9rem;color:var(--muted)}
-.pt .cbtn[aria-pressed=true]{border-color:var(--brown-fill);box-shadow:inset 6px 0 0 var(--brown-fill)}
 .pt .go{display:flex;align-items:center;justify-content:center;width:100%;min-height:54px;margin:.5rem 0;border:2px solid var(--brown-fill);border-radius:6px;background:var(--brown-fill);color:#fff;font:700 1.1rem system-ui,sans-serif;text-decoration:none}
 .pt .go.alt{background:var(--btn-bg);color:var(--btn-text)}
+.pt label{display:block;font:600 .95rem system-ui,sans-serif;margin:.4rem 0 .25rem}
+.pt select,.pt input[type=text]{width:100%;min-height:50px;padding:.4rem .7rem;border:1.5px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font:1.1rem system-ui,sans-serif}
+.pt h4{margin:.9rem 0 .3rem;font:700 .95rem system-ui,sans-serif}
+.pt table{width:100%;border-collapse:collapse;font-size:.95rem}.pt td,.pt th{padding:.35rem .3rem;border-bottom:1px solid var(--border);text-align:left}
+.pt .err{color:#b3261e;font-weight:600;margin:.6rem 0 0}
 .pt .soon{border-left:6px solid var(--border);font-weight:600}
 .pt [hidden]{display:none!important}
 body.focus header.banner,body.focus nav.jump,body.focus .crumb,body.focus .sec-sub,body.focus aside.disclaimer,body.focus footer,body.focus a.skip,body.focus main h2{display:none!important}
@@ -49,42 +49,80 @@ body.focus main{padding-top:1.2rem}
 </style>
 <div class="pt">
  <h1>Portal</h1>
- <p class="sub">Choose your course, then check in or practise. Student ID and location are asked for only when a check-in is open.</p>
- <div class="card"><h3>1. Choose your course</h3><ul class="courses" id="c-list"><li class="note">Loading courses.</li></ul></div>
+ <p class="sub">Choose your course from the list to see your own check-ins and quiz feedback, or to check in.</p>
+ <div class="card"><label for="c-sel">Course</label>
+  <select id="c-sel" disabled><option value="">Loading courses</option></select></div>
  <div class="card" id="c-panel" hidden aria-live="polite"></div>
  <p class="note">This is an independent personal website, not the official course page. For official course information, use <a href="https://sakai.ug.edu.gh/portal/site/PHYS-143-1-S1-2627" rel="noopener">Sakai</a>. Attendance and quiz marks shown here are not official records.</p>
  <p class="note"><a href="teaching.html">Back to Teaching</a></p>
 </div>
+<script src="assets/messages.js"></script>
 <script>
 (function(){
 "use strict";
-var KEY="portal_course",$=function(i){return document.getElementById(i)};
+var KEY="portal_course",IDKEY="phys143_portal_id",$=function(i){return document.getElementById(i)};
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
-var SETUP={phys143:{portal:"phys143-portal.html",label:"Open the PHYS 143 portal",what:"Check-in, live quiz, practice quizzes, handouts and your own results."}};
-var courses=[],sel="";
+/* One entry per course that has check-in and results set up. Others show "not open yet". */
+var SETUP={phys143:{portal:"phys143-portal.html",open:"Open check-in and quiz",
+ script:"https://script.google.com/macros/s/AKfycbzso5-FCU4erf_grbktH-AH-RKaPDap7TfJAw_TOSxNarTrJDe-PgyBzgIH7Fj2fjZ3/exec"}};
+var courses=[];
 function get(){try{return localStorage.getItem(KEY)||""}catch(e){return""}}
 function put(v){try{localStorage.setItem(KEY,v)}catch(e){}}
+function jsonp(url,params,cb){
+ var n="cb"+Date.now()+Math.floor(Math.random()*1e6),sc=document.createElement("script"),done=false,t;
+ function end(d){if(done)return;done=true;clearTimeout(t);delete window[n];if(sc.parentNode)sc.parentNode.removeChild(sc);cb(d)}
+ window[n]=end;sc.onerror=function(){end(null)};t=setTimeout(function(){end(null)},8000);
+ sc.src=url+"?"+params+"&callback="+n+"&_="+Date.now();document.head.appendChild(sc);
+}
+function resultsHtml(r){
+ var at=r.attendance||[],pres=at.filter(function(a){return a[1]}).length,qz=r.quizzes||[],pct=at.length?Math.round(100*pres/at.length):0;
+ var h='<div class="stu-chips"><div class="stu-chip"><b>'+pres+' / '+at.length+'</b>Check-ins</div><div class="stu-chip"><b>'+qz.length+'</b>Quizzes taken</div></div>'+(at.length?'<div class="stu-bar" role="img" aria-label="Attendance '+pct+' percent"><i style="width:'+pct+'%"></i></div>':'');
+ h+="<h4>Check-ins</h4>"+(at.length?"<table><tr><th>Session</th><th>Status</th></tr>"+at.map(function(a){return"<tr><td>"+esc(a[0])+"</td><td>"+(a[1]?"Checked in":"No check-in")+"</td></tr>"}).join("")+"</table>":"<p class='note'>Nothing yet.</p>");
+ h+="<h4>Quizzes</h4>"+(qz.length?"<table><tr><th>Quiz</th><th>Score</th></tr>"+qz.map(function(q){return"<tr><td>"+esc(q[0])+"</td><td>"+esc(q[1])+"</td></tr>"}).join("")+"</table>":"<p class='note'>Nothing yet.</p>");
+ return h;
+}
 function show(){
- var c=courses.filter(function(x){return x.id===sel})[0],p=$("c-panel");
- [].forEach.call(document.querySelectorAll(".cbtn"),function(b){b.setAttribute("aria-pressed",b.dataset.id===sel?"true":"false")});
+ var id=$("c-sel").value,c=courses.filter(function(x){return x.id===id})[0],p=$("c-panel");
  if(!c){p.hidden=true;return}
- var s=SETUP[c.id],h='<h3>2. '+esc(c.code)+'</h3><p><b>'+esc(c.title)+'</b></p>';
- if(s){h+='<p class="note">'+esc(s.what)+'</p><a class="go" href="'+esc(s.portal)+'">'+esc(s.label)+'</a>'}
- else{h+='<p class="card soon" style="margin:.5rem 0">Check-in is not open yet for '+esc(c.code)+'.</p><p class="note">Your lecturer will tell you when it opens. Course resources are below.</p>'}
- h+='<a class="go alt" href="'+esc(c.page)+'">'+esc(c.type==="lab"?"Laboratory resources":"Course page")+'</a>';
+ var s=SETUP[id],h='<h3>'+esc(c.code)+': '+esc(c.title)+'</h3>';
+ if(s){
+  h+='<a class="go" href="'+esc(s.portal)+'">'+esc(s.open)+'</a><h3>My feedback</h3>'+
+   '<form id="c-form" autocomplete="off" novalidate><label for="c-id">Student ID</label><input type="text" id="c-id" maxlength="12" inputmode="numeric" autocomplete="off">'+
+   '<p class="err" id="c-err" role="alert" hidden></p><button class="go alt" type="submit" id="c-show">Show my feedback</button></form><div id="c-out" hidden></div>'+
+   '<p class="note">You see only your own check-ins and quiz scores. Other students\' results are never shown.</p>';
+ }else{
+  h+='<p class="soon">Check-in and feedback are not open yet for '+esc(c.code)+'.</p><p class="note">Your lecturer will tell you when they open.</p>'+
+   '<a class="go alt" href="'+esc(c.page)+'">Laboratory resources</a>';
+ }
  p.innerHTML=h;p.hidden=false;
+ if(s){
+  var inp=$("c-id");try{inp.value=localStorage.getItem(IDKEY)||""}catch(e){}
+  inp.addEventListener("input",function(){var v=inp.value.replace(/\D/g,"");if(v!==inp.value)inp.value=v});
+  $("c-form").addEventListener("submit",function(e){
+   e.preventDefault();var er=$("c-err"),out=$("c-out"),v=inp.value.trim();er.hidden=true;out.hidden=true;
+   if(!/^[0-9]{4,12}$/.test(v)){er.textContent=PHYSMSG.text("E1");er.hidden=false;return}
+   $("c-show").disabled=true;
+   jsonp(s.script,"action=my_results&id="+encodeURIComponent(v),function(r){
+    $("c-show").disabled=false;
+    if(!r){er.textContent=PHYSMSG.text("E8");er.hidden=false;return}
+    if(!r.ok){er.textContent=PHYSMSG.fromWhy(r.why);er.hidden=false;return}
+    out.innerHTML=resultsHtml(r);out.hidden=false;
+   });
+  });
+ }
 }
-function pick(id){sel=id;put(id);show()}
 function init(){
- var l=$("c-list");l.innerHTML=courses.map(function(c){return'<li><button type="button" class="cbtn" data-id="'+esc(c.id)+'" aria-pressed="false"><b>'+esc(c.code)+'</b><span>'+esc(c.title)+'</span></button></li>'}).join("");
- l.addEventListener("click",function(e){var b=e.target.closest(".cbtn");if(b)pick(b.dataset.id)});
+ var sel=$("c-sel");
+ sel.innerHTML='<option value="">Select a course</option>'+courses.map(function(c){return'<option value="'+esc(c.id)+'">'+esc(c.code)+': '+esc(c.title)+'</option>'}).join("");
+ sel.disabled=false;sel.addEventListener("change",function(){put(sel.value);show()});
  var q=(location.search.match(/[?&]course=([a-z0-9]+)/i)||[])[1],want=(q||"").toLowerCase()||get();
- if(courses.some(function(c){return c.id===want}))pick(want);
+ if(courses.some(function(c){return c.id===want})){sel.value=want;show()}
 }
+function fail(){$("c-sel").innerHTML='<option value="">Courses could not load</option>';$("c-panel").innerHTML='<p class="note">PHYS 143 students can open the <a href="phys143-portal.html">PHYS 143 portal</a>.</p>';$("c-panel").hidden=false}
 var x=new XMLHttpRequest();x.open("GET","data/courses.json?_="+Date.now());
 x.onload=function(){try{courses=JSON.parse(x.responseText).courses.filter(function(c){return c.status==="current"})}catch(e){courses=[]}
- if(courses.length)init();else $("c-list").innerHTML='<li class="note">Courses could not be loaded. PHYS 143 users can open the <a href="phys143-portal.html">PHYS 143 portal</a>.</li>'};
-x.onerror=function(){$("c-list").innerHTML='<li class="note">Courses could not be loaded. PHYS 143 users can open the <a href="phys143-portal.html">PHYS 143 portal</a>.</li>'};x.send();
+ courses.length?init():fail()};
+x.onerror=fail;x.send();
 })();
 </script>
 </div>
