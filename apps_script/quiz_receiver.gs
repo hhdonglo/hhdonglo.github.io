@@ -935,7 +935,7 @@ function attByCode_(code) { // the session with this code, or null; cached a few
 // and the clock); the check-in accepts this cycle's token and the ATT_LINK_GRACE_SLOTS before it (60 to 90 s), so a slow connection is forgiven, and a
 // forwarded link goes stale. The second control is the location check (next block). Rejected attempts go to the Flags tab and never reach the log that
 // counts presence. Device token: a random value the check-in page keeps in the phone's browser; one token may check in only one Student ID per session.
-var ATT_FLAGS_TAB = 'Attendance_Flags', ATT_SLOT_SEC = 30, ATT_LINK_GRACE_SLOTS = 2, ATT_DEVICE_IDS = 1, ATT_MAX_FAILS = 6;
+var ATT_FLAGS_TAB = 'Attendance_Flags', ATT_SLOT_SEC = 30, ATT_LINK_GRACE_SLOTS = 2, ATT_REQUIRE_LINK = true, ATT_DEVICE_IDS = 1, ATT_MAX_FAILS = 6;
 
 function attSlot_(t) { return Math.floor((t || Date.now()) / (ATT_SLOT_SEC * 1000)); }
 
@@ -1007,7 +1007,7 @@ function attCheckIn_(p, code) { // the student side of the check-in: the code, t
   if (dev.length < 16) return { ok: false, why: 'update page' }; // an old cached page without a device token: reload
   dev = attDevHash_(dev); // only the salted hash is ever stored
   if (attFails_('d' + dev) >= ATT_MAX_FAILS || attFails_('i' + aid) >= ATT_MAX_FAILS) return { ok: false, why: 'slow down' };
-  if (!attLinkOk_(ses, String(p.t || '').replace(/[^0-9a-f]/g, '').slice(0, 8))) { attFailAdd_('d' + dev); attFailAdd_('i' + aid); return { ok: false, why: 'old link' }; } // scan the live QR code again
+  if (ATT_REQUIRE_LINK && !attLinkOk_(ses, String(p.t || '').replace(/[^0-9a-f]/g, '').slice(0, 8))) { attFailAdd_('d' + dev); attFailAdd_('i' + aid); return { ok: false, why: 'old link' }; } // scan the live QR code again
   var onl = !!rosterSet_()[aid], day = attDayKey_(); // the student is told only whether their own ID was found; nothing else about the roster
   if (attDayHas_(day, aid)) return { ok: true, id: aid, onList: onl, already: true }; // one mark per ID per day: nothing is added
   var geo = attGeo_(ses, p);
