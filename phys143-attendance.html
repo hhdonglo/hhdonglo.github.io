@@ -67,18 +67,16 @@ body.focus main{padding-top:1rem}
   <p class="note" id="a-last"></p>
  </section>
  <section class="panel" id="a-live" hidden>
-  <p class="lbl">Scan, then enter your student ID and the code below. The code changes every 30 seconds.</p>
-  <p><span id="a-qr" class="qr" role="img" aria-label="QR code to open the check-in page; it changes every 30 seconds" style="display:inline-block"></span></p>
-  <p class="addr">Scan this screen. The QR code changes with the code.</p>
+  <p class="lbl">Scan, then enter your student ID and this code. Your phone must be in the classroom.</p>
+  <p><img class="qr" src="assets/figures/phys143-attend-qr.svg" alt="QR code to open the check-in page" width="340" height="340"></p>
+  <p class="addr">hhdonglo.github.io/phys143-attend.html</p>
   <p class="lbl">Attendance code</p><p class="code" id="a-showcode"></p>
-  <p class="note" id="a-tick" role="status"></p>
   <p class="count" id="a-count" role="status"></p>
   <p><button class="go big" type="button" id="a-close">Close attendance and record absences</button></p>
   <p class="note" id="a-msg" role="status"></p>
  </section>
  <p><button class="go alt" type="button" id="a-out">Log out</button></p>
 </div>
-<script src="assets/qrcode.js"></script>
 <script>
 (function(){
 "use strict";
@@ -94,32 +92,18 @@ var KEY="";try{KEY=sessionStorage.getItem("phys143_hk")||""}catch(x){}
 function saveKey(k){KEY=k;try{sessionStorage.setItem("phys143_hk",k)}catch(x){}}
 function signOut(){KEY="";try{sessionStorage.removeItem("phys143_hk")}catch(x){}location.href="phys143-lecturer.html"}
 
-var timer=null,tk=null,left=0,stamp=0,show=function(id){["a-login","a-idle","a-live"].forEach(function(x){$(x).hidden=(x!==id)})};
+var timer=null,show=function(id){["a-login","a-idle","a-live"].forEach(function(x){$(x).hidden=(x!==id)})};
 function call(act,extra,cb){jsonp("action="+act+"&hostkey="+encodeURIComponent(KEY)+(extra||""),cb)}
 function draw(d){
  var ss=d&&d.session,open=ss&&ss.status==="Open";
  if(open){
   $("a-showcode").textContent=ss.code;
-  drawQr(ss.link);
-  left=ss.rotates?ss.secondsLeft:0;stamp=Date.now();tickDraw();if(!tk)tk=setInterval(tickDraw,1000);
   $("a-count").textContent=ss.present+" present"+(ss.notOnList?", "+ss.notOnList+" not on the list":"");
   show("a-live");if(!timer)timer=setInterval(poll,4000);
  } else {
-  if(timer){clearInterval(timer);timer=null}if(tk){clearInterval(tk);tk=null}
+  if(timer){clearInterval(timer);timer=null}
   show("a-idle");
  }
-}
-var lastLink="";
-function drawQr(t){
- if(!t||t===lastLink)return;lastLink=t;
- try{var q=qrcode(0,"M");q.addData("https://hhdonglo.github.io/phys143-attend.html?t="+t);q.make();
-  $("a-qr").innerHTML=q.createSvgTag({cellSize:8,margin:0,scalable:true});
-  var s=$("a-qr").firstChild;if(s){s.setAttribute("width","100%");s.setAttribute("height","100%")}}catch(x){$("a-qr").textContent="QR failed: type hhdonglo.github.io/phys143-attend.html?t="+t}
-}
-function tickDraw(){
- var r=left-Math.floor((Date.now()-stamp)/1000);
- $("a-tick").textContent=left?"New code in "+Math.max(r,0)+" s":"";
- if(left&&r<=0){left=0;poll()}
 }
 function poll(){call("attend_status","",function(d){if(d&&d.ok)draw(d)})}
 function begin(){
@@ -149,11 +133,15 @@ $("a-start").addEventListener("click",function(){
   $("a-msg").textContent=note||(d.session&&d.session.geo&&d.session.geo!=="off"?"Location check on ("+d.session.geo+", "+d.session.radius+" m).":"");draw(d);
  });
  };
- // The browser asks once for this device's location; students are compared with it. Without it the session still starts, with no location check.
- if(!navigator.geolocation){go("","No location available: the location check is off for this session.");return}
+ // The browser asks once for this device's location; students are compared with it. Without it, only a confirmed "start without" opens a session, and then nobody is checked by location.
+ var noLoc=function(why){
+  if(window.confirm(why+"\n\nStart WITHOUT the location check? Then anyone with the link and code could check in from anywhere. Press Cancel to stop, allow location for this page, and try again.")){go("&nogeo=1","Started without the location check.")}
+  else{$("a-start").disabled=false;$("a-last").textContent="Not started: allow location for this page and try again."}
+ };
+ if(!navigator.geolocation){noLoc("This device cannot give a location.");return}
  navigator.geolocation.getCurrentPosition(function(p){
-  go("&lat="+p.coords.latitude.toFixed(5)+"&lon="+p.coords.longitude.toFixed(5),p.coords.accuracy>200?"Classroom location is rough (about "+Math.round(p.coords.accuracy)+" m). Check the result with a student's phone.":"");
- },function(){go("","Location was not allowed: the location check is off for this session. Allow location for this page and restart to turn it on.")},{enableHighAccuracy:true,timeout:15000,maximumAge:0});
+  go("&lat="+p.coords.latitude.toFixed(5)+"&lon="+p.coords.longitude.toFixed(5),p.coords.accuracy>200?"Classroom location is rough (about "+Math.round(p.coords.accuracy)+" m). Check it with a student's phone.":"");
+ },function(){noLoc("Location was not allowed or could not be found.")},{enableHighAccuracy:true,timeout:15000,maximumAge:0});
 });
 $("a-close").addEventListener("click",function(){
  if(!window.confirm("Close attendance? Everyone on the roster who has not checked in is recorded as 0."))return;

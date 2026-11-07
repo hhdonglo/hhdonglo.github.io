@@ -86,7 +86,6 @@ function getPos(cb){
  navigator.geolocation.getCurrentPosition(function(p){POS={lat:p.coords.latitude,lon:p.coords.longitude,acc:p.coords.accuracy};cb(POS)},function(){cb(null)},{enableHighAccuracy:true,timeout:10000,maximumAge:60000});
 }
 getPos(function(){}); // ask early so the phone has a fix by the time the form is filled in
-var TOK=(/[?&]t=([0-9a-f]{1,8})/.exec(location.search)||[0,""])[1];
 function jsonp(params,cb){
  var n="cb"+Date.now()+Math.floor(Math.random()*1e6),sc=document.createElement("script"),done=false;
  function end(d){if(done)return;done=true;delete window[n];if(sc.parentNode)sc.parentNode.removeChild(sc);cb(d)}
@@ -103,11 +102,11 @@ $("c-form").addEventListener("submit",function(e){
  $("c-btn").disabled=true;
  var send=function(pos){
  var loc=pos?"&lat="+pos.lat.toFixed(5)+"&lon="+pos.lon.toFixed(5)+"&acc="+Math.round(pos.acc):"";
- jsonp("action=attend&code="+encodeURIComponent(code)+"&id="+encodeURIComponent(id)+"&dev="+DEV+"&t="+TOK+loc,function(r){
+ jsonp("action=attend&code="+encodeURIComponent(code)+"&id="+encodeURIComponent(id)+"&dev="+DEV+loc,function(r){
   $("c-btn").disabled=false;
   if(!r){err("Could not reach the server. Check your connection and try again.");return}
   if(r.ok){$("c-form-wrap").hidden=true;window.scrollTo(0,0);var h=r.already?"Already marked present today":"Marked present";if(r.onList===false){$("c-mid").textContent=r.id;$("c-mh").textContent=h;$("c-missing").hidden=false}else{$("c-sid").textContent=r.id;$("c-dh").textContent=h;$("c-done").hidden=false}return}
-  err(r.why==="too far"?"Your phone is too far from the classroom. Come into the room and try again.":(r.why==="no location"?"This page needs your location to confirm you are in the room. Allow location for this page (in an app's built-in browser, open the link in Chrome or Safari), then try again.":(r.why==="closed"?"Attendance is closed.":(r.why==="slow down"?"Too many wrong codes. Wait a few minutes, then try again.":(r.why==="device used"?"This phone has already checked in another student. Please see your lecturer.":(r.why==="old link"?"This link has expired. Scan the QR code on the screen again.":(r.why==="update page"?"Please reload this page and try again.":(r.why==="bad id"?"That does not look like a student ID. Check it and try again.":"That code is not correct or has expired. The code changes every 30 seconds: type the one now on the screen."))))))));
+  err(r.why==="too far"?"Your phone is too far from the classroom. Come into the room and try again.":(r.why==="no location"?"This page needs your location to confirm you are in the room. Allow location for this page (in an app's built-in browser, open the link in Chrome or Safari), then try again.":(r.why==="closed"?"Attendance is closed.":(r.why==="slow down"?"Too many wrong codes. Wait a few minutes, then try again.":(r.why==="device used"?"This phone has already checked in another student. Please see your lecturer.":(r.why==="update page"?"Please reload this page and try again.":(r.why==="bad id"?"That does not look like a student ID. Check it and try again.":"That code is not correct. Check the code on the screen.")))))));
  });
  };
  if(POS)send(POS);else getPos(send);
