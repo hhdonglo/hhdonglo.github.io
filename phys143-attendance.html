@@ -63,6 +63,8 @@ body.focus main{padding-top:1rem}
  </section>
  <section class="panel" id="a-idle" hidden>
   <h3 style="margin:.1rem 0 .6rem">Attendance</h3>
+  <p class="note"><label for="a-rad">Distance from this device that still counts as in class</label>
+   <select id="a-rad"><option value="100">100 m (small room)</option><option value="200">200 m (large theatre)</option><option value="250" selected>250 m (large theatre, safe default)</option><option value="400">400 m (very weak GPS)</option></select></p>
   <p><button class="go big" type="button" id="a-start">Start attendance</button></p>
   <p class="note" id="a-last"></p>
  </section>
@@ -92,6 +94,7 @@ var KEY="";try{KEY=sessionStorage.getItem("phys143_hk")||""}catch(x){}
 function saveKey(k){KEY=k;try{sessionStorage.setItem("phys143_hk",k)}catch(x){}}
 function signOut(){KEY="";try{sessionStorage.removeItem("phys143_hk")}catch(x){}location.href="phys143-lecturer.html"}
 
+try{var sr=localStorage.getItem("phys143_rad");if(sr)setTimeout(function(){var e=$("a-rad");if(e&&e.querySelector('option[value="'+sr+'"]'))e.value=sr},0)}catch(x){}
 var timer=null,show=function(id){["a-login","a-idle","a-live"].forEach(function(x){$(x).hidden=(x!==id)})};
 function call(act,extra,cb){jsonp("action="+act+"&hostkey="+encodeURIComponent(KEY)+(extra||""),cb)}
 function draw(d){
@@ -140,7 +143,8 @@ $("a-start").addEventListener("click",function(){
  };
  if(!navigator.geolocation){noLoc("This device cannot give a location.");return}
  navigator.geolocation.getCurrentPosition(function(p){
-  go("&lat="+p.coords.latitude.toFixed(5)+"&lon="+p.coords.longitude.toFixed(5),p.coords.accuracy>200?"Classroom location is rough (about "+Math.round(p.coords.accuracy)+" m). Check it with a student's phone.":"");
+  try{localStorage.setItem("phys143_rad",$("a-rad").value)}catch(x){}
+  go("&lat="+p.coords.latitude.toFixed(5)+"&lon="+p.coords.longitude.toFixed(5)+"&radius="+encodeURIComponent($("a-rad").value),p.coords.accuracy>100?"This device's location is rough (about "+Math.round(p.coords.accuracy)+" m); the radius is widened by that much for the check. Try a student's phone at the back of the room.":"");
  },function(){noLoc("Location was not allowed or could not be found.")},{enableHighAccuracy:true,timeout:15000,maximumAge:0});
 });
 $("a-close").addEventListener("click",function(){
