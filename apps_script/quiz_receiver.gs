@@ -12,12 +12,18 @@
 //   and are compiled into Form Responses 1 (with the Score) when the quiz ends. timed: one clock for all five questions.
 //   show_score and show_leaderboard: Immediate, OnRelease (default) or Never.
 // A join code with no Quiz_Control row keeps the older behaviour (Key columns G and H).
+// HELD UNTIL RELEASED: nothing a student sends reaches Form Responses 1, Master, Scores, Totals or Attendance until the lecturer says so.
+//   Quiz results wait in the private Staged_Quiz tab; Release results (or "Release held quiz results" in the Control Centre) copies them into
+//   Form Responses 1 and updates Master, Scores and Totals; Discard clears them. Practice tries wait in the Attempts log and join Master/Scores at release
+//   (only IDs on the Roster). Attendance check-ins wait in Attendance_Log; Close stops the session, Submit attendance writes the Attendance grid, Discard drops the session.
 
 var RESPONSES_TAB = 'Form Responses 1';
 var KEY_TAB = 'Key';
 var CONTROL_TAB = 'Quiz_Control';
 var PRESENCE_TAB = 'Presence';
 var ANSWERS_TAB = 'Answers';
+var STAGED_TAB = 'Staged_Quiz'; // private: results held until released
+var RESP_HEADER = ['Timestamp', 'First Name', 'ID', 'Join Code', 'Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Score', 'Round', 'Questions', 'Answers', 'Week'];
 var TOTALS_TAB = 'Totals'; // private: one row per student ID, rebuilt automatically
 var EXPL_TAB = 'Explanations'; // optional override: join code | question number | explanation. Normally empty.
 var SITE = 'https://hhdonglo.github.io'; // explanations come from the practice bank listed in apps_script/live_quizzes.json
@@ -575,7 +581,12 @@ function ctlAct_(p, code) {
   }
   else if (act === 'release') {
     if (s !== 'ended' && s !== 'released') return { ok: false, why: 'end the quiz first' };
+    commitQuiz_(code, false); // the held results join Form Responses 1, Master, Scores and Totals now
     c.v[1] = 'Released';
+  }
+  else if (act === 'discard') { // drop this quiz's held results (tests, repeats); the answers stay in the Answers tab
+    if (s !== 'ended') return { ok: false, why: 'only an ended quiz that is not yet released' };
+    detail = String(discardQuiz_(code, false).discarded) + ' held result(s)';
   }
   else if (act === 'reopen') { // a genuine technical problem: back to Running, same question
     if (s !== 'ended' && s !== 'released') return { ok: false, why: 'quiz is not ended' };
@@ -633,6 +644,90 @@ function ctlAct_(p, code) {
   return { ok: true, status: ctlStatus_(c) };
 }
 
+
+// ---------- Held results: Staged_Quiz, released by the lecturer ----------
+
+function stagedSheet_() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(STAGED_TAB);
+  if (!sh) { sh = ss.insertSheet(STAGED_TAB); sh.appendRow(RESP_HEADER); sh.setFrozenRows(1); }
+  return sh;
+}
+
+// Rows of Form Responses 1 followed by the held rows (14 columns each); readers use this so a held result can still be shown when the lecturer chose "Immediate".
+function respRows_() {
+  var rs = responses_(), n = rs.getLastRow(), out = n > 1 ? rs.getRange(2, 1, n - 1, 14).getValues() : [];
+  var st = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(STAGED_TAB);
+  if (st && st.getLastRow() > 1) out = out.concat(st.getRange(2, 1, st.getLastRow() - 1, 14).getValues());
+  return out;
+}
+
+function stagedCount_() { var st = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(STAGED_TAB); return st && st.getLastRow() > 1 ? st.getLastRow() - 1 : 0; }
+
+// Copy held rows into Form Responses 1 (a re-release of the same ID, code and round updates that row), update Master, Scores and Totals,
+// then remove them from staging. code = '' releases every held row. Earlier weeks in Master are never touched: a cell is replaced only for the same student and quiz.
+function commitQuiz_(code, everyRound) {
+  var st = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(STAGED_TAB);
+  if (!st || st.getLastRow() < 2) return { released: 0 };
+  var rs = responses_(), n = rs.getLastRow();
+  if (n === 0) { rs.appendRow(RESP_HEADER); n = 1; }
+  else if (!rs.getRange(1, 10).getValue()) rs.getRange(1, 10).setValue('Score');
+  var have = {};
+  if (n > 1) rs.getRange(2, 3, n - 1, 9).getValues().forEach(function (r, j) { have[String(r[0]).trim() + '|' + String(r[1]).trim().toUpperCase() + '|' + (Number(r[8]) || 0)] = j + 2; });
+  var data = st.getRange(2, 1, st.getLastRow() - 1, 14).getValues(), keepRows = [], entries = [], released = 0, curRound = {};
+  var fresh = [];
+  data.forEach(function (r) {
+    var c = String(r[3]).trim().toUpperCase(), rnd = Number(r[10]) || 0;
+    if (curRound[c] === undefined) curRound[c] = roundOf_(c);
+    var match = (!code || c === code) && (everyRound || rnd === curRound[c]);
+    if (!match) { keepRows.push(r); return; }
+    var id = String(r[2]).trim(), k = id + '|' + c + '|' + rnd, wk = Number(r[13]) || 0;
+    if (have[k]) rs.getRange(have[k], 1, 1, 14).setValues([r]); else fresh.push(r);
+    entries.push({ id: id, name: String(r[1]), label: wk ? 'Week ' + wk : 'Quiz ' + c, score: Number(r[9]), n: Number(r[11]) || 5 });
+    released++;
+  });
+  if (fresh.length) rs.getRange(rs.getLastRow() + 1, 1, fresh.length, 14).setValues(fresh);
+  st.getRange(2, 1, Math.max(1, st.getLastRow() - 1), 14).clearContent();
+  if (keepRows.length) st.getRange(2, 1, keepRows.length, 14).setValues(keepRows);
+  updateMaster_(entries.concat(practiceEntries_()));
+  totalsSafe_();
+  log_('quiz released', String(released) + ' result(s)', '', code);
+  return { released: released };
+}
+
+function discardQuiz_(code, everyRound) {
+  var st = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(STAGED_TAB);
+  if (!st || st.getLastRow() < 2) return { discarded: 0 };
+  var data = st.getRange(2, 1, st.getLastRow() - 1, 14).getValues(), keepRows = [], gone = 0, curRound = {};
+  data.forEach(function (r) {
+    var c = String(r[3]).trim().toUpperCase(), rnd = Number(r[10]) || 0;
+    if (curRound[c] === undefined) curRound[c] = roundOf_(c);
+    if ((!code || c === code) && (everyRound || rnd === curRound[c])) gone++; else keepRows.push(r);
+  });
+  st.getRange(2, 1, Math.max(1, st.getLastRow() - 1), 14).clearContent();
+  if (keepRows.length) st.getRange(2, 1, keepRows.length, 14).setValues(keepRows);
+  log_('quiz discarded', String(gone) + ' held result(s)', '', code);
+  return { discarded: gone };
+}
+
+// Practice and mock tries sit in the Attempts log until a release; only IDs on the Roster join Master and Scores (test IDs stay out).
+function practiceEntries_() {
+  var at = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Attempts');
+  if (!at || at.getLastRow() < 2) return [];
+  var roster = rosterSet_(), hasRoster = Object.keys(roster).length > 0, best = {};
+  at.getRange(2, 1, at.getLastRow() - 1, 6).getValues().forEach(function (r) { // Timestamp, Student ID, Quiz, Attempt, Score, Total
+    var id = normId_(r[1]), lab = masterLabel_(String(r[2])), ts = new Date(r[0]).getTime() || 0;
+    if (!id || !lab || r[4] === '' || (hasRoster && !roster[id])) return;
+    var k = id + '|' + lab; if (!best[k] || ts >= best[k].ts) best[k] = { ts: ts, id: id, label: lab, score: Number(r[4]), n: Number(r[5]) || 0 };
+  });
+  return Object.keys(best).map(function (k) { var x = best[k]; return { id: x.id, name: '', label: x.label, score: x.score, n: x.n }; });
+}
+
+function heldStatus_() {
+  var out = { ok: true, quiz: stagedCount_(), sessions: [] };
+  try { attRows_().forEach(function (r) { if (r.status === 'Closed') out.sessions.push({ label: attColumn_(r.label), present: Object.keys(attPresent_(r.label)).length }); }); } catch (err) { /* none */ }
+  return out;
+}
+
 // ---------- Paced answers: stored as given, compiled into Form Responses 1 when the quiz ends ----------
 
 function latestAnswers_(code) { // {id: {name, ans:[5]}} for the current round; the last answer to each question wins
@@ -653,24 +748,18 @@ function finalize_(code) {
   var key = keyRow_(code), got = latestAnswers_(code), cf = ctl_(code);
   if (!key) return;
   var letters = lettersFor_(code, cf), nq = cf ? quizN_(cf) : 5, wk = cf ? weekOf_(cf) : '';
-  var sh = responses_(), n = sh.getLastRow(), have = {};
-  if (n === 0) { sh.appendRow(['Timestamp', 'First Name', 'ID', 'Join Code', 'Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Score', 'Round', 'Questions', 'Answers', 'Week']); n = 1; }
-  else if (!sh.getRange(1, 10).getValue()) sh.getRange(1, 10).setValue('Score');
+  var sh = stagedSheet_(), n = sh.getLastRow(), have = {}; // held until Release results
   var rnd = roundOf_(code);
   if (n > 1) {
     var seen = sh.getRange(2, 3, n - 1, 9).getValues(); // ID, Join Code, ..., Round
     for (var j = 0; j < seen.length; j++) if (String(seen[j][1]).trim().toUpperCase() === code && (Number(seen[j][8]) || 0) === rnd) have[String(seen[j][0]).trim()] = j + 2;
   }
-  var logRows = []; // entries for the Master sheet
   Object.keys(got).forEach(function (id) {
     var a = got[id], marks = mark_(letters, a.ans), score = marks.reduce(function (x, y) { return x + y; }, 0), rw = rowFor_(new Date(), a.name, id, code, a.ans, score, rnd, nq, wk);
-    logRows.push({ id: id, name: a.name, label: wk ? 'Week ' + wk : 'Quiz ' + code, score: score, n: nq });
     if (have[id]) sh.getRange(have[id], 5, 1, 10).setValues([rw.slice(4)]); // a reopened quiz is compiled again
     else sh.appendRow(rw);
     presence_(code, id, a.name, 'submitted');
   });
-  updateMaster_(logRows);
-  totalsSafe_();
 }
 
 function answerCounts_(code, q) { // how many have answered question q, and the spread of A to E
@@ -720,8 +809,13 @@ function refreshTotals() {
 }
 
 function onOpen() { // a PHYS 143 menu in the sheet
-  try { SpreadsheetApp.getUi().createMenu('PHYS 143').addItem('Refresh totals', 'refreshTotals').addToUi(); } catch (err) { /* not opened from the sheet */ }
+  try { SpreadsheetApp.getUi().createMenu('PHYS 143').addItem('Refresh totals', 'refreshTotals').addItem('Release held quiz results', 'releaseHeldQuiz').addItem('Discard held quiz results', 'discardHeldQuiz').addItem('Submit attendance', 'submitAttendance').addItem('Discard unsubmitted attendance', 'discardAttendance').addToUi(); } catch (err) { /* not opened from the sheet */ }
 }
+
+function releaseHeldQuiz() { return commitQuiz_('', true); }
+function discardHeldQuiz() { return discardQuiz_('', true); }
+function submitAttendance() { return attSubmit_(); }
+function discardAttendance() { return attDiscard_(); }
 
 function totalsSafe_() { try { refreshTotals(); } catch (err) { log_('totals failed', String(err).slice(0, 150), '', ''); } }
 
@@ -999,7 +1093,7 @@ function attStatus_() { // the open session if there is one, else the latest, wi
   var present = attPresent_(cur.label), roster = {}; rosterRows_().forEach(function (r) { roster[r[0]] = 1; });
   var on = 0, off = 0; Object.keys(present).forEach(function (id) { if (roster[id]) on++; else off++; });
   var live = cur.status === 'Open' && cur.secret, now = Date.now(), slot = attSlot_(now);
-  return { ok: true, session: { link: live ? attLinkFor_(cur.secret, slot) : '', secondsLeft: live ? Math.max(1, Math.ceil(((slot + 1) * ATT_SLOT_SEC * 1000 - now) / 1000)) : 0, label: attColumn_(cur.label), status: cur.status, geo: cur.lat != null && ATT_GEO_MODE !== 'off' ? ATT_GEO_MODE : 'off', radius: cur.lat != null ? (cur.radius || ATT_GEO_RADIUS_M) : 0, present: on, notOnList: off, rosterSize: Object.keys(roster).length } };
+  return { ok: true, session: { link: live ? attLinkFor_(cur.secret, slot) : '', secondsLeft: live ? Math.max(1, Math.ceil(((slot + 1) * ATT_SLOT_SEC * 1000 - now) / 1000)) : 0, label: attColumn_(cur.label), status: cur.status, geo: cur.lat != null && ATT_GEO_MODE !== 'off' ? ATT_GEO_MODE : 'off', radius: cur.lat != null ? (cur.radius || ATT_GEO_RADIUS_M) : 0, present: on, notOnList: off, rosterSize: Object.keys(roster).length, pending: rows.filter(function (r) { return r.status === 'Closed'; }).length } };
 }
 
 function attOpen_(p) {
@@ -1029,37 +1123,69 @@ function attOpen_(p) {
   return { ok: true, session: { link: attLinkFor_(secret, sl), secondsLeft: Math.max(1, Math.ceil(((sl + 1) * ATT_SLOT_SEC * 1000 - now0) / 1000)), label: attColumn_(label), status: 'Open', present: 0, notOnList: 0, geo: hasGeo && ATT_GEO_MODE !== 'off' ? ATT_GEO_MODE : 'off', radius: hasGeo ? rad : 0 } };
 }
 
+// Close stops the session and flags odd devices; the check-ins stay in Attendance_Log and the Attendance grid is NOT written until Submit attendance.
 function attClose_() {
   var rows = attRows_(), cur = null; rows.forEach(function (r) { if (r.status === 'Open') cur = r; });
   if (!cur) return { ok: false, why: 'no attendance session is open' };
-  var present = attPresent_(cur.label), roster = rosterRows_(), col = attColumn_(cur.label), ss = SpreadsheetApp.getActiveSpreadsheet();
-  var as = ss.getSheetByName(ATT_TAB) || ss.insertSheet(ATT_TAB);
-  if (as.getLastRow() === 0) { as.getRange(1, 1).setValue('Student ID'); as.setFrozenRows(1); as.setFrozenColumns(1); }
-  var head = as.getRange(1, 1, 1, Math.max(1, as.getLastColumn())).getValues()[0].map(function (h) { return String(h).trim(); });
-  if (head[1] === 'Name' && as.getLastRow() > 1 && as.getRange(2, 2, as.getLastRow() - 1, 1).getValues().every(function (r) { return !String(r[0]).trim(); })) { // an older tab with an empty Name column
-    as.deleteColumn(2); head = as.getRange(1, 1, 1, Math.max(1, as.getLastColumn())).getValues()[0].map(function (h) { return String(h).trim(); });
-  }
-  var ci = head.indexOf(col) + 1; if (ci < 2) { ci = Math.max(2, head.length + 1); as.getRange(1, ci).setNumberFormat('@').setValue(col); }
-  var have = {}, n = as.getLastRow();
-  if (n > 1) as.getRange(2, 1, n - 1, 1).getValues().forEach(function (r, i) { have[normId_(r[0])] = i + 2; });
-  var add = []; roster.forEach(function (r) { if (!have[r[0]]) { have[r[0]] = 1; add.push([r[0]]); } });
-  if (add.length) { var a0 = as.getLastRow() + 1; as.getRange(a0, 1, add.length, 1).setNumberFormat('@'); as.getRange(a0, 1, add.length, 1).setValues(add); }
-  n = as.getLastRow();
-  var ids = n > 1 ? as.getRange(2, 1, n - 1, 1).getValues() : [], vals = ids.map(function (r) { return [present[normId_(r[0])] ? 1 : 0]; });
-  if (vals.length) as.getRange(2, ci, vals.length, 1).setValues(vals); // every student in the list gets a 1 or a 0
-  var onList = {}; roster.forEach(function (r) { onList[r[0]] = 1; });
-  var offIds = Object.keys(present).filter(function (id) { return !onList[id]; }), nl = ss.getSheetByName(NOTLIST_TAB);
-  if (offIds.length) {
-    if (!nl) { nl = ss.insertSheet(NOTLIST_TAB); nl.appendRow(['Timestamp', 'Session', 'Student ID']); nl.setFrozenRows(1); }
-    var seen = {}; if (nl.getLastRow() > 1) nl.getRange(2, 2, nl.getLastRow() - 1, 2).getValues().forEach(function (r) { seen[String(r[0]) + '|' + normId_(r[1])] = true; });
-    var rowsNl = offIds.filter(function (id) { return !seen[col + '|' + id]; }).map(function (id) { return [new Date(), col, id]; });
-    if (rowsNl.length) { var r0 = nl.getLastRow() + 1; nl.getRange(r0, 2, rowsNl.length, 2).setNumberFormat('@'); nl.getRange(r0, 1, rowsNl.length, 3).setValues(rowsNl).setBackground('#f4c7c3'); }
-  }
+  var present = attPresent_(cur.label), roster = rosterRows_(), col = attColumn_(cur.label);
   var sh = attSheet_(); sh.getRange(cur.row, 3).setValue('Closed'); sh.getRange(cur.row, 5).setValue(new Date().toISOString());
   try { var cc = CacheService.getScriptCache(); cc.remove('att:' + cur.code); cc.remove('att:open'); } catch (err) { /* cache only */ }
-  var flagged = attFlagDevices_(cur.label), pres = 0; roster.forEach(function (r) { if (present[r[0]]) pres++; });
+  var flagged = attFlagDevices_(cur.label), pres = 0, onList = {}; roster.forEach(function (r) { onList[r[0]] = 1; if (present[r[0]]) pres++; });
+  var offIds = Object.keys(present).filter(function (id) { return !onList[id]; });
   log_('attendance:close', col, '', 'rotating');
-  return { ok: true, session: { code: cur.code, label: col, status: 'Closed', present: pres, absent: roster.length - pres, notOnList: offIds.length, flagged: flagged, column: col } };
+  return { ok: true, held: true, session: { code: cur.code, label: col, status: 'Closed', present: pres, absent: roster.length - pres, notOnList: offIds.length, flagged: flagged, column: col } };
+}
+
+// Submit attendance: write every Closed session (oldest first) into the Attendance grid and the Not_On_List tab, then mark it Submitted.
+function attSubmit_() {
+  var sessions = attRows_().filter(function (r) { return r.status === 'Closed'; });
+  if (!sessions.length) return { ok: false, why: 'no closed session is waiting to be submitted' };
+  var roster = rosterRows_(), ss = SpreadsheetApp.getActiveSpreadsheet(), done = [];
+  sessions.forEach(function (cur) {
+    var present = attPresent_(cur.label), col = attColumn_(cur.label);
+    var as = ss.getSheetByName(ATT_TAB) || ss.insertSheet(ATT_TAB);
+    if (as.getLastRow() === 0) { as.getRange(1, 1).setValue('Student ID'); as.setFrozenRows(1); as.setFrozenColumns(1); }
+    var head = as.getRange(1, 1, 1, Math.max(1, as.getLastColumn())).getValues()[0].map(function (h) { return String(h).trim(); });
+    if (head[1] === 'Name' && as.getLastRow() > 1 && as.getRange(2, 2, as.getLastRow() - 1, 1).getValues().every(function (r) { return !String(r[0]).trim(); })) { // an older tab with an empty Name column
+      as.deleteColumn(2); head = as.getRange(1, 1, 1, Math.max(1, as.getLastColumn())).getValues()[0].map(function (h) { return String(h).trim(); });
+    }
+    var ci = head.indexOf(col) + 1; if (ci < 2) { ci = Math.max(2, head.length + 1); as.getRange(1, ci).setNumberFormat('@').setValue(col); }
+    var have = {}, n = as.getLastRow();
+    if (n > 1) as.getRange(2, 1, n - 1, 1).getValues().forEach(function (r, i) { have[normId_(r[0])] = i + 2; });
+    var add = []; roster.forEach(function (r) { if (!have[r[0]]) { have[r[0]] = 1; add.push([r[0]]); } });
+    if (add.length) { var a0 = as.getLastRow() + 1; as.getRange(a0, 1, add.length, 1).setNumberFormat('@'); as.getRange(a0, 1, add.length, 1).setValues(add); }
+    n = as.getLastRow();
+    var ids = n > 1 ? as.getRange(2, 1, n - 1, 1).getValues() : [], vals = ids.map(function (r) { return [present[normId_(r[0])] ? 1 : 0]; });
+    if (vals.length) as.getRange(2, ci, vals.length, 1).setValues(vals); // every student in the list gets a 1 or a 0
+    var onList = {}; roster.forEach(function (r) { onList[r[0]] = 1; });
+    var offIds = Object.keys(present).filter(function (id) { return !onList[id]; }), nl = ss.getSheetByName(NOTLIST_TAB);
+    if (offIds.length) {
+      if (!nl) { nl = ss.insertSheet(NOTLIST_TAB); nl.appendRow(['Timestamp', 'Session', 'Student ID']); nl.setFrozenRows(1); }
+      var seen = {}; if (nl.getLastRow() > 1) nl.getRange(2, 2, nl.getLastRow() - 1, 2).getValues().forEach(function (r) { seen[String(r[0]) + '|' + normId_(r[1])] = true; });
+      var rowsNl = offIds.filter(function (id) { return !seen[col + '|' + id]; }).map(function (id) { return [new Date(), col, id]; });
+      if (rowsNl.length) { var r0 = nl.getLastRow() + 1; nl.getRange(r0, 2, rowsNl.length, 2).setNumberFormat('@'); nl.getRange(r0, 1, rowsNl.length, 3).setValues(rowsNl).setBackground('#f4c7c3'); }
+    }
+    attSheet_().getRange(cur.row, 3).setValue('Submitted');
+    done.push(col);
+    log_('attendance:submit', col, '', 'rotating');
+  });
+  return { ok: true, submitted: done };
+}
+
+// Discard attendance: drop every Closed (not yet submitted) session and its check-ins, so a test run never counts and never blocks the real one that day.
+function attDiscard_() {
+  var sessions = attRows_().filter(function (r) { return r.status === 'Closed'; });
+  if (!sessions.length) return { ok: false, why: 'no closed session is waiting' };
+  var lg = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_LOG_TAB), gone = 0, labels = {};
+  sessions.forEach(function (r) { labels[r.label] = true; });
+  if (lg && lg.getLastRow() > 1) {
+    var vals = lg.getRange(2, 2, lg.getLastRow() - 1, 1).getValues();
+    for (var i = vals.length - 1; i >= 0; i--) if (labels[String(vals[i][0])]) { lg.deleteRow(i + 2); gone++; }
+  }
+  sessions.forEach(function (r) { attSheet_().getRange(r.row, 3).setValue('Discarded'); });
+  try { var cc = CacheService.getScriptCache(); cc.remove('attd:' + attDayKey_()); } catch (err) { /* cache only */ }
+  log_('attendance:discard', String(sessions.length) + ' session(s)', '', 'rotating');
+  return { ok: true, discarded: sessions.length, checkins: gone };
 }
 
 // ---------- POST: answers, joins, progress, reports, attempts ----------
@@ -1081,7 +1207,7 @@ function doPost(e) {
         if (!clean_(p.id, 30)) return out_('missing');
         append_('Attempts', ['Timestamp', 'Student ID', 'Quiz', 'Attempt', 'Score', 'Total', 'Seconds', 'Wrong question ids'],
           [new Date(), clean_(p.id, 30), clean_(p.quiz, 80), clean_(p.attempt, 10), clean_(p.score, 10), clean_(p.total, 10), clean_(p.seconds, 10), clean_(p.wrong, 300)]);
-        updateMaster_([{ id: clean_(p.id, 30), name: '', label: masterLabel_(clean_(p.quiz, 80)), score: Number(p.score) || 0, n: Number(p.total) || 0 }]);
+        // held in Attempts until a release: Master and Scores are not touched here
       }
       return out_('ok');
     } finally {
@@ -1138,8 +1264,8 @@ function doPost(e) {
       if (st === 'stopped') return fin_('quiz closed');
     }
 
-    var sh = responses_();
-    var n = sh.getLastRow();
+    var sh = stagedSheet_(); // held until released
+    var rows0 = respRows_(), n = rows0.length + 1;
     var rnd = roundOf_(code);
     var ans = [];
     for (var q = 1; q <= 5; q++) {
@@ -1148,19 +1274,15 @@ function doPost(e) {
     }
     var marks = mark_(lettersFor_(code, null), ans), score = marks.reduce(function (x, y) { return x + y; }, 0);
     if (n > 1) { // first attempt per ID and join code in this round only
-      var seen = sh.getRange(2, 3, n - 1, 9).getValues();
+      var seen = rows0.map(function (r) { return r.slice(2, 11); });
       for (var j = 0; j < seen.length; j++) {
         if (String(seen[j][0]).trim() === id && String(seen[j][1]).trim().toUpperCase() === code && (Number(seen[j][8]) || 0) === rnd) {
           return fin_('duplicate');
         }
       }
     }
-    if (n === 0) sh.appendRow(['Timestamp', 'First Name', 'ID', 'Join Code', 'Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Score', 'Round', 'Questions', 'Answers', 'Week']);
-    else if (!sh.getRange(1, 10).getValue()) sh.getRange(1, 10).setValue('Score');
     sh.appendRow(rowFor_(new Date(), name, id, code, ans, score, rnd, 5, ''));
-    updateMaster_([{ id: id, name: name, label: 'Quiz ' + code, score: score, n: 5 }]);
     presence_(code, id, name, 'submitted');
-    totalsSafe_();
     return fin_('ok');
   } finally {
     lock.releaseLock();
@@ -1211,9 +1333,9 @@ function reviewData_(code, id) {
 // ---------- GET (JSONP): status, own result, ranking, host and display data ----------
 
 function ranking_(code, me) {
-  var rsh = responses_(), list = [];
-  if (rsh.getLastRow() > 1) {
-    var rnd = roundOf_(code), data = rsh.getRange(2, 1, rsh.getLastRow() - 1, 14).getValues(); // Timestamp, First Name, ID, Join Code, Q1 to Q5, Score, Round, Questions, Answers, Week
+  var list = [];
+  {
+    var rnd = roundOf_(code), data = respRows_(); // held and released rows. Timestamp, First Name, ID, Join Code, Q1 to Q5, Score, Round, Questions, Answers, Week
     for (var r = 0; r < data.length; r++) {
       if (String(data[r][3]).trim().toUpperCase() === code && data[r][9] !== '' && (Number(data[r][10]) || 0) === rnd) {
         list.push({ name: String(data[r][1]), score: Number(data[r][9]), n: Number(data[r][11]) || 5, me: !!me && String(data[r][2]).trim() === me });
@@ -1243,7 +1365,7 @@ function counts_(code) {
 // ---------- Portal and Control Centre support (additive: no existing action changes) ----------
 // SCRIPT_VERSION: change it whenever the script is redeployed; the Control Centre compares it with the version its page expects.
 // Key!M2 = Off hides "My results" from students (default On).
-var SCRIPT_VERSION = '2026-11-07-portal-2';
+var SCRIPT_VERSION = '2026-11-07-held-1';
 
 function resultsOn_() {
   try {
@@ -1366,6 +1488,16 @@ function doGet(e) {
 
   if (p.action === 'attend') return jsonp_(e, attCheckIn_(p, code)); // a student checks in: the Student ID, the QR token, the device token and the phone's rounded location
   if (p.action === 'hostcheck') return jsonp_(e, { ok: hostOk_(p) }); // the lecturer menu: is this key right?
+  if (p.action === 'held_status') return jsonp_(e, hostOk_(p) ? heldStatus_() : { ok: false, why: 'host key not accepted' }); // host only: what is waiting for release
+  if (p.action === 'held_release_quiz' || p.action === 'held_discard_quiz' || p.action === 'attend_submit' || p.action === 'attend_discard') { // host only
+    if (!hostOk_(p)) return jsonp_(e, { ok: false, why: 'host key not accepted' });
+    var hl = LockService.getScriptLock(); hl.waitLock(30000);
+    try {
+      if (p.action === 'attend_submit') return jsonp_(e, attSubmit_());
+      if (p.action === 'attend_discard') return jsonp_(e, attDiscard_());
+      return jsonp_(e, p.action === 'held_release_quiz' ? Object.assign({ ok: true }, commitQuiz_('', true)) : Object.assign({ ok: true }, discardQuiz_('', true)));
+    } finally { hl.releaseLock(); }
+  }
   if (p.action === 'attend_status' || p.action === 'attend_open' || p.action === 'attend_close') { // host only
     if (!hostOk_(p)) return jsonp_(e, { ok: false, why: 'host key not accepted' });
     if (p.action === 'attend_status') return jsonp_(e, attStatus_());
@@ -1456,9 +1588,8 @@ function doGet(e) {
 
   if (p.action === 'result') {
     var id = clean_(p.id, 20), key = keyRow_(code), cx = ctl_(code);
-    var sh = responses_();
-    if (key && id && sh && sh.getLastRow() > 1) {
-      var rnd2 = roundOf_(code), rows = sh.getRange(2, 3, sh.getLastRow() - 1, 12).getValues(); // ID, Join Code, Q1 to Q5, Score, Round, Questions, Answers, Week
+    if (key && id) {
+      var rnd2 = roundOf_(code), rows = respRows_().map(function (r) { return r.slice(2, 14); }); // ID, Join Code, Q1 to Q5, Score, Round, Questions, Answers, Week
       for (var i = 0; i < rows.length; i++) {
         if (String(rows[i][0]).trim() === id && String(rows[i][1]).trim().toUpperCase() === code && (Number(rows[i][8]) || 0) === rnd2) {
           if (cx && !visible_(cx, 'show_score')) return jsonp_(e, { found: true, scoreHidden: true, outcome: lastOutcome_(id, code) });
