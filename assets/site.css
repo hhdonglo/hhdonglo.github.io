@@ -1050,3 +1050,36 @@ body.focus main{padding-top:1.2rem}
 .page-teaching [data-file="teaching"]>section[aria-labelledby="live-session-tools"]{grid-column:1/-1}
 .page-teaching [data-file="teaching"]>section[aria-labelledby="live-session-tools"] .secondary-card{max-width:30rem}
 .page-teaching .disclaimer{margin-top:1.5rem}
+/* Teaching page: single-column flow in Hope's section order */
+.page-teaching [data-file="teaching"]{display:block}
+.page-teaching [data-file="teaching"]>section{margin:0 0 2rem}
+.page-teaching [data-file="teaching"]>section>.sec-sub{margin:0 0 .8rem;max-width:44rem}
+.page-teaching [data-file="teaching"]>section>ul:not(.arrows){margin:0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:.55rem;font:1rem/1.4 system-ui,sans-serif}
+.page-teaching [data-file="teaching"]>section>ul:not(.arrows)>li{margin:0;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:.65rem .9rem;box-shadow:0 1px 3px rgba(31,58,104,.06)}
+.page-teaching .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:1.1rem;align-items:start}
+.page-teaching .grid .card,.page-teaching .primary-card{max-width:none}
+.page-teaching .grid .primary-card .body,.page-teaching .secondary-card .body{padding:1.2rem 1.3rem 1.3rem}
+.page-teaching .primary-card h4{font-size:1.6rem}
+.page-teaching .secondary-card{margin-top:0;align-self:stretch}
+.page-teaching .secondary-card h4{font-size:1.4rem;margin:.1rem 0 0}
+.page-teaching .secondary-card .learn,.page-teaching .primary-card .learn{font-size:.98rem;line-height:1.55;margin:.4rem 0 .6rem}
+.page-teaching .card .res-h{margin:.8rem 0 .3rem;font:700 .75rem/1.3 system-ui,sans-serif;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.page-teaching .primary-card .res-h{color:#F2C9A0}
+.page-teaching .card .body>ul{margin:0;padding-left:1.1rem;font:.95rem/1.5 system-ui,sans-serif}
+.page-teaching .primary-card .body>ul,.page-teaching .primary-card .body>ul a{color:#fff}
+.page-teaching .ov-card ul{padding-left:1.1rem;margin:.3rem 0 0;font:.98rem/1.55 system-ui,sans-serif}
+.page-teaching [data-file="teaching"]>section[aria-labelledby="learning-resources"] .ov-grid{grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}
+.page-teaching .ov-ref{font-size:1rem}
+.page-teaching .ov-ref td,.page-teaching .ov-ref th{padding:.55rem .7rem}
+.page-teaching [data-file="teaching"]>section:not([aria-labelledby]){margin:0 0 .8rem}
+.page-teaching [data-file="teaching"]>section:not([aria-labelledby]) .card{margin:0;max-width:34rem}
+.page-teaching [data-file="teaching"]>section:not([aria-labelledby]) .ov-card{padding:.7rem 1.2rem;border-radius:999px;max-width:34rem}
+.page-teaching [data-file="teaching"]>section:not([aria-labelledby]) .ov-card p{margin:0}
+.page-teaching [data-file="teaching"]>section:not([aria-labelledby]) .ov-card a{font:600 1rem system-ui,sans-serif;text-decoration:none}
+.page-teaching [data-file="teaching"]>section:not([aria-labelledby]) .ov-card a::after{content:" \2192"}
+@media (max-width:720px){.page-teaching .grid{grid-template-columns:1fr}}
+.page-teaching [data-file="teaching"]>section:not([aria-labelledby]){margin:0 0 .8rem}
+.page-teaching [data-file="teaching"]>section:not([aria-labelledby]):last-of-type,.page-teaching [data-file="teaching"]>section:not([aria-labelledby])+section[aria-labelledby]{margin-top:2rem}
+.page-teaching [data-file="teaching"]>section:not([aria-labelledby]) .secondary-card{max-width:34rem;flex:0 0 auto}
+.page-teaching [data-file="teaching"]>section:not([aria-labelledby]) .secondary-card .body{padding:.9rem 1.1rem}
+.page-teaching [data-file="teaching"]>section:not([aria-labelledby]) .ov-card{border-top-width:1px}

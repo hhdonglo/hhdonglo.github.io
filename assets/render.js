@@ -186,6 +186,7 @@ function bcard(c){
   if(c.subtitle)h+='<p class="pc-sub">'+md(c.subtitle)+'</p>';
   h+=paras(c.paragraphs,"learn");
   if(c.steps&&c.steps.length)h+='<ol class="contacts" aria-label="Steps">'+c.steps.map(function(x,i){return '<li><span class="k">'+(i+1)+'</span>'+esc(x)+'</li>'}).join("")+'</ol>';
+  if(c.resources&&c.resources.length)h+='<p class="res-h">Resources</p>'+list(c.resources);
   if(c.button_label)h+='<div class="btns">'+btn(c,true)+'</div>';
   return h+'</div></article>';
 }
@@ -214,7 +215,7 @@ function courseCards(s,site){
   var all=(site&&site.courses&&site.courses.courses)||[];
   return all.filter(function(c){return c.status==="current"&&(!s.type||c.type===s.type)}).map(function(c){
     var lec=c.type==="lecture";
-    return {id:c.id+"-card",style:lec?"primary":"secondary",kicker:c.kicker,title:c.code,subtitle:c.title,paragraphs:[c.summary],button_label:c.button_label,button_url:c.page,button_sr:c.code,button_style:lec?"primary":""};
+    return {id:c.id+"-card",style:lec?"primary":"secondary",kicker:c.kicker,title:c.code,subtitle:c.title,paragraphs:[c.summary],resources:c.resources,button_label:c.button_label,button_url:c.page,button_sr:c.code,button_style:lec?"primary":""};
   });
 }
 function section(s,site){
