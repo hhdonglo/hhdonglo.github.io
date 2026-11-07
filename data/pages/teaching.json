@@ -1,77 +1,11 @@
 {
   "title": "Teaching",
-  "subtitle": "Teaching is an integral component of my academic work at the University of Ghana. My teaching integrates foundational physics, quantitative reasoning, experimental practice, and scientific computing, with an emphasis on connecting classroom concepts to contemporary research in nuclear physics and computational modelling.",
+  "subtitle": "I teach physics and laboratory courses at the University of Ghana, connecting foundational ideas to the methods I use in nuclear reaction research.",
   "sections": [
-    {
-      "id": "teaching-philosophy",
-      "heading": "Teaching Philosophy",
-      "subtitle": "My teaching emphasizes:",
-      "bullets": [
-        "Conceptual understanding before mathematical formalism",
-        "Quantitative problem-solving and physical modelling",
-        "Experimental reasoning, measurement, and uncertainty analysis",
-        "Computational approaches to solving physical problems",
-        "Connections between foundational physics and modern research",
-        "Developing independent scientific thinking and communication skills"
-      ]
-    },
-    {
-      "id": "lecture-courses",
-      "heading": "Courses Taught",
-      "from": "courses",
-      "cards": []
-    },
-    {
-      "id": "learning-resources",
-      "heading": "Learning Resources",
-      "subtitle": "A collection of materials developed to support undergraduate physics learning.",
-      "layout": "grid",
-      "cards": [
-        {
-          "style": "plain",
-          "title": "Lecture Materials",
-          "bullets": [
-            "[Lecture slides](phys143.html#weekly)",
-            "[Supplementary notes](phys143.html#weekly)",
-            "Concept summaries"
-          ]
-        },
-        {
-          "style": "plain",
-          "title": "Laboratory Skills",
-          "bullets": [
-            "Measurement techniques",
-            "Experimental design",
-            "[Uncertainty and error analysis](uncertainty.html)",
-            "Scientific reporting"
-          ]
-        },
-        {
-          "style": "plain",
-          "title": "Data Analysis and Computing",
-          "bullets": [
-            "Excel for physics",
-            "Statistical analysis",
-            "Programming and computational methods",
-            "Data visualization"
-          ]
-        },
-        {
-          "style": "plain",
-          "title": "Practice and Revision",
-          "bullets": [
-            "[Tutorial sheets](phys143.html#weekly)",
-            "Worked examples",
-            "[Practice questions](phys143.html#weekly)",
-            "[Revision materials](mock-exam.html)"
-          ]
-        }
-      ]
-    },
     {
       "id": "research-informed",
       "heading": "Research-Informed Teaching",
-      "subtitle": "A central feature of my teaching is demonstrating how foundational undergraduate physics connects to contemporary scientific research.",
+      "subtitle": "Foundational topics are taught with the research questions they lead to.",
       "cards": [
         {
           "style": "plain",
@@ -97,14 +31,6 @@
               [
                 "Programming",
                 "Numerical simulation"
-              ],
-              [
-                "Data analysis",
-                "Experimental and theoretical nuclear physics"
-              ],
-              [
-                "Scientific computing",
-                "Predictive nuclear-reaction modelling"
               ]
             ]
           }
@@ -112,64 +38,45 @@
       ]
     },
     {
-      "id": "teaching-activities",
-      "heading": "Selected Teaching Activities",
-      "subtitle": "My teaching combines:",
-      "bullets": [
-        "Interactive lectures",
-        "Problem-solving sessions",
-        "Laboratory investigations",
-        "Computational exercises",
-        "Research-oriented examples drawn from nuclear physics and scientific computing"
+      "id": "teaching-philosophy",
+      "heading": "Teaching Philosophy",
+      "layout": "grid",
+      "cards": [
+        {
+          "style": "plain",
+          "title": "Conceptual Understanding",
+          "paragraphs": [
+            "Physical ideas first, then the mathematics that expresses them."
+          ]
+        },
+        {
+          "style": "plain",
+          "title": "Experimental and Quantitative Reasoning",
+          "paragraphs": [
+            "Modelling, measurement and uncertainty analysis in every problem."
+          ]
+        },
+        {
+          "style": "plain",
+          "title": "Computational and Research-Oriented Learning",
+          "paragraphs": [
+            "Computing as a tool for solving physical problems, linked to current research."
+          ]
+        }
       ]
+    },
+    {
+      "id": "lecture-courses",
+      "heading": "Courses Taught",
+      "from": "courses",
+      "cards": []
     },
     {
       "id": "student-resources",
       "heading": "Student Resources",
-      "subtitle": "Resources currently available for enrolled students.",
       "bullets": [
-        "[PHYS 143 course resources](phys143.html)",
-        "[Laboratory course resources](laboratory.html)",
-        "[Practice activities](phys143.html#weekly)",
-        "[Weekly learning materials](phys143.html#weekly)"
-      ]
-    },
-    {
-      "cards": [
-        {
-          "id": "portal-card",
-          "style": "secondary",
-          "kicker": "PHYS 143",
-          "title": "Portal",
-          "paragraphs": [
-            "Check-in, the live practice quiz and this week's handout."
-          ],
-          "button_label": "Open the Portal →",
-          "button_url": "phys143-portal.html"
-        }
-      ]
-    },
-    {
-      "cards": [
-        {
-          "id": "login-card",
-          "style": "plain",
-          "paragraphs": [
-            "[Login](phys143-lecturer.html)"
-          ]
-        }
-      ]
-    },
-    {
-      "id": "teaching-context",
-      "heading": "Teaching in Context",
-      "cards": [
-        {
-          "style": "plain",
-          "paragraphs": [
-            "My teaching complements my broader research programme in nuclear reaction dynamics, uncertainty quantification, scientific computing, and predictive modelling. Through this integration, students are exposed not only to the foundations of physics but also to the methods used in contemporary research."
-          ]
-        }
+        "[Student Portal](phys143-portal.html)",
+        "[Login](phys143-lecturer.html)"
       ]
     }
   ]
