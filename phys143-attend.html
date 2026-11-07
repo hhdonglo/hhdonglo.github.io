@@ -51,7 +51,6 @@ body.focus main{padding-top:1.2rem}
   <h1>Attendance check-in</h1>
   <form id="c-form" autocomplete="off" novalidate>
    <label for="c-id">Student ID</label><input type="text" id="c-id" maxlength="12" inputmode="numeric" autocomplete="off" placeholder="Your ID number">
-   <label for="c-code">Attendance code</label><input type="text" id="c-code" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Code on the screen">
    <p class="err" id="c-err" role="alert" hidden></p>
    <button type="submit" class="go" id="c-btn">Present</button>
    <p class="note">Your phone may ask for your location. It is used once to confirm you are in the room; only the distance is kept, not where you are.</p>
@@ -80,6 +79,7 @@ function devToken(){var t="";try{t=localStorage.getItem("phys143_dev")||""}catch
  if(t.length<16){var a=new Uint8Array(12);(window.crypto||window.msCrypto).getRandomValues(a);t="";for(var i=0;i<a.length;i++)t+=("0"+a[i].toString(16)).slice(-2);try{localStorage.setItem("phys143_dev",t)}catch(x){}}
  return t}
 var DEV=devToken();
+var TOK=(/[?&]t=([0-9a-f]{1,8})/.exec(location.search)||[0,""])[1];
 var POS=null; // this phone's location, used once for the check-in: the server keeps only the distance, never the coordinates
 function getPos(cb){
  if(!navigator.geolocation){cb(null);return}
@@ -93,20 +93,20 @@ function jsonp(params,cb){
  sc.src=SCRIPT_URL+"?"+params+"&callback="+n+"&_="+Date.now();document.head.appendChild(sc);
 }
 function err(m){$("c-err").textContent=m;$("c-err").hidden=false}
-$("c-code").addEventListener("input",function(){var v=$("c-code").value.toUpperCase().replace(/[^A-Z0-9]/g,"");if(v!==$("c-code").value)$("c-code").value=v});
 $("c-id").addEventListener("input",function(){var v=$("c-id").value.replace(/\D/g,"");if(v!==$("c-id").value)$("c-id").value=v});
 $("c-form").addEventListener("submit",function(e){
  e.preventDefault();$("c-err").hidden=true;
- var id=$("c-id").value.trim(),code=$("c-code").value.trim().toUpperCase();
- if(!id||!code){err("Please enter your student ID and the attendance code.");return}
+ var id=$("c-id").value.trim();
+ if(!id){err("Please enter your student ID.");return}
+ if(!TOK){err("Scan the QR code on the screen to open this page.");return}
  $("c-btn").disabled=true;
  var send=function(pos){
  var loc=pos?"&lat="+pos.lat.toFixed(5)+"&lon="+pos.lon.toFixed(5)+"&acc="+Math.round(pos.acc):"";
- jsonp("action=attend&code="+encodeURIComponent(code)+"&id="+encodeURIComponent(id)+"&dev="+DEV+loc,function(r){
+ jsonp("action=attend&id="+encodeURIComponent(id)+"&dev="+DEV+"&t="+TOK+loc,function(r){
   $("c-btn").disabled=false;
   if(!r){err("Could not reach the server. Check your connection and try again.");return}
   if(r.ok){$("c-form-wrap").hidden=true;window.scrollTo(0,0);var h=r.already?"Already marked present today":"Marked present";if(r.onList===false){$("c-mid").textContent=r.id;$("c-mh").textContent=h;$("c-missing").hidden=false}else{$("c-sid").textContent=r.id;$("c-dh").textContent=h;$("c-done").hidden=false}return}
-  err(r.why==="too far"?"Your phone is too far from the classroom. Come into the room and try again.":(r.why==="no location"?"This page needs your location to confirm you are in the room. Allow location for this page (in an app's built-in browser, open the link in Chrome or Safari), then try again.":(r.why==="closed"?"Attendance is closed.":(r.why==="slow down"?"Too many wrong codes. Wait a few minutes, then try again.":(r.why==="device used"?"This phone has already checked in another student. Please see your lecturer.":(r.why==="update page"?"Please reload this page and try again.":(r.why==="bad id"?"That does not look like a student ID. Check it and try again.":"That code is not correct. Check the code on the screen.")))))));
+  err(r.why==="too far"?"Your phone is too far from the classroom. Come into the room and try again.":(r.why==="no location"?"This page needs your location to confirm you are in the room. Allow location for this page (in an app's built-in browser, open the link in Chrome or Safari), then try again.":(r.why==="closed"?"Attendance is closed.":(r.why==="slow down"?"Too many failed tries. Wait a few minutes, then try again.":(r.why==="device used"?"This phone has already checked in another student. Please see your lecturer.":(r.why==="old link"?"This link has expired. Scan the QR code on the screen again.":(r.why==="update page"?"Please reload this page and try again.":(r.why==="bad id"?"That does not look like a student ID. Check it and try again.":"Please scan the QR code on the screen again."))))))))
  });
  };
  if(POS)send(POS);else getPos(send);

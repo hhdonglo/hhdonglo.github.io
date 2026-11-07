@@ -69,16 +69,16 @@ body.focus main{padding-top:1rem}
   <p class="note" id="a-last"></p>
  </section>
  <section class="panel" id="a-live" hidden>
-  <p class="lbl">Scan, then enter your student ID and this code. Your phone must be in the classroom.</p>
-  <p><img class="qr" src="assets/figures/phys143-attend-qr.svg" alt="QR code to open the check-in page" width="340" height="340"></p>
-  <p class="addr">hhdonglo.github.io/phys143-attend.html</p>
-  <p class="lbl">Attendance code</p><p class="code" id="a-showcode"></p>
+  <p class="lbl">Scan this screen with your phone and enter your student ID. Your phone must be in the classroom.</p>
+  <p><span id="a-qr" class="qr" role="img" aria-label="QR code to open the check-in page; it changes every 30 seconds" style="display:inline-block"></span></p>
+  <p class="note" id="a-tick" role="status"></p>
   <p class="count" id="a-count" role="status"></p>
   <p><button class="go big" type="button" id="a-close">Close attendance and record absences</button></p>
   <p class="note" id="a-msg" role="status"></p>
  </section>
  <p><button class="go alt" type="button" id="a-out">Log out</button></p>
 </div>
+<script src="assets/qrcode.js"></script>
 <script>
 (function(){
 "use strict";
@@ -95,18 +95,30 @@ function saveKey(k){KEY=k;try{sessionStorage.setItem("phys143_hk",k)}catch(x){}}
 function signOut(){KEY="";try{sessionStorage.removeItem("phys143_hk")}catch(x){}location.href="phys143-lecturer.html"}
 
 try{var sr=localStorage.getItem("phys143_rad");if(sr)setTimeout(function(){var e=$("a-rad");if(e&&e.querySelector('option[value="'+sr+'"]'))e.value=sr},0)}catch(x){}
-var timer=null,show=function(id){["a-login","a-idle","a-live"].forEach(function(x){$(x).hidden=(x!==id)})};
+var timer=null,tk=null,left=0,stamp=0,show=function(id){["a-login","a-idle","a-live"].forEach(function(x){$(x).hidden=(x!==id)})};
 function call(act,extra,cb){jsonp("action="+act+"&hostkey="+encodeURIComponent(KEY)+(extra||""),cb)}
 function draw(d){
  var ss=d&&d.session,open=ss&&ss.status==="Open";
  if(open){
-  $("a-showcode").textContent=ss.code;
+  drawQr(ss.link);left=ss.secondsLeft||0;stamp=Date.now();tickDraw();if(!tk)tk=setInterval(tickDraw,1000);
   $("a-count").textContent=ss.present+" present"+(ss.notOnList?", "+ss.notOnList+" not on the list":"");
   show("a-live");if(!timer)timer=setInterval(poll,4000);
  } else {
-  if(timer){clearInterval(timer);timer=null}
+  if(timer){clearInterval(timer);timer=null}if(tk){clearInterval(tk);tk=null}
   show("a-idle");
  }
+}
+var lastLink="";
+function drawQr(t){
+ if(!t||t===lastLink)return;lastLink=t;
+ try{var q=qrcode(0,"M");q.addData("https://hhdonglo.github.io/phys143-attend.html?t="+t);q.make();
+  $("a-qr").innerHTML=q.createSvgTag({cellSize:8,margin:0,scalable:true});
+  var s=$("a-qr").firstChild;if(s){s.setAttribute("width","100%");s.setAttribute("height","100%")}}catch(x){$("a-qr").textContent="QR failed: type hhdonglo.github.io/phys143-attend.html?t="+t}
+}
+function tickDraw(){
+ var r=left-Math.floor((Date.now()-stamp)/1000);
+ $("a-tick").textContent=left?"The QR code changes in "+Math.max(r,0)+" s":"";
+ if(left&&r<=0){left=0;poll()}
 }
 function poll(){call("attend_status","",function(d){if(d&&d.ok)draw(d)})}
 function begin(){
