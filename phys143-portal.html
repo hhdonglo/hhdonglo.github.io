@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light dark">
+<title>PHYS 143 student portal | Hope Donglo</title>
+<meta name="description" content="PHYS 143 student portal.">
+<link rel="icon" href="assets/logo/hd-favicon.svg" type="image/svg+xml">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/logo/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/logo/favicon-16.png">
+<link rel="apple-touch-icon" href="assets/logo/apple-touch-icon.png">
+<link rel="stylesheet" href="assets/site.css">
+<script>if(!location.hash){if("scrollRestoration" in history)history.scrollRestoration="manual";window.addEventListener("pageshow",function(){if(!location.hash)window.scrollTo({top:0,left:0,behavior:"instant"})});}</script>
+</head>
+<body class="focus">
+<a class="skip" href="#main">Skip to content</a>
+<header class="banner slim">
+<div class="wrap">
+<a class="brand-logo" href="index.html" aria-label="Home"><picture><source media="(max-width:700px)" srcset="assets/logo/hd-favicon.svg"><img src="assets/logo/hd-logo-horizontal.svg" width="233" height="56" alt="HD. Nuclear Physics, Scientific Computing"></picture></a>
+<h1><a class="home-link" href="index.html">Hope Donglo</a></h1>
+<p class="course" data-render="banner-field">At the Edge of the Periodic Table</p>
+</div>
+</header>
+<nav class="jump" id="jump" aria-label="Sections"><div class="wrap"><button type="button" class="menu-btn" aria-expanded="false" aria-controls="jump-links"><span>Menu</span><span class="dots" aria-hidden="true">&#8943;</span></button><div class="links" id="jump-links"><a href="index.html">Home</a><div class="dd" data-key="research.html"><a href="research.html">Research</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Research links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="research.html#questions">Research Questions</a></li><li><a href="research.html#reaction-dynamics">Nuclear Reaction Dynamics</a></li><li><a href="research.html#uncertainty">Uncertainty Quantification</a></li><li><a href="earlier-research.html">Earlier Research</a></li></ul></div><div class="dd" data-key="projects.html"><a href="projects.html">Projects</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Projects links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="kewpie3.html">KEWPIE3</a></li><li><a href="projects.html#research-projects">Current Research</a></li></ul></div><div class="dd" data-key="data-engineering.html"><a href="data-engineering.html">Scientific Computing</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Scientific Computing links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="data-engineering.html#pipelines">Data Engineering</a></li><li><a href="data-engineering.html#retrieval">Machine Learning</a></li><li><a href="data-engineering.html#analysis">Data Analysis</a></li></ul></div><div class="dd" data-key="teaching.html"><a href="teaching.html" aria-current="true">Teaching</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Teaching links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="teaching.html#lecture-courses">Courses</a></li><li><a href="phys143.html#weekly">Lecture Notes</a></li><li><a href="mock-exam.html">Mock exam</a></li></ul></div><div class="dd" data-key="publications.html"><a href="publications.html">Publications</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Publications links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="publications.html#journal-articles">Journal Articles</a></li><li><a href="publications.html#preprints">Preprints</a></li><li><a href="publications.html#theses">Theses</a></li></ul></div><div class="dd" data-key="students.html"><a href="students.html">Students</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Students links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="students.html#undergraduate">Supervision</a></li><li><a href="students.html#research-projects">Project Opportunities</a></li></ul></div><a href="about.html">About</a><a href="cv.html" class="util first">CV</a><a href="contact.html" class="util">Contact</a></div></div></nav>
+<main id="main"><div class="wrap">
+<style>
+.pt{max-width:30rem;margin:0 auto;font-family:system-ui,sans-serif}
+.pt .card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem 1.1rem;margin:.8rem 0;box-shadow:var(--shadow)}
+.pt h1{margin:.2rem 0 .1rem;color:var(--brown);font-size:1.45rem}
+@media (prefers-color-scheme:dark){.pt h1{color:#e9c9a8}}
+.pt h2{margin:0 0 .5rem;font:700 .85rem system-ui,sans-serif;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.pt .sub,.pt .note{font:.92rem/1.5 system-ui,sans-serif;color:var(--muted)}
+.pt .banner{border-left:6px solid var(--border);font-weight:600}
+.pt .banner.on{border-left-color:#2e7d32}
+.pt .go{display:flex;align-items:center;justify-content:center;width:100%;min-height:54px;margin:.5rem 0;border:2px solid var(--brown-fill);border-radius:6px;background:var(--brown-fill);color:#fff;font:700 1.1rem system-ui,sans-serif;text-decoration:none;cursor:pointer}
+.pt .go.alt{background:var(--btn-bg);color:var(--btn-text)}
+.pt input[type=text]{width:100%;min-height:50px;padding:.4rem .7rem;border:1.5px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font:1.2rem system-ui,sans-serif}
+.pt label{display:block;font:600 .95rem system-ui,sans-serif;margin:.6rem 0 .25rem}
+.pt label.cb{display:flex;gap:.5rem;align-items:center;font-weight:400;min-height:44px}
+.pt label.cb input{width:22px;height:22px}
+.pt ul{list-style:none;padding:0;margin:0}
+.pt li a{display:flex;justify-content:space-between;align-items:center;min-height:48px;border-bottom:1px solid var(--border);text-decoration:none}
+.pt summary{min-height:48px;display:flex;align-items:center;font-weight:700;cursor:pointer}
+.pt .err{color:#b3261e;font-weight:600;margin:.6rem 0 0}
+@media (prefers-color-scheme:dark){.pt .err{color:#ff8a80}}
+.pt table{width:100%;border-collapse:collapse;font-size:.95rem}.pt td,.pt th{padding:.35rem .3rem;border-bottom:1px solid var(--border);text-align:left}
+.pt [hidden]{display:none!important}
+body.focus header.banner,body.focus nav.jump,body.focus .crumb,body.focus .sec-sub,body.focus aside.disclaimer,body.focus footer,body.focus a.skip,body.focus main h2{display:none!important}
+body.focus main{padding-top:1.2rem}
+</style>
+<div class="pt">
+ <h1>PHYS 143 student portal</h1>
+ <p class="sub" id="p-contacts">University Physics</p>
+ <div class="card banner" id="p-banner" aria-live="polite">Checking what is open in class.</div>
+ <div class="card" id="p-primary"></div>
+ <div class="card" id="p-week"></div>
+ <div class="card" id="p-res" hidden>
+  <details><summary>My results</summary>
+   <form id="p-form" autocomplete="off" novalidate>
+    <label for="p-id">Student ID</label><input type="text" id="p-id" maxlength="12" inputmode="numeric" autocomplete="off">
+    <label class="cb" id="p-remlab" hidden><input type="checkbox" id="p-rem"> Remember my ID on this phone</label>
+    <p class="note" id="p-remnote" hidden>Stored only in this browser, never sent to the server for this purpose. Do not use this on a phone you share. <a href="#" id="p-forget">Forget this phone</a></p>
+    <p class="err" id="p-err" role="alert" hidden></p>
+    <button class="go alt" type="submit" id="p-show">Show my results</button>
+   </form>
+   <div id="p-out" hidden></div>
+   <p class="note">You see only your own attendance and quiz scores. Other students' results are never shown.</p>
+  </details>
+ </div>
+ <div class="card"><details><summary>All lectures</summary><ul id="p-all"></ul></details></div>
+ <p class="note">Student IDs are never shown publicly. Corrections: contact your lecturer.</p>
+</div>
+<script src="assets/messages.js"></script>
+<script>
+(function(){
+"use strict";
+var SCRIPT_URL="https://script.google.com/macros/s/AKfycbzso5-FCU4erf_grbktH-AH-RKaPDap7TfJAw_TOSxNarTrJDe-PgyBzgIH7Fj2fjZ3/exec";
+var $=function(i){return document.getElementById(i)};
+var CFG=null,LIVE=null,KEYID="phys143_portal_id";
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function jsonp(params,cb,ms){
+ var n="cb"+Date.now()+Math.floor(Math.random()*1e6),sc=document.createElement("script"),done=false,t;
+ function end(d){if(done)return;done=true;clearTimeout(t);delete window[n];if(sc.parentNode)sc.parentNode.removeChild(sc);cb(d)}
+ window[n]=end;sc.onerror=function(){end(null)};t=setTimeout(function(){end(null)},ms||8000);
+ sc.src=SCRIPT_URL+"?"+params+"&callback="+n+"&_="+Date.now();document.head.appendChild(sc);
+}
+function render(){
+ var w=String(CFG.currentWeek),title=CFG.lectures[w]||"",L=LIVE&&LIVE.portal===1?LIVE:null;
+ $("p-contacts").textContent="University Physics. Contacts: "+CFG.contacts+".";
+ var b=$("p-banner"),p=$("p-primary"),h="";
+ if(L&&L.attendance==="open"){
+  b.textContent="Attendance is open.";b.className="card banner on";
+  h='<h2>Next step</h2><p>Scan the QR code on the projector with your phone camera. Then enter your student ID and allow location.</p><p class="note">If the scan opens inside another app, open the link in Chrome or Safari.</p>';
+ }else if(L&&L.quiz&&L.quiz!=="none"){
+  b.textContent="A live quiz is open.";b.className="card banner on";
+  h='<h2>Next step</h2><a class="go" href="phys143-quiz.html">Join live quiz</a><p class="note">Enter the join code shown in class.</p>';
+ }else{
+  b.textContent=L?"No live activity right now.":"Live status is not available. The links below still work.";b.className="card banner";
+  h='<h2>Next step</h2><a class="go" href="phys143-lecture-'+w+'.html">Continue with Lecture '+w+'</a>';
+ }
+ p.innerHTML=h;
+ var hw=CFG.handouts[w],pr=CFG.practice.indexOf(Number(w))>=0;
+ $("p-week").innerHTML='<h2>This week: Lecture '+esc(w)+'</h2><p><b>'+esc(title)+'</b></p><ul>'+
+  (hw?'<li><a href="'+esc(hw)+'">Handout (PDF) <span aria-hidden="true">&rsaquo;</span></a></li>':'')+
+  (pr?'<li><a href="phys143-lecture-'+w+'-practice.html">Practice quiz <span aria-hidden="true">&rsaquo;</span></a></li>':'')+
+  '<li><a href="phys143-lecture-'+w+'.html">Lecture page <span aria-hidden="true">&rsaquo;</span></a></li></ul>';
+ var all="";for(var i=1;i<=12;i++){all+='<li><a href="phys143-lecture-'+i+'.html"><span>'+i+'. '+esc(CFG.lectures[i]||"")+'</span><span aria-hidden="true">&rsaquo;</span></a></li>'}
+ $("p-all").innerHTML=all;
+ // My results needs a script that supports it; hidden otherwise.
+ var res=CFG.settings.showMyResults&&L&&L.results===true;
+ $("p-res").hidden=!res;
+ var rem=CFG.settings.allowRememberId;$("p-remlab").hidden=!rem;
+ var saved="";try{saved=localStorage.getItem(KEYID)||""}catch(x){}
+ if(rem&&saved){$("p-rem").checked=true;$("p-remnote").hidden=false;$("p-id").value=saved}
+}
+function loadStatus(){jsonp("action=portal_status",function(d){LIVE=d;render()},6000)}
+function load(){
+ var x=new XMLHttpRequest();x.open("GET","data/portal.json?_="+Date.now());
+ x.onload=function(){try{CFG=JSON.parse(x.responseText)}catch(e){CFG=null}
+  if(!CFG){$("p-banner").textContent="This page could not load its settings. Refresh the page.";return}
+  render();loadStatus();setInterval(loadStatus,15000)};
+ x.onerror=function(){$("p-banner").textContent=PHYSMSG.text("E8")};x.send();
+}
+$("p-id").addEventListener("input",function(){var v=$("p-id").value.replace(/\D/g,"");if(v!==$("p-id").value)$("p-id").value=v});
+$("p-rem").addEventListener("change",function(){$("p-remnote").hidden=!$("p-rem").checked;if(!$("p-rem").checked){try{localStorage.removeItem(KEYID)}catch(x){}}});
+$("p-forget").addEventListener("click",function(e){e.preventDefault();try{localStorage.removeItem(KEYID)}catch(x){}$("p-rem").checked=false;$("p-id").value="";$("p-remnote").hidden=true;$("p-out").hidden=true});
+$("p-form").addEventListener("submit",function(e){
+ e.preventDefault();var er=$("p-err");er.hidden=true;$("p-out").hidden=true;
+ var id=$("p-id").value.trim();
+ if(!/^[0-9]{4,12}$/.test(id)){er.textContent=PHYSMSG.text("E1");er.hidden=false;return}
+ $("p-show").disabled=true;
+ jsonp("action=my_results&id="+encodeURIComponent(id),function(r){
+  $("p-show").disabled=false;
+  if(!r){er.textContent=PHYSMSG.text("E8");er.hidden=false;return}
+  if(!r.ok){er.textContent=PHYSMSG.fromWhy(r.why);er.hidden=false;return}
+  if($("p-rem").checked){try{localStorage.setItem(KEYID,id)}catch(x){}}
+  var h="<h2>Attendance</h2>";
+  h+=(r.attendance&&r.attendance.length)?"<table><tr><th>Session</th><th>Result</th></tr>"+r.attendance.map(function(a){return"<tr><td>"+esc(a[0])+"</td><td>"+(a[1]?"Present":"Absent")+"</td></tr>"}).join("")+"</table>":"<p class='note'>No records yet.</p>";
+  h+="<h2 style='margin-top:.8rem'>Quizzes</h2>";
+  h+=(r.quizzes&&r.quizzes.length)?"<table><tr><th>Quiz</th><th>Score</th></tr>"+r.quizzes.map(function(q){return"<tr><td>"+esc(q[0])+"</td><td>"+esc(q[1])+"</td></tr>"}).join("")+"</table>":"<p class='note'>No records yet.</p>";
+  $("p-out").innerHTML=h;$("p-out").hidden=false;
+ });
+});
+load();
+})();
+</script>
+</div>
+</main>
+
+
+<footer data-render="footer"><div class="wrap"><div class="foot-grid"><div><p class="foot-name">Hope Donglo, PhD</p><p>Lecturer in Physics · University of Ghana</p></div><nav aria-label="Footer"><ul><li><a href="research.html">Research</a></li><li><a href="projects.html">Projects</a></li><li><a href="data-engineering.html">Scientific Computing</a></li><li><a href="teaching.html">Teaching</a></li><li><a href="publications.html">Publications</a></li><li><a href="students.html">Students</a></li><li><a href="about.html">About</a></li><li><a href="cv.html">CV</a></li><li><a href="contact.html">Contact</a></li></ul></nav><ul class="foot-ext"><li><a href="https://scholar.google.com/citations?user=QW32BboAAAAJ&amp;hl=en" rel="noopener">Google Scholar ↗</a></li><li><a href="https://orcid.org/0009-0003-6142-8780" rel="noopener">ORCID ↗</a></li><li><a href="https://github.com/hhdonglo" rel="noopener">GitHub ↗</a></li><li><a href="https://www.linkedin.com/in/hopedonglo" rel="noopener">LinkedIn ↗</a></li><li><a href="https://phyanalytics.com/" rel="noopener">PhyAnalytics ↗</a></li></ul></div><p class="foot-note">© 2026 Hope Donglo · Anonymous visit counts, no cookies</p></div></footer>
+<script src="assets/render.js"></script>
+<script src="assets/site.js"></script>
+<script src="assets/tracking.js"></script>
+</body>
+</html>
