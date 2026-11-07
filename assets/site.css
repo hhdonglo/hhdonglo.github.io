@@ -1027,3 +1027,9 @@ body.focus main{padding-top:1.2rem}
 .page-teaching .disclaimer{margin-top:2.5rem;font-size:.9rem;color:var(--muted)}
 @media (max-width:720px){.page-teaching [data-file="teaching"]{grid-template-columns:1fr}.page-teaching .primary-card .btn.primary{width:100%}.page-teaching .secondary-card .btn{width:100%}}
 @media (prefers-color-scheme:dark){.page-teaching .card{box-shadow:none}.page-teaching .primary-card{background:linear-gradient(135deg,#16294b 0%,#7A4A2A 160%)}}
+.page-teaching [data-file="teaching"]>section[aria-labelledby="login"]{grid-column:1/-1}
+.page-teaching [aria-labelledby="login"] .ov-card{padding:.7rem 1.4rem;border-radius:999px;border:1px solid var(--border);border-top-width:1px;box-shadow:0 1px 3px rgba(31,58,104,.06)}
+.page-teaching [aria-labelledby="login"] p{margin:0}
+.page-teaching [aria-labelledby="login"] a{font:600 1rem system-ui,sans-serif;text-decoration:none}
+.page-teaching [aria-labelledby="login"] a::after{content:" \2192"}
+@media (max-width:720px){.page-teaching [data-file="teaching"]>section[aria-labelledby="research-informed"]{order:0}}
