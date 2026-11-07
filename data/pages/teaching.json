@@ -3,7 +3,7 @@
   "sections": [
     {
       "id": "lecture-courses",
-      "heading": "Current courses and teaching resources",
+      "heading": "Lecture course",
       "cards": [
         {
           "id": "phys143-card",
@@ -18,30 +18,7 @@
           "button_url": "phys143.html",
           "button_sr": "PHYS 143",
           "button_style": "primary"
-        },
-        {
-          "id": "portal-card",
-          "style": "secondary",
-          "kicker": "Live-session tools",
-          "title": "Student page",
-          "paragraphs": [
-            "Check-in, the live practice quiz and this week's handout."
-          ],
-          "button_label": "Open the Student Page →",
-          "button_url": "phys143-portal.html"
         }
-      ]
-    },
-    {
-      "id": "research-informed",
-      "heading": "Research-Informed Learning",
-      "subtitle": "**Research connections:** how foundational physics connects to modern research and computational modelling.",
-      "bullet_style": "arrows",
-      "bullets": [
-        "**Vectors** → Nuclear reaction kinematics",
-        "**Statistics** → Uncertainty quantification",
-        "**Differential equations** → Reaction dynamics",
-        "**Programming** → Numerical simulation"
       ]
     },
     {
@@ -58,6 +35,35 @@
           ],
           "button_label": "Open Laboratory Resources →",
           "button_url": "laboratory.html"
+        }
+      ]
+    },
+    {
+      "id": "research-informed",
+      "heading": "Research-Informed Learning",
+      "subtitle": "**Research connections:** how foundational physics connects to modern research and computational modelling.",
+      "bullet_style": "arrows",
+      "bullets": [
+        "**Vectors** → Nuclear reaction kinematics",
+        "**Statistics** → Uncertainty quantification",
+        "**Differential equations** → Reaction dynamics",
+        "**Programming** → Numerical simulation"
+      ]
+    },
+    {
+      "id": "live-session-tools",
+      "heading": "Live-session tools",
+      "cards": [
+        {
+          "id": "portal-card",
+          "style": "secondary",
+          "kicker": "PHYS 143",
+          "title": "Student page",
+          "paragraphs": [
+            "Check-in, the live practice quiz and this week's handout."
+          ],
+          "button_label": "Open the Student Page →",
+          "button_url": "phys143-portal.html"
         }
       ]
     },

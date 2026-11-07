@@ -1044,3 +1044,9 @@ body.focus main{padding-top:1.2rem}
 .page-teaching [aria-labelledby="login"] a{font-size:.9rem;min-height:0;line-height:1.6}
 .page-teaching .disclaimer{margin-top:1.2rem;font-size:.78rem;line-height:1.4}
 .page-teaching .disclaimer .sakai{padding:.35rem 1rem}
+/* Teaching page order: lecture course, then laboratory and research side by side, then live-session tools, then login */
+.page-teaching .secondary-card{margin-top:0;max-width:none}
+.page-teaching [data-file="teaching"]{gap:1.1rem 1.25rem}
+.page-teaching [data-file="teaching"]>section[aria-labelledby="live-session-tools"]{grid-column:1/-1}
+.page-teaching [data-file="teaching"]>section[aria-labelledby="live-session-tools"] .secondary-card{max-width:30rem}
+.page-teaching .disclaimer{margin-top:1.5rem}
