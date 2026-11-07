@@ -42,10 +42,10 @@ function append_(tab, header, row) {
 function mailReport_(sh, r) {
   var row = sh.getLastRow(), status;
   try {
-    var link = SpreadsheetApp.getActiveSpreadsheet().getUrl() + '#gid=' + sh.getSheetId() + '&range=A' + row;
+    var where = 'tab "' + sh.getName() + '", row ' + row; // no sheet link in the email, so a forwarded or quoted copy never carries it
     MailApp.sendEmail(NOTIFY_EMAIL, 'PHYS 143 report: ' + r.lecture + ', ' + r.qid,
       'A student reported a problem.\n\nTime: ' + r.time + '\nPage: ' + r.page + '\nLecture: ' + r.lecture + '\nQuestion id: ' + r.qid +
-      '\nQuestion: ' + r.question + '\nAnswer shown: ' + r.answer + '\n\nComment:\n' + r.comment + '\n\nOpen the row: ' + link);
+      '\nQuestion: ' + r.question + '\nAnswer shown: ' + r.answer + '\n\nComment:\n' + r.comment + '\n\nWhere to find it: ' + where + ' (open your Sheet from Google Drive).');
     status = 'email sent';
   } catch (err) {
     status = 'email failed: ' + String(err).slice(0, 200); // the row is already saved; show why the email failed
@@ -1243,13 +1243,31 @@ function counts_(code) {
 // ---------- Portal and Control Centre support (additive: no existing action changes) ----------
 // SCRIPT_VERSION: change it whenever the script is redeployed; the Control Centre compares it with the version its page expects.
 // Key!M2 = Off hides "My results" from students (default On).
-var SCRIPT_VERSION = '2026-11-07-portal-1';
+var SCRIPT_VERSION = '2026-11-07-portal-2';
 
 function resultsOn_() {
   try {
     var ks = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(KEY_TAB);
     return !ks || String(ks.getRange(2, 13).getValue()).trim().toLowerCase() !== 'off';
   } catch (err) { return true; }
+}
+
+// Key!N2 holds the week the lecturer chose in the Control Centre (1 to 12). Empty means: use data/portal.json.
+function weekChoice_() {
+  try {
+    var v = Number(SpreadsheetApp.getActiveSpreadsheet().getSheetByName(KEY_TAB).getRange(2, 14).getValue());
+    return v >= 1 && v <= 12 ? v : 0;
+  } catch (err) { return 0; }
+}
+
+function setWeek_(p) { // host only; w=0 clears the choice
+  var w = Number(String(p.w || '').replace(/\D/g, '').slice(0, 2));
+  if (isNaN(w) || w < 0 || w > 12) return { ok: false, why: 'week must be 0 to 12' };
+  var ks = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(KEY_TAB);
+  if (!ks) return { ok: false, why: 'no Key tab' };
+  ks.getRange(2, 14).setValue(w || '');
+  try { CacheService.getScriptCache().remove('portal'); } catch (err) { /* cache only */ }
+  return { ok: true, week: w };
 }
 
 function portalStatus_() { // public, no secrets: is attendance open, is a live quiz open, is "My results" on. Cached 5 s.
@@ -1266,7 +1284,7 @@ function portalStatus_() { // public, no secrets: is attendance open, is a live 
       });
     }
   } catch (err) { /* leave none */ }
-  var o = { portal: 1, attendance: att, quiz: quiz, results: resultsOn_(), version: SCRIPT_VERSION };
+  var o = { portal: 1, attendance: att, quiz: quiz, results: resultsOn_(), version: SCRIPT_VERSION, week: weekChoice_() };
   if (cache) { try { cache.put('portal', JSON.stringify(o), 5); } catch (err) { /* cache only */ } }
   return o;
 }
@@ -1341,6 +1359,7 @@ function doGet(e) {
   }
 
   if (p.action === 'version') return jsonp_(e, { ok: true, version: SCRIPT_VERSION }); // the Control Centre: does the page match this script?
+  if (p.action === 'set_week') return jsonp_(e, hostOk_(p) ? setWeek_(p) : { ok: false, why: 'host key not accepted' }); // the Control Centre week selector
   if (p.action === 'portal_status') return jsonp_(e, portalStatus_()); // the student portal banner
   if (p.action === 'my_results') return jsonp_(e, portalResults_(p)); // a student's own attendance and quiz scores
   if (p.action === 'preclass') return jsonp_(e, hostOk_(p) ? preclass_(p) : { ok: false, why: 'host key not accepted' });

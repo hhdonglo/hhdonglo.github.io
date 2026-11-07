@@ -3,10 +3,17 @@
   "sections": [
     {
       "id": "lecture-courses",
-      "heading": "Current courses and teaching resources",
+      "heading": "Lecture course",
       "cards": [],
       "from": "courses",
       "type": "lecture"
+    },
+    {
+      "id": "laboratory-courses",
+      "heading": "Laboratory Courses",
+      "cards": [],
+      "from": "courses",
+      "type": "lab"
     },
     {
       "id": "research-informed",
@@ -21,11 +28,21 @@
       ]
     },
     {
-      "id": "laboratory-courses",
-      "heading": "Laboratory Courses",
-      "cards": [],
-      "from": "courses",
-      "type": "lab"
+      "id": "live-session-tools",
+      "heading": "Live-session tools",
+      "cards": [
+        {
+          "id": "portal-card",
+          "style": "secondary",
+          "kicker": "PHYS 143",
+          "title": "Portal",
+          "paragraphs": [
+            "Check-in, the live practice quiz and this week's handout."
+          ],
+          "button_label": "Open the Portal →",
+          "button_url": "phys143-portal.html"
+        }
+      ]
     },
     {
       "id": "login",
