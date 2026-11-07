@@ -1083,3 +1083,26 @@ body.focus main{padding-top:1.2rem}
 .page-teaching [data-file="teaching"]>section:not([aria-labelledby]) .secondary-card{max-width:34rem;flex:0 0 auto}
 .page-teaching [data-file="teaching"]>section:not([aria-labelledby]) .secondary-card .body{padding:.9rem 1.1rem}
 .page-teaching [data-file="teaching"]>section:not([aria-labelledby]) .ov-card{border-top-width:1px}
+/* Teaching page: portfolio layout (research-informed first, three philosophy cards, four compact course cards) */
+.page-teaching [data-file="teaching"]>section{margin:0 0 2.2rem}
+.page-teaching [data-file="teaching"]>section[aria-labelledby="teaching-philosophy"] .ov-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem}
+.page-teaching [aria-labelledby="teaching-philosophy"] .ov-card h4{margin:0 0 .35rem;font-size:1.05rem}
+.page-teaching [aria-labelledby="teaching-philosophy"] .ov-card p{margin:0;font:.95rem/1.5 system-ui,sans-serif}
+.page-teaching [aria-labelledby="lecture-courses"] .grid{gap:1rem;align-items:stretch}
+.page-teaching [aria-labelledby="lecture-courses"] .card .body{padding:1rem 1.2rem 1.1rem;display:flex;flex-direction:column;height:100%}
+.page-teaching [aria-labelledby="lecture-courses"] .card h4{font-size:1.4rem;margin:.1rem 0 0}
+.page-teaching [aria-labelledby="lecture-courses"] .card .pc-sub{font-size:1rem;margin:.1rem 0 .4rem}
+.page-teaching [aria-labelledby="lecture-courses"] .card .learn{font-size:.95rem;margin:0 0 .8rem}
+.page-teaching [aria-labelledby="lecture-courses"] .card .btns{margin-top:auto}
+@media (max-width:720px){.page-teaching [data-file="teaching"]>section[aria-labelledby="teaching-philosophy"] .ov-grid{grid-template-columns:1fr}.page-teaching [data-file="teaching"]>section>ul:not(.arrows){grid-template-columns:1fr}}
+/* Teaching page: restrained, uniform styling */
+.page-teaching [aria-labelledby="lecture-courses"] .primary-card{background:var(--surface);color:inherit;border:1px solid var(--border);box-shadow:none}
+.page-teaching [aria-labelledby="lecture-courses"] .primary-card::after{display:none}
+.page-teaching [aria-labelledby="lecture-courses"] .primary-card h4{color:inherit;font-size:1.4rem}
+.page-teaching [aria-labelledby="lecture-courses"] .primary-card .num{color:var(--muted)}
+.page-teaching [aria-labelledby="lecture-courses"] .primary-card .pc-sub{color:var(--muted);font-size:1rem}
+.page-teaching [aria-labelledby="lecture-courses"] .primary-card .learn{color:inherit;font-size:.95rem}
+.page-teaching [aria-labelledby="lecture-courses"] .card{box-shadow:none;border-radius:8px}
+.page-teaching [aria-labelledby="lecture-courses"] .card .btn,.page-teaching [aria-labelledby="lecture-courses"] .primary-card .btn.primary{border-radius:6px;font-size:.88rem;padding:.35rem .9rem;background:transparent;color:var(--link,#1F3A68);border:1px solid var(--border);width:fit-content}
+.page-teaching .ov-card,.page-teaching [data-file="teaching"]>section>ul:not(.arrows)>li{border-radius:8px;box-shadow:none}
+.page-teaching [aria-labelledby="student-resources"] ul{grid-template-columns:repeat(auto-fill,minmax(180px,max-content))}
