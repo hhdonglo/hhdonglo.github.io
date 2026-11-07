@@ -9,23 +9,23 @@
         {
           "style": "plain",
           "table": {
-            "caption": "Teaching themes and illustrative topics",
+            "caption": "Teaching themes and research applications",
             "headers": [
               "Theme",
-              "Illustrative Topics"
+              "Research Applications"
             ],
             "rows": [
               [
-                "Physical Understanding",
-                "Mechanics, thermodynamics, nuclear physics"
+                "Modelling Physical Systems",
+                "Kinematics, reaction dynamics, theoretical physics"
               ],
               [
-                "Quantitative Analysis",
-                "Statistics, uncertainty, mathematical modelling"
+                "Analysing Evidence",
+                "Statistics, uncertainty quantification, data analysis"
               ],
               [
-                "Scientific Computing",
-                "Programming, numerical methods, simulation"
+                "Generating Knowledge",
+                "Scientific computing, simulation, predictive modelling"
               ]
             ]
           }
