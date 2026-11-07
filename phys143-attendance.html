@@ -161,11 +161,11 @@ $("a-start").addEventListener("click",function(){
  },function(){noLoc("Location was not allowed or could not be found.")},{enableHighAccuracy:true,timeout:15000,maximumAge:0});
 });
 $("a-close").addEventListener("click",function(){
- if(!window.confirm("Close attendance? Everyone on the roster who has not checked in is recorded as 0."))return;
+ if(!window.confirm("Close attendance? Check-ins stay held and are not recorded in the Attendance sheet until you press Submit attendance in the Control Centre."))return;
  $("a-msg").textContent="Closing...";
  call("attend_close","",function(d){
   if(!d||!d.ok){$("a-msg").textContent="Not closed: "+((d&&d.why)||"could not reach the class sheet")+".";return}
-  var x=d.session;$("a-last").textContent="Closed. "+x.present+" present, "+x.absent+" absent"+(x.notOnList?", "+x.notOnList+" not on the roster (see the Not_On_List tab)":"")+"."+(x.flagged?" "+x.flagged+" device(s) checked in more than one ID: see the Attendance_Flags tab.":"");
+  var x=d.session;$("a-last").textContent="Closed and held, not yet recorded. Submit it from the Control Centre. "+x.present+" present, "+x.absent+" absent"+(x.notOnList?", "+x.notOnList+" not on the roster (see the Not_On_List tab)":"")+"."+(x.flagged?" "+x.flagged+" device(s) checked in more than one ID: see the Attendance_Flags tab.":"");
   if(timer){clearInterval(timer);timer=null}show("a-idle");
  });
 });

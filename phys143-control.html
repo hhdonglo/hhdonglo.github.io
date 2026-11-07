@@ -84,6 +84,15 @@ body.focus main{padding-top:0}
    <a class="go alt" href="phys143-quiz-display.html" target="_blank" rel="noopener">Open projector display</a>
    <div id="e-quiz"></div>
   </section>
+  <section class="panel wide"><h3>Held results</h3>
+   <p class="note">Nothing a student sends is written to Form Responses 1, Master, Scores, Totals or Attendance until you release it here. Held results stay private on the sheet. Master keeps every released score for the semester; releasing the same week again updates that student's cell and never touches earlier weeks.</p>
+   <ul id="h-list"><li class="note">Checking.</li></ul>
+   <button class="go" type="button" id="h-rq">Release held quiz results</button>
+   <button class="go alt" type="button" id="h-dq">Discard held quiz results</button>
+   <button class="go" type="button" id="h-sa">Submit attendance</button>
+   <button class="go alt" type="button" id="h-da">Discard unsubmitted attendance</button>
+   <p class="note" id="h-msg" role="status"></p>
+  </section>
   <section class="panel"><h3>After class</h3>
    <ul id="x-list"><li class="note">Attendance summary appears here.</li></ul>
    <p class="note">Then: check the Attendance and Not_On_List tabs and the Flags, export Attendance for Sakai, and delete any test rows.</p>
@@ -95,7 +104,7 @@ body.focus main{padding-top:0}
 (function(){
 "use strict";
 var SCRIPT_URL="https://script.google.com/macros/s/AKfycbzso5-FCU4erf_grbktH-AH-RKaPDap7TfJAw_TOSxNarTrJDe-PgyBzgIH7Fj2fjZ3/exec";
-var EXPECT_VERSION="2026-11-07-portal-2"; // must equal SCRIPT_VERSION in apps_script/quiz_receiver.gs
+var EXPECT_VERSION="2026-11-07-held-1"; // must equal SCRIPT_VERSION in apps_script/quiz_receiver.gs
 var $=function(i){return document.getElementById(i)};
 var KEY="";try{KEY=sessionStorage.getItem("phys143_hk")||""}catch(x){}
 if(!KEY){location.replace("phys143-lecturer.html");return}
@@ -183,6 +192,28 @@ $("k-run").addEventListener("click",function(){
   },12000);
  },8000);
 });
+// ---- held results: released only when the lecturer says so ----
+function heldLoad(){
+ jsonp("action=held_status&"+hk(),function(d){
+  if(!d||d.ok!==true){$("h-list").innerHTML='<li class="note">'+esc(d&&d.why?d.why:"No answer. If the script is old, paste the new one and deploy a new version.")+'</li>';return}
+  var L=["<li><span>Quiz results held: "+d.quiz+"</span></li>"];
+  if(d.sessions.length)d.sessions.forEach(function(x){L.push("<li><span>Attendance held, session "+esc(x.label)+": "+x.present+" checked in</span></li>")});
+  else L.push("<li><span>Attendance held: none</span></li>");
+  $("h-list").innerHTML=L.join("");
+ });
+}
+function heldDo(act,ask,okMsg){
+ if(!window.confirm(ask))return;
+ $("h-msg").textContent="Working.";
+ jsonp("action="+act+"&"+hk(),function(d){
+  $("h-msg").textContent=(!d||d.ok!==true)?"Not done: "+(d&&d.why?d.why:"no answer"):okMsg(d);heldLoad();
+ },30000);
+}
+$("h-rq").addEventListener("click",function(){heldDo("held_release_quiz","Release all held quiz results into the sheets now? Master, Scores and Totals are updated.",function(d){return "Released "+d.released+" quiz result(s)."})});
+$("h-dq").addEventListener("click",function(){heldDo("held_discard_quiz","Discard all held quiz results? This cannot be undone.",function(d){return "Discarded "+d.discarded+" held result(s)."})});
+$("h-sa").addEventListener("click",function(){heldDo("attend_submit","Submit attendance? Every rostered student not checked in is recorded as 0.",function(d){return "Attendance submitted: "+(d.submitted||[]).join(", ")+"."})});
+$("h-da").addEventListener("click",function(){heldDo("attend_discard","Discard the closed attendance session and its check-ins? This cannot be undone.",function(d){return "Discarded "+d.discarded+" session(s), "+d.checkins+" check-in(s)."})});
+heldLoad();setInterval(heldLoad,15000);
 // ---- embedded host pages (same site, same host key in this tab) ----
 document.querySelectorAll("[data-embed]").forEach(function(b){b.addEventListener("click",function(){
  var box=$(b.getAttribute("data-embed"));
