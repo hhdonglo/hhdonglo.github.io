@@ -25,7 +25,7 @@
           "kicker": "Live-session tools",
           "title": "Student page",
           "paragraphs": [
-            "Check in during a live session, join the practice quiz, open this week's handout and see your own quiz scores. Works on a phone and can be added to the home screen."
+            "Check-in, the live practice quiz and this week's handout."
           ],
           "button_label": "Open the Student Page →",
           "button_url": "phys143-portal.html"

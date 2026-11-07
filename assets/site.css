@@ -1033,3 +1033,14 @@ body.focus main{padding-top:1.2rem}
 .page-teaching [aria-labelledby="login"] a{font:600 1rem system-ui,sans-serif;text-decoration:none}
 .page-teaching [aria-labelledby="login"] a::after{content:" \2192"}
 @media (max-width:720px){.page-teaching [data-file="teaching"]>section[aria-labelledby="research-informed"]{order:0}}
+/* Teaching page: compact secondary card, slim login row, small disclaimer */
+.page-teaching .secondary-card{flex:0 0 auto;align-self:start}
+.page-teaching .secondary-card .body{padding:.8rem 1rem}
+.page-teaching .secondary-card h4{font-size:1.05rem;margin:0 0 .25rem}
+.page-teaching .secondary-card .learn{font-size:.9rem;line-height:1.45;margin:0 0 .5rem}
+.page-teaching .secondary-card .btns{margin-top:.3rem}
+.page-teaching .secondary-card .btn{font-size:.85rem;padding:.25rem .9rem}
+.page-teaching [aria-labelledby="login"] .ov-card{padding:.3rem .9rem}
+.page-teaching [aria-labelledby="login"] a{font-size:.9rem;min-height:0;line-height:1.6}
+.page-teaching .disclaimer{margin-top:1.2rem;font-size:.78rem;line-height:1.4}
+.page-teaching .disclaimer .sakai{padding:.35rem 1rem}
