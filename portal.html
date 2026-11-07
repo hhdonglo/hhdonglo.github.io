@@ -89,7 +89,7 @@ function show(){
   h+='<a class="go" href="'+esc(s.portal)+'">'+esc(s.open)+'</a><h3>My feedback</h3>'+
    '<form id="c-form" autocomplete="off" novalidate><label for="c-id">Student ID</label><input type="text" id="c-id" maxlength="12" inputmode="numeric" autocomplete="off">'+
    '<p class="err" id="c-err" role="alert" hidden></p><button class="go alt" type="submit" id="c-show">Show my feedback</button></form><div id="c-out" hidden></div>'+
-   '<p class="note">You see only your own check-ins and quiz scores. Other students\' results are never shown.</p>';
+   '<p class="note">You see only your own check-ins and quiz scores.</p>';
  }else{
   h+='<p class="soon">Check-in and feedback are not open yet for '+esc(c.code)+'.</p><p class="note">Your lecturer will tell you when they open.</p>'+
    '<a class="go alt" href="'+esc(c.page)+'">Laboratory resources</a>';

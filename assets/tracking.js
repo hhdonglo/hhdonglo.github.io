@@ -35,7 +35,7 @@
       '<input id="track-id" type="text" inputmode="text" maxlength="30" autocomplete="off" spellcheck="false" aria-describedby="track-note"> ' +
       '<button type="button" class="btn" id="track-save">Save ID</button> <button type="button" class="btn" id="track-clear">Clear my ID</button>' +
       '<p id="track-note" class="track-note">Optional. If you enter an ID, your score for each completed attempt is sent to the lecturer so progress can be followed. Leave it blank to use the quiz without sending anything. ' +
-      'Your ID is kept only in this browser. Please do not enter your name.</p><p class="track-state" role="status" id="track-state"></p>';
+      'Your ID is kept only in this browser.</p><p class="track-state" role="status" id="track-state"></p>';
     app.parentNode.insertBefore(box, app.nextSibling);
     var input = box.querySelector('#track-id'), state = box.querySelector('#track-state');
     input.value = getId();

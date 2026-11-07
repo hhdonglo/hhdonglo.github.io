@@ -65,12 +65,12 @@ body.focus main{padding-top:1.2rem}
    <form id="p-form" autocomplete="off" novalidate>
     <label for="p-id">Student ID</label><input type="text" id="p-id" maxlength="12" inputmode="numeric" autocomplete="off">
     <label class="cb" id="p-remlab" hidden><input type="checkbox" id="p-rem"> Remember my ID on this phone</label>
-    <p class="note" id="p-remnote" hidden>Stored only in this browser, never sent to the server for this purpose. Do not use this on a phone you share. <a href="#" id="p-forget">Forget this phone</a></p>
+    <p class="note" id="p-remnote" hidden>Stored only in this browser. <a href="#" id="p-forget">Forget this phone</a></p>
     <p class="err" id="p-err" role="alert" hidden></p>
     <button class="go alt" type="submit" id="p-show">Show my scores</button>
    </form>
    <div id="p-out" hidden></div>
-   <p class="note">You see only your own check-ins and quiz scores. Other students' results are never shown.</p>
+   <p class="note">You see only your own check-ins and quiz scores.</p>
   </details>
  </div>
  <div class="card" id="p-install" hidden>
@@ -79,7 +79,7 @@ body.focus main{padding-top:1.2rem}
   <button class="go alt" type="button" id="p-inst-btn">Install the Portal</button>
  </div>
  <div class="card"><details><summary>All lectures</summary><ul id="p-all"></ul></details></div>
- <p class="note">Student IDs are never shown publicly. Corrections: contact your lecturer.</p>
+ <p class="note">Corrections: contact your lecturer.</p>
 </div>
 <script src="assets/messages.js"></script>
 <script>
