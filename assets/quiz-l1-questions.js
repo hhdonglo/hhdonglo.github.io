@@ -1,4 +1,4 @@
-/* PHYS 143 Lecture 01 try-questions: the five questions, shared by the student page, the dashboard and the projector display. No answers here. */
+/* PHYS 143 Lecture 01 try-questions: the five questions, shared by the portal, the dashboard and the projector display. No answers here. */
 window.QUIZ_L1=([
 {stem:"A displacement <b>D</b> has magnitude 10 m and points south-west. Take +x as east and +y as north, with angles measured anticlockwise from +x. Which pair gives its components?",
  opts:["D<sub>x</sub> = 10 cos 45° m and D<sub>y</sub> = 10 sin 45° m","D<sub>x</sub> = −10 cos 45° m and D<sub>y</sub> = 10 sin 45° m","D<sub>x</sub> = 10 cos 225° m and D<sub>y</sub> = 10 sin 225° m","D<sub>x</sub> = 10 cos 45° m and D<sub>y</sub> = −10 sin 45° m","D<sub>x</sub> = −10 m and D<sub>y</sub> = −10 m"]},

@@ -58,11 +58,11 @@
           "id": "portal-card",
           "style": "secondary",
           "kicker": "PHYS 143",
-          "title": "Student page",
+          "title": "Portal",
           "paragraphs": [
             "Check-in, the live practice quiz and this week's handout."
           ],
-          "button_label": "Open the Student Page →",
+          "button_label": "Open the Portal →",
           "button_url": "phys143-portal.html"
         }
       ]
