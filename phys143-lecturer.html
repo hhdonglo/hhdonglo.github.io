@@ -51,7 +51,7 @@ body.focus main{padding-top:1rem}
  </section>
  <section class="panel" id="m-choice" hidden>
   <h3 style="margin:.1rem 0 .8rem">What would you like to do?</h3>
-  <div class="choices"><a class="go" href="phys143-quiz-host.html">Run quiz</a><a class="go" href="phys143-attendance.html">Take attendance</a></div>
+  <div class="choices"><a class="go" href="phys143-quiz-host.html">Run quiz</a><a class="go" href="phys143-attendance.html">Take attendance</a><a class="go alt" href="phys143-control.html">Control Centre</a></div>
   <p><button class="go alt" type="button" id="m-out">Log out</button></p>
  </section>
 </div>
@@ -70,7 +70,7 @@ var KEY="";try{KEY=sessionStorage.getItem("phys143_hk")||""}catch(x){}
 function saveKey(k){KEY=k;try{sessionStorage.setItem("phys143_hk",k)}catch(x){}}
 function signOut(){KEY="";try{sessionStorage.removeItem("phys143_hk")}catch(x){}location.href="phys143-lecturer.html"}
 
-function ok(){$("m-login").hidden=true;$("m-choice").hidden=false}
+function ok(){$("m-login").hidden=true;$("m-choice").hidden=false;if(location.search.indexOf("menu")<0&&window===window.top)location.replace("phys143-control.html")} // the Control Centre is the lecturer entry; ?menu keeps the old button page
 function check(k,first){
  jsonp("action=hostcheck&hostkey="+encodeURIComponent(k),function(d){
   if(d&&d.ok){saveKey(k);ok();return}

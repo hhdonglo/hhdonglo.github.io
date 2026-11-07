@@ -12,6 +12,9 @@
 <link rel="icon" type="image/png" sizes="16x16" href="assets/logo/favicon-16.png">
 <link rel="apple-touch-icon" href="assets/logo/apple-touch-icon.png">
 <link rel="stylesheet" href="assets/site.css">
+<link rel="stylesheet" href="assets/student.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#16294b">
 <script>if(!location.hash){if("scrollRestoration" in history)history.scrollRestoration="manual";window.addEventListener("pageshow",function(){if(!location.hash)window.scrollTo({top:0,left:0,behavior:"instant"})});}</script>
 </head>
 <body class="focus">
@@ -51,24 +54,32 @@ body.focus main{padding-top:1.2rem}
   <h1>Attendance check-in</h1>
   <form id="c-form" autocomplete="off" novalidate>
    <label for="c-id">Student ID</label><input type="text" id="c-id" maxlength="12" inputmode="numeric" autocomplete="off" placeholder="Your ID number">
-   <label for="c-code">Attendance code</label><input type="text" id="c-code" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Code on the screen">
    <p class="err" id="c-err" role="alert" hidden></p>
-   <button type="submit" class="go" id="c-btn">Present</button>
+   <button type="submit" class="go" id="c-btn">Check in</button>
+   <details class="note" id="c-priv"><summary>How your data is used</summary>
+    <p><b>Purpose:</b> to note that you came to this class.</p>
+    <p><b>What is kept:</b> your student ID, the date and time, whether you were within range of the classroom (a distance in metres, never where you are), and a scrambled code for your phone, used only to stop one phone checking in several students. A random code is stored in your phone's browser for this. Your location is used once and is not stored.</p>
+    <p><b>Who sees it:</b> the lecturer only. Student IDs are never shown publicly.</p>
+    <p><b>How long:</b> the phone codes and any flags are deleted at the end of the semester. The check-in is kept in my class sheet.</p>
+    <p><b>Questions or corrections:</b> hdonglo@ug.edu.gh. This follows the Data Protection Act, 2012 (Act 843).</p>
+   </details>
+   <p class="note">Your phone may ask for your location. It is used once to confirm you are in the room; only the distance is kept, not where you are.</p>
   </form>
  </section>
  <section class="panel done" id="c-missing" aria-live="polite" hidden>
   <p class="tick warn" aria-hidden="true">!</p>
-  <h3 id="c-mh">Marked present</h3>
+  <h3 id="c-mh">Check-in received</h3>
   <p>Student ID <b id="c-mid"></b> is not on the class list. <b>Please see your lecturer.</b></p>
   <p class="note">If you mistyped your ID, tap below and enter it again.</p>
   <button type="button" class="go alt" id="c-again2">Enter the ID again</button>
  </section>
  <section class="panel done" id="c-done" aria-live="polite" hidden>
   <p class="tick" aria-hidden="true">&#10003;</p>
-  <h3 id="c-dh">Marked present</h3>
+  <h3 id="c-dh">Check-in received</h3>
   <p>Student ID <b id="c-sid"></b></p>
  </section>
 </div>
+<script src="assets/messages.js"></script>
 <script>
 (function(){
 "use strict";
@@ -80,6 +91,12 @@ function devToken(){var t="";try{t=localStorage.getItem("phys143_dev")||""}catch
  return t}
 var DEV=devToken();
 var TOK=(/[?&]t=([0-9a-f]{1,8})/.exec(location.search)||[0,""])[1];
+var POS=null; // this phone's location, used once for the check-in: the server keeps only the distance, never the coordinates
+function getPos(cb){
+ if(!navigator.geolocation){cb(null);return}
+ navigator.geolocation.getCurrentPosition(function(p){POS={lat:p.coords.latitude,lon:p.coords.longitude,acc:p.coords.accuracy};cb(POS)},function(){cb(null)},{enableHighAccuracy:true,timeout:10000,maximumAge:60000});
+}
+getPos(function(){}); // ask early so the phone has a fix by the time the form is filled in
 function jsonp(params,cb){
  var n="cb"+Date.now()+Math.floor(Math.random()*1e6),sc=document.createElement("script"),done=false;
  function end(d){if(done)return;done=true;delete window[n];if(sc.parentNode)sc.parentNode.removeChild(sc);cb(d)}
@@ -87,19 +104,23 @@ function jsonp(params,cb){
  sc.src=SCRIPT_URL+"?"+params+"&callback="+n+"&_="+Date.now();document.head.appendChild(sc);
 }
 function err(m){$("c-err").textContent=m;$("c-err").hidden=false}
-$("c-code").addEventListener("input",function(){var v=$("c-code").value.toUpperCase().replace(/[^A-Z0-9]/g,"");if(v!==$("c-code").value)$("c-code").value=v});
 $("c-id").addEventListener("input",function(){var v=$("c-id").value.replace(/\D/g,"");if(v!==$("c-id").value)$("c-id").value=v});
 $("c-form").addEventListener("submit",function(e){
  e.preventDefault();$("c-err").hidden=true;
- var id=$("c-id").value.trim(),code=$("c-code").value.trim().toUpperCase();
- if(!id||!code){err("Please enter your student ID and the attendance code.");return}
+ var id=$("c-id").value.trim();
+ if(!id){err(PHYSMSG.text("E1"));return}
+ if(!TOK){err(PHYSMSG.text("E4"));return}
  $("c-btn").disabled=true;
- jsonp("action=attend&code="+encodeURIComponent(code)+"&id="+encodeURIComponent(id)+"&dev="+DEV+"&t="+TOK,function(r){
+ var send=function(pos){
+ var loc=pos?"&lat="+pos.lat.toFixed(4)+"&lon="+pos.lon.toFixed(4)+"&acc="+Math.round(pos.acc):""; // about 11 m: no more precision than the check needs
+ jsonp("action=attend&id="+encodeURIComponent(id)+"&dev="+DEV+"&t="+TOK+loc,function(r){
   $("c-btn").disabled=false;
-  if(!r){err("Could not reach the server. Check your connection and try again.");return}
-  if(r.ok){$("c-form-wrap").hidden=true;window.scrollTo(0,0);var h=r.already?"Already marked present today":"Marked present";if(r.onList===false){$("c-mid").textContent=r.id;$("c-mh").textContent=h;$("c-missing").hidden=false}else{$("c-sid").textContent=r.id;$("c-dh").textContent=h;$("c-done").hidden=false}return}
-  err(r.why==="closed"?"Attendance is closed.":(r.why==="slow down"?"Too many wrong codes. Wait a few minutes, then try again.":(r.why==="device used"?"This phone has already checked in another student. Please see your lecturer.":(r.why==="old link"?"This link has expired. Scan the QR code on the screen again.":(r.why==="update page"?"Please reload this page and try again.":(r.why==="bad id"?"That does not look like a student ID. Check it and try again.":"That code is not correct or has expired. The code changes every 30 seconds: type the one now on the screen.")))));
+  if(!r){err(PHYSMSG.text("E8"));return}
+  if(r.ok){$("c-form-wrap").hidden=true;window.scrollTo(0,0);var h=r.already?"Already marked present today":"Check-in received";if(r.onList===false){$("c-mid").textContent=r.id;$("c-mh").textContent=h;$("c-missing").hidden=false}else{$("c-sid").textContent=r.id;$("c-dh").textContent=h;$("c-done").hidden=false}return}
+  err(PHYSMSG.fromWhy(r.why));
  });
+ };
+ if(POS)send(POS);else getPos(send);
 });
 function again(){$("c-done").hidden=true;$("c-missing").hidden=true;$("c-form-wrap").hidden=false;$("c-id").value="";$("c-id").focus()}
 $("c-again2").addEventListener("click",again);
@@ -113,5 +134,6 @@ $("c-again2").addEventListener("click",again);
 <script src="assets/render.js"></script>
 <script src="assets/site.js"></script>
 <script src="assets/tracking.js"></script>
+<script src="assets/student.js" defer></script>
 </body>
 </html>

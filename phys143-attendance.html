@@ -63,14 +63,14 @@ body.focus main{padding-top:1rem}
  </section>
  <section class="panel" id="a-idle" hidden>
   <h3 style="margin:.1rem 0 .6rem">Attendance</h3>
+  <p class="note"><label for="a-rad">Distance from this device that still counts as in class</label>
+   <select id="a-rad"><option value="250">250 m</option><option value="500" selected>500 m (default)</option><option value="1000">1 km</option><option value="2000">2 km</option></select></p>
   <p><button class="go big" type="button" id="a-start">Start attendance</button></p>
   <p class="note" id="a-last"></p>
  </section>
  <section class="panel" id="a-live" hidden>
-  <p class="lbl">Scan, then enter your student ID and the code below. The code changes every 30 seconds.</p>
+  <p class="lbl">Scan this screen with your phone and enter your student ID. Your phone must be in the classroom.</p>
   <p><span id="a-qr" class="qr" role="img" aria-label="QR code to open the check-in page; it changes every 30 seconds" style="display:inline-block"></span></p>
-  <p class="addr">Scan this screen. The QR code changes with the code.</p>
-  <p class="lbl">Attendance code</p><p class="code" id="a-showcode"></p>
   <p class="note" id="a-tick" role="status"></p>
   <p class="count" id="a-count" role="status"></p>
   <p><button class="go big" type="button" id="a-close">Close attendance and record absences</button></p>
@@ -94,14 +94,13 @@ var KEY="";try{KEY=sessionStorage.getItem("phys143_hk")||""}catch(x){}
 function saveKey(k){KEY=k;try{sessionStorage.setItem("phys143_hk",k)}catch(x){}}
 function signOut(){KEY="";try{sessionStorage.removeItem("phys143_hk")}catch(x){}location.href="phys143-lecturer.html"}
 
+try{var sr=localStorage.getItem("phys143_rad");if(sr)setTimeout(function(){var e=$("a-rad");if(e&&e.querySelector('option[value="'+sr+'"]'))e.value=sr},0)}catch(x){}
 var timer=null,tk=null,left=0,stamp=0,show=function(id){["a-login","a-idle","a-live"].forEach(function(x){$(x).hidden=(x!==id)})};
 function call(act,extra,cb){jsonp("action="+act+"&hostkey="+encodeURIComponent(KEY)+(extra||""),cb)}
 function draw(d){
  var ss=d&&d.session,open=ss&&ss.status==="Open";
  if(open){
-  $("a-showcode").textContent=ss.code;
-  drawQr(ss.link);
-  left=ss.rotates?ss.secondsLeft:0;stamp=Date.now();tickDraw();if(!tk)tk=setInterval(tickDraw,1000);
+  drawQr(ss.link);left=ss.secondsLeft||0;stamp=Date.now();tickDraw();if(!tk)tk=setInterval(tickDraw,1000);
   $("a-count").textContent=ss.present+" present"+(ss.notOnList?", "+ss.notOnList+" not on the list":"");
   show("a-live");if(!timer)timer=setInterval(poll,4000);
  } else {
@@ -111,14 +110,15 @@ function draw(d){
 }
 var lastLink="";
 function drawQr(t){
- if(!t||t===lastLink)return;lastLink=t;
+ if(!t){lastLink="";$("a-qr").innerHTML='<span style="display:block;padding:1.2rem;color:#b3261e;font:700 1.1rem/1.4 system-ui,sans-serif;text-align:left">No QR token received from the Apps Script. The deployed script is the old version. Paste the new quiz_receiver.gs, Save, then Deploy &gt; Manage deployments &gt; edit &gt; New version, and reload this page.</span>';return}
+ if(t===lastLink)return;lastLink=t;
  try{var q=qrcode(0,"M");q.addData("https://hhdonglo.github.io/phys143-attend.html?t="+t);q.make();
   $("a-qr").innerHTML=q.createSvgTag({cellSize:8,margin:0,scalable:true});
-  var s=$("a-qr").firstChild;if(s){s.setAttribute("width","100%");s.setAttribute("height","100%")}}catch(x){$("a-qr").textContent="QR failed: type hhdonglo.github.io/phys143-attend.html?t="+t}
+  var s=$("a-qr").firstChild;if(s){s.setAttribute("width","100%");s.setAttribute("height","100%")}}catch(x){lastLink="";$("a-qr").innerHTML='<span style="display:block;padding:1.2rem;color:#b3261e;font:700 1.1rem/1.4 system-ui,sans-serif">The QR code could not be drawn ('+String(x&&x.message||x).replace(/</g,"")+'). Reload the page; if it persists, check that assets/qrcode.js loads.</span>'}
 }
 function tickDraw(){
  var r=left-Math.floor((Date.now()-stamp)/1000);
- $("a-tick").textContent=left?"New code in "+Math.max(r,0)+" s":"";
+ $("a-tick").textContent=left?"The QR code changes in "+Math.max(r,0)+" s":"";
  if(left&&r<=0){left=0;poll()}
 }
 function poll(){call("attend_status","",function(d){if(d&&d.ok)draw(d)})}
@@ -139,20 +139,33 @@ $("a-form").addEventListener("submit",function(e){
  });
 });
 $("a-start").addEventListener("click",function(){
- $("a-start").disabled=true;$("a-last").textContent="Starting...";
- call("attend_open","",function(d){ // the sheet makes a new random code each time, never one used before
+ $("a-start").disabled=true;$("a-last").textContent="Getting the classroom location...";
+ var go=function(extra,note){
+ $("a-last").textContent="Starting...";
+ call("attend_open",extra,function(d){ // the sheet makes a new random code each time, never one used before
   $("a-start").disabled=false;
   if(!d){$("a-last").textContent="Could not reach the class sheet. Try again.";return}
   if(!d.ok){$("a-last").textContent="Not started: "+(d.why||"refused")+".";return}
-  $("a-msg").textContent="";draw(d);
+  $("a-msg").textContent=note||(d.session&&d.session.geo&&d.session.geo!=="off"?"Location check on ("+d.session.geo+", "+d.session.radius+" m).":"");draw(d);
  });
+ };
+ // The browser asks once for this device's location; students are compared with it. Without it, only a confirmed "start without" opens a session, and then nobody is checked by location.
+ var noLoc=function(why){
+  if(window.confirm(why+"\n\nStart WITHOUT the location check? Then anyone with the link and code could check in from anywhere. Press Cancel to stop, allow location for this page, and try again.")){go("&nogeo=1","Started without the location check.")}
+  else{$("a-start").disabled=false;$("a-last").textContent="Not started: allow location for this page and try again."}
+ };
+ if(!navigator.geolocation){noLoc("This device cannot give a location.");return}
+ navigator.geolocation.getCurrentPosition(function(p){
+  try{localStorage.setItem("phys143_rad",$("a-rad").value)}catch(x){}
+  go("&lat="+p.coords.latitude.toFixed(5)+"&lon="+p.coords.longitude.toFixed(5)+"&radius="+encodeURIComponent($("a-rad").value),p.coords.accuracy>100?"This device's location is rough (about "+Math.round(p.coords.accuracy)+" m); the radius is widened by that much for the check. Try a student's phone at the back of the room.":"");
+ },function(){noLoc("Location was not allowed or could not be found.")},{enableHighAccuracy:true,timeout:15000,maximumAge:0});
 });
 $("a-close").addEventListener("click",function(){
- if(!window.confirm("Close attendance? Everyone on the roster who has not checked in is recorded as 0."))return;
+ if(!window.confirm("Close attendance? Check-ins stay held and are not recorded in the Attendance sheet until you press Submit attendance in the Control Centre."))return;
  $("a-msg").textContent="Closing...";
  call("attend_close","",function(d){
   if(!d||!d.ok){$("a-msg").textContent="Not closed: "+((d&&d.why)||"could not reach the class sheet")+".";return}
-  var x=d.session;$("a-last").textContent="Closed. "+x.present+" present, "+x.absent+" absent"+(x.notOnList?", "+x.notOnList+" not on the roster (see the Not_On_List tab)":"")+"."+(x.flagged?" "+x.flagged+" device(s) checked in more than one ID: see the Attendance_Flags tab.":"");
+  var x=d.session;$("a-last").textContent="Closed and held, not yet recorded. Submit it from the Control Centre. "+x.present+" present, "+x.absent+" absent"+(x.notOnList?", "+x.notOnList+" not on the roster (see the Not_On_List tab)":"")+"."+(x.flagged?" "+x.flagged+" device(s) checked in more than one ID: see the Attendance_Flags tab.":"");
   if(timer){clearInterval(timer);timer=null}show("a-idle");
  });
 });

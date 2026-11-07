@@ -1,65 +1,76 @@
 {
-  "subtitle": "I teach undergraduate physics at the University of Ghana. This section provides lecture slides, tutorials, supplementary notes and practice questions.",
+  "title": "Teaching",
   "sections": [
     {
-      "id": "lecture-courses",
-      "heading": "Current courses and teaching resources",
-      "cards": [
-        {
-          "id": "phys143-card",
-          "style": "primary",
-          "kicker": "Lecture course",
-          "title": "PHYS 143",
-          "subtitle": "Mechanics and Thermal Physics",
-          "paragraphs": [
-            "Twelve lectures following Young and Freedman, *University Physics*, each with a slide deck, a tutorial sheet, a supplementary note and practice questions."
-          ],
-          "button_label": "Course Overview →",
-          "button_url": "phys143.html",
-          "button_sr": "PHYS 143",
-          "button_style": "primary"
-        }
-      ]
-    },
-    {
-      "id": "research-informed",
-      "heading": "Research-Informed Learning",
-      "subtitle": "**Research connections:** how foundational physics connects to modern research and computational modelling.",
-      "bullet_style": "arrows",
-      "bullets": [
-        "**Vectors** → Nuclear reaction kinematics",
-        "**Statistics** → Uncertainty quantification",
-        "**Differential equations** → Reaction dynamics",
-        "**Programming** → Numerical simulation"
-      ]
-    },
-    {
-      "id": "laboratory-courses",
-      "heading": "Laboratory Courses",
-      "cards": [
-        {
-          "id": "lab-card",
-          "style": "secondary",
-          "kicker": "Laboratory courses",
-          "title": "PHYS 105 • PHYS 106 • PHYS 205",
-          "paragraphs": [
-            "Laboratory resources and uncertainty analysis lectures."
-          ],
-          "button_label": "Open Laboratory Resources →",
-          "button_url": "laboratory.html"
-        }
-      ]
-    },
-    {
-      "id": "login",
-      "heading": "Login",
+      "id": "teaching-philosophy",
+      "heading": "Teaching Philosophy",
+      "layout": "grid",
       "cards": [
         {
           "style": "plain",
+          "title": "Foundations",
           "paragraphs": [
-            "[Login](phys143-lecturer.html)"
+            "Building strong conceptual and mathematical foundations for advanced study."
+          ]
+        },
+        {
+          "style": "plain",
+          "title": "Investigation",
+          "paragraphs": [
+            "Using modelling, experimentation, computation, and quantitative reasoning to explore physical systems."
+          ]
+        },
+        {
+          "style": "plain",
+          "title": "Discovery",
+          "paragraphs": [
+            "Preparing students to contribute to knowledge creation through research and scientific inquiry."
           ]
         }
+      ]
+    },
+    {
+      "id": "lecture-courses",
+      "heading": "Courses Taught",
+      "from": "courses",
+      "cards": []
+    },
+    {
+      "id": "research-informed",
+      "heading": "Research-Informed Teaching",
+      "cards": [
+        {
+          "style": "plain",
+          "table": {
+            "caption": "Teaching themes and research applications",
+            "headers": [
+              "Theme",
+              "Research Applications"
+            ],
+            "rows": [
+              [
+                "Modelling Physical Systems",
+                "Kinematics, reaction dynamics, theoretical physics"
+              ],
+              [
+                "Analysing Evidence",
+                "Statistics, uncertainty quantification, data analysis"
+              ],
+              [
+                "Generating Knowledge",
+                "Scientific computing, simulation, predictive modelling"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "student-resources",
+      "heading": "Course Resources",
+      "bullets": [
+        "[Portal: course check-in and practice quizzes](portal.html)",
+        "[Login](https://hhdonglo.github.io/phys143-lecturer.html)"
       ]
     }
   ]

@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light dark">
+<title>Control Centre | Hope Donglo</title>
+<meta name="description" content="Lecturer menu.">
+<link rel="icon" href="assets/logo/hd-favicon.svg" type="image/svg+xml">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/logo/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/logo/favicon-16.png">
+<link rel="apple-touch-icon" href="assets/logo/apple-touch-icon.png">
+<link rel="stylesheet" href="assets/site.css">
+<script>if(!location.hash){if("scrollRestoration" in history)history.scrollRestoration="manual";window.addEventListener("pageshow",function(){if(!location.hash)window.scrollTo({top:0,left:0,behavior:"instant"})});}</script>
+</head>
+<body class="focus">
+<a class="skip" href="#main">Skip to content</a>
+<header class="banner slim">
+<div class="wrap">
+<a class="brand-logo" href="index.html" aria-label="Home"><picture><source media="(max-width:700px)" srcset="assets/logo/hd-favicon.svg"><img src="assets/logo/hd-logo-horizontal.svg" width="233" height="56" alt="HD. Nuclear Physics, Scientific Computing"></picture></a>
+<h1><a class="home-link" href="index.html">Hope Donglo</a></h1>
+<p class="course" data-render="banner-field">At the Edge of the Periodic Table</p>
+</div>
+</header>
+<nav class="jump" id="jump" aria-label="Sections"><div class="wrap"><button type="button" class="menu-btn" aria-expanded="false" aria-controls="jump-links"><span>Menu</span><span class="dots" aria-hidden="true">&#8943;</span></button><div class="links" id="jump-links"><a href="index.html">Home</a><div class="dd" data-key="research.html"><a href="research.html">Research</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Research links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="research.html#questions">Research Questions</a></li><li><a href="research.html#reaction-dynamics">Nuclear Reaction Dynamics</a></li><li><a href="research.html#uncertainty">Uncertainty Quantification</a></li><li><a href="earlier-research.html">Earlier Research</a></li></ul></div><div class="dd" data-key="projects.html"><a href="projects.html">Projects</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Projects links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="kewpie3.html">KEWPIE3</a></li><li><a href="projects.html#research-projects">Current Research</a></li></ul></div><div class="dd" data-key="data-engineering.html"><a href="data-engineering.html">Scientific Computing</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Scientific Computing links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="data-engineering.html#pipelines">Data Engineering</a></li><li><a href="data-engineering.html#retrieval">Machine Learning</a></li><li><a href="data-engineering.html#analysis">Data Analysis</a></li></ul></div><div class="dd" data-key="teaching.html"><a href="teaching.html" aria-current="true">Teaching</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Teaching links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="teaching.html#lecture-courses">Courses</a></li><li><a href="phys143.html#weekly">Lecture Notes</a></li><li><a href="mock-exam.html">Mock exam</a></li></ul></div><div class="dd" data-key="publications.html"><a href="publications.html">Publications</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Publications links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="publications.html#journal-articles">Journal Articles</a></li><li><a href="publications.html#preprints">Preprints</a></li><li><a href="publications.html#theses">Theses</a></li></ul></div><div class="dd" data-key="students.html"><a href="students.html">Students</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Students links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="students.html#undergraduate">Supervision</a></li><li><a href="students.html#research-projects">Project Opportunities</a></li></ul></div><a href="about.html">About</a><a href="cv.html" class="util first">CV</a><a href="contact.html" class="util">Contact</a></div></div></nav>
+<main id="main"><div class="wrap">
+<style>
+.cc{max-width:60rem;margin:0 auto;font-family:system-ui,sans-serif}
+.cc .strip{position:sticky;top:0;z-index:5;display:grid;grid-template-columns:repeat(auto-fit,minmax(9.5rem,1fr));gap:.3rem .9rem;padding:.6rem .9rem;background:var(--brown-fill);color:#fff;border-radius:0 0 8px 8px}
+.cc .strip div{font-size:.88rem}.cc .strip b{display:block;font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;opacity:.85}
+.cc .dot{display:inline-block;width:.6rem;height:.6rem;border-radius:50%;margin-right:.35rem;background:#9aa0a6}
+.cc .dot.g{background:#5fd38d}.cc .dot.a{background:#f5b84a}.cc .dot.r{background:#ff6b5e}
+.cc .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(18rem,1fr));gap:.9rem;margin-top:.9rem}
+.cc .panel{background:var(--surface);border:1px solid var(--border);border-top:5px solid var(--brown-edge);border-radius:8px;padding:1rem 1.2rem;box-shadow:var(--shadow)}
+.cc h3{margin:.1rem 0 .6rem;font-size:1rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+.cc .code{font-size:2.4rem;font-weight:700;letter-spacing:.06em;margin:.1rem 0}
+.cc .go{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:.5rem 1.1rem;margin:.3rem .4rem 0 0;border:2px solid var(--brown-fill);border-radius:6px;background:var(--brown-fill);color:#fff;font:600 1rem system-ui,sans-serif;cursor:pointer;text-decoration:none}
+.cc .go.alt{background:var(--btn-bg);color:var(--btn-text)}
+.cc ul{list-style:none;padding:0;margin:0}.cc li{display:flex;gap:.5rem;padding:.45rem 0;border-bottom:1px solid var(--border);font-size:.95rem}
+.cc .ok{color:#2e7d32}.cc .am{color:#b26a00}.cc .rd{color:#b3261e}
+@media (prefers-color-scheme:dark){.cc .ok{color:#6fd39a}.cc .am{color:#ffb74d}.cc .rd{color:#ff8a80}}
+.cc .note{font-size:.9rem;line-height:1.5;color:var(--muted)}
+.cc label.cb{display:flex;gap:.5rem;align-items:center;min-height:44px}
+.cc .wide,.cc .panel.open{grid-column:1/-1}.cc iframe{width:100%;height:80vh;min-height:30rem;border:1px solid var(--border);border-radius:6px;margin-top:.6rem;background:var(--surface)}
+.cc [hidden]{display:none!important}
+body.focus header.banner,body.focus nav.jump,body.focus .crumb,body.focus .sec-sub,body.focus aside.disclaimer,body.focus footer,body.focus a.skip,body.focus main h2{display:none!important}
+body.focus main{padding-top:0}
+</style>
+<div class="cc" id="cc" hidden>
+ <div class="strip" role="status" aria-label="Classroom status">
+  <div><b>Backend</b><span class="dot" id="s-bd"></span><span id="s-b">Checking</span></div>
+  <div><b>Quiz</b><span class="dot" id="s-qd"></span><span id="s-q">Checking</span></div>
+  <div><b>Attendance</b><span class="dot" id="s-ad"></span><span id="s-a">Checking</span></div>
+  <div><b>Counts</b><span id="s-c">None</span></div>
+  <div><b>Last error</b><span class="dot" id="s-ed"></span><span id="s-e">None</span></div>
+ </div>
+ <div class="grid">
+  <section class="panel"><h3>Today's lecture</h3>
+   <p id="t-lec"><b>Loading</b></p>
+   <label for="t-week" class="note">Week to teach (the Portal follows this)</label>
+   <select id="t-week" style="min-height:44px;font-size:1rem;max-width:100%"><option value="0">Default from data/portal.json</option></select>
+   <p class="note" id="t-wmsg" role="status"></p>
+   <p class="note" style="margin:0">Join code (shown to the lecturer only)</p>
+   <p class="code" id="t-code">&nbsp;</p>
+   <p class="note">The code is 2627 followed by the week number. Show it in class; never show this page.</p>
+   <a class="go alt" id="t-hand" href="#" hidden>Open handout</a>
+  </section>
+  <section class="panel"><h3>Pre-class check</h3>
+   <ul id="k-list"><li class="note">Not run yet.</li></ul>
+   <label class="cb"><input type="checkbox" id="k-proj"> I opened the display on the projector and saw it</label>
+   <button class="go" type="button" id="k-run">Run checks</button>
+  </section>
+  <section class="panel" id="p-att"><h3>Attendance</h3>
+   <p class="note">Opens the attendance controls here. For the projector, use "Open in its own window", move that window to the projector and keep this one on your laptop. Closing asks you to confirm.</p>
+   <button class="go" type="button" data-panel="p-att" data-embed="e-att" data-src="phys143-attendance.html">Show attendance here</button>
+   <a class="go alt" href="phys143-attendance.html" target="_blank" rel="noopener">Open in its own window</a>
+   <div id="e-att"></div>
+  </section>
+  <section class="panel wide"><h3>Live quiz</h3>
+   <p class="note">Opens the quiz controls here. Ending a quiz, starting a new round and releasing results each ask you to confirm.</p>
+   <button class="go" type="button" data-embed="e-quiz" data-src="phys143-quiz-host.html">Show quiz controls here</button>
+   <a class="go alt" href="phys143-quiz-host.html" target="_blank" rel="noopener">Open in its own window</a>
+   <a class="go alt" href="phys143-quiz-display.html" target="_blank" rel="noopener">Open projector display</a>
+   <div id="e-quiz"></div>
+  </section>
+  <section class="panel wide"><h3>Held results</h3>
+   <p class="note">Nothing a student sends is written to Form Responses 1, Master, Scores, Totals or Attendance until you release it here. Held results stay private on the sheet. Master keeps every released score for the semester; releasing the same week again updates that student's cell and never touches earlier weeks.</p>
+   <ul id="h-list"><li class="note">Checking.</li></ul>
+   <button class="go" type="button" id="h-rq">Release held quiz results</button>
+   <button class="go alt" type="button" id="h-dq">Discard held quiz results</button>
+   <button class="go" type="button" id="h-sa">Submit attendance</button>
+   <button class="go alt" type="button" id="h-da">Discard unsubmitted attendance</button>
+   <p class="note" id="h-msg" role="status"></p>
+  </section>
+  <section class="panel"><h3>After class</h3>
+   <ul id="x-list"><li class="note">Attendance summary appears here.</li></ul>
+   <p class="note">Then: check the Attendance and Not_On_List tabs and the Flags, export Attendance for Sakai, and delete any test rows.</p>
+   <button class="go alt" type="button" id="x-out">Log out</button>
+  </section>
+ </div>
+</div>
+<script>
+(function(){
+"use strict";
+var SCRIPT_URL="https://script.google.com/macros/s/AKfycbzso5-FCU4erf_grbktH-AH-RKaPDap7TfJAw_TOSxNarTrJDe-PgyBzgIH7Fj2fjZ3/exec";
+var EXPECT_VERSION="2026-11-07-held-1"; // must equal SCRIPT_VERSION in apps_script/quiz_receiver.gs
+var $=function(i){return document.getElementById(i)};
+var KEY="";try{KEY=sessionStorage.getItem("phys143_hk")||""}catch(x){}
+if(!KEY){location.replace("phys143-lecturer.html");return}
+$("cc").hidden=false;
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function jsonp(params,cb,ms){
+ var n="cb"+Date.now()+Math.floor(Math.random()*1e6),sc=document.createElement("script"),done=false,t,t0=Date.now();
+ function end(d){if(done)return;done=true;clearTimeout(t);delete window[n];if(sc.parentNode)sc.parentNode.removeChild(sc);cb(d,Date.now()-t0)}
+ window[n]=end;sc.onerror=function(){end(null)};t=setTimeout(function(){end(null)},ms||9000);
+ sc.src=SCRIPT_URL+"?"+params+"&callback="+n+"&_="+Date.now();document.head.appendChild(sc);
+}
+function hk(){return "hostkey="+encodeURIComponent(KEY)}
+function dot(id,c){$(id).className="dot "+c}
+var lastErr=null;
+function err(m){var t=new Date();lastErr=("0"+t.getHours()).slice(-2)+":"+("0"+t.getMinutes()).slice(-2)+" "+m;$("s-e").textContent=lastErr;dot("s-ed","r")}
+// ---- status strip ----
+var misses=0;
+function poll(){
+ jsonp("action=attend_status&"+hk(),function(d,ms){
+  if(!d){misses++;dot("s-bd","r");$("s-b").textContent="No answer";err("Backend did not answer");return}
+  misses=0;dot("s-bd",ms>4000?"a":"g");$("s-b").textContent="OK, "+ms+" ms";
+  if(d.ok===false){err(String(d.why||"Host key not accepted"));return}
+  var s=d.session;
+  if(!s){dot("s-ad","");$("s-a").textContent="No session";$("s-c").textContent="None"}
+  else if(s.status==="Open"){dot("s-ad","g");$("s-a").textContent="Open, QR "+s.secondsLeft+" s";$("s-c").textContent=s.present+" in, "+s.notOnList+" not on list, roster "+s.rosterSize}
+  else{dot("s-ad","");$("s-a").textContent="Closed ("+s.label+")";$("s-c").textContent=s.present+" in, "+s.notOnList+" not on list"}
+  if(s){$("x-list").innerHTML="<li><span>Session "+esc(s.label)+": "+esc(s.status)+". Checked in "+s.present+", not on the list "+s.notOnList+", roster size "+s.rosterSize+".</span></li>"}
+ });
+ jsonp("action=portal_status",function(d){
+  if(!d||d.portal!==1){dot("s-qd","a");$("s-q").textContent="Unknown (old script?)";return}
+  var m={none:["","None open"],lobby:["a","Lobby open"],running:["g","Running"],paused:["a","Paused"]}[d.quiz]||["","None open"];
+  dot("s-qd",m[0]);$("s-q").textContent=m[1];
+ });
+}
+poll();setInterval(poll,4000);
+// ---- today's lecture ----
+var WEEK=null,CFGP=null;
+function showWeek(){
+ if(!CFGP||!WEEK)return;
+ $("t-lec").innerHTML="<b>Week "+esc(WEEK)+", Lecture "+esc(WEEK)+": "+esc(CFGP.lectures[WEEK]||"")+"</b><br><span class='note'>"+esc(CFGP.contacts)+"</span>";
+ $("t-code").textContent="2627"+WEEK;
+ if(CFGP.handouts[WEEK]){$("t-hand").href=CFGP.handouts[WEEK];$("t-hand").hidden=false}else $("t-hand").hidden=true;
+}
+function loadWeek(){
+ jsonp("action=portal_status",function(d){
+  var chosen=(d&&d.portal===1&&d.week>=1)?d.week:0;
+  WEEK=chosen||(CFGP&&CFGP.currentWeek);
+  $("t-week").value=String(chosen);
+  $("t-wmsg").textContent=chosen?"Chosen by you in this Control Centre.":(d&&d.portal===1?"Using the default in data/portal.json.":"The script is not updated, so the week cannot be changed here. Using data/portal.json.");
+  showWeek();
+ });
+}
+(function(){var x=new XMLHttpRequest();x.open("GET","data/portal.json?_="+Date.now());
+ x.onload=function(){try{CFGP=JSON.parse(x.responseText)}catch(e){$("t-lec").textContent="Could not read data/portal.json.";return}
+  for(var i=1;i<=12;i++){var o=document.createElement("option");o.value=i;o.textContent="Week "+i+": "+(CFGP.lectures[i]||"");$("t-week").appendChild(o)}
+  WEEK=CFGP.currentWeek;showWeek();loadWeek()};
+ x.onerror=function(){$("t-lec").textContent="Could not read data/portal.json."};x.send()})();
+$("t-week").addEventListener("change",function(){
+ var w=$("t-week").value;$("t-wmsg").textContent="Saving.";
+ jsonp("action=set_week&w="+encodeURIComponent(w)+"&"+hk(),function(d){
+  if(!d||d.ok!==true){$("t-wmsg").textContent="Not saved: "+(d&&d.why?d.why:"no answer or script not updated")+".";return}
+  loadWeek();
+ });
+});
+// ---- pre-class check ----
+function line(c,t){return'<li class="'+c+'"><b aria-hidden="true">'+(c==="ok"?"&#10003;":(c==="am"?"!":"&times;"))+'</b><span>'+t+'</span></li>'}
+$("k-run").addEventListener("click",function(){
+ var L=[],btn=$("k-run");btn.disabled=true;$("k-list").innerHTML='<li class="note">Running.</li>';
+ var week=WEEK||"";
+ jsonp("action=version",function(v,ms){
+  if(!v||!v.version){L.push(line("rd","The script did not answer the version check. It is down, or it is an older script. Paste the new script, Save, then Deploy &gt; Manage deployments &gt; edit &gt; New version."))}
+  else{L.push(line("ok","Backend responds ("+ms+" ms)"));
+   L.push(v.version===EXPECT_VERSION?line("ok","Script and page versions match"):line("am","Script version "+esc(v.version)+" differs from this page ("+EXPECT_VERSION+"). Redeploy as a new version, then hard refresh."))}
+  jsonp("action=preclass&week="+encodeURIComponent(week)+"&"+hk(),function(d){
+   if(!d||d.ok!==true){L.push(line("rd","Host checks failed: "+esc(d&&d.why?d.why:"no answer")))}
+   else{
+    L.push(d.rosterCount>0?line("ok","Roster loaded: "+d.rosterCount+" IDs"):line("rd","Roster is empty. Run roster_sync.sh before opening attendance."));
+    L.push(d.weekListed&&d.bankQuestions>0?line("ok","Quiz bank for Week "+esc(d.week)+" present ("+d.bankQuestions+" questions)"):line("rd","No quiz bank for Week "+esc(d.week)+" (not in live_quizzes.json, or the bank did not load)."));
+    L.push(d.masterOn?line("ok","Master switch On, totals "+esc(d.totalsMode)):line("am","Master switch is Off: scores are not recorded in Master or Scores."));
+   }
+   L.push($("k-proj").checked?line("ok","Projector display seen (confirmed by you)"):line("am","Projector display not confirmed. Open the display, look at the real screen, then tick the box."));
+   var done=function(c,t){L.push(line(c,t));$("k-list").innerHTML=L.join("");btn.disabled=false};
+   if(!navigator.geolocation){done("rd","This browser has no location. Attendance needs it on the lecturer's device.");return}
+   navigator.geolocation.getCurrentPosition(function(p){done(p.coords.accuracy>100?"am":"ok","Location works (accuracy about "+Math.round(p.coords.accuracy)+" m)")},function(){done("rd","Location is blocked in this browser. Allow it before opening attendance.")},{timeout:10000,maximumAge:60000});
+  },12000);
+ },8000);
+});
+// ---- held results: released only when the lecturer says so ----
+function heldLoad(){
+ jsonp("action=held_status&"+hk(),function(d){
+  if(!d||d.ok!==true){$("h-list").innerHTML='<li class="note">'+esc(d&&d.why?d.why:"No answer. If the script is old, paste the new one and deploy a new version.")+'</li>';return}
+  var L=["<li><span>Quiz results held: "+d.quiz+"</span></li>"];
+  if(d.sessions.length)d.sessions.forEach(function(x){L.push("<li><span>Attendance held, session "+esc(x.label)+": "+x.present+" checked in</span></li>")});
+  else L.push("<li><span>Attendance held: none</span></li>");
+  $("h-list").innerHTML=L.join("");
+ });
+}
+function heldDo(act,ask,okMsg){
+ if(!window.confirm(ask))return;
+ $("h-msg").textContent="Working.";
+ jsonp("action="+act+"&"+hk(),function(d){
+  $("h-msg").textContent=(!d||d.ok!==true)?"Not done: "+(d&&d.why?d.why:"no answer"):okMsg(d);heldLoad();
+ },30000);
+}
+$("h-rq").addEventListener("click",function(){heldDo("held_release_quiz","Release all held quiz results into the sheets now? Master, Scores and Totals are updated.",function(d){return "Released "+d.released+" quiz result(s)."})});
+$("h-dq").addEventListener("click",function(){heldDo("held_discard_quiz","Discard all held quiz results? This cannot be undone.",function(d){return "Discarded "+d.discarded+" held result(s)."})});
+$("h-sa").addEventListener("click",function(){heldDo("attend_submit","Submit attendance? Every rostered student not checked in is recorded as 0.",function(d){return "Attendance submitted: "+(d.submitted||[]).join(", ")+"."})});
+$("h-da").addEventListener("click",function(){heldDo("attend_discard","Discard the closed attendance session and its check-ins? This cannot be undone.",function(d){return "Discarded "+d.discarded+" session(s), "+d.checkins+" check-in(s)."})});
+heldLoad();setInterval(heldLoad,15000);
+// ---- embedded host pages (same site, same host key in this tab) ----
+document.querySelectorAll("[data-embed]").forEach(function(b){b.addEventListener("click",function(){
+ var box=$(b.getAttribute("data-embed"));
+ var pn=b.getAttribute("data-panel");pn=pn&&$(pn);
+ if(box.firstChild){box.innerHTML="";if(pn)pn.classList.remove("open");b.textContent=b.textContent.replace("Hide","Show");return}
+ var f=document.createElement("iframe");f.src=b.getAttribute("data-src");f.setAttribute("allow","geolocation");f.title=b.textContent;box.appendChild(f);if(pn)pn.classList.add("open");b.textContent=b.textContent.replace("Show","Hide");
+})});
+$("x-out").addEventListener("click",function(){try{sessionStorage.removeItem("phys143_hk")}catch(x){}location.href="phys143-lecturer.html"});
+})();
+</script>
+</div>
+</main>
+
+
+<footer data-render="footer"><div class="wrap"><div class="foot-grid"><div><p class="foot-name">Hope Donglo, PhD</p><p>Lecturer in Physics · University of Ghana</p></div><nav aria-label="Footer"><ul><li><a href="research.html">Research</a></li><li><a href="projects.html">Projects</a></li><li><a href="data-engineering.html">Scientific Computing</a></li><li><a href="teaching.html">Teaching</a></li><li><a href="publications.html">Publications</a></li><li><a href="students.html">Students</a></li><li><a href="about.html">About</a></li><li><a href="cv.html">CV</a></li><li><a href="contact.html">Contact</a></li></ul></nav><ul class="foot-ext"><li><a href="https://scholar.google.com/citations?user=QW32BboAAAAJ&amp;hl=en" rel="noopener">Google Scholar ↗</a></li><li><a href="https://orcid.org/0009-0003-6142-8780" rel="noopener">ORCID ↗</a></li><li><a href="https://github.com/hhdonglo" rel="noopener">GitHub ↗</a></li><li><a href="https://www.linkedin.com/in/hopedonglo" rel="noopener">LinkedIn ↗</a></li><li><a href="https://phyanalytics.com/" rel="noopener">PhyAnalytics ↗</a></li></ul></div><p class="foot-note">© 2026 Hope Donglo · Anonymous visit counts, no cookies</p></div></footer>
+<script src="assets/render.js"></script>
+<script src="assets/site.js"></script>
+<script src="assets/tracking.js"></script>
+</body>
+</html>

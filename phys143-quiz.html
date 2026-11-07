@@ -12,6 +12,9 @@
 <link rel="icon" type="image/png" sizes="16x16" href="assets/logo/favicon-16.png">
 <link rel="apple-touch-icon" href="assets/logo/apple-touch-icon.png">
 <link rel="stylesheet" href="assets/site.css">
+<link rel="stylesheet" href="assets/student.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#16294b">
 <script>if(!location.hash){if("scrollRestoration" in history)history.scrollRestoration="manual";window.addEventListener("pageshow",function(){if(!location.hash)window.scrollTo({top:0,left:0,behavior:"instant"})});}</script>
 <script src="assets/quiz-l1-questions.js"></script>
 </head>
@@ -26,7 +29,7 @@
 </header>
 <nav class="jump" id="jump" aria-label="Sections"><div class="wrap"><button type="button" class="menu-btn" aria-expanded="false" aria-controls="jump-links"><span>Menu</span><span class="dots" aria-hidden="true">&#8943;</span></button><div class="links" id="jump-links"><a href="index.html">Home</a><div class="dd" data-key="research.html"><a href="research.html">Research</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Research links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="research.html#questions">Research Questions</a></li><li><a href="research.html#reaction-dynamics">Nuclear Reaction Dynamics</a></li><li><a href="research.html#uncertainty">Uncertainty Quantification</a></li><li><a href="earlier-research.html">Earlier Research</a></li></ul></div><div class="dd" data-key="projects.html"><a href="projects.html">Projects</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Projects links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="kewpie3.html">KEWPIE3</a></li><li><a href="projects.html#research-projects">Current Research</a></li></ul></div><div class="dd" data-key="data-engineering.html"><a href="data-engineering.html">Scientific Computing</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Scientific Computing links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="data-engineering.html#pipelines">Data Engineering</a></li><li><a href="data-engineering.html#retrieval">Machine Learning</a></li><li><a href="data-engineering.html#analysis">Data Analysis</a></li></ul></div><div class="dd" data-key="teaching.html"><a href="teaching.html" aria-current="true">Teaching</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Teaching links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="teaching.html#lecture-courses">Courses</a></li><li><a href="phys143.html#weekly">Lecture Notes</a></li><li><a href="mock-exam.html">Mock exam</a></li></ul></div><div class="dd" data-key="publications.html"><a href="publications.html">Publications</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Publications links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="publications.html#journal-articles">Journal Articles</a></li><li><a href="publications.html#preprints">Preprints</a></li><li><a href="publications.html#theses">Theses</a></li></ul></div><div class="dd" data-key="students.html"><a href="students.html">Students</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Students links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="students.html#undergraduate">Supervision</a></li><li><a href="students.html#research-projects">Project Opportunities</a></li></ul></div><a href="about.html">About</a><a href="cv.html" class="util first">CV</a><a href="contact.html" class="util">Contact</a></div></div></nav>
 <main id="main"><div class="wrap">
-<p class="crumb"><a href="index.html">Home</a> &rsaquo; <a href="teaching.html">Teaching</a> &rsaquo; <a href="phys143.html">PHYS 143</a> &rsaquo; Quiz</p>
+<p class="crumb"><a href="index.html">Home</a> &rsaquo; <a href="teaching.html">Teaching</a> &rsaquo; <a href="phys143.html">PHYS 143</a> &rsaquo; <a href="phys143-portal.html">Portal</a> &rsaquo; Quiz</p>
 <h2 id="try-title">PHYS 143 quiz</h2>
 <p class="sec-sub">Live class quiz</p>
 <style>
@@ -96,12 +99,12 @@ body.focus .try .fun{display:block}
    <p class="note" id="err" role="alert" hidden></p>
    <button type="submit" class="go">Join</button>
   </form>
-  <details class="note" style="margin-top:.8rem"><summary>How it works</summary><p>Your lecturer shows one question at a time. Choose an answer before the clock runs out. Only your first attempt counts.</p></details>
+  <details class="note" style="margin-top:.8rem"><summary>How it works</summary><p>I show one question at a time. Choose an answer before the clock runs out. Only your first attempt counts.</p></details>
  </section>
  <section class="panel" id="s-att" aria-labelledby="t-att" hidden>
   <div class="wr">
-   <h3 id="t-att" class="hello">Attendance recorded</h3>
-   <p role="status"><span id="att-msg">Thank you. Your attendance has been recorded for student ID </span> <b id="att-id"></b>.</p>
+   <h3 id="t-att" class="hello">Check-in received</h3>
+   <p role="status"><span id="att-msg">Thank you. Your check-in has been received for student ID </span> <b id="att-id"></b>.</p>
    <p class="note">You can close this page.</p>
   </div>
  </section>
@@ -112,7 +115,7 @@ body.focus .try .fun{display:block}
    <p class="nq" id="wr-n"></p>
    <div class="dots" id="wr-dots" aria-hidden="true"><i></i><i></i><i></i></div>
   </div>
-  <details class="note" style="margin-top:.8rem" open><summary>How it works</summary><p>Your lecturer shows one question at a time. Choose an answer before the clock runs out. Only your first attempt counts.</p></details>
+  <details class="note" style="margin-top:.8rem" open><summary>How it works</summary><p>I show one question at a time. Choose an answer before the clock runs out. Only your first attempt counts.</p></details>
  </section>
  <section class="panel" id="s-q" aria-live="polite" hidden>
   <div class="bar"><span id="qn">Question 1 of 5</span><span class="clock" id="clock" role="timer">1:00</span></div>
@@ -140,6 +143,7 @@ body.focus .try .fun{display:block}
   </div>
  </section>
 </div>
+<script src="assets/messages.js"></script>
 <script>
 (function(){
 "use strict";
@@ -181,8 +185,8 @@ $("f-start").addEventListener("submit",function(e){
 function gate(){
  var er=$("err"),btn=$("f-start").querySelector("button");
  jsonp("action=status&code="+encodeURIComponent(st.code),function(d){
-  if(d&&d.known===false){btn.disabled=false;er.textContent="That join code is not correct. Check the code on the screen and try again.";er.hidden=false;return}
-  if(!d){btn.disabled=false;er.textContent="Could not reach the class sheet. Check your connection and try again.";er.hidden=false;return}
+  if(d&&d.known===false){btn.disabled=false;er.textContent=PHYSMSG.text("E12");er.hidden=false;return}
+  if(!d){btn.disabled=false;er.textContent=PHYSMSG.text("E8");er.hidden=false;return}
   if(d.attendance){doAttend(d,btn,er);return}
   if(!st.name){btn.disabled=false;er.textContent="Please enter your first name for the quiz.";er.hidden=false;return}
   var nq=d.totalQ||QS.length;
@@ -191,9 +195,9 @@ function gate(){
   function stop(m){btn.disabled=false;if(st.joined){roomShow(m,nq,true);return}er.textContent=m;er.hidden=false}
   if(d&&(d.timed||d.paced)){
    var s=d.state;
-   if(s==="ended"||s==="released"){stop("This quiz is closed. Ask your lecturer.");return}
+   if(s==="ended"||s==="released"){stop(PHYSMSG.text("E11"));return}
    if(s==="paused"&&!st.joined){stop("This quiz is paused. Ask your lecturer.");return}
-   if((s==="ready"||s==="draft")&&!st.joined){stop("This quiz is not open yet. Check the join code with your lecturer, or try again when the lobby is open.");return}
+   if((s==="ready"||s==="draft")&&!st.joined){stop(PHYSMSG.text("E11"));return}
    if(s==="paused"){wait("The quiz is paused by your lecturer. This page will continue by itself.");return}
    if(s!=="running"){wait("");return}
    if(!st.joined&&!d.allowLate){stop("This quiz has already started and late joining is closed. Ask your lecturer.");return}
@@ -202,7 +206,7 @@ function gate(){
    roomShow("The quiz has started. Loading your first question.",nq);
    if(d.paced)startPaced(d);else startTimed(d);return}
   var state=d&&d.state?d.state:"started";
-  if(state==="stopped"){stop("This quiz is closed. Ask your lecturer.");return}
+  if(state==="stopped"){stop(PHYSMSG.text("E11"));return}
   if(state==="waiting"){wait("");return}
   btn.disabled=false;er.hidden=true;
   if(!st.joined){st.joined=true;join()}
@@ -210,10 +214,10 @@ function gate(){
  });
 }
 function doAttend(d,btn,er){ // an attendance code: only the student ID is used; the lecturer closes the session
- if(d.state!=="open"){btn.disabled=false;er.textContent="Attendance for this code is closed.";er.hidden=false;return}
+ if(d.state!=="open"){btn.disabled=false;er.textContent=PHYSMSG.text("E11");er.hidden=false;return}
  btn.disabled=true;er.hidden=true;
  jsonp("action=attend&code="+encodeURIComponent(st.code)+"&id="+encodeURIComponent(st.id),function(r){
-  if(!r){btn.disabled=false;er.textContent="Could not reach the class sheet. Check your connection and try again.";er.hidden=false;return}
+  if(!r){btn.disabled=false;er.textContent=PHYSMSG.text("E8");er.hidden=false;return}
   if(!r.ok){btn.disabled=false;er.textContent=r.why==="closed"?"Attendance for this code is closed.":(r.why==="bad id"?"That does not look like a student ID. Check it and try again.":"That code is not correct.");er.hidden=false;return}
   $("att-id").textContent=r.id;$("t-att").textContent=r.already?"Already marked present today":"Marked present";$("att-msg").textContent=r.onList===false?"Your ID is not on the class list. Please see your lecturer. Student ID ":"Student ID ";show("s-att");
  });
@@ -279,12 +283,12 @@ function renderPaced(){
 function sendAnswer(q,a){
  var b=new URLSearchParams();b.set("kind","answer");b.set("name",st.name);b.set("id",st.id);b.set("code",st.code);b.set("q",String(q));b.set("answer",a);
  $("pnote").textContent="Sending your answer.";
- fetch(SCRIPT_URL,{method:"POST",mode:"no-cors",body:b}).then(function(){$("pnote").textContent="Your answer is sent. You can change it until time runs out. Wait for your lecturer to move on."},function(){$("pnote").textContent="Your answer could not be sent. Check your connection and tap it again."});
+ fetch(SCRIPT_URL,{method:"POST",mode:"no-cors",body:b}).then(function(){$("pnote").textContent="Your answer is sent. You can change it until time runs out. Wait for the next question."},function(){$("pnote").textContent="Your answer could not be sent. Check your connection and tap it again."});
 }
 function setLocked(){
  var lock=pacedClosed();
  Array.prototype.forEach.call($("opts").children,function(c){c.disabled=lock});
- if(lock&&!st.paused)$("pnote").textContent="Time is up for this question. Wait for your lecturer to move on.";
+ if(lock&&!st.paused)$("pnote").textContent="Time is up for this question. Wait for the next question.";
 }
 function pacedTick(){
  var c=$("clock");
@@ -438,7 +442,7 @@ function poll(n){
   if(d&&(d.keyMissing||d.outcome==="bad code")){problem("The class sheet did not recognise this join code, so your answers were not recorded. Tell your lecturer.");return}
   if(d&&d.outcome==="paused"){problem("The quiz was paused when your answers arrived, so they were not recorded. Press Send again once your lecturer resumes.");return}
   if(d&&d.outcome==="not joined"){problem("You joined after the quiz started and late joining is closed, so your answers were not recorded. Tell your lecturer.");return}
-  if(d&&d.outcome==="quiz closed"){problem("The quiz closed before your answers arrived, so they were not recorded. Tell your lecturer.");return}
+  if(d&&d.outcome==="quiz closed"){problem(PHYSMSG.text("E13"));return}
   if(d&&d.outcome&&d.outcome!=="ok"&&d.outcome!=="duplicate"){problem("The class sheet could not record your answers ("+d.outcome+"). Tell your lecturer.");return}
   if(st.paced&&n>=4){$("t-end").textContent="The quiz has ended";$("end-msg").textContent="No answers from you were recorded for this quiz. If that is wrong, tell your lecturer.";return}
   if(n<14){setTimeout(function(){poll(n+1)},3000);return}
@@ -516,5 +520,6 @@ $("refresh").addEventListener("click",checkRanking);
 <script src="assets/render.js"></script>
 <script src="assets/site.js"></script>
 <script src="assets/tracking.js"></script>
+<script src="assets/student.js" defer></script>
 </body>
 </html>

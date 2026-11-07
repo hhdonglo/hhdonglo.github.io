@@ -1,0 +1,20 @@
+/* Shared student layer: bottom tab bar, offline notice, install card.
+   Uses the site tokens so light and dark follow the device. */
+body.stu{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
+.stu-tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;background:var(--surface);border-top:1px solid var(--border);padding-bottom:env(safe-area-inset-bottom);font:600 .72rem/1.2 system-ui,sans-serif}
+.stu-tabs a{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:56px;color:var(--muted);text-decoration:none}
+.stu-tabs a svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.stu-tabs a[aria-current="page"]{color:var(--link);box-shadow:inset 0 3px 0 var(--brown-fill)}
+.stu-tabs a:active{background:var(--sky)}
+@media (min-width:900px){body.stu{padding-bottom:0}.stu-tabs{position:sticky;top:0;bottom:auto;border-top:0;border-bottom:1px solid var(--border);justify-content:center}.stu-tabs a{flex:0 0 auto;flex-direction:row;gap:.5rem;min-height:44px;padding:0 1.2rem;font-size:.9rem}}
+.stu-off{position:sticky;top:0;z-index:30;margin:0;padding:.55rem 1rem;background:#7a4a2a;color:#fff;text-align:center;font:600 .9rem system-ui,sans-serif}
+.stu-off[hidden]{display:none}
+.stu-back{display:inline-flex;align-items:center;gap:.3rem;min-height:44px;margin:.3rem 0;font:600 .95rem system-ui,sans-serif;color:var(--link);text-decoration:none}
+.stu-chips{display:flex;flex-wrap:wrap;gap:.5rem;margin:.4rem 0}
+.stu-chip{flex:1 1 7rem;padding:.6rem .7rem;border:1px solid var(--border);border-radius:10px;background:var(--bg);font:.8rem system-ui,sans-serif;color:var(--muted)}
+.stu-chip b{display:block;font-size:1.35rem;color:var(--text)}
+.stu-bar{height:8px;border-radius:4px;background:var(--sky);overflow:hidden;margin:.3rem 0}
+.stu-bar i{display:block;height:100%;background:var(--brown-fill);transition:width .4s}
+@media (prefers-reduced-motion:reduce){.stu-bar i{transition:none}}
+.pt .card{border-radius:14px}
+.pt .go{border-radius:12px}

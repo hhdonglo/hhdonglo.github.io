@@ -1,0 +1,49 @@
+{
+ "_note": "One entry per course. Public data only: no keys, no student data, no host links. Set status to current to show a course on the Teaching page; any other value hides it. Each card shows the code, title, one sentence and one link (page).",
+ "courses": [
+  {
+   "id": "phys143",
+   "code": "PHYS 143",
+   "title": "Mechanics and Thermal Physics",
+   "type": "lecture",
+   "status": "current",
+   "kicker": "Lecture course",
+   "summary": "Lectures, tutorials, supplementary notes, and practice questions in mechanics and thermal physics.",
+   "page": "phys143.html",
+   "button_label": "Course Page"
+  },
+  {
+   "id": "phys105",
+   "code": "PHYS 105",
+   "title": "Practical Physics I",
+   "type": "lab",
+   "status": "current",
+   "kicker": "Laboratory course",
+   "summary": "An introduction to experimental physics, measurement, and uncertainty analysis.",
+   "page": "laboratory.html#phys105-t",
+   "button_label": "Laboratory Resources"
+  },
+  {
+   "id": "phys106",
+   "code": "PHYS 106",
+   "title": "Practical Physics II",
+   "type": "lab",
+   "status": "current",
+   "kicker": "Laboratory course",
+   "summary": "Experimental techniques and quantitative data analysis in laboratory investigations.",
+   "page": "laboratory.html#phys106-t",
+   "button_label": "Laboratory Resources"
+  },
+  {
+   "id": "phys205",
+   "code": "PHYS 205",
+   "title": "Practical Physics III",
+   "type": "lab",
+   "status": "current",
+   "kicker": "Laboratory course",
+   "summary": "Experimental design, data interpretation, and uncertainty evaluation.",
+   "page": "laboratory.html#phys205-t",
+   "button_label": "Laboratory Resources"
+  }
+ ]
+}

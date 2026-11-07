@@ -1,0 +1,6 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
+<title>Message catalogue preview</title>
+<style>body{font:16px/1.4 system-ui,sans-serif;max-width:640px;margin:0 auto;padding:16px}li{padding:8px 0;border-bottom:1px solid #ccc}b{display:inline-block;width:3em}</style></head>
+<body><h1>Student message catalogue</h1><p>Preview of assets/messages.js. Not linked from the site.</p><ul id="l"></ul>
+<script src="../assets/messages.js"></script>
+<script>var l=document.getElementById("l");Object.keys(PHYSMSG.all).forEach(function(k){var li=document.createElement("li");li.innerHTML="<b>"+k+"</b> ";li.appendChild(document.createTextNode(PHYSMSG.text(k)+" ["+PHYSMSG.action(k)+"]"));l.appendChild(li)})</script></body></html>

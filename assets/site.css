@@ -995,3 +995,124 @@ body.focus header.banner,body.focus nav.jump,body.focus .crumb,body.focus main h
 body.focus main{padding-top:1.2rem}
 .fun-line{text-align:center;font:700 1.5rem Georgia,serif;color:var(--brown);margin:.2rem 0 1rem}
 @media (prefers-color-scheme:dark){.fun-line{color:#e9c9a8}}
+
+/* ===== Teaching page: modern, simple layout (scoped to body.page-teaching) ===== */
+.page-teaching main{padding-top:2rem}
+.page-teaching main>.wrap>h2#teaching{border:0;padding:0;margin:0 0 .25rem;font-size:clamp(2rem,5vw,2.8rem);letter-spacing:-.02em;line-height:1.1}
+.page-teaching main>.wrap>.sec-sub{font-size:1.1rem;margin-bottom:1.75rem;max-width:40rem}
+.page-teaching [data-file="teaching"]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1.25rem;align-items:stretch}
+.page-teaching [data-file="teaching"]>section{display:flex;flex-direction:column;min-width:0}
+.page-teaching [data-file="teaching"]>section:first-child{grid-column:1/-1}
+.page-teaching h3.sub2{border:0;padding:0;margin:0 0 .6rem;font:700 .78rem/1.3 system-ui,sans-serif;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.page-teaching .card{border:1px solid var(--border);border-radius:16px;box-shadow:0 2px 6px rgba(31,58,104,.07),0 12px 28px -12px rgba(31,58,104,.18);flex:1;max-width:none}
+.page-teaching .primary-card{border:0;color:#fff;background:linear-gradient(135deg,#1F3A68 0%,#2c5191 100%);position:relative;overflow:hidden}
+.page-teaching .primary-card::after{content:"";position:absolute;right:-70px;top:-70px;width:260px;height:260px;border-radius:50%;background:rgba(255,255,255,.07);pointer-events:none}
+.page-teaching .primary-card .body{padding:clamp(1.4rem,4vw,2.2rem);position:relative;z-index:1;max-width:44rem}
+.page-teaching .primary-card .num{color:#F2C9A0}
+.page-teaching .primary-card h4{color:#fff;font-size:clamp(2rem,6vw,2.9rem);letter-spacing:-.02em}
+.page-teaching .primary-card .pc-sub{color:#d6e3f7;font-size:1.2rem}
+.page-teaching .primary-card .learn{color:#eef3fb;font-size:1.05rem;line-height:1.6}
+.page-teaching .primary-card .btn.primary{background:#fff;color:#16294b;border-color:#fff;border-radius:999px;font-size:1rem;width:fit-content;padding:.5rem 1.5rem}
+.page-teaching .primary-card .btn.primary:hover{background:#F2C9A0;border-color:#F2C9A0;color:#16294b}
+.page-teaching .primary-card .btns{display:flex;margin-top:.6rem}
+.page-teaching .primary-card .btn[style]{grid-column:auto!important}
+.page-teaching .secondary-card{border-top-width:1px}
+.page-teaching .secondary-card .body{padding:1.4rem 1.5rem 1.5rem}
+.page-teaching .secondary-card h4{font-size:1.35rem;letter-spacing:-.01em}
+.page-teaching .secondary-card .btns{margin-top:auto;display:flex}
+.page-teaching .secondary-card .btn{border-radius:999px;padding:.45rem 1.4rem;width:fit-content}
+.page-teaching .arrows{max-width:none;grid-template-columns:1fr;gap:.55rem;margin:0}
+.page-teaching .arrows li{border:1px solid var(--border);border-left:1px solid var(--border);border-radius:12px;padding:.75rem 1rem;box-shadow:0 1px 3px rgba(31,58,104,.06)}
+.page-teaching [aria-labelledby="research-informed"]>.sec-sub{font-size:.95rem;margin-bottom:.8rem}
+.page-teaching .disclaimer{margin-top:2.5rem;font-size:.9rem;color:var(--muted)}
+@media (max-width:720px){.page-teaching [data-file="teaching"]{grid-template-columns:1fr}.page-teaching .primary-card .btn.primary{width:100%}.page-teaching .secondary-card .btn{width:100%}}
+@media (prefers-color-scheme:dark){.page-teaching .card{box-shadow:none}.page-teaching .primary-card{background:linear-gradient(135deg,#16294b 0%,#7A4A2A 160%)}}
+.page-teaching [data-file="teaching"]>section[aria-labelledby="login"]{grid-column:1/-1}
+.page-teaching [aria-labelledby="login"] .ov-card{padding:.7rem 1.4rem;border-radius:999px;border:1px solid var(--border);border-top-width:1px;box-shadow:0 1px 3px rgba(31,58,104,.06)}
+.page-teaching [aria-labelledby="login"] p{margin:0}
+.page-teaching [aria-labelledby="login"] a{font:600 1rem system-ui,sans-serif;text-decoration:none}
+.page-teaching [aria-labelledby="login"] a::after{content:" \2192"}
+@media (max-width:720px){.page-teaching [data-file="teaching"]>section[aria-labelledby="research-informed"]{order:0}}
+/* Teaching page: compact secondary card, slim login row, small disclaimer */
+.page-teaching .secondary-card{flex:0 0 auto;align-self:start;margin-top:.8rem}
+.page-teaching .secondary-card .body{padding:.8rem 1rem}
+.page-teaching .secondary-card h4{font-size:1.05rem;margin:0 0 .25rem}
+.page-teaching .secondary-card .learn{font-size:.9rem;line-height:1.45;margin:0 0 .5rem}
+.page-teaching .secondary-card .btns{margin-top:.3rem}
+.page-teaching .secondary-card .btn{font-size:.85rem;padding:.25rem .9rem}
+.page-teaching [aria-labelledby="login"] .ov-card{padding:.3rem .9rem}
+.page-teaching [aria-labelledby="login"] a{font-size:.9rem;min-height:0;line-height:1.6}
+.page-teaching .disclaimer{margin-top:1.2rem;font-size:.78rem;line-height:1.4}
+.page-teaching .disclaimer .sakai{padding:.35rem 1rem}
+/* Teaching page order: lecture course, then laboratory and research side by side, then live-session tools, then login */
+.page-teaching .secondary-card{margin-top:0;max-width:none}
+.page-teaching [data-file="teaching"]{gap:1.1rem 1.25rem}
+.page-teaching [data-file="teaching"]>section[aria-labelledby="live-session-tools"]{grid-column:1/-1}
+.page-teaching [data-file="teaching"]>section[aria-labelledby="live-session-tools"] .secondary-card{max-width:30rem}
+.page-teaching .disclaimer{margin-top:1.5rem}
+/* Teaching page: single-column flow in Hope's section order */
+.page-teaching [data-file="teaching"]{display:block}
+.page-teaching [data-file="teaching"]>section{margin:0 0 2rem}
+.page-teaching [data-file="teaching"]>section>.sec-sub{margin:0 0 .8rem;max-width:44rem}
+.page-teaching [data-file="teaching"]>section>ul:not(.arrows){margin:0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:.55rem;font:1rem/1.4 system-ui,sans-serif}
+.page-teaching [data-file="teaching"]>section>ul:not(.arrows)>li{margin:0;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:.65rem .9rem;box-shadow:0 1px 3px rgba(31,58,104,.06)}
+.page-teaching .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:1.1rem;align-items:start}
+.page-teaching .grid .card,.page-teaching .primary-card{max-width:none}
+.page-teaching .grid .primary-card .body,.page-teaching .secondary-card .body{padding:1.2rem 1.3rem 1.3rem}
+.page-teaching .primary-card h4{font-size:1.6rem}
+.page-teaching .secondary-card{margin-top:0;align-self:stretch}
+.page-teaching .secondary-card h4{font-size:1.4rem;margin:.1rem 0 0}
+.page-teaching .secondary-card .learn,.page-teaching .primary-card .learn{font-size:.98rem;line-height:1.55;margin:.4rem 0 .6rem}
+.page-teaching .card .res-h{margin:.8rem 0 .3rem;font:700 .75rem/1.3 system-ui,sans-serif;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.page-teaching .primary-card .res-h{color:#F2C9A0}
+.page-teaching .card .body>ul{margin:0;padding-left:1.1rem;font:.95rem/1.5 system-ui,sans-serif}
+.page-teaching .primary-card .body>ul,.page-teaching .primary-card .body>ul a{color:#fff}
+.page-teaching .ov-card ul{padding-left:1.1rem;margin:.3rem 0 0;font:.98rem/1.55 system-ui,sans-serif}
+.page-teaching [data-file="teaching"]>section[aria-labelledby="learning-resources"] .ov-grid{grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}
+.page-teaching .ov-ref{font-size:1rem}
+.page-teaching .ov-ref td,.page-teaching .ov-ref th{padding:.55rem .7rem}
+.page-teaching [data-file="teaching"]>section:not([aria-labelledby]){margin:0 0 .8rem}
+.page-teaching [data-file="teaching"]>section:not([aria-labelledby]) .card{margin:0;max-width:34rem}
+.page-teaching [data-file="teaching"]>section:not([aria-labelledby]) .ov-card{padding:.7rem 1.2rem;border-radius:999px;max-width:34rem}
+.page-teaching [data-file="teaching"]>section:not([aria-labelledby]) .ov-card p{margin:0}
+.page-teaching [data-file="teaching"]>section:not([aria-labelledby]) .ov-card a{font:600 1rem system-ui,sans-serif;text-decoration:none}
+.page-teaching [data-file="teaching"]>section:not([aria-labelledby]) .ov-card a::after{content:" \2192"}
+@media (max-width:720px){.page-teaching .grid{grid-template-columns:1fr}}
+.page-teaching [data-file="teaching"]>section:not([aria-labelledby]){margin:0 0 .8rem}
+.page-teaching [data-file="teaching"]>section:not([aria-labelledby]):last-of-type,.page-teaching [data-file="teaching"]>section:not([aria-labelledby])+section[aria-labelledby]{margin-top:2rem}
+.page-teaching [data-file="teaching"]>section:not([aria-labelledby]) .secondary-card{max-width:34rem;flex:0 0 auto}
+.page-teaching [data-file="teaching"]>section:not([aria-labelledby]) .secondary-card .body{padding:.9rem 1.1rem}
+.page-teaching [data-file="teaching"]>section:not([aria-labelledby]) .ov-card{border-top-width:1px}
+/* Teaching page: portfolio layout (research-informed first, three philosophy cards, four compact course cards) */
+.page-teaching [data-file="teaching"]>section{margin:0 0 2.2rem}
+.page-teaching [data-file="teaching"]>section[aria-labelledby="teaching-philosophy"] .ov-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem}
+.page-teaching [aria-labelledby="teaching-philosophy"] .ov-card h4{margin:0 0 .35rem;font-size:1.05rem}
+.page-teaching [aria-labelledby="teaching-philosophy"] .ov-card p{margin:0;font:.95rem/1.5 system-ui,sans-serif}
+.page-teaching [aria-labelledby="lecture-courses"] .grid{gap:1rem;align-items:stretch}
+.page-teaching [aria-labelledby="lecture-courses"] .card .body{padding:1rem 1.2rem 1.1rem;display:flex;flex-direction:column;height:100%}
+.page-teaching [aria-labelledby="lecture-courses"] .card h4{font-size:1.4rem;margin:.1rem 0 0}
+.page-teaching [aria-labelledby="lecture-courses"] .card .pc-sub{font-size:1rem;margin:.1rem 0 .4rem}
+.page-teaching [aria-labelledby="lecture-courses"] .card .learn{font-size:.95rem;margin:0 0 .8rem}
+.page-teaching [aria-labelledby="lecture-courses"] .card .btns{margin-top:auto}
+@media (max-width:720px){.page-teaching [data-file="teaching"]>section[aria-labelledby="teaching-philosophy"] .ov-grid{grid-template-columns:1fr}.page-teaching [data-file="teaching"]>section>ul:not(.arrows){grid-template-columns:1fr}}
+/* Teaching page: restrained, uniform styling */
+.page-teaching [aria-labelledby="lecture-courses"] .primary-card{background:var(--surface);color:inherit;border:1px solid var(--border);box-shadow:none}
+.page-teaching [aria-labelledby="lecture-courses"] .primary-card::after{display:none}
+.page-teaching [aria-labelledby="lecture-courses"] .primary-card h4{color:inherit;font-size:1.4rem}
+.page-teaching [aria-labelledby="lecture-courses"] .primary-card .num{color:var(--muted)}
+.page-teaching [aria-labelledby="lecture-courses"] .primary-card .pc-sub{color:var(--muted);font-size:1rem}
+.page-teaching [aria-labelledby="lecture-courses"] .primary-card .learn{color:inherit;font-size:.95rem}
+.page-teaching [aria-labelledby="lecture-courses"] .card{box-shadow:none;border-radius:8px}
+.page-teaching [aria-labelledby="lecture-courses"] .card .btn,.page-teaching [aria-labelledby="lecture-courses"] .primary-card .btn.primary{border-radius:6px;font-size:.88rem;padding:.35rem .9rem;background:transparent;color:var(--link,#1F3A68);border:1px solid var(--border);width:fit-content}
+.page-teaching .ov-card,.page-teaching [data-file="teaching"]>section>ul:not(.arrows)>li{border-radius:8px;box-shadow:none}
+.page-teaching [aria-labelledby="student-resources"] ul{grid-template-columns:repeat(auto-fill,minmax(180px,max-content))}
+/* Teaching page: clean two-column themes table */
+.page-teaching [aria-labelledby="research-informed"] .ov-card{padding:0;overflow:hidden;border-radius:8px;border:1px solid var(--border);border-top-width:1px;box-shadow:none}
+.page-teaching [aria-labelledby="research-informed"] .ov-ref{margin:0;border-collapse:collapse;table-layout:fixed;font:1rem/1.5 system-ui,sans-serif}
+.page-teaching [aria-labelledby="research-informed"] .ov-ref th,.page-teaching [aria-labelledby="research-informed"] .ov-ref td{padding:.8rem 1.25rem;border:0;border-bottom:1px solid var(--border);vertical-align:middle;text-align:left}
+.page-teaching [aria-labelledby="research-informed"] .ov-ref thead th{background:rgba(31,58,104,.05);font:700 .78rem/1.3 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.page-teaching [aria-labelledby="research-informed"] .ov-ref tbody td:first-child{font-weight:600;width:38%}
+.page-teaching [aria-labelledby="research-informed"] .ov-ref tbody tr:last-child td{border-bottom:0}
+@media (prefers-color-scheme:dark){.page-teaching [aria-labelledby="research-informed"] .ov-ref thead th{background:rgba(255,255,255,.05)}}
+@media (max-width:720px){.page-teaching [aria-labelledby="research-informed"] .ov-ref th,.page-teaching [aria-labelledby="research-informed"] .ov-ref td{padding:.7rem .9rem}.page-teaching [aria-labelledby="research-informed"] .ov-ref tbody td:first-child{width:42%}}
+.page-teaching main>.wrap>h2#teaching{margin-bottom:1.5rem}
