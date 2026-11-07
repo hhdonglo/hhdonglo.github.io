@@ -110,10 +110,11 @@ function draw(d){
 }
 var lastLink="";
 function drawQr(t){
- if(!t||t===lastLink)return;lastLink=t;
+ if(!t){lastLink="";$("a-qr").innerHTML='<span style="display:block;padding:1.2rem;color:#b3261e;font:700 1.1rem/1.4 system-ui,sans-serif;text-align:left">No QR token received from the Apps Script. The deployed script is the old version. Paste the new quiz_receiver.gs, Save, then Deploy &gt; Manage deployments &gt; edit &gt; New version, and reload this page.</span>';return}
+ if(t===lastLink)return;lastLink=t;
  try{var q=qrcode(0,"M");q.addData("https://hhdonglo.github.io/phys143-attend.html?t="+t);q.make();
   $("a-qr").innerHTML=q.createSvgTag({cellSize:8,margin:0,scalable:true});
-  var s=$("a-qr").firstChild;if(s){s.setAttribute("width","100%");s.setAttribute("height","100%")}}catch(x){$("a-qr").textContent="QR failed: type hhdonglo.github.io/phys143-attend.html?t="+t}
+  var s=$("a-qr").firstChild;if(s){s.setAttribute("width","100%");s.setAttribute("height","100%")}}catch(x){lastLink="";$("a-qr").innerHTML='<span style="display:block;padding:1.2rem;color:#b3261e;font:700 1.1rem/1.4 system-ui,sans-serif">The QR code could not be drawn ('+String(x&&x.message||x).replace(/</g,"")+'). Reload the page; if it persists, check that assets/qrcode.js loads.</span>'}
 }
 function tickDraw(){
  var r=left-Math.floor((Date.now()-stamp)/1000);
