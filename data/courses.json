@@ -8,42 +8,59 @@
    "type": "lecture",
    "status": "current",
    "kicker": "Lecture course",
-   "summary": "Twelve lectures following Young and Freedman, *University Physics*, each with a slide deck, a tutorial sheet, a supplementary note and practice questions.",
-   "page": "phys143.html",
-   "button_label": "Overview →"
+   "summary": "Core concepts in classical mechanics and thermal physics, supported by lecture notes, tutorials, supplementary resources, and practice questions.",
+   "resources": [
+    "[Course overview](phys143.html)",
+    "[Lecture slides](phys143.html#weekly)",
+    "[Tutorial sheets](phys143.html#weekly)",
+    "[Supplementary notes](phys143.html#weekly)",
+    "[Practice questions](phys143.html#weekly)"
+   ]
   },
   {
    "id": "phys105",
    "code": "PHYS 105",
-   "title": "Practical Physics",
+   "title": "Practical Physics I",
    "type": "lab",
    "status": "current",
    "kicker": "Laboratory course",
-   "summary": "Laboratory resources and uncertainty analysis lectures.",
-   "page": "laboratory.html#phys105",
-   "button_label": "Open Laboratory Resources →"
+   "summary": "Introduction to experimental physics, measurement techniques, uncertainty analysis, and scientific reporting.",
+   "resources": [
+    "Laboratory guides",
+    "[Measurement and uncertainty analysis](uncertainty.html)",
+    "Data recording and analysis",
+    "Excel-based activities"
+   ]
   },
   {
    "id": "phys106",
    "code": "PHYS 106",
-   "title": "Practical Physics",
+   "title": "Practical Physics II",
    "type": "lab",
    "status": "current",
    "kicker": "Laboratory course",
-   "summary": "Laboratory resources and uncertainty analysis lectures.",
-   "page": "laboratory.html#phys106",
-   "button_label": "Open Laboratory Resources →"
+   "summary": "Development of experimental techniques and quantitative data analysis skills in physics laboratories.",
+   "resources": [
+    "Laboratory guides",
+    "Experimental methods",
+    "Data analysis exercises",
+    "Scientific reporting resources"
+   ]
   },
   {
    "id": "phys205",
    "code": "PHYS 205",
-   "title": "Practical Physics",
+   "title": "Practical Physics III",
    "type": "lab",
    "status": "current",
    "kicker": "Laboratory course",
-   "summary": "Laboratory resources and uncertainty analysis lectures.",
-   "page": "laboratory.html#phys205",
-   "button_label": "Open Laboratory Resources →"
+   "summary": "Advanced laboratory investigations emphasizing experimental design, data interpretation, and uncertainty evaluation.",
+   "resources": [
+    "Laboratory guides",
+    "Advanced experimental techniques",
+    "Statistical analysis",
+    "Scientific communication"
+   ]
   }
  ]
 }
