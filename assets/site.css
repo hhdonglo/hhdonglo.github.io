@@ -1115,3 +1115,4 @@ body.focus main{padding-top:1.2rem}
 .page-teaching [aria-labelledby="research-informed"] .ov-ref tbody tr:last-child td{border-bottom:0}
 @media (prefers-color-scheme:dark){.page-teaching [aria-labelledby="research-informed"] .ov-ref thead th{background:rgba(255,255,255,.05)}}
 @media (max-width:720px){.page-teaching [aria-labelledby="research-informed"] .ov-ref th,.page-teaching [aria-labelledby="research-informed"] .ov-ref td{padding:.7rem .9rem}.page-teaching [aria-labelledby="research-informed"] .ov-ref tbody td:first-child{width:42%}}
+.page-teaching main>.wrap>h2#teaching{margin-bottom:1.5rem}
