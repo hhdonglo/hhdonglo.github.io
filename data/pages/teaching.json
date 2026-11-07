@@ -1,11 +1,10 @@
 {
   "title": "Teaching",
-  "subtitle": "I teach physics and laboratory courses at the University of Ghana, connecting foundational ideas to the methods I use in nuclear reaction research.",
+  "subtitle": "My teaching is centred on foundations, investigation, and discovery. I seek to develop deep conceptual understanding, cultivate quantitative and computational thinking, and prepare students to engage in scientific inquiry and knowledge creation.",
   "sections": [
     {
       "id": "research-informed",
       "heading": "Research-Informed Teaching",
-      "subtitle": "Foundational topics are taught with the research questions they lead to.",
       "cards": [
         {
           "style": "plain",
@@ -44,23 +43,23 @@
       "cards": [
         {
           "style": "plain",
-          "title": "Conceptual Understanding",
+          "title": "Foundations",
           "paragraphs": [
-            "Physical ideas first, then the mathematics that expresses them."
+            "Building strong conceptual and mathematical foundations for advanced study."
           ]
         },
         {
           "style": "plain",
-          "title": "Experimental and Quantitative Reasoning",
+          "title": "Investigation",
           "paragraphs": [
-            "Modelling, measurement and uncertainty analysis in every problem."
+            "Using modelling, experimentation, computation, and quantitative reasoning to explore physical systems."
           ]
         },
         {
           "style": "plain",
-          "title": "Computational and Research-Oriented Learning",
+          "title": "Discovery",
           "paragraphs": [
-            "Computing as a tool for solving physical problems, linked to current research."
+            "Preparing students to contribute to knowledge creation through research and scientific inquiry."
           ]
         }
       ]
@@ -73,10 +72,10 @@
     },
     {
       "id": "student-resources",
-      "heading": "Student Resources",
+      "heading": "Course Resources",
       "bullets": [
-        "[Student Portal](phys143-portal.html)",
-        "[Login](phys143-lecturer.html)"
+        "[PHYS 143 Portal: check-in and practice quiz](phys143-portal.html)",
+        "[Lecturer Login](phys143-lecturer.html)"
       ]
     }
   ]

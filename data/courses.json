@@ -8,9 +8,9 @@
    "type": "lecture",
    "status": "current",
    "kicker": "Lecture course",
-   "summary": "Lectures, tutorials, supplementary notes and practice questions in mechanics and thermal physics.",
+   "summary": "Lectures, tutorials, supplementary notes, and practice questions in mechanics and thermal physics.",
    "page": "phys143.html",
-   "button_label": "Course page"
+   "button_label": "Course Page"
   },
   {
    "id": "phys105",
@@ -19,9 +19,9 @@
    "type": "lab",
    "status": "current",
    "kicker": "Laboratory course",
-   "summary": "An introduction to experimental physics, measurement and uncertainty analysis.",
+   "summary": "An introduction to experimental physics, measurement, and uncertainty analysis.",
    "page": "laboratory.html#phys105-t",
-   "button_label": "Laboratory page"
+   "button_label": "Laboratory Resources"
   },
   {
    "id": "phys106",
@@ -30,9 +30,9 @@
    "type": "lab",
    "status": "current",
    "kicker": "Laboratory course",
-   "summary": "Experimental techniques and quantitative data analysis in the laboratory.",
+   "summary": "Experimental techniques and quantitative data analysis in laboratory investigations.",
    "page": "laboratory.html#phys106-t",
-   "button_label": "Laboratory page"
+   "button_label": "Laboratory Resources"
   },
   {
    "id": "phys205",
@@ -41,9 +41,9 @@
    "type": "lab",
    "status": "current",
    "kicker": "Laboratory course",
-   "summary": "Experimental design, data interpretation and uncertainty evaluation.",
+   "summary": "Experimental design, data interpretation, and uncertainty evaluation.",
    "page": "laboratory.html#phys205-t",
-   "button_label": "Laboratory page"
+   "button_label": "Laboratory Resources"
   }
  ]
 }
