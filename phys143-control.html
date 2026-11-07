@@ -57,6 +57,9 @@ body.focus main{padding-top:0}
  <div class="grid">
   <section class="panel"><h3>Today's lecture</h3>
    <p id="t-lec"><b>Loading</b></p>
+   <label for="t-week" class="note">Week to teach (the student portal follows this)</label>
+   <select id="t-week" style="min-height:44px;font-size:1rem;max-width:100%"><option value="0">Default from data/portal.json</option></select>
+   <p class="note" id="t-wmsg" role="status"></p>
    <p class="note" style="margin:0">Join code (shown to the lecturer only)</p>
    <p class="code" id="t-code">&nbsp;</p>
    <p class="note">The code is 2627 followed by the week number. Show it in class; never show this page.</p>
@@ -87,7 +90,7 @@ body.focus main{padding-top:0}
 (function(){
 "use strict";
 var SCRIPT_URL="https://script.google.com/macros/s/AKfycbzso5-FCU4erf_grbktH-AH-RKaPDap7TfJAw_TOSxNarTrJDe-PgyBzgIH7Fj2fjZ3/exec";
-var EXPECT_VERSION="2026-11-07-portal-1"; // must equal SCRIPT_VERSION in apps_script/quiz_receiver.gs
+var EXPECT_VERSION="2026-11-07-portal-2"; // must equal SCRIPT_VERSION in apps_script/quiz_receiver.gs
 var $=function(i){return document.getElementById(i)};
 var KEY="";try{KEY=sessionStorage.getItem("phys143_hk")||""}catch(x){}
 if(!KEY){location.replace("phys143-lecturer.html");return}
@@ -124,14 +127,34 @@ function poll(){
 }
 poll();setInterval(poll,4000);
 // ---- today's lecture ----
-var WEEK=null;
+var WEEK=null,CFGP=null;
+function showWeek(){
+ if(!CFGP||!WEEK)return;
+ $("t-lec").innerHTML="<b>Week "+esc(WEEK)+", Lecture "+esc(WEEK)+": "+esc(CFGP.lectures[WEEK]||"")+"</b><br><span class='note'>"+esc(CFGP.contacts)+"</span>";
+ $("t-code").textContent="2627"+WEEK;
+ if(CFGP.handouts[WEEK]){$("t-hand").href=CFGP.handouts[WEEK];$("t-hand").hidden=false}else $("t-hand").hidden=true;
+}
+function loadWeek(){
+ jsonp("action=portal_status",function(d){
+  var chosen=(d&&d.portal===1&&d.week>=1)?d.week:0;
+  WEEK=chosen||(CFGP&&CFGP.currentWeek);
+  $("t-week").value=String(chosen);
+  $("t-wmsg").textContent=chosen?"Chosen by you in this Control Centre.":(d&&d.portal===1?"Using the default in data/portal.json.":"The script is not updated, so the week cannot be changed here. Using data/portal.json.");
+  showWeek();
+ });
+}
 (function(){var x=new XMLHttpRequest();x.open("GET","data/portal.json?_="+Date.now());
- x.onload=function(){try{var c=JSON.parse(x.responseText);WEEK=c.currentWeek;
-  $("t-lec").innerHTML="<b>Week "+esc(WEEK)+", Lecture "+esc(WEEK)+": "+esc(c.lectures[WEEK]||"")+"</b><br><span class='note'>"+esc(c.contacts)+"</span>";
-  $("t-code").textContent="2627"+WEEK;
-  if(c.handouts[WEEK]){$("t-hand").href=c.handouts[WEEK];$("t-hand").hidden=false}
- }catch(e){$("t-lec").textContent="Could not read data/portal.json."}};
+ x.onload=function(){try{CFGP=JSON.parse(x.responseText)}catch(e){$("t-lec").textContent="Could not read data/portal.json.";return}
+  for(var i=1;i<=12;i++){var o=document.createElement("option");o.value=i;o.textContent="Week "+i+": "+(CFGP.lectures[i]||"");$("t-week").appendChild(o)}
+  WEEK=CFGP.currentWeek;showWeek();loadWeek()};
  x.onerror=function(){$("t-lec").textContent="Could not read data/portal.json."};x.send()})();
+$("t-week").addEventListener("change",function(){
+ var w=$("t-week").value;$("t-wmsg").textContent="Saving.";
+ jsonp("action=set_week&w="+encodeURIComponent(w)+"&"+hk(),function(d){
+  if(!d||d.ok!==true){$("t-wmsg").textContent="Not saved: "+(d&&d.why?d.why:"no answer or script not updated")+".";return}
+  loadWeek();
+ });
+});
 // ---- pre-class check ----
 function line(c,t){return'<li class="'+c+'"><b aria-hidden="true">'+(c==="ok"?"&#10003;":(c==="am"?"!":"&times;"))+'</b><span>'+t+'</span></li>'}
 $("k-run").addEventListener("click",function(){
