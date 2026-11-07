@@ -45,7 +45,7 @@ function mailReport_(sh, r) {
     var where = 'tab "' + sh.getName() + '", row ' + row; // no sheet link in the email, so a forwarded or quoted copy never carries it
     MailApp.sendEmail(NOTIFY_EMAIL, 'PHYS 143 report: ' + r.lecture + ', ' + r.qid,
       'A student reported a problem.\n\nTime: ' + r.time + '\nPage: ' + r.page + '\nLecture: ' + r.lecture + '\nQuestion id: ' + r.qid +
-      '\nQuestion: ' + r.question + '\nAnswer shown: ' + r.answer + '\n\nComment:\n' + r.comment + '\n\nWhere to find it: ' + where + ' (open your Sheet from Google Drive).', {name: 'PHYS 143 reports', noReply: true});
+      '\nQuestion: ' + r.question + '\nAnswer shown: ' + r.answer + '\n\nComment:\n' + r.comment + '\n\nWhere to find it: ' + where + ' (open your Sheet from Google Drive).');
     status = 'email sent';
   } catch (err) {
     status = 'email failed: ' + String(err).slice(0, 200); // the row is already saved; show why the email failed
