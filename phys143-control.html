@@ -74,6 +74,11 @@ body.focus main{padding-top:0}
    <p class="note">Opens the attendance controls here. For the projector, use "Open in its own window", move that window to the projector and keep this one on your laptop. Closing asks you to confirm.</p>
    <button class="go" type="button" data-panel="p-att" data-embed="e-att" data-src="phys143-attendance.html">Show attendance here</button>
    <a class="go alt" href="phys143-attendance.html" target="_blank" rel="noopener">Open in its own window</a>
+   <p class="note">Attendance held until you submit it. Nothing is written to the Attendance sheet before then.</p>
+   <ul id="h-list"><li class="note">Checking.</li></ul>
+   <button class="go" type="button" id="h-sa">Submit attendance</button>
+   <button class="go alt" type="button" id="h-da">Discard unsubmitted attendance</button>
+   <p class="note" id="h-msg" role="status"></p>
    <div id="e-att"></div>
   </section>
   <section class="panel wide"><h3>Live quiz</h3>
@@ -81,16 +86,12 @@ body.focus main{padding-top:0}
    <button class="go" type="button" data-embed="e-quiz" data-src="phys143-quiz-host.html">Show quiz controls here</button>
    <a class="go alt" href="phys143-quiz-host.html" target="_blank" rel="noopener">Open in its own window</a>
    <a class="go alt" href="phys143-quiz-display.html" target="_blank" rel="noopener">Open projector display</a>
-   <div id="e-quiz"></div>
-  </section>
-  <section class="panel wide"><h3>Held results</h3>
-   <p class="note">Nothing a student sends is written to Form Responses 1, Master, Scores, Totals or Attendance until you release it here. Held results stay private on the sheet. Master keeps every released score for the semester; releasing the same week again updates that student's cell and never touches earlier weeks.</p>
-   <ul id="h-list"><li class="note">Checking.</li></ul>
+   <p class="note">Quiz results are held until you release them. Nothing a student sends is written to Form Responses 1, Master, Scores or Totals before then. Master keeps every released score for the semester; releasing the same week again updates that student's cell and never touches earlier weeks.</p>
+   <ul id="h-ql"><li class="note">Checking.</li></ul>
    <button class="go" type="button" id="h-rq">Release held quiz results</button>
    <button class="go alt" type="button" id="h-dq">Discard held quiz results</button>
-   <button class="go" type="button" id="h-sa">Submit attendance</button>
-   <button class="go alt" type="button" id="h-da">Discard unsubmitted attendance</button>
-   <p class="note" id="h-msg" role="status"></p>
+   <p class="note" id="h-qmsg" role="status"></p>
+   <div id="e-quiz"></div>
   </section>
   <section class="panel"><h3>After class</h3>
    <ul id="x-list"><li class="note">Attendance summary appears here.</li></ul>
@@ -194,22 +195,23 @@ $("k-run").addEventListener("click",function(){
 // ---- held results: released only when the lecturer says so ----
 function heldLoad(){
  jsonp("action=held_status&"+hk(),function(d){
-  if(!d||d.ok!==true){$("h-list").innerHTML='<li class="note">'+esc(d&&d.why?d.why:"No answer. If the script is old, paste the new one and deploy a new version.")+'</li>';return}
-  var L=["<li><span>Quiz results held: "+d.quiz+"</span></li>"];
+  if(!d||d.ok!==true){var m='<li class="note">'+esc(d&&d.why?d.why:"No answer. If the script is old, paste the new one and deploy a new version.")+'</li>';$("h-list").innerHTML=m;$("h-ql").innerHTML=m;return}
+  $("h-ql").innerHTML="<li><span>Quiz results held: "+d.quiz+"</span></li>";
+  var L=[];
   if(d.sessions.length)d.sessions.forEach(function(x){L.push("<li><span>Attendance held, session "+esc(x.label)+": "+x.present+" checked in</span></li>")});
   else L.push("<li><span>Attendance held: none</span></li>");
   $("h-list").innerHTML=L.join("");
  });
 }
-function heldDo(act,ask,okMsg){
+function heldDo(act,ask,okMsg,mid){mid=mid||"h-msg";
  if(!window.confirm(ask))return;
- $("h-msg").textContent="Working.";
+ $(mid).textContent="Working.";
  jsonp("action="+act+"&"+hk(),function(d){
-  $("h-msg").textContent=(!d||d.ok!==true)?"Not done: "+(d&&d.why?d.why:"no answer"):okMsg(d);heldLoad();
+  $(mid).textContent=(!d||d.ok!==true)?"Not done: "+(d&&d.why?d.why:"no answer"):okMsg(d);heldLoad();
  },30000);
 }
-$("h-rq").addEventListener("click",function(){heldDo("held_release_quiz","Release all held quiz results into the sheets now? Master, Scores and Totals are updated.",function(d){return "Released "+d.released+" quiz result(s)."})});
-$("h-dq").addEventListener("click",function(){heldDo("held_discard_quiz","Discard all held quiz results? This cannot be undone.",function(d){return "Discarded "+d.discarded+" held result(s)."})});
+$("h-rq").addEventListener("click",function(){heldDo("held_release_quiz","Release all held quiz results into the sheets now? Master, Scores and Totals are updated.",function(d){return "Released "+d.released+" quiz result(s)."},"h-qmsg")});
+$("h-dq").addEventListener("click",function(){heldDo("held_discard_quiz","Discard all held quiz results? This cannot be undone.",function(d){return "Discarded "+d.discarded+" held result(s)."},"h-qmsg")});
 $("h-sa").addEventListener("click",function(){heldDo("attend_submit","Submit attendance? Every rostered student not checked in is recorded as 0.",function(d){return "Attendance submitted: "+(d.submitted||[]).join(", ")+"."})});
 $("h-da").addEventListener("click",function(){heldDo("attend_discard","Discard the closed attendance session and its check-ins? This cannot be undone.",function(d){return "Discarded "+d.discarded+" session(s), "+d.checkins+" check-in(s)."})});
 heldLoad();setInterval(heldLoad,15000);
