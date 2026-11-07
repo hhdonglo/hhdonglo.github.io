@@ -87,3 +87,20 @@ The **Scores** tab is the clean grid: Student ID in column A, then Total, Out of
 - **To go live:** paste `apps_script/quiz_receiver.gs` into Apps Script, Save, Deploy > Manage deployments > edit > New version; merge the site change at the same time. Hard-refresh the host page (Cmd+Shift+R) so it is not a cached copy.
 - **Test before class:** start a session from your phone in the room; scan the QR code with a second phone in the room and check in with your own ID (should succeed, Location "ok"); then try the same link two minutes later (should say it expired), and try from outside the building or with location off (should be refused). If phones in the back row are refused, choose 1 km, or set `ATT_GEO_MODE = 'flag'`, Save and Deploy > New version.
 - **What it stops:** a link passed to someone away from the classroom (about 500 m or more) and any link older than about 90 seconds. **What it cannot stop:** a classmate in or near the room sending a freshly scanned link (or a photo of the screen) within that window; a phone with a faked location (easy on Android); a student in the corridor or next block within the radius; in-app QR browsers that block location (students must open the link in Chrome or Safari).
+
+## Portal and Control Centre (script additions)
+
+Script change, backward compatible: new actions `version`, `portal_status`, `my_results` and `preclass` (host key). No existing action changed. To use them: paste `apps_script/quiz_receiver.gs`, Save, Deploy > Manage deployments > edit > **New version**. If the script is not redeployed, the portal shows "Live status is not available" and the Control Centre shows a red version check.
+
+- `SCRIPT_VERSION` in the script and `EXPECT_VERSION` in `phys143-control.html` must match. Change both when the script changes.
+- Key!M2 = Off hides "My results" from students (default On). `data/portal.json` `showMyResults: false` hides it on the page.
+- Edit `currentWeek` in `data/portal.json` each week.
+- `my_results` sends the student ID in the URL of a GET, as check-in does today. Moving both to POST is on the roadmap.
+
+## Setting up a separate test sheet and script (for trying releases)
+
+1. In Google Drive, File > Make a copy of "PHYS 143 Quizzes (Responses)". Name the copy "PHYS 143 TEST". In the copy delete all rows of student data, then put a few fake IDs (for example 10000001 to 10000010) in the Roster tab.
+2. Open Extensions > Apps Script from the copy (the script is bound to the copy and is a separate project). Paste `quiz_receiver.gs`, Save, run `setup()` once, then Deploy > New deployment > Web app (Execute as: Me; Who has access: Anyone). Copy the new web app URL.
+3. Set a different host key in the copy's Key tab (J2) using the host page. Never reuse the live key.
+4. Copy a page you want to test, or add `?script=<test URL>` support in a later change; until then, test by temporarily editing `SCRIPT_URL` in a local copy of the page. Never commit the test URL into the live pages.
+5. Run the checklist in `ATTENDANCE_ARCHITECTURE.md` against the test sheet on two phones. Only then paste the same script into the live project and Deploy > New version.
