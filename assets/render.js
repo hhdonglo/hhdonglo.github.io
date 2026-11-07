@@ -210,8 +210,16 @@ function acard(c,site,sec){
   if(c.button_label)h+='<p>'+btn(c,false)+'</p>';
   return h+'</article>';
 }
+function courseCards(s,site){
+  var all=(site&&site.courses&&site.courses.courses)||[];
+  return all.filter(function(c){return c.status==="current"&&(!s.type||c.type===s.type)}).map(function(c){
+    var lec=c.type==="lecture";
+    return {id:c.id+"-card",style:lec?"primary":"secondary",kicker:c.kicker,title:c.code,subtitle:c.title,paragraphs:[c.summary],button_label:c.button_label,button_url:c.page,button_sr:c.code,button_style:lec?"primary":""};
+  });
+}
 function section(s,site){
   var inner="";
+  if(s.from==="courses"){s=Object.assign({},s,{cards:courseCards(s,site)});if(!s.cards.length)return ""}
   if(s.subtitle)inner+='<p class="sec-sub">'+md(s.subtitle)+'</p>';
   if(s.bullets&&s.bullets.length)inner+=list(s.bullets,s.bullet_style);
   var cs=s.cards||[],b=cs.length&&/^(primary|secondary|course|lecture)$/.test(cs[0].style);
@@ -222,6 +230,7 @@ function section(s,site){
   return inner;
 }
 R.page=function(el,d,site){
+  if(((d&&d.sections)||[]).some(function(x){return x.from==="courses"})&&!(site&&site.courses))return;
   d=sub(d,site);
   var slot=el.getAttribute("data-slot")||"sections";
   el.innerHTML=(d[slot]||[]).map(function(s){return section(s,site)}).join("");
@@ -262,6 +271,7 @@ var pending=[];
 document.querySelectorAll("[data-render]").forEach(function(el){var k=el.getAttribute("data-render"),f=files[k];
   if(k==="page")f="pages/"+el.getAttribute("data-file");
   var need=f?(Array.isArray(f)?f:[f]):[];
-  pending.push(Promise.all(need.map(load).concat([load("site")])).then(function(r){var site=r.pop();R[k](el,need.length>1?r:r[0]||null,site)}).catch(function(){}));});
+  var cp=k==="page"?load("courses").catch(function(){return null}):Promise.resolve(null);
+  pending.push(Promise.all(need.map(load).concat([load("site"),cp])).then(function(r){var co=r.pop(),site=r.pop();if(co)site=Object.assign({},site,{courses:co});R[k](el,need.length>1?r:r[0]||null,site)}).catch(function(){}));});
 Promise.all(pending).then(function(){if(location.hash)window.dispatchEvent(new Event("hashchange"))});
 })();
