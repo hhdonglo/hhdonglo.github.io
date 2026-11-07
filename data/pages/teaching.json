@@ -3,36 +3,6 @@
   "subtitle": "My teaching is centred on foundations, investigation, and discovery. I seek to develop deep conceptual understanding, cultivate quantitative and computational thinking, and prepare students to engage in scientific inquiry and knowledge creation.",
   "sections": [
     {
-      "id": "research-informed",
-      "heading": "Research-Informed Teaching",
-      "cards": [
-        {
-          "style": "plain",
-          "table": {
-            "caption": "Teaching themes and research applications",
-            "headers": [
-              "Theme",
-              "Research Applications"
-            ],
-            "rows": [
-              [
-                "Modelling Physical Systems",
-                "Kinematics, reaction dynamics, theoretical physics"
-              ],
-              [
-                "Analysing Evidence",
-                "Statistics, uncertainty quantification, data analysis"
-              ],
-              [
-                "Generating Knowledge",
-                "Scientific computing, simulation, predictive modelling"
-              ]
-            ]
-          }
-        }
-      ]
-    },
-    {
       "id": "teaching-philosophy",
       "heading": "Teaching Philosophy",
       "layout": "grid",
@@ -65,6 +35,36 @@
       "heading": "Courses Taught",
       "from": "courses",
       "cards": []
+    },
+    {
+      "id": "research-informed",
+      "heading": "Research-Informed Teaching",
+      "cards": [
+        {
+          "style": "plain",
+          "table": {
+            "caption": "Teaching themes and research applications",
+            "headers": [
+              "Theme",
+              "Research Applications"
+            ],
+            "rows": [
+              [
+                "Modelling Physical Systems",
+                "Kinematics, reaction dynamics, theoretical physics"
+              ],
+              [
+                "Analysing Evidence",
+                "Statistics, uncertainty quantification, data analysis"
+              ],
+              [
+                "Generating Knowledge",
+                "Scientific computing, simulation, predictive modelling"
+              ]
+            ]
+          }
+        }
+      ]
     },
     {
       "id": "student-resources",
