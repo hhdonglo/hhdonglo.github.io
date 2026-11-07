@@ -1106,3 +1106,12 @@ body.focus main{padding-top:1.2rem}
 .page-teaching [aria-labelledby="lecture-courses"] .card .btn,.page-teaching [aria-labelledby="lecture-courses"] .primary-card .btn.primary{border-radius:6px;font-size:.88rem;padding:.35rem .9rem;background:transparent;color:var(--link,#1F3A68);border:1px solid var(--border);width:fit-content}
 .page-teaching .ov-card,.page-teaching [data-file="teaching"]>section>ul:not(.arrows)>li{border-radius:8px;box-shadow:none}
 .page-teaching [aria-labelledby="student-resources"] ul{grid-template-columns:repeat(auto-fill,minmax(180px,max-content))}
+/* Teaching page: clean two-column themes table */
+.page-teaching [aria-labelledby="research-informed"] .ov-card{padding:0;overflow:hidden;border-radius:8px;border:1px solid var(--border);border-top-width:1px;box-shadow:none}
+.page-teaching [aria-labelledby="research-informed"] .ov-ref{margin:0;border-collapse:collapse;table-layout:fixed;font:1rem/1.5 system-ui,sans-serif}
+.page-teaching [aria-labelledby="research-informed"] .ov-ref th,.page-teaching [aria-labelledby="research-informed"] .ov-ref td{padding:.8rem 1.25rem;border:0;border-bottom:1px solid var(--border);vertical-align:middle;text-align:left}
+.page-teaching [aria-labelledby="research-informed"] .ov-ref thead th{background:rgba(31,58,104,.05);font:700 .78rem/1.3 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.page-teaching [aria-labelledby="research-informed"] .ov-ref tbody td:first-child{font-weight:600;width:38%}
+.page-teaching [aria-labelledby="research-informed"] .ov-ref tbody tr:last-child td{border-bottom:0}
+@media (prefers-color-scheme:dark){.page-teaching [aria-labelledby="research-informed"] .ov-ref thead th{background:rgba(255,255,255,.05)}}
+@media (max-width:720px){.page-teaching [aria-labelledby="research-informed"] .ov-ref th,.page-teaching [aria-labelledby="research-informed"] .ov-ref td{padding:.7rem .9rem}.page-teaching [aria-labelledby="research-informed"] .ov-ref tbody td:first-child{width:42%}}

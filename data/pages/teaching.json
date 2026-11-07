@@ -9,27 +9,23 @@
         {
           "style": "plain",
           "table": {
-            "caption": "Foundational topics and their research applications",
+            "caption": "Teaching themes and research applications",
             "headers": [
-              "Foundational Topic",
-              "Research Application"
+              "Theme",
+              "Research Applications"
             ],
             "rows": [
               [
-                "Vectors",
-                "Nuclear reaction kinematics"
+                "Modelling Physical Systems",
+                "Kinematics, reaction dynamics, theoretical physics"
               ],
               [
-                "Statistics",
-                "Uncertainty quantification"
+                "Analysing Evidence",
+                "Statistics, uncertainty quantification, data analysis"
               ],
               [
-                "Differential equations",
-                "Reaction dynamics"
-              ],
-              [
-                "Programming",
-                "Numerical simulation"
+                "Generating Knowledge",
+                "Scientific computing, simulation, predictive modelling"
               ]
             ]
           }
