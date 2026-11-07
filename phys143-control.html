@@ -42,7 +42,7 @@
 @media (prefers-color-scheme:dark){.cc .ok{color:#6fd39a}.cc .am{color:#ffb74d}.cc .rd{color:#ff8a80}}
 .cc .note{font-size:.9rem;line-height:1.5;color:var(--muted)}
 .cc label.cb{display:flex;gap:.5rem;align-items:center;min-height:44px}
-.cc .wide{grid-column:1/-1}.cc iframe{width:100%;height:80vh;min-height:30rem;border:1px solid var(--border);border-radius:6px;margin-top:.6rem;background:var(--surface)}
+.cc .wide,.cc .panel.open{grid-column:1/-1}.cc iframe{width:100%;height:80vh;min-height:30rem;border:1px solid var(--border);border-radius:6px;margin-top:.6rem;background:var(--surface)}
 .cc [hidden]{display:none!important}
 body.focus header.banner,body.focus nav.jump,body.focus .crumb,body.focus .sec-sub,body.focus aside.disclaimer,body.focus footer,body.focus a.skip,body.focus main h2{display:none!important}
 body.focus main{padding-top:0}
@@ -71,9 +71,9 @@ body.focus main{padding-top:0}
    <label class="cb"><input type="checkbox" id="k-proj"> I opened the display on the projector and saw it</label>
    <button class="go" type="button" id="k-run">Run checks</button>
   </section>
-  <section class="panel wide"><h3>Attendance</h3>
+  <section class="panel" id="p-att"><h3>Attendance</h3>
    <p class="note">Opens the attendance controls here. For the projector, use "Open in its own window", move that window to the projector and keep this one on your laptop. Closing asks you to confirm.</p>
-   <button class="go" type="button" data-embed="e-att" data-src="phys143-attendance.html">Show attendance here</button>
+   <button class="go" type="button" data-panel="p-att" data-embed="e-att" data-src="phys143-attendance.html">Show attendance here</button>
    <a class="go alt" href="phys143-attendance.html" target="_blank" rel="noopener">Open in its own window</a>
    <div id="e-att"></div>
   </section>
@@ -217,8 +217,9 @@ heldLoad();setInterval(heldLoad,15000);
 // ---- embedded host pages (same site, same host key in this tab) ----
 document.querySelectorAll("[data-embed]").forEach(function(b){b.addEventListener("click",function(){
  var box=$(b.getAttribute("data-embed"));
- if(box.firstChild){box.innerHTML="";b.textContent=b.textContent.replace("Hide","Show");return}
- var f=document.createElement("iframe");f.src=b.getAttribute("data-src");f.setAttribute("allow","geolocation");f.title=b.textContent;box.appendChild(f);b.textContent=b.textContent.replace("Show","Hide");
+ var pn=b.getAttribute("data-panel");pn=pn&&$(pn);
+ if(box.firstChild){box.innerHTML="";if(pn)pn.classList.remove("open");b.textContent=b.textContent.replace("Hide","Show");return}
+ var f=document.createElement("iframe");f.src=b.getAttribute("data-src");f.setAttribute("allow","geolocation");f.title=b.textContent;box.appendChild(f);if(pn)pn.classList.add("open");b.textContent=b.textContent.replace("Show","Hide");
 })});
 $("x-out").addEventListener("click",function(){try{sessionStorage.removeItem("phys143_hk")}catch(x){}location.href="phys143-lecturer.html"});
 })();
