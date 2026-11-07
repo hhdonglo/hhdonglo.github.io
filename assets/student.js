@@ -1,6 +1,6 @@
 /* Shared student layer. Adds the tab bar, offline notice and service worker.
    Reads one optional value, the remembered ID the student chose to keep on
-   this device in the portal. It never sends anything anywhere. */
+   this device on the student page. It never sends anything anywhere. */
 (function(){
 "use strict";
 var KEY="phys143_portal_id";
@@ -14,7 +14,7 @@ var ico={
 };
 function bar(){
  var n=document.createElement("nav");n.className="stu-tabs";n.setAttribute("aria-label","Student");
- n.innerHTML='<a href="phys143-portal.html"'+cur("phys143-portal.html")+'>'+ico.home+'Portal</a>'+
+ n.innerHTML='<a href="phys143-portal.html"'+cur("phys143-portal.html")+'>'+ico.home+'Home</a>'+
   '<a href="phys143.html"'+cur("phys143.html")+'>'+ico.book+'Lectures</a>'+
   '<a href="phys143-quiz.html"'+cur("phys143-quiz.html")+'>'+ico.quiz+'Quiz</a>'+
   '<a href="phys143-portal.html#results">'+ico.res+'Results</a>';
@@ -30,7 +30,7 @@ function offline(){
 function back(){
  if(path==="phys143-portal.html")return;
  var m=document.querySelector("main .wrap");if(!m||m.querySelector(".stu-back"))return;
- var a=document.createElement("a");a.className="stu-back";a.href="phys143-portal.html";a.innerHTML="&lsaquo; Student portal";
+ var a=document.createElement("a");a.className="stu-back";a.href="phys143-portal.html";a.innerHTML="&lsaquo; Student page";
  m.insertBefore(a,m.firstChild);
 }
 function prefill(){
@@ -41,7 +41,7 @@ function prefill(){
 function sw(){if("serviceWorker" in navigator&&location.protocol==="https:"){navigator.serviceWorker.register("sw.js").catch(function(){})}}
 function ready(f){document.readyState==="loading"?document.addEventListener("DOMContentLoaded",f):f()}
 ready(function(){bar();offline();back();prefill();sw()});
-/* Install prompt, used by the portal card. */
+/* Install prompt, used by the student page card. */
 window.PHYSINSTALL={ev:null};
 window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();window.PHYSINSTALL.ev=e;var c=document.getElementById("p-install");if(c)c.hidden=false});
 })();

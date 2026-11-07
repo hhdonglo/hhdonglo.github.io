@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
 <meta name="color-scheme" content="light dark">
-<title>PHYS 143 student portal | Hope Donglo</title>
-<meta name="description" content="PHYS 143 student portal.">
+<title>PHYS 143 student page | Hope Donglo</title>
+<meta name="description" content="PHYS 143 student page.">
 <link rel="icon" href="assets/logo/hd-favicon.svg" type="image/svg+xml">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/logo/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/logo/favicon-16.png">
@@ -54,28 +54,28 @@ body.focus header.banner,body.focus nav.jump,body.focus .crumb,body.focus .sec-s
 body.focus main{padding-top:1.2rem}
 </style>
 <div class="pt">
- <h1>PHYS 143 student portal</h1>
+ <h1>PHYS 143 student page</h1>
  <p class="sub" id="p-contacts">University Physics</p>
  <div class="card banner" id="p-banner" aria-live="polite">Checking what is open in class.</div>
  <div class="card" id="p-primary"></div>
  <div class="card" id="p-week"></div>
  <div class="card" id="p-res" hidden>
-  <details id="p-details"><summary>My results</summary>
+  <details id="p-details"><summary>My quiz scores and check-ins</summary>
    <form id="p-form" autocomplete="off" novalidate>
     <label for="p-id">Student ID</label><input type="text" id="p-id" maxlength="12" inputmode="numeric" autocomplete="off">
     <label class="cb" id="p-remlab" hidden><input type="checkbox" id="p-rem"> Remember my ID on this phone</label>
     <p class="note" id="p-remnote" hidden>Stored only in this browser, never sent to the server for this purpose. Do not use this on a phone you share. <a href="#" id="p-forget">Forget this phone</a></p>
     <p class="err" id="p-err" role="alert" hidden></p>
-    <button class="go alt" type="submit" id="p-show">Show my results</button>
+    <button class="go alt" type="submit" id="p-show">Show my scores</button>
    </form>
    <div id="p-out" hidden></div>
-   <p class="note">You see only your own attendance and quiz scores. Other students' results are never shown.</p>
+   <p class="note">You see only your own check-ins and quiz scores. Other students' results are never shown.</p>
   </details>
  </div>
  <div class="card" id="p-install" hidden>
   <h2>Add to home screen</h2>
-  <p class="note" id="p-inst-txt">Open this portal like an app, with one tap, even on a weak connection.</p>
-  <button class="go alt" type="button" id="p-inst-btn">Install the portal</button>
+  <p class="note" id="p-inst-txt">Open this page like an app, with one tap, even on a weak connection.</p>
+  <button class="go alt" type="button" id="p-inst-btn">Install this page</button>
  </div>
  <div class="card"><details><summary>All lectures</summary><ul id="p-all"></ul></details></div>
  <p class="note">Student IDs are never shown publicly. Corrections: contact your lecturer.</p>
@@ -146,12 +146,12 @@ $("p-form").addEventListener("submit",function(e){
   if($("p-rem").checked){try{localStorage.setItem(KEYID,id)}catch(x){}}
   var at=r.attendance||[],pres=at.filter(function(a){return a[1]}).length,qz=r.quizzes||[];
   var pct=at.length?Math.round(100*pres/at.length):0;
-  var h='<div class="stu-chips"><div class="stu-chip"><b>'+pres+' / '+at.length+'</b>Sessions attended</div><div class="stu-chip"><b>'+qz.length+'</b>Quizzes taken</div></div>'+
+  var h='<div class="stu-chips"><div class="stu-chip"><b>'+pres+' / '+at.length+'</b>Check-ins</div><div class="stu-chip"><b>'+qz.length+'</b>Quizzes taken</div></div>'+
    (at.length?'<div class="stu-bar" role="img" aria-label="Attendance '+pct+' percent"><i style="width:'+pct+'%"></i></div>':'');
-  h+="<h2>Attendance</h2>";
-  h+=(r.attendance&&r.attendance.length)?"<table><tr><th>Session</th><th>Result</th></tr>"+r.attendance.map(function(a){return"<tr><td>"+esc(a[0])+"</td><td>"+(a[1]?"Present":"Absent")+"</td></tr>"}).join("")+"</table>":"<p class='note'>No records yet.</p>";
+  h+="<h2>Check-ins</h2>";
+  h+=(r.attendance&&r.attendance.length)?"<table><tr><th>Session</th><th>Status</th></tr>"+r.attendance.map(function(a){return"<tr><td>"+esc(a[0])+"</td><td>"+(a[1]?"Checked in":"No check-in")+"</td></tr>"}).join("")+"</table>":"<p class='note'>Nothing yet.</p>";
   h+="<h2 style='margin-top:.8rem'>Quizzes</h2>";
-  h+=(r.quizzes&&r.quizzes.length)?"<table><tr><th>Quiz</th><th>Score</th></tr>"+r.quizzes.map(function(q){return"<tr><td>"+esc(q[0])+"</td><td>"+esc(q[1])+"</td></tr>"}).join("")+"</table>":"<p class='note'>No records yet.</p>";
+  h+=(r.quizzes&&r.quizzes.length)?"<table><tr><th>Quiz</th><th>Score</th></tr>"+r.quizzes.map(function(q){return"<tr><td>"+esc(q[0])+"</td><td>"+esc(q[1])+"</td></tr>"}).join("")+"</table>":"<p class='note'>Nothing yet.</p>";
   $("p-out").innerHTML=h;$("p-out").hidden=false;
  });
 });

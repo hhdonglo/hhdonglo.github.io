@@ -12,15 +12,15 @@ var M={
  E5:["Location is switched off for this page. Allow location in your browser settings, or open this link in Chrome or Safari instead of an app.","retry"],
  E6:["Your phone reports a position outside the classroom. Move closer to the room and try again. If you are in the room, tell your lecturer.","retry"],
  E7:["Waiting for a better location reading. This can take up to 20 seconds indoors.","wait"],
- E8:["Your phone could not reach the server. Your entry has not been recorded. Check your connection and try again.","retry"],
- E9:["Already recorded. No further action is needed.","none"],
+ E8:["Your phone could not reach the server. Your entry has not been received. Check your connection and try again.","retry"],
+ E9:["Already received. No further action is needed.","none"],
  E10:["This phone has already been used for another ID in this session. Tell your lecturer.","help"],
  E11:["This quiz is not open. Wait for your lecturer to start it, or check the code.","refresh"],
  E12:["This code was not recognised. Check the code shown in class.","edit"],
- E13:["This question has closed. Your answer was not recorded.","none"],
+ E13:["This question has closed. Your answer was not received.","none"],
  E14:["Too many attempts. Wait ten minutes, then try again.","wait"],
  E15:["The system is being updated. Refresh this page. If it continues, tell your lecturer.","refresh"],
- E16:["The service is busy. Wait a few seconds and try again. Your lecturer can mark you by hand.","retry"],
+ E16:["The service is busy. Wait a few seconds and try again. Tell your lecturer.","retry"],
  E0:["Something went wrong. Try again. If it continues, tell your lecturer.","retry"]
 };
 // Server reason strings (the "why" field of the attend and quiz replies) to catalogue codes.
