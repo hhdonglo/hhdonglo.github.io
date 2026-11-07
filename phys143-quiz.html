@@ -99,7 +99,7 @@ body.focus .try .fun{display:block}
    <p class="note" id="err" role="alert" hidden></p>
    <button type="submit" class="go">Join</button>
   </form>
-  <details class="note" style="margin-top:.8rem"><summary>How it works</summary><p>Your lecturer shows one question at a time. Choose an answer before the clock runs out. Only your first attempt counts.</p></details>
+  <details class="note" style="margin-top:.8rem"><summary>How it works</summary><p>I show one question at a time. Choose an answer before the clock runs out. Only your first attempt counts.</p></details>
  </section>
  <section class="panel" id="s-att" aria-labelledby="t-att" hidden>
   <div class="wr">
@@ -115,7 +115,7 @@ body.focus .try .fun{display:block}
    <p class="nq" id="wr-n"></p>
    <div class="dots" id="wr-dots" aria-hidden="true"><i></i><i></i><i></i></div>
   </div>
-  <details class="note" style="margin-top:.8rem" open><summary>How it works</summary><p>Your lecturer shows one question at a time. Choose an answer before the clock runs out. Only your first attempt counts.</p></details>
+  <details class="note" style="margin-top:.8rem" open><summary>How it works</summary><p>I show one question at a time. Choose an answer before the clock runs out. Only your first attempt counts.</p></details>
  </section>
  <section class="panel" id="s-q" aria-live="polite" hidden>
   <div class="bar"><span id="qn">Question 1 of 5</span><span class="clock" id="clock" role="timer">1:00</span></div>
@@ -283,12 +283,12 @@ function renderPaced(){
 function sendAnswer(q,a){
  var b=new URLSearchParams();b.set("kind","answer");b.set("name",st.name);b.set("id",st.id);b.set("code",st.code);b.set("q",String(q));b.set("answer",a);
  $("pnote").textContent="Sending your answer.";
- fetch(SCRIPT_URL,{method:"POST",mode:"no-cors",body:b}).then(function(){$("pnote").textContent="Your answer is sent. You can change it until time runs out. Wait for your lecturer to move on."},function(){$("pnote").textContent="Your answer could not be sent. Check your connection and tap it again."});
+ fetch(SCRIPT_URL,{method:"POST",mode:"no-cors",body:b}).then(function(){$("pnote").textContent="Your answer is sent. You can change it until time runs out. Wait for the next question."},function(){$("pnote").textContent="Your answer could not be sent. Check your connection and tap it again."});
 }
 function setLocked(){
  var lock=pacedClosed();
  Array.prototype.forEach.call($("opts").children,function(c){c.disabled=lock});
- if(lock&&!st.paused)$("pnote").textContent="Time is up for this question. Wait for your lecturer to move on.";
+ if(lock&&!st.paused)$("pnote").textContent="Time is up for this question. Wait for the next question.";
 }
 function pacedTick(){
  var c=$("clock");

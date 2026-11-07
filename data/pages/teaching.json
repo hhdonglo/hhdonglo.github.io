@@ -14,7 +14,7 @@
           "paragraphs": [
             "Twelve lectures following Young and Freedman, *University Physics*, each with a slide deck, a tutorial sheet, a supplementary note and practice questions."
           ],
-          "button_label": "Course Overview →",
+          "button_label": "Overview →",
           "button_url": "phys143.html",
           "button_sr": "PHYS 143",
           "button_style": "primary"
@@ -22,10 +22,10 @@
         {
           "id": "portal-card",
           "style": "secondary",
-          "kicker": "For students in my PHYS 143 class",
+          "kicker": "Live-session tools",
           "title": "Student page",
           "paragraphs": [
-            "Check in to class, join the live quiz, open this week's handout and see your own quiz scores. Works on a phone and can be added to the home screen."
+            "Check in during a live session, join the practice quiz, open this week's handout and see your own quiz scores. Works on a phone and can be added to the home screen."
           ],
           "button_label": "Open the Student Page →",
           "button_url": "phys143-portal.html"
