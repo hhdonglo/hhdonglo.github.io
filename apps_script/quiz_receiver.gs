@@ -816,15 +816,15 @@ function rosterSync_(p) {
 
 function attSheet_() {
   var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(ATT_CTL_TAB);
-  if (!sh) { sh = ss.insertSheet(ATT_CTL_TAB); sh.appendRow(['Code', 'Label', 'Status', 'Opened', 'Closed', 'Secret']); }
-  if (!String(sh.getRange(1, 6).getValue()).trim()) sh.getRange(1, 6).setValue('Secret'); // the per-session secret that makes the on-screen code rotate: keep this tab private
+  if (!sh) { sh = ss.insertSheet(ATT_CTL_TAB); sh.appendRow(['Code', 'Label', 'Status', 'Opened', 'Closed', 'Secret', 'Lat', 'Lon', 'Radius m']); }
+  if (!String(sh.getRange(1, 6).getValue()).trim()) sh.getRange(1, 6).setValue('Secret'); // the per-session secret that makes the QR token change: keep this tab private
   return sh;
 }
 
 function attRows_() { // [{row, code, label, status}]
   var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_CTL_TAB);
   if (!sh || sh.getLastRow() < 2) return [];
-  return sh.getRange(2, 1, sh.getLastRow() - 1, 6).getValues().map(function (r, i) { return { row: i + 2, code: String(r[0]).trim().toUpperCase(), label: String(r[1]), status: String(r[2]).trim(), secret: String(r[5] || '') }; });
+  return sh.getRange(2, 1, sh.getLastRow() - 1, 9).getValues().map(function (r, i) { return { row: i + 2, code: String(r[0]).trim().toUpperCase(), label: String(r[1]), status: String(r[2]).trim(), secret: String(r[5] || ''), lat: r[6] === '' ? null : Number(r[6]), lon: r[7] === '' ? null : Number(r[7]), radius: Number(r[8]) || 0 }; });
 }
 
 function attByCode_(code) { // the session with this code, or null; cached a few seconds (also caches "none", since every unknown code asks)
@@ -836,20 +836,14 @@ function attByCode_(code) { // the session with this code, or null; cached a few
   return found;
 }
 
-// ---------- Attendance hardening: a code that rotates, one device per ID, a rate limit, a Flags tab ----------
-// The code on the projector is derived from the session secret and the clock: ATT_SLOT_SEC seconds per code. The check-in accepts the current code and
-// the one before it (ATT_GRACE_SLOTS), so a student who is typing while the code changes is not turned away. The link and QR code stay fixed and
-// carry no code, so passing the link on gives an absentee nothing without a live code. Rejected attempts go to the Flags tab and never reach the log
-// that counts presence. Device token: a random value the check-in page keeps in the phone's browser; one token may check in only one Student ID per session.
-var ATT_FLAGS_TAB = 'Attendance_Flags', ATT_SLOT_SEC = 30, ATT_GRACE_SLOTS = 1, ATT_LINK_GRACE_SLOTS = 2, ATT_DEVICE_IDS = 1, ATT_MAX_FAILS = 6;
+// ---------- Attendance hardening: a QR code that changes, location check, one device per ID, a rate limit, a Flags tab ----------
+// There is no typed code. The projector shows a QR code whose link carries a token that changes every ATT_SLOT_SEC seconds (HMAC of the session secret
+// and the clock); the check-in accepts this cycle's token and the ATT_LINK_GRACE_SLOTS before it (60 to 90 s), so a slow connection is forgiven, and a
+// forwarded link goes stale. The second control is the location check (next block). Rejected attempts go to the Flags tab and never reach the log that
+// counts presence. Device token: a random value the check-in page keeps in the phone's browser; one token may check in only one Student ID per session.
+var ATT_FLAGS_TAB = 'Attendance_Flags', ATT_SLOT_SEC = 30, ATT_LINK_GRACE_SLOTS = 2, ATT_DEVICE_IDS = 1, ATT_MAX_FAILS = 6;
 
 function attSlot_(t) { return Math.floor((t || Date.now()) / (ATT_SLOT_SEC * 1000)); }
-
-function attCodeFor_(secret, slot) { // four digits, from HMAC-SHA256(secret, slot)
-  var b = Utilities.computeHmacSha256Signature('att:' + slot, secret), n = 0;
-  for (var i = 0; i < 4; i++) n = n * 256 + (b[i] & 255);
-  return ('0000' + (n % 10000)).slice(-4);
-}
 
 function attLinkFor_(secret, slot) { // the token in the QR link: eight hex characters from HMAC-SHA256(secret, 'qr:' + slot)
   var b = Utilities.computeHmacSha256Signature('qr:' + slot, secret), h = '';
@@ -857,25 +851,18 @@ function attLinkFor_(secret, slot) { // the token in the QR link: eight hex char
   return h;
 }
 
-function attLinkOk_(ses, tok) { // the link scanned from the screen: this cycle's token or one of the two before it (about 60 to 90 s)
+function attLinkOk_(ses, tok) { // this cycle's token or one of the ATT_LINK_GRACE_SLOTS before it
   if (!ses || !ses.secret || !tok) return false;
   var slot = attSlot_();
   for (var d = 0; d <= ATT_LINK_GRACE_SLOTS; d++) if (attLinkFor_(ses.secret, slot - d) === tok) return true;
   return false;
 }
 
-function attOpenSession_() { // the open session (with its secret), cached a few seconds because every student asks at once
+function attOpenSession_() { // the open session, cached a few seconds because every student asks at once
   var cache = null; try { cache = CacheService.getScriptCache(); var h = cache.get('att:open'); if (h) return h === '0' ? null : JSON.parse(h); } catch (err) { cache = null; }
   var cur = null; attRows_().forEach(function (r) { if (r.status === 'Open') cur = r; });
   if (cache) { try { cache.put('att:open', cur ? JSON.stringify(cur) : '0', 5); } catch (err) { /* cache only */ } }
   return cur;
-}
-
-function attCodeOk_(ses, code) { // true for the current code and the one before it; false if there is no secret (an old session) so a leaked fixed code never works
-  if (!ses || !ses.secret || !code) return false;
-  var slot = attSlot_();
-  for (var d = 0; d <= ATT_GRACE_SLOTS; d++) if (attCodeFor_(ses.secret, slot - d) === code) return true;
-  return false;
 }
 
 function attFlag_(label, id, dev, why) {
@@ -898,14 +885,18 @@ function attCheckIn_(p, code) { // the student side of the check-in: the code, t
   var aid = normId_(p.id), dev = String(p.dev || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 40);
   if (aid.length < 4 || aid.length > 12) return { ok: false, why: 'bad id' };
   if (dev.length < 16) return { ok: false, why: 'update page' }; // an old cached page without a device token: reload
-  if (!attLinkOk_(ses, String(p.t || '').replace(/[^0-9a-f]/g, '').slice(0, 8))) return { ok: false, why: 'old link' }; // the QR changes every cycle: a forwarded link goes stale
   if (attFails_('d' + dev) >= ATT_MAX_FAILS || attFails_('i' + aid) >= ATT_MAX_FAILS) return { ok: false, why: 'slow down' };
-  if (!attCodeOk_(ses, code)) { attFailAdd_('d' + dev); attFailAdd_('i' + aid); return { ok: false, why: 'bad code' }; }
+  if (!attLinkOk_(ses, String(p.t || '').replace(/[^0-9a-f]/g, '').slice(0, 8))) { attFailAdd_('d' + dev); attFailAdd_('i' + aid); return { ok: false, why: 'old link' }; } // scan the live QR code again
   var onl = !!rosterSet_()[aid], day = attDayKey_(); // the student is told only whether their own ID was found; nothing else about the roster
   if (attDayHas_(day, aid)) return { ok: true, id: aid, onList: onl, already: true }; // one mark per ID per day: nothing is added
+  var geo = attGeo_(ses, p);
+  if (geo.state === 'far' || geo.state === 'none') {
+    attFlag_(ses.label, aid, dev, 'location: ' + attGeoText_(geo) + (ATT_GEO_MODE === 'enforce' ? ' (refused)' : ' (accepted)'));
+    if (ATT_GEO_MODE === 'enforce') return { ok: false, why: geo.state === 'far' ? 'too far' : 'no location' };
+  }
   var others = attDeviceIds_(ses.label, dev), n = Object.keys(others).length;
   if (n >= ATT_DEVICE_IDS) { attFlag_(ses.label, aid, dev, 'device already used for ' + Object.keys(others).join(', ')); return { ok: false, why: 'device used' }; }
-  append_(ATT_LOG_TAB, ['Timestamp', 'Session', 'Student ID', 'On roster', 'Device'], [new Date(), ses.label, aid, onl ? 'Yes' : 'No', dev]); // appendRow is atomic: no lock for 200 students at once
+  append_(ATT_LOG_TAB, ['Timestamp', 'Session', 'Student ID', 'On roster', 'Device', 'Location'], [new Date(), ses.label, aid, onl ? 'Yes' : 'No', dev, attGeoText_(geo)]); // appendRow is atomic: no lock for 200 students at once
   attDayAdd_(day, aid);
   return { ok: true, id: aid, onList: onl };
 }
@@ -917,6 +908,30 @@ function attFlagDevices_(label) { // at closing: devices that checked in more th
   Object.keys(by).forEach(function (d) { if (by[d].length > ATT_DEVICE_IDS) { n++; attFlag_(label, by[d].join(', '), d, 'one device, ' + by[d].length + ' IDs (check in the log)'); } });
   return n;
 }
+
+// ---------- Attendance location check (optional): is the phone near the classroom? ----------
+// The host page sends the classroom position when a session starts (the browser asks the lecturer once). The check-in page sends the student's position;
+// the script keeps only the distance in metres and ok/far/none, never the student's coordinates. The classroom position stays in the private
+// Attendance_Control tab (columns G to I). ATT_GEO_MODE: 'off' = ignore location; 'flag' = accept everyone, record the result (log column F) and list far or
+// missing ones in Attendance_Flags; 'enforce' (the default) = refuse a check-in that is too far or has no location (the lecturer marks those students by hand). The phone's reported accuracy is subtracted from
+// the distance (at most ATT_GEO_ACC_CAP metres), so a weak indoor GPS fix is not punished.
+var ATT_GEO_MODE = 'enforce', ATT_GEO_RADIUS_M = 500, ATT_GEO_ACC_CAP = 150;
+
+function attMetres_(la1, lo1, la2, lo2) { // haversine distance in metres
+  var R = 6371000, r = Math.PI / 180, dLa = (la2 - la1) * r, dLo = (lo2 - lo1) * r;
+  var a = Math.sin(dLa / 2) * Math.sin(dLa / 2) + Math.cos(la1 * r) * Math.cos(la2 * r) * Math.sin(dLo / 2) * Math.sin(dLo / 2);
+  return Math.round(2 * R * Math.asin(Math.min(1, Math.sqrt(a))));
+}
+
+function attGeo_(ses, p) { // {state: 'off' | 'ok' | 'far' | 'none', dist}
+  if (ATT_GEO_MODE === 'off' || ses.lat == null || ses.lon == null || isNaN(ses.lat) || isNaN(ses.lon)) return { state: 'off', dist: 0 };
+  var la = Number(p.lat), lo = Number(p.lon), acc = Math.max(0, Math.min(Number(p.acc) || 0, ATT_GEO_ACC_CAP));
+  if (p.lat === undefined || p.lat === '' || isNaN(la) || isNaN(lo) || Math.abs(la) > 90 || Math.abs(lo) > 180) return { state: 'none', dist: 0 };
+  var d = attMetres_(ses.lat, ses.lon, la, lo), rad = ses.radius || ATT_GEO_RADIUS_M;
+  return { state: d - acc <= rad ? 'ok' : 'far', dist: d };
+}
+
+function attGeoText_(g) { return g.state === 'off' ? '' : (g.state === 'none' ? 'no location' : g.state + ' ' + g.dist + ' m'); }
 
 function attColumn_(label) { // the Attendance header: the date; a second session on the same day reads "03/11/2026 #2"
   var m = /^(.*) #(\d+)$/.exec(String(label || '').trim());
@@ -957,7 +972,7 @@ function attStatus_() { // the open session if there is one, else the latest, wi
   var present = attPresent_(cur.label), roster = {}; rosterRows_().forEach(function (r) { roster[r[0]] = 1; });
   var on = 0, off = 0; Object.keys(present).forEach(function (id) { if (roster[id]) on++; else off++; });
   var live = cur.status === 'Open' && cur.secret, now = Date.now(), slot = attSlot_(now);
-  return { ok: true, session: { code: live ? attCodeFor_(cur.secret, slot) : cur.code, rotates: !!live, link: live ? attLinkFor_(cur.secret, slot) : '', secondsLeft: live ? Math.max(1, Math.ceil(((slot + 1) * ATT_SLOT_SEC * 1000 - now) / 1000)) : 0, label: attColumn_(cur.label), status: cur.status, present: on, notOnList: off, rosterSize: Object.keys(roster).length } };
+  return { ok: true, session: { link: live ? attLinkFor_(cur.secret, slot) : '', secondsLeft: live ? Math.max(1, Math.ceil(((slot + 1) * ATT_SLOT_SEC * 1000 - now) / 1000)) : 0, label: attColumn_(cur.label), status: cur.status, geo: cur.lat != null && ATT_GEO_MODE !== 'off' ? ATT_GEO_MODE : 'off', radius: cur.lat != null ? (cur.radius || ATT_GEO_RADIUS_M) : 0, present: on, notOnList: off, rosterSize: Object.keys(roster).length } };
 }
 
 function attOpen_(p) {
@@ -975,13 +990,16 @@ function attOpen_(p) {
   var base = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'dd/MM/yyyy'), n = 1;
   rows.forEach(function (r) { if (r.label.indexOf(base + ' #') === 0) n++; });
   var label = base + ' #' + n;
+  try { var lg = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_LOG_TAB); if (lg && lg.getLastRow() > 0 && !String(lg.getRange(1, 5).getValue()).trim()) lg.getRange(1, 5).setValue('Device'); if (lg && lg.getLastRow() > 0 && !String(lg.getRange(1, 6).getValue()).trim()) lg.getRange(1, 6).setValue('Location'); } catch (err) { /* header only */ }
   var secret = Utilities.getUuid() + Utilities.getUuid();
-  try { var lg = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_LOG_TAB); if (lg && lg.getLastRow() > 0 && !String(lg.getRange(1, 5).getValue()).trim()) lg.getRange(1, 5).setValue('Device'); } catch (err) { /* header only */ }
-  attSheet_().appendRow([code, label, 'Open', new Date().toISOString(), '', secret]);
+  var hla = p.lat === undefined || p.lat === '' ? NaN : Number(p.lat), hlo = Number(p.lon), hasGeo = !isNaN(hla) && !isNaN(hlo) && Math.abs(hla) <= 90 && Math.abs(hlo) <= 180;
+  if (ATT_GEO_MODE === 'enforce' && !hasGeo && String(p.nogeo || '') !== '1') return { ok: false, why: 'location needed', needLocation: true }; // never start an unprotected session by accident
+  var rad = Math.max(50, Math.min(Number(p.radius) || ATT_GEO_RADIUS_M, 5000));
+  attSheet_().appendRow([code, label, 'Open', new Date().toISOString(), '', secret, hasGeo ? hla : '', hasGeo ? hlo : '', hasGeo ? rad : '']);
   try { var oc = CacheService.getScriptCache(); oc.remove('att:' + code); oc.remove('att:open'); } catch (err) { /* cache only */ }
   log_('attendance:open', label, '', 'rotating');
   var sl = attSlot_(), now0 = Date.now();
-  return { ok: true, session: { code: attCodeFor_(secret, sl), rotates: true, link: attLinkFor_(secret, sl), secondsLeft: Math.max(1, Math.ceil(((sl + 1) * ATT_SLOT_SEC * 1000 - now0) / 1000)), label: attColumn_(label), status: 'Open', present: 0, notOnList: 0 } };
+  return { ok: true, session: { link: attLinkFor_(secret, sl), secondsLeft: Math.max(1, Math.ceil(((sl + 1) * ATT_SLOT_SEC * 1000 - now0) / 1000)), label: attColumn_(label), status: 'Open', present: 0, notOnList: 0, geo: hasGeo && ATT_GEO_MODE !== 'off' ? ATT_GEO_MODE : 'off', radius: hasGeo ? rad : 0 } };
 }
 
 function attClose_() {
