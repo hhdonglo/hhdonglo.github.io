@@ -87,7 +87,7 @@ function jsonp(params,cb,ms){
  sc.src=SCRIPT_URL+"?"+params+"&callback="+n+"&_="+Date.now();document.head.appendChild(sc);
 }
 function render(){
- var w=String(CFG.currentWeek),title=CFG.lectures[w]||"",L=LIVE&&LIVE.portal===1?LIVE:null;
+ var w=String((LIVE&&LIVE.portal===1&&LIVE.week>=1)?LIVE.week:CFG.currentWeek),title=CFG.lectures[w]||"",L=LIVE&&LIVE.portal===1?LIVE:null;
  $("p-contacts").textContent="University Physics. Contacts: "+CFG.contacts+".";
  var b=$("p-banner"),p=$("p-primary"),h="";
  if(L&&L.attendance==="open"){
