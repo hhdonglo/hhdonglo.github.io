@@ -84,6 +84,14 @@ body.focus main{padding-top:0}
    <p class="note" id="h-msg" role="status"></p>
    <div id="e-att"></div>
   </section>
+  <section class="panel" id="p-ros"><h3>Class list</h3>
+   <p class="note">Add a student who joined, or take off one who left. Leavers keep the marks already recorded. IDs are never shown back.</p>
+   <input type="text" id="r-id" inputmode="numeric" autocomplete="off" placeholder="Student ID" aria-label="Student ID">
+   <button class="go sm" type="button" id="r-add">Add</button>
+   <button class="go alt sm" type="button" id="r-rm">Remove</button>
+   <button class="go alt sm" type="button" id="r-ck">Check</button>
+   <p class="note" id="r-msg" role="status"></p>
+  </section>
   <section class="panel wide"><h3>Live quiz</h3>
    <p class="note">Opens the quiz controls here. Ending a quiz, starting a new round and releasing results each ask you to confirm.</p>
    <button class="go" type="button" data-embed="e-quiz" data-src="phys143-quiz-host.html">Show quiz controls here</button>
@@ -107,7 +115,7 @@ body.focus main{padding-top:0}
 (function(){
 "use strict";
 var SCRIPT_URL="https://script.google.com/macros/s/AKfycbzso5-FCU4erf_grbktH-AH-RKaPDap7TfJAw_TOSxNarTrJDe-PgyBzgIH7Fj2fjZ3/exec";
-var EXPECT_VERSION="2026-11-07-held-1"; // must equal SCRIPT_VERSION in apps_script/quiz_receiver.gs
+var EXPECT_VERSION="2026-11-08-roster-1"; // must equal SCRIPT_VERSION in apps_script/quiz_receiver.gs
 var $=function(i){return document.getElementById(i)};
 var KEY="";try{KEY=sessionStorage.getItem("phys143_hk")||""}catch(x){}
 if(!KEY){location.replace("phys143-lecturer.html");return}
@@ -220,6 +228,21 @@ $("h-dq").addEventListener("click",function(){heldDo("held_discard_quiz","Discar
 $("h-sa").addEventListener("click",function(){heldDo("attend_submit","Submit attendance? Every rostered student not checked in is recorded as 0.",function(d){return "Attendance submitted: "+(d.submitted||[]).join(", ")+"."})});
 $("h-da").addEventListener("click",function(){heldDo("attend_discard","Discard the closed attendance session and its check-ins? This cannot be undone.",function(d){return "Discarded "+d.discarded+" session(s), "+d.checkins+" check-in(s)."})});
 heldLoad();setInterval(heldLoad,15000);
+// ---- class list: add, remove or check one ID ----
+function rosterDo(op){
+ var id=$("r-id").value.replace(/\D/g,"");
+ if(id.length<4||id.length>12){$("r-msg").textContent="Type the Student ID (4 to 12 digits).";return}
+ if(op==="remove"&&!window.confirm("Take this ID off the class list? Past marks are kept."))return;
+ $("r-msg").textContent="Working.";
+ jsonp("action=roster_edit&op="+op+"&id="+encodeURIComponent(id)+"&"+hk(),function(d){
+  if(!d||d.ok!==true){$("r-msg").textContent="Not done: "+(d&&d.why?d.why:"no answer");return}
+  $("r-msg").textContent=(op==="check"?(d.onRoster?"On the class list.":"Not on the class list."):(d.changed?(op==="add"?"Added.":"Removed."):(op==="add"?"Already on the list.":"Was not on the list.")))+" The list now has "+d.rosterSize+" IDs.";
+  $("r-id").value="";
+ },20000);
+}
+$("r-add").addEventListener("click",function(){rosterDo("add")});
+$("r-rm").addEventListener("click",function(){rosterDo("remove")});
+$("r-ck").addEventListener("click",function(){rosterDo("check")});
 // ---- embedded host pages (same site, same host key in this tab) ----
 document.querySelectorAll("[data-embed]").forEach(function(b){b.addEventListener("click",function(){
  var box=$(b.getAttribute("data-embed"));

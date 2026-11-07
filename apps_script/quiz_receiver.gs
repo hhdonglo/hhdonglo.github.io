@@ -917,6 +917,33 @@ function rosterSync_(p) {
   } finally { lk.releaseLock(); }
 }
 
+// Roster edit (host only, from the Control Centre): add, remove or check ONE Student ID without the Mac. Only a yes/no and the roster size come back, never an ID list.
+// Removing an ID takes it off the Roster only (a leaver): the Attendance, Scores and Master rows it already has are kept, and future sessions no longer count it.
+function rosterEdit_(p) {
+  var id = normId_(p.id), op = String(p.op || '');
+  if (id.length < 4 || id.length > 12) return { ok: false, why: 'a Student ID has 4 to 12 digits' };
+  if (op !== 'add' && op !== 'remove' && op !== 'check') return { ok: false, why: 'unknown operation' };
+  var lk = LockService.getScriptLock(); lk.waitLock(30000);
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(ROSTER_TAB) || ss.insertSheet(ROSTER_TAB);
+    if (sh.getLastRow() === 0) sh.getRange(1, 1).setValue('Student ID');
+    var col = sh.getRange(1, 1, sh.getLastRow(), 1).getValues(), at = -1, n = 0;
+    col.forEach(function (r, i) { var x = normId_(r[0]); if (x.length >= 4) { n++; if (x === id && at < 0) at = i + 1; } });
+    if (op === 'check') return { ok: true, onRoster: at > 0, rosterSize: n };
+    if (op === 'add') {
+      if (at > 0) return { ok: true, changed: false, rosterSize: n };
+      var r0 = sh.getLastRow() + 1; sh.getRange(r0, 1).setNumberFormat('@').setValue(id);
+      n++;
+    } else {
+      if (at < 0) return { ok: true, changed: false, rosterSize: n };
+      sh.deleteRow(at); n--;
+    }
+    try { CacheService.getScriptCache().remove('roster'); } catch (err) { /* cache only */ }
+    log_('roster:' + op, '1', '', '');
+    return { ok: true, changed: true, rosterSize: n };
+  } finally { lk.releaseLock(); }
+}
+
 function attSheet_() {
   var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(ATT_CTL_TAB);
   if (!sh) { sh = ss.insertSheet(ATT_CTL_TAB); sh.appendRow(['Code', 'Label', 'Status', 'Opened', 'Closed', 'Secret', 'Lat', 'Lon', 'Radius m']); }
@@ -1388,7 +1415,7 @@ function counts_(code) {
 // ---------- Portal and Control Centre support (additive: no existing action changes) ----------
 // SCRIPT_VERSION: change it whenever the script is redeployed; the Control Centre compares it with the version its page expects.
 // Key!M2 = Off hides "My results" from students (default On).
-var SCRIPT_VERSION = '2026-11-07-held-1';
+var SCRIPT_VERSION = '2026-11-08-roster-1';
 
 function resultsOn_() {
   try {
@@ -1521,6 +1548,7 @@ function doGet(e) {
       return jsonp_(e, p.action === 'held_release_quiz' ? Object.assign({ ok: true }, commitQuiz_('', true)) : Object.assign({ ok: true }, discardQuiz_('', true)));
     } finally { hl.releaseLock(); }
   }
+  if (p.action === 'roster_edit') return jsonp_(e, hostOk_(p) ? rosterEdit_(p) : { ok: false, why: 'host key not accepted' }); // host only: one ID at a time
   if (p.action === 'attend_status' || p.action === 'attend_open' || p.action === 'attend_close') { // host only
     if (!hostOk_(p)) return jsonp_(e, { ok: false, why: 'host key not accepted' });
     if (p.action === 'attend_status') return jsonp_(e, attStatus_());
