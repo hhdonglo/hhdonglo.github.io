@@ -22,12 +22,12 @@
         {
           "id": "portal-card",
           "style": "secondary",
-          "kicker": "For registered PHYS 143 students",
-          "title": "Student portal",
+          "kicker": "For students in my PHYS 143 class",
+          "title": "Student page",
           "paragraphs": [
-            "Check in to class, join the live quiz, open this week's handout and see your own results. Works on a phone and can be added to the home screen."
+            "Check in to class, join the live quiz, open this week's handout and see your own quiz scores. Works on a phone and can be added to the home screen."
           ],
-          "button_label": "Open the Student Portal →",
+          "button_label": "Open the Student Page →",
           "button_url": "phys143-portal.html"
         }
       ]
