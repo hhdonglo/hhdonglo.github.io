@@ -809,7 +809,7 @@ function refreshTotals() {
 }
 
 function onOpen() { // a PHYS 143 menu in the sheet
-  try { SpreadsheetApp.getUi().createMenu('PHYS 143').addItem('Refresh totals', 'refreshTotals').addItem('Release held quiz results', 'releaseHeldQuiz').addItem('Discard held quiz results', 'discardHeldQuiz').addItem('Submit attendance', 'submitAttendance').addItem('Named attendance view', 'buildNamedAttendance').addItem('Discard unsubmitted attendance', 'discardAttendance').addToUi(); } catch (err) { /* not opened from the sheet */ }
+  try { SpreadsheetApp.getUi().createMenu('PHYS 143').addItem('Refresh totals', 'refreshTotals').addItem('Release held quiz results', 'releaseHeldQuiz').addItem('Discard held quiz results', 'discardHeldQuiz').addItem('Submit attendance', 'submitAttendance').addItem('Named attendance view', 'buildNamedAttendance').addItem('Tidy to class list', 'tidyToClassList').addItem('Discard unsubmitted attendance', 'discardAttendance').addToUi(); } catch (err) { /* not opened from the sheet */ }
 }
 
 function releaseHeldQuiz() { return commitQuiz_('', true); }
@@ -925,6 +925,53 @@ function rosterSync_(p) {
     if (apply) { try { CacheService.getScriptCache().remove('roster'); } catch (err) { /* cache only */ } log_('roster:sync', added.length + ' added', '', ''); }
     return { ok: true, mode: apply ? 'apply' : 'dry', replace: replace, added: added.length, namesFilled: named, unchanged: order.length - added.length, missing: missing, removed: replace ? (apply ? removed : missing) : 0, skipped: bad, total: order.length };
   } finally { lk.releaseLock(); }
+}
+
+// Tidy to class list (host action roster_tidy, or PHYS 143 > Tidy to class list): after the Roster was replaced with one section, the Attendance, Scores and Master
+// tabs still list every earlier ID. This removes the rows of IDs that are NOT on the Roster, but only rows with no marks at all: Attendance rows with no 1,
+// Scores and Master rows with every quiz cell blank. A row with any real mark stays. mode=dry only counts. Nothing is returned except counts.
+function tidyTab_(sh, firstRow, markFrom, isMark, onRoster, apply) {
+  var out = { rows: 0, kept: 0 };
+  if (!sh || sh.getLastRow() < firstRow) return out;
+  var n = sh.getLastRow() - firstRow + 1, w = Math.max(markFrom + 1, sh.getLastColumn());
+  var vals = sh.getRange(firstRow, 1, n, w).getValues(), del = [];
+  vals.forEach(function (r, i) {
+    var id = normId_(r[0]);
+    if (id.length < 4 || onRoster[id]) return;
+    var marked = false; for (var j = markFrom; j < r.length; j++) if (isMark(r[j])) { marked = true; break; }
+    if (marked) out.kept++; else del.push(firstRow + i);
+  });
+  out.rows = del.length;
+  if (apply && del.length) { // delete runs of rows from the bottom up, so formatting of the other rows is untouched
+    var runs = [], start = del[0], prev = del[0];
+    for (var k = 1; k < del.length; k++) { if (del[k] === prev + 1) { prev = del[k]; continue; } runs.push([start, prev]); start = prev = del[k]; }
+    runs.push([start, prev]);
+    for (var m = runs.length - 1; m >= 0; m--) sh.deleteRows(runs[m][0], runs[m][1] - runs[m][0] + 1);
+  }
+  return out;
+}
+
+function rosterTidy_(p) {
+  var apply = String(p.mode || '') === 'apply', roster = rosterSet_();
+  if (!Object.keys(roster).length) return { ok: false, why: 'the Roster is empty, so nothing is tidied' };
+  var lk = LockService.getScriptLock(); lk.waitLock(30000);
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var nonZero = function (v) { return v !== '' && v !== 0 && String(v).trim() !== '0'; }, nonBlank = function (v) { return String(v).trim() !== ''; };
+    var a = tidyTab_(ss.getSheetByName(ATT_TAB), 2, 1, nonZero, roster, apply);
+    var s = tidyTab_(ss.getSheetByName(SCORES_TAB), 4, 4, nonBlank, roster, apply);
+    var m = tidyTab_(ss.getSheetByName(MASTER_TAB), 2, 3, nonBlank, roster, apply);
+    if (apply) log_('roster:tidy', (a.rows + s.rows + m.rows) + ' rows', '', '');
+    return { ok: true, mode: apply ? 'apply' : 'dry', attendance: a.rows, scores: s.rows, master: m.rows, keptWithMarks: a.kept + s.kept + m.kept, rosterSize: Object.keys(roster).length };
+  } finally { lk.releaseLock(); }
+}
+
+function tidyToClassList() { // sheet menu: shows the counts first and asks
+  var ui = SpreadsheetApp.getUi(), d = rosterTidy_({ mode: 'dry' });
+  if (!d.ok) { ui.alert(d.why); return; }
+  if (ui.alert('Remove rows of IDs not on the class list?', 'Attendance ' + d.attendance + ', Scores ' + d.scores + ', Master ' + d.master + ' row(s) with no marks will be deleted. ' + d.keptWithMarks + ' row(s) with marks stay. This cannot be undone.', ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
+  var r = rosterTidy_({ mode: 'apply' });
+  ui.alert(r.ok ? 'Done. Removed Attendance ' + r.attendance + ', Scores ' + r.scores + ', Master ' + r.master + ' row(s).' : r.why);
 }
 
 // Named attendance view (lecturer only, from the sheet's PHYS 143 menu): writes a private tab Attendance_Named with Name, Student ID and a copy of every
@@ -1440,7 +1487,7 @@ function counts_(code) {
 // ---------- Portal and Control Centre support (additive: no existing action changes) ----------
 // SCRIPT_VERSION: change it whenever the script is redeployed; the Control Centre compares it with the version its page expects.
 // Key!M2 = Off hides "My results" from students (default On).
-var SCRIPT_VERSION = '2026-11-08-names-1';
+var SCRIPT_VERSION = '2026-11-08-tidy-1';
 
 function resultsOn_() {
   try {
@@ -1573,6 +1620,7 @@ function doGet(e) {
       return jsonp_(e, p.action === 'held_release_quiz' ? Object.assign({ ok: true }, commitQuiz_('', true)) : Object.assign({ ok: true }, discardQuiz_('', true)));
     } finally { hl.releaseLock(); }
   }
+  if (p.action === 'roster_tidy') return jsonp_(e, hostOk_(p) ? rosterTidy_(p) : { ok: false, why: 'host key not accepted' }); // host only: counts only
   if (p.action === 'roster_edit') return jsonp_(e, hostOk_(p) ? rosterEdit_(p) : { ok: false, why: 'host key not accepted' }); // host only: one ID at a time
   if (p.action === 'attend_status' || p.action === 'attend_open' || p.action === 'attend_close') { // host only
     if (!hostOk_(p)) return jsonp_(e, { ok: false, why: 'host key not accepted' });

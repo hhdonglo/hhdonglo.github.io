@@ -91,6 +91,7 @@ body.focus main{padding-top:0}
    <button class="go sm" type="button" id="r-add">Add</button>
    <button class="go alt sm" type="button" id="r-rm">Remove</button>
    <button class="go alt sm" type="button" id="r-ck">Check</button>
+   <button class="go alt sm" type="button" id="r-tidy">Tidy to class list</button>
    <p class="note" id="r-msg" role="status"></p>
   </section>
   <section class="panel wide"><h3>Live quiz</h3>
@@ -116,7 +117,7 @@ body.focus main{padding-top:0}
 (function(){
 "use strict";
 var SCRIPT_URL="https://script.google.com/macros/s/AKfycbzso5-FCU4erf_grbktH-AH-RKaPDap7TfJAw_TOSxNarTrJDe-PgyBzgIH7Fj2fjZ3/exec";
-var EXPECT_VERSION="2026-11-08-names-1"; // must equal SCRIPT_VERSION in apps_script/quiz_receiver.gs
+var EXPECT_VERSION="2026-11-08-tidy-1"; // must equal SCRIPT_VERSION in apps_script/quiz_receiver.gs
 var $=function(i){return document.getElementById(i)};
 var KEY="";try{KEY=sessionStorage.getItem("phys143_hk")||""}catch(x){}
 if(!KEY){location.replace("phys143-lecturer.html");return}
@@ -241,6 +242,19 @@ function rosterDo(op){
   $("r-id").value="";$("r-nm").value="";
  },20000);
 }
+$("r-tidy").addEventListener("click",function(){
+ $("r-msg").textContent="Counting.";
+ jsonp("action=roster_tidy&mode=dry&"+hk(),function(d){
+  if(!d||d.ok!==true){$("r-msg").textContent="Not done: "+(d&&d.why?d.why:"no answer");return}
+  var tot=d.attendance+d.scores+d.master;
+  if(!tot){$("r-msg").textContent="Nothing to tidy. "+d.keptWithMarks+" row(s) with marks stay.";return}
+  if(!window.confirm("Delete rows of IDs not on the class list that have no marks? Attendance "+d.attendance+", Scores "+d.scores+", Master "+d.master+". "+d.keptWithMarks+" row(s) with marks stay. This cannot be undone.")){$("r-msg").textContent="Cancelled.";return}
+  $("r-msg").textContent="Working.";
+  jsonp("action=roster_tidy&mode=apply&"+hk(),function(r){
+   $("r-msg").textContent=(!r||r.ok!==true)?"Not done: "+(r&&r.why?r.why:"no answer"):"Removed Attendance "+r.attendance+", Scores "+r.scores+", Master "+r.master+" row(s).";
+  },60000);
+ },30000);
+});
 $("r-add").addEventListener("click",function(){rosterDo("add")});
 $("r-rm").addEventListener("click",function(){rosterDo("remove")});
 $("r-ck").addEventListener("click",function(){rosterDo("check")});
