@@ -29,7 +29,7 @@ All calls are JSONP `GET` requests to the script URL (`?action=...&callback=...`
 The host key is checked by `hostOk_`: stored as `sha256:salt:hex` in the Key tab, and 30 wrong keys lock host actions for 10 minutes.
 
 ## 4. Sheet tabs (all private)
-- **Roster**: Student IDs only (filled by `attendance_tools/roster_sync.sh` on the lecturer's Mac, never in git).
+- **Roster**: Student ID and optional name (private; names never returned to any page; filled by `attendance_tools/roster_sync.sh` on the lecturer's Mac, never in git).
 - **Attendance_Control**: one row per session. A Code (internal id), B Label, C Status, D Opened, E Closed, F Secret (makes the QR token), G Lat, H Lon, I Radius m.
 - **Attendance_Log**: one row per accepted check-in: Timestamp, Session, Student ID, On roster, Device (salted hash), Location (`ok 40 m`, `far 1200 m`, `no location`).
 - **Attendance_Flags**: every refused or suspicious attempt: Timestamp, Session, Student ID, Device hash prefix, Reason. Never counts as presence.
@@ -64,7 +64,7 @@ At start the host browser supplies the classroom position; it is stored in Atten
 - **Secrets:** host key (hashed in the Key tab; sent in the URL of host calls), session secret (Attendance_Control F), hash salt (script properties).
 
 ## 9. Data protection measures (Ghana Data Protection Act, 2012)
-- Minimisation: ID, time, a distance result and a hashed phone code. No names (Roster holds IDs only), no student coordinates.
+- Minimisation: ID, time, a distance result and a hashed phone code. Names only in the private Roster (never returned), no student coordinates.
 - Phone code: stored only as a salted HMAC (16 hex); the salt is in script properties and is deleted at semester end, which makes old codes unlinkable.
 - Student coordinates are rounded to about 11 m before leaving the phone and are never written anywhere by the script.
 - IDs are never shown on any public page; the host page shows counts only; the roster is not in git.
