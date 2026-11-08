@@ -809,7 +809,7 @@ function refreshTotals() {
 }
 
 function onOpen() { // a PHYS 143 menu in the sheet
-  try { SpreadsheetApp.getUi().createMenu('PHYS 143').addItem('Refresh totals', 'refreshTotals').addItem('Release held quiz results', 'releaseHeldQuiz').addItem('Discard held quiz results', 'discardHeldQuiz').addItem('Submit attendance', 'submitAttendance').addItem('Discard unsubmitted attendance', 'discardAttendance').addToUi(); } catch (err) { /* not opened from the sheet */ }
+  try { SpreadsheetApp.getUi().createMenu('PHYS 143').addItem('Refresh totals', 'refreshTotals').addItem('Release held quiz results', 'releaseHeldQuiz').addItem('Discard held quiz results', 'discardHeldQuiz').addItem('Submit attendance', 'submitAttendance').addItem('Named attendance view', 'buildNamedAttendance').addItem('Discard unsubmitted attendance', 'discardAttendance').addToUi(); } catch (err) { /* not opened from the sheet */ }
 }
 
 function releaseHeldQuiz() { return commitQuiz_('', true); }
@@ -858,6 +858,10 @@ var ROSTER_TAB = 'Roster', ATT_CTL_TAB = 'Attendance_Control', ATT_LOG_TAB = 'At
 
 function normId_(s) { return String(s == null ? '' : s).replace(/\D/g, ''); }
 
+function cleanName_(s) { // a name for the lecturer's private view: trimmed, at most 80 characters, no control characters
+  return ' ' + String(s == null ? '' : s).replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80);
+}
+
 function rosterRows_() { // [[id, name], ...] straight from the Roster tab
   var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ROSTER_TAB);
   if (!sh || sh.getLastRow() < 1) return [];
@@ -873,11 +877,12 @@ function rosterSet_() { // {id: 1}, cached for five minutes
   return set;
 }
 
-// Roster sync (used by attendance_tools/roster_sync.sh): adds the uploaded Student IDs to the Roster tab. Only IDs are stored (no names), and nothing
-// from the Roster is ever returned. By default nothing is deleted (IDs missing from the upload are only counted).
+// Roster sync (used by attendance_tools/roster_sync.sh): adds the uploaded Student IDs (and names, when sent) to the Roster tab: ID in column A, name in
+// column B. Students need only their ID to check in; names are for the lecturer's private view only and are never returned to any page, reply or email.
+// Nothing from the Roster is ever returned. By default nothing is deleted (IDs missing from the upload are only counted).
 // Class section: the Roster must hold only the lecturer's own section. Upload the section's own export (for example PHYS143_GROUP_E.csv) with
 // replace=yes and mode=apply: the Roster then becomes exactly that list (other IDs are removed from the Roster only; Attendance, Scores and Master rows are left alone).
-// kind=roster_sync, hostkey, mode=dry|apply, replace=yes (optional), rows = JSON list of Student IDs.
+// kind=roster_sync, hostkey, mode=dry|apply, replace=yes (optional), rows = JSON list of [Student ID, name] pairs (or plain IDs).
 function rosterSync_(p) {
   if (!hostOk_(p)) return { ok: false, why: 'key not accepted' };
   var rows;
@@ -888,17 +893,18 @@ function rosterSync_(p) {
   rows.forEach(function (r) {
     var id = normId_(Array.isArray(r) ? r[0] : r);
     if (id.length < 4 || id.length > 12) { bad++; return; }
-    if (!up[id]) { up[id] = 1; order.push(id); }
+    if (!up[id]) { up[id] = Array.isArray(r) ? cleanName_(r[1]) : ' '; order.push(id); } // ' ' = no name sent
   });
   if (!order.length) return { ok: false, why: 'no valid student IDs in the list' };
   var apply = String(p.mode || '') === 'apply', lk = LockService.getScriptLock();
   lk.waitLock(30000);
   try {
     var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(ROSTER_TAB) || ss.insertSheet(ROSTER_TAB);
-    if (sh.getLastRow() === 0) sh.getRange(1, 1).setValue('Student ID');
-    var have = {};
-    sh.getRange(1, 1, sh.getLastRow(), 1).getValues().forEach(function (r) { var id = normId_(r[0]); if (id.length >= 4) have[id] = 1; });
-    var added = order.filter(function (id) { return !have[id]; }).map(function (id) { return [id]; });
+    if (sh.getLastRow() === 0) sh.getRange(1, 1, 1, 2).setValues([['Student ID', 'Name']]);
+    var have = {}, nameAt = {};
+    sh.getRange(1, 1, sh.getLastRow(), 2).getValues().forEach(function (r, i) { var id = normId_(r[0]); if (id.length >= 4) { have[id] = 1; if (!String(r[1] || '').trim()) nameAt[id] = i + 1; } });
+    var added = order.filter(function (id) { return !have[id]; }).map(function (id) { return [id, up[id].trim()]; });
+    var named = 0; Object.keys(nameAt).forEach(function (id) { if (up[id] && up[id].trim()) named++; }); // existing rows with no name that the upload can fill
     var missing = Object.keys(have).filter(function (id) { return !up[id]; }).length;
     var replace = String(p.replace || '') === 'yes', removed = 0;
     if (replace && apply && missing) { // keep the header and the rows whose ID is in the upload (names in column B, if any, stay with their row)
@@ -909,12 +915,31 @@ function rosterSync_(p) {
     }
     if (apply && added.length) {
       var r0 = sh.getLastRow() + 1;
-      sh.getRange(r0, 1, added.length, 1).setNumberFormat('@');
-      sh.getRange(r0, 1, added.length, 1).setValues(added);
+      sh.getRange(r0, 1, added.length, 2).setNumberFormat('@');
+      sh.getRange(r0, 1, added.length, 2).setValues(added);
+    }
+    if (apply && named) { // fill blank names of IDs already on the Roster; a name that is already there is never overwritten
+      if (!String(sh.getRange(1, 2).getValue()).trim()) sh.getRange(1, 2).setValue('Name');
+      Object.keys(nameAt).forEach(function (id) { if (up[id] && up[id].trim()) sh.getRange(nameAt[id], 2).setNumberFormat('@').setValue(up[id].trim()); });
     }
     if (apply) { try { CacheService.getScriptCache().remove('roster'); } catch (err) { /* cache only */ } log_('roster:sync', added.length + ' added', '', ''); }
-    return { ok: true, mode: apply ? 'apply' : 'dry', replace: replace, added: added.length, unchanged: order.length - added.length, missing: missing, removed: replace ? (apply ? removed : missing) : 0, skipped: bad, total: order.length };
+    return { ok: true, mode: apply ? 'apply' : 'dry', replace: replace, added: added.length, namesFilled: named, unchanged: order.length - added.length, missing: missing, removed: replace ? (apply ? removed : missing) : 0, skipped: bad, total: order.length };
   } finally { lk.releaseLock(); }
+}
+
+// Named attendance view (lecturer only, from the sheet's PHYS 143 menu): writes a private tab Attendance_Named with Name, Student ID and a copy of every
+// Attendance column, so the lecturer can see who was present. The Attendance tab itself stays IDs only (the format Sakai imports). Run again to refresh.
+function buildNamedAttendance() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet(), at = ss.getSheetByName(ATT_TAB), ui = SpreadsheetApp.getUi();
+  if (!at || at.getLastRow() < 1) { ui.alert('The Attendance tab is empty. Submit attendance first.'); return; }
+  var names = {}; rosterRows_().forEach(function (r) { names[r[0]] = r[1]; });
+  var data = at.getRange(1, 1, at.getLastRow(), at.getLastColumn()).getDisplayValues();
+  var out = data.map(function (r, i) { return [i === 0 ? 'Name' : (names[normId_(r[0])] || '')].concat(r); });
+  var nv = ss.getSheetByName('Attendance_Named') || ss.insertSheet('Attendance_Named');
+  nv.clear();
+  nv.getRange(1, 1, out.length, out[0].length).setNumberFormat('@').setValues(out);
+  nv.setFrozenRows(1); nv.setFrozenColumns(2);
+  ui.alert('Attendance_Named is up to date (' + (out.length - 1) + ' students). It is private: never publish it.');
 }
 
 // Roster edit (host only, from the Control Centre): add, remove or check ONE Student ID without the Mac. Only a yes/no and the roster size come back, never an ID list.
@@ -932,7 +957,7 @@ function rosterEdit_(p) {
     if (op === 'check') return { ok: true, onRoster: at > 0, rosterSize: n };
     if (op === 'add') {
       if (at > 0) return { ok: true, changed: false, rosterSize: n };
-      var r0 = sh.getLastRow() + 1; sh.getRange(r0, 1).setNumberFormat('@').setValue(id);
+      var r0 = sh.getLastRow() + 1; sh.getRange(r0, 1, 1, 2).setNumberFormat('@').setValues([[id, cleanName_(p.name).trim()]]);
       n++;
     } else {
       if (at < 0) return { ok: true, changed: false, rosterSize: n };
@@ -1415,7 +1440,7 @@ function counts_(code) {
 // ---------- Portal and Control Centre support (additive: no existing action changes) ----------
 // SCRIPT_VERSION: change it whenever the script is redeployed; the Control Centre compares it with the version its page expects.
 // Key!M2 = Off hides "My results" from students (default On).
-var SCRIPT_VERSION = '2026-11-08-roster-1';
+var SCRIPT_VERSION = '2026-11-08-names-1';
 
 function resultsOn_() {
   try {

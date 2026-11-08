@@ -215,7 +215,7 @@ Pages: `phys143-lecturer.html` (login), `phys143-attendance.html` (lecturer), `p
 
 **Rules.**
 - **One mark per Student ID per day.** If an ID has already checked in during any session that day (including a second session, shown as "#2"), a repeat adds nothing and the student sees "Already marked present today". Checking in again never changes a 1.
-- **IDs only.** The system stores Student IDs, never names.
+- **ID to check in, name for the lecturer.** Students need only their ID. The private Roster tab may also hold each student's name (column B) for the lecturer's own view. Names are never returned to any page, reply or email; the only name shown publicly is the first name on a quiz leaderboard.
 - **Roster.** A student whose ID is on the roster is marked present. An ID that is not on the roster is told that the sign-in was received and to see the lecturer, and is recorded in red in **Not_On_List**, never in Attendance. A student is told only whether their own ID was found; nothing else about the roster is ever returned.
 - **Layout of the Attendance tab.** Student ID in column A; one column per session headed by its date (for example `03/11/2026`, a second session that day reads `03/11/2026 #2`); new sessions go to the right; 1 for present and 0 for every other student on the roster.
 - Only the lecturer (host key) can open, close or read attendance. Opening needs a non-empty Roster tab.
@@ -237,7 +237,7 @@ Pages: `phys143-lecturer.html` (login), `phys143-attendance.html` (lecturer), `p
 | Totals, Master | Rebuilt scores per student ID. |
 | Reports, Attempts | Student problem reports; optional-ID practice and mock results. |
 | Explanations | Optional per-question override of the bank explanation. |
-| Roster | Student IDs only. |
+| Roster | Student ID (column A) and optional name (column B), private. |
 | Attendance_Control | One row per attendance session: code, label (date and `#n`), status, opened, closed. |
 | Attendance_Log | One row per check-in: time, session, ID, on roster (Yes or No). |
 | Attendance | The 1 and 0 table described in section 9. |
@@ -253,7 +253,7 @@ Pages: `phys143-lecturer.html` (login), `phys143-attendance.html` (lecturer), `p
 
 The Roster tab is filled from the lecturer's computer with a script, so the class list never goes on the site or in git.
 
-- The tool is `attendance_tools/roster_sync.sh`, which lives **on the Mac only** and is not in this repository. It reads `attendance-list.csv` on the Mac, sends **only the Student IDs** (with the host key) to the Apps Script as a `roster_sync` post, and prints a summary.
+- The tool is `attendance_tools/roster_sync.sh`, which lives **on the Mac only** and is not in this repository. It reads `attendance-list.csv` on the Mac, sends **only the Student ID and name columns** (with the host key; `--ids-only` drops names, `--name-column` names the name column) to the Apps Script as a `roster_sync` post, and prints a summary.
 - Always run it with `--dry-run` first. A dry run reports how many IDs would be added; nothing is written.
 - **Class section.** The Roster must hold only your own section (Group E), not the whole course. Use the section's own Sakai export (`PHYS143_GROUP_E.csv`, on the Mac only) and run `./roster_sync.sh PHYS143_GROUP_E.csv --dry-run`, then `--replace`. `--replace` sends `replace=yes`: the Roster becomes exactly that list and other IDs are removed from the Roster tab only (Attendance, Scores and Master rows are left alone). Check-in, Attendance, Scores and "My results" then involve only that section; any other ID is told to see the lecturer and goes to `Not_On_List`. The tool keeps only the ID column of the CSV.
 - **Changing the list later.** (1) A student joins: Control Centre > Class list > type the ID > Add (or run the sync without `--replace` on a fresh export; it only adds). (2) A student leaves: Control Centre > Class list > Remove. Past marks stay in Attendance, Scores and Master; future sessions no longer count that ID. (3) Many changes at once: download a fresh Group E export and run the sync with `--dry-run`, then with `--replace`. (4) Check one ID: Class list > Check (yes or no only). Script action `roster_edit` (host key; `op` = add, remove or check; one ID per call). IDs are never returned.
@@ -268,7 +268,7 @@ The Roster tab is filled from the lecturer's computer with a script, so the clas
 - **End of term.** Run `clearSemesterRecords` from the Apps Script editor (answer Yes) to delete all rows of Attendance_Log, Not_On_List, Reports, Attempts and Staged_Quiz. Attendance, Scores, Master and Roster are kept; export what you need first. `attPurgeSemester` still clears device codes and secrets.
 
 - Never put the host key, the class list, student names or any secret in this repository, in a page, or on a slide. Host and display pages and the host link stay off slides.
-- Attendance and the Roster hold **IDs only**.
+- Attendance holds **IDs only**. The Roster holds ID and name, in plain form, so the Sheet's sharing is the protection. Names never go in git, on a page, in a reply or in an email. The **Attendance_Named** tab (PHYS 143 menu > Named attendance view) shows names beside the Attendance marks; keep it private.
 - The Totals, Master, Roster, Attendance and Not_On_List tabs are never published and the pages never read them.
 - Public rankings show first names and scores only.
 - Students can type an optional ID on practice pages; it stays in their browser, can be cleared, and nothing is sent without it. No cookies and no analytics beyond anonymous GoatCounter counts.

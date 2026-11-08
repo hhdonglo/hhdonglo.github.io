@@ -87,6 +87,7 @@ body.focus main{padding-top:0}
   <section class="panel" id="p-ros"><h3>Class list</h3>
    <p class="note">Add a student who joined, or take off one who left. Leavers keep the marks already recorded. IDs are never shown back.</p>
    <input type="text" id="r-id" inputmode="numeric" autocomplete="off" placeholder="Student ID" aria-label="Student ID">
+   <input type="text" id="r-nm" autocomplete="off" placeholder="Name (optional, for Add)" aria-label="Name">
    <button class="go sm" type="button" id="r-add">Add</button>
    <button class="go alt sm" type="button" id="r-rm">Remove</button>
    <button class="go alt sm" type="button" id="r-ck">Check</button>
@@ -115,7 +116,7 @@ body.focus main{padding-top:0}
 (function(){
 "use strict";
 var SCRIPT_URL="https://script.google.com/macros/s/AKfycbzso5-FCU4erf_grbktH-AH-RKaPDap7TfJAw_TOSxNarTrJDe-PgyBzgIH7Fj2fjZ3/exec";
-var EXPECT_VERSION="2026-11-08-roster-1"; // must equal SCRIPT_VERSION in apps_script/quiz_receiver.gs
+var EXPECT_VERSION="2026-11-08-names-1"; // must equal SCRIPT_VERSION in apps_script/quiz_receiver.gs
 var $=function(i){return document.getElementById(i)};
 var KEY="";try{KEY=sessionStorage.getItem("phys143_hk")||""}catch(x){}
 if(!KEY){location.replace("phys143-lecturer.html");return}
@@ -234,10 +235,10 @@ function rosterDo(op){
  if(id.length<4||id.length>12){$("r-msg").textContent="Type the Student ID (4 to 12 digits).";return}
  if(op==="remove"&&!window.confirm("Take this ID off the class list? Past marks are kept."))return;
  $("r-msg").textContent="Working.";
- jsonp("action=roster_edit&op="+op+"&id="+encodeURIComponent(id)+"&"+hk(),function(d){
+ jsonp("action=roster_edit&op="+op+"&id="+encodeURIComponent(id)+(op==="add"&&$("r-nm").value.trim()?"&name="+encodeURIComponent($("r-nm").value.trim()):"")+"&"+hk(),function(d){
   if(!d||d.ok!==true){$("r-msg").textContent="Not done: "+(d&&d.why?d.why:"no answer");return}
   $("r-msg").textContent=(op==="check"?(d.onRoster?"On the class list.":"Not on the class list."):(d.changed?(op==="add"?"Added.":"Removed."):(op==="add"?"Already on the list.":"Was not on the list.")))+" The list now has "+d.rosterSize+" IDs.";
-  $("r-id").value="";
+  $("r-id").value="";$("r-nm").value="";
  },20000);
 }
 $("r-add").addEventListener("click",function(){rosterDo("add")});
