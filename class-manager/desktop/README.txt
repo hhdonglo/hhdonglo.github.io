@@ -109,8 +109,21 @@ Internet
 Attendance
   Lecturer menu, type the host key, Take attendance. Show the QR code on the
   projector. The code changes during the session, so it must be scanned in
-  the room. Students scan it and type their student ID; each student is
-  marked once per day. Close attendance, then submit it.
+  the room. Students scan it and type their student ID and personal access
+  code; each student is marked once per day. Create the access codes and
+  print the slips first (Access codes for students).
+
+  No one can check in for a friend. A classmate's ID is refused without that
+  student's access code, and the first phone a student checks in with is
+  registered to them for the term. A check-in from a phone registered to
+  someone else, or from a phone other than the student's own (a flat battery,
+  a broken phone), is not counted: it waits under "Check-ins to review" until
+  you approve it. Approve it only when you can see the student in the room.
+  On the same list you can remove a check-in, mark a student present by hand,
+  and forget a registered phone when a student changes phone.
+
+  The ID and code are remembered on the phone, so later check-ins take one
+  tap. Close attendance, review the list, then submit it.
 
 Live quiz
   Lecturer menu, Run quiz. A quiz can be run for every lecture that has

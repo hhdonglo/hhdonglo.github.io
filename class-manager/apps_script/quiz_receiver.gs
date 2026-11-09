@@ -1098,10 +1098,11 @@ function attDevHash_(dev) {
 // marks (Attendance tab) and the Student ID and time rows of Attendance_Log are NOT touched: they are the course record.
 function attPurgeSemester() {
   var ui = SpreadsheetApp.getUi();
-  if (ui.alert('Delete device codes, flags, classroom positions and session secrets?', 'Attendance marks are kept.', ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
+  if (ui.alert('Delete device codes, registered phones, flags, classroom positions and session secrets?', 'Attendance marks are kept.', ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
   var ss = SpreadsheetApp.getActiveSpreadsheet(), n = 0, lg = ss.getSheetByName(ATT_LOG_TAB), fl = ss.getSheetByName(ATT_FLAGS_TAB), ct = ss.getSheetByName(ATT_CTL_TAB);
   if (lg && lg.getLastRow() > 1 && lg.getLastColumn() >= 5) { lg.getRange(2, 5, lg.getLastRow() - 1, 1).clearContent(); n++; }
   if (fl && fl.getLastRow() > 1) { fl.deleteRows(2, fl.getLastRow() - 1); n++; }
+  var phs = ss.getSheetByName(ATT_PHONES_TAB); if (phs && phs.getLastRow() > 1) { phs.deleteRows(2, phs.getLastRow() - 1); n++; }
   if (ct && ct.getLastRow() > 1) { ct.getRange(2, 6, ct.getLastRow() - 1, 4).clearContent(); n++; } // Secret, Lat, Lon, Radius m
   PropertiesService.getScriptProperties().deleteProperty('att_salt');
   try { CacheService.getScriptCache().removeAll(['att:open', 'roster']); } catch (err) { /* cache only */ }
@@ -1136,7 +1137,7 @@ function attDeviceIds_(label, dev) { // the IDs this device token has already ch
   return got;
 }
 
-function attCheckIn_(p, code) { // the student side of the check-in: the code, the ID and the device token
+function attCheckIn_(p, code) { // the student side of the check-in: the QR token, the ID, the personal access code and the device token
   var ses = attOpenSession_();
   if (!ses) return { ok: false, why: 'closed' };
   var aid = normId_(p.id), dev = String(p.dev || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 40);
@@ -1146,7 +1147,22 @@ function attCheckIn_(p, code) { // the student side of the check-in: the code, t
   if (attFails_('d' + dev) >= ATT_MAX_FAILS || attFails_('i' + aid) >= ATT_MAX_FAILS) return { ok: false, why: 'slow down' };
   if (ATT_REQUIRE_LINK && !attLinkOk_(ses, String(p.t || '').replace(/[^0-9a-f]/g, '').slice(0, 8))) { attFailAdd_('d' + dev); attFailAdd_('i' + aid); return { ok: false, why: 'old link' }; } // scan the live QR code again
   var onl = !!rosterSet_()[aid], day = attDayKey_(); // the student is told only whether their own ID was found; nothing else about the roster
+  var phone = null;
+  if (onl && ATT_REQUIRE_CODE) { // a classmate's ID is not enough: the personal access code must match too
+    var mine = codesMap_()[aid];
+    if (!mine) return { ok: false, why: 'no access code' };
+    if (normCode_(p.code) !== mine.code) { attFailAdd_('d' + dev); attFailAdd_('i' + aid); attFlag_(ses.label, aid, dev, 'wrong access code (refused)'); return { ok: false, why: 'not recognised' }; }
+  }
   if (attDayHas_(day, aid)) return { ok: true, id: aid, onList: onl, already: true }; // one mark per ID per day: nothing is added
+  if (onl && ATT_PHONE_BIND) { // one phone per student for the term
+    phone = attPhoneCheck_(aid, dev);
+    if (phone.refuse || phone.changed) { // a borrowed or new phone (a flat battery, a broken phone): held for the lecturer to confirm, never counted on its own
+      var geo0 = attGeo_(ses, p);
+      if (geo0.state === 'far' || geo0.state === 'none') { if (ATT_GEO_MODE === 'enforce') return { ok: false, why: geo0.state === 'far' ? 'too far' : 'no location' }; }
+      if (!attPendingHas_(ses.label, aid)) attFlag_(ses.label, aid, dev, ATT_PENDING + (phone.refuse ? 'used the phone registered to ' + phone.owner : 'used a phone other than the one registered'));
+      return { ok: true, id: aid, onList: true, pending: true };
+    }
+  }
   var geo = attGeo_(ses, p);
   if (geo.state === 'far' || geo.state === 'none') {
     attFlag_(ses.label, aid, dev, 'location: ' + attGeoText_(geo) + (ATT_GEO_MODE === 'enforce' ? ' (refused)' : ' (accepted)'));
@@ -1156,7 +1172,69 @@ function attCheckIn_(p, code) { // the student side of the check-in: the code, t
   if (n >= ATT_DEVICE_IDS) { attFlag_(ses.label, aid, dev, 'device already used for ' + Object.keys(others).join(', ')); return { ok: false, why: 'device used' }; }
   append_(ATT_LOG_TAB, ['Timestamp', 'Session', 'Student ID', 'On roster', 'Device', 'Location'], [new Date(), ses.label, aid, onl ? 'Yes' : 'No', dev, attGeoText_(geo)]); // appendRow is atomic: no lock for 200 students at once
   attDayAdd_(day, aid);
+  if (phone && phone.bind) attPhoneBind_(aid, dev);
   return { ok: true, id: aid, onList: onl };
+}
+
+// ---------- One phone per student for the term ----------
+// The first accepted check-in registers the phone (its salted device hash) to the Student ID in Attendance_Phones. After that, a registered phone
+// cannot check in any other student, and a check-in from a different phone is accepted but listed for review. A student with a new phone asks the
+// lecturer, who presses "Reset phone" on the review list; the next check-in registers the new one. Rows are deleted by attPurgeSemester.
+var ATT_PHONES_TAB = 'Attendance_Phones', ATT_REQUIRE_CODE = true, ATT_PHONE_BIND = true, ATT_PENDING = 'waiting for approval: ';
+function attPendingHas_(label, id) {
+  return bodyRows_(SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_FLAGS_TAB), 5).some(function (r) { return String(r[1]) === label && normId_(r[2]) === id && String(r[4]).indexOf(ATT_PENDING) === 0; });
+}
+function attPhones_() { // {byId: {id: dev}, byDev: {dev: id}}
+  var out = { byId: {}, byDev: {} };
+  bodyRows_(SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_PHONES_TAB), 2).forEach(function (r) { var id = normId_(r[0]), d = String(r[1] || ''); if (id && d) { out.byId[id] = d; out.byDev[d] = id; } });
+  return out;
+}
+function attPhoneCheck_(id, dev) { // {refuse, owner} or {bind} or {changed} or {}
+  var ph = attPhones_(), owner = ph.byDev[dev];
+  if (owner && owner !== id) return { refuse: true, owner: owner };
+  if (!ph.byId[id]) return { bind: true };
+  return ph.byId[id] === dev ? {} : { changed: true };
+}
+function attPhoneBind_(id, dev) {
+  try { append_(ATT_PHONES_TAB, ['Student ID', 'Device', 'Registered'], [id, dev, new Date()]); } catch (err) { /* the check-in is already recorded */ }
+}
+function attPhoneReset_(id) { // host only: forget a student's phone, so the next check-in registers the new one
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_PHONES_TAB);
+  if (!sh) return { ok: true, removed: 0 };
+  var rows = bodyRows_(sh, 3), keep = rows.filter(function (r) { return normId_(r[0]) !== id; });
+  if (keep.length !== rows.length) rewriteBody_(sh, 3, keep);
+  log_('attendance:phone reset', '', id, '');
+  return { ok: true, removed: rows.length - keep.length };
+}
+
+// ---------- Review after class: the flagged check-ins of one session, and what the lecturer can do about them ----------
+function attReview_(p) { // the latest session (or p.label): its flags, each with whether the ID is still counted present
+  var rows = attRows_(), cur = null;
+  if (p.label) rows.forEach(function (r) { if (attColumn_(r.label) === String(p.label)) cur = r; });
+  if (!cur) { rows.forEach(function (r) { if (r.status === 'Open') cur = r; }); if (!cur && rows.length) cur = rows[rows.length - 1]; }
+  if (!cur) return { ok: true, session: null, items: [] };
+  var present = attPresent_(cur.label), ph = attPhones_(), names = {}; rosterRows_().forEach(function (r) { names[r[0]] = r[1] || ''; });
+  var fl = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_FLAGS_TAB), items = [];
+  bodyRows_(fl, 5).forEach(function (r) {
+    if (String(r[1]) !== cur.label) return;
+    var ids = splitIds_(r[2]).map(normId_).filter(String);
+    items.push({ time: r[0] instanceof Date ? r[0].toISOString() : String(r[0]), ids: ids, names: ids.map(function (i) { return names[i] || ''; }), reason: String(r[4]), pending: String(r[4]).indexOf(ATT_PENDING) === 0, present: ids.filter(function (i) { return present[i]; }), phone: ids.filter(function (i) { return ph.byId[i]; }) });
+  });
+  return { ok: true, session: { label: attColumn_(cur.label), status: cur.status }, items: items, canRemove: cur.status === 'Open' || cur.status === 'Closed' };
+}
+function attRemove_(p) { // host only: take one check-in out of a session that is not yet submitted
+  var id = normId_(p.id), rows = attRows_(), cur = null;
+  rows.forEach(function (r) { if (attColumn_(r.label) === String(p.label || '')) cur = r; });
+  if (!cur || !id) return { ok: false, why: 'session not found' };
+  if (cur.status === 'Submitted') return { ok: false, why: 'this session is already submitted: change the mark in the Attendance tab' };
+  var lg = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_LOG_TAB), gone = 0;
+  if (lg && lg.getLastRow() > 1) {
+    var vals = lg.getRange(2, 2, lg.getLastRow() - 1, 2).getValues();
+    for (var i = vals.length - 1; i >= 0; i--) if (String(vals[i][0]) === cur.label && normId_(vals[i][1]) === id) { lg.deleteRow(i + 2); gone++; }
+  }
+  try { CacheService.getScriptCache().remove('attd:' + attDayKey_()); } catch (err) { /* cache only */ }
+  if (gone) { attFlag_(cur.label, id, '', 'check-in removed by the lecturer'); log_('attendance:remove', attColumn_(cur.label), id, ''); }
+  return { ok: true, removed: gone };
 }
 
 function attFlagDevices_(label) { // at closing: devices that checked in more than one ID (catches two phones' taps that raced), added to the Flags tab
@@ -1226,11 +1304,12 @@ function attStatus_() { // the open session if there is one, else the latest, wi
   var rows = attRows_(), cur = null;
   rows.forEach(function (r) { if (r.status === 'Open') cur = r; });
   if (!cur && rows.length) cur = rows[rows.length - 1];
-  if (!cur) return { ok: true, session: null };
+  if (!cur) { var m0 = ATT_REQUIRE_CODE ? codesMap_() : {}; return { ok: true, session: null, noCode: ATT_REQUIRE_CODE ? rosterRows_().filter(function (r) { return !m0[r[0]]; }).length : 0 }; }
   var present = attPresent_(cur.label), roster = {}; rosterRows_().forEach(function (r) { roster[r[0]] = 1; });
   var on = 0, off = 0; Object.keys(present).forEach(function (id) { if (roster[id]) on++; else off++; });
+  var waiting = {}; bodyRows_(SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_FLAGS_TAB), 5).forEach(function (r) { var i = normId_(r[2]); if (String(r[1]) === cur.label && String(r[4]).indexOf(ATT_PENDING) === 0 && !present[i]) waiting[i] = 1; });
   var live = cur.status === 'Open' && cur.secret, now = Date.now(), slot = attSlot_(now);
-  return { ok: true, session: { link: live ? attLinkFor_(cur.secret, slot) : '', secondsLeft: live ? Math.max(1, Math.ceil(((slot + 1) * ATT_SLOT_SEC * 1000 - now) / 1000)) : 0, label: attColumn_(cur.label), status: cur.status, geo: cur.lat != null && ATT_GEO_MODE !== 'off' ? ATT_GEO_MODE : 'off', radius: cur.lat != null ? (cur.radius || ATT_GEO_RADIUS_M) : 0, present: on, notOnList: off, rosterSize: Object.keys(roster).length, pending: rows.filter(function (r) { return r.status === 'Closed'; }).length } };
+  return { ok: true, session: { link: live ? attLinkFor_(cur.secret, slot) : '', secondsLeft: live ? Math.max(1, Math.ceil(((slot + 1) * ATT_SLOT_SEC * 1000 - now) / 1000)) : 0, label: attColumn_(cur.label), status: cur.status, geo: cur.lat != null && ATT_GEO_MODE !== 'off' ? ATT_GEO_MODE : 'off', radius: cur.lat != null ? (cur.radius || ATT_GEO_RADIUS_M) : 0, present: on, notOnList: off, waiting: Object.keys(waiting).length, noCode: ATT_REQUIRE_CODE && cur.status !== 'Open' ? (function () { var m = codesMap_(); return Object.keys(roster).filter(function (i) { return !m[i]; }).length; })() : 0, rosterSize: Object.keys(roster).length, pending: rows.filter(function (r) { return r.status === 'Closed'; }).length } };
 }
 
 function attOpen_(p) {
@@ -1323,6 +1402,19 @@ function attDiscard_() {
   try { var cc = CacheService.getScriptCache(); cc.remove('attd:' + attDayKey_()); } catch (err) { /* cache only */ }
   log_('attendance:discard', String(sessions.length) + ' session(s)', '', 'rotating');
   return { ok: true, discarded: sessions.length, checkins: gone };
+}
+
+function attApprove_(p) { // host only: count a student present in a session that is not yet submitted (a borrowed phone, or added by hand)
+  var id = normId_(p.id), rows = attRows_(), cur = null;
+  rows.forEach(function (r) { if (attColumn_(r.label) === String(p.label || '')) cur = r; });
+  if (!cur || !id) return { ok: false, why: 'session not found' };
+  if (cur.status === 'Submitted') return { ok: false, why: 'this session is already submitted: change the mark in the Attendance tab' };
+  if (!rosterSet_()[id]) return { ok: false, why: 'that ID is not on the class list' };
+  if (attPresent_(cur.label)[id]) return { ok: true, added: 0 };
+  append_(ATT_LOG_TAB, ['Timestamp', 'Session', 'Student ID', 'On roster', 'Device', 'Location'], [new Date(), cur.label, id, 'Yes', '', 'approved by the lecturer']);
+  attFlag_(cur.label, id, '', p.manual ? 'added by the lecturer' : 'approved by the lecturer');
+  log_('attendance:approve', attColumn_(cur.label), id, '');
+  return { ok: true, added: 1 };
 }
 
 // ---------- POST: answers, joins, progress, reports, attempts ----------
@@ -2477,6 +2569,12 @@ function doGet(e) {
   }
   if (p.action === 'roster_tidy') return jsonp_(e, hostOk_(p) ? rosterTidy_(p) : { ok: false, why: 'host key not accepted' }); // host only: counts only
   if (p.action === 'roster_edit') return jsonp_(e, hostOk_(p) ? rosterEdit_(p) : { ok: false, why: 'host key not accepted' }); // host only: one ID at a time
+  if (p.action === 'attend_review') return jsonp_(e, hostOk_(p) ? attReview_(p) : { ok: false, why: 'host key not accepted' }); // host only: flagged check-ins
+  if (p.action === 'attend_remove' || p.action === 'attend_approve' || p.action === 'attend_phone_reset') { // host only: take out or add one check-in, or forget a student's phone
+    if (!hostOk_(p)) return jsonp_(e, { ok: false, why: 'host key not accepted' });
+    var rlk = LockService.getScriptLock(); rlk.waitLock(20000);
+    try { return jsonp_(e, p.action === 'attend_remove' ? attRemove_(p) : p.action === 'attend_approve' ? attApprove_(p) : attPhoneReset_(normId_(p.id))); } finally { rlk.releaseLock(); }
+  }
   if (p.action === 'attend_status' || p.action === 'attend_open' || p.action === 'attend_close') { // host only
     if (!hostOk_(p)) return jsonp_(e, { ok: false, why: 'host key not accepted' });
     if (p.action === 'attend_status') return jsonp_(e, attStatus_());
