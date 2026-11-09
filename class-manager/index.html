@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light dark">
+<title>PHYS 143 Portal</title>
+<meta name="description" content="PHYS 143 Portal.">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/icon-192.png">
+<script src="config.js"></script>
+<link rel="stylesheet" href="assets/site.css">
+<link rel="stylesheet" href="assets/student.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#16294b">
+<script>if(!location.hash){if("scrollRestoration" in history)history.scrollRestoration="manual";window.addEventListener("pageshow",function(){if(!location.hash)window.scrollTo({top:0,left:0,behavior:"instant"})});}</script>
+</head>
+<body class="focus">
+<a class="skip" href="#main">Skip to content</a>
+<header class="banner slim">
+<div class="wrap">
+<h1><a class="home-link" href="index.html" data-cm="courseCode">PHYS 143</a></h1>
+<p class="course" data-cm="courseTitle">Mechanics and Thermal Physics</p>
+</div>
+</header>
+<nav class="jump" id="jump" aria-label="Sections"><div class="wrap"><button type="button" class="menu-btn" aria-expanded="false" aria-controls="jump-links"><span>Menu</span><span class="dots" aria-hidden="true">&#8943;</span></button><div class="links" id="jump-links"><a href="index.html">Portal</a><a href="course.html">Lectures</a><a href="course.html#weekly">Practice</a><a href="mock-exam.html">Mock exam</a><a href="quiz.html">Live quiz</a><a href="calendar.html">Calendar</a><a href="messages.html">Messages</a></div></div></nav>
+<main id="main"><div class="wrap">
+<style>
+.pt{max-width:30rem;margin:0 auto;font-family:system-ui,sans-serif}
+.pt .card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem 1.1rem;margin:.8rem 0;box-shadow:var(--shadow)}
+.pt h1{margin:.2rem 0 .1rem;color:var(--brown);font-size:1.45rem}
+@media (prefers-color-scheme:dark){.pt h1{color:#e9c9a8}}
+.pt h2{margin:0 0 .5rem;font:700 .85rem system-ui,sans-serif;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.pt .sub,.pt .note{font:.92rem/1.5 system-ui,sans-serif;color:var(--muted)}
+.pt .banner{border-left:6px solid var(--border);font-weight:600}
+.pt .banner.on{border-left-color:#2e7d32}
+.pt .go{display:flex;align-items:center;justify-content:center;width:100%;min-height:54px;margin:.5rem 0;border:2px solid var(--brown-fill);border-radius:6px;background:var(--brown-fill);color:#fff;font:700 1.1rem system-ui,sans-serif;text-decoration:none;cursor:pointer}
+.pt .go.alt{background:var(--btn-bg);color:var(--btn-text)}
+.pt input[type=text]{width:100%;min-height:50px;padding:.4rem .7rem;border:1.5px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font:1.2rem system-ui,sans-serif}
+.pt label{display:block;font:600 .95rem system-ui,sans-serif;margin:.6rem 0 .25rem}
+.pt label.cb{display:flex;gap:.5rem;align-items:center;font-weight:400;min-height:44px}
+.pt label.cb input{width:22px;height:22px}
+.pt ul{list-style:none;padding:0;margin:0}
+.pt li a{display:flex;justify-content:space-between;align-items:center;min-height:48px;border-bottom:1px solid var(--border);text-decoration:none}
+.pt summary{min-height:48px;display:flex;align-items:center;font-weight:700;cursor:pointer}
+.pt .err{color:#b3261e;font-weight:600;margin:.6rem 0 0}
+@media (prefers-color-scheme:dark){.pt .err{color:#ff8a80}}
+.pt table{width:100%;border-collapse:collapse;font-size:.95rem}.pt td,.pt th{padding:.35rem .3rem;border-bottom:1px solid var(--border);text-align:left}
+.pt [hidden]{display:none!important}
+.pt input#p-code{text-transform:uppercase;letter-spacing:.08em}
+.pt .lv{display:grid;grid-template-columns:minmax(0,1fr) 5.2rem;gap:.15rem .6rem;align-items:center;padding:.45rem 0;border-bottom:1px solid var(--border)}
+.pt .lv .t{font-weight:600}.pt .lv .p{text-align:right;font-variant-numeric:tabular-nums}
+.pt .lv .bar{grid-column:1/-1;height:8px;border-radius:4px;background:var(--border);overflow:hidden}
+.pt .lv .bar i{display:block;height:100%;border-radius:4px}
+.pt .lv.ok .bar i{background:#2e7d32}.pt .lv.mid .bar i{background:#b26a00}.pt .lv.low .bar i{background:#b3261e}
+.pt .lv .s{grid-column:1/-1;font-size:.85rem;color:var(--muted)}
+.pt .focus-box{border-left:6px solid #b26a00;padding:.5rem .8rem;margin:.4rem 0;background:var(--btn-bg)}
+.pt .rv{padding:.55rem 0;border-bottom:1px solid var(--border);font-size:.95rem;line-height:1.45}
+.pt .rv .src{font-size:.82rem;color:var(--muted)}
+.pt .rv a{display:inline;min-height:0;border:0}
+.pt details.sub2 summary{min-height:44px;font-weight:600}
+body.focus header.banner,body.focus nav.jump,body.focus .crumb,body.focus .sec-sub,body.focus aside.disclaimer,body.focus footer,body.focus a.skip,body.focus main h2{display:none!important}
+body.focus main{padding-top:1.2rem}
+</style>
+<div class="pt">
+ <h1>PHYS 143 Portal</h1>
+ <p class="sub" id="p-contacts">University Physics</p>
+ <div class="card banner" id="p-banner" aria-live="polite">Checking what is open in class.</div>
+ <div class="card" id="p-primary"></div>
+ <div class="card" id="p-week"></div>
+ <div class="card" id="p-news">
+  <h2>Announcements<span id="p-nbadge" hidden></span></h2>
+  <div id="p-ann"><p class="note">Loading…</p></div>
+  <h2 style="margin-top:.9rem">Coming up</h2>
+  <div id="p-cal"><p class="note">Loading…</p></div>
+  <a class="go alt" href="messages.html" id="p-msgs">Messages</a>
+  <a class="go alt" href="calendar.html">Course calendar</a>
+ </div>
+ <div class="card" id="p-res" hidden>
+  <details id="p-details"><summary>My progress</summary>
+   <form id="p-form" autocomplete="off" novalidate>
+    <label for="p-id">Student ID</label><input type="text" id="p-id" maxlength="12" inputmode="numeric" autocomplete="off">
+    <label for="p-code">Access code</label><input type="text" id="p-code" maxlength="9" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ABCD-EF23" aria-describedby="p-codenote">
+    <p class="note" id="p-codenote">Your personal code is on the slip from your lecturer. Keep it to yourself: with your ID it opens your record.</p>
+    <label class="cb" id="p-remlab" hidden><input type="checkbox" id="p-rem"> Remember my ID and code on this phone</label>
+    <p class="note" id="p-remnote" hidden>Stored only in this browser. <a href="#" id="p-forget">Forget this phone</a></p>
+    <p class="err" id="p-err" role="alert" hidden></p>
+    <button class="go alt" type="submit" id="p-show">Show my progress</button>
+   </form>
+   <div id="p-out" hidden></div>
+   <p class="note">Only you can open this page, with your ID and code. Practice counts once you have entered your ID on a practice page.</p>
+  </details>
+ </div>
+ <div class="card" id="p-install" hidden>
+  <h2>Add to home screen</h2>
+  <p class="note" id="p-inst-txt">Open the Portal like an app, with one tap, even on a weak connection.</p>
+  <button class="go alt" type="button" id="p-inst-btn">Install the Portal</button>
+ </div>
+ <div class="card"><details><summary>All lectures</summary><ul id="p-all"></ul></details></div>
+ <p class="note">Corrections: contact your lecturer.</p>
+</div>
+<script>
+(function(){ // Announcements, the next events and unread messages; each part is optional and fails quietly.
+"use strict";
+var U=window.CM.scriptUrl,$=function(i){return document.getElementById(i)};
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function jp(p,cb){var n="pn"+Date.now()+Math.floor(Math.random()*1e6),sc=document.createElement("script"),done=false;function end(d){if(done)return;done=true;delete window[n];if(sc.parentNode)sc.parentNode.removeChild(sc);cb(d)}window[n]=end;sc.onerror=function(){end(null)};setTimeout(function(){end(null)},20000);sc.src=U+"?"+p+"&callback="+n+"&_="+Date.now();document.head.appendChild(sc)}
+var id="",code="";try{id=localStorage.getItem("phys143_portal_id")||"";code=localStorage.getItem("phys143_portal_code")||""}catch(x){}
+var who=id&&code?"&id="+encodeURIComponent(id)+"&code="+encodeURIComponent(code):"";
+jp("action=announcements"+who,function annCb(d){
+ if(!d||!d.ok){if(d&&who){who="";jp("action=announcements",annCb);return}$("p-ann").innerHTML='<p class="note">None at present.</p>';return}
+ var l=d.announcements.slice(0,3);
+ $("p-ann").innerHTML=l.length?l.map(function(a){return'<div class="rv"><strong>'+(a.pinned?"Pinned: ":"")+esc(a.title)+'</strong>'+(a.unread?' <span style="color:#b3261e;font-weight:700">New</span>':"")+'<br><span class="src">'+esc(a.at.replace("T"," "))+'</span>'+(a.text?'<br>'+esc(a.text.length>220?a.text.slice(0,220)+"…":a.text):"")+'</div>'}).join("")+(d.announcements.length>3?'<p class="note"><a href="messages.html">All announcements</a></p>':""):'<p class="note">None at present.</p>';
+});
+jp("action=calendar",function(d){
+ if(!d||!d.ok){$("p-cal").innerHTML='<p class="note">The calendar is not available.</p>';return}
+ var now=new Date(),t=now.getFullYear()+"-"+("0"+(now.getMonth()+1)).slice(-2)+"-"+("0"+now.getDate()).slice(-2);
+ var l=d.events.filter(function(e){return(e.end||e.start).slice(0,10)>=t}).slice(0,3);
+ $("p-cal").innerHTML=l.length?l.map(function(e){return'<div class="rv"><a href="calendar.html#'+esc(e.start.slice(0,10))+'"><strong>'+esc(e.title)+'</strong></a><br><span class="src">'+esc(e.start.slice(0,10)===t?"Today":e.start.slice(0,10))+(e.allDay?"":" "+esc(e.start.slice(11,16)))+(e.location?" · "+esc(e.location):"")+'</span></div>'}).join(""):'<p class="note">Nothing scheduled.</p>';
+});
+if(who)jp("action=chat"+who,function(d){if(d&&d.ok&&d.unread)$("p-msgs").textContent="Messages ("+d.unread+" unread)"});
+})();
+</script>
+<script src="assets/messages.js"></script>
+<script>
+(function(){
+"use strict";
+var SCRIPT_URL=window.CM.scriptUrl;
+var $=function(i){return document.getElementById(i)};
+var CFG=null,LIVE=null,KEYID="phys143_portal_id",KEYCODE="phys143_portal_code";
+function lecPage(n){return Number(n)===0?"introduction.html":"lecture-"+Number(n)+".html"}
+function pracPage(n){return Number(n)===0?"introduction-practice.html":"lecture-"+Number(n)+"-practice.html"}
+function lecName(n){return Number(n)===0?"the Introduction":"Lecture "+Number(n)}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function jsonp(params,cb,ms){
+ var n="cb"+Date.now()+Math.floor(Math.random()*1e6),sc=document.createElement("script"),done=false,t;
+ function end(d){if(done)return;done=true;clearTimeout(t);delete window[n];if(sc.parentNode)sc.parentNode.removeChild(sc);cb(d)}
+ window[n]=end;sc.onerror=function(){end(null)};t=setTimeout(function(){end(null)},ms||8000);
+ sc.src=SCRIPT_URL+"?"+params+"&callback="+n+"&_="+Date.now();document.head.appendChild(sc);
+}
+function render(){
+ var w=String((LIVE&&LIVE.portal===1&&LIVE.week>=1)?LIVE.week:CFG.currentWeek),title=CFG.lectures[w]||"",L=LIVE&&LIVE.portal===1?LIVE:null;
+ $("p-contacts").textContent="University Physics. Contacts: "+CFG.contacts+".";
+ var b=$("p-banner"),p=$("p-primary"),h="";
+ if(L&&L.attendance==="open"){
+  b.textContent="Attendance is open.";b.className="card banner on";
+  h='<h2>Next step</h2><p>Scan the QR code on the projector with your phone camera. Then enter your student ID and allow location.</p><p class="note">If the scan opens inside another app, open the link in Chrome or Safari.</p>';
+ }else if(L&&L.quiz&&L.quiz!=="none"){
+  b.textContent="A live quiz is open.";b.className="card banner on";
+  h='<h2>Next step</h2><a class="go" href="quiz.html">Join live quiz</a><p class="note">Enter the join code shown in class.</p>';
+ }else{
+  b.textContent=L?"No live activity right now.":"Live status is not available. The links below still work.";b.className="card banner";
+  h='<h2>Next step</h2><a class="go" href="'+lecPage(w)+'">Continue with '+lecName(w)+'</a>';
+ }
+ p.innerHTML=h;
+ var hw=CFG.handouts[w],pr=CFG.practice.indexOf(Number(w))>=0;
+ $("p-week").innerHTML='<h2>This week: Lecture '+esc(w)+'</h2><p><b>'+esc(title)+'</b></p><ul>'+
+  (hw?'<li><a href="'+esc(hw)+'">Handout (PDF) <span aria-hidden="true">&rsaquo;</span></a></li>':'')+
+  (pr?'<li><a href="'+pracPage(w)+'">Practice quiz <span aria-hidden="true">&rsaquo;</span></a></li>':'')+
+  '<li><a href="'+lecPage(w)+'">Lecture page <span aria-hidden="true">&rsaquo;</span></a></li></ul>';
+ var all="";for(var i=1;i<=12;i++){all+='<li><a href="'+lecPage(i)+'"><span>'+i+'. '+esc(CFG.lectures[i]||"")+'</span><span aria-hidden="true">&rsaquo;</span></a></li>'}
+ $("p-all").innerHTML=all;
+ // My results needs a script that supports it; hidden otherwise.
+ var res=CFG.settings.showMyResults&&L&&L.results===true;
+ $("p-res").hidden=!res;
+ var rem=CFG.settings.allowRememberId;$("p-remlab").hidden=!rem;
+ var saved="",savedCode="";try{saved=localStorage.getItem(KEYID)||"";savedCode=localStorage.getItem(KEYCODE)||""}catch(x){}
+ if(rem&&saved){$("p-rem").checked=true;$("p-remnote").hidden=false;$("p-id").value=saved;$("p-code").value=savedCode}
+}
+function loadStatus(){jsonp("action=portal_status",function(d){LIVE=d;render()},6000)}
+function load(){
+ var x=new XMLHttpRequest();x.open("GET","data/portal.json?_="+Date.now());
+ x.onload=function(){try{CFG=JSON.parse(x.responseText)}catch(e){CFG=null}
+  if(!CFG){$("p-banner").textContent="This page could not load its settings. Refresh the page.";return}
+  render();loadStatus();setInterval(loadStatus,15000)};
+ x.onerror=function(){$("p-banner").textContent=PHYSMSG.text("E8")};x.send();
+}
+$("p-id").addEventListener("input",function(){var v=$("p-id").value.replace(/\D/g,"");if(v!==$("p-id").value)$("p-id").value=v});
+$("p-rem").addEventListener("change",function(){$("p-remnote").hidden=!$("p-rem").checked;if(!$("p-rem").checked){try{localStorage.removeItem(KEYID);localStorage.removeItem(KEYCODE)}catch(x){}}});
+$("p-forget").addEventListener("click",function(e){e.preventDefault();try{localStorage.removeItem(KEYID);localStorage.removeItem(KEYCODE)}catch(x){}$("p-rem").checked=false;$("p-id").value="";$("p-code").value="";$("p-remnote").hidden=true;$("p-out").hidden=true});
+$("p-code").addEventListener("input",function(){var v=$("p-code").value.toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,8);v=v.length>4?v.slice(0,4)+"-"+v.slice(4):v;if(v!==$("p-code").value)$("p-code").value=v});
+var BANKS={},TITLES={};
+function bank(n,cb){ // the public question bank of one lecture, for the questions to revisit
+ if(BANKS[n]!==undefined){cb(BANKS[n]);return}
+ var x=new XMLHttpRequest();x.open("GET","quizzes/lecture"+n+".json");
+ x.onload=function(){var b=null;try{b=JSON.parse(x.responseText)}catch(e){}BANKS[n]=b;if(b&&b.title)TITLES[n]=b.title;cb(b)};
+ x.onerror=function(){BANKS[n]=null;cb(null)};x.send();
+}
+function lecOf(q){var m=/^L(\d+)-/.exec(q||"");return m?Number(m[1]):-1}
+function lecTitle(n){return TITLES[n]||(CFG&&CFG.lectures&&CFG.lectures[n])||""}
+function band(p){return p>=70?["ok","Secure"]:p>=50?["mid","Developing"]:["low","Needs work"]}
+function showResults(r){
+ var at=r.attendance||[],pres=at.filter(function(a){return a[1]}).length,qz=r.quizzes||[],pr=r.practice||[],ms=(r.mastery||[]).filter(function(m){return m.asked>0}),rv=r.revisit||[];
+ var tries=pr.reduce(function(t,p){return t+(p.attempts||0)},0),pct=at.length?Math.round(100*pres/at.length):0;
+ var h='<div class="stu-chips"><div class="stu-chip"><b>'+pres+' / '+at.length+'</b>Check-ins</div><div class="stu-chip"><b>'+qz.length+'</b>Quizzes</div><div class="stu-chip"><b>'+tries+'</b>Practice attempts</div></div>'+
+  (at.length?'<div class="stu-bar" role="img" aria-label="Attendance '+pct+' percent"><i style="width:'+pct+'%"></i></div>':'');
+ // Groups the lecturer has made, with the other members and any group mark.
+ var gr=r.groups||[];
+ if(gr.length)h+='<h2 style="margin-top:.9rem">My groups</h2>'+gr.map(function(g){return'<div class="rv"><b>'+esc(g.set)+': Group '+g.group+'</b>'+(g.mark!==null&&g.mark!==undefined?' <span class="src">Group mark '+esc(g.mark)+(g.outOf?' / '+esc(g.outOf):'')+'</span>':'')+'<br><span class="src">With: '+esc(g.members.join(", ")||"no one else yet")+'</span></div>'}).join("");
+ // Where to focus: the weakest lectures with enough answers to judge.
+ var weak=ms.filter(function(m){return m.asked>=5&&m.pct<70}).sort(function(a,b){return a.pct-b.pct}).slice(0,3);
+ h+='<h2 style="margin-top:.9rem">Where to focus</h2>';
+ if(!ms.length)h+='<p class="note">Nothing to show yet. Do a practice quiz with your ID entered, or take part in a live quiz.</p>';
+ else if(!weak.length)h+='<p class="note">No lecture is below 70 per cent in your answers so far. Keep practising the coming lectures.</p>';
+ else h+=weak.map(function(m){var n=rv.filter(function(q){return lecOf(q.id)===m.lecture}).length;
+  return '<div class="focus-box"><b>'+esc(m.lecture===0?"Introduction":"Lecture "+m.lecture)+(lecTitle(m.lecture)?": "+esc(lecTitle(m.lecture)):"")+'</b><br>'+m.pct+' per cent of '+m.asked+' answers correct.'+
+   (n?' '+n+' question'+(n===1?'':'s')+' to revisit below.':'')+'<br><a href="'+pracPage(m.lecture)+'">Practice this lecture <span aria-hidden="true">&rsaquo;</span></a></div>'}).join("");
+ // Progress by lecture.
+ if(ms.length){
+  h+='<h2 style="margin-top:.9rem">Progress by lecture</h2>'+ms.map(function(m){var b=band(m.pct);
+   return '<div class="lv '+b[0]+'"><span class="t">'+esc(m.lecture===0?"Introduction":"Lecture "+m.lecture)+'</span><span class="p">'+m.pct+'%</span>'+
+    '<span class="bar" role="img" aria-label="'+m.pct+' percent"><i style="width:'+Math.max(2,m.pct)+'%"></i></span><span class="s">'+b[1]+'. '+m.right+' of '+m.asked+' answers correct'+(lecTitle(m.lecture)?'. '+esc(lecTitle(m.lecture)):'')+'</span></div>'}).join("")+
+   '<p class="note">From your latest practice attempt for each lecture, your latest mock exam and the released live quizzes. Secure is 70 per cent or more, Developing 50 to 69, Needs work below 50.</p>';
+ }
+ // Questions to revisit, with the slide to look at.
+ h+='<h2 style="margin-top:.9rem">Questions to revisit</h2><div id="p-rv">'+(rv.length?'<p class="note">Loading the questions.</p>':'<p class="note">None at the moment.</p>')+'</div>';
+ h+='<details class="sub2"><summary>Quiz scores</summary>'+(qz.length?"<table><tr><th>Quiz</th><th>Score</th></tr>"+qz.map(function(q){return"<tr><td>"+esc(q[0])+"</td><td>"+esc(q[1])+"</td></tr>"}).join("")+"</table>":"<p class='note'>Nothing yet.</p>")+'</details>';
+ h+='<details class="sub2"><summary>Practice history</summary>'+(pr.length?"<table><tr><th>Practice</th><th>Attempts</th><th>Latest</th><th>Best</th></tr>"+pr.map(function(p){return"<tr><td>"+esc(p.label)+"</td><td>"+p.attempts+"</td><td>"+(p.last?p.last.score+" / "+p.last.total:"")+"</td><td>"+(p.best?p.best.score+" / "+p.best.total:"")+"</td></tr>"}).join("")+"</table>":"<p class='note'>Nothing yet.</p>")+'</details>';
+ h+='<details class="sub2"><summary>Check-ins</summary>'+(at.length?"<table><tr><th>Session</th><th>Status</th></tr>"+at.map(function(a){return"<tr><td>"+esc(a[0])+"</td><td>"+(a[1]?"Checked in":"No check-in")+"</td></tr>"}).join("")+"</table>":"<p class='note'>Nothing yet.</p>")+'</details>';
+ $("p-out").innerHTML=h;$("p-out").hidden=false;
+ if(!rv.length)return;
+ var lecs={};rv.forEach(function(q){var n=lecOf(q.id);if(n>=0)lecs[n]=1});
+ var keys=Object.keys(lecs),left=keys.length;
+ keys.forEach(function(n){bank(n,function(){if(--left)return;
+  var out=rv.map(function(q){var b=BANKS[lecOf(q.id)],it=null;if(b&&b.questions)for(var i=0;i<b.questions.length;i++)if(b.questions[i].id===q.id){it=b.questions[i];break}
+   if(!it)return"";var n=lecOf(q.id);
+   return '<div class="rv"><span class="src">'+esc(n===0?"Introduction":"Lecture "+n)+'. Missed in: '+esc(q.from)+'</span><br>'+it.q+(it.ref?'<br><span class="src">Review: '+esc(it.ref)+'</span>':'')+'</div>'}).join("");
+  $("p-rv").innerHTML=out?out+'<p class="note">Work through the slide named under each question, then try the lecture practice again.</p>':'<p class="note">None at the moment.</p>';
+  var all=$("p-rv").querySelectorAll(".rv");
+  if(all.length>5){for(var i=5;i<all.length;i++)all[i].hidden=true;
+   var more=document.createElement("button");more.type="button";more.className="go alt";more.textContent="Show all "+all.length+" questions";
+   more.addEventListener("click",function(){for(var j=0;j<all.length;j++)all[j].hidden=false;more.remove()});
+   all[4].parentNode.insertBefore(more,all[4].nextSibling)}
+ })});
+}
+$("p-form").addEventListener("submit",function(e){
+ e.preventDefault();var er=$("p-err");er.hidden=true;$("p-out").hidden=true;
+ var id=$("p-id").value.trim(),code=$("p-code").value.trim().toUpperCase();
+ if(!/^[0-9]{4,12}$/.test(id)){er.textContent=PHYSMSG.text("E1");er.hidden=false;return}
+ if(!/^[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(code)){er.textContent=PHYSMSG.text("E17");er.hidden=false;return}
+ $("p-show").disabled=true;
+ jsonp("action=my_results&id="+encodeURIComponent(id)+"&code="+encodeURIComponent(code),function(r){
+  $("p-show").disabled=false;
+  if(!r){er.textContent=PHYSMSG.text("E8");er.hidden=false;return}
+  if(!r.ok){er.textContent=PHYSMSG.fromWhy(r.why);er.hidden=false;return}
+  if($("p-rem").checked){try{localStorage.setItem(KEYID,id);localStorage.setItem(KEYCODE,code)}catch(x){}}
+  showResults(r);
+ },12000);
+});
+
+function openResults(){var d=$("p-details");if(d&&!$("p-res").hidden){d.open=true;d.scrollIntoView({block:"start"})}}
+var autoDone=false;
+var _render=render;render=function(){_render();
+ if(autoDone||$("p-res").hidden)return;autoDone=true;
+ if(location.hash==="#results")openResults();
+ if($("p-id").value&&$("p-code").value&&$("p-rem").checked){openResults();$("p-form").dispatchEvent(new Event("submit",{cancelable:true}))}
+};
+window.addEventListener("hashchange",function(){if(location.hash==="#results")openResults()});
+var ios=/iphone|ipad|ipod/i.test(navigator.userAgent)&&!window.navigator.standalone;
+if(ios){$("p-install").hidden=false;$("p-inst-txt").textContent="In Safari, tap Share, then Add to Home Screen.";$("p-inst-btn").hidden=true}
+if(window.PHYSINSTALL&&window.PHYSINSTALL.ev)$("p-install").hidden=false;
+$("p-inst-btn").addEventListener("click",function(){var e=window.PHYSINSTALL.ev;if(!e)return;e.prompt();window.PHYSINSTALL.ev=null;$("p-install").hidden=true});
+load();
+})();
+</script>
+</div>
+</main>
+
+
+<footer><div class="wrap"><p class="foot-note"><span data-cm="courseCode">PHYS 143</span> · <span data-cm="courseTitle">Mechanics and Thermal Physics</span> · <span data-cm="institution">University of Ghana</span> · <a href="lecturer.html">Lecturer</a></p></div></footer>
+<script src="assets/render.js"></script>
+<script src="assets/site.js"></script>
+<script src="assets/tracking.js"></script>
+<script src="assets/student.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light dark">
+<title>Control Centre</title>
+<meta name="description" content="Lecturer menu.">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/icon-192.png">
+<script src="config.js"></script>
+<link rel="stylesheet" href="assets/site.css">
+<script>if(!location.hash){if("scrollRestoration" in history)history.scrollRestoration="manual";window.addEventListener("pageshow",function(){if(!location.hash)window.scrollTo({top:0,left:0,behavior:"instant"})});}</script>
+</head>
+<body class="focus">
+<a class="skip" href="#main">Skip to content</a>
+<header class="banner slim">
+<div class="wrap">
+<h1><a class="home-link" href="index.html" data-cm="courseCode">PHYS 143</a></h1>
+<p class="course" data-cm="courseTitle">Mechanics and Thermal Physics</p>
+</div>
+</header>
+<nav class="jump" id="jump" aria-label="Sections"><div class="wrap"><button type="button" class="menu-btn" aria-expanded="false" aria-controls="jump-links"><span>Menu</span><span class="dots" aria-hidden="true">&#8943;</span></button><div class="links" id="jump-links"><a href="index.html">Portal</a><a href="course.html">Lectures</a><a href="course.html#weekly">Practice</a><a href="mock-exam.html">Mock exam</a><a href="quiz.html">Live quiz</a><a href="calendar.html">Calendar</a><a href="messages.html">Messages</a></div></div></nav>
+<main id="main"><div class="wrap">
+<style>
+.cc{max-width:60rem;margin:0 auto;font-family:system-ui,sans-serif}
+.cc .strip{position:sticky;top:0;z-index:5;display:grid;grid-template-columns:repeat(auto-fit,minmax(9.5rem,1fr));gap:.3rem .9rem;padding:.6rem .9rem;background:var(--brown-fill);color:#fff;border-radius:0 0 8px 8px}
+.cc .strip div{font-size:.88rem}.cc .strip b{display:block;font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;opacity:.85}
+.cc .dot{display:inline-block;width:.6rem;height:.6rem;border-radius:50%;margin-right:.35rem;background:#9aa0a6}
+.cc .dot.g{background:#5fd38d}.cc .dot.a{background:#f5b84a}.cc .dot.r{background:#ff6b5e}
+.cc .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(18rem,1fr));gap:.9rem;margin-top:.9rem}
+.cc .panel{background:var(--surface);border:1px solid var(--border);border-top:5px solid var(--brown-edge);border-radius:8px;padding:1rem 1.2rem;box-shadow:var(--shadow)}
+.cc h3{margin:.1rem 0 .6rem;font-size:1rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+.cc .code{font-size:2.4rem;font-weight:700;letter-spacing:.06em;margin:.1rem 0}
+.cc .go{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:.5rem 1.1rem;margin:.3rem .4rem 0 0;border:2px solid var(--brown-fill);border-radius:6px;background:var(--brown-fill);color:#fff;font:600 1rem system-ui,sans-serif;cursor:pointer;text-decoration:none}
+.cc .go.alt{background:var(--btn-bg);color:var(--btn-text)}
+.cc ul{list-style:none;padding:0;margin:0}.cc li{display:flex;gap:.5rem;padding:.45rem 0;border-bottom:1px solid var(--border);font-size:.95rem}
+.cc .ok{color:#2e7d32}.cc .am{color:#b26a00}.cc .rd{color:#b3261e}
+@media (prefers-color-scheme:dark){.cc .ok{color:#6fd39a}.cc .am{color:#ffb74d}.cc .rd{color:#ff8a80}}
+.cc .note{font-size:.9rem;line-height:1.5;color:var(--muted)}
+.cc label.cb{display:flex;gap:.5rem;align-items:center;min-height:44px}
+.cc .wide,.cc .panel.open{grid-column:1/-1}.cc iframe{width:100%;height:80vh;min-height:30rem;border:1px solid var(--border);border-radius:6px;margin-top:.6rem;background:var(--surface)}
+.cc .go.sm{min-height:40px;padding:.3rem .8rem;font-size:.9rem}
+.cc details.held{margin:.6rem 0 .2rem}.cc details.held summary{cursor:pointer;font-size:.95rem;min-height:36px;display:flex;align-items:center}.cc details.held li{font-size:.88rem;padding:.3rem 0}
+.cc [hidden]{display:none!important}
+body.focus header.banner,body.focus nav.jump,body.focus .crumb,body.focus .sec-sub,body.focus aside.disclaimer,body.focus footer,body.focus a.skip,body.focus main h2{display:none!important}
+body.focus main{padding-top:0}
+</style>
+<div class="cc" id="cc" hidden>
+ <div class="strip" role="status" aria-label="Classroom status">
+  <div><b>Backend</b><span class="dot" id="s-bd"></span><span id="s-b">Checking</span></div>
+  <div><b>Quiz</b><span class="dot" id="s-qd"></span><span id="s-q">Checking</span></div>
+  <div><b>Attendance</b><span class="dot" id="s-ad"></span><span id="s-a">Checking</span></div>
+  <div><b>Counts</b><span id="s-c">None</span></div>
+  <div><b>Last error</b><span class="dot" id="s-ed"></span><span id="s-e">None</span></div>
+ </div>
+ <div class="grid">
+  <section class="panel"><h3>Today's lecture</h3>
+   <p id="t-lec"><b>Loading</b></p>
+   <label for="t-week" class="note">Week to teach (the Portal follows this)</label>
+   <select id="t-week" style="min-height:44px;font-size:1rem;max-width:100%"><option value="0">Default from data/portal.json</option></select>
+   <p class="note" id="t-wmsg" role="status"></p>
+   <p class="note" style="margin:0">Join code</p>
+   <p class="code" id="t-code">&nbsp;</p>
+   <a class="go alt" id="t-hand" href="#" hidden>Open handout</a>
+  </section>
+  <section class="panel"><h3>Pre-class check</h3>
+   <ul id="k-list"><li class="note">Not run yet.</li></ul>
+   <label class="cb"><input type="checkbox" id="k-proj"> I opened the display on the projector and saw it</label>
+   <button class="go" type="button" id="k-run">Run checks</button>
+  </section>
+  <section class="panel" id="p-att"><h3>Attendance</h3>
+   <p class="note">Open the attendance controls here, or in their own window for the projector. Closing asks you to confirm.</p>
+   <button class="go" type="button" data-panel="p-att" data-embed="e-att" data-src="attendance.html">Show attendance here</button>
+   <a class="go alt" href="attendance.html" target="_blank" rel="noopener">Open in its own window</a>
+   <details class="held" id="h-det"><summary id="h-sum">Held sessions: checking</summary>
+    <p class="note">Held until you submit. Nothing is written to the Attendance sheet before then.</p>
+    <ul id="h-list"><li class="note">Checking.</li></ul></details>
+   <button class="go sm" type="button" id="h-sa">Submit attendance</button>
+   <button class="go alt sm" type="button" id="h-da">Discard unsubmitted</button>
+   <p class="note" id="h-msg" role="status"></p>
+   <div id="e-att"></div>
+  </section>
+  <section class="panel" id="p-ros"><h3>Class list</h3>
+   <p class="note">Add a student who joined, or take off one who left. Leavers keep the marks already recorded. IDs are never shown back.</p>
+   <input type="text" id="r-id" inputmode="numeric" autocomplete="off" placeholder="Student ID" aria-label="Student ID">
+   <input type="text" id="r-nm" autocomplete="off" placeholder="Name (optional, for Add)" aria-label="Name">
+   <button class="go sm" type="button" id="r-add">Add</button>
+   <button class="go alt sm" type="button" id="r-rm">Remove</button>
+   <button class="go alt sm" type="button" id="r-ck">Check</button>
+   <button class="go alt sm" type="button" id="r-tidy">Tidy to class list</button>
+   <p class="note" id="r-msg" role="status"></p>
+   <p class="note">Students need a personal access code to see their own progress in the Portal. <a href="codes.html">Access codes and printable slips</a></p>
+  </section>
+  <section class="panel wide"><h3>Live quiz</h3>
+   <p class="note">Opens the quiz controls here. Ending a quiz, starting a new round and releasing results each ask you to confirm.</p>
+   <button class="go" type="button" data-embed="e-quiz" data-src="quiz-host.html">Show quiz controls here</button>
+   <a class="go alt" href="quiz-host.html" target="_blank" rel="noopener">Open in its own window</a>
+   <a class="go alt" href="quiz-display.html" target="_blank" rel="noopener">Open projector display</a>
+   <p class="note">Quiz results are held until you release them. Nothing a student sends is written to Form Responses 1, Master, Scores or Totals before then. Master keeps every released score for the semester; releasing the same week again updates that student's cell and never touches earlier weeks.</p>
+   <ul id="h-ql"><li class="note">Checking.</li></ul>
+   <button class="go" type="button" id="h-rq">Release held quiz results</button>
+   <button class="go alt" type="button" id="h-dq">Discard held quiz results</button>
+   <p class="note" id="h-qmsg" role="status"></p>
+   <div id="e-quiz"></div>
+  </section>
+  <section class="panel"><h3>After class</h3>
+   <p><a class="go" href="insights.html">Teaching insights</a><a class="go alt" href="groups.html">Student groups</a><a class="go alt" href="calendar.html">Calendar</a><a class="go alt" href="messages.html">Messages</a></p>
+   <p class="note">Weakest lectures and questions, students who may need attention, attendance and quiz averages.</p>
+   <ul id="x-list"><li class="note">Attendance summary appears here.</li></ul>
+   <p class="note">Then: check the Attendance and Not_On_List tabs and the Flags, export Attendance for Sakai, and delete any test rows.</p>
+   <button class="go alt" type="button" id="x-out">Log out</button>
+  </section>
+ </div>
+</div>
+<script>
+(function(){
+"use strict";
+var SCRIPT_URL=window.CM.scriptUrl;
+var EXPECT_VERSION="2026-11-09-calendar-1"; // must equal SCRIPT_VERSION in apps_script/quiz_receiver.gs
+var $=function(i){return document.getElementById(i)};
+var KEY="";try{KEY=sessionStorage.getItem("phys143_hk")||""}catch(x){}
+if(!KEY){location.replace("lecturer.html");return}
+$("cc").hidden=false;
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function jsonp(params,cb,ms){
+ var n="cb"+Date.now()+Math.floor(Math.random()*1e6),sc=document.createElement("script"),done=false,t,t0=Date.now();
+ function end(d){if(done)return;done=true;clearTimeout(t);delete window[n];if(sc.parentNode)sc.parentNode.removeChild(sc);cb(d,Date.now()-t0)}
+ window[n]=end;sc.onerror=function(){end(null)};t=setTimeout(function(){end(null)},ms||9000);
+ sc.src=SCRIPT_URL+"?"+params+"&callback="+n+"&_="+Date.now();document.head.appendChild(sc);
+}
+function hk(){return "hostkey="+encodeURIComponent(KEY)}
+function dot(id,c){$(id).className="dot "+c}
+var lastErr=null;
+function err(m){var t=new Date();lastErr=("0"+t.getHours()).slice(-2)+":"+("0"+t.getMinutes()).slice(-2)+" "+m;$("s-e").textContent=lastErr;dot("s-ed","r")}
+// ---- status strip ----
+var misses=0;
+function poll(){
+ jsonp("action=attend_status&"+hk(),function(d,ms){
+  if(!d){misses++;dot("s-bd","r");$("s-b").textContent="No answer";err("Backend did not answer");return}
+  misses=0;dot("s-bd",ms>4000?"a":"g");$("s-b").textContent="OK, "+ms+" ms";
+  if(d.ok===false){err(String(d.why||"Host key not accepted"));return}
+  var s=d.session;
+  if(!s){dot("s-ad","");$("s-a").textContent="No session";$("s-c").textContent="None"}
+  else if(s.status==="Open"){dot("s-ad","g");$("s-a").textContent="Open, QR "+s.secondsLeft+" s";$("s-c").textContent=s.present+" in, "+s.notOnList+" not on list, roster "+s.rosterSize}
+  else{dot("s-ad","");$("s-a").textContent="Closed ("+s.label+")";$("s-c").textContent=s.present+" in, "+s.notOnList+" not on list"}
+  if(s){$("x-list").innerHTML="<li><span>Session "+esc(s.label)+": "+esc(s.status)+". Checked in "+s.present+", not on the list "+s.notOnList+", roster size "+s.rosterSize+".</span></li>"}
+ });
+ jsonp("action=portal_status",function(d){
+  if(!d||d.portal!==1){dot("s-qd","a");$("s-q").textContent="Unknown (old script?)";return}
+  var m={none:["","None open"],lobby:["a","Lobby open"],running:["g","Running"],paused:["a","Paused"]}[d.quiz]||["","None open"];
+  dot("s-qd",m[0]);$("s-q").textContent=m[1];
+ });
+}
+poll();setInterval(poll,4000);
+// ---- today's lecture ----
+var WEEK=null,CFGP=null;
+function showWeek(){
+ if(!CFGP||!WEEK)return;
+ $("t-lec").innerHTML="<b>Week "+esc(WEEK)+", Lecture "+esc(WEEK)+": "+esc(CFGP.lectures[WEEK]||"")+"</b><br><span class='note'>"+esc(CFGP.contacts)+"</span>";
+ $("t-code").textContent="2627"+WEEK;
+ if(CFGP.handouts[WEEK]){$("t-hand").href=CFGP.handouts[WEEK];$("t-hand").hidden=false}else $("t-hand").hidden=true;
+}
+function loadWeek(){
+ jsonp("action=portal_status",function(d){
+  var chosen=(d&&d.portal===1&&d.week>=1)?d.week:0;
+  WEEK=chosen||(CFGP&&CFGP.currentWeek);
+  $("t-week").value=String(chosen);
+  $("t-wmsg").textContent=chosen?"Chosen by you in this Control Centre.":(d&&d.portal===1?"Using the default in data/portal.json.":"The script is not updated, so the week cannot be changed here. Using data/portal.json.");
+  showWeek();
+ });
+}
+(function(){var x=new XMLHttpRequest();x.open("GET","data/portal.json?_="+Date.now());
+ x.onload=function(){try{CFGP=JSON.parse(x.responseText)}catch(e){$("t-lec").textContent="Could not read data/portal.json.";return}
+  for(var i=1;i<=12;i++){var o=document.createElement("option");o.value=i;o.textContent="Week "+i+": "+(CFGP.lectures[i]||"");$("t-week").appendChild(o)}
+  WEEK=CFGP.currentWeek;showWeek();loadWeek()};
+ x.onerror=function(){$("t-lec").textContent="Could not read data/portal.json."};x.send()})();
+$("t-week").addEventListener("change",function(){
+ var w=$("t-week").value;$("t-wmsg").textContent="Saving.";
+ jsonp("action=set_week&w="+encodeURIComponent(w)+"&"+hk(),function(d){
+  if(!d||d.ok!==true){$("t-wmsg").textContent="Not saved: "+(d&&d.why?d.why:"no answer or script not updated")+".";return}
+  loadWeek();
+ });
+});
+// ---- pre-class check ----
+function line(c,t){return'<li class="'+c+'"><b aria-hidden="true">'+(c==="ok"?"&#10003;":(c==="am"?"!":"&times;"))+'</b><span>'+t+'</span></li>'}
+$("k-run").addEventListener("click",function(){
+ var L=[],btn=$("k-run");btn.disabled=true;$("k-list").innerHTML='<li class="note">Running.</li>';
+ var week=WEEK||"";
+ jsonp("action=version",function(v,ms){
+  if(!v||!v.version){L.push(line("rd","The script did not answer the version check. It is down, or it is an older script. Paste the new script, Save, then Deploy &gt; Manage deployments &gt; edit &gt; New version."))}
+  else{L.push(line("ok","Backend responds ("+ms+" ms)"));
+   L.push(v.version===EXPECT_VERSION?line("ok","Script and page versions match"):line("am","Script version "+esc(v.version)+" differs from this page ("+EXPECT_VERSION+"). Redeploy as a new version, then hard refresh."))}
+  jsonp("action=preclass&week="+encodeURIComponent(week)+"&"+hk(),function(d){
+   if(!d||d.ok!==true){L.push(line("rd","Host checks failed: "+esc(d&&d.why?d.why:"no answer")))}
+   else{
+    L.push(d.rosterCount>0?line("ok","Roster loaded: "+d.rosterCount+" IDs"):line("rd","Roster is empty. Run roster_sync.sh before opening attendance."));
+    L.push(d.weekListed&&d.bankQuestions>0?line("ok","Quiz bank for Week "+esc(d.week)+" present ("+d.bankQuestions+" questions)"):line("rd","No quiz bank for Week "+esc(d.week)+" (not in live_quizzes.json, or the bank did not load)."));
+    L.push(d.masterOn?line("ok","Master switch On, totals "+esc(d.totalsMode)):line("am","Master switch is Off: scores are not recorded in Master or Scores."));
+   }
+   L.push($("k-proj").checked?line("ok","Projector display seen (confirmed by you)"):line("am","Projector display not confirmed. Open the display, look at the real screen, then tick the box."));
+   var done=function(c,t){L.push(line(c,t));$("k-list").innerHTML=L.join("");btn.disabled=false};
+   if(!navigator.geolocation){done("rd","This browser has no location. Attendance needs it on the lecturer's device.");return}
+   navigator.geolocation.getCurrentPosition(function(p){done(p.coords.accuracy>100?"am":"ok","Location works (accuracy about "+Math.round(p.coords.accuracy)+" m)")},function(){done("rd","Location is blocked in this browser. Allow it before opening attendance.")},{timeout:10000,maximumAge:60000});
+  },12000);
+ },8000);
+});
+// ---- held results: released only when the lecturer says so ----
+function heldLoad(){
+ jsonp("action=held_status&"+hk(),function(d){
+  if(!d||d.ok!==true){var m='<li class="note">'+esc(d&&d.why?d.why:"No answer. If the script is old, paste the new one and deploy a new version.")+'</li>';$("h-list").innerHTML=m;$("h-sum").textContent="Held sessions: unavailable";$("h-ql").innerHTML=m;return}
+  $("h-ql").innerHTML="<li><span>Quiz results held: "+d.quiz+"</span></li>";
+  var L=[];
+  var tot=0;
+  if(d.sessions.length)d.sessions.forEach(function(x){tot+=x.present;L.push("<li><span>"+esc(x.label)+": "+x.present+" checked in</span></li>")});
+  else L.push("<li><span>None</span></li>");
+  $("h-sum").textContent=d.sessions.length?"Held sessions: "+d.sessions.length+", "+tot+" checked in":"Held sessions: none";
+  $("h-list").innerHTML=L.join("");
+ });
+}
+function heldDo(act,ask,okMsg,mid){mid=mid||"h-msg";
+ if(!window.confirm(ask))return;
+ $(mid).textContent="Working.";
+ jsonp("action="+act+"&"+hk(),function(d){
+  $(mid).textContent=(!d||d.ok!==true)?"Not done: "+(d&&d.why?d.why:"no answer"):okMsg(d);heldLoad();
+ },30000);
+}
+$("h-rq").addEventListener("click",function(){heldDo("held_release_quiz","Release all held quiz results into the sheets now? Master, Scores and Totals are updated.",function(d){return "Released "+d.released+" quiz result(s)."},"h-qmsg")});
+$("h-dq").addEventListener("click",function(){heldDo("held_discard_quiz","Discard all held quiz results? This cannot be undone.",function(d){return "Discarded "+d.discarded+" held result(s)."},"h-qmsg")});
+$("h-sa").addEventListener("click",function(){heldDo("attend_submit","Submit attendance? Every rostered student not checked in is recorded as 0.",function(d){return "Attendance submitted: "+(d.submitted||[]).join(", ")+"."})});
+$("h-da").addEventListener("click",function(){heldDo("attend_discard","Discard the closed attendance session and its check-ins? This cannot be undone.",function(d){return "Discarded "+d.discarded+" session(s), "+d.checkins+" check-in(s)."})});
+heldLoad();setInterval(heldLoad,15000);
+// ---- class list: add, remove or check one ID ----
+function rosterDo(op){
+ var id=$("r-id").value.replace(/\D/g,"");
+ if(id.length<4||id.length>12){$("r-msg").textContent="Type the Student ID (4 to 12 digits).";return}
+ if(op==="remove"&&!window.confirm("Take this ID off the class list? Past marks are kept."))return;
+ $("r-msg").textContent="Working.";
+ jsonp("action=roster_edit&op="+op+"&id="+encodeURIComponent(id)+(op==="add"&&$("r-nm").value.trim()?"&name="+encodeURIComponent($("r-nm").value.trim()):"")+"&"+hk(),function(d){
+  if(!d||d.ok!==true){$("r-msg").textContent="Not done: "+(d&&d.why?d.why:"no answer");return}
+  $("r-msg").textContent=(op==="check"?(d.onRoster?"On the class list.":"Not on the class list."):(d.changed?(op==="add"?"Added.":"Removed."):(op==="add"?"Already on the list.":"Was not on the list.")))+" The list now has "+d.rosterSize+" IDs.";
+  $("r-id").value="";$("r-nm").value="";
+ },20000);
+}
+$("r-tidy").addEventListener("click",function(){
+ $("r-msg").textContent="Counting.";
+ jsonp("action=roster_tidy&mode=dry&"+hk(),function(d){
+  if(!d||d.ok!==true){$("r-msg").textContent="Not done: "+(d&&d.why?d.why:"no answer");return}
+  var tot=d.attendance+d.scores+d.master;
+  if(!tot){$("r-msg").textContent="Nothing to tidy. "+d.keptWithMarks+" row(s) with marks stay.";return}
+  if(!window.confirm("Delete rows of IDs not on the class list that have no marks? Attendance "+d.attendance+", Scores "+d.scores+", Master "+d.master+". "+d.keptWithMarks+" row(s) with marks stay. This cannot be undone.")){$("r-msg").textContent="Cancelled.";return}
+  $("r-msg").textContent="Working.";
+  jsonp("action=roster_tidy&mode=apply&"+hk(),function(r){
+   $("r-msg").textContent=(!r||r.ok!==true)?"Not done: "+(r&&r.why?r.why:"no answer"):"Removed Attendance "+r.attendance+", Scores "+r.scores+", Master "+r.master+" row(s).";
+  },60000);
+ },30000);
+});
+$("r-add").addEventListener("click",function(){rosterDo("add")});
+$("r-rm").addEventListener("click",function(){rosterDo("remove")});
+$("r-ck").addEventListener("click",function(){rosterDo("check")});
+// ---- embedded host pages (same site, same host key in this tab) ----
+document.querySelectorAll("[data-embed]").forEach(function(b){b.addEventListener("click",function(){
+ var box=$(b.getAttribute("data-embed"));
+ var pn=b.getAttribute("data-panel");pn=pn&&$(pn);
+ if(box.firstChild){box.innerHTML="";if(pn)pn.classList.remove("open");b.textContent=b.textContent.replace("Hide","Show");return}
+ var f=document.createElement("iframe");f.src=b.getAttribute("data-src");f.setAttribute("allow","geolocation");f.title=b.textContent;box.appendChild(f);if(pn)pn.classList.add("open");b.textContent=b.textContent.replace("Show","Hide");
+})});
+$("x-out").addEventListener("click",function(){try{sessionStorage.removeItem("phys143_hk")}catch(x){}location.href="lecturer.html"});
+})();
+</script>
+</div>
+</main>
+
+
+<footer><div class="wrap"><p class="foot-note"><span data-cm="courseCode">PHYS 143</span> · <span data-cm="courseTitle">Mechanics and Thermal Physics</span> · <span data-cm="institution">University of Ghana</span> · <a href="lecturer.html">Lecturer</a></p></div></footer>
+<script src="assets/render.js"></script>
+<script src="assets/site.js"></script>
+<script src="assets/tracking.js"></script>
+</body>
+</html>

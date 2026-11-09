@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Class Manager</title>
+<script src="/config.js"></script>
+<script src="/assets/qrcode.js"></script>
+<link rel="icon" href="/assets/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+.hm{max-width:64rem;margin:0 auto;font-family:system-ui,sans-serif}
+.hm h2{margin:1.4rem 0 .5rem}
+.hm .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(18rem,1fr));gap:1rem}
+.hm .card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem 1.2rem;box-shadow:var(--shadow)}
+.hm .card h3{margin:0 0 .5rem;font-size:1.1rem}
+.hm .card p{margin:.35rem 0;line-height:1.5}
+.hm button{margin:.35rem .4rem .1rem 0;min-height:42px;padding:.4rem 1rem;border:1.5px solid var(--border);border-radius:6px;background:var(--btn-bg);color:var(--btn-text);font:600 .98rem system-ui,sans-serif;cursor:pointer}
+.hm button.p{background:var(--brown-fill);border-color:var(--brown-fill);color:#fff}
+.hm .addr{font:700 1.3rem ui-monospace,monospace;word-break:break-all;margin:.4rem 0}
+.hm .key{font:700 1.3rem ui-monospace,monospace;letter-spacing:.05em}
+.hm #qr{width:180px;height:180px;background:#fff;padding:6px;border-radius:6px;border:1px solid var(--border)}
+.hm #qr svg{width:100%;height:100%}
+.hm label{display:block;font-weight:600;margin:.7rem 0 .2rem}
+.hm input,.hm textarea,.hm select{width:100%;min-height:42px;padding:.35rem .6rem;border:1.5px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font:1rem system-ui,sans-serif;box-sizing:border-box}
+.hm textarea{min-height:7rem;font-family:ui-monospace,monospace}
+.hm .note{color:var(--muted);font-size:.93rem}
+.hm .msg{font-weight:600;min-height:1.4em}
+.hm .tbl{overflow:auto;max-height:26rem;border:1px solid var(--border);border-radius:6px;margin-top:.6rem}
+.hm table{border-collapse:collapse;font-size:.9rem;width:max-content;min-width:100%}
+.hm td,.hm th{border-bottom:1px solid var(--border);padding:.3rem .55rem;text-align:left;white-space:nowrap}
+.hm th{position:sticky;top:0;background:var(--surface)}
+.hm details summary{cursor:pointer;font-weight:600}
+.hm [hidden]{display:none!important}
+</style>
+</head>
+<body>
+<header class="banner slim"><div class="wrap"><h1><a class="home-link" href="home.html">Class Manager</a></h1><p class="course"><span data-cm="courseCode"></span> · <span data-cm="courseTitle"></span></p></div></header>
+<main id="main"><div class="wrap hm">
+
+<h2>In class</h2>
+<div class="grid">
+ <div class="card">
+  <h3>Students open</h3>
+  <p class="addr" id="addr">…</p>
+  <div id="qr" role="img" aria-label="QR code of the student address"></div>
+  <p class="note">Phones must be on the same Wi-Fi as this computer. If the university network blocks this, use a phone hotspot. Other addresses of this computer: <span id="more">none</span>.</p>
+ </div>
+ <div class="card">
+  <h3>Lecturer tools</h3>
+  <p>Host key: <span class="key" id="key">…</span></p>
+  <p class="note" id="keynote">Type this key when the lecturer pages ask for it. Keep it private.</p>
+  <button class="p" data-win="lecturer.html">Lecturer menu</button>
+  <button data-win="quiz-display.html">Projector display</button>
+  <button data-win="control.html">Control Centre</button>
+  <button data-win="insights.html">Teaching insights</button>
+  <button data-win="codes.html">Access codes for students</button>
+  <button data-win="groups.html">Student groups</button>
+  <button data-win="calendar.html">Calendar</button>
+  <button data-win="messages.html">Messages and announcements</button>
+ </div>
+ <div class="card">
+  <h3>Resources and questions</h3>
+  <p>Your teaching material in one library: search it, summarise it, generate quizzes from it, import questions from Word, PDF or Markdown, and approve questions into the banks.</p>
+  <button class="p" type="button" onclick="location.href='author.html'">Open resources and questions</button>
+ </div>
+ <div class="card">
+  <h3>Course pages</h3>
+  <p>Lectures, practice questions and the mock exam, as students see them.</p>
+  <button data-win="index.html">Student portal</button>
+  <button data-win="course.html">Lectures</button>
+  <button data-win="mock-exam.html">Mock exam</button>
+ </div>
+</div>
+
+<h2>Class list</h2>
+<div class="card">
+ <p>Attendance and marks count only students on the class list. One student per line: student ID, then the name if you wish, separated by a comma. A spreadsheet saved as CSV works.</p>
+ <textarea id="cl" placeholder="10000001, Ama Mensah&#10;10000002, Kofi Owusu"></textarea>
+ <p><button type="button" id="cl-file">Choose a CSV file</button>
+ <label style="display:inline;font-weight:400"><input type="checkbox" id="cl-replace" style="width:auto;min-height:0"> Replace the whole list (otherwise new IDs are added)</label></p>
+ <p><button class="p" type="button" id="cl-go">Save class list</button></p>
+ <p class="msg" id="cl-msg" role="status"></p>
+</div>
+
+<h2>Results and marks</h2>
+<div class="card">
+ <p>Everything is saved on this computer as it happens. Choose a tab to view it, or export all tabs as CSV files that open in Excel.</p>
+ <label for="tab">Tab</label><select id="tab"></select>
+ <p><button type="button" id="refresh">Refresh totals</button><button type="button" id="named">Attendance with names</button><button class="p" type="button" id="export">Export all tabs</button><button type="button" id="data">Open data folder</button></p>
+ <p class="msg" id="r-msg" role="status"></p>
+ <div class="tbl" id="tbl"></div>
+</div>
+
+<h2>Google Drive copy (optional)</h2>
+<div class="card" id="g">
+ <p id="g-text">…</p>
+ <p><button class="p" type="button" id="g-in" hidden>Sign in with Google</button><button type="button" id="g-sync" hidden>Copy now</button><button type="button" id="g-open" hidden>Open the Google Sheet</button><button type="button" id="g-out" hidden>Sign out</button></p>
+ <p class="msg" id="g-msg" role="status"></p>
+</div>
+
+<h2>Settings</h2>
+<div class="card">
+ <form id="f">
+  <label for="s-code">Course code</label><input id="s-code" maxlength="40">
+  <label for="s-title">Course title</label><input id="s-title" maxlength="120">
+  <label for="s-inst">Institution</label><input id="s-inst" maxlength="120">
+  <label for="s-port">Port</label><input id="s-port" type="number" min="1024" max="65535">
+  <details><summary>Advanced: use your own Google Apps Script instead of this computer</summary>
+   <p class="note">Leave empty to keep everything on this computer (recommended).</p>
+   <label for="s-url">Apps Script web app address</label><input id="s-url" placeholder="https://script.google.com/macros/s/…/exec">
+  </details>
+  <p><button class="p" type="submit">Save settings</button> <span id="saved" class="note" role="status"></span></p>
+ </form>
+</div>
+<p class="note" id="ver"></p>
+</div></main>
+<script>
+(function(){
+"use strict";
+var $=function(i){return document.getElementById(i)};
+if(!window.cmApp){document.body.innerHTML="<p style='padding:2rem'>Open this page from the Class Manager app.</p>";return}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+var cur="";
+function show(info){
+ var s=info.settings;
+ $("addr").textContent=info.base;
+ $("more").textContent=info.addresses.slice(1).join(", ")||"none";
+ try{var q=qrcode(0,"M");q.addData(info.base);q.make();$("qr").innerHTML=q.createSvgTag({cellSize:6,margin:1,scalable:true})}catch(e){}
+ if(info.hostKey){$("key").textContent=info.hostKey}else{$("key").textContent="changed";$("keynote").textContent="You changed the host key on the quiz dashboard, so it is no longer shown here. Use your new key."}
+ if(s.scriptUrl){$("keynote").textContent="This app is set to use your own Apps Script (Settings), so the host key is the one in your Google Sheet."}
+ $("s-code").value=s.courseCode;$("s-title").value=s.courseTitle;$("s-inst").value=s.institution;$("s-url").value=s.scriptUrl;$("s-port").value=s.port;
+ var sel=$("tab"),keep=cur||"Master";sel.innerHTML=info.tabs.map(function(t){return'<option value="'+esc(t.name)+'">'+esc(t.name)+' ('+Math.max(0,t.rows-1)+' rows)</option>'}).join("");
+ if(info.tabs.some(function(t){return t.name===keep}))sel.value=keep;else if(info.tabs.some(function(t){return t.name==="Totals"}))sel.value="Totals";
+ view();
+ gshow(info.google);
+ $("ver").textContent="Class Manager "+info.version+" · data folder: "+info.dataFolder;
+}
+function view(){
+ cur=$("tab").value;if(!cur)return;
+ cmApp.tab(cur).then(function(rows){
+  rows=rows||[];if(!rows.length){$("tbl").innerHTML="<p class='note' style='padding:.6rem'>Empty.</p>";return}
+  $("tbl").innerHTML="<table><thead><tr>"+rows[0].map(function(h){return"<th>"+esc(h)+"</th>"}).join("")+"</tr></thead><tbody>"+rows.slice(1,1001).map(function(r){return"<tr>"+r.map(function(v){return"<td>"+esc(v)+"</td>"}).join("")+"</tr>"}).join("")+"</tbody></table>"+(rows.length>1001?"<p class='note'>First 1000 rows shown. Export to see all.</p>":"");
+ });
+}
+function gshow(g){
+ var t=$("g-text");
+ ["g-in","g-sync","g-open","g-out"].forEach(function(i){$(i).hidden=true});
+ if(!g.configured){t.textContent="Results are kept on this computer. A copy in Google Drive is not available in this build of the app.";return}
+ if(!g.signedIn){t.textContent="Sign in to keep a copy of every tab in a Google Sheet in your own Drive. The app can see only the file it creates.";$("g-in").hidden=false;return}
+ t.textContent="Signed in as "+(g.email||"your Google account")+". A copy of the results is kept in your Google Sheet and updated within a minute of each change."+(g.lastSync?" Last copied "+new Date(g.lastSync).toLocaleTimeString()+".":"");
+ $("g-sync").hidden=false;$("g-out").hidden=false;$("g-open").hidden=!g.sheetUrl;$("g-open").onclick=function(){cmApp.openExternal(g.sheetUrl)};
+ $("g-msg").textContent=g.lastError?"Last copy failed: "+g.lastError:"";
+}
+function reload(){return cmApp.info().then(show)}
+reload();
+document.querySelectorAll("[data-win]").forEach(function(b){b.addEventListener("click",function(){cmApp.openWindow(b.getAttribute("data-win"))})});
+$("tab").addEventListener("change",view);
+$("cl-file").addEventListener("click",function(){cmApp.classListFile().then(function(t){if(t!=null)$("cl").value=t})});
+$("cl-go").addEventListener("click",function(){
+ var rep=$("cl-replace").checked;
+ if(rep&&!confirm("Replace the whole class list? Students not in the new list are removed from the list. Their past marks stay."))return;
+ cmApp.classList($("cl").value,rep).then(function(r){
+  $("cl-msg").textContent=r&&r.ok?("Saved. "+r.added+" added, "+r.unchanged+" already on the list"+(r.removed?", "+r.removed+" removed":"")+(r.skipped?", "+r.skipped+" lines skipped":"")+". "+r.total+" students in total."):("Not saved: "+(r&&r.why||"unknown problem"));
+  if(r&&r.ok){$("cl").value="";reload()}
+ });
+});
+$("refresh").addEventListener("click",function(){cmApp.run("refreshTotals").then(function(){$("r-msg").textContent="Totals refreshed.";reload()})});
+$("named").addEventListener("click",function(){cmApp.run("buildNamedAttendance").then(function(){cur="Attendance_Named";$("r-msg").textContent="Attendance with names is in the tab Attendance_Named.";reload()})});
+$("export").addEventListener("click",function(){cmApp.exportResults().then(function(d){if(d)$("r-msg").textContent="Exported to "+d})});
+$("data").addEventListener("click",function(){cmApp.openData()});
+$("g-in").addEventListener("click",function(){$("g-msg").textContent="Finish signing in in your browser.";cmApp.googleSignIn().then(function(g){gshow(g)})});
+$("g-sync").addEventListener("click",function(){$("g-msg").textContent="Copying…";cmApp.googleSync().then(function(g){gshow(g);if(!g.lastError)$("g-msg").textContent="Copied."})});
+$("g-out").addEventListener("click",function(){cmApp.googleSignOut().then(gshow)});
+$("f").addEventListener("submit",function(e){
+ e.preventDefault();
+ var url=$("s-url").value.trim();
+ if(url&&!/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(url)){$("saved").textContent="The address must look like https://script.google.com/macros/s/…/exec";return}
+ cmApp.save({courseCode:$("s-code").value,courseTitle:$("s-title").value,institution:$("s-inst").value,scriptUrl:url,port:$("s-port").value}).then(function(){location.reload()});
+});
+setInterval(function(){if(document.visibilityState==="visible")cmApp.info().then(function(i){gshow(i.google)})},30000);
+})();
+</script>
+</body>
+</html>

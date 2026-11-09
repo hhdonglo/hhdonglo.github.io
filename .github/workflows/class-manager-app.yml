@@ -1,0 +1,86 @@
+# Builds the Class Manager desktop app (class-manager/desktop) for macOS, Windows and Linux.
+# The installers appear under the run's "Artifacts". This workflow does not touch the website.
+name: Class Manager app
+
+on:
+  workflow_dispatch:
+    inputs:
+      release:
+        description: "Also put the installers in a draft GitHub Release, for example class-manager-v0.1.0 (leave empty to only build)"
+        required: false
+        default: ""
+      publish:
+        description: "Publish the release at once instead of leaving it as a draft"
+        type: boolean
+        required: false
+        default: false
+  push:
+    paths:
+      - "class-manager/**"
+      - ".github/workflows/class-manager-app.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            target: --mac
+            name: macOS
+          - os: windows-latest
+            target: --win
+            name: Windows
+          - os: ubuntu-latest
+            target: --linux
+            name: Linux
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: class-manager/desktop
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - name: Build installer (unsigned)
+        run: npx electron-builder ${{ matrix.target }} --publish never
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Class Manager for ${{ matrix.name }}
+          path: |
+            class-manager/desktop/dist/*.dmg
+            class-manager/desktop/dist/*.exe
+            class-manager/desktop/dist/*.AppImage
+          if-no-files-found: error
+
+  release:
+    # A draft unless "publish" is ticked: nothing is public until the release is published.
+    # The download page links to releases/latest/download/<file>, so publishing a release updates the page.
+    if: github.event_name == 'workflow_dispatch' && startsWith(inputs.release, 'class-manager-v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: installers
+          merge-multiple: true
+      - name: Create draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.release }}
+          DRAFT: ${{ inputs.publish && ' ' || '--draft' }}
+        run: |
+          ls -l installers
+          gh release create "${TAG}" installers/* \
+            --repo "${GITHUB_REPOSITORY}" --target "${GITHUB_SHA}" ${DRAFT} \
+            --title "Class Manager ${TAG#class-manager-v}" \
+            --notes "Installers for Windows, macOS and Linux. They are not signed: see the installation notes on https://hhdonglo.github.io/class-manager-app.html"

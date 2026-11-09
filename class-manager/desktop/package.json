@@ -1,0 +1,100 @@
+{
+  "name": "class-manager",
+  "productName": "Class Manager",
+  "version": "0.2.0",
+  "description": "Course pages, practice quizzes, mock exam, live quiz and attendance for one course, run from the lecturer's computer.",
+  "author": "Hope Donglo",
+  "license": "UNLICENSED",
+  "private": true,
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder",
+    "dist:mac": "electron-builder --mac",
+    "dist:win": "electron-builder --win",
+    "dist:linux": "electron-builder --linux"
+  },
+  "devDependencies": {
+    "electron": "44.9.3",
+    "electron-builder": "26.18.0"
+  },
+  "build": {
+    "appId": "io.github.hhdonglo.classmanager",
+    "productName": "Class Manager",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "backend.js",
+      "google.js",
+      "authoring.js",
+      "app/**/*",
+      "google-oauth.json",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "..",
+        "to": "web",
+        "filter": [
+          "**/*",
+          "!desktop/**",
+          "!tools/**",
+          "!README.md",
+          "!STRUCTURE.md",
+          "!ARCHITECTURE.md",
+          "!.nojekyll"
+        ]
+      }
+    ],
+    "icon": "../assets/icon-512.png",
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "universal"
+          ]
+        }
+      ],
+      "category": "public.app-category.education",
+      "identity": "-",
+      "artifactName": "Class-Manager-macOS.${ext}"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "Class-Manager-Windows.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "category": "Education",
+      "artifactName": "Class-Manager-Linux.${ext}"
+    },
+    "publish": null
+  },
+  "desktopName": "class-manager.desktop",
+  "repository": "https://github.com/hhdonglo/hhdonglo.github.io",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.6.0",
+    "jszip": "^3.10.2",
+    "mammoth": "^1.13.0",
+    "unpdf": "^2.1.0"
+  }
+}
