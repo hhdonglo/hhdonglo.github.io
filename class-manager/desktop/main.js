@@ -191,7 +191,7 @@ function secureWindow(w) {
   w.webContents.on("will-navigate", (e, url) => { if (!url.startsWith(baseUrl())) { e.preventDefault(); if (/^https?:/.test(url)) shell.openExternal(url); } });
 }
 function newWindow(page, w, h) {
-  const bw = new BrowserWindow({ width: w || 1280, height: h || 860, title: "Class Manager", icon: path.join(WEB, "assets", "icon-512.png"),
+  const bw = new BrowserWindow({ width: w || 1280, height: h || 860, title: "Class Manager", icon: path.join(__dirname, "app", "icon-512.png"),
     webPreferences: { preload: path.join(__dirname, "preload.js"), contextIsolation: true, sandbox: true, nodeIntegration: false } });
   secureWindow(bw); bw.loadURL(baseUrl() + page); return bw;
 }
@@ -215,6 +215,7 @@ function csvCell(v) { v = String(v == null ? "" : v); return /[",\n\r]/.test(v) 
 
 ipcMain.handle("cm:info", () => info());
 ipcMain.handle("cm:tunnelStart", () => startTunnel());
+ipcMain.handle("cm:readme", () => shell.openPath(app.isPackaged ? path.join(process.resourcesPath, "README.txt") : path.join(__dirname, "README.txt")));
 ipcMain.handle("cm:tunnelStop", () => stopTunnel());
 ipcMain.handle("cm:save", async (e, s) => {
   const before = settings.port; saveSettings(s);
@@ -304,7 +305,7 @@ app.whenReady().then(async () => {
   await restartServer();
   tunnel = createTunnel({ dir: path.join(app.getPath("userData"), "tunnel"),
     onChange: (st) => { for (const w of BrowserWindow.getAllWindows()) { try { w.webContents.send("cm:tunnel", st); } catch (e) {} } } });
-  win = new BrowserWindow({ width: 1200, height: 880, title: "Class Manager", icon: path.join(WEB, "assets", "icon-512.png"),
+  win = new BrowserWindow({ width: 1200, height: 880, title: "Class Manager", icon: path.join(__dirname, "app", "icon-512.png"),
     webPreferences: { preload: path.join(__dirname, "preload.js"), contextIsolation: true, sandbox: true, nodeIntegration: false } });
   secureWindow(win);
   win.loadURL(baseUrl() + "app/home.html");

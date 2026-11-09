@@ -53,7 +53,8 @@
 </div>
 <p id="cm-req">Windows 10 or 11, 64-bit.</p>
 <p class="sec-sub" id="cm-os" role="status"></p>
-<p class="cm-ver">Version 0.3.0 (Beta). <a href="https://github.com/hhdonglo/hhdonglo.github.io/releases/latest">Release notes and all files</a></p>
+<p>Installation and instructions come with the app: the file <a href="https://github.com/hhdonglo/hhdonglo.github.io/releases/latest/download/Class-Manager-README.txt">Class-Manager-README.txt</a>, which the Instructions button in the app also opens.</p>
+<p class="cm-ver">Version 0.3.1 (Beta). <a href="https://github.com/hhdonglo/hhdonglo.github.io/releases/latest">Release notes and all files</a></p>
 </div>
 </section>
 
@@ -75,39 +76,6 @@
 </div>
 </section>
 
-<section aria-labelledby="cm-install">
-<h3 class="sub2" id="cm-install">Installation</h3>
-<div class="ov-card">
-<p>The installers are not yet signed, so the system asks for confirmation the first time.</p>
-<ul>
-<li><strong>Windows:</strong> run the installer. If "Windows protected your PC" appears, choose More info, then Run anyway.</li>
-<li><strong>macOS:</strong> open the disk image and drag Class Manager to Applications. The first time, right-click the app and choose Open. If macOS still refuses, open System Settings, Privacy and Security, and choose Open Anyway.</li>
-<li><strong>Linux:</strong> make the file executable and run it.</li>
-</ul>
-<p>When the app first starts, allow it to accept network connections on private networks, so that students' phones can reach it. The results workbook and the host key are created automatically on first launch.</p>
-</div>
-</section>
-
-<section aria-labelledby="cm-class">
-<h3 class="sub2" id="cm-class">Instructions</h3>
-<div class="ov-card">
-<h4>In class</h4>
-<ol>
-<li>Open Class Manager and add the class list: student ID, then name if desired, one student per line, or a CSV file.</li>
-<li>Under "Students open" on the home screen, choose how students connect, and show the address and QR code.
-<ul>
-<li><strong>Same Wi-Fi or hotspot:</strong> the computer and the students' phones join the same Wi-Fi. Where the university network keeps devices apart, connect the computer and the phones to a phone hotspot.</li>
-<li><strong>Internet:</strong> the app creates a temporary https address that students open from any network, including mobile data, while the app is open. It uses Cloudflare's free quick tunnel service, so class traffic passes through Cloudflare. The address changes each time, and the service offers no uptime guarantee. The first time, the app downloads Cloudflare's connector program. This option has not yet been tested in real classes.</li>
-</ul></li>
-<li>Open the Lecturer menu with the host key shown on the home screen, then take attendance or run a quiz. The attendance QR code changes during the session, and each student is marked once per day.</li>
-<li>After class, view the Attendance, Master and Totals tables on the home screen, or export every table as a CSV file for Excel.</li>
-</ol>
-<h4>Students' own progress</h4>
-<p>Under "Access codes for students", create a personal code for each student and print the slips. Students enter their student ID and code in the portal to see their own record.</p>
-<h4>Resources and questions</h4>
-<p>Add PDF, Word, PowerPoint or Markdown files to the library to search them and read summaries. Quiz questions can be imported from a file or drafted from the library, and each one is reviewed by the lecturer before use. Drafting questions and full summaries need the lecturer's own Anthropic API key, entered in the app's settings.</p>
-</div>
-</section>
 </section>
 </div></main>
 <script>

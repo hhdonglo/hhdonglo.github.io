@@ -1,7 +1,7 @@
 {
   "name": "class-manager",
   "productName": "Class Manager",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Course pages, practice quizzes, mock exam, live quiz and attendance for one course, run from the lecturer's computer.",
   "author": "Hope Donglo",
   "license": "UNLICENSED",
@@ -49,9 +49,13 @@
           "!ARCHITECTURE.md",
           "!.nojekyll"
         ]
+      },
+      {
+        "from": "README.txt",
+        "to": "README.txt"
       }
     ],
-    "icon": "../assets/icon-512.png",
+    "icon": "build/icon.png",
     "mac": {
       "target": [
         {

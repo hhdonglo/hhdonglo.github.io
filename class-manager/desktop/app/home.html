@@ -7,7 +7,7 @@
 <title>Class Manager</title>
 <script src="/config.js"></script>
 <script src="/assets/qrcode.js"></script>
-<link rel="icon" href="/assets/icon.svg" type="image/svg+xml">
+<link rel="icon" href="/app/icon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/assets/site.css">
 <style>
 .hm{max-width:64rem;margin:0 auto;font-family:system-ui,sans-serif}
@@ -46,6 +46,7 @@
 <header class="banner slim"><div class="wrap"><h1><a class="home-link" href="home.html">Class Manager</a></h1><p class="course"><span data-cm="courseCode"></span> · <span data-cm="courseTitle"></span></p></div></header>
 <main id="main"><div class="wrap hm">
 
+<p class="note"><button type="button" id="readme">Instructions</button> Installation, connecting students, attendance, quizzes, results and troubleshooting.</p>
 <h2>In class</h2>
 <div class="grid">
  <div class="card">
@@ -201,6 +202,7 @@ $("refresh").addEventListener("click",function(){cmApp.run("refreshTotals").then
 $("named").addEventListener("click",function(){cmApp.run("buildNamedAttendance").then(function(){cur="Attendance_Named";$("r-msg").textContent="Attendance with names is in the tab Attendance_Named.";reload()})});
 $("export").addEventListener("click",function(){cmApp.exportResults().then(function(d){if(d)$("r-msg").textContent="Exported to "+d})});
 $("data").addEventListener("click",function(){cmApp.openData()});
+$("readme").addEventListener("click",function(){cmApp.readme()});
 $("g-in").addEventListener("click",function(){$("g-msg").textContent="Finish signing in in your browser.";cmApp.googleSignIn().then(function(g){gshow(g)})});
 $("g-sync").addEventListener("click",function(){$("g-msg").textContent="Copying…";cmApp.googleSync().then(function(g){gshow(g);if(!g.lastError)$("g-msg").textContent="Copied."})});
 $("g-out").addEventListener("click",function(){cmApp.googleSignOut().then(gshow)});
