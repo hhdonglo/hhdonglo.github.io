@@ -1,4 +1,4 @@
-/* Shared error and recovery messages for the PHYS 143 student pages.
+/* Shared error and recovery messages for the student pages.
    One place to change wording. Each message has a short reference code (E1 to E16)
    that a student can quote to the lecturer. No internals, tokens or IDs appear here.
    Catalogue: design/PORTAL_CONTROL_CENTRE_DESIGN.md, section 4. */

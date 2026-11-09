@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
 <meta name="color-scheme" content="light dark">
-<title>PHYS 143 — Quiz</title>
-<meta name="description" content="PHYS 143 live quiz: timed multiple-choice questions with a live class ranking. Use the join code for your week.">
+<title>Quiz</title>
+<meta name="description" content="Live quiz: timed multiple-choice questions with a live class ranking. Use the join code for your week.">
 <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="assets/icon-192.png">
 <script src="config.js"></script>
@@ -15,20 +15,19 @@
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#16294b">
 <script>if(!location.hash){if("scrollRestoration" in history)history.scrollRestoration="manual";window.addEventListener("pageshow",function(){if(!location.hash)window.scrollTo({top:0,left:0,behavior:"instant"})});}</script>
-<script src="assets/quiz-l1-questions.js"></script>
 </head>
 <body class="focus">
 <a class="skip" href="#main">Skip to content</a>
 <header class="banner slim">
 <div class="wrap">
-<h1><a class="home-link" href="index.html" data-cm="courseCode">PHYS 143</a></h1>
-<p class="course" data-cm="courseTitle">Mechanics and Thermal Physics</p>
+<h1><a class="home-link" href="index.html" data-cm="courseCode">Course</a></h1>
+<p class="course" data-cm="courseTitle"></p>
 </div>
 </header>
 <nav class="jump" id="jump" aria-label="Sections"><div class="wrap"><button type="button" class="menu-btn" aria-expanded="false" aria-controls="jump-links"><span>Menu</span><span class="dots" aria-hidden="true">&#8943;</span></button><div class="links" id="jump-links"><a href="index.html">Portal</a><a href="course.html">Lectures</a><a href="course.html#weekly">Practice</a><a href="mock-exam.html">Mock exam</a><a href="quiz.html">Live quiz</a><a href="calendar.html">Calendar</a><a href="messages.html">Messages</a></div></div></nav>
 <main id="main"><div class="wrap">
-<p class="crumb"><a href="index.html">Portal</a> &rsaquo; <a href="course.html">PHYS 143</a> &rsaquo; <a href="index.html">Portal</a> &rsaquo; Quiz</p>
-<h2 id="try-title">PHYS 143 quiz</h2>
+<p class="crumb"><a href="index.html">Portal</a> &rsaquo; Quiz</p>
+<h2 id="try-title">Class quiz</h2>
 <p class="sec-sub">Live class quiz</p>
 <style>
 .try{max-width:46rem;margin:0 auto}
@@ -65,8 +64,8 @@
 .try table{width:100%;border-collapse:collapse;margin:.6rem 0;font:1rem system-ui,sans-serif}
 .try th,.try td{padding:.45rem .6rem;border-bottom:1px solid var(--border);text-align:left}
 .try tr.me{background:var(--sky);font-weight:700}
-aside.disclaimer .sakai p{font-size:.78rem;line-height:1.4;margin:.2rem 0}
-aside.disclaimer .sakai-link{font-size:.8rem}
+aside.disclaimer .cm-notice p{font-size:.78rem;line-height:1.4;margin:.2rem 0}
+aside.disclaimer .cm-notice-link{font-size:.8rem}
 #board-note:empty{display:none}
 .reviewing #mine,.reviewing #board,.reviewing #end-msg,.reviewing #retry{display:none!important}
 #review .ro{display:flex;gap:.6rem;align-items:flex-start;padding:.5rem .7rem;margin:.35rem 0;border:1.5px solid var(--border);border-radius:6px}
@@ -152,7 +151,7 @@ body.focus .try .fun{display:block}
 (function(){
 "use strict";
 var SCRIPT_URL=window.CM.scriptUrl; // Apps Script web app address (see apps_script/quiz_receiver.gs)
-var LEADERBOARD_CSV="https://docs.google.com/spreadsheets/d/e/2PACX-1vR6SZQewzCDwqP5zfu1uycwaOb_ZEoJgXwLAhEWN4qBwT0zo89MDERju8cBM2Vne6w1-rje6gCZI5X-/pub?gid=1903986573&single=true&output=csv";
+var LEADERBOARD_CSV=window.CM.leaderboardCsv||""; // optional: a published Google Sheet CSV of the ranking
 var SECONDS=60;
 var D=function(s){return s};
 var QS=window.QUIZ_L1||[];
@@ -513,6 +512,7 @@ function parseCSV(t){
 }
 function loadBoard(cb){cb=cb||function(){};
  var note=$("board-note"),tb=$("board-table");note.textContent="Loading the ranking.";tb.innerHTML="";
+ if(!LEADERBOARD_CSV){note.textContent="The class ranking is not available yet.";cb(false);return}
  fetch(LEADERBOARD_CSV+(LEADERBOARD_CSV.indexOf("?")<0?"?":"&")+"t="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw 0;return r.text()}).then(function(t){
   var rows=parseCSV(t).filter(function(r){return r.join("").trim()});
   var h=(rows[0]||[]).map(function(x){return x.trim().toLowerCase()});
@@ -530,10 +530,10 @@ function loadBoard(cb){cb=cb||function(){};
 $("refresh").addEventListener("click",checkRanking);
 })();
 </script>
-<aside class="disclaimer" aria-label="Disclaimer"><div class="wrap sakai" role="note"><p><strong>Disclaimer.</strong> These course pages are open to anyone who finds them useful. Official course information and instructions for registered students are provided on Sakai. Students at the University of Ghana should visit Sakai for official course information.</p><a class="sakai-link" href="https://sakai.ug.edu.gh/portal/site/!gateway/tool/55840c0d-ea44-4827-84cb-5270d764ecf7" target="_blank" rel="noopener">Open PHYS 143 on Sakai</a></div></aside>
+<aside class="disclaimer" aria-label="Notice" data-cm-notice hidden></aside>
 </main>
 
-<footer><div class="wrap"><p class="foot-note"><span data-cm="courseCode">PHYS 143</span> · <span data-cm="courseTitle">Mechanics and Thermal Physics</span> · <span data-cm="institution">University of Ghana</span> · <a href="lecturer.html">Lecturer</a></p></div></footer>
+<footer><div class="wrap"><p class="foot-note"><span data-cm="footer"></span><a href="lecturer.html">Lecturer</a></p></div></footer>
 <script src="assets/render.js"></script>
 <script src="assets/site.js"></script>
 <script src="assets/tracking.js"></script>

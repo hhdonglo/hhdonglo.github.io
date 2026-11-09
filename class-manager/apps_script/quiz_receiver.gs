@@ -1,4 +1,4 @@
-// PHYS 143 quiz receiver. Bound to the "PHYS 143 Quizzes (Responses)" Sheet.
+// Class Manager quiz receiver. Bound to the course's results Sheet.
 //
 // Tabs: Form Responses 1 (Timestamp, First Name, ID, Join Code, Q1 to Q5, Score), Key (private), Quiz_Control (private),
 //       Presence, Log, Reports, Attempts, Roster, Attendance_Control, Attendance_Log, Attendance, Not_On_List (attendance check-in, see the Attendance section), Scores (clean grid: Student ID, Total, then one column per quiz, IDs only), Master (one row per student, one column per quiz; a new try replaces that cell; switch Key!L2 = On or Off).
@@ -26,7 +26,7 @@ var STAGED_TAB = 'Staged_Quiz'; // private: results held until released
 var RESP_HEADER = ['Timestamp', 'First Name', 'ID', 'Join Code', 'Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Score', 'Round', 'Questions', 'Answers', 'Week'];
 var TOTALS_TAB = 'Totals'; // private: one row per student ID, rebuilt automatically
 var EXPL_TAB = 'Explanations'; // optional override: join code | question number | explanation. Normally empty.
-var SITE = 'https://hhdonglo.github.io/class-manager'; // CONFIG: the web address this package is served from, without a final slash. The script reads quizzes/ and apps_script/live_quizzes.json from here. // explanations come from the practice bank listed in apps_script/live_quizzes.json
+var SITE = ''; // CONFIG: the web address this package is served from, without a final slash. The script reads quizzes/ and apps_script/live_quizzes.json from here. // explanations come from the practice bank listed in apps_script/live_quizzes.json
 var LETTERS = ['A', 'B', 'C', 'D', 'E'];
 var NOTIFY_EMAIL = ''; // CONFIG (optional): where new reports are emailed. Left empty, they go to the Google account that deployed the script.
 
@@ -55,7 +55,7 @@ function mailReport_(sh, r) {
   if (!to) return; // no address: the report is saved in the tab only
   try {
     var where = 'tab "' + sh.getName() + '", row ' + row; // no sheet link in the email, so a forwarded or quoted copy never carries it
-    MailApp.sendEmail(to, 'PHYS 143 report: ' + r.lecture + ', ' + r.qid,
+    MailApp.sendEmail(to, 'Class Manager report: ' + r.lecture + ', ' + r.qid,
       'A student reported a problem.\n\nTime: ' + r.time + '\nPage: ' + r.page + '\nLecture: ' + r.lecture + '\nQuestion id: ' + r.qid +
       '\nQuestion: ' + r.question + '\nAnswer shown: ' + r.answer + '\n\nComment:\n' + r.comment + '\n\nWhere to find it: ' + where + ' (open your Sheet from Google Drive).');
     status = 'email sent';
@@ -68,7 +68,7 @@ function mailReport_(sh, r) {
 
 // Run this once from the editor (choose testEmail, press Run) to grant the email permission and check delivery.
 function testEmail() {
-  MailApp.sendEmail(notifyTo_(), 'PHYS 143 test email', 'If you can read this, report emails will reach you. Remaining daily quota: ' + MailApp.getRemainingDailyQuota());
+  MailApp.sendEmail(notifyTo_(), 'Class Manager test email', 'If you can read this, report emails will reach you. Remaining daily quota: ' + MailApp.getRemainingDailyQuota());
 }
 
 function log_(outcome, name, id, code) {
@@ -823,8 +823,8 @@ function refreshTotals() {
   return rows.length;
 }
 
-function onOpen() { // a PHYS 143 menu in the sheet
-  try { SpreadsheetApp.getUi().createMenu('PHYS 143').addItem('Refresh totals', 'refreshTotals').addItem('Release held quiz results', 'releaseHeldQuiz').addItem('Discard held quiz results', 'discardHeldQuiz').addItem('Submit attendance', 'submitAttendance').addItem('Named attendance view', 'buildNamedAttendance').addItem('Tidy to class list', 'tidyToClassList').addItem('Discard unsubmitted attendance', 'discardAttendance').addToUi(); } catch (err) { /* not opened from the sheet */ }
+function onOpen() { // a Class Manager menu in the sheet
+  try { SpreadsheetApp.getUi().createMenu('Class Manager').addItem('Refresh totals', 'refreshTotals').addItem('Release held quiz results', 'releaseHeldQuiz').addItem('Discard held quiz results', 'discardHeldQuiz').addItem('Submit attendance', 'submitAttendance').addItem('Named attendance view', 'buildNamedAttendance').addItem('Tidy to class list', 'tidyToClassList').addItem('Discard unsubmitted attendance', 'discardAttendance').addToUi(); } catch (err) { /* not opened from the sheet */ }
 }
 
 function releaseHeldQuiz() { return commitQuiz_('', true); }
@@ -867,7 +867,7 @@ function hasPresence_(code, id) {
 // ---------- Attendance: a check-in code, the student enters an ID, 1 if present, 0 when the session is closed ----------
 // Tabs (all private): Roster (Student IDs only, filled by attendance_tools/roster_sync.sh), Attendance_Control (one row per session:
 // Code | Label | Status | Opened | Closed), Attendance_Log (every check-in), Attendance (one row per rostered student, one column per session,
-// "Attendance Wk N [1]" = 1 present, 0 absent, the format the Sakai gradebook imports), Not_On_List (IDs that checked in but are not on the roster).
+// "Attendance Wk N [1]" = 1 present, 0 absent, the format a learning platform gradebook imports), Not_On_List (IDs that checked in but are not on the roster).
 // The lecturer opens a session from the host page with a code to announce in class; students enter that code and their ID on the quiz page.
 var ROSTER_TAB = 'Roster', ATT_CTL_TAB = 'Attendance_Control', ATT_LOG_TAB = 'Attendance_Log', ATT_TAB = 'Attendance', NOTLIST_TAB = 'Not_On_List';
 
@@ -895,7 +895,7 @@ function rosterSet_() { // {id: 1}, cached for five minutes
 // Roster sync (used by attendance_tools/roster_sync.sh): adds the uploaded Student IDs (and names, when sent) to the Roster tab: ID in column A, name in
 // column B. Students need only their ID to check in; names are for the lecturer's private view only and are never returned to any page, reply or email.
 // Nothing from the Roster is ever returned. By default nothing is deleted (IDs missing from the upload are only counted).
-// Class section: the Roster must hold only the lecturer's own section. Upload the section's own export (for example PHYS143_GROUP_E.csv) with
+// Class section: the Roster must hold only the lecturer's own section. Upload the section's own export (for example COURSE_GROUP_E.csv) with
 // replace=yes and mode=apply: the Roster then becomes exactly that list (other IDs are removed from the Roster only; Attendance, Scores and Master rows are left alone).
 // kind=roster_sync, hostkey, mode=dry|apply, replace=yes (optional), rows = JSON list of [Student ID, name] pairs (or plain IDs).
 function rosterSync_(p) {
@@ -942,7 +942,7 @@ function rosterSync_(p) {
   } finally { lk.releaseLock(); }
 }
 
-// Tidy to class list (host action roster_tidy, or PHYS 143 > Tidy to class list): after the Roster was replaced with one section, the Attendance, Scores and Master
+// Tidy to class list (host action roster_tidy, or Class Manager > Tidy to class list): after the Roster was replaced with one section, the Attendance, Scores and Master
 // tabs still list every earlier ID. This removes the rows of IDs that are NOT on the Roster, but only rows with no marks at all: Attendance rows with no 1,
 // Scores and Master rows with every quiz cell blank. A row with any real mark stays. mode=dry only counts. Nothing is returned except counts.
 function tidyTab_(sh, firstRow, markFrom, isMark, onRoster, apply) {
@@ -989,8 +989,8 @@ function tidyToClassList() { // sheet menu: shows the counts first and asks
   ui.alert(r.ok ? 'Done. Removed Attendance ' + r.attendance + ', Scores ' + r.scores + ', Master ' + r.master + ' row(s).' : r.why);
 }
 
-// Named attendance view (lecturer only, from the sheet's PHYS 143 menu): writes a private tab Attendance_Named with Name, Student ID and a copy of every
-// Attendance column, so the lecturer can see who was present. The Attendance tab itself stays IDs only (the format Sakai imports). Run again to refresh.
+// Named attendance view (lecturer only, from the sheet's Class Manager menu): writes a private tab Attendance_Named with Name, Student ID and a copy of every
+// Attendance column, so the lecturer can see who was present. The Attendance tab itself stays IDs only (the format a gradebook imports). Run again to refresh.
 function buildNamedAttendance() {
   var ss = SpreadsheetApp.getActiveSpreadsheet(), at = ss.getSheetByName(ATT_TAB), ui = SpreadsheetApp.getUi();
   if (!at || at.getLastRow() < 1) { ui.alert('The Attendance tab is empty. Submit attendance first.'); return; }
@@ -2579,5 +2579,5 @@ function doGet(e) {
     }
     return jsonp_(e, { found: false, outcome: lastOutcome_(id, code), keyMissing: !key });
   }
-  return out_('PHYS 143 quiz receiver is running');
+  return out_('Class Manager quiz receiver is running');
 }

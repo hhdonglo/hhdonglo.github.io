@@ -21,7 +21,7 @@ var katexP;
 function loadKatex(){if(window.katex)return Promise.resolve();if(katexP)return katexP;katexP=new Promise(function(ok,no){var s=document.createElement("script");s.src="assets/katex/katex.min.js";s.onload=ok;s.onerror=no;document.head.appendChild(s)});return katexP}
 function eqs(x){
   if(!x.equations||!x.equations.length)return "";
-  var t=x.equations_title||"The physics in brief";
+  var t=x.equations_title||"In brief";
   return '<details class="eqs"><summary>'+esc(x.equations_summary||"Show the equations")+'</summary><div class="eqs-in"><h5>'+md(t)+'</h5>'+x.equations.map(function(q,i){return '<div class="eq-item"><div class="eq" role="group" tabindex="0" aria-label="Equation '+(i+1)+'"><span class="tex" data-tex="'+esc(q.tex)+'">'+esc(q.tex)+'</span></div><p class="eq-text">'+md(q.text||"")+'</p></div>'}).join("")+'</div></details>';
 }
 function texRender(root){
@@ -35,7 +35,7 @@ function ppage(n,l){return l&&l.practice_page?l.practice_page:"lecture-"+n+"-pra
 R.weekly=function(el,d){
   var co=d.course_outline,cof='';if(co&&co.url){cof='<p class="outline"><strong>'+esc(co.label||"Course outline")+':</strong> <span class="pdf-pair"><a href="'+esc(co.url)+'" target="_blank" rel="noopener">Preview<span class="vh"> '+esc(co.label||"course outline")+' (opens in a new tab)</span></a><a href="'+esc(co.url)+'" download>Download<span class="vh"> '+esc(co.label||"course outline")+'</span></a></span></p>'}
   var ol=d.official_listing;if(ol&&ol.url)cof+='<p class="outline"><a href="'+esc(ol.url)+'" target="_blank" rel="noopener">'+esc(ol.label||"Official course listing")+' ↗<span class="vh"> (opens in a new tab)</span></a></p>';
-  var mk=d.mock_exam?'<div class="mock-feature" id="mock-exam"><p class="mf-kicker">End of course</p><h4 class="mf-title">Mock exam</h4><p class="mf-text">Fifty questions drawn at random from past examination questions across the course, in 2 hours 30 minutes, with the timer on screen and answers shown only at the end. For practice, not assessment.</p><p class="mf-meta"><span>50 questions</span><span>2 h 30 min</span><span>Lectures 1 to 12</span></p><p><a class="btn primary mf-btn" href="mock-exam.html">Take the mock exam <span aria-hidden="true">&rarr;</span></a></p></div>':'';
+  var mk=d.mock_exam?'<div class="mock-feature" id="mock-exam"><p class="mf-kicker">End of course</p><h4 class="mf-title">Mock exam</h4><p class="mf-text">Fifty questions drawn at random from past examination questions across the course, in 2 hours 30 minutes, with the timer on screen and answers shown only at the end. For practice, not assessment.</p><p class="mf-meta"><span>50 questions</span><span>2 h 30 min</span><span>All lectures</span></p><p><a class="btn primary mf-btn" href="mock-exam.html">Take the mock exam <span aria-hidden="true">&rarr;</span></a></p></div>':'';
   var mj=d.mock_exam?'<p class="mock-jump"><a href="#mock-exam"><strong>Mock exam</strong> · 50 questions in 2 h 30 min · jump to the end of the course <span aria-hidden="true">&darr;</span></a></p>':'';
   el.innerHTML=cof+mj+d.groups.map(function(g){
     return '<div class="week-group" id="'+esc(g.id)+'"><h4 class="grp">'+md(g.title)+'</h4><p class="sec-sub">'+md(g.subtitle)+'</p><ul class="weeks">'+g.lectures.map(function(l){
@@ -52,7 +52,7 @@ function lbtn(url,label,n,primary){
 function wlink(url,label,n){if(!url)return '<span class="muted">'+esc(label)+': coming soon</span>';var sr='<span class="vh"> '+esc(label)+' for lecture '+n+'</span>';if(isPdf(url))return '<span class="pdf-pair"><span class="pl">'+esc(label)+'</span><a href="'+esc(url)+'" target="_blank" rel="noopener">Preview'+sr+'<span class="vh"> (opens in a new tab)</span></a><a href="'+esc(url)+'" download>Download'+sr+'</a></span>';return '<a href="'+esc(url)+'">'+esc(label)+'<span class="vh"> for lecture '+n+'</span></a>'}
 R.lecture=function(el,d,site){
   var all=flat(d),n=+el.getAttribute("data-n"),i=all.findIndex(function(x){return x.l.number===n});if(i<0)return;
-  var l=all[i].l,soon=l.status==="soon",course=d.course_title||"PHYS 143",title="Lecture "+ln(n)+" — "+(soon?"Coming soon":l.title);
+  var l=all[i].l,soon=l.status==="soon",course=(window.CM&&CM.courseCode)||d.course_title||"Course",title="Lecture "+ln(n)+" — "+(soon?"Coming soon":l.title);
   var h=document.querySelector("main h2");if(h)h.textContent=title;
   var sb=h&&h.nextElementSibling;if(sb&&sb.classList.contains("sec-sub"))sb.innerHTML=md(soon?(l.note||"Materials are being prepared."):l.summary);
   var cr=document.querySelector("main .crumb");if(cr)cr.innerHTML='<a href="index.html">Portal</a> &rsaquo; <a href="course.html">'+esc(course)+'</a> &rsaquo; Lecture '+ln(n);

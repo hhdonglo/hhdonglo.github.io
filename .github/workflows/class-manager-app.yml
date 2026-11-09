@@ -77,6 +77,13 @@ jobs:
         with:
           path: installers
           merge-multiple: true
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: class-manager/desktop/README.txt
+          sparse-checkout-cone-mode: false
+          path: src
+      - name: Add the instructions next to the installers
+        run: cp src/class-manager/desktop/README.txt installers/Class-Manager-README.txt
       - name: Create draft release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -88,4 +95,4 @@ jobs:
           gh release create "${TAG}" installers/* \
             --repo "${GITHUB_REPOSITORY}" --target "${GITHUB_SHA}" ${DRAFT} \
             --title "Class Manager ${TAG#class-manager-v}" \
-            --notes "Installers for Windows, macOS and Linux. They are not signed: see the installation notes on https://hhdonglo.github.io/class-manager-app.html. Beta: not yet fully tested. ${EXTRA}"
+            --notes "Installers for Windows, macOS and Linux. Installation and instructions are in Class-Manager-README.txt; the installers are not signed. Beta: not yet fully tested. ${EXTRA}"

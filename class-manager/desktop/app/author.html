@@ -6,7 +6,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Resources and questions</title>
 <script src="/config.js"></script>
-<link rel="icon" href="/assets/icon.svg" type="image/svg+xml">
+<link rel="icon" href="/app/icon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/assets/site.css">
 <style>
 .au{max-width:72rem;margin:0 auto;font-family:system-ui,sans-serif}
@@ -293,7 +293,7 @@ $("k-save").addEventListener("click",function(){var k=$("k-key").value.trim();if
 $("k-del").addEventListener("click",function(){if(confirm("Remove the saved API key?"))cmApp.authSettings({apiKey:""}).then(status)});
 $("k-msave").addEventListener("click",function(){cmApp.authSettings({model:$("k-model").value}).then(function(s){status(s);$("k-state").textContent="Model saved: "+s.model})});
 // ---------- start ----------
-Promise.all([cmApp.authStatus().then(status),loadBanks(),loadDocs(),count()]).then(function(){var t="lib";try{t=sessionStorage.getItem("au_tab")||"lib"}catch(x){}tab(t)});
+Promise.all([cmApp.authStatus().then(status),loadBanks(),loadDocs(),count()]).then(function(){var t="lib";try{t=sessionStorage.getItem("au_tab")||"lib"}catch(x){}var h=(location.hash||"").slice(1);if(document.querySelector('[data-tab="'+h+'"]'))t=h;tab(t)});
 })();
 </script>
 </body>

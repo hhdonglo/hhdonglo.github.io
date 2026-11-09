@@ -1,20 +1,14 @@
-/* Optional student ID and result sending for the PHYS 143 quizzes (weekly practice and mock exam).
+/* Optional student ID and result sending for the quizzes (weekly practice and mock exam).
    Strictly voluntary: nothing is sent unless the student has typed an ID, and the quizzes work fully without one.
    The ID is kept only in this browser (localStorage) and can be cleared at any time. No cookies, no analytics.
 
-   CONFIG: TRACK_FORM is the one place to set up. Create a second Google Form (see EDITING.md, "Optional student ID and progress"),
-     FORM_URL : the form's address ending in /viewform (this file posts to the same address ending in /formResponse)
-     ENTRY    : the entry.NNNNNNNNN number of each field, from the form's "Get pre-filled link"
-   Until FORM_URL is set the ID box stays hidden (add ?trackpreview=1 to a quiz address to preview the box; nothing is sent in preview). */
+   Attempts are sent to the class server (window.CM.scriptUrl); without one the ID box stays hidden
+   (add ?trackpreview=1 to a quiz address to preview the box; nothing is sent in preview). */
 (function () {
   'use strict';
-  var TRACK_FORM = {
-    FORM_URL: 'https://docs.google.com/forms/d/e/1FAIpQLSfQDWExZgHEnoFdMywSl1ddhHJtl627kgu5wZ7YSUJNujyAmg/viewform',
-    ENTRY: { id: 'entry.862454699', quiz: 'entry.1362426387', attempt: 'entry.678717462', score: 'entry.415129508', total: 'entry.545245509', seconds: 'entry.2084061273', when: 'entry.945164514', wrong: 'entry.1045832220' }
-  };
-  var ID_KEY = 'phys143.studentid.v1';
+  var ID_KEY = 'cm.studentid.v1';
   var preview = /[?&]trackpreview=1/.test(window.location.search);
-  var live = TRACK_FORM.FORM_URL.indexOf('PLACEHOLDER') === -1;
+  var live = !!(window.CM || {}).scriptUrl; // attempts go to the class server
   var enabled = live || preview;
 
   function getId() {
@@ -73,5 +67,5 @@
     return true;
   }
 
-  window.PHYS143_TRACK = { mount: mount, send: send, post: post, enabled: enabled };
+  window.CM_TRACK = { mount: mount, send: send, post: post, enabled: enabled };
 })();

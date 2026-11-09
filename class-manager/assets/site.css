@@ -84,11 +84,11 @@ footer p{margin:.2rem 0}
 .ov-card dl{margin:.4rem 0 0}
 .ov-card dt{font-weight:700;margin-top:.5rem}
 .ov-card dd{margin:0 0 0 0}
-.sakai{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem 1rem;justify-content:space-between;background:var(--sky);border-left:5px solid var(--brown);border-radius:6px;padding:.5rem .8rem;margin:0 0 .9rem;font:.9rem/1.45 system-ui,sans-serif}
-.sakai p{margin:0!important;flex:1 1 20rem}
-.sakai-link{font-weight:700;white-space:nowrap}
+.cm-notice{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem 1rem;justify-content:space-between;background:var(--sky);border-left:5px solid var(--brown);border-radius:6px;padding:.5rem .8rem;margin:0 0 .9rem;font:.9rem/1.45 system-ui,sans-serif}
+.cm-notice p{margin:0!important;flex:1 1 20rem}
+.cm-notice-link{font-weight:700;white-space:nowrap}
 .disclaimer{background:var(--sky);border-bottom:1px solid var(--brown)}
-.disclaimer .sakai{border-radius:0;margin:0 auto;border-left:0;padding:.8rem 1rem;background:none}
+.disclaimer .cm-notice{border-radius:0;margin:0 auto;border-left:0;padding:.8rem 1rem;background:none}
 .banner .lecturer{margin:.35rem 0 0;color:var(--brown-soft);font:600 1rem/1.4 system-ui,sans-serif}
 .ov-card>h2{margin-top:1.2rem}
 .ov-card .intro{max-width:none;margin:.4rem 0}
@@ -231,7 +231,7 @@ main .level{margin-top:.8rem}
 .status{margin:0 0 .3rem;display:inline-block;font:700 .75rem system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase;padding:.15rem .5rem;border-radius:4px;background:var(--sky);border-left:4px solid var(--brown);color:var(--text,inherit)}
 .status.past{border-left-color:var(--off);opacity:.85}
 
-/* Stage 4: PHYS 143 portal */
+/* Student portal */
 .lvl-nav.sticky{position:sticky;top:var(--nav-h,3.4rem);z-index:5;background:var(--bg,var(--surface));padding:.4rem 0;margin:0 0 1rem;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch}
 .lvl-nav.sticky a{white-space:nowrap;flex:none}
 .tbl-wrap{margin:.6rem 0 1.4rem}
@@ -301,7 +301,7 @@ nav.jump a[aria-current]{font-weight:700}
 @media (prefers-color-scheme:dark){.sel-card h3.h4{color:#c7dcf8}}
 @media (min-width:700px){.ov-grid.areas{grid-template-columns:repeat(2,1fr)}}
 
-/* PHYS 143 weekly programme and lecture pages */
+/* Weekly programme and lecture pages */
 .week-group{margin:1.2rem 0 1.8rem}
 h4.grp{margin:.2rem 0 0;font-size:1.15rem;color:var(--navy)}
 @media (prefers-color-scheme:dark){h4.grp{color:#c7dcf8}}
@@ -442,7 +442,7 @@ nav.jump.js .sub a{padding-left:2rem;border-top:1px solid var(--border);white-sp
 .fig figcaption{margin-top:.3rem;font:.85rem/1.4 system-ui,sans-serif;color:var(--muted)}
 /* phone tap targets */
 @media (max-width:720px){
-.working li a,.working h3 a,.foot-grid li a,.side-links a,.week .wt a,.week .wl a,.sakai-link,ul.refs li>a{display:inline-flex;align-items:center;min-height:44px}
+.working li a,.working h3 a,.foot-grid li a,.side-links a,.week .wt a,.week .wl a,.cm-notice-link,ul.refs li>a{display:inline-flex;align-items:center;min-height:44px}
 .foot-grid li{margin:0}
 .home-link{display:inline-block;padding:.3rem 0}
 .working li{margin:0}
@@ -1043,7 +1043,7 @@ body.focus main{padding-top:1.2rem}
 .page-teaching [aria-labelledby="login"] .ov-card{padding:.3rem .9rem}
 .page-teaching [aria-labelledby="login"] a{font-size:.9rem;min-height:0;line-height:1.6}
 .page-teaching .disclaimer{margin-top:1.2rem;font-size:.78rem;line-height:1.4}
-.page-teaching .disclaimer .sakai{padding:.35rem 1rem}
+.page-teaching .disclaimer .cm-notice{padding:.35rem 1rem}
 /* Teaching page order: lecture course, then laboratory and research side by side, then live-session tools, then login */
 .page-teaching .secondary-card{margin-top:0;max-width:none}
 .page-teaching [data-file="teaching"]{gap:1.1rem 1.25rem}

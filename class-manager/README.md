@@ -1,6 +1,6 @@
 # Class manager
 
-A self-contained course management and assessment package for one course, taken from the PHYS 143 part of hhdonglo.github.io. It runs on its own: it does not read any file outside this folder, and it can be served from any static web host (GitHub Pages, a university server, or a laptop in class).
+A self-contained course management and assessment package for any course. It ships with no course content: the course details, lectures, files and question banks are the lecturer's own. It runs on its own: it does not read any file outside this folder, and it can be served from any static web host (GitHub Pages, a university server, or a laptop in class).
 
 It contains:
 
@@ -11,19 +11,16 @@ It contains:
 
 No student data, class list or host key is stored in this folder.
 
-**Desktop app.** `desktop/` turns this folder into an installable app for colleagues (Windows, macOS, Linux). It runs everything from the lecturer's laptop with no Google account and no setup, and keeps results on that laptop. See [`desktop/README.md`](desktop/README.md).
+**Desktop app.** `desktop/` turns this folder into an installable app for colleagues (Windows, macOS, Linux). It runs everything from the lecturer's laptop with no Google account, keeps results on that laptop, and on first launch asks for the course details, the class list and the course materials. See [`desktop/README.md`](desktop/README.md).
 
 ## Layout
 
 ```
 class-manager/
-  config.js                  the one file to edit: course labels and the Apps Script address
+  config.js                  the one file to edit for the web version: course labels and the Apps Script address
   index.html                 student portal (this week's lecture, check-in, live quiz, own results)
   course.html                course overview and weekly programme
-  introduction.html          introduction lecture page
-  lecture-N.html             one page per lecture (N = 1 to 12)
-  introduction-practice.html, lecture-N-practice.html
-                             practice quiz per lecture (no practice page for lecture 6 yet)
+  templates/                 lecture and practice page templates (the desktop app serves lecture-N.html from them)
   mock-exam.html             mock exam: 50 past examination questions, 2 hours 30 minutes
   quiz.html                  live quiz, student page
   attend.html                attendance check-in, student page (opened by the QR code)
@@ -33,21 +30,17 @@ class-manager/
   attendance.html            start and close attendance, live count, QR code
   control.html               Control Centre: class list, results, tidy to class list
   data/
-    lectures.json            weekly programme and every lecture page (titles, summaries, PDF paths)
+    lectures.json            weekly programme and every lecture page (empty until lectures are added)
     portal.json              portal settings: current week, contact times, handouts
-    pages/phys143.json       course overview text
-    courses.json, site.json  small files read by the page renderer
-  quizzes/lectureN.json      public question banks, read by practice, mock exam and live quiz
-  PHYS143/                   lecture PDFs (slides, handouts, tutorials, supplements)
+    pages/course.json        course overview text
+    site.json                small file read by the page renderer
+  quizzes/lectureN.json      question banks of the course (none are shipped)
   apps_script/
     quiz_receiver.gs         the Apps Script server (paste into the Google Sheet)
-    live_quizzes.json        weeks available to the live quiz
+    live_quizzes.json        weeks available to the live quiz (empty until banks are added)
   assets/                    styles, page scripts, QR code library, KaTeX, icons
-  tools/
-    quiz_src/                question sources in Python (build.py writes quizzes/)
-    validate_quizzes.py      checks every bank
-    check_calcs.py           recomputes every calculation answer
-    test_practice.mjs        browser test of the practice pages
+  course-packs/phys143/      the PHYS 143 course as a course pack source: course.json, files/ (lecture pages,
+                             PDFs, banks, data) and tools/ (bank sources and checks). Not part of the app.
   sw.js, manifest.webmanifest  lets students add the portal to the home screen
 ```
 
@@ -106,7 +99,7 @@ The QR codes and join addresses on the attendance, quiz dashboard and projector 
 3. Set `SITE` near the top of `apps_script/quiz_receiver.gs` to the new address without a final slash (for example `https://hhdonglo.github.io/class-manager`). The script reads the question banks and `live_quizzes.json` from there.
 4. Paste the script into the Google Sheet and deploy it (next section). If the deployment address changes, update `scriptUrl` in `config.js`.
 
-The package currently uses the same Apps Script and Google Sheet as the PHYS 143 pages on hhdonglo.github.io. Both can run side by side, because the question banks are identical in both places.
+The web values of the PHYS 143 deployment (Apps Script address, report form, ranking sheet) are kept in `course-packs/phys143/course.json` under `web`.
 
 ## Apps Script and the Google Sheet
 
@@ -127,10 +120,12 @@ The class list is loaded into the Roster tab from the lecturer's computer with `
 - Some banks hold past examination questions that were added to `quizzes/lectureN.json` directly (for example lecture 2 has 35 questions while its Python source writes 20). Running `build.py` for such a lecture replaces those questions, so edit the JSON directly for those lectures or add the questions to the source first.
 - A bank becomes available to the live quiz when its week is listed under `weeks` in `apps_script/live_quizzes.json`.
 
-## Use it for another course
+## Set it up for a course (web version)
 
-1. Change the labels and the address in `config.js`.
-2. Replace `data/lectures.json`, `data/portal.json` and `data/pages/phys143.json` with the new course's programme and text, and put its PDFs in a folder named in `data/lectures.json`.
+In the desktop app the first-launch setup does all of this. For the web version:
+
+1. Fill in the labels and the address in `config.js`.
+2. Fill in `data/lectures.json`, `data/portal.json` and `data/pages/course.json` with the course's programme and text, put its PDFs in a folder named in `data/lectures.json`, and copy `templates/lecture.html` and `templates/practice.html` to `lecture-N.html` and `lecture-N-practice.html` (replace {{N}} and {{NN}}), or copy `files/` of a course pack into this folder.
 3. Add banks to `quizzes/` and list the weeks in `apps_script/live_quizzes.json`.
 4. Give the new course its own Google Sheet and Apps Script deployment, so that marks and attendance stay separate.
 
@@ -142,3 +137,7 @@ The class list is loaded into the Roster tab from the lecturer's computer with `
 - Messages are visible to the people in the conversation and to the lecturer, who can read every conversation. Students are told this on the page.
 - Summaries and question generation (desktop app) send only the lecturer's documents and instructions to Anthropic; nothing about students is ever sent.
 - A student's own record opens only with the student ID and that student's access code. Six wrong tries lock that ID for ten minutes.
+
+## Course packs
+
+A course pack is a .zip with `course.json` (the course settings) and `files/` (lectures, PDFs, banks and the data files above, at their paths in this folder). The desktop app imports and exports packs from Course settings and lectures. To build the PHYS 143 pack: `cd desktop && node make-course-pack.js ../course-packs/phys143 PHYS143-course-pack.zip`.

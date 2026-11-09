@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Course setup | Class Manager</title>
+<script src="/config.js"></script>
+<link rel="icon" href="/app/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+.su{max-width:56rem;margin:0 auto;font-family:system-ui,sans-serif}
+.su h2{margin:1.2rem 0 .3rem}
+.su .steps{display:flex;flex-wrap:wrap;gap:.4rem;margin:1rem 0;padding:0;list-style:none}
+.su .steps button{min-height:40px;padding:.35rem .9rem;border:1.5px solid var(--border);border-radius:20px;background:var(--surface);color:var(--text);font:600 .95rem system-ui,sans-serif;cursor:pointer}
+.su .steps button[aria-current=step]{border-color:var(--brown-fill);background:var(--sky)}
+.su .steps .ok::before{content:"\2713  ";color:#2e7d32}
+.su .card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem 1.2rem;box-shadow:var(--shadow);margin:.8rem 0}
+.su .why{color:var(--muted);margin:.2rem 0 .8rem;line-height:1.5}
+.su label{display:block;font-weight:600;margin:.7rem 0 .2rem}
+.su .opt{font-weight:400;color:var(--muted)}
+.su input,.su textarea,.su select{width:100%;min-height:42px;padding:.35rem .6rem;border:1.5px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font:1rem system-ui,sans-serif;box-sizing:border-box}
+.su input[type=color]{width:5rem;padding:.15rem}
+.su input[type=checkbox]{width:auto;min-height:0}
+.su textarea{min-height:6rem}
+.su .two{display:grid;grid-template-columns:repeat(auto-fit,minmax(14rem,1fr));gap:0 1rem}
+.su button{margin:.4rem .4rem .1rem 0;min-height:42px;padding:.4rem 1rem;border:1.5px solid var(--border);border-radius:6px;background:var(--btn-bg);color:var(--btn-text);font:600 .98rem system-ui,sans-serif;cursor:pointer}
+.su button.p{background:var(--brown-fill);border-color:var(--brown-fill);color:#fff}
+.su button.link{border:0;background:none;padding:.2rem .3rem;min-height:0;text-decoration:underline;color:var(--link)}
+.su .msg{font-weight:600;min-height:1.4em}
+.su .nav{display:flex;flex-wrap:wrap;justify-content:space-between;gap:.5rem;margin-top:1rem}
+.su .tbl{overflow:auto;max-height:20rem;border:1px solid var(--border);border-radius:6px;margin-top:.6rem}
+.su table{border-collapse:collapse;font-size:.9rem;width:max-content;min-width:100%}
+.su td,.su th{border-bottom:1px solid var(--border);padding:.3rem .55rem;text-align:left;white-space:nowrap}
+.su th{background:var(--sky)}
+.su .lec{border:1px solid var(--border);border-radius:6px;padding:.6rem .8rem;margin:.5rem 0}
+.su .lec h4{margin:0 0 .2rem;font-size:1rem}
+.su .files{font-size:.9rem;color:var(--muted)}
+.su #logo-img{height:48px;vertical-align:middle;background:#fff;border-radius:4px;margin-right:.6rem}
+.su [hidden]{display:none!important}
+</style>
+</head>
+<body>
+<header class="banner slim"><div class="wrap"><h1><a class="home-link" href="home.html">Class Manager</a></h1><p class="course">Course setup</p></div></header>
+<main id="main"><div class="wrap su">
+<p class="why" id="intro">Three short steps set the app up for your course. Each step can be skipped and finished later from the home screen, and everything stays editable.</p>
+<ol class="steps" id="steps">
+ <li><button type="button" data-go="course" id="st-course">1. Course details</button></li>
+ <li><button type="button" data-go="class" id="st-class">2. Class list</button></li>
+ <li><button type="button" data-go="materials" id="st-materials">3. Course materials</button></li>
+</ol>
+
+<section data-step="course" aria-labelledby="h-course">
+ <h2 id="h-course">Course details</h2>
+ <p class="why">These details appear on every page students and you see: the portal, the projector display, the access code slips, the calendar and the exported results.</p>
+ <form class="card" id="f-course">
+  <div class="two">
+   <div><label for="c-code">Course code</label><input id="c-code" maxlength="40" placeholder="For example BIO 101" required></div>
+   <div><label for="c-title">Course title</label><input id="c-title" maxlength="120" placeholder="For example Introduction to Cell Biology"></div>
+   <div><label for="c-lect">Lecturer</label><input id="c-lect" maxlength="120"></div>
+   <div><label for="c-inst">Institution <span class="opt">(optional)</span></label><input id="c-inst" maxlength="120"></div>
+   <div><label for="c-sem">Semester <span class="opt">(for example First semester 2026/27)</span></label><input id="c-sem" maxlength="80"></div>
+   <div><label for="c-contact">Contact for students <span class="opt">(optional, for example an email address)</span></label><input id="c-contact" maxlength="160"></div>
+   <div><label for="c-start">First day of teaching <span class="opt">(optional)</span></label><input id="c-start" type="date"></div>
+   <div><label for="c-end">Last day of teaching <span class="opt">(optional)</span></label><input id="c-end" type="date"></div>
+   <div><label for="c-times">Class times <span class="opt">(optional, shown on the portal)</span></label><input id="c-times" maxlength="200" placeholder="For example Tuesday 09:30 to 11:20"></div>
+   <div><label for="c-week">Current week</label><input id="c-week" type="number" min="1" max="52" value="1"></div>
+  </div>
+  <details><summary>Appearance and notice <span class="opt">(optional)</span></summary>
+   <label for="c-accent">Header colour</label><input id="c-accent" type="color" value="#1f3a68"> <label style="display:inline;font-weight:400"><input type="checkbox" id="c-accent-on"> Use this colour</label>
+   <label>Logo</label><p><img id="logo-img" alt="" hidden><button type="button" id="logo-pick">Choose a logo</button><button type="button" id="logo-clear" hidden>Remove the logo</button></p>
+   <label for="c-notice">Notice on course pages</label><textarea id="c-notice" maxlength="400" placeholder="For example: Official course information is on the university's learning platform."></textarea>
+   <div class="two"><div><label for="c-nl">Notice link text</label><input id="c-nl" maxlength="80"></div><div><label for="c-nu">Notice link address</label><input id="c-nu" maxlength="400" placeholder="https://"></div></div>
+  </details>
+  <p class="msg" id="c-msg" role="status"></p>
+  <div class="nav"><span><button type="button" class="link" data-skip="class">Skip for now</button></span><span><button class="p" type="submit">Save and continue</button></span></div>
+ </form>
+</section>
+
+<section data-step="class" aria-labelledby="h-class" hidden>
+ <h2 id="h-class">Class list</h2>
+ <p class="why">Attendance, quiz marks and access codes count only the students on the class list. Choose a file exported from your student records (CSV or Excel), or paste the list. Then say which column holds the student ID and which holds the name, and check the preview before saving.</p>
+ <div class="card">
+  <p><button type="button" id="cl-file">Choose a file (CSV or Excel)</button><button type="button" id="cl-sample">Download a sample class list</button></p>
+  <label for="cl-text">Or paste the list <span class="opt">(one student per line, columns separated by commas or tabs)</span></label>
+  <textarea id="cl-text" placeholder="Student ID, Name"></textarea>
+  <p><button type="button" id="cl-read">Read the pasted list</button></p>
+  <div id="cl-map" hidden>
+   <p class="note" id="cl-src"></p>
+   <div class="two">
+    <div><label for="cl-id">Column with the student ID</label><select id="cl-id"></select></div>
+    <div><label for="cl-name">Column with the name <span class="opt">(optional)</span></label><select id="cl-name"></select></div>
+   </div>
+   <p><label style="display:inline;font-weight:400"><input type="checkbox" id="cl-head"> The first row holds column headings</label></p>
+   <p><label style="display:inline;font-weight:400"><input type="checkbox" id="cl-replace"> Replace the whole list (otherwise new students are added)</label></p>
+   <p class="note" id="cl-count"></p>
+   <div class="tbl" id="cl-prev"></div>
+   <p><button class="p" type="button" id="cl-save">Save the class list</button></p>
+  </div>
+  <p class="msg" id="cl-msg" role="status"></p>
+ </div>
+ <div class="nav"><button type="button" data-go="course">Back</button><span><button type="button" class="link" data-skip="materials">Skip for now</button><button class="p" type="button" data-go="materials">Continue</button></span></div>
+</section>
+
+<section data-step="materials" aria-labelledby="h-mat" hidden>
+ <h2 id="h-mat">Course materials</h2>
+ <p class="why">Add your lectures one by one, with their slides, handouts and tutorial sheets. Students then find them on the portal. If a colleague or an earlier year prepared a course pack, import it instead and everything comes in at once.</p>
+ <div class="card">
+  <h3 style="margin-top:0">Course pack <span class="opt">(optional)</span></h3>
+  <p class="why">A course pack (.zip) holds a whole course: details, lectures, files and question banks. Importing one replaces the course content in this app; class records are not touched.</p>
+  <p><button type="button" id="pk-import">Import a course pack</button><button type="button" id="pk-export">Export this course as a pack</button></p>
+  <p class="msg" id="pk-msg" role="status"></p>
+ </div>
+ <div class="card">
+  <h3 style="margin-top:0">Lectures</h3>
+  <div id="lec-list"></div>
+  <form id="f-lec" class="lec">
+   <h4 id="lec-h">Add a lecture</h4>
+   <input type="hidden" id="l-was">
+   <div class="two">
+    <div><label for="l-num">Number</label><input id="l-num" type="number" min="0" max="99" required></div>
+    <div><label for="l-title">Title</label><input id="l-title" maxlength="160" required></div>
+   </div>
+   <label for="l-sum">Summary <span class="opt">(one or two sentences)</span></label><input id="l-sum" maxlength="600">
+   <label for="l-out">Learning objectives <span class="opt">(one per line, optional)</span></label><textarea id="l-out"></textarea>
+   <p><label style="display:inline;font-weight:400"><input type="checkbox" id="l-soon"> Not ready yet (shown as "Coming soon")</label></p>
+   <p><button class="p" type="submit" id="l-save">Save the lecture</button><button type="button" id="l-cancel" hidden>Cancel</button></p>
+   <p class="msg" id="l-msg" role="status"></p>
+  </form>
+ </div>
+ <div class="card">
+  <h3 style="margin-top:0">Teaching material and question files</h3>
+  <p class="why">Add PDF, Word, PowerPoint or Markdown files to the library to search them and draft questions from them. Existing question files (Word, PDF or Markdown) are imported for you to review before students see them.</p>
+  <p><button type="button" id="lib-add">Add files to the library</button><button type="button" id="q-import">Import question files</button></p>
+  <p class="msg" id="lib-msg" role="status"></p>
+ </div>
+ <div class="nav"><button type="button" data-go="class">Back</button><span><button class="p" type="button" id="finish">Finish setup</button></span></div>
+</section>
+</div></main>
+<script>
+(function(){
+"use strict";
+var $=function(i){return document.getElementById(i)};
+if(!window.cmApp){document.body.innerHTML="<p style='padding:2rem'>Open this page from the Class Manager app.</p>";return}
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+var S=null,KINDS=[],LECS=[],ROWS=[];
+var KIND_LABEL={slides:"Slides",handout:"Handout",tutorial:"Tutorial sheet",supplement:"Supplementary note",reference:"Reference slides"};
+function go(step){
+ document.querySelectorAll("[data-step]").forEach(function(s){s.hidden=s.getAttribute("data-step")!==step});
+ document.querySelectorAll("[data-go]").forEach(function(b){if(b.closest(".steps"))b.setAttribute("aria-current",b.getAttribute("data-go")===step?"step":"false")});
+ try{history.replaceState(null,"","#"+step)}catch(x){}
+ var h=document.querySelector('[data-step="'+step+'"] h2');if(h){h.tabIndex=-1;h.focus()}
+}
+function marks(st){$("st-course").className=st.steps.course?"ok":"";$("st-class").className=st.steps.classList?"ok":"";$("st-materials").className=st.steps.materials?"ok":""}
+function load(){return cmApp.setup().then(function(d){
+ S=d.settings;KINDS=d.kinds;LECS=d.lectures;marks(d.setup);
+ if(d.setup.seen)$("intro").textContent="Course settings. Changes are saved for every page at once.";
+ $("c-code").value=S.courseCode||"";$("c-title").value=S.courseTitle||"";$("c-lect").value=S.lecturer||"";$("c-inst").value=S.institution||"";
+ $("c-sem").value=S.semester||"";$("c-contact").value=S.contact||"";$("c-start").value=S.startDate||"";$("c-end").value=S.endDate||"";
+ $("c-times").value=d.portal.contacts||"";$("c-week").value=d.portal.currentWeek||1;
+ $("c-accent-on").checked=!!S.accent;if(S.accent)$("c-accent").value=S.accent;
+ $("c-notice").value=S.notice||"";$("c-nl").value=S.noticeLinkLabel||"";$("c-nu").value=S.noticeLinkUrl||"";
+ showLogo(S.logo);drawLecs();
+})}
+function showLogo(l){$("logo-img").hidden=!l;$("logo-clear").hidden=!l;if(l)$("logo-img").src="/"+l+"?t="+Date.now()}
+document.querySelectorAll("[data-go]").forEach(function(b){b.addEventListener("click",function(){go(b.getAttribute("data-go"))})});
+document.querySelectorAll("[data-skip]").forEach(function(b){b.addEventListener("click",function(){go(b.getAttribute("data-skip"))})});
+// ---------- course details ----------
+$("f-course").addEventListener("submit",function(e){e.preventDefault();
+ var nu=$("c-nu").value.trim();if(nu&&!/^https:\/\//.test(nu)){$("c-msg").textContent="The notice link must start with https://";return}
+ cmApp.saveCourse({courseCode:$("c-code").value,courseTitle:$("c-title").value,lecturer:$("c-lect").value,institution:$("c-inst").value,semester:$("c-sem").value,
+  contact:$("c-contact").value,startDate:$("c-start").value,endDate:$("c-end").value,contacts:$("c-times").value,currentWeek:$("c-week").value,
+  accent:$("c-accent-on").checked?$("c-accent").value:"",notice:$("c-notice").value,noticeLinkLabel:$("c-nl").value,noticeLinkUrl:nu}).then(function(r){
+  S=r.settings;marks(r.setup);$("c-msg").textContent="Saved.";go("class")});
+});
+$("c-accent").addEventListener("input",function(){$("c-accent-on").checked=true});
+$("logo-pick").addEventListener("click",function(){cmApp.chooseLogo(false).then(function(r){if(!r)return;if(!r.ok){$("c-msg").textContent=r.why;return}showLogo(r.logo)})});
+$("logo-clear").addEventListener("click",function(){cmApp.chooseLogo(true).then(function(r){if(r&&r.ok)showLogo("")})});
+// ---------- class list ----------
+function colName(i){return "Column "+String.fromCharCode(65+i)}
+function setRows(rows,src){
+ ROWS=rows||[];if(!ROWS.length){$("cl-msg").textContent="Nothing to read: the list is empty.";$("cl-map").hidden=true;return}
+ $("cl-msg").textContent="";$("cl-map").hidden=false;$("cl-src").textContent=src;
+ var w=ROWS.reduce(function(m,r){return Math.max(m,r.length)},0),head=ROWS[0];
+ var looksHead=!/\d{4,}/.test(head.join(" "));$("cl-head").checked=looksHead;
+ var opts=function(none){var h="";if(none)h+='<option value="-1">No name</option>';for(var i=0;i<w;i++)h+='<option value="'+i+'">'+esc(colName(i)+(looksHead&&head[i]?": "+head[i]:""))+'</option>';return h};
+ $("cl-id").innerHTML=opts(false);$("cl-name").innerHTML=opts(true);
+ // Guess: the column with most 4 to 12 digit numbers is the ID; a heading with "name" is the name.
+ var best=0,bestN=-1;for(var i=0;i<w;i++){var n=ROWS.filter(function(r){return /^\D*\d{4,12}\D*$/.test(r[i]||"")}).length;if(n>bestN){bestN=n;best=i}}
+ $("cl-id").value=best;var nm=-1;head.forEach(function(h,i){if(nm<0&&i!==best&&/name/i.test(h))nm=i});if(nm<0&&w>1)nm=best===0?1:0;$("cl-name").value=nm;
+ preview();
+}
+function mapped(){var id=+$("cl-id").value,nm=+$("cl-name").value,rows=$("cl-head").checked?ROWS.slice(1):ROWS;
+ var first=nm>=0?[]:null;
+ return rows.map(function(r){return[String(r[id]||"").replace(/\D/g,""),nm>=0?String(r[nm]||""):""]})}
+function preview(){var m=mapped(),ok=m.filter(function(r){return /^\d{4,12}$/.test(r[0])}),bad=m.length-ok.length;
+ $("cl-count").textContent=ok.length+" students will be saved"+(bad?"; "+bad+" rows without a valid student ID (4 to 12 digits) will be skipped":"")+".";
+ $("cl-prev").innerHTML="<table><thead><tr><th>Student ID</th><th>Name</th></tr></thead><tbody>"+m.slice(0,10).map(function(r){var v=/^\d{4,12}$/.test(r[0]);return"<tr><td>"+(v?esc(r[0]):"<em>not valid</em>")+"</td><td>"+esc(r[1])+"</td></tr>"}).join("")+"</tbody></table>"+(m.length>10?"<p class='note' style='padding:.3rem .55rem'>First 10 rows shown.</p>":"");
+}
+["cl-id","cl-name","cl-head"].forEach(function(i){$(i).addEventListener("change",preview)});
+$("cl-file").addEventListener("click",function(){cmApp.tableFile().then(function(r){if(!r)return;if(!r.ok){$("cl-msg").textContent=r.why;return}setRows(r.rows,"From "+r.name+": "+r.rows.length+" rows.")})});
+$("cl-read").addEventListener("click",function(){cmApp.tableText($("cl-text").value).then(function(r){setRows(r.rows,"From the pasted list: "+r.rows.length+" rows.")})});
+$("cl-sample").addEventListener("click",function(){cmApp.sampleClassList().then(function(p){if(p)$("cl-msg").textContent="Saved the sample to "+p+". Fill it in, save it, then choose it above."})});
+$("cl-save").addEventListener("click",function(){
+ var rep=$("cl-replace").checked;
+ if(rep&&!confirm("Replace the whole class list? Students not in the new list are removed from the list. Their past marks stay."))return;
+ cmApp.classRows(mapped(),rep).then(function(r){
+  if(!r||!r.ok){$("cl-msg").textContent="Not saved: "+(r&&r.why||"unknown problem");return}
+  $("cl-map").hidden=true;$("cl-text").value="";
+  cmApp.setup().then(function(d){marks(d.setup);$("cl-msg").textContent="Saved. "+r.added+" added, "+r.unchanged+" already on the list"+(r.removed?", "+r.removed+" removed":"")+". The class list now has "+d.setup.roster+" students."})
+ });
+});
+// ---------- materials ----------
+function drawLecs(){
+ $("lec-list").innerHTML=LECS.length?LECS.map(function(l){
+  var files=KINDS.map(function(k){return l[k]?'<span>'+esc(KIND_LABEL[k])+': '+esc(l[k].split("/").pop())+' <button type="button" class="link" data-rmfile="'+k+'" data-n="'+l.number+'">remove</button></span>':""}).filter(Boolean).join(" · ");
+  return '<div class="lec"><h4>Lecture '+l.number+': '+esc(l.title)+(l.status==="soon"?' <span class="opt">(coming soon)</span>':'')+'</h4>'+(l.summary?'<p class="why" style="margin:.2rem 0">'+esc(l.summary)+'</p>':'')+
+   '<p class="files">'+(files||"No files yet.")+(l.bank?" · Question bank: yes":"")+'</p>'+
+   '<p><label class="vh" for="k-'+l.number+'">Kind of file</label><select id="k-'+l.number+'" style="width:auto;display:inline-block">'+KINDS.map(function(k){return'<option value="'+k+'">'+esc(KIND_LABEL[k])+'</option>'}).join("")+'</select> <button type="button" data-addfile="'+l.number+'">Add file</button>'+
+   '<button type="button" data-edit="'+l.number+'">Edit</button><button type="button" data-rm="'+l.number+'">Remove</button></p></div>'}).join(""):'<p class="why">No lectures yet. Add the first one below.</p>';
+ if(!$("l-was").value){var max=LECS.reduce(function(m,l){return Math.max(m,l.number)},0);$("l-num").value=LECS.length?max+1:1}
+}
+function lres(r){if(!r)return;if(!r.ok){$("l-msg").textContent=r.why;return}LECS=r.lectures;drawLecs();cmApp.setup().then(function(d){marks(d.setup)})}
+$("lec-list").addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;
+ if(b.hasAttribute("data-addfile")){var n=b.getAttribute("data-addfile");cmApp.lectureFile(+n,$("k-"+n).value,false).then(lres)}
+ if(b.hasAttribute("data-rmfile")){cmApp.lectureFile(+b.getAttribute("data-n"),b.getAttribute("data-rmfile"),true).then(lres)}
+ if(b.hasAttribute("data-rm")){var n2=+b.getAttribute("data-rm");if(confirm("Remove lecture "+n2+" from the course pages? Its files and questions stay on this computer."))cmApp.removeLecture(n2).then(lres)}
+ if(b.hasAttribute("data-edit")){var l=LECS.filter(function(x){return x.number===+b.getAttribute("data-edit")})[0];if(!l)return;
+  $("l-was").value=l.number;$("l-num").value=l.number;$("l-title").value=l.title;$("l-sum").value=l.summary||"";$("l-out").value=(l.outcomes||[]).join("\n");$("l-soon").checked=l.status==="soon";
+  $("lec-h").textContent="Edit lecture "+l.number;$("l-cancel").hidden=false;$("l-title").focus()}
+});
+function resetLec(){$("l-was").value="";$("l-title").value="";$("l-sum").value="";$("l-out").value="";$("l-soon").checked=false;$("lec-h").textContent="Add a lecture";$("l-cancel").hidden=true;drawLecs()}
+$("l-cancel").addEventListener("click",resetLec);
+$("f-lec").addEventListener("submit",function(e){e.preventDefault();
+ cmApp.saveLecture({was:$("l-was").value===""?null:+$("l-was").value,number:$("l-num").value,title:$("l-title").value,summary:$("l-sum").value,outcomes:$("l-out").value,status:$("l-soon").checked?"soon":"available"}).then(function(r){
+  if(r&&r.ok){$("l-msg").textContent="Saved. Add files to it in the list above.";LECS=r.lectures;resetLec();cmApp.setup().then(function(d){marks(d.setup)})}else lres(r)});
+});
+$("pk-import").addEventListener("click",function(){
+ if(LECS.length&&!confirm("Importing a course pack replaces the lectures, files and question banks of this course. Class records are kept. Continue?"))return;
+ $("pk-msg").textContent="Importing…";
+ cmApp.importPack().then(function(r){if(!r){$("pk-msg").textContent="";return}$("pk-msg").textContent=r.ok?"Imported "+(r.name||"the course pack")+" ("+r.files+" files).":"Not imported: "+r.why;if(r.ok)load()})});
+$("pk-export").addEventListener("click",function(){cmApp.exportPack().then(function(r){if(r)$("pk-msg").textContent=r.ok?"Exported to "+r.file:"Not exported: "+r.why})});
+$("lib-add").addEventListener("click",function(){$("lib-msg").textContent="Reading the files…";cmApp.libAdd(null).then(function(r){$("lib-msg").textContent=r?"Added to the library. Open “Resources and questions” on the home screen to work with them.":"";cmApp.setup().then(function(d){marks(d.setup)})}).catch(function(e){$("lib-msg").textContent="Not added: "+(e&&e.message||e)})});
+$("q-import").addEventListener("click",function(){location.href="author.html#imp"});
+$("finish").addEventListener("click",function(){cmApp.setupSeen().then(function(){location.href="home.html"})});
+load().then(function(){var h=(location.hash||"").slice(1);go(["course","class","materials"].indexOf(h)>=0?h:"course")});
+})();
+</script>
+</body>
+</html>

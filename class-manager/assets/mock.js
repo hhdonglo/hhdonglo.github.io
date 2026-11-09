@@ -1,26 +1,20 @@
-/* PHYS 143 mock examination. Plain JavaScript, no libraries. Mounts into #quiz-app on mock-exam.html.
+/* Mock examination. Plain JavaScript, no libraries. Mounts into #quiz-app on mock-exam.html.
    Questions come only from the past-examination questions already in quizzes/lectureN.json (those whose "source" begins "Past exam").
    Format: 50 questions, 2 hours 30 minutes, no answers shown until submission. Progress is stored only in this browser. */
 (function () {
   'use strict';
 
-  var LECTURES = {
-    1: 'Vectors', 2: 'Motion', 3: 'Newton’s laws', 4: 'Work and kinetic energy',
-    5: 'Potential energy and energy conservation', 7: 'Impulse and momentum', 8: 'Rotation',
-    9: 'Temperature and heat', 10: 'Thermal properties of matter',
-    11: 'First law of thermodynamics', 12: 'Second law of thermodynamics'
-  };
-  var ORDER = [1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12];
+  /* The lectures with practice banks, read from data/portal.json (practice: [numbers], lectures: {number: title}). */
+  var LECTURES = {};
+  var ORDER = [];
   var EXAM_SIZE = 50;
   var EXAM_MS = 150 * 60 * 1000;
-  var STORE_KEY = 'phys143.mock.v1';
+  var STORE_KEY = 'cm.mock.v1';
   var LETTERS = ['A', 'B', 'C', 'D', 'E'];
 
   /* Same Google Form as the practice pages (see assets/practice.js). */
-  var REPORT_FORM = {
-    FORM_URL: 'https://docs.google.com/forms/d/e/1FAIpQLSeks0aQI_OLforxFg-5oOxyVQw5mdNA0dbtPQqUmHAPNz_mkg/viewform',
-    ENTRY: { lecture: 'entry.639134261', id: 'entry.917742440', question: 'entry.1866410730', answer: 'entry.1771614469' }
-  };
+  /* Optional: window.CM.reportForm = { FORM_URL, ENTRY: { lecture, id, question, answer } } in config.js. */
+  var REPORT_FORM = (window.CM || {}).reportForm || null;
 
   var app = document.getElementById('quiz-app');
   if (app) document.body.classList.add('focus');
@@ -78,6 +72,17 @@
   /* ---------- the pool: past-examination questions only ---------- */
   var pool = null; /* { byId: {id: {q, n}}, byLecture: {n: [ids]} } */
   function loadPool(done, fail) {
+    var px = new XMLHttpRequest();
+    px.open('GET', 'data/portal.json');
+    px.onload = function () {
+      try { var p = JSON.parse(px.responseText); LECTURES = p.lectures || {}; ORDER = (p.practice || []).map(Number).filter(function (n) { return n > 0; }); } catch (e) { fail(); return; }
+      if (!ORDER.length) { fail(); return; }
+      loadBanks(done, fail);
+    };
+    px.onerror = fail;
+    px.send();
+  }
+  function loadBanks(done, fail) {
     var left = ORDER.length, failed = false, byId = {}, byLecture = {};
     ORDER.forEach(function (n) {
       var xhr = new XMLHttpRequest();
@@ -145,7 +150,7 @@
     app.appendChild(el('h3', { 'data-focus': '' }, 'Before you begin'));
     var ul = el('ul', { 'class': 'mock-rules' });
     [
-      size + ' multiple-choice questions, drawn at random from past PHYS 143 examination questions across Lectures 1 to 12 (Lecture 6 has none), in mixed order.',
+      size + ' multiple-choice questions, drawn at random from past examination questions across the lectures, in mixed order.',
       'Time allowed: 2 hours 30 minutes. The timer is always on screen and cannot be paused. The paper is submitted automatically when it reaches zero.',
       'No answers or feedback are shown until you submit. You may change an answer and move between questions at any time before then.',
       'For practice, not assessment. Progress and best scores are stored only in this browser.'
@@ -186,7 +191,7 @@
   function exam(run) {
     stopTick();
     clear();
-    document.title = 'Mock exam | PHYS 143';
+    document.title = 'Mock exam' + ((window.CM || {}).courseCode ? ' | ' + window.CM.courseCode : '');
     var total = run.ids.length;
     var bar = el('div', { 'class': 'mock-bar' });
     var timer = el('span', { 'class': 'mock-timer', role: 'timer', 'aria-label': 'Time remaining' });
@@ -311,7 +316,7 @@
     store.run = null;
     saveStore();
     var wrong = run.ids.filter(function (id) { return run.answers[id] !== pool.byId[id].q.answer; });
-    var sent = window.PHYS143_TRACK ? window.PHYS143_TRACK.send({ quiz: 'Mock exam', attempt: store.attempts, score: score, total: total, seconds: Math.round(used / 1000), wrong: wrong, asked: run.ids }, function (ok) {
+    var sent = window.CM_TRACK ? window.CM_TRACK.send({ quiz: 'Mock exam', attempt: store.attempts, score: score, total: total, seconds: Math.round(used / 1000), wrong: wrong, asked: run.ids }, function (ok) {
       var s2 = document.getElementById('quiz-send-state'); if (s2) s2.textContent = ok ? 'Result sent to the lecturer.' : 'Result not sent.';
     }) : false;
     result({ sent: sent, score: score, total: total, used: used, how: how, per: per, items: items });
@@ -320,7 +325,7 @@
   function result(r) {
     stopTick();
     clear(); chrome();
-    document.title = 'Mock exam score | PHYS 143';
+    document.title = 'Mock exam score' + ((window.CM || {}).courseCode ? ' | ' + window.CM.courseCode : '');
     app.appendChild(el('h3', { 'data-focus': '' }, 'Mock exam: your result'));
     app.appendChild(el('p', { 'class': 'score' }, r.score + ' out of ' + r.total));
     var unans = r.items.filter(function (x) { return x.sel == null; }).length;
@@ -348,9 +353,11 @@
       li.appendChild(el('p', { 'class': 'mock-res' }, (x.ok ? '✓ Correct.' : (x.sel == null ? '✗ Not answered.' : '✗ Not correct.')) + (x.sel != null && !x.ok ? ' You chose: <strong>' + q.options[x.sel] + '</strong>.' : '') + ' <span>Correct answer: <strong>' + q.options[q.answer] + '</strong>.</span>'));
       li.appendChild(el('p', null, q.exp));
       if (q.ref) li.appendChild(el('p', { 'class': 'ref' }, 'Review: ' + q.ref));
-      var rp = el('p', { 'class': 'mock-rep' });
-      rp.appendChild(el('a', { 'class': 'btn report-btn', href: reportUrl(x.item, x.sel), target: '_blank', rel: 'noopener noreferrer', title: 'Report a problem or suggest a correction', 'aria-label': 'Report a problem or suggest a correction for question ' + x.pos + ' (opens a form in a new tab)' }, '<span aria-hidden="true">⚑</span> Report a problem'));
-      li.appendChild(rp);
+      if (REPORT_FORM) {
+        var rp = el('p', { 'class': 'mock-rep' });
+        rp.appendChild(el('a', { 'class': 'btn report-btn', href: reportUrl(x.item, x.sel), target: '_blank', rel: 'noopener noreferrer', title: 'Report a problem or suggest a correction', 'aria-label': 'Report a problem or suggest a correction for question ' + x.pos + ' (opens a form in a new tab)' }, '<span aria-hidden="true">⚑</span> Report a problem'));
+        li.appendChild(rp);
+      }
       ol.appendChild(li);
     });
     app.appendChild(ol);
@@ -362,7 +369,7 @@
   }
 
   /* ---------- start ---------- */
-  if (window.PHYS143_TRACK) window.PHYS143_TRACK.mount(app);
+  if (window.CM_TRACK) window.CM_TRACK.mount(app);
   loadPool(function () {
     if (!pool || poolSize() === 0) { clear(); chrome(); app.appendChild(el('p', null, 'The mock exam is not available at the moment.')); return; }
     var run = store.run;

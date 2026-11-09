@@ -1,7 +1,7 @@
 {
-  "name": "PHYS 143 Portal",
-  "short_name": "PHYS 143",
-  "description": "Lectures, handouts, practice quizzes and class check-in for PHYS 143.",
+  "name": "Class Portal",
+  "short_name": "Portal",
+  "description": "Lectures, handouts, practice quizzes and class check-in.",
   "start_url": "index.html?source=pwa",
   "scope": "./",
   "display": "standalone",

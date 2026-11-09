@@ -3,7 +3,7 @@
    this device in the portal. It never sends anything anywhere. */
 (function(){
 "use strict";
-var KEY="phys143_portal_id";
+var KEY="cm_portal_id";
 var path=(location.pathname.split("/").pop()||"").toLowerCase();
 function cur(f){return path===f?' aria-current="page"':""}
 var ico={

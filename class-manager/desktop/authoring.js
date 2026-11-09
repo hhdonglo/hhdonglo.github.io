@@ -184,6 +184,8 @@ function parseQuestions(text, defaults) {
 function createAuthoring(opts) {
   const DIR = opts.dir;                      // userData/authoring
   const WEB = opts.webRoot;
+  const R = opts.resolve || ((rel) => path.join(WEB, rel)); // a site file on disk, or null
+  const RJ = (rel, d) => { const f = R(rel); return f ? readJson(f, d) : d; };
   const LIB = path.join(DIR, "library");
   const BANKS = path.join(DIR, "banks");
   const F = { index: path.join(LIB, "index.json"), drafts: path.join(DIR, "drafts.json"), settings: path.join(DIR, "settings.json") };
@@ -361,11 +363,11 @@ function createAuthoring(opts) {
   }
 
   // ---------- banks: the course banks plus the approved questions ----------
-  const baseBank = (n) => readJson(path.join(WEB, "quizzes", "lecture" + n + ".json"), null);
+  const baseBank = (n) => RJ("quizzes/lecture" + n + ".json", null);
   const overlayFile = (n) => path.join(BANKS, "lecture" + n + ".json");
   const overlay = (n) => readJson(overlayFile(n), null);
   function overlayNumbers() { return fs.readdirSync(BANKS).map((f) => (f.match(/^lecture(\d+)\.json$/) || [])[1]).filter(Boolean).map(Number); }
-  function baseWeeks() { return (readJson(path.join(WEB, "apps_script", "live_quizzes.json"), {}).weeks) || {}; }
+  function baseWeeks() { return (RJ("apps_script/live_quizzes.json", {}).weeks) || {}; }
   function mergedBank(n) {
     const b = baseBank(n), o = overlay(n);
     if (!o || !(o.questions || []).length) return b;
@@ -381,7 +383,7 @@ function createAuthoring(opts) {
     if (rel === "/apps_script/live_quizzes.json") {
       const nums = overlayNumbers().filter((n) => (overlay(n) || { questions: [] }).questions.length);
       if (!nums.length) return null;
-      const lq = readJson(path.join(WEB, "apps_script", "live_quizzes.json"), { weeks: {} });
+      const lq = RJ("apps_script/live_quizzes.json", { weeks: {} });
       lq.weeks = lq.weeks || {};
       nums.forEach((n) => { if (!lq.weeks[String(n)]) lq.weeks[String(n)] = (overlay(n) || {}).title || "Lecture " + n; });
       return JSON.stringify(lq, null, 1);
@@ -390,7 +392,7 @@ function createAuthoring(opts) {
   }
   function banks() {
     const w = baseWeeks(), nums = new Set(overlayNumbers());
-    fs.readdirSync(path.join(WEB, "quizzes")).forEach((f) => { const m = f.match(/^lecture(\d+)\.json$/); if (m) nums.add(Number(m[1])); });
+    (opts.bankNumbers ? opts.bankNumbers() : []).forEach((n) => nums.add(n));
     return [...nums].sort((a, b) => a - b).map((n) => {
       const b = baseBank(n), o = overlay(n);
       return { lecture: n, title: (b && b.title) || (o && o.title) || w[String(n)] || "", base: b ? b.questions.length : 0, added: o ? o.questions.length : 0, live: !!(w[String(n)] || (o && o.questions.length)),

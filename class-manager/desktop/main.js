@@ -15,18 +15,24 @@ const { createBackend } = require("./backend");
 const { createGoogle } = require("./google");
 const { createAuthoring } = require("./authoring");
 const { createTunnel, createLimiter } = require("./tunnel");
+const { createCourse } = require("./course");
+const { readTable } = require("./table");
 
 const WEB = app.isPackaged ? path.join(process.resourcesPath, "web") : path.join(__dirname, "..");
 const DATA = () => path.join(app.getPath("userData"), "data");
 const SETTINGS_FILE = () => path.join(app.getPath("userData"), "settings.json");
-const DEFAULTS = { courseCode: "PHYS 143", courseTitle: "Mechanics and Thermal Physics", institution: "University of Ghana", scriptUrl: "", port: 8143 };
+const TEMPLATES = app.isPackaged ? path.join(process.resourcesPath, "web", "templates") : path.join(__dirname, "..", "templates");
+const DEFAULTS = { courseCode: "", courseTitle: "", institution: "", lecturer: "", semester: "", startDate: "", endDate: "", contact: "", accent: "", logo: "", notice: "", noticeLinkLabel: "", noticeLinkUrl: "",
+  scriptUrl: "", port: 8143, setupSeen: false };
 const TYPES = {
   ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8",
   ".json": "application/json; charset=utf-8", ".svg": "image/svg+xml", ".png": "image/png", ".webp": "image/webp",
-  ".pdf": "application/pdf", ".woff2": "font/woff2", ".webmanifest": "application/manifest+json"
+  ".pdf": "application/pdf", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  ".pptx": "application/vnd.openxmlformats-officedocument.presentationml.presentation", ".md": "text/markdown; charset=utf-8", ".txt": "text/plain; charset=utf-8", ".woff2": "font/woff2", ".webmanifest": "application/manifest+json"
 };
 
 let settings, server = null, port = 0, win = null, backend = null, google = null, authoring = null;
+let course = null;
 let tunnel = null, tunnelServer = null, tunnelPort = 0;
 const allowRemote = createLimiter(240); // requests per minute per visitor through the internet address
 
@@ -35,11 +41,17 @@ function loadSettings() {
   try { return Object.assign({}, DEFAULTS, JSON.parse(fs.readFileSync(SETTINGS_FILE(), "utf8"))); } catch (e) { return Object.assign({}, DEFAULTS); }
 }
 function saveSettings(s) {
-  const url = String(s.scriptUrl || "").trim();
+  const url = String(s.scriptUrl == null ? settings.scriptUrl || "" : s.scriptUrl).trim();
+  const txt = (k, n) => String(s[k] == null ? settings[k] || "" : s[k]).trim().slice(0, n);
+  const day = (k) => (/^\d{4}-\d{2}-\d{2}$/.test(String(s[k] == null ? settings[k] || "" : s[k])) ? String(s[k] == null ? settings[k] : s[k]) : "");
   const clean = {
-    courseCode: String(s.courseCode || "").slice(0, 40) || DEFAULTS.courseCode,
-    courseTitle: String(s.courseTitle || "").slice(0, 120),
-    institution: String(s.institution || "").slice(0, 120),
+    courseCode: txt("courseCode", 40), courseTitle: txt("courseTitle", 120), institution: txt("institution", 120),
+    lecturer: txt("lecturer", 120), semester: txt("semester", 80), startDate: day("startDate"), endDate: day("endDate"),
+    contact: txt("contact", 160), notice: txt("notice", 400), noticeLinkLabel: txt("noticeLinkLabel", 80),
+    noticeLinkUrl: /^https:\/\/[^\s"<>]+$/.test(txt("noticeLinkUrl", 400)) ? txt("noticeLinkUrl", 400) : "",
+    accent: /^#[0-9a-f]{6}$/i.test(String(s.accent == null ? settings.accent : s.accent)) ? String(s.accent == null ? settings.accent : s.accent) : "",
+    logo: s.logo == null ? settings.logo || "" : String(s.logo),
+    setupSeen: s.setupSeen == null ? !!settings.setupSeen : !!s.setupSeen,
     scriptUrl: /^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(url) ? url : "",
     port: Math.min(65535, Math.max(1024, Number(s.port) || DEFAULTS.port))
   };
@@ -96,7 +108,9 @@ function publicUrl() { const t = tunnel && tunnel.status(); return t && t.state 
 function configJs(req, remote) {
   const src = fs.readFileSync(path.join(WEB, "config.js"), "utf8");
   const host = /^[\w.:\[\]-]+$/.test(req.headers.host || "") ? req.headers.host : "127.0.0.1:" + port;
-  const cm = { courseCode: settings.courseCode, courseTitle: settings.courseTitle, institution: settings.institution, scriptUrl: settings.scriptUrl || (remote ? "https://" : "http://") + host + "/exec", desktop: true };
+  const cm = { courseCode: settings.courseCode, courseTitle: settings.courseTitle, institution: settings.institution, lecturer: settings.lecturer, semester: settings.semester,
+    contact: settings.contact, accent: settings.accent, logo: settings.logo, notice: settings.notice ? { text: settings.notice, linkLabel: settings.noticeLinkLabel, linkUrl: settings.noticeLinkUrl } : null,
+    scriptUrl: settings.scriptUrl || (remote ? "https://" : "http://") + host + "/exec", desktop: true };
   if (publicUrl()) cm.publicBase = publicUrl(); // QR codes and links for students use the internet address while it is on
   return "/* Generated by the Class Manager app from its Settings. */\nwindow.CM = " + JSON.stringify(cm, null, 1) + ";\n\n" + src.slice(src.indexOf("/* Helpers"));
 }
@@ -137,7 +151,7 @@ async function handle(req, res, remote) {
   if (req.method !== "GET" && req.method !== "HEAD") { res.writeHead(405); return res.end(); }
   if (p === "/") p = "/index.html";
   if (p === "/calendar.ics") { // the course calendar as a feed that calendar programs on the network can subscribe to
-    const out = backend.doGet({ action: "calendar_ics", course: settings.courseCode + " calendar" });
+    const out = backend.doGet({ action: "calendar_ics", course: (settings.courseCode || "Class") + " calendar" });
     res.writeHead(200, { "Content-Type": "text/calendar; charset=utf-8", "Content-Disposition": 'inline; filename="calendar.ics"', "Cache-Control": "no-cache" });
     return res.end(out.text);
   }
@@ -145,13 +159,21 @@ async function handle(req, res, remote) {
     const merged = authoring.siteFile(p);
     if (merged !== null) { res.writeHead(200, { "Content-Type": TYPES[".json"], "Cache-Control": "no-cache" }); return res.end(merged); }
   }
+  if (p === "/data/portal.json") { // titles, handouts and practice lists follow the course's lectures and banks
+    const extra = authoring.banks().filter((b) => b.base + b.added > 0).map((b) => b.lecture);
+    res.writeHead(200, { "Content-Type": TYPES[".json"], "Cache-Control": "no-cache" }); return res.end(JSON.stringify(course.portal(extra)));
+  }
   if (p === "/config.js") { res.writeHead(200, { "Content-Type": TYPES[".js"], "Cache-Control": "no-store" }); return res.end(configJs(req, remote)); }
   if (p.startsWith("/app/")) { // the app's own screens are for this computer only
     if (remote || !isThisComputer(req)) { res.writeHead(403); return res.end("Not available"); }
     return sendFile(res, path.join(__dirname, "app", p.slice(5)), path.join(__dirname, "app"));
   }
   if (p.startsWith("/apps_script/") && !p.endsWith(".json")) { res.writeHead(404); return res.end(); }
-  sendFile(res, path.join(WEB, p), WEB);
+  const file = course.resolve(p);
+  if (file) return sendFile(res, file, path.dirname(file));
+  const tpl = course.page(p);
+  if (tpl !== null) { res.writeHead(200, { "Content-Type": TYPES[".html"], "Cache-Control": "no-cache" }); return res.end(tpl); }
+  res.writeHead(404, { "Content-Type": "text/plain" }); res.end("Not found");
 }
 function sendFile(res, file, root) {
   const full = path.normalize(file);
@@ -191,7 +213,7 @@ function secureWindow(w) {
   w.webContents.on("will-navigate", (e, url) => { if (!url.startsWith(baseUrl())) { e.preventDefault(); if (/^https?:/.test(url)) shell.openExternal(url); } });
 }
 function newWindow(page, w, h) {
-  const bw = new BrowserWindow({ width: w || 1280, height: h || 860, title: "Class Manager", icon: path.join(WEB, "assets", "icon-512.png"),
+  const bw = new BrowserWindow({ width: w || 1280, height: h || 860, title: "Class Manager", icon: path.join(__dirname, "app", "icon-512.png"),
     webPreferences: { preload: path.join(__dirname, "preload.js"), contextIsolation: true, sandbox: true, nodeIntegration: false } });
   secureWindow(bw); bw.loadURL(baseUrl() + page); return bw;
 }
@@ -203,8 +225,18 @@ function info() {
     addresses: lanAddresses().map((a) => "http://" + a.address + ":" + port + "/"),
     tunnel: tunnel ? tunnel.status() : { state: "off" },
     hostKey: backend.hostKeyIsPlain() ? backend.hostKey() : "",
-    tabs: backend.tabs(), google: google.status(), dataFolder: DATA()
+    tabs: backend.tabs(), google: google.status(), dataFolder: DATA(), setup: setupState()
   };
+}
+// What the first-launch setup still needs. Every step can be skipped and finished later.
+function setupState() {
+  const roster = (backend.tabs().find((t) => t.name === "Roster") || { rows: 1 }).rows - 1;
+  const steps = {
+    course: !!settings.courseCode,
+    classList: roster > 0,
+    materials: course.hasContent() || authoring.listDocs().length > 0
+  };
+  return { steps, roster: Math.max(0, roster), complete: steps.course && steps.classList && steps.materials, seen: !!settings.setupSeen };
 }
 function parseClassList(text) {
   // One student per line: ID, then an optional name, separated by a comma, semicolon or tab. A header line is skipped.
@@ -215,6 +247,7 @@ function csvCell(v) { v = String(v == null ? "" : v); return /[",\n\r]/.test(v) 
 
 ipcMain.handle("cm:info", () => info());
 ipcMain.handle("cm:tunnelStart", () => startTunnel());
+ipcMain.handle("cm:readme", () => shell.openPath(app.isPackaged ? path.join(process.resourcesPath, "README.txt") : path.join(__dirname, "README.txt")));
 ipcMain.handle("cm:tunnelStop", () => stopTunnel());
 ipcMain.handle("cm:save", async (e, s) => {
   const before = settings.port; saveSettings(s);
@@ -232,6 +265,68 @@ ipcMain.handle("cm:classListFile", async () => {
   const r = await dialog.showOpenDialog(win, { title: "Choose the class list", filters: [{ name: "Class list", extensions: ["csv", "txt", "tsv"] }], properties: ["openFile"] });
   if (r.canceled || !r.filePaths[0]) return null;
   return fs.readFileSync(r.filePaths[0], "utf8").slice(0, 2000000);
+});
+// ---------- course setup (app/setup.html) ----------
+ipcMain.handle("cm:setup", () => ({ settings, setup: setupState(), lectures: course.lectures(), kinds: course.KINDS, portal: course.portal() }));
+ipcMain.handle("cm:saveCourse", (e, o) => {
+  o = o || {}; saveSettings(Object.assign({}, o, { port: settings.port }));
+  course.setCourseInfo({ courseCode: settings.courseCode, contacts: o.contacts, currentWeek: o.currentWeek });
+  return { settings, setup: setupState() };
+});
+ipcMain.handle("cm:setupSeen", () => { saveSettings({ setupSeen: true, port: settings.port }); return setupState(); });
+ipcMain.handle("cm:chooseLogo", async (e, clear) => {
+  try {
+    if (clear) { course.setLogo(""); saveSettings({ logo: "", port: settings.port }); return { ok: true, logo: "" }; }
+    const r = await dialog.showOpenDialog(win, { title: "Choose a logo", filters: [{ name: "Image", extensions: ["png", "jpg", "jpeg", "svg", "webp"] }], properties: ["openFile"] });
+    if (r.canceled || !r.filePaths[0]) return null;
+    const logo = course.setLogo(r.filePaths[0]); saveSettings({ logo, port: settings.port }); return { ok: true, logo };
+  } catch (err) { return { ok: false, why: err.message }; }
+});
+ipcMain.handle("cm:tableFile", async () => { // a class list as rows, from CSV, a text file or Excel (.xlsx)
+  const r = await dialog.showOpenDialog(win, { title: "Choose the class list", filters: [{ name: "Class list", extensions: ["csv", "xlsx", "txt", "tsv"] }], properties: ["openFile"] });
+  if (r.canceled || !r.filePaths[0]) return null;
+  try { return { ok: true, name: path.basename(r.filePaths[0]), rows: await readTable(r.filePaths[0]) }; } catch (err) { return { ok: false, why: err.message }; }
+});
+ipcMain.handle("cm:tableText", (e, text) => ({ ok: true, rows: require("./table").splitText(String(text || "").slice(0, 2000000)) }));
+ipcMain.handle("cm:classRows", (e, rows, replace) => { // rows already mapped to [ID, name]
+  const clean = (rows || []).map((r) => [String(r[0] || "").replace(/\D/g, ""), String(r[1] || "").trim().slice(0, 120)]).filter((r) => /^\d{4,12}$/.test(r[0]));
+  if (!clean.length) return { ok: false, why: "No student IDs found in the chosen column. Student IDs must have 4 to 12 digits." };
+  return backend.rosterSync(clean, !!replace);
+});
+ipcMain.handle("cm:sampleClassList", async () => {
+  const r = await dialog.showSaveDialog(win, { title: "Save a sample class list", defaultPath: "class-list-template.csv" });
+  if (r.canceled || !r.filePath) return null;
+  fs.writeFileSync(r.filePath, "\ufeffStudent ID,Name\r\n10000001,First Student\r\n10000002,Second Student\r\n10000003,Third Student\r\n");
+  shell.showItemInFolder(r.filePath); return r.filePath;
+});
+ipcMain.handle("cm:lectures", () => course.lectures());
+ipcMain.handle("cm:saveLecture", (e, o) => { const r = course.saveLecture(o || {}); backend.dropSiteCache(); return r; });
+ipcMain.handle("cm:removeLecture", (e, n) => { const r = course.removeLecture(Number(n)); backend.dropSiteCache(); return r; });
+ipcMain.handle("cm:lectureFile", async (e, n, kind, remove) => {
+  if (remove) return course.removeLectureFile(Number(n), String(kind));
+  const r = await dialog.showOpenDialog(win, { title: "Choose the file", filters: [{ name: "Lecture file", extensions: ["pdf", "docx", "pptx", "md", "txt"] }], properties: ["openFile"] });
+  if (r.canceled || !r.filePaths[0]) return null;
+  try { return course.addLectureFile(Number(n), String(kind), r.filePaths[0]); } catch (err) { return { ok: false, why: err.message }; }
+});
+ipcMain.handle("cm:importPack", async () => {
+  const r = await dialog.showOpenDialog(win, { title: "Import a course pack", filters: [{ name: "Course pack", extensions: ["zip"] }], properties: ["openFile"] });
+  if (r.canceled || !r.filePaths[0]) return null;
+  try {
+    const out = await course.importPack(r.filePaths[0]);
+    const keep = { port: settings.port, scriptUrl: settings.scriptUrl, setupSeen: settings.setupSeen };
+    const ps = Object.assign({}, out.settings);
+    if (ps.notice && typeof ps.notice === "object") { ps.noticeLinkLabel = ps.notice.linkLabel || ""; ps.noticeLinkUrl = ps.notice.linkUrl || ""; ps.notice = ps.notice.text || ""; }
+    ps.logo = ["png", "jpg", "jpeg", "svg", "webp"].map((x) => "course-logo." + x).find((f) => course.resolve(f)) || "";
+    saveSettings(Object.assign({}, DEFAULTS, ps, keep));
+    backend.dropSiteCache();
+    return { ok: true, name: out.name, files: out.files, settings };
+  } catch (err) { return { ok: false, why: err.message }; }
+});
+ipcMain.handle("cm:exportPack", async () => {
+  const name = ((settings.courseCode || "course").replace(/[^\w-]+/g, "-") + "-course-pack.zip").toLowerCase();
+  const r = await dialog.showSaveDialog(win, { title: "Export the course as a course pack", defaultPath: name });
+  if (r.canceled || !r.filePath) return null;
+  try { await course.exportPack(r.filePath, settings); shell.showItemInFolder(r.filePath); return { ok: true, file: r.filePath }; } catch (err) { return { ok: false, why: err.message }; }
 });
 ipcMain.handle("cm:tab", (e, name) => backend.tab(String(name)));
 ipcMain.handle("cm:export", async () => {
@@ -296,18 +391,19 @@ app.whenReady().then(async () => {
   google = createGoogle({
     clientId: oc.client_id || "", clientSecret: oc.client_secret || "",
     load: loadTokens, save: saveTokens, openBrowser: (u) => shell.openExternal(u), log: (m) => console.log("[google]", m),
-    tabs: () => backend.tabs(), tab: (n) => backend.tab(n), title: () => "Class Manager: " + settings.courseCode + " results"
+    tabs: () => backend.tabs(), tab: (n) => backend.tab(n), title: () => "Class Manager: " + (settings.courseCode || "class") + " results"
   });
-  authoring = createAuthoring({ dir: path.join(app.getPath("userData"), "authoring"), webRoot: WEB, loadKey: loadApiKey, saveKey: saveApiKey,
+  course = createCourse({ dir: path.join(app.getPath("userData"), "course"), web: WEB, templates: TEMPLATES });
+  authoring = createAuthoring({ dir: path.join(app.getPath("userData"), "authoring"), webRoot: WEB, resolve: course.resolve, bankNumbers: course.bankNumbers, loadKey: loadApiKey, saveKey: saveApiKey,
     keyIsEncrypted: () => safeStorage.isEncryptionAvailable(), log: (m) => console.log("[authoring]", m) });
-  backend = createBackend({ readSite: (rel) => authoring.siteFile(rel), webRoot: WEB, dataFile: path.join(DATA(), "workbook.json"), log: (m) => console.log("[backend]", m), onChange: () => google && google.changed() });
+  backend = createBackend({ readSite: (rel) => authoring.siteFile(rel), webRoot: WEB, resolve: course.resolve, dataFile: path.join(DATA(), "workbook.json"), log: (m) => console.log("[backend]", m), onChange: () => google && google.changed() });
   await restartServer();
   tunnel = createTunnel({ dir: path.join(app.getPath("userData"), "tunnel"),
     onChange: (st) => { for (const w of BrowserWindow.getAllWindows()) { try { w.webContents.send("cm:tunnel", st); } catch (e) {} } } });
-  win = new BrowserWindow({ width: 1200, height: 880, title: "Class Manager", icon: path.join(WEB, "assets", "icon-512.png"),
+  win = new BrowserWindow({ width: 1200, height: 880, title: "Class Manager", icon: path.join(__dirname, "app", "icon-512.png"),
     webPreferences: { preload: path.join(__dirname, "preload.js"), contextIsolation: true, sandbox: true, nodeIntegration: false } });
   secureWindow(win);
-  win.loadURL(baseUrl() + "app/home.html");
+  win.loadURL(baseUrl() + (settings.setupSeen ? "app/home.html" : "app/setup.html"));
   app.on("activate", () => { if (BrowserWindow.getAllWindows().length === 0) newWindow("app/home.html", 1200, 880); });
 });
 app.on("before-quit", () => { try { backend && backend.flush(); } catch (e) {} try { stopTunnel(); } catch (e) {} });
