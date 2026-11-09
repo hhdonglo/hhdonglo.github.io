@@ -311,7 +311,7 @@
     store.run = null;
     saveStore();
     var wrong = run.ids.filter(function (id) { return run.answers[id] !== pool.byId[id].q.answer; });
-    var sent = window.PHYS143_TRACK ? window.PHYS143_TRACK.send({ quiz: 'Mock exam', attempt: store.attempts, score: score, total: total, seconds: Math.round(used / 1000), wrong: wrong }, function (ok) {
+    var sent = window.PHYS143_TRACK ? window.PHYS143_TRACK.send({ quiz: 'Mock exam', attempt: store.attempts, score: score, total: total, seconds: Math.round(used / 1000), wrong: wrong, asked: run.ids }, function (ok) {
       var s2 = document.getElementById('quiz-send-state'); if (s2) s2.textContent = ok ? 'Result sent to the lecturer.' : 'Result not sent.';
     }) : false;
     result({ sent: sent, score: score, total: total, used: used, how: how, per: per, items: items });

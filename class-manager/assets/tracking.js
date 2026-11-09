@@ -69,7 +69,7 @@
     if (!id) return false;
     if (preview && !live) { window.setTimeout(function () { done(true); }, 0); return true; }
     post('attempt', { id: id, quiz: rec.quiz, attempt: String(rec.attempt), score: String(rec.score), total: String(rec.total),
-      seconds: rec.seconds == null ? '' : String(rec.seconds), wrong: (rec.wrong || []).join(', ') }, done);
+      seconds: rec.seconds == null ? '' : String(rec.seconds), wrong: (rec.wrong || []).join(', '), asked: (rec.asked || []).join(', ') }, done);
     return true;
   }
 

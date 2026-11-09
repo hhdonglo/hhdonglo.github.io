@@ -51,6 +51,22 @@ class-manager/
   sw.js, manifest.webmanifest  lets students add the portal to the home screen
 ```
 
+## Learning support
+
+Added in November 2026, for students and for the lecturer. All of it is computed from records the system already keeps.
+
+- **My progress** (portal): a student enters their student ID and a personal access code, and sees attendance, released quiz scores, practice history, progress by lecture (Secure, Developing, Needs work), the lectures to focus on, and the questions to revisit with the slide to look at. The access code closes the earlier gap where an ID alone opened a student's record.
+- **Access codes** (`codes.html`, host key): creates a code for every student on the class list, replaces a lost code, and prints a slip per student to hand out in class.
+- **Teaching insights** (`insights.html`, host key): attendance rate, live quiz averages, practice activity, lectures ranked by proportion correct, the questions to look at first (proportion correct, most chosen wrong option, discrimination, students who were confident and wrong), and a list of students who may need attention, with thresholds the lecturer sets. It also writes the private Question_Stats tab.
+- **Confidence rating** (live quiz): after answering, a student may say Sure, Fairly sure or Guessing. It never changes the mark.
+- **Projector**: during review, each option shows its percentage and the share of the class that answered correctly.
+- **Attendance**: the check-in page can remember the student's ID on that phone and confirms the time of the check-in.
+- **Question draw**: a random value made once per workbook is mixed into the draw, so a new class does not meet last year's live quiz in the same order.
+
+New private tabs: Item_Log (one row per student per live quiz question), Access_Codes and Question_Stats. Practice attempts now also record the IDs of the questions asked, and live answers record the confidence. `clearSemesterRecords` clears the three new tabs with the other term records.
+
+The web version needs `apps_script/quiz_receiver.gs` from this folder deployed in its own Google Sheet for these features; the desktop app has them built in.
+
 ## Run it locally
 
 From this folder:
@@ -110,3 +126,4 @@ The class list is loaded into the Roster tab from the lecturer's computer with `
 - Never put the host key, the class list, student names or any secret in this folder or on a page.
 - Public rankings show first names and scores only. Attendance and marks stay in the private Sheet.
 - Practice pages keep progress in the student's browser. Nothing is sent unless the student types an ID.
+- A student's own record opens only with the student ID and that student's access code. Six wrong tries lock that ID for ten minutes.

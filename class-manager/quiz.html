@@ -56,6 +56,11 @@
 .try .opt{display:flex;gap:.7rem;align-items:flex-start;text-align:left;min-height:48px;padding:.55rem .8rem;border:1.5px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font:1rem Georgia,serif;cursor:pointer;width:100%}
 .try .opt b{font:700 1rem system-ui,sans-serif;color:var(--brown);min-width:1.4rem}
 @media (prefers-color-scheme:dark){.try .opt b{color:#e9c9a8}}
+.try .conf{margin:.7rem 0 .2rem}.try .conf .note{margin:.2rem 0 .3rem}
+.try .conf-b{display:flex;gap:.4rem;flex-wrap:wrap}
+.try .conf-b button{flex:1 1 6rem;min-height:44px;border:1.5px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font:600 .95rem system-ui,sans-serif;cursor:pointer}
+.try .conf-b button[aria-checked=true]{border-color:var(--brown-fill);background:var(--sky);box-shadow:inset 0 0 0 1px var(--brown-fill)}
+.try .conf-b button:disabled{opacity:.55;cursor:default}
 .try .opt[aria-checked=true]{border-color:var(--brown-fill);background:var(--sky);box-shadow:inset 0 0 0 1px var(--brown-fill)}
 .try table{width:100%;border-collapse:collapse;margin:.6rem 0;font:1rem system-ui,sans-serif}
 .try th,.try td{padding:.45rem .6rem;border-bottom:1px solid var(--border);text-align:left}
@@ -122,6 +127,7 @@ body.focus .try .fun{display:block}
   <p class="stem" id="stem"></p>
   <p class="note" id="pnote" role="status"></p>
   <div class="opts" id="opts" role="radiogroup" aria-label="Answer options"></div>
+  <div class="conf" id="conf" hidden><p class="note" id="conf-l">How sure are you? (optional)</p><div class="conf-b" role="radiogroup" aria-labelledby="conf-l"><button type="button" role="radio" aria-checked="false" data-c="H">Sure</button><button type="button" role="radio" aria-checked="false" data-c="M">Fairly sure</button><button type="button" role="radio" aria-checked="false" data-c="L">Guessing</button></div></div>
   <button type="button" class="go alt" id="prev" hidden>Back</button> <button type="button" class="go" id="next" disabled>Next</button>
  </section>
  <section class="panel" id="s-end" hidden>
@@ -238,7 +244,7 @@ function startPaced(d){
  jsonp("action=questions&code="+encodeURIComponent(st.code),function(r){
   if(!r&&(st.qTries=(st.qTries||0)+1)<=4){roomShow("The quiz has started. Loading your first question.",d.totalQ||QS.length);setTimeout(function(){startPaced(d)},1500);return}
   if(r&&r.questions&&r.questions.length)QS=r.questions;
-  st.ans=[];for(var i=0;i<QS.length;i++)st.ans.push("");
+  st.ans=[];st.conf=[];for(var i=0;i<QS.length;i++)st.ans.push("");
   join("progress");show("s-q");
   $("prev").hidden=true;$("next").hidden=true;
   applyPaced(d);
@@ -272,20 +278,32 @@ function renderPaced(){
   b.addEventListener("click",function(){
    if(pacedClosed())return;
    st.ans[st.curQ-1]=L[j];Array.prototype.forEach.call(o.children,function(c){c.setAttribute("aria-checked",c===b?"true":"false")});
-   sendAnswer(st.curQ,L[j]);
+   sendAnswer(st.curQ,L[j]);drawConf();
   });
   o.appendChild(b);
  });
  $("pnote").textContent=st.ans[st.curQ-1]?"Your answer is sent. You can change it until time runs out.":"Choose an answer.";
+ drawConf();
 }
+// Confidence: optional, sent with the answer. It never changes the mark; it tells the lecturer where the class is guessing.
+function drawConf(){
+ if(!st.conf)st.conf=[];var has=!!st.ans[st.curQ-1],c=st.conf[st.curQ-1]||"";
+ $("conf").hidden=!has;
+ Array.prototype.forEach.call($("conf").querySelectorAll("button"),function(b){b.setAttribute("aria-checked",b.getAttribute("data-c")===c?"true":"false");b.disabled=pacedClosed()});
+}
+Array.prototype.forEach.call(document.querySelectorAll("#conf button"),function(b){b.addEventListener("click",function(){
+ if(pacedClosed()||!st.ans[st.curQ-1])return;if(!st.conf)st.conf=[];
+ st.conf[st.curQ-1]=b.getAttribute("data-c");drawConf();sendAnswer(st.curQ,st.ans[st.curQ-1]);
+})});
 function sendAnswer(q,a){
- var b=new URLSearchParams();b.set("kind","answer");b.set("name",st.name);b.set("id",st.id);b.set("code",st.code);b.set("q",String(q));b.set("answer",a);
+ var b=new URLSearchParams();b.set("kind","answer");b.set("name",st.name);b.set("id",st.id);b.set("code",st.code);b.set("q",String(q));b.set("answer",a);b.set("conf",(st.conf&&st.conf[q-1])||"");
  $("pnote").textContent="Sending your answer.";
  fetch(SCRIPT_URL,{method:"POST",mode:"no-cors",body:b}).then(function(){$("pnote").textContent="Your answer is sent. You can change it until time runs out. Wait for the next question."},function(){$("pnote").textContent="Your answer could not be sent. Check your connection and tap it again."});
 }
 function setLocked(){
  var lock=pacedClosed();
  Array.prototype.forEach.call($("opts").children,function(c){c.disabled=lock});
+ Array.prototype.forEach.call($("conf").querySelectorAll("button"),function(c){c.disabled=lock});
  if(lock&&!st.paused)$("pnote").textContent="Time is up for this question. Wait for the next question.";
 }
 function pacedTick(){
@@ -327,6 +345,7 @@ function endPaced(){
 }
 // ---- lecturer-controlled mode: one clock for the whole quiz, set and checked by the server ----
 function startTimed(d){
+ $("conf").hidden=true;
  st.timed=true;st.i=0;st.ans=["","","","",""];st.submitted=false;
  applyStatus(d);join("progress");
  $("prev").hidden=false;show("s-q");renderTimed();

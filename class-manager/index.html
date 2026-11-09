@@ -48,6 +48,18 @@
 @media (prefers-color-scheme:dark){.pt .err{color:#ff8a80}}
 .pt table{width:100%;border-collapse:collapse;font-size:.95rem}.pt td,.pt th{padding:.35rem .3rem;border-bottom:1px solid var(--border);text-align:left}
 .pt [hidden]{display:none!important}
+.pt input#p-code{text-transform:uppercase;letter-spacing:.08em}
+.pt .lv{display:grid;grid-template-columns:minmax(0,1fr) 5.2rem;gap:.15rem .6rem;align-items:center;padding:.45rem 0;border-bottom:1px solid var(--border)}
+.pt .lv .t{font-weight:600}.pt .lv .p{text-align:right;font-variant-numeric:tabular-nums}
+.pt .lv .bar{grid-column:1/-1;height:8px;border-radius:4px;background:var(--border);overflow:hidden}
+.pt .lv .bar i{display:block;height:100%;border-radius:4px}
+.pt .lv.ok .bar i{background:#2e7d32}.pt .lv.mid .bar i{background:#b26a00}.pt .lv.low .bar i{background:#b3261e}
+.pt .lv .s{grid-column:1/-1;font-size:.85rem;color:var(--muted)}
+.pt .focus-box{border-left:6px solid #b26a00;padding:.5rem .8rem;margin:.4rem 0;background:var(--btn-bg)}
+.pt .rv{padding:.55rem 0;border-bottom:1px solid var(--border);font-size:.95rem;line-height:1.45}
+.pt .rv .src{font-size:.82rem;color:var(--muted)}
+.pt .rv a{display:inline;min-height:0;border:0}
+.pt details.sub2 summary{min-height:44px;font-weight:600}
 body.focus header.banner,body.focus nav.jump,body.focus .crumb,body.focus .sec-sub,body.focus aside.disclaimer,body.focus footer,body.focus a.skip,body.focus main h2{display:none!important}
 body.focus main{padding-top:1.2rem}
 </style>
@@ -58,16 +70,18 @@ body.focus main{padding-top:1.2rem}
  <div class="card" id="p-primary"></div>
  <div class="card" id="p-week"></div>
  <div class="card" id="p-res" hidden>
-  <details id="p-details"><summary>My quiz scores and check-ins</summary>
+  <details id="p-details"><summary>My progress</summary>
    <form id="p-form" autocomplete="off" novalidate>
     <label for="p-id">Student ID</label><input type="text" id="p-id" maxlength="12" inputmode="numeric" autocomplete="off">
-    <label class="cb" id="p-remlab" hidden><input type="checkbox" id="p-rem"> Remember my ID on this phone</label>
+    <label for="p-code">Access code</label><input type="text" id="p-code" maxlength="9" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ABCD-EF23" aria-describedby="p-codenote">
+    <p class="note" id="p-codenote">Your personal code is on the slip from your lecturer. Keep it to yourself: with your ID it opens your record.</p>
+    <label class="cb" id="p-remlab" hidden><input type="checkbox" id="p-rem"> Remember my ID and code on this phone</label>
     <p class="note" id="p-remnote" hidden>Stored only in this browser. <a href="#" id="p-forget">Forget this phone</a></p>
     <p class="err" id="p-err" role="alert" hidden></p>
-    <button class="go alt" type="submit" id="p-show">Show my scores</button>
+    <button class="go alt" type="submit" id="p-show">Show my progress</button>
    </form>
    <div id="p-out" hidden></div>
-   <p class="note">You see only your own check-ins and quiz scores.</p>
+   <p class="note">Only you can open this page, with your ID and code. Practice counts once you have entered your ID on a practice page.</p>
   </details>
  </div>
  <div class="card" id="p-install" hidden>
@@ -84,7 +98,10 @@ body.focus main{padding-top:1.2rem}
 "use strict";
 var SCRIPT_URL=window.CM.scriptUrl;
 var $=function(i){return document.getElementById(i)};
-var CFG=null,LIVE=null,KEYID="phys143_portal_id";
+var CFG=null,LIVE=null,KEYID="phys143_portal_id",KEYCODE="phys143_portal_code";
+function lecPage(n){return Number(n)===0?"introduction.html":"lecture-"+Number(n)+".html"}
+function pracPage(n){return Number(n)===0?"introduction-practice.html":"lecture-"+Number(n)+"-practice.html"}
+function lecName(n){return Number(n)===0?"the Introduction":"Lecture "+Number(n)}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function jsonp(params,cb,ms){
  var n="cb"+Date.now()+Math.floor(Math.random()*1e6),sc=document.createElement("script"),done=false,t;
@@ -104,22 +121,22 @@ function render(){
   h='<h2>Next step</h2><a class="go" href="quiz.html">Join live quiz</a><p class="note">Enter the join code shown in class.</p>';
  }else{
   b.textContent=L?"No live activity right now.":"Live status is not available. The links below still work.";b.className="card banner";
-  h='<h2>Next step</h2><a class="go" href="phys143-lecture-'+w+'.html">Continue with Lecture '+w+'</a>';
+  h='<h2>Next step</h2><a class="go" href="'+lecPage(w)+'">Continue with '+lecName(w)+'</a>';
  }
  p.innerHTML=h;
  var hw=CFG.handouts[w],pr=CFG.practice.indexOf(Number(w))>=0;
  $("p-week").innerHTML='<h2>This week: Lecture '+esc(w)+'</h2><p><b>'+esc(title)+'</b></p><ul>'+
   (hw?'<li><a href="'+esc(hw)+'">Handout (PDF) <span aria-hidden="true">&rsaquo;</span></a></li>':'')+
-  (pr?'<li><a href="phys143-lecture-'+w+'-practice.html">Practice quiz <span aria-hidden="true">&rsaquo;</span></a></li>':'')+
-  '<li><a href="phys143-lecture-'+w+'.html">Lecture page <span aria-hidden="true">&rsaquo;</span></a></li></ul>';
- var all="";for(var i=1;i<=12;i++){all+='<li><a href="phys143-lecture-'+i+'.html"><span>'+i+'. '+esc(CFG.lectures[i]||"")+'</span><span aria-hidden="true">&rsaquo;</span></a></li>'}
+  (pr?'<li><a href="'+pracPage(w)+'">Practice quiz <span aria-hidden="true">&rsaquo;</span></a></li>':'')+
+  '<li><a href="'+lecPage(w)+'">Lecture page <span aria-hidden="true">&rsaquo;</span></a></li></ul>';
+ var all="";for(var i=1;i<=12;i++){all+='<li><a href="'+lecPage(i)+'"><span>'+i+'. '+esc(CFG.lectures[i]||"")+'</span><span aria-hidden="true">&rsaquo;</span></a></li>'}
  $("p-all").innerHTML=all;
  // My results needs a script that supports it; hidden otherwise.
  var res=CFG.settings.showMyResults&&L&&L.results===true;
  $("p-res").hidden=!res;
  var rem=CFG.settings.allowRememberId;$("p-remlab").hidden=!rem;
- var saved="";try{saved=localStorage.getItem(KEYID)||""}catch(x){}
- if(rem&&saved){$("p-rem").checked=true;$("p-remnote").hidden=false;$("p-id").value=saved}
+ var saved="",savedCode="";try{saved=localStorage.getItem(KEYID)||"";savedCode=localStorage.getItem(KEYCODE)||""}catch(x){}
+ if(rem&&saved){$("p-rem").checked=true;$("p-remnote").hidden=false;$("p-id").value=saved;$("p-code").value=savedCode}
 }
 function loadStatus(){jsonp("action=portal_status",function(d){LIVE=d;render()},6000)}
 function load(){
@@ -130,28 +147,73 @@ function load(){
  x.onerror=function(){$("p-banner").textContent=PHYSMSG.text("E8")};x.send();
 }
 $("p-id").addEventListener("input",function(){var v=$("p-id").value.replace(/\D/g,"");if(v!==$("p-id").value)$("p-id").value=v});
-$("p-rem").addEventListener("change",function(){$("p-remnote").hidden=!$("p-rem").checked;if(!$("p-rem").checked){try{localStorage.removeItem(KEYID)}catch(x){}}});
-$("p-forget").addEventListener("click",function(e){e.preventDefault();try{localStorage.removeItem(KEYID)}catch(x){}$("p-rem").checked=false;$("p-id").value="";$("p-remnote").hidden=true;$("p-out").hidden=true});
+$("p-rem").addEventListener("change",function(){$("p-remnote").hidden=!$("p-rem").checked;if(!$("p-rem").checked){try{localStorage.removeItem(KEYID);localStorage.removeItem(KEYCODE)}catch(x){}}});
+$("p-forget").addEventListener("click",function(e){e.preventDefault();try{localStorage.removeItem(KEYID);localStorage.removeItem(KEYCODE)}catch(x){}$("p-rem").checked=false;$("p-id").value="";$("p-code").value="";$("p-remnote").hidden=true;$("p-out").hidden=true});
+$("p-code").addEventListener("input",function(){var v=$("p-code").value.toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,8);v=v.length>4?v.slice(0,4)+"-"+v.slice(4):v;if(v!==$("p-code").value)$("p-code").value=v});
+var BANKS={},TITLES={};
+function bank(n,cb){ // the public question bank of one lecture, for the questions to revisit
+ if(BANKS[n]!==undefined){cb(BANKS[n]);return}
+ var x=new XMLHttpRequest();x.open("GET","quizzes/lecture"+n+".json");
+ x.onload=function(){var b=null;try{b=JSON.parse(x.responseText)}catch(e){}BANKS[n]=b;if(b&&b.title)TITLES[n]=b.title;cb(b)};
+ x.onerror=function(){BANKS[n]=null;cb(null)};x.send();
+}
+function lecOf(q){var m=/^L(\d+)-/.exec(q||"");return m?Number(m[1]):-1}
+function lecTitle(n){return TITLES[n]||(CFG&&CFG.lectures&&CFG.lectures[n])||""}
+function band(p){return p>=70?["ok","Secure"]:p>=50?["mid","Developing"]:["low","Needs work"]}
+function showResults(r){
+ var at=r.attendance||[],pres=at.filter(function(a){return a[1]}).length,qz=r.quizzes||[],pr=r.practice||[],ms=(r.mastery||[]).filter(function(m){return m.asked>0}),rv=r.revisit||[];
+ var tries=pr.reduce(function(t,p){return t+(p.attempts||0)},0),pct=at.length?Math.round(100*pres/at.length):0;
+ var h='<div class="stu-chips"><div class="stu-chip"><b>'+pres+' / '+at.length+'</b>Check-ins</div><div class="stu-chip"><b>'+qz.length+'</b>Quizzes</div><div class="stu-chip"><b>'+tries+'</b>Practice attempts</div></div>'+
+  (at.length?'<div class="stu-bar" role="img" aria-label="Attendance '+pct+' percent"><i style="width:'+pct+'%"></i></div>':'');
+ // Where to focus: the weakest lectures with enough answers to judge.
+ var weak=ms.filter(function(m){return m.asked>=5&&m.pct<70}).sort(function(a,b){return a.pct-b.pct}).slice(0,3);
+ h+='<h2 style="margin-top:.9rem">Where to focus</h2>';
+ if(!ms.length)h+='<p class="note">Nothing to show yet. Do a practice quiz with your ID entered, or take part in a live quiz.</p>';
+ else if(!weak.length)h+='<p class="note">No lecture is below 70 per cent in your answers so far. Keep practising the coming lectures.</p>';
+ else h+=weak.map(function(m){var n=rv.filter(function(q){return lecOf(q.id)===m.lecture}).length;
+  return '<div class="focus-box"><b>'+esc(m.lecture===0?"Introduction":"Lecture "+m.lecture)+(lecTitle(m.lecture)?": "+esc(lecTitle(m.lecture)):"")+'</b><br>'+m.pct+' per cent of '+m.asked+' answers correct.'+
+   (n?' '+n+' question'+(n===1?'':'s')+' to revisit below.':'')+'<br><a href="'+pracPage(m.lecture)+'">Practice this lecture <span aria-hidden="true">&rsaquo;</span></a></div>'}).join("");
+ // Progress by lecture.
+ if(ms.length){
+  h+='<h2 style="margin-top:.9rem">Progress by lecture</h2>'+ms.map(function(m){var b=band(m.pct);
+   return '<div class="lv '+b[0]+'"><span class="t">'+esc(m.lecture===0?"Introduction":"Lecture "+m.lecture)+'</span><span class="p">'+m.pct+'%</span>'+
+    '<span class="bar" role="img" aria-label="'+m.pct+' percent"><i style="width:'+Math.max(2,m.pct)+'%"></i></span><span class="s">'+b[1]+'. '+m.right+' of '+m.asked+' answers correct'+(lecTitle(m.lecture)?'. '+esc(lecTitle(m.lecture)):'')+'</span></div>'}).join("")+
+   '<p class="note">From your latest practice attempt for each lecture, your latest mock exam and the released live quizzes. Secure is 70 per cent or more, Developing 50 to 69, Needs work below 50.</p>';
+ }
+ // Questions to revisit, with the slide to look at.
+ h+='<h2 style="margin-top:.9rem">Questions to revisit</h2><div id="p-rv">'+(rv.length?'<p class="note">Loading the questions.</p>':'<p class="note">None at the moment.</p>')+'</div>';
+ h+='<details class="sub2"><summary>Quiz scores</summary>'+(qz.length?"<table><tr><th>Quiz</th><th>Score</th></tr>"+qz.map(function(q){return"<tr><td>"+esc(q[0])+"</td><td>"+esc(q[1])+"</td></tr>"}).join("")+"</table>":"<p class='note'>Nothing yet.</p>")+'</details>';
+ h+='<details class="sub2"><summary>Practice history</summary>'+(pr.length?"<table><tr><th>Practice</th><th>Attempts</th><th>Latest</th><th>Best</th></tr>"+pr.map(function(p){return"<tr><td>"+esc(p.label)+"</td><td>"+p.attempts+"</td><td>"+(p.last?p.last.score+" / "+p.last.total:"")+"</td><td>"+(p.best?p.best.score+" / "+p.best.total:"")+"</td></tr>"}).join("")+"</table>":"<p class='note'>Nothing yet.</p>")+'</details>';
+ h+='<details class="sub2"><summary>Check-ins</summary>'+(at.length?"<table><tr><th>Session</th><th>Status</th></tr>"+at.map(function(a){return"<tr><td>"+esc(a[0])+"</td><td>"+(a[1]?"Checked in":"No check-in")+"</td></tr>"}).join("")+"</table>":"<p class='note'>Nothing yet.</p>")+'</details>';
+ $("p-out").innerHTML=h;$("p-out").hidden=false;
+ if(!rv.length)return;
+ var lecs={};rv.forEach(function(q){var n=lecOf(q.id);if(n>=0)lecs[n]=1});
+ var keys=Object.keys(lecs),left=keys.length;
+ keys.forEach(function(n){bank(n,function(){if(--left)return;
+  var out=rv.map(function(q){var b=BANKS[lecOf(q.id)],it=null;if(b&&b.questions)for(var i=0;i<b.questions.length;i++)if(b.questions[i].id===q.id){it=b.questions[i];break}
+   if(!it)return"";var n=lecOf(q.id);
+   return '<div class="rv"><span class="src">'+esc(n===0?"Introduction":"Lecture "+n)+'. Missed in: '+esc(q.from)+'</span><br>'+it.q+(it.ref?'<br><span class="src">Review: '+esc(it.ref)+'</span>':'')+'</div>'}).join("");
+  $("p-rv").innerHTML=out?out+'<p class="note">Work through the slide named under each question, then try the lecture practice again.</p>':'<p class="note">None at the moment.</p>';
+  var all=$("p-rv").querySelectorAll(".rv");
+  if(all.length>5){for(var i=5;i<all.length;i++)all[i].hidden=true;
+   var more=document.createElement("button");more.type="button";more.className="go alt";more.textContent="Show all "+all.length+" questions";
+   more.addEventListener("click",function(){for(var j=0;j<all.length;j++)all[j].hidden=false;more.remove()});
+   all[4].parentNode.insertBefore(more,all[4].nextSibling)}
+ })});
+}
 $("p-form").addEventListener("submit",function(e){
  e.preventDefault();var er=$("p-err");er.hidden=true;$("p-out").hidden=true;
- var id=$("p-id").value.trim();
+ var id=$("p-id").value.trim(),code=$("p-code").value.trim().toUpperCase();
  if(!/^[0-9]{4,12}$/.test(id)){er.textContent=PHYSMSG.text("E1");er.hidden=false;return}
+ if(!/^[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(code)){er.textContent=PHYSMSG.text("E17");er.hidden=false;return}
  $("p-show").disabled=true;
- jsonp("action=my_results&id="+encodeURIComponent(id),function(r){
+ jsonp("action=my_results&id="+encodeURIComponent(id)+"&code="+encodeURIComponent(code),function(r){
   $("p-show").disabled=false;
   if(!r){er.textContent=PHYSMSG.text("E8");er.hidden=false;return}
   if(!r.ok){er.textContent=PHYSMSG.fromWhy(r.why);er.hidden=false;return}
-  if($("p-rem").checked){try{localStorage.setItem(KEYID,id)}catch(x){}}
-  var at=r.attendance||[],pres=at.filter(function(a){return a[1]}).length,qz=r.quizzes||[];
-  var pct=at.length?Math.round(100*pres/at.length):0;
-  var h='<div class="stu-chips"><div class="stu-chip"><b>'+pres+' / '+at.length+'</b>Check-ins</div><div class="stu-chip"><b>'+qz.length+'</b>Quizzes taken</div></div>'+
-   (at.length?'<div class="stu-bar" role="img" aria-label="Attendance '+pct+' percent"><i style="width:'+pct+'%"></i></div>':'');
-  h+="<h2>Check-ins</h2>";
-  h+=(r.attendance&&r.attendance.length)?"<table><tr><th>Session</th><th>Status</th></tr>"+r.attendance.map(function(a){return"<tr><td>"+esc(a[0])+"</td><td>"+(a[1]?"Checked in":"No check-in")+"</td></tr>"}).join("")+"</table>":"<p class='note'>Nothing yet.</p>";
-  h+="<h2 style='margin-top:.8rem'>Quizzes</h2>";
-  h+=(r.quizzes&&r.quizzes.length)?"<table><tr><th>Quiz</th><th>Score</th></tr>"+r.quizzes.map(function(q){return"<tr><td>"+esc(q[0])+"</td><td>"+esc(q[1])+"</td></tr>"}).join("")+"</table>":"<p class='note'>Nothing yet.</p>";
-  $("p-out").innerHTML=h;$("p-out").hidden=false;
- });
+  if($("p-rem").checked){try{localStorage.setItem(KEYID,id);localStorage.setItem(KEYCODE,code)}catch(x){}}
+  showResults(r);
+ },12000);
 });
 
 function openResults(){var d=$("p-details");if(d&&!$("p-res").hidden){d.open=true;d.scrollIntoView({block:"start"})}}
@@ -159,7 +221,7 @@ var autoDone=false;
 var _render=render;render=function(){_render();
  if(autoDone||$("p-res").hidden)return;autoDone=true;
  if(location.hash==="#results")openResults();
- if($("p-id").value&&$("p-rem").checked){openResults();$("p-form").dispatchEvent(new Event("submit",{cancelable:true}))}
+ if($("p-id").value&&$("p-code").value&&$("p-rem").checked){openResults();$("p-form").dispatchEvent(new Event("submit",{cancelable:true}))}
 };
 window.addEventListener("hashchange",function(){if(location.hash==="#results")openResults()});
 var ios=/iphone|ipad|ipod/i.test(navigator.userAgent)&&!window.navigator.standalone;

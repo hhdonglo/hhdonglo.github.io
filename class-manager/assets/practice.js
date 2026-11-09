@@ -335,7 +335,7 @@
       r.missed = (r.missed || []).filter(function (id) { return wrongIds.indexOf(id) !== -1 || run.order.indexOf(id) === -1; });
     }
     var summary = { mode: run.mode, score: score, total: total, wrong: wrongIds };
-    var sent = window.PHYS143_TRACK ? window.PHYS143_TRACK.send({ quiz: lab(n) + (run.mode === 'missed' ? ' (missed questions)' : ''), attempt: r.attempts, score: score, total: total, seconds: run.t0 ? Math.round((Date.now() - run.t0) / 1000) : null, wrong: wrongIds }, function (ok) {
+    var sent = window.PHYS143_TRACK ? window.PHYS143_TRACK.send({ quiz: lab(n) + (run.mode === 'missed' ? ' (missed questions)' : ''), attempt: r.attempts, score: score, total: total, seconds: run.t0 ? Math.round((Date.now() - run.t0) / 1000) : null, wrong: wrongIds, asked: run.order }, function (ok) {
       var s2 = document.getElementById('quiz-send-state'); if (s2) s2.textContent = ok ? 'Result sent to the lecturer.' : 'Result not sent.';
     }) : false;
     r.run = null;

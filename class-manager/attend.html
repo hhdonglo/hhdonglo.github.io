@@ -44,6 +44,9 @@
 @media (prefers-color-scheme:dark){.ci .done .tick.warn{color:#ffb74d}}
 .ci .note{font:.92rem/1.5 system-ui,sans-serif;color:var(--muted)}
 .ci [hidden]{display:none!important}
+.ci label.cb{display:flex;gap:.5rem;align-items:center;font-weight:400;min-height:44px;margin:.5rem 0 0}
+.ci label.cb input{width:22px;height:22px}
+.ci .when{font:.95rem/1.5 system-ui,sans-serif}
 body.focus header.banner,body.focus nav.jump,body.focus .crumb,body.focus .sec-sub,body.focus aside.disclaimer,body.focus footer,body.focus a.skip,body.focus main h2{display:none!important}
 body.focus main{padding-top:1.2rem}
 </style>
@@ -52,6 +55,7 @@ body.focus main{padding-top:1.2rem}
   <h1>Attendance check-in</h1>
   <form id="c-form" autocomplete="off" novalidate>
    <label for="c-id">Student ID</label><input type="text" id="c-id" maxlength="12" inputmode="numeric" autocomplete="off" placeholder="Your ID number">
+   <label class="cb"><input type="checkbox" id="c-rem"> Remember my ID on this phone</label>
    <p class="err" id="c-err" role="alert" hidden></p>
    <button type="submit" class="go" id="c-btn">Check in</button>
    <details class="note" id="c-priv"><summary>How your data is used</summary>
@@ -75,6 +79,8 @@ body.focus main{padding-top:1.2rem}
   <p class="tick" aria-hidden="true">&#10003;</p>
   <h3 id="c-dh">Check-in received</h3>
   <p>Student ID <b id="c-sid"></b></p>
+  <p class="when" id="c-when"></p>
+  <p class="note">Your attendance record is in the Portal, under My progress. <a href="#" id="c-other">Not your ID? Enter it again</a></p>
  </section>
 </div>
 <script src="assets/messages.js"></script>
@@ -102,6 +108,8 @@ function jsonp(params,cb){
  sc.src=SCRIPT_URL+"?"+params+"&callback="+n+"&_="+Date.now();document.head.appendChild(sc);
 }
 function err(m){$("c-err").textContent=m;$("c-err").hidden=false}
+var REMK="phys143_att_id";
+(function(){var v="";try{v=localStorage.getItem(REMK)||""}catch(x){}if(v){$("c-id").value=v;$("c-rem").checked=true}})();
 $("c-id").addEventListener("input",function(){var v=$("c-id").value.replace(/\D/g,"");if(v!==$("c-id").value)$("c-id").value=v});
 $("c-form").addEventListener("submit",function(e){
  e.preventDefault();$("c-err").hidden=true;
@@ -114,7 +122,9 @@ $("c-form").addEventListener("submit",function(e){
  jsonp("action=attend&id="+encodeURIComponent(id)+"&dev="+DEV+"&t="+TOK+loc,function(r){
   $("c-btn").disabled=false;
   if(!r){err(PHYSMSG.text("E8"));return}
-  if(r.ok){$("c-form-wrap").hidden=true;window.scrollTo(0,0);var h=r.already?"Already marked present today":"Check-in received";if(r.onList===false){$("c-mid").textContent=r.id;$("c-mh").textContent=h;$("c-missing").hidden=false}else{$("c-sid").textContent=r.id;$("c-dh").textContent=h;$("c-done").hidden=false}return}
+  if(r.ok){try{if($("c-rem").checked&&r.onList!==false)localStorage.setItem(REMK,id);else if(!$("c-rem").checked)localStorage.removeItem(REMK)}catch(x){}
+   var now=new Date();$("c-when").textContent="Recorded at "+("0"+now.getHours()).slice(-2)+":"+("0"+now.getMinutes()).slice(-2)+" on "+now.toLocaleDateString(undefined,{weekday:"long",day:"numeric",month:"long"})+". Your lecturer submits the session after class.";
+   $("c-form-wrap").hidden=true;window.scrollTo(0,0);var h=r.already?"Already marked present today":"Check-in received";if(r.onList===false){$("c-mid").textContent=r.id;$("c-mh").textContent=h;$("c-missing").hidden=false}else{$("c-sid").textContent=r.id;$("c-dh").textContent=h;$("c-done").hidden=false}return}
   err(PHYSMSG.fromWhy(r.why));
  });
  };
@@ -122,6 +132,7 @@ $("c-form").addEventListener("submit",function(e){
 });
 function again(){$("c-done").hidden=true;$("c-missing").hidden=true;$("c-form-wrap").hidden=false;$("c-id").value="";$("c-id").focus()}
 $("c-again2").addEventListener("click",again);
+$("c-other").addEventListener("click",function(e){e.preventDefault();try{localStorage.removeItem(REMK)}catch(x){}$("c-rem").checked=false;again()});
 })();
 </script>
 </div>
