@@ -1,0 +1,51 @@
+# Builds the Class Manager desktop app (class-manager/desktop) for macOS, Windows and Linux.
+# The installers appear under the run's "Artifacts". This workflow does not touch the website.
+name: Class Manager app
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "class-manager/**"
+      - ".github/workflows/class-manager-app.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            target: --mac
+            name: macOS
+          - os: windows-latest
+            target: --win
+            name: Windows
+          - os: ubuntu-latest
+            target: --linux
+            name: Linux
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: class-manager/desktop
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - name: Build installer (unsigned)
+        run: npx electron-builder ${{ matrix.target }} --publish never
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Class Manager for ${{ matrix.name }}
+          path: |
+            class-manager/desktop/dist/*.dmg
+            class-manager/desktop/dist/*.exe
+            class-manager/desktop/dist/*.AppImage
+          if-no-files-found: error

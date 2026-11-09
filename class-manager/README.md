@@ -11,6 +11,8 @@ It contains:
 
 No student data, class list or host key is stored in this folder.
 
+**Desktop app.** `desktop/` turns this folder into an installable app for colleagues (Windows, macOS, Linux). It runs everything from the lecturer's laptop with no Google account and no setup, and keeps results on that laptop. See [`desktop/README.md`](desktop/README.md).
+
 ## Layout
 
 ```
