@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light dark">
+<title>Lecturer menu</title>
+<meta name="description" content="Lecturer menu.">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/icon-192.png">
+<script src="config.js"></script>
+<link rel="stylesheet" href="assets/site.css">
+<script>if(!location.hash){if("scrollRestoration" in history)history.scrollRestoration="manual";window.addEventListener("pageshow",function(){if(!location.hash)window.scrollTo({top:0,left:0,behavior:"instant"})});}</script>
+</head>
+<body class="focus">
+<a class="skip" href="#main">Skip to content</a>
+<header class="banner slim">
+<div class="wrap">
+<h1><a class="home-link" href="index.html" data-cm="courseCode">PHYS 143</a></h1>
+<p class="course" data-cm="courseTitle">Mechanics and Thermal Physics</p>
+</div>
+</header>
+<nav class="jump" id="jump" aria-label="Sections"><div class="wrap"><button type="button" class="menu-btn" aria-expanded="false" aria-controls="jump-links"><span>Menu</span><span class="dots" aria-hidden="true">&#8943;</span></button><div class="links" id="jump-links"><a href="index.html">Portal</a><a href="course.html">Lectures</a><a href="course.html#weekly">Practice</a><a href="mock-exam.html">Mock exam</a><a href="quiz.html">Live quiz</a></div></div></nav>
+<main id="main"><div class="wrap">
+<style>
+.host{max-width:46rem;margin:0 auto}
+.host .panel{background:var(--surface);border:1px solid var(--border);border-top:5px solid var(--brown-edge);border-radius:8px;padding:1.2rem 1.4rem;box-shadow:var(--shadow);margin-bottom:1rem}
+.host label{display:block;font:600 .95rem system-ui,sans-serif;margin:.6rem 0 .25rem}
+.host input[type=password],.host input[type=text]{width:100%;max-width:22rem;min-height:44px;padding:.4rem .6rem;border:1.5px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font:1rem system-ui,sans-serif}
+.host .go{min-height:48px;padding:.5rem 1.4rem;border:2px solid var(--brown-fill);border-radius:6px;background:var(--brown-fill);color:#fff;font:600 1.05rem system-ui,sans-serif;cursor:pointer;margin:.3rem .4rem 0 0;text-decoration:none;display:inline-block}
+.host .go.alt{background:var(--btn-bg);color:var(--btn-text)}
+.host .go.big{min-height:64px;font-size:1.3rem;padding:.7rem 1.8rem}
+.host .choices{display:flex;flex-wrap:wrap;gap:1rem}
+.host .choices .go{flex:1 1 14rem;text-align:center;min-height:96px;font-size:1.4rem;display:flex;align-items:center;justify-content:center}
+.host .note{font:.92rem/1.5 system-ui,sans-serif;color:var(--muted)}
+.host [hidden]{display:none!important}
+body.focus header.banner,body.focus nav.jump,body.focus .crumb,body.focus .sec-sub,body.focus aside.disclaimer,body.focus footer,body.focus a.skip,body.focus main h2{display:none!important}
+body.focus main{padding-top:1rem}
+</style>
+<div class="host">
+ <section class="panel" id="m-login">
+  <h3 style="margin:.1rem 0 .4rem">Lecturer login</h3>
+  <form id="m-form" autocomplete="off">
+   <label for="m-key">Key</label><input type="password" id="m-key" maxlength="40" autocomplete="new-password" autocapitalize="none" spellcheck="false">
+   <p><button class="go" type="submit">Log in</button></p>
+   <p class="note" id="m-err" role="alert" hidden></p>
+  </form>
+ </section>
+ <section class="panel" id="m-choice" hidden>
+  <h3 style="margin:.1rem 0 .8rem">What would you like to do?</h3>
+  <div class="choices"><a class="go" href="quiz-host.html">Run quiz</a><a class="go" href="attendance.html">Take attendance</a><a class="go alt" href="control.html">Control Centre</a></div>
+  <p><button class="go alt" type="button" id="m-out">Log out</button></p>
+ </section>
+</div>
+<script>
+(function(){
+"use strict";
+var SCRIPT_URL=window.CM.scriptUrl;
+var $=function(i){return document.getElementById(i)};
+function jsonp(params,cb){
+ var n="cb"+Date.now()+Math.floor(Math.random()*1e6),sc=document.createElement("script"),done=false;
+ function end(d){if(done)return;done=true;delete window[n];if(sc.parentNode)sc.parentNode.removeChild(sc);cb(d)}
+ window[n]=end;sc.onerror=function(){end(null)};
+ sc.src=SCRIPT_URL+"?"+params+"&callback="+n+"&_="+Date.now();document.head.appendChild(sc);
+}
+var KEY="";try{KEY=sessionStorage.getItem("phys143_hk")||""}catch(x){}
+function saveKey(k){KEY=k;try{sessionStorage.setItem("phys143_hk",k)}catch(x){}}
+function signOut(){KEY="";try{sessionStorage.removeItem("phys143_hk")}catch(x){}location.href="lecturer.html"}
+
+function ok(){$("m-login").hidden=true;$("m-choice").hidden=false;if(location.search.indexOf("menu")<0&&window===window.top)location.replace("control.html")} // the Control Centre is the lecturer entry; ?menu keeps the old button page
+function check(k,first){
+ jsonp("action=hostcheck&hostkey="+encodeURIComponent(k),function(d){
+  if(d&&d.ok){saveKey(k);ok();return}
+  if(first){$("m-err").textContent=d?"That key was not accepted.":"Could not reach the class sheet. Check the connection.";$("m-err").hidden=false}
+  else{try{sessionStorage.removeItem("phys143_hk")}catch(x){}}
+ });
+}
+$("m-form").addEventListener("submit",function(e){e.preventDefault();var k=$("m-key").value.trim();if(!k){$("m-err").textContent="Enter the key.";$("m-err").hidden=false;return}$("m-err").hidden=true;check(k,true)});
+$("m-out").addEventListener("click",signOut);
+if(KEY)check(KEY,false);
+})();
+</script>
+</div>
+</main>
+
+
+<footer><div class="wrap"><p class="foot-note"><span data-cm="courseCode">PHYS 143</span> · <span data-cm="courseTitle">Mechanics and Thermal Physics</span> · <span data-cm="institution">University of Ghana</span> · <a href="lecturer.html">Lecturer</a></p></div></footer>
+<script src="assets/render.js"></script>
+<script src="assets/site.js"></script>
+<script src="assets/tracking.js"></script>
+</body>
+</html>

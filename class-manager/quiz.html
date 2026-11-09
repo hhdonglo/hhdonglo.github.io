@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light dark">
+<title>PHYS 143 — Quiz</title>
+<meta name="description" content="PHYS 143 live quiz: timed multiple-choice questions with a live class ranking. Use the join code for your week.">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/icon-192.png">
+<script src="config.js"></script>
+<link rel="stylesheet" href="assets/site.css">
+<link rel="stylesheet" href="assets/student.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#16294b">
+<script>if(!location.hash){if("scrollRestoration" in history)history.scrollRestoration="manual";window.addEventListener("pageshow",function(){if(!location.hash)window.scrollTo({top:0,left:0,behavior:"instant"})});}</script>
+<script src="assets/quiz-l1-questions.js"></script>
+</head>
+<body class="focus">
+<a class="skip" href="#main">Skip to content</a>
+<header class="banner slim">
+<div class="wrap">
+<h1><a class="home-link" href="index.html" data-cm="courseCode">PHYS 143</a></h1>
+<p class="course" data-cm="courseTitle">Mechanics and Thermal Physics</p>
+</div>
+</header>
+<nav class="jump" id="jump" aria-label="Sections"><div class="wrap"><button type="button" class="menu-btn" aria-expanded="false" aria-controls="jump-links"><span>Menu</span><span class="dots" aria-hidden="true">&#8943;</span></button><div class="links" id="jump-links"><a href="index.html">Portal</a><a href="course.html">Lectures</a><a href="course.html#weekly">Practice</a><a href="mock-exam.html">Mock exam</a><a href="quiz.html">Live quiz</a></div></div></nav>
+<main id="main"><div class="wrap">
+<p class="crumb"><a href="index.html">Portal</a> &rsaquo; <a href="course.html">PHYS 143</a> &rsaquo; <a href="index.html">Portal</a> &rsaquo; Quiz</p>
+<h2 id="try-title">PHYS 143 quiz</h2>
+<p class="sec-sub">Live class quiz</p>
+<style>
+.try{max-width:46rem;margin:0 auto}
+.try .panel{background:var(--surface);border:1px solid var(--border);border-top:5px solid var(--brown-edge);border-radius:8px;padding:1.2rem 1.3rem;box-shadow:var(--shadow)}
+.try h3{margin:.1rem 0 .6rem;color:var(--brown)}
+@media (prefers-color-scheme:dark){.try h3{color:#e9c9a8}}
+.try .join{display:flex;flex-wrap:wrap;gap:1.2rem;align-items:center;margin:.8rem 0 1rem}
+.try .join img{width:168px;height:168px;background:#fff;border:1px solid var(--border);border-radius:6px;padding:4px}
+.try .code{font:700 1.9rem/1.2 ui-monospace,Menlo,monospace;letter-spacing:.06em;color:var(--brown)}
+@media (prefers-color-scheme:dark){.try .code{color:#e9c9a8}}
+.try .lbl{font:600 .8rem system-ui,sans-serif;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0}
+.try label{display:block;font:600 .95rem system-ui,sans-serif;margin:.8rem 0 .25rem}
+.try input[type=text]{width:100%;max-width:22rem;min-height:44px;padding:.4rem .6rem;border:1.5px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font:1rem system-ui,sans-serif}
+.try .go{margin-top:1rem;min-height:46px;padding:.5rem 1.4rem;border:2px solid var(--brown-fill);border-radius:6px;background:var(--brown-fill);color:#fff;font:600 1rem system-ui,sans-serif;cursor:pointer}
+.try .go[disabled]{opacity:.45;cursor:not-allowed}
+.try .go.alt{background:var(--btn-bg);color:var(--btn-text);border-color:var(--brown-fill)}
+.try .bar{display:flex;justify-content:space-between;align-items:center;font:600 .95rem system-ui,sans-serif;color:var(--muted)}
+.try .clock{font:700 1.5rem ui-monospace,Menlo,monospace;color:var(--brown)}
+.try .clock.low{color:#b3261e}
+@media (prefers-color-scheme:dark){.try .clock{color:#e9c9a8}.try .clock.low{color:#ff8a80}}
+.try .track{height:6px;background:var(--sky);border-radius:3px;margin:.4rem 0 1rem;overflow:hidden}
+.try .track i{display:block;height:100%;background:var(--brown-fill);width:100%}
+.try .stem{font-size:1.1rem;margin:.2rem 0 1rem}
+.try .opts{display:grid;gap:.5rem}
+.try .opt{display:flex;gap:.7rem;align-items:flex-start;text-align:left;min-height:48px;padding:.55rem .8rem;border:1.5px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font:1rem Georgia,serif;cursor:pointer;width:100%}
+.try .opt b{font:700 1rem system-ui,sans-serif;color:var(--brown);min-width:1.4rem}
+@media (prefers-color-scheme:dark){.try .opt b{color:#e9c9a8}}
+.try .opt[aria-checked=true]{border-color:var(--brown-fill);background:var(--sky);box-shadow:inset 0 0 0 1px var(--brown-fill)}
+.try table{width:100%;border-collapse:collapse;margin:.6rem 0;font:1rem system-ui,sans-serif}
+.try th,.try td{padding:.45rem .6rem;border-bottom:1px solid var(--border);text-align:left}
+.try tr.me{background:var(--sky);font-weight:700}
+aside.disclaimer .sakai p{font-size:.78rem;line-height:1.4;margin:.2rem 0}
+aside.disclaimer .sakai-link{font-size:.8rem}
+#board-note:empty{display:none}
+.reviewing #mine,.reviewing #board,.reviewing #end-msg,.reviewing #retry{display:none!important}
+#review .ro{display:flex;gap:.6rem;align-items:flex-start;padding:.5rem .7rem;margin:.35rem 0;border:1.5px solid var(--border);border-radius:6px}
+#review .ro.ok{border-color:#2e7d32;background:rgba(46,125,50,.12)}
+#review .ro.mine:not(.ok){border-color:#b3261e}
+#review .ro b{font:700 1rem system-ui,sans-serif;min-width:1.3rem}
+#review .tag{margin-left:auto;font:600 .8rem system-ui,sans-serif;white-space:nowrap;text-align:right}
+#review .why{border-left:4px solid var(--brown-edge);padding:.3rem .8rem;margin:.8rem 0}
+.try .note{font:.92rem/1.5 system-ui,sans-serif;color:var(--muted)}
+.try .wr{text-align:center;padding:.4rem 0 .2rem}
+.try .wr .hello{font:700 1.4rem system-ui,sans-serif;margin:.2rem 0 .4rem}
+.try .wr .nq{font:600 1rem system-ui,sans-serif;margin:.6rem 0;color:var(--muted)}
+.try .dots{display:flex;justify-content:center;gap:.5rem;margin:1.1rem 0 .5rem}
+.try .dots i{width:12px;height:12px;border-radius:50%;background:var(--brown-fill);opacity:.25;animation:wr 1.2s infinite ease-in-out}
+.try .dots i:nth-child(2){animation-delay:.2s}.try .dots i:nth-child(3){animation-delay:.4s}
+@keyframes wr{0%,80%,100%{opacity:.25;transform:scale(.8)}40%{opacity:1;transform:scale(1.1)}}
+@media (prefers-reduced-motion:reduce){.try .dots i{animation:none;opacity:.6}}
+body.focus header.banner,body.focus nav.jump,body.focus .crumb,body.focus #try-title,body.focus .sec-sub,body.focus aside.disclaimer,body.focus footer,body.focus a.skip{display:none!important}
+body.focus main{padding-top:1.2rem}
+.try .fun{display:none;text-align:center;font:700 1.5rem Georgia,serif;color:var(--brown);margin:.2rem 0 1rem}
+@media (prefers-color-scheme:dark){.try .fun{color:#e9c9a8}}
+body.focus .try .fun{display:block}
+.try [hidden]{display:none!important}
+</style>
+<div class="try" id="try-app">
+ <p class="fun" id="fun">Let's have fun</p>
+ <section class="panel" id="s-start" aria-labelledby="t-start">
+  <h3 id="t-start">Join the quiz</h3>
+  <form id="f-start" autocomplete="off" novalidate>
+   <label for="in-name">First name <span class="note">(quizzes only)</span></label><input type="text" id="in-name" maxlength="40" placeholder="Ama" required>
+   <label for="in-id">Student ID</label><input type="text" id="in-id" maxlength="20" inputmode="numeric" placeholder="ID number" required>
+   <label for="in-code">Join code</label><input type="text" id="in-code" maxlength="30" placeholder="Code from the screen" required>
+   <p class="note" id="err" role="alert" hidden></p>
+   <button type="submit" class="go">Join</button>
+  </form>
+  <details class="note" style="margin-top:.8rem"><summary>How it works</summary><p>I show one question at a time. Choose an answer before the clock runs out. Only your first attempt counts.</p></details>
+ </section>
+ <section class="panel" id="s-att" aria-labelledby="t-att" hidden>
+  <div class="wr">
+   <h3 id="t-att" class="hello">Check-in received</h3>
+   <p role="status"><span id="att-msg">Thank you. Your check-in has been received for student ID </span> <b id="att-id"></b>.</p>
+   <p class="note">You can close this page.</p>
+  </div>
+ </section>
+ <section class="panel" id="s-wait" aria-labelledby="t-wait" hidden>
+  <div class="wr">
+   <h3 id="t-wait" class="hello">Welcome</h3>
+   <p id="wr-msg" role="status">Your lecturer will start the quiz shortly. This page will begin by itself.</p>
+   <p class="nq" id="wr-n"></p>
+   <div class="dots" id="wr-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+  </div>
+  <details class="note" style="margin-top:.8rem" open><summary>How it works</summary><p>I show one question at a time. Choose an answer before the clock runs out. Only your first attempt counts.</p></details>
+ </section>
+ <section class="panel" id="s-q" aria-live="polite" hidden>
+  <div class="bar"><span id="qn">Question 1 of 5</span><span class="clock" id="clock" role="timer">1:00</span></div>
+  <div class="track"><i id="fill"></i></div>
+  <p class="note" id="banner" role="status" hidden></p>
+  <p class="stem" id="stem"></p>
+  <p class="note" id="pnote" role="status"></p>
+  <div class="opts" id="opts" role="radiogroup" aria-label="Answer options"></div>
+  <button type="button" class="go alt" id="prev" hidden>Back</button> <button type="button" class="go" id="next" disabled>Next</button>
+ </section>
+ <section class="panel" id="s-end" hidden>
+  <h3 id="t-end">Sending your answers</h3>
+  <p id="end-msg">Sending your answers. Please keep this page open.</p>
+  <div id="review" hidden></div>
+  <div id="mine" hidden>
+   <p class="score" id="mine-score" style="font:700 1.6rem system-ui,sans-serif;margin:.4rem 0"></p>
+   <p id="mine-list" style="margin:.2rem 0 .8rem;font:1.05rem system-ui,sans-serif;display:flex;flex-wrap:wrap;gap:.3rem .9rem"></p>
+  </div>
+  <button type="button" class="go alt" id="retry" hidden>Send again</button>
+  <div id="board" hidden>
+   <h3>Class ranking</h3>
+   <p class="note" id="board-note"></p>
+   <div id="board-table"></div>
+   <button type="button" class="go alt" id="refresh" hidden>Refresh now</button>
+  </div>
+ </section>
+</div>
+<script src="assets/messages.js"></script>
+<script>
+(function(){
+"use strict";
+var SCRIPT_URL=window.CM.scriptUrl; // Apps Script web app address (see apps_script/quiz_receiver.gs)
+var LEADERBOARD_CSV="https://docs.google.com/spreadsheets/d/e/2PACX-1vR6SZQewzCDwqP5zfu1uycwaOb_ZEoJgXwLAhEWN4qBwT0zo89MDERju8cBM2Vne6w1-rje6gCZI5X-/pub?gid=1903986573&single=true&output=csv";
+var SECONDS=60;
+var D=function(s){return s};
+var QS=window.QUIZ_L1||[];
+var L="ABCDE";
+var $=function(i){return document.getElementById(i)};
+var st={name:"",id:"",code:"",ans:[],i:0,t:SECONDS,timer:null,sent:false};
+// A reset or new round by the lecturer: the round number changes (and the quiz goes back to the lobby), so every phone starts over,
+// including phones that are on a question, waiting for the next one, or looking at their result.
+function wasReset(d){return !!d&&((d.round!==undefined&&st.round!==undefined&&d.round!==st.round)||d.state==="lobby"||d.state==="ready"||d.state==="draft")}
+function resetToWaiting(d){
+ [st.timer,st.poll,st.rev,st.live,st.watch].forEach(function(t){clearInterval(t)});st.watch=null;
+ st.paced=false;st.timed=false;st.ended=false;st.submitted=false;st.sent=false;st.curQ=0;st.i=0;st.ans=[];st.qTries=0;st.joined=false;st.round=d.round;
+ var rv=$("review");rv.hidden=true;$("s-end").classList.remove("reviewing");$("board").hidden=true;$("mine").hidden=true;$("retry").hidden=true;
+ $("banner").hidden=true;
+ gate(); // back to the waiting room; the page rejoins and starts again by itself when the lecturer starts
+}
+function watchStatus(){
+ jsonp("action=status&code="+encodeURIComponent(st.code),function(d){if(d&&(d.paced||d.timed)&&wasReset(d))resetToWaiting(d)});
+}
+function show(id){
+ if(id==="s-end"){if(!st.watch)st.watch=setInterval(watchStatus,7000+Math.floor(Math.random()*3000))}
+ else if(id!=="s-wait"&&st.watch){clearInterval(st.watch);st.watch=null}
+ document.body.classList.toggle("focus",id!=="s-end");["s-start","s-wait","s-q","s-end","s-att"].forEach(function(x){$(x).hidden=(x!==id)});window.scrollTo(0,0)}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+$("f-start").addEventListener("submit",function(e){
+ e.preventDefault();
+ var n=$("in-name").value.trim(),d=$("in-id").value.trim(),c=$("in-code").value.trim().toUpperCase();
+ var er=$("err");
+ if(!d||!c){er.textContent="Please fill in your student ID and the code. Your first name is needed for quizzes.";er.hidden=false;return}
+ er.hidden=true;
+ st.name=n;st.id=d;st.code=c;st.ans=[];st.i=0;
+ gate();
+});
+function gate(){
+ var er=$("err"),btn=$("f-start").querySelector("button");
+ jsonp("action=status&code="+encodeURIComponent(st.code),function(d){
+  if(d&&d.known===false){btn.disabled=false;er.textContent=PHYSMSG.text("E12");er.hidden=false;return}
+  if(!d){btn.disabled=false;er.textContent=PHYSMSG.text("E8");er.hidden=false;return}
+  if(d.attendance){doAttend(d,btn,er);return}
+  if(!st.name){btn.disabled=false;er.textContent="Please enter your first name for the quiz.";er.hidden=false;return}
+  var nq=d.totalQ||QS.length;
+  if(d.round!==undefined)st.round=d.round; // the round this run belongs to
+  function wait(m){btn.disabled=true;er.hidden=true;if(!st.joined){st.joined=true;join()}roomShow(m,nq);setTimeout(gate,4000+Math.floor(Math.random()*2000))}
+  function stop(m){btn.disabled=false;if(st.joined){roomShow(m,nq,true);return}er.textContent=m;er.hidden=false}
+  if(d&&(d.timed||d.paced)){
+   var s=d.state;
+   if(s==="ended"||s==="released"){stop(PHYSMSG.text("E11"));return}
+   if(s==="paused"&&!st.joined){stop("This quiz is paused. Ask your lecturer.");return}
+   if((s==="ready"||s==="draft")&&!st.joined){stop(PHYSMSG.text("E11"));return}
+   if(s==="paused"){wait("The quiz is paused by your lecturer. This page will continue by itself.");return}
+   if(s!=="running"){wait("");return}
+   if(!st.joined&&!d.allowLate){stop("This quiz has already started and late joining is closed. Ask your lecturer.");return}
+   btn.disabled=false;er.hidden=true;
+   if(!st.joined){st.joined=true;join()}
+   roomShow("The quiz has started. Loading your first question.",nq);
+   if(d.paced)startPaced(d);else startTimed(d);return}
+  var state=d&&d.state?d.state:"started";
+  if(state==="stopped"){stop(PHYSMSG.text("E11"));return}
+  if(state==="waiting"){wait("");return}
+  btn.disabled=false;er.hidden=true;
+  if(!st.joined){st.joined=true;join()}
+  ask();
+ });
+}
+function doAttend(d,btn,er){ // an attendance code: only the student ID is used; the lecturer closes the session
+ if(d.state!=="open"){btn.disabled=false;er.textContent=PHYSMSG.text("E11");er.hidden=false;return}
+ btn.disabled=true;er.hidden=true;
+ jsonp("action=attend&code="+encodeURIComponent(st.code)+"&id="+encodeURIComponent(st.id),function(r){
+  if(!r){btn.disabled=false;er.textContent=PHYSMSG.text("E8");er.hidden=false;return}
+  if(!r.ok){btn.disabled=false;er.textContent=r.why==="closed"?"Attendance for this code is closed.":(r.why==="bad id"?"That does not look like a student ID. Check it and try again.":"That code is not correct.");er.hidden=false;return}
+  $("att-id").textContent=r.id;$("t-att").textContent=r.already?"Already marked present today":"Marked present";$("att-msg").textContent=r.onList===false?"Your ID is not on the class list. Please see your lecturer. Student ID ":"Student ID ";show("s-att");
+ });
+}
+function roomShow(m,n,closed){
+ if($("s-wait").hidden)show("s-wait");
+ $("t-wait").textContent="Welcome, "+st.name;
+ $("wr-msg").textContent=m||"Your lecturer will start the quiz shortly. This page will begin by itself.";
+ $("wr-n").textContent=n?"This quiz has "+n+" question"+(n===1?"":"s")+".":"";
+ $("wr-dots").hidden=!!closed;
+}
+function join(kind){
+ var b=new URLSearchParams();b.set("kind",kind||"join");b.set("name",st.name);b.set("id",st.id);b.set("code",st.code);
+ var send=function(){try{fetch(SCRIPT_URL,{method:"POST",mode:"no-cors",body:b}).catch(function(){})}catch(x){}};
+ if((kind||"join")==="join")setTimeout(send,Math.floor(Math.random()*4000));else send(); // a whole class joins at once, so spread the joins over a few seconds
+}
+// ---- lecturer-paced mode: the lecturer moves the whole class from question to question ----
+function startPaced(d){
+ st.paced=true;st.curQ=0;st.ended=false;
+ jsonp("action=questions&code="+encodeURIComponent(st.code),function(r){
+  if(!r&&(st.qTries=(st.qTries||0)+1)<=4){roomShow("The quiz has started. Loading your first question.",d.totalQ||QS.length);setTimeout(function(){startPaced(d)},1500);return}
+  if(r&&r.questions&&r.questions.length)QS=r.questions;
+  st.ans=[];for(var i=0;i<QS.length;i++)st.ans.push("");
+  join("progress");show("s-q");
+  $("prev").hidden=true;$("next").hidden=true;
+  applyPaced(d);
+  clearInterval(st.timer);clearInterval(st.poll);
+  st.timer=setInterval(pacedTick,500);setTimeout(function(){if(!st.ended){clearInterval(st.poll);st.poll=setInterval(pacedPoll,3500)}},Math.floor(Math.random()*3000)); // spread 200 phones over the interval
+ });
+}
+function pacedClosed(){
+ if(st.paused)return true;
+ return !!(st.qDeadline&&Date.now()+st.off>st.qDeadline);
+}
+function applyPaced(d){
+ st.off=d.serverNow-Date.now();st.paused=d.state==="paused";st.remain=d.remainingMs;st.qDeadline=d.qDeadline||0;st.qSeconds=d.qSeconds||0;
+ var b=$("banner");
+ if(st.paused){b.textContent="Paused by your lecturer. The clock has stopped.";b.hidden=false}
+ else if(d.message){b.textContent="Message from your lecturer: "+d.message;b.hidden=false}
+ else b.hidden=true;
+ if(d.state==="ended"||d.state==="released"){endPaced();return}
+ if(d.currentQ&&d.currentQ!==st.curQ){st.curQ=d.currentQ;renderPaced()}
+ setLocked();
+}
+function renderPaced(){
+ var q=QS[st.curQ-1];if(!q)return;
+ $("qn").textContent="Question "+st.curQ+" of "+QS.length;
+ $("stem").innerHTML=q.stem;
+ var o=$("opts");o.innerHTML="";
+ q.opts.forEach(function(t,j){
+  var b=document.createElement("button");b.type="button";b.className="opt";b.setAttribute("role","radio");
+  b.setAttribute("aria-checked",st.ans[st.curQ-1]===L[j]?"true":"false");
+  b.innerHTML="<b>"+L[j]+"</b><span>"+t+"</span>";
+  b.addEventListener("click",function(){
+   if(pacedClosed())return;
+   st.ans[st.curQ-1]=L[j];Array.prototype.forEach.call(o.children,function(c){c.setAttribute("aria-checked",c===b?"true":"false")});
+   sendAnswer(st.curQ,L[j]);
+  });
+  o.appendChild(b);
+ });
+ $("pnote").textContent=st.ans[st.curQ-1]?"Your answer is sent. You can change it until time runs out.":"Choose an answer.";
+}
+function sendAnswer(q,a){
+ var b=new URLSearchParams();b.set("kind","answer");b.set("name",st.name);b.set("id",st.id);b.set("code",st.code);b.set("q",String(q));b.set("answer",a);
+ $("pnote").textContent="Sending your answer.";
+ fetch(SCRIPT_URL,{method:"POST",mode:"no-cors",body:b}).then(function(){$("pnote").textContent="Your answer is sent. You can change it until time runs out. Wait for the next question."},function(){$("pnote").textContent="Your answer could not be sent. Check your connection and tap it again."});
+}
+function setLocked(){
+ var lock=pacedClosed();
+ Array.prototype.forEach.call($("opts").children,function(c){c.disabled=lock});
+ if(lock&&!st.paused)$("pnote").textContent="Time is up for this question. Wait for the next question.";
+}
+function pacedTick(){
+ var c=$("clock");
+ if(st.paused){var t0=Math.ceil(Math.max(0,st.remain)/1000);c.textContent="Paused "+Math.floor(t0/60)+":"+("0"+t0%60).slice(-2);$("fill").style.width="100%";return}
+ if(!st.qDeadline){c.textContent="";$("fill").style.width="0%";return}
+ var left=Math.max(0,st.qDeadline-(Date.now()+st.off)),t=Math.ceil(left/1000);
+ c.textContent=Math.floor(t/60)+":"+("0"+t%60).slice(-2);c.className="clock"+(t<=10?" low":"");
+ $("fill").style.width=Math.min(100,left/(st.qSeconds*1000||1)*100)+"%";
+ if(left<=0)setLocked();
+}
+function pacedPoll(){
+ if(st.ended)return;
+ jsonp("action=status&code="+encodeURIComponent(st.code),function(d){if(!d||!(d.paced||d.timed)||st.ended)return;if(wasReset(d))resetToWaiting(d);else applyPaced(d)});
+}
+function reviewDraw(d){
+ var box=$("review"),end=$("s-end");
+ if(!d||!d.q){box.hidden=true;end.classList.remove("reviewing");return}
+ var Q=QS[d.q-1];if(!Q)return;
+ var h='<p class="lbl">Review: question '+d.q+' of '+QS.length+'</p><div style="font-size:1.05rem;margin:.4rem 0 .6rem">'+Q.stem+'</div>';
+ Q.opts.forEach(function(o,i){
+  var k=L[i],ok=k===d.correct,me=k===d.mine,n=d.dist&&d.dist[k]||0;
+  h+='<div class="ro'+(ok?" ok":"")+(me?" mine":"")+'"><b>'+k+'</b><span>'+o+'</span><span class="tag">'+(ok?"\u2713 correct<br>":"")+(me?"your answer<br>":"")+n+" chose this</span></div>"
+ });
+ if(d.explanation)h+='<div class="why">'+esc(d.explanation)+'</div>';
+ box.innerHTML=h;box.hidden=false;end.classList.add("reviewing");
+}
+function pollReview(){
+ jsonp("action=review&code="+encodeURIComponent(st.code)+"&id="+encodeURIComponent(st.id),reviewDraw);
+}
+function endPaced(){
+ if(st.ended)return;st.ended=true;
+ clearInterval(st.timer);clearInterval(st.poll);
+ show("s-end");$("board").hidden=true;$("retry").hidden=true;
+ $("t-end").textContent="The quiz has ended";
+ $("end-msg").hidden=false;$("end-msg").textContent="Checking your result.";
+ setTimeout(function(){poll(0)},1500);
+ setTimeout(pollReview,Math.floor(Math.random()*3000));clearInterval(st.rev);st.rev=setInterval(pollReview,5000);
+}
+// ---- lecturer-controlled mode: one clock for the whole quiz, set and checked by the server ----
+function startTimed(d){
+ st.timed=true;st.i=0;st.ans=["","","","",""];st.submitted=false;
+ applyStatus(d);join("progress");
+ $("prev").hidden=false;show("s-q");renderTimed();
+ clearInterval(st.timer);clearInterval(st.poll);
+ st.timer=setInterval(timedTick,500);st.poll=setInterval(timedPoll,4000);
+}
+function applyStatus(d){
+ st.off=d.serverNow-Date.now();st.endT=d.endTime;st.paused=d.state==="paused";st.remain=d.remainingMs;st.total=(d.duration||1)*60000;
+ var b=$("banner");
+ if(st.paused){b.textContent="The quiz is paused by your lecturer. The clock has stopped.";b.hidden=false}
+ else if(d.message){b.textContent="Message from your lecturer: "+d.message;b.hidden=false}
+ else b.hidden=true;
+}
+function renderTimed(){
+ var q=QS[st.i];
+ $("qn").textContent="Question "+(st.i+1)+" of "+QS.length;
+ $("stem").innerHTML=q.stem;
+ var o=$("opts");o.innerHTML="";
+ q.opts.forEach(function(t,j){
+  var b=document.createElement("button");b.type="button";b.className="opt";b.setAttribute("role","radio");
+  b.setAttribute("aria-checked",st.ans[st.i]===L[j]?"true":"false");
+  b.innerHTML="<b>"+L[j]+"</b><span>"+t+"</span>";
+  b.addEventListener("click",function(){
+   if(st.paused||st.submitted)return;
+   st.ans[st.i]=L[j];Array.prototype.forEach.call(o.children,function(c){c.setAttribute("aria-checked",c===b?"true":"false")});
+  });
+  o.appendChild(b);
+ });
+ $("prev").disabled=st.i===0;
+ $("next").disabled=false;
+ $("next").textContent=(st.i===QS.length-1)?"Submit answers":"Next question";
+}
+function timedTick(){
+ var left=st.paused?st.remain:st.endT-(Date.now()+st.off);
+ left=Math.max(0,left);var t=Math.ceil(left/1000),m=Math.floor(t/60),s=t%60;
+ $("clock").textContent=m+":"+(s<10?"0":"")+s;$("clock").className="clock"+(t<=30?" low":"");
+ $("fill").style.width=Math.min(100,left/st.total*100)+"%";
+ if(!st.paused&&left<=0)submitTimed();
+}
+function timedPoll(){
+ if(st.submitted)return;
+ jsonp("action=status&code="+encodeURIComponent(st.code),function(d){
+  if(!d||!d.timed||st.submitted)return;
+  if(wasReset(d)){resetToWaiting(d);return}
+  applyStatus(d);
+  if(d.state==="ended"||d.state==="released")submitTimed();
+ });
+}
+function submitTimed(){
+ if(st.submitted)return;st.submitted=true;
+ clearInterval(st.timer);clearInterval(st.poll);
+ finish();
+}
+$("prev").addEventListener("click",function(){if(st.timed&&st.i>0){st.i--;renderTimed()}});
+function ask(){
+ var q=QS[st.i];show("s-q");
+ $("qn").textContent="Question "+(st.i+1)+" of "+QS.length;
+ $("stem").innerHTML=q.stem;
+ var o=$("opts");o.innerHTML="";st.pick=null;$("next").disabled=true;
+ $("next").textContent=(st.i===QS.length-1)?"Submit answers":"Next question";
+ q.opts.forEach(function(t,j){
+  var b=document.createElement("button");b.type="button";b.className="opt";b.setAttribute("role","radio");b.setAttribute("aria-checked","false");
+  b.innerHTML="<b>"+L[j]+"</b><span>"+t+"</span>";
+  b.addEventListener("click",function(){
+   st.pick=L[j];Array.prototype.forEach.call(o.children,function(c){c.setAttribute("aria-checked",c===b?"true":"false")});$("next").disabled=false;
+  });
+  o.appendChild(b);
+ });
+ st.t=SECONDS;tick(true);clearInterval(st.timer);
+ st.end=Date.now()+SECONDS*1000;
+ st.timer=setInterval(tick,250);
+}
+function tick(first){
+ if(!first)st.t=Math.max(0,Math.ceil((st.end-Date.now())/1000));
+ var m=Math.floor(st.t/60),s=st.t%60;
+ $("clock").textContent=m+":"+(s<10?"0":"")+s;$("clock").className="clock"+(st.t<=10?" low":"");
+ $("fill").style.width=(st.t/SECONDS*100)+"%";
+ if(!first&&st.t<=0)advance();
+}
+function advance(){
+ if(st.timed){if(st.i<QS.length-1){st.i++;renderTimed()}else submitTimed();return}
+ clearInterval(st.timer);
+ st.ans[st.i]=st.pick||"";
+ if(st.i<QS.length-1){st.i++;ask()}else finish();
+}
+$("next").addEventListener("click",function(){if(!$("next").disabled&&!st.paused)advance()});
+function finish(){
+ show("s-end");
+ $("board").hidden=true;
+ deliver();
+}
+function jsonp(params,cb){
+ var n="cb"+Date.now()+Math.floor(Math.random()*1e6),sc=document.createElement("script"),done=false;
+ function end(d){if(done)return;done=true;delete window[n];if(sc.parentNode)sc.parentNode.removeChild(sc);cb(d)}
+ window[n]=end;sc.onerror=function(){end(null)};
+ sc.src=SCRIPT_URL+"?"+params+"&callback="+n+"&_="+Date.now();document.head.appendChild(sc);
+}
+function deliver(){
+ $("retry").hidden=true;
+ $("t-end").textContent="Sending your answers";
+ $("end-msg").hidden=false;$("end-msg").textContent="Sending your answers. Please keep this page open.";
+ var body=new URLSearchParams();
+ body.set("name",st.name);body.set("id",st.id);body.set("code",st.code);
+ st.ans.forEach(function(a,j){body.set("q"+(j+1),a)});
+ fetch(SCRIPT_URL,{method:"POST",mode:"no-cors",body:body}).then(function(){setTimeout(function(){poll(0)},2500)}).catch(function(){problem("Your answers could not be sent. Check your connection and press Send again.")});
+}
+function problem(m){$("end-msg").hidden=false;$("t-end").textContent="Not recorded yet";$("end-msg").textContent=m;$("retry").hidden=false}
+function poll(n){
+ jsonp("action=result&id="+encodeURIComponent(st.id)+"&code="+encodeURIComponent(st.code),function(d){
+  if(d&&d.found){showMine(d);return}
+  if(d&&(d.keyMissing||d.outcome==="bad code")){problem("The class sheet did not recognise this join code, so your answers were not recorded. Tell your lecturer.");return}
+  if(d&&d.outcome==="paused"){problem("The quiz was paused when your answers arrived, so they were not recorded. Press Send again once your lecturer resumes.");return}
+  if(d&&d.outcome==="not joined"){problem("You joined after the quiz started and late joining is closed, so your answers were not recorded. Tell your lecturer.");return}
+  if(d&&d.outcome==="quiz closed"){problem(PHYSMSG.text("E13"));return}
+  if(d&&d.outcome&&d.outcome!=="ok"&&d.outcome!=="duplicate"){problem("The class sheet could not record your answers ("+d.outcome+"). Tell your lecturer.");return}
+  if(st.paced&&n>=4){$("t-end").textContent="The quiz has ended";$("end-msg").textContent="No answers from you were recorded for this quiz. If that is wrong, tell your lecturer.";return}
+  if(n<14){setTimeout(function(){poll(n+1)},3000);return}
+  problem("I could not confirm that your answers reached the class sheet. Press Send again; only your first attempt counts, so sending twice does no harm.");
+ });
+}
+function showMine(d){
+ if(d.scoreHidden){
+  $("t-end").textContent="Thank you, "+st.name;
+  $("end-msg").textContent="Your answers are recorded. Your score will appear when your lecturer releases the results.";
+  $("mine").hidden=true;$("board").hidden=true;
+  clearInterval(st.live);st.live=setInterval(function(){poll(0)},6000);
+  return}
+ clearInterval(st.live);
+ $("t-end").textContent="Thank you, "+st.name;
+ $("end-msg").hidden=true;
+ $("mine").hidden=false;
+ $("mine-score").textContent="You scored "+d.score+" out of "+d.total;
+ var l=$("mine-list");l.innerHTML="";
+ d.flags.forEach(function(f,i){var li=document.createElement("span");li.textContent="Q"+(i+1)+(f?" \u2713":" \u2717");li.setAttribute("aria-label","Question "+(i+1)+(f?" correct":" not correct"));l.appendChild(li)});
+ checkRanking();startLive();
+}
+function checkRanking(){
+ $("board").hidden=false;
+ jsonp("action=ranking&code="+encodeURIComponent(st.code)+"&id="+encodeURIComponent(st.id),function(d){
+  if(d&&d.rows){
+   if(d.hidden){$("board-table").innerHTML="";$("board-note").textContent=d.waitRelease?"The ranking will appear when your lecturer releases the results.":"The ranking is hidden for now.";return}
+   drawBoard(d.rows,d.closed);return}
+  loadBoard(); // an older receiver cannot send the ranking; read the published sheet instead
+ });
+}
+function drawBoard(rows,final){
+ var tb=$("board-table"),note=$("board-note");
+ if(!rows.length){tb.innerHTML="";note.textContent="No scores yet.";return}
+ var rk=0,prev=null,html="<table><thead><tr><th>#</th><th>First name</th><th>Score</th></tr></thead><tbody>";
+ rows.forEach(function(r,i){if(r.score!==prev){rk=i+1;prev=r.score}html+="<tr"+(r.me?' class="me"':"")+"><td>"+rk+"</td><td>"+esc(r.name)+"</td><td>"+esc(r.score)+" / "+(r.n||5)+"</td></tr>"});
+ tb.innerHTML=html+"</tbody></table>";
+ note.textContent="";
+}
+function startLive(){clearInterval(st.live);st.live=setInterval(checkRanking,15000)}
+$("retry").addEventListener("click",deliver);
+function parseCSV(t){
+ var r=[],row=[],c="",q=false;
+ for(var i=0;i<t.length;i++){var ch=t[i];
+  if(q){if(ch==='"'){if(t[i+1]==='"'){c+='"';i++}else q=false}else c+=ch}
+  else if(ch==='"')q=true;else if(ch===","){row.push(c);c=""}
+  else if(ch==="\n"||ch==="\r"){if(ch==="\r"&&t[i+1]==="\n")i++;row.push(c);r.push(row);row=[];c=""}
+  else c+=ch}
+ if(c!==""||row.length){row.push(c);r.push(row)}
+ return r;
+}
+function loadBoard(cb){cb=cb||function(){};
+ var note=$("board-note"),tb=$("board-table");note.textContent="Loading the ranking.";tb.innerHTML="";
+ fetch(LEADERBOARD_CSV+(LEADERBOARD_CSV.indexOf("?")<0?"?":"&")+"t="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw 0;return r.text()}).then(function(t){
+  var rows=parseCSV(t).filter(function(r){return r.join("").trim()});
+  var h=(rows[0]||[]).map(function(x){return x.trim().toLowerCase()});
+  var ni=h.indexOf("first name"),ci=h.indexOf("join code"),si=h.indexOf("score");
+  if(ni<0||ci<0||si<0){note.textContent="The class ranking is not available yet.";cb(false);return}
+  var mine=rows.slice(1).filter(function(r){return (r[ci]||"").trim().toUpperCase()===st.code}).map(function(r){return{n:(r[ni]||"").trim(),c:(r[ci]||"").trim(),s:parseFloat(r[si]),me:(r[ni]||"").trim().toLowerCase()===st.name.toLowerCase()}}).filter(function(r){return !isNaN(r.s)});
+  mine.sort(function(a,b){return b.s-a.s||a.n.localeCompare(b.n)});
+  if(!mine.length){note.textContent="No scores yet for "+st.code+". Yours may still be on its way; try refreshing in a moment.";cb(false);return}
+  var rk=0,prev=null,html="<table><thead><tr><th>#</th><th>First name</th><th>Join code</th><th>Score</th></tr></thead><tbody>";
+  mine.forEach(function(r,i){if(r.s!==prev){rk=i+1;prev=r.s}html+="<tr"+(r.me?' class="me"':"")+"><td>"+rk+"</td><td>"+esc(r.n)+"</td><td>"+esc(r.c)+"</td><td>"+esc(r.s)+" / 5</td></tr>"});
+  tb.innerHTML=html+"</tbody></table>";cb(mine.some(function(r){return r.me}));
+  note.textContent="";
+ }).catch(function(){note.textContent="The ranking could not be loaded just now. Try the refresh button in a moment.";cb(false)});
+}
+$("refresh").addEventListener("click",checkRanking);
+})();
+</script>
+<aside class="disclaimer" aria-label="Disclaimer"><div class="wrap sakai" role="note"><p><strong>Disclaimer.</strong> These course pages are open to anyone who finds them useful. Official course information and instructions for registered students are provided on Sakai. Students at the University of Ghana should visit Sakai for official course information.</p><a class="sakai-link" href="https://sakai.ug.edu.gh/portal/site/!gateway/tool/55840c0d-ea44-4827-84cb-5270d764ecf7" target="_blank" rel="noopener">Open PHYS 143 on Sakai</a></div></aside>
+</main>
+
+<footer><div class="wrap"><p class="foot-note"><span data-cm="courseCode">PHYS 143</span> · <span data-cm="courseTitle">Mechanics and Thermal Physics</span> · <span data-cm="institution">University of Ghana</span> · <a href="lecturer.html">Lecturer</a></p></div></footer>
+<script src="assets/render.js"></script>
+<script src="assets/site.js"></script>
+<script src="assets/tracking.js"></script>
+<script src="assets/student.js" defer></script>
+</body>
+</html>
