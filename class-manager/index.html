@@ -165,6 +165,9 @@ function showResults(r){
  var tries=pr.reduce(function(t,p){return t+(p.attempts||0)},0),pct=at.length?Math.round(100*pres/at.length):0;
  var h='<div class="stu-chips"><div class="stu-chip"><b>'+pres+' / '+at.length+'</b>Check-ins</div><div class="stu-chip"><b>'+qz.length+'</b>Quizzes</div><div class="stu-chip"><b>'+tries+'</b>Practice attempts</div></div>'+
   (at.length?'<div class="stu-bar" role="img" aria-label="Attendance '+pct+' percent"><i style="width:'+pct+'%"></i></div>':'');
+ // Groups the lecturer has made, with the other members and any group mark.
+ var gr=r.groups||[];
+ if(gr.length)h+='<h2 style="margin-top:.9rem">My groups</h2>'+gr.map(function(g){return'<div class="rv"><b>'+esc(g.set)+': Group '+g.group+'</b>'+(g.mark!==null&&g.mark!==undefined?' <span class="src">Group mark '+esc(g.mark)+(g.outOf?' / '+esc(g.outOf):'')+'</span>':'')+'<br><span class="src">With: '+esc(g.members.join(", ")||"no one else yet")+'</span></div>'}).join("");
  // Where to focus: the weakest lectures with enough answers to judge.
  var weak=ms.filter(function(m){return m.asked>=5&&m.pct<70}).sort(function(a,b){return a.pct-b.pct}).slice(0,3);
  h+='<h2 style="margin-top:.9rem">Where to focus</h2>';

@@ -28,7 +28,7 @@ The first time it runs, Windows and macOS ask whether the app may accept connect
 
 Under **Results and marks**, choose a tab (Attendance, Master, Totals and others) to see it, or press **Export all tabs** to save every tab as a CSV file that opens in Excel. **Attendance with names** shows names next to the attendance marks.
 
-**Access codes and Teaching insights.** Before students first look at their progress, open **Access codes for students**, log in with the host key, press **Create codes for students without one**, then **Print slips** and hand each student their slip. **Teaching insights** shows the weakest lectures and questions and the students who may need attention.
+**Access codes and Teaching insights.** Before students first look at their progress, open **Access codes for students**, log in with the host key, press **Create codes for students without one**, then **Print slips** and hand each student their slip. **Student groups** makes groups for an activity and holds a mark for each group. **Teaching insights** shows the weakest lectures and questions and the students who may need attention.
 
 All data stays on the laptop, in the data folder shown at the bottom of the home screen. Back it up with the rest of your files.
 

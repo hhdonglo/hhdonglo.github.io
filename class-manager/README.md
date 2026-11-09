@@ -63,7 +63,9 @@ Added in November 2026, for students and for the lecturer. All of it is computed
 - **Attendance**: the check-in page can remember the student's ID on that phone and confirms the time of the check-in.
 - **Question draw**: a random value made once per workbook is mixed into the draw, so a new class does not meet last year's live quiz in the same order.
 
-New private tabs: Item_Log (one row per student per live quiz question), Access_Codes and Question_Stats. Practice attempts now also record the IDs of the questions asked, and live answers record the confidence. `clearSemesterRecords` clears the three new tabs with the other term records.
+- **Student groups** (`groups.html`, host key): makes a set of groups for an activity, at random, mixed by quiz results or mixed by attendance, from the whole class list or only the students checked in at the latest session. Size is set by students per group or by number of groups; sizes differ by at most one. Earlier pairings are avoided where possible, groups can be locked and kept when the set is made again, students can be moved by hand, and each group can be given a mark that is copied to every member (Groups tab, and a "Group: name" column in Master and Scores, not counted in the live quiz total). Projector view, CSV and print. Students see their groups, the other members and the mark under My progress.
+
+New private tabs: Groups (one row per student per set), Item_Log (one row per student per live quiz question), Access_Codes and Question_Stats. Practice attempts now also record the IDs of the questions asked, and live answers record the confidence. `clearSemesterRecords` clears the three new tabs with the other term records.
 
 The web version needs `apps_script/quiz_receiver.gs` from this folder deployed in its own Google Sheet for these features; the desktop app has them built in.
 

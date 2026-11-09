@@ -2,7 +2,7 @@
 
 Written 9 November 2026. A description of the class management tool as it stands in this folder, for review of the tool and of the course it serves.
 
-**Update, later on 9 November 2026.** Following the review, the package gained learning support; see "Learning support" in README.md. Of the gaps listed below, these are now closed: the own-results lookup needs a personal access code; the live quiz draw changes with each new workbook; every live answer is kept per question (Item_Log), so per-question statistics are computed; practice attempts record the questions asked. Three private tabs were added: Item_Log, Access_Codes and Question_Stats.
+**Update, later on 9 November 2026.** Following the review, the package gained learning support; see "Learning support" in README.md. Of the gaps listed below, these are now closed: the own-results lookup needs a personal access code; the live quiz draw changes with each new workbook; every live answer is kept per question (Item_Log), so per-question statistics are computed; practice attempts record the questions asked. Four private tabs were added: Item_Log, Access_Codes, Question_Stats and Groups. Group marks now exist (groups.html), so "no group marks" below no longer holds.
 
 ## Purpose and architecture
 

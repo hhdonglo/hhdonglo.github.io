@@ -106,7 +106,7 @@ body.focus main{padding-top:0}
    <div id="e-quiz"></div>
   </section>
   <section class="panel"><h3>After class</h3>
-   <p><a class="go" href="insights.html">Teaching insights</a></p>
+   <p><a class="go" href="insights.html">Teaching insights</a><a class="go alt" href="groups.html">Student groups</a></p>
    <p class="note">Weakest lectures and questions, students who may need attention, attendance and quiz averages.</p>
    <ul id="x-list"><li class="note">Attendance summary appears here.</li></ul>
    <p class="note">Then: check the Attendance and Not_On_List tabs and the Flags, export Attendance for Sakai, and delete any test rows.</p>
@@ -118,7 +118,7 @@ body.focus main{padding-top:0}
 (function(){
 "use strict";
 var SCRIPT_URL=window.CM.scriptUrl;
-var EXPECT_VERSION="2026-11-09-learning-1"; // must equal SCRIPT_VERSION in apps_script/quiz_receiver.gs
+var EXPECT_VERSION="2026-11-09-groups-1"; // must equal SCRIPT_VERSION in apps_script/quiz_receiver.gs
 var $=function(i){return document.getElementById(i)};
 var KEY="";try{KEY=sessionStorage.getItem("phys143_hk")||""}catch(x){}
 if(!KEY){location.replace("lecturer.html");return}

@@ -1499,7 +1499,7 @@ function counts_(code) {
 // ---------- Portal and Control Centre support (additive: no existing action changes) ----------
 // SCRIPT_VERSION: change it whenever the script is redeployed; the Control Centre compares it with the version its page expects.
 // Key!M2 = Off hides "My results" from students (default On).
-var SCRIPT_VERSION = '2026-11-09-learning-1';
+var SCRIPT_VERSION = '2026-11-09-groups-1';
 
 function resultsOn_() {
   try {
@@ -1570,6 +1570,7 @@ function portalResults_(p) {
       break;
     }
   }
+  try { out.groups = studentGroups_(id); } catch (err) { out.groups = []; }
   try { var ln = studentLearning_(id); out.mastery = ln.mastery; out.revisit = ln.revisit; out.practice = ln.practice; } catch (err) { out.learningError = true; }
   return out;
 }
@@ -1856,6 +1857,190 @@ function insights_(p) {
   return out;
 }
 
+// ---------- Student groups: made automatically, adjusted by hand, marked per group ----------
+// Groups (private): one row per student per group set. Set | Group | Student ID | Name | Group mark | Out of | Locked | Created.
+//   A "set" is one grouping for one activity (for example "Lab 1"). The group mark is copied to every member, and to Master and Scores
+//   as a column "Group: <set>" (not counted in the live quiz total).
+// Modes: random; mixed by quiz results (each group gets a spread of stronger and weaker students); mixed by attendance.
+// Earlier sets are remembered: among many candidate groupings the one that repeats the fewest earlier pairings is kept.
+// Locked groups are kept as they are when the set is made again.
+var GROUPS_TAB = 'Groups', GROUPS_HEADER = ['Set', 'Group', 'Student ID', 'Name', 'Group mark', 'Out of', 'Locked', 'Created'];
+
+function groupsSheet_() { return sheetWith_(GROUPS_TAB, GROUPS_HEADER); }
+function groupRows_() {
+  return bodyRows_(SpreadsheetApp.getActiveSpreadsheet().getSheetByName(GROUPS_TAB), 8).map(function (r) {
+    return { set: String(r[0]).trim(), group: Number(r[1]) || 0, id: normId_(r[2]), name: String(r[3] || ''), mark: r[4], outOf: r[5], locked: /^y/i.test(String(r[6])), created: r[7] };
+  }).filter(function (r) { return r.set && r.group && r.id; });
+}
+function groupRowOut_(r) { return [r.set, r.group, r.id, r.name, r.mark === undefined ? '' : r.mark, r.outOf === undefined ? '' : r.outOf, r.locked ? 'Yes' : '', r.created || new Date()]; }
+function saveGroupRows_(rows) {
+  rows.sort(function (a, b) { return a.set < b.set ? -1 : a.set > b.set ? 1 : a.group - b.group || (a.name < b.name ? -1 : 1); });
+  rewriteBody_(groupsSheet_(), 8, rows.map(groupRowOut_));
+}
+function randInt_(n) { var h = Utilities.getUuid().replace(/[^0-9a-f]/gi, ''); return parseInt(h.slice(0, 12), 16) % n; }
+function shuffled_(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = randInt_(i + 1), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+
+// How many times each pair of students has already shared a group, in sets other than `except`.
+function pairCounts_(rows, except) {
+  var bySetGroup = {}, pc = {};
+  rows.forEach(function (r) { if (r.set === except) return; var k = r.set + '|' + r.group; (bySetGroup[k] = bySetGroup[k] || []).push(r.id); });
+  Object.keys(bySetGroup).forEach(function (k) {
+    var m = bySetGroup[k];
+    for (var i = 0; i < m.length; i++) for (var j = i + 1; j < m.length; j++) { var p = m[i] < m[j] ? m[i] + '|' + m[j] : m[j] + '|' + m[i]; pc[p] = (pc[p] || 0) + 1; }
+  });
+  return pc;
+}
+function repeatCost_(groups, pc) {
+  var c = 0;
+  groups.forEach(function (g) { for (var i = 0; i < g.length; i++) for (var j = i + 1; j < g.length; j++) { var p = g[i] < g[j] ? g[i] + '|' + g[j] : g[j] + '|' + g[i]; c += pc[p] || 0; } });
+  return c;
+}
+
+// Per-student measure for the mixed modes: live quiz average (released results), else attendance rate.
+function studentMeasure_(mode) {
+  var out = {};
+  if (mode === 'attendance') {
+    var at = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_TAB);
+    if (at && at.getLastRow() > 1 && at.getLastColumn() > 1) {
+      var g = at.getRange(1, 1, at.getLastRow(), at.getLastColumn()).getValues();
+      for (var i = 1; i < g.length; i++) { var id = normId_(g[i][0]), p = 0, n = 0; for (var c = 1; c < g[0].length; c++) if (g[i][c] !== '' && String(g[0][c]).trim()) { n++; if (Number(g[i][c])) p++; } if (id && n) out[id] = p / n; }
+    }
+    return out;
+  }
+  var sum = {};
+  collectResults_().forEach(function (e) { if (!/^(Week |Quiz )/.test(e.label) || !e.n) return; var s = sum[normId_(e.id)] || (sum[normId_(e.id)] = { s: 0, n: 0 }); s.s += e.score; s.n += e.n; });
+  Object.keys(sum).forEach(function (id) { out[id] = sum[id].s / sum[id].n; });
+  return out;
+}
+
+// Deal students into k groups. Mixed modes: rank by the measure, cut into tiers of k, and give each group one from every tier (order
+// within a tier is random, and students with no record sit in the middle). Random mode: one tier of everyone.
+function dealGroups_(ids, k, mode, measure) {
+  var order;
+  if (mode === 'random') order = shuffled_(ids);
+  else {
+    var known = ids.filter(function (id) { return measure[id] !== undefined; }), vals = known.map(function (id) { return measure[id]; }).sort(function (a, b) { return a - b; });
+    var mid = vals.length ? vals[Math.floor(vals.length / 2)] : 0;
+    order = shuffled_(ids).sort(function (a, b) { return (measure[b] !== undefined ? measure[b] : mid) - (measure[a] !== undefined ? measure[a] : mid); });
+  }
+  var groups = []; for (var g = 0; g < k; g++) groups.push([]);
+  for (var t = 0; t < order.length; t += k) {
+    var tier = mode === 'random' ? order.slice(t, t + k) : shuffled_(order.slice(t, t + k));
+    var slots = shuffled_(groups.map(function (x, i) { return i; })).sort(function (a, b) { return groups[a].length - groups[b].length; }); // the smallest groups first, so sizes differ by at most one
+    tier.forEach(function (id, i) { groups[slots[i]].push(id); });
+  }
+  return groups;
+}
+
+// Swap students between groups while that lowers the number of repeated pairings; mixed modes swap only within the same tier.
+function improveGroups_(groups, pc, tierOf) {
+  function gc(g) { return repeatCost_([g], pc); }
+  var best = repeatCost_(groups, pc), pass = 0, changed = true;
+  while (changed && best > 0 && pass++ < 6) {
+    changed = false;
+    for (var a = 0; a < groups.length; a++) for (var b = a + 1; b < groups.length; b++) {
+      var base = gc(groups[a]) + gc(groups[b]);
+      if (!base) continue;
+      for (var i = 0; i < groups[a].length; i++) for (var j = 0; j < groups[b].length; j++) {
+        var x = groups[a][i], y = groups[b][j];
+        if (tierOf && tierOf[x] !== tierOf[y]) continue;
+        groups[a][i] = y; groups[b][j] = x;
+        var now = gc(groups[a]) + gc(groups[b]);
+        if (now < base) { best -= base - now; base = now; changed = true; } else { groups[a][i] = x; groups[b][j] = y; }
+      }
+    }
+  }
+  return best;
+}
+
+function groupsAct_(p) {
+  var op = String(p.op || 'list').toLowerCase(), set = clean_(p.set, 60).replace(/^'/, ''), rows = groupRows_();
+  var names = {}; rosterRows_().forEach(function (r) { var id = normId_(r[0]); if (id) names[id] = cleanName_(r[1]); });
+  if (op === 'make') {
+    if (!set) return { ok: false, why: 'give the set a name' };
+    var mode = /^mix/i.test(p.mode) ? 'mixed' : /^att/i.test(p.mode) ? 'attendance' : 'random';
+    var pool = Object.keys(names);
+    if (/^present/i.test(p.from)) { // only the students checked in at the latest attendance session
+      var ses = attRows_(), last = ses.length ? ses[ses.length - 1] : null, here = last ? attPresent_(last.label) : {};
+      pool = pool.filter(function (id) { return here[id]; });
+      if (!last) return { ok: false, why: 'no attendance session yet' };
+    }
+    var keep = rows.filter(function (r) { return r.set === set && r.locked; }), lockedIds = {}, lockedGroups = {};
+    keep.forEach(function (r) { lockedIds[r.id] = true; lockedGroups[r.group] = true; });
+    pool = pool.filter(function (id) { return !lockedIds[id]; });
+    if (!pool.length) return { ok: false, why: keep.length ? 'every student is in a locked group' : 'no students to group: load the class list first' };
+    var size = Math.max(2, Math.min(50, Number(p.size) || 0)), count = Math.max(1, Math.min(200, Number(p.count) || 0));
+    var k = Number(p.count) ? Math.min(count, pool.length) : Math.max(1, Math.ceil(pool.length / (size || 4)));
+    var measure = mode === 'random' ? {} : studentMeasure_(mode === 'mixed' ? 'quiz' : 'attendance');
+    var pc = /^n/i.test(String(p.avoid || 'yes')) ? {} : pairCounts_(rows, set), best = null, bestCost = Infinity;
+    for (var tries = 0; tries < 40 && bestCost > 0; tries++) {
+      var gs = dealGroups_(pool, k, mode, measure), c = repeatCost_(gs, pc);
+      if (c < bestCost) { best = gs; bestCost = c; }
+    }
+    var tierOf = null;
+    if (mode !== 'random') { tierOf = {}; best.forEach(function (g) { g.forEach(function (id, i) { tierOf[id] = i; }); }); }
+    bestCost = improveGroups_(best, pc, tierOf);
+    var numbers = [], nx = 1; while (numbers.length < best.length) { if (!lockedGroups[nx]) numbers.push(nx); nx++; }
+    var now = new Date(), fresh = [];
+    best.forEach(function (g, i) { g.forEach(function (id) { fresh.push({ set: set, group: numbers[i], id: id, name: names[id] || '', mark: '', outOf: '', locked: false, created: now }); }); });
+    saveGroupRows_(rows.filter(function (r) { return r.set !== set; }).concat(keep, fresh));
+    log_('groups made', set + ': ' + mode + ', ' + best.length + ' new group(s), repeats ' + bestCost, '', '');
+    var res = groupsAct_({ op: 'list', set: set }); res.repeats = bestCost; res.mode = mode; return res;
+  }
+  if (op === 'move' || op === 'lock' || op === 'mark' || op === 'delete') {
+    var inSet = rows.filter(function (r) { return r.set === set; });
+    if (!inSet.length) return { ok: false, why: 'no such set' };
+    var g = Number(p.group) || 0;
+    if (op === 'move') {
+      var id = normId_(p.id), to = Math.max(1, Math.min(200, Number(p.to) || 0)), who = inSet.filter(function (r) { return r.id === id; })[0];
+      if (!who || !to) return { ok: false, why: 'student not in this set' };
+      var target = inSet.filter(function (r) { return r.group === to; })[0];
+      who.group = to; who.locked = target ? target.locked : false;
+      if (target) { who.mark = target.mark; who.outOf = target.outOf; } else { who.mark = ''; who.outOf = ''; }
+    } else if (op === 'lock') {
+      inSet.forEach(function (r) { if (r.group === g) r.locked = !/^(0|no|false)$/i.test(String(p.value || 'yes')); });
+    } else if (op === 'mark') {
+      var mk = String(p.mark || '').trim(), oo = String(p.outof || '').trim();
+      if (mk !== '' && isNaN(Number(mk))) return { ok: false, why: 'the mark must be a number' };
+      if (oo !== '' && (isNaN(Number(oo)) || Number(oo) <= 0)) return { ok: false, why: 'out of must be a positive number' };
+      var members = inSet.filter(function (r) { return r.group === g; });
+      if (!members.length) return { ok: false, why: 'no such group' };
+      members.forEach(function (r) { r.mark = mk === '' ? '' : Number(mk); r.outOf = oo === '' ? '' : Number(oo); });
+      if (mk !== '' && oo !== '') updateMaster_(members.filter(function (r) { return names[r.id] !== undefined; }).map(function (r) { return { id: r.id, name: r.name, label: 'Group: ' + set, score: Number(mk), n: Number(oo) }; }));
+      log_('group mark', set + ' group ' + g + ': ' + mk + (oo ? ' / ' + oo : ''), '', '');
+    } else if (op === 'delete') {
+      saveGroupRows_(rows.filter(function (r) { return r.set !== set; }));
+      log_('groups deleted', set, '', '');
+      return groupsAct_({ op: 'list' });
+    }
+    saveGroupRows_(rows);
+    return groupsAct_({ op: 'list', set: set });
+  }
+  // list: the sets, and the groups of one set
+  var sets = [], seenSet = {};
+  rows.forEach(function (r) { if (!seenSet[r.set]) { seenSet[r.set] = { name: r.set, students: 0, groups: {}, created: r.created }; sets.push(seenSet[r.set]); } seenSet[r.set].students++; seenSet[r.set].groups[r.group] = 1; });
+  var pick = set && seenSet[set] ? set : (sets.length ? sets[sets.length - 1].name : '');
+  var pcAll = pairCounts_(rows, pick), groups = {};
+  rows.filter(function (r) { return r.set === pick; }).forEach(function (r) {
+    var gg = groups[r.group] || (groups[r.group] = { group: r.group, locked: r.locked, mark: r.mark, outOf: r.outOf, members: [] });
+    gg.members.push({ id: r.id, name: r.name || names[r.id] || '', onList: names[r.id] !== undefined });
+  });
+  var list = Object.keys(groups).map(function (k) { return groups[k]; }).sort(function (a, b) { return a.group - b.group; });
+  var inGroup = {}; list.forEach(function (gq) { gq.members.forEach(function (m) { inGroup[m.id] = true; }); });
+  return { ok: true, sets: sets.map(function (s) { return { name: s.name, students: s.students, groups: Object.keys(s.groups).length }; }), set: pick, groups: list,
+    repeats: repeatCost_(list.map(function (gq) { return gq.members.map(function (m) { return m.id; }); }), pcAll),
+    notGrouped: Object.keys(names).filter(function (id) { return !inGroup[id]; }).map(function (id) { return { id: id, name: names[id] }; }) };
+}
+
+// A student's own groups, for My progress: the other members' names as on the class list, so the group can find each other.
+function studentGroups_(id) {
+  var rows = groupRows_(), mine = rows.filter(function (r) { return r.id === id; });
+  return mine.map(function (m) {
+    var others = rows.filter(function (r) { return r.set === m.set && r.group === m.group && r.id !== id; }).map(function (r) { return String(r.name || '').trim() || 'Classmate'; });
+    return { set: m.set, group: m.group, members: others, mark: m.mark === '' ? null : m.mark, outOf: m.outOf === '' ? null : m.outOf };
+  });
+}
+
 function doGet(e) {
   var p = (e && e.parameter) || {};
   var code = clean_(p.code, 30).toUpperCase();
@@ -1883,6 +2068,11 @@ function doGet(e) {
   if (p.action === 'set_week') return jsonp_(e, hostOk_(p) ? setWeek_(p) : { ok: false, why: 'host key not accepted' }); // the Control Centre week selector
   if (p.action === 'portal_status') return jsonp_(e, portalStatus_()); // the student portal banner
   if (p.action === 'my_results') return jsonp_(e, portalResults_(p)); // a student's own attendance and quiz scores
+  if (p.action === 'groups') { // host only: make, list, move, lock, mark or delete student groups
+    if (!hostOk_(p)) return jsonp_(e, { ok: false, why: 'host key not accepted' });
+    var gl = LockService.getScriptLock(); gl.waitLock(30000);
+    try { return jsonp_(e, groupsAct_(p)); } finally { gl.releaseLock(); }
+  }
   if (p.action === 'insights') return jsonp_(e, hostOk_(p) ? insights_(p) : { ok: false, why: 'host key not accepted' }); // host only: Teaching insights
   if (p.action === 'access_codes') { // host only: list, create or replace students' personal codes for My results
     if (!hostOk_(p)) return jsonp_(e, { ok: false, why: 'host key not accepted' });
