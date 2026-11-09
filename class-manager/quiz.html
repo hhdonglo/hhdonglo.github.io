@@ -10,6 +10,7 @@
 <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="assets/icon-192.png">
 <script src="config.js"></script>
+<script src="assets/qrcode.js"></script>
 <link rel="stylesheet" href="assets/site.css">
 <link rel="stylesheet" href="assets/student.css">
 <link rel="manifest" href="manifest.webmanifest">
@@ -77,6 +78,9 @@ aside.disclaimer .cm-notice-link{font-size:.8rem}
 .try .note{font:.92rem/1.5 system-ui,sans-serif;color:var(--muted)}
 .try .wr{text-align:center;padding:.4rem 0 .2rem}
 .try .wr .hello{font:700 1.4rem system-ui,sans-serif;margin:.2rem 0 .4rem}
+.try .wr-share{margin:1rem auto 0;padding:.8rem;border:1px dashed var(--border);border-radius:8px;text-align:center;max-width:22rem}
+.try .wr-share p{margin:.3rem 0}
+.try .wr-share img{display:block;margin:.5rem auto;width:220px;height:220px;background:#fff;padding:6px;border-radius:6px}
 .try .wr .nq{font:600 1rem system-ui,sans-serif;margin:.6rem 0;color:var(--muted)}
 .try .dots{display:flex;justify-content:center;gap:.5rem;margin:1.1rem 0 .5rem}
 .try .dots i{width:12px;height:12px;border-radius:50%;background:var(--brown-fill);opacity:.25;animation:wr 1.2s infinite ease-in-out}
@@ -116,6 +120,12 @@ body.focus .try .fun{display:block}
    <p id="wr-msg" role="status">Your lecturer will start the quiz shortly. This page will begin by itself.</p>
    <p class="nq" id="wr-n"></p>
    <div class="dots" id="wr-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+  </div>
+  <div class="wr-share" id="wr-share" hidden>
+   <p class="lbl">Help a friend join</p>
+   <p>A friend near you can scan this code from your screen. It opens this quiz with the join code filled in.</p>
+   <img id="wr-qr" src="assets/blank.svg" alt="QR code to join this quiz" width="220" height="220">
+   <p>Join code: <b id="wr-code"></b></p>
   </div>
   <details class="note" style="margin-top:.8rem" open><summary>How it works</summary><p>I show one question at a time. Choose an answer before the clock runs out. Only your first attempt counts.</p></details>
  </section>
@@ -176,6 +186,9 @@ function show(id){
  else if(id!=="s-wait"&&st.watch){clearInterval(st.watch);st.watch=null}
  document.body.classList.toggle("focus",id!=="s-end");["s-start","s-wait","s-q","s-end","s-att"].forEach(function(x){$(x).hidden=(x!==id)});window.scrollTo(0,0)}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+// A join QR (projector or a friend's phone) carries the join code: fill it in, so the student types only the name and ID.
+(function(){var m=/[?&]code=([^&#]+)/.exec(location.search);if(!m)return;var c="";try{c=decodeURIComponent(m[1]).toUpperCase().replace(/[^A-Z0-9-]/g,"").slice(0,30)}catch(x){}
+ if(c){$("in-code").value=c;var f=$("in-name");if(f&&!f.value)setTimeout(function(){try{f.focus()}catch(x){}},0)}})();
 $("f-start").addEventListener("submit",function(e){
  e.preventDefault();
  var n=$("in-name").value.trim(),d=$("in-id").value.trim(),c=$("in-code").value.trim().toUpperCase();
@@ -202,7 +215,7 @@ function gate(){
    if(s==="paused"&&!st.joined){stop("This quiz is paused. Ask your lecturer.");return}
    if((s==="ready"||s==="draft")&&!st.joined){stop(PHYSMSG.text("E11"));return}
    if(s==="paused"){wait("The quiz is paused by your lecturer. This page will continue by itself.");return}
-   if(s!=="running"){wait("");return}
+   if(s!=="running"){wait("");shareShow(s==="lobby");return}
    if(!st.joined&&!d.allowLate){stop("This quiz has already started and late joining is closed. Ask your lecturer.");return}
    btn.disabled=false;er.hidden=true;
    if(!st.joined){st.joined=true;join()}
@@ -210,7 +223,7 @@ function gate(){
    if(d.paced)startPaced(d);else startTimed(d);return}
   var state=d&&d.state?d.state:"started";
   if(state==="stopped"){stop(PHYSMSG.text("E11"));return}
-  if(state==="waiting"){wait("");return}
+  if(state==="waiting"){wait("");shareShow(true);return}
   btn.disabled=false;er.hidden=true;
   if(!st.joined){st.joined=true;join()}
   ask();
@@ -225,8 +238,11 @@ function doAttend(d,btn,er){ // an attendance code: only the student ID is used;
   $("att-id").textContent=r.id;$("t-att").textContent=r.already?"Already marked present today":"Marked present";$("att-msg").textContent=r.onList===false?"Your ID is not on the class list. Please see your lecturer. Student ID ":"Student ID ";show("s-att");
  });
 }
+// The join QR on the student's phone, only while the class waits for the lecturer to start (never once the quiz is running or paused).
+function shareShow(on){var b=$("wr-share");if(!b)return;b.hidden=!on;if(on){$("wr-code").textContent=st.code;CM.drawQr($("wr-qr"),CM.joinUrl(st.code))}}
 function roomShow(m,n,closed){
  if($("s-wait").hidden)show("s-wait");
+ shareShow(false);
  $("t-wait").textContent="Welcome, "+st.name;
  $("wr-msg").textContent=m||"Your lecturer will start the quiz shortly. This page will begin by itself.";
  $("wr-n").textContent=n?"This quiz has "+n+" question"+(n===1?"":"s")+".":"";

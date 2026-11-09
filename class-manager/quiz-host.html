@@ -213,7 +213,7 @@ function refresh(first){
    } else if(s==="ended"||s==="released"){act("newround");return}
   }
   var lob=(s==="lobby"||s==="ready"||s==="draft"),live=(s==="running"||s==="paused");
-  $("h-qr").hidden=!lob;$("h-link").hidden=!lob;
+  $("h-qr").hidden=!lob;$("h-link").hidden=!lob;if(lob)CM.drawQr($("h-qr"),CM.joinUrl(cfg.code));
   $("h-qbox").hidden=!live;$("h-tbox").hidden=!live;$("h-part").hidden=!live;
   $("h-stale").hidden=true;$("h-stalestate").textContent=(LABEL[s]||s).toLowerCase();
   $("h-showcode").textContent=cfg.code;$("h-state").textContent=LABEL[s]||s;

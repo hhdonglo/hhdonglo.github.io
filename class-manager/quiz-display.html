@@ -115,7 +115,7 @@ function refresh(){
   $("d-joined").textContent=d.joined;$("d-joined2").textContent=d.joined;$("d-answered").textContent=d.answered||0;
   var st=d.status;cfg.c=st;cfg.at=Date.now();
   var s=st?st.state:"started";ctlSync(s);var live=s==="running"||s==="paused",fin=s==="ended"||s==="released";
-  $("d-join").hidden=live||fin;
+  $("d-join").hidden=live||fin;if(!live&&!fin)CM.drawQr(document.querySelector("#d-join img[data-qr]"),CM.joinUrl(cfg.code));
   var qkey=cfg.code+"|"+(st&&st.qids||[]).join(",");
   if(st&&st.qids&&st.qids.length&&cfg.qkey!==qkey){cfg.qkey=qkey;jsonp("action=questions&code="+encodeURIComponent(cfg.code),function(r){cfg.qs=(r&&r.questions)||[]})}
   var rv=d.review&&d.review.q&&fin?d.review:null;
