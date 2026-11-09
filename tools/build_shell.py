@@ -3,7 +3,8 @@ import glob, re, os, json, html
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PRIMARY = [("index.html", "Home"), ("research.html", "Research"), ("projects.html", "Projects"),
            ("data-engineering.html", "Scientific Computing"), ("teaching.html", "Teaching"),
-           ("publications.html", "Publications"), ("students.html", "Students"), ("about.html", "About")]
+           ("publications.html", "Publications"), ("students.html", "Students"), ("about.html", "About"),
+           ("class-manager-app.html", "Download")]
 UTILITY = [("cv.html", "CV"), ("contact.html", "Contact")]
 # page -> menu item it belongs to (exact page gets aria-current="page", a child page gets "true")
 # Drop-down children follow the site map; each links to an existing page or section anchor.
@@ -14,9 +15,10 @@ SUB = {
     "data-engineering.html": [("Data Engineering", "data-engineering.html#pipelines"), ("Machine Learning", "data-engineering.html#retrieval"), ("Data Analysis", "data-engineering.html#analysis")],
     "teaching.html": [("Courses", "teaching.html#lecture-courses"), ("Lecture Notes", "phys143.html#weekly"), ("Mock exam", "mock-exam.html")],
     "publications.html": [("Journal Articles", "publications.html#journal-articles"), ("Preprints", "publications.html#preprints"), ("Theses", "publications.html#theses")],
+    "class-manager-app.html": [("Class Manager app for lecturers (Beta)", "class-manager-app.html")],
     "students.html": [("Supervision", "students.html#undergraduate"), ("Project Opportunities", "students.html#research-projects")],
 }
-CHILD = {"reaction-dynamics.html": "research.html", "phys143.html": "teaching.html", "mock-exam.html": "teaching.html", "class-manager-app.html": "teaching.html", "laboratory.html": "teaching.html", "uncertainty.html": "teaching.html", "kewpie3.html": "projects.html", "numeralanalytics.html": "data-engineering.html", "earlier-research.html": "research.html", "student-research.html": "students.html"}
+CHILD = {"reaction-dynamics.html": "research.html", "phys143.html": "teaching.html", "mock-exam.html": "teaching.html", "laboratory.html": "teaching.html", "uncertainty.html": "teaching.html", "kewpie3.html": "projects.html", "numeralanalytics.html": "data-engineering.html", "earlier-research.html": "research.html", "student-research.html": "students.html"}
 
 def menu(page):
     cur = CHILD.get(page) or (page if re.match(r"phys143-lecture-\d+(-practice)?\.html$", page) is None else "teaching.html")
