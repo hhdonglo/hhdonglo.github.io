@@ -23,6 +23,13 @@ window.CM = {
   "use strict";
   // Full address of a page that sits next to the current one, wherever the package is served.
   CM.pageUrl = function (name) { return new URL(name, CM.publicBase || location.href).href.replace(/[?#].*$/, ""); }; // publicBase: the desktop app's internet address, when it is on
+  // The quiz page with the join code filled in, for QR codes on the projector and on students' phones.
+  CM.joinUrl = function (code) { return CM.pageUrl("quiz.html") + (code ? "?code=" + encodeURIComponent(String(code).toUpperCase()) : ""); };
+  CM.drawQr = function (img, url) {
+    if (!img || typeof qrcode !== "function") return;
+    if (img.getAttribute("data-qr-url") === url) return; // already drawn
+    try { var q = qrcode(0, "M"); q.addData(url); q.make(); img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(q.createSvgTag({ cellSize: 8, margin: 2, scalable: true })); img.setAttribute("data-qr-url", url); } catch (e) { /* the address is shown beside the code */ }
+  };
   var parts = [CM.courseCode, CM.courseTitle, CM.institution].filter(Boolean);
   CM.footer = parts.length ? parts.join(" · ") + " · " : "";
   CM.courseHeading = (CM.courseCode || "Course") + (CM.courseTitle ? ": " + CM.courseTitle : "");
