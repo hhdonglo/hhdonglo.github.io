@@ -83,6 +83,8 @@ In mode B, the optional Google sign-in (`desktop/google.js`) copies every tab on
  |              drafts, bank overlay -> userData/authoring/                       |
  |              -> api.anthropic.com (only with an API key)                       |
  | google.js    OAuth (loopback, PKCE) -> one-way copy of all tabs to a Sheet     |
+ | tunnel.js    optional internet address: cloudflared quick tunnel -> second     |
+ |              server on 127.0.0.1 (remote requests: no /app/, 240 per minute)    |
  +--------------------------------------------------------------------------------+
 ```
 
@@ -320,7 +322,7 @@ None of the session suites has been run against Google Apps Script itself. Gener
 
 ## 14. Known limits and technical debt
 
-1. **Desktop reach.** In mode B, messages, announcements, the calendar feed and the live quiz reach only devices on the same network, and only while the app is open. External calendar services cannot subscribe to a LAN address.
+1. **Desktop reach.** In mode B, students reach the app on the same network, or from anywhere through the optional internet address (a Cloudflare quick tunnel, `desktop/tunnel.js`), and only while the app is open. The internet address changes at each start, so external calendar subscriptions to it do not last.
 2. **Google copy is one way.** The copy from the desktop app to a Sheet is one way. Moving from mode B to mode A is not a migration path for messages or the calendar.
 3. **Polling.** Chat polls every 8 seconds over JSONP. In mode A, each poll is an Apps Script execution. The version stamp keeps unchanged polls short, but a large class with chat open adds up against Apps Script quotas and concurrency (judgement: worth measuring before heavy use).
 4. **Whole-tab reads.** Every chat sync reads the Messages, Chat_Read and Chat_Groups tabs in full, and the roster and codes. Cost grows with the number of messages; there is no archive or paging.

@@ -13,7 +13,7 @@ window.CM = {
 (function (CM) {
   "use strict";
   // Full address of a page that sits next to the current one, wherever the package is served.
-  CM.pageUrl = function (name) { return new URL(name, location.href).href.replace(/[?#].*$/, ""); };
+  CM.pageUrl = function (name) { return new URL(name, CM.publicBase || location.href).href.replace(/[?#].*$/, ""); }; // publicBase: the desktop app's internet address, when it is on
   function fill() {
     // Course labels in the header and footer.
     document.querySelectorAll("[data-cm]").forEach(function (el) {

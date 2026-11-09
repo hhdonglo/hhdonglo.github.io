@@ -84,7 +84,7 @@ function jsonp(params,cb,ms){
  sc.src=SCRIPT_URL+"?"+params+"&callback="+n+"&_="+Date.now();document.head.appendChild(sc);
 }
 var KEY="";try{KEY=sessionStorage.getItem("phys143_hk")||""}catch(x){}
-var PORTAL=location.href.replace(/[^\/]*([?#].*)?$/,"")+"index.html";
+var PORTAL=CM.pageUrl("index.html");
 function call(op,extra){
  $("a-err").hidden=true;
  jsonp("action=access_codes&op="+op+"&hostkey="+encodeURIComponent(KEY)+(extra||""),function(d){

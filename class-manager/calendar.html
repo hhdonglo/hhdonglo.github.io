@@ -199,7 +199,7 @@ function ics(list){var st=new Date().toISOString().replace(/[-:]/g,"").replace(/
  list.forEach(function(ev){L.push("BEGIN:VEVENT","UID:"+ev.id+"@class-manager","DTSTAMP:"+st);L.push(ev.allDay?"DTSTART;VALUE=DATE:"+ev.utcStart:"DTSTART:"+ev.utcStart,ev.allDay?"DTEND;VALUE=DATE:"+ev.utcEnd:"DTEND:"+ev.utcEnd,"SUMMARY:"+icsText(ev.title));if(ev.location)L.push("LOCATION:"+icsText(ev.location));if(details(ev))L.push("DESCRIPTION:"+icsText(details(ev)));L.push("END:VEVENT")});
  L.push("END:VCALENDAR");return L.map(fold).join("\r\n")+"\r\n"}
 function save(name,text){var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([text],{type:"text/calendar"}));a.download=name;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},500)}
-function feed(){var base=window.CM.desktop?location.origin+"/calendar.ics":SCRIPT_URL+"?action=calendar_ics&course="+encodeURIComponent((window.CM.courseCode||"Course")+" calendar");return base}
+function feed(){var base=window.CM.desktop?(window.CM.publicBase?window.CM.publicBase.replace(/\/$/,""):location.origin)+"/calendar.ics":SCRIPT_URL+"?action=calendar_ics&course="+encodeURIComponent((window.CM.courseCode||"Course")+" calendar");return base}
 function load(cb){jsonp("action=calendar"+(KEY?q("hostkey",KEY):""),function(d){if(!d||!d.ok){err(d?"The calendar could not be loaded: "+(d.why||"unknown"):"The class server could not be reached, or it does not support the calendar yet (update the Apps Script).");return}err("");D=d;if(KEY&&!d.host){KEY="";try{sessionStorage.removeItem("phys143_hk")}catch(x){}}hostUi();draw();if(cb)cb()})}
 // ---------- lecturer ----------
 function hostUi(){$("c-host").hidden=!D.host;$("c-hostlink").hidden=!!D.host;

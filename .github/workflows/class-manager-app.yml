@@ -14,6 +14,10 @@ on:
         type: boolean
         required: false
         default: false
+      notes:
+        description: "Extra sentence for the release notes (optional)"
+        required: false
+        default: ""
   push:
     paths:
       - "class-manager/**"
@@ -78,9 +82,10 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ inputs.release }}
           DRAFT: ${{ inputs.publish && ' ' || '--draft' }}
+          EXTRA: ${{ inputs.notes }}
         run: |
           ls -l installers
           gh release create "${TAG}" installers/* \
             --repo "${GITHUB_REPOSITORY}" --target "${GITHUB_SHA}" ${DRAFT} \
             --title "Class Manager ${TAG#class-manager-v}" \
-            --notes "Installers for Windows, macOS and Linux. They are not signed: see the installation notes on https://hhdonglo.github.io/class-manager-app.html"
+            --notes "Installers for Windows, macOS and Linux. They are not signed: see the installation notes on https://hhdonglo.github.io/class-manager-app.html. Beta: not yet fully tested. ${EXTRA}"
