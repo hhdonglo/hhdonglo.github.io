@@ -1116,3 +1116,12 @@ body.focus main{padding-top:1.2rem}
 @media (prefers-color-scheme:dark){.page-teaching [aria-labelledby="research-informed"] .ov-ref thead th{background:rgba(255,255,255,.05)}}
 @media (max-width:720px){.page-teaching [aria-labelledby="research-informed"] .ov-ref th,.page-teaching [aria-labelledby="research-informed"] .ov-ref td{padding:.7rem .9rem}.page-teaching [aria-labelledby="research-informed"] .ov-ref tbody td:first-child{width:42%}}
 .page-teaching main>.wrap>h2#teaching{margin-bottom:1.5rem}
+
+/* Main menu: a top-level item with no page of its own (Resources) is a button that opens its drop-down */
+nav.jump .dd-label{gap:.3rem;padding:0 .1rem;color:var(--link);font:inherit;white-space:nowrap}
+nav.jump .dd-label span{font-size:.85rem;color:var(--brown)}
+nav.jump .dd-label[aria-current]{font-weight:700}
+nav.jump .dd-btn:hover{background:var(--sky);border-radius:4px}
+nav.jump .dd-btn:focus-visible,nav.jump .links a:focus-visible{outline:3px solid var(--brown);outline-offset:2px;border-radius:4px}
+@media (prefers-color-scheme:dark){nav.jump .dd-btn:hover{background:#2A3F73}}
+@media (max-width:720px){nav.jump.js .dd-label{flex:1;justify-content:space-between;min-height:44px;padding:.4rem 1rem;text-align:left}}
