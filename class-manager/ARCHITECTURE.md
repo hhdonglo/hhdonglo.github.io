@@ -189,7 +189,7 @@ All reads and lecturer actions use JSONP GET: `?action=...&callback=...`. Submis
 
 | Who | Credential | Where checked |
 |---|---|---|
-| Lecturer | Host key: 8 random base-36 characters made at setup, optionally replaced and stored hashed | `hostOk_`; 30 failures lock it for 10 min (CacheService). Kept in `sessionStorage` (`phys143_hk`) by lecturer pages. |
+| Lecturer | Host key: 16 random hexadecimal characters made at setup, optionally replaced and stored hashed | `hostOk_`; 30 failures lock it for 10 min (CacheService). Kept in `sessionStorage` (`phys143_hk`) by lecturer pages. |
 | Student, own record and chat | Student ID on the class list plus a personal access code | `portalResults_`, `chatWho_`; 6 failures lock the ID for 10 min. Optionally remembered in `localStorage`. |
 | Student, live quiz | Join code shown in class, plus name and ID | Presence and round rules; first submission counts |
 | Student, attendance | Rotating QR token (30 s slots), device token, one check-in per ID per session | Attendance hardening section |
@@ -325,8 +325,8 @@ None of the session suites has been run against Google Apps Script itself. Gener
 3. **Polling.** Chat polls every 8 seconds over JSONP. In mode A, each poll is an Apps Script execution. The version stamp keeps unchanged polls short, but a large class with chat open adds up against Apps Script quotas and concurrency (judgement: worth measuring before heavy use).
 4. **Whole-tab reads.** Every chat sync reads the Messages, Chat_Read and Chat_Groups tabs in full, and the roster and codes. Cost grows with the number of messages; there is no archive or paging.
 5. **Secrets in URLs.** Host key and access codes travel as GET query parameters, so they can appear in browser history and server logs. In mode B, the transport is plain HTTP on the local network.
-6. **Host key strength.** The host key is generated with `Math.random` (8 base-36 characters).
-7. **Owner email in the script.** `NOTIFY_EMAIL` is set to the owner's address in the colleague package. The desktop backend sets it to empty, but mode A deployments by colleagues would email the owner until it is changed. The privacy note in `attend.html` also shows the owner's email.
+6. **Host key strength.** Fixed on 9 November 2026: setup now makes the host key from a random UUID (16 hexadecimal characters). Keys made before that are 8 base-36 characters from `Math.random` and can be replaced with `setkey`.
+7. **Owner email in the script.** Fixed on 9 November 2026: `NOTIFY_EMAIL` is empty in the package, and reports go to the Google account that deployed the script. The desktop app sends no email.
 8. **One large script file.** The server script is a single 2,577-line file with sections, not modules. Tab layouts are positional (column numbers in code).
 9. **Tests outside the repository.** The session test suites are not committed and there is no CI for the package.
 10. **Fixed upper bound on the week.** `setWeek_` accepts weeks 0 to 12 only, although banks may now be added for other lectures.
@@ -341,8 +341,8 @@ These are proposals for review, ordered by the value they would give relative to
 
 1. **Commit the test suites** under `class-manager/tests/` with a single command, and run the server and end-to-end suites in GitHub Actions on each push.
 2. **Move secrets out of URLs.** Send the host key and access codes in POST bodies, or exchange them once for a short-lived session token held in memory.
-3. **Make the colleague package neutral.** Set `NOTIFY_EMAIL` and the privacy contact from settings rather than code.
-4. **Strengthen the host key.** Generate it with `Utilities.getUuid` or `crypto.randomBytes` and a longer length, and hash it by default.
+3. **Make the colleague package neutral.** Done for the report email (item 7 above).
+4. **Strengthen the host key.** Done for generation (item 6 above). Hashing it by default remains open.
 5. **Push in the desktop app.** Server-sent events on the local server would deliver messages at once and reduce polling. Mode A would keep polling.
 6. **Messages at scale.** Add an archive tab per term, and read only recent rows (the last N per conversation) on sync.
 7. **Two-way Google storage for mode B.** Use the Google-hosted script as the single record, with the desktop app as a client. Mode C already does this, and could be offered as the default once signed in.

@@ -28,7 +28,12 @@ var TOTALS_TAB = 'Totals'; // private: one row per student ID, rebuilt automatic
 var EXPL_TAB = 'Explanations'; // optional override: join code | question number | explanation. Normally empty.
 var SITE = 'https://hhdonglo.github.io/class-manager'; // CONFIG: the web address this package is served from, without a final slash. The script reads quizzes/ and apps_script/live_quizzes.json from here. // explanations come from the practice bank listed in apps_script/live_quizzes.json
 var LETTERS = ['A', 'B', 'C', 'D', 'E'];
-var NOTIFY_EMAIL = 'hkdonglo@gmail.com'; // new reports are emailed here
+var NOTIFY_EMAIL = ''; // CONFIG (optional): where new reports are emailed. Left empty, they go to the Google account that deployed the script.
+
+function notifyTo_() {
+  if (NOTIFY_EMAIL) return NOTIFY_EMAIL;
+  try { return Session.getEffectiveUser().getEmail() || ''; } catch (err) { return ''; }
+}
 var GRACE_MS = 15000; // a submission may arrive this long after the deadline (network delay)
 
 function clean_(v, max) {
@@ -46,10 +51,11 @@ function append_(tab, header, row) {
 }
 
 function mailReport_(sh, r) {
-  var row = sh.getLastRow(), status;
+  var row = sh.getLastRow(), status, to = notifyTo_();
+  if (!to) return; // no address: the report is saved in the tab only
   try {
     var where = 'tab "' + sh.getName() + '", row ' + row; // no sheet link in the email, so a forwarded or quoted copy never carries it
-    MailApp.sendEmail(NOTIFY_EMAIL, 'PHYS 143 report: ' + r.lecture + ', ' + r.qid,
+    MailApp.sendEmail(to, 'PHYS 143 report: ' + r.lecture + ', ' + r.qid,
       'A student reported a problem.\n\nTime: ' + r.time + '\nPage: ' + r.page + '\nLecture: ' + r.lecture + '\nQuestion id: ' + r.qid +
       '\nQuestion: ' + r.question + '\nAnswer shown: ' + r.answer + '\n\nComment:\n' + r.comment + '\n\nWhere to find it: ' + where + ' (open your Sheet from Google Drive).');
     status = 'email sent';
@@ -62,7 +68,7 @@ function mailReport_(sh, r) {
 
 // Run this once from the editor (choose testEmail, press Run) to grant the email permission and check delivery.
 function testEmail() {
-  MailApp.sendEmail(NOTIFY_EMAIL, 'PHYS 143 test email', 'If you can read this, report emails will reach you. Remaining daily quota: ' + MailApp.getRemainingDailyQuota());
+  MailApp.sendEmail(notifyTo_(), 'PHYS 143 test email', 'If you can read this, report emails will reach you. Remaining daily quota: ' + MailApp.getRemainingDailyQuota());
 }
 
 function log_(outcome, name, id, code) {
@@ -347,7 +353,7 @@ function setup() {
   if (ks.getLastRow() === 0) ks.appendRow(['Join Code', 'Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Ranking']);
   ks.getRange(1, 8).setValue('State');
   ks.getRange(1, 10).setValue('Host key');
-  if (!String(ks.getRange(2, 10).getValue()).trim()) ks.getRange(2, 10).setValue(Math.random().toString(36).slice(2, 10));
+  if (!String(ks.getRange(2, 10).getValue()).trim()) ks.getRange(2, 10).setValue(Utilities.getUuid().replace(/-/g, '').slice(0, 16)); // 16 hex characters from a random UUID
   if (ks.getLastRow() < 2) ks.appendRow(['2627', '', '', '', '', '', 'Open']);
   ks.getRange(1, 11).setValue('Totals count (Best or Latest)');
   if (!String(ks.getRange(2, 11).getValue()).trim()) ks.getRange(2, 11).setValue('Best');

@@ -9,6 +9,11 @@ on:
         description: "Also put the installers in a draft GitHub Release, for example class-manager-v0.1.0 (leave empty to only build)"
         required: false
         default: ""
+      publish:
+        description: "Publish the release at once instead of leaving it as a draft"
+        type: boolean
+        required: false
+        default: false
   push:
     paths:
       - "class-manager/**"
@@ -56,7 +61,7 @@ jobs:
           if-no-files-found: error
 
   release:
-    # Draft only: nothing is public until the release is published on GitHub.
+    # A draft unless "publish" is ticked: nothing is public until the release is published.
     # The download page links to releases/latest/download/<file>, so publishing a release updates the page.
     if: github.event_name == 'workflow_dispatch' && startsWith(inputs.release, 'class-manager-v')
     needs: build
@@ -72,9 +77,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ inputs.release }}
+          DRAFT: ${{ inputs.publish && ' ' || '--draft' }}
         run: |
           ls -l installers
           gh release create "${TAG}" installers/* \
-            --repo "${GITHUB_REPOSITORY}" --target "${GITHUB_SHA}" --draft \
+            --repo "${GITHUB_REPOSITORY}" --target "${GITHUB_SHA}" ${DRAFT} \
             --title "Class Manager ${TAG#class-manager-v}" \
             --notes "Installers for Windows, macOS and Linux. They are not signed: see the installation notes on https://hhdonglo.github.io/class-manager-app.html"
