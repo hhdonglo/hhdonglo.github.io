@@ -45,6 +45,7 @@
           "!tools/**",
           "!README.md",
           "!STRUCTURE.md",
+          "!ARCHITECTURE.md",
           "!.nojekyll"
         ]
       }
