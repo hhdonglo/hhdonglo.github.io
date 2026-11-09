@@ -1,0 +1,1387 @@
+{
+ "lecture": 1,
+ "title": "Vectors: concept diagnostic",
+ "mode": "concept",
+ "questions": [
+  {
+   "id": "L1-C01",
+   "type": "concept",
+   "tag": "Scalar or vector",
+   "q": "Which of these is a vector quantity?",
+   "options": [
+    "The mass of a bag of rice: 50 kg",
+    "The temperature of the lecture hall: 28 °C",
+    "The time a lecture lasts: 90 minutes",
+    "The velocity of a trotro: 60 km/h towards Madina"
+   ],
+   "answer": 3,
+   "exp": "A vector needs a magnitude and a direction. Mass, temperature and time are fully described by a number and a unit.",
+   "ref": "Deck: Scalars and vectors"
+  },
+  {
+   "id": "L1-C02",
+   "type": "concept",
+   "tag": "Scalar or vector",
+   "q": "Kofi walks once around a circular track and returns to his starting point. Which statement is correct?",
+   "options": [
+    "His displacement is zero, but the distance he walked is not zero.",
+    "His displacement and his distance are both zero.",
+    "His displacement is not zero, because he walked a long way.",
+    "His displacement equals the distance he walked, because both are lengths."
+   ],
+   "answer": 0,
+   "exp": "Displacement is a vector from start to finish. Start and finish are the same point, so it is zero. Distance is a scalar that adds up the whole path.",
+   "ref": "Deck: Displacement: a vector from start to finish"
+  },
+  {
+   "id": "L1-C03",
+   "type": "concept",
+   "tag": "Scalar or vector",
+   "q": "A student says, \"A temperature of −10 °C is a vector because it is negative.\" What is wrong with this?",
+   "options": [
+    "Nothing is wrong. Every negative quantity is a vector.",
+    "Temperature is a vector only when it is below zero.",
+    "A negative sign on a scalar is not a direction in space. A vector needs a direction in space.",
+    "Temperature is a vector only if it is measured in kelvin."
+   ],
+   "answer": 2,
+   "exp": "Scalars can be positive, negative or zero. The sign tells us about the value, not about a direction in space.",
+   "ref": "Deck: Concept check: scalar or vector?"
+  },
+  {
+   "id": "L1-C04",
+   "type": "concept",
+   "tag": "Scalar or vector",
+   "q": "A taxi driver in Accra says, \"I am 3 km from Madina.\" Why is this not enough to find the taxi?",
+   "options": [
+    "A distance cannot be measured in kilometres.",
+    "A distance is a scalar. It gives the size but not the direction.",
+    "A distance is a vector, so it needs a unit vector.",
+    "3 km is too large to be a displacement."
+   ],
+   "answer": 1,
+   "exp": "Knowing only how far, with no direction, leaves a whole circle of possible positions. A displacement gives both magnitude and direction.",
+   "ref": "Deck: Scalars and vectors"
+  },
+  {
+   "id": "L1-C05",
+   "type": "concept",
+   "tag": "Scalar or vector",
+   "q": "Which pair contains one scalar and one vector?",
+   "options": [
+    "Mass and energy",
+    "Distance and time",
+    "Displacement and force",
+    "Speed and velocity"
+   ],
+   "answer": 3,
+   "exp": "Speed is the magnitude of velocity and is a scalar. Velocity has a direction and is a vector. In the other pairs, both quantities are of the same kind (scalars, scalars, vectors).",
+   "ref": "Deck: Scalars and vectors"
+  },
+  {
+   "id": "L1-C06",
+   "type": "concept",
+   "tag": "Scalar or vector",
+   "q": "A force is a vector. What does this tell us about a force of 10 N?",
+   "options": [
+    "It is not completely described until we also give its direction.",
+    "It is completely described by the number 10 and the unit N.",
+    "It can be negative only if the force is pulling.",
+    "It can be added to another force by adding the two numbers 10 and 5, whatever the directions."
+   ],
+   "answer": 0,
+   "exp": "A vector needs a magnitude, a unit and a direction. Vectors add by their directions as well as their sizes.",
+   "ref": "Deck: Magnitude and direction"
+  },
+  {
+   "id": "L1-C07",
+   "type": "concept",
+   "tag": "Vector notation",
+   "q": "What is the difference between <b>A</b> and A (or |<b>A</b>|)?",
+   "options": [
+    "They mean the same thing. The bold type is only decoration.",
+    "<b>A</b> is the magnitude and A is the direction.",
+    "<b>A</b> is the vector, with magnitude and direction. A is its magnitude, a non-negative number with a unit.",
+    "A is the vector and <b>A</b> is always a unit vector."
+   ],
+   "answer": 2,
+   "exp": "We write the vector in bold (or with an arrow) and its magnitude in ordinary type. Mixing them up causes errors in later topics.",
+   "ref": "Deck: Notation: vector and magnitude"
+  },
+  {
+   "id": "L1-C08",
+   "type": "concept",
+   "tag": "Vector notation",
+   "q": "Which statement can never be true for the magnitude |<b>A</b>| of a vector?",
+   "options": [
+    "|<b>A</b>| = 0",
+    "|<b>A</b>| = −4 m",
+    "|<b>A</b>| = 4 m",
+    "|<b>A</b>| = 0.2 m"
+   ],
+   "answer": 1,
+   "exp": "A magnitude is a length. It is zero or positive, never negative. Only a component can be negative.",
+   "ref": "Deck: Notation: vector and magnitude"
+  },
+  {
+   "id": "L1-C09",
+   "type": "concept",
+   "tag": "Vector notation",
+   "q": "Two vectors <b>A</b> and <b>B</b> are drawn as arrows of the same length and the same direction, one starting at Legon gate and the other at Madina. How are <b>A</b> and <b>B</b> related?",
+   "options": [
+    "They are different vectors, because their starting points differ.",
+    "They are equal only if they start from the same point.",
+    "They are equal in magnitude but not in direction.",
+    "They are equal vectors. A vector is defined by its magnitude and direction, not by where it starts."
+   ],
+   "answer": 3,
+   "exp": "We can slide a vector parallel to itself without changing it. This is what makes head-to-tail addition possible.",
+   "ref": "Deck: Representing a vector"
+  },
+  {
+   "id": "L1-C10",
+   "type": "concept",
+   "tag": "Vector notation",
+   "q": "What does the vector −<b>A</b> look like compared with <b>A</b>?",
+   "options": [
+    "The same length, pointing in the opposite direction",
+    "The same direction, with a negative length",
+    "A shorter arrow in the same direction",
+    "The same length, perpendicular to <b>A</b>"
+   ],
+   "answer": 0,
+   "exp": "Multiplying a vector by −1 reverses its direction and keeps its magnitude.",
+   "ref": "Deck: Subtracting vectors"
+  },
+  {
+   "id": "L1-C11",
+   "type": "concept",
+   "tag": "Vector notation",
+   "q": "What happens to the vector <b>A</b> when it is multiplied by the scalar 3?",
+   "options": [
+    "It becomes three times longer and rotates by 3°.",
+    "It stays the same length and points three times further round.",
+    "It becomes three times longer and keeps the same direction.",
+    "It becomes a scalar."
+   ],
+   "answer": 2,
+   "exp": "Multiplying a vector by a positive scalar changes its magnitude only. A negative scalar would also reverse the direction.",
+   "ref": "Deck: Representing a vector"
+  },
+  {
+   "id": "L1-C12",
+   "type": "concept",
+   "tag": "Magnitude versus component",
+   "q": "What is the difference between the magnitude of a vector and a component of that vector?",
+   "options": [
+    "They are the same thing in different units.",
+    "The magnitude is the length of the whole vector and is never negative. A component is the part along one axis and can be positive, negative or zero.",
+    "A component is always larger than the magnitude.",
+    "The magnitude can be negative, but a component cannot."
+   ],
+   "answer": 1,
+   "exp": "Components depend on the axes we choose. The magnitude does not.",
+   "ref": "Deck: What is a component?"
+  },
+  {
+   "id": "L1-C13",
+   "type": "concept",
+   "tag": "Magnitude versus component",
+   "q": "A vector has components A<sub>x</sub> = −3 and A<sub>y</sub> = 0 (in metres). Which statement is correct?",
+   "options": [
+    "The vector is zero, because A<sub>y</sub> is zero.",
+    "The vector lies along the y-axis.",
+    "The vector has a negative magnitude.",
+    "The vector lies along the x-axis, pointing in the −x direction."
+   ],
+   "answer": 3,
+   "exp": "A zero component means no part of the vector lies along that axis. The negative sign on A<sub>x</sub> gives the direction along x.",
+   "ref": "Deck: Signs and quadrants"
+  },
+  {
+   "id": "L1-C14",
+   "type": "concept",
+   "tag": "Magnitude versus component",
+   "q": "Can a component of a vector be larger than the magnitude of the vector?",
+   "options": [
+    "No. A component is at most as large as the magnitude.",
+    "Yes, whenever the component is negative.",
+    "Yes, if the angle is larger than 45°.",
+    "Yes, if the axes are rotated far enough."
+   ],
+   "answer": 0,
+   "exp": "A component is the vector's length times a cosine or sine, and these lie between −1 and +1.",
+   "ref": "Deck: Resolving a vector into components"
+  },
+  {
+   "id": "L1-C15",
+   "type": "concept",
+   "tag": "Magnitude versus component",
+   "q": "If we rotate the x and y axes but leave the vector unchanged, what happens?",
+   "options": [
+    "The magnitude changes, but the components do not.",
+    "Both the components and the magnitude change.",
+    "The components change, but the magnitude does not.",
+    "Nothing changes."
+   ],
+   "answer": 2,
+   "exp": "The vector is a physical thing. Components describe it relative to chosen axes, so they depend on the choice. The length of the arrow does not.",
+   "ref": "Deck: Graphs build understanding; components let us calculate"
+  },
+  {
+   "id": "L1-C16",
+   "type": "concept",
+   "tag": "Magnitude versus component",
+   "q": "Why can the component A<sub>x</sub> of a vector be negative while the magnitude A cannot?",
+   "options": [
+    "The component is measured in different units.",
+    "The component carries a direction along the axis, and the magnitude is just a length.",
+    "The component is always the smaller number.",
+    "Negative numbers are used only for scalars."
+   ],
+   "answer": 1,
+   "exp": "The sign of a component tells us which way along the axis the vector points. A length cannot be negative.",
+   "ref": "Deck: What is a component?"
+  },
+  {
+   "id": "L1-C17",
+   "type": "concept",
+   "tag": "Magnitude versus component",
+   "q": "A vector lies exactly along the +y axis. What are its components?",
+   "options": [
+    "A<sub>x</sub> = A and A<sub>y</sub> = 0",
+    "A<sub>x</sub> = A and A<sub>y</sub> = A",
+    "A<sub>x</sub> = 0 and A<sub>y</sub> = 0",
+    "A<sub>x</sub> = 0 and A<sub>y</sub> = A, its magnitude"
+   ],
+   "answer": 3,
+   "exp": "All of the vector lies along y and none along x.",
+   "ref": "Deck: Resolving a vector into components"
+  },
+  {
+   "id": "L1-C18",
+   "type": "concept",
+   "tag": "Adding and subtracting vectors",
+   "q": "The resultant of two vectors is the single vector that has the same effect as both. Does the order of addition matter, that is, is <b>A</b> + <b>B</b> equal to <b>B</b> + <b>A</b>?",
+   "options": [
+    "Yes, they are equal. Vector addition is commutative.",
+    "No, <b>A</b> + <b>B</b> points opposite to <b>B</b> + <b>A</b>.",
+    "No, but they have the same magnitude.",
+    "It depends on the angle between the vectors."
+   ],
+   "answer": 0,
+   "exp": "Both orders give the same diagonal of the parallelogram, so addition does not depend on order.",
+   "ref": "Deck: Adding two vectors: three equivalent ways"
+  },
+  {
+   "id": "L1-C19",
+   "type": "concept",
+   "tag": "Adding and subtracting vectors",
+   "q": "Is vector subtraction commutative, that is, is <b>A</b> − <b>B</b> equal to <b>B</b> − <b>A</b>?",
+   "options": [
+    "Yes, they are always equal.",
+    "No, they differ in magnitude but have the same direction.",
+    "No. They have the same magnitude but point in opposite directions.",
+    "Yes, but only when the vectors are perpendicular."
+   ],
+   "answer": 2,
+   "exp": "<b>B</b> − <b>A</b> = −(<b>A</b> − <b>B</b>). Reversing the order reverses the direction.",
+   "ref": "Deck: Subtracting vectors"
+  },
+  {
+   "id": "L1-C20",
+   "type": "concept",
+   "tag": "Adding and subtracting vectors",
+   "q": "How do we subtract a vector, as in <b>A</b> − <b>B</b>?",
+   "options": [
+    "Subtract the magnitude of <b>B</b> from the magnitude of <b>A</b>, and keep the direction of <b>A</b>",
+    "Add the vector −<b>B</b> to <b>A</b>",
+    "Rotate <b>B</b> by 90° and add it to <b>A</b>",
+    "Add <b>B</b> to <b>A</b> and reverse the result"
+   ],
+   "answer": 1,
+   "exp": "Subtraction is addition of the opposite vector. It is not a subtraction of magnitudes unless the vectors lie along one line.",
+   "ref": "Deck: Subtracting vectors"
+  },
+  {
+   "id": "L1-C21",
+   "type": "concept",
+   "tag": "Adding and subtracting vectors",
+   "q": "Two vectors have magnitudes 3 and 4. A student says the magnitude of their sum is always 7. When is the student right?",
+   "options": [
+    "Always, because 3 + 4 = 7",
+    "Only when the vectors are perpendicular",
+    "Only when the vectors point in opposite directions",
+    "Only when the vectors point in the same direction"
+   ],
+   "answer": 3,
+   "exp": "Magnitudes add only along one line. For other angles the magnitude of the sum is smaller than 7.",
+   "ref": "Deck: Predicting the resultant: along one line"
+  },
+  {
+   "id": "L1-C22",
+   "type": "concept",
+   "tag": "Adding and subtracting vectors",
+   "q": "Two displacements, 3 km east and 4 km north, are added. Which statement about the resultant is correct?",
+   "options": [
+    "Its magnitude is less than 7 km, and it points between east and north.",
+    "Its magnitude is 7 km, and it points north-east at 45° whatever the sizes.",
+    "Its magnitude is 1 km, because the vectors are perpendicular.",
+    "It points east, because 3 km east is the first displacement."
+   ],
+   "answer": 0,
+   "exp": "The two legs are not along one line, so the sides of the triangle do not simply add. The resultant is the shortest route from the start to the finish.",
+   "ref": "Deck: Perpendicular vectors: Pythagoras"
+  },
+  {
+   "id": "L1-C23",
+   "type": "concept",
+   "tag": "Adding and subtracting vectors",
+   "q": "When three or more vectors are added by the head-to-tail method, which statement is correct?",
+   "options": [
+    "The resultant depends on which vector is drawn first.",
+    "The resultant is the sum of the three magnitudes.",
+    "The resultant is the same whichever order we draw them in.",
+    "The resultant always points along the longest vector."
+   ],
+   "answer": 2,
+   "exp": "Vector addition is both commutative and associative. The order changes the drawing, not the resultant.",
+   "ref": "Deck: Three or more vectors: the order does not matter"
+  },
+  {
+   "id": "L1-C24",
+   "type": "concept",
+   "tag": "Adding and subtracting vectors",
+   "q": "In the head-to-tail method, where does the resultant vector start and end?",
+   "options": [
+    "It starts at the head of the first vector and ends at the tail of the last vector.",
+    "It starts at the tail of the first vector and ends at the head of the last vector.",
+    "It starts where the two heads meet.",
+    "It joins the heads of the two longest vectors."
+   ],
+   "answer": 1,
+   "exp": "The resultant goes straight from where we started to where we finished, which is what we mean by displacement.",
+   "ref": "Deck: Adding two vectors: three equivalent ways"
+  },
+  {
+   "id": "L1-C25",
+   "type": "concept",
+   "tag": "Adding and subtracting vectors",
+   "q": "After adding vectors, a student gets a resultant with a negative magnitude. What should the student conclude?",
+   "options": [
+    "The resultant points opposite to the first vector.",
+    "The result is correct if the angle is large.",
+    "The resultant is a scalar.",
+    "A mistake has been made, since a magnitude is never negative."
+   ],
+   "answer": 3,
+   "exp": "Magnitude is a length. A negative value means the sign of a component or a difference has been confused with the magnitude.",
+   "ref": "Deck: Notation: vector and magnitude"
+  },
+  {
+   "id": "L1-C26",
+   "type": "concept",
+   "tag": "Parallel and antiparallel",
+   "q": "What is the largest possible magnitude of <b>A</b> + <b>B</b> for given magnitudes A and B, and when does it happen?",
+   "options": [
+    "A + B, when the vectors are parallel",
+    "A + B, when the vectors are perpendicular",
+    "|A − B|, when the vectors are parallel",
+    "A + B, when the vectors are antiparallel"
+   ],
+   "answer": 0,
+   "exp": "Parallel vectors point the same way, so their magnitudes simply add.",
+   "ref": "Deck: Rules: parallel, antiparallel, and the bounds on R"
+  },
+  {
+   "id": "L1-C27",
+   "type": "concept",
+   "tag": "Parallel and antiparallel",
+   "q": "What is the smallest possible magnitude of <b>A</b> + <b>B</b> for given magnitudes A and B, and when does it happen?",
+   "options": [
+    "Zero, always",
+    "A + B, when the vectors are antiparallel",
+    "|A − B|, when the vectors are antiparallel",
+    "|A − B|, when the vectors are parallel"
+   ],
+   "answer": 2,
+   "exp": "Antiparallel vectors point in opposite directions, so the larger one partly cancels the smaller. The result is zero only if A = B.",
+   "ref": "Deck: Rules: parallel, antiparallel, and the bounds on R"
+  },
+  {
+   "id": "L1-C28",
+   "type": "concept",
+   "tag": "Parallel and antiparallel",
+   "q": "What does the word antiparallel mean?",
+   "options": [
+    "The vectors are perpendicular to each other.",
+    "The vectors lie along the same line but point in opposite directions.",
+    "The vectors have opposite magnitudes.",
+    "The vectors point in the same direction."
+   ],
+   "answer": 1,
+   "exp": "Antiparallel is an angle of 180° between the vectors. Parallel is 0°.",
+   "ref": "Deck: Rules: parallel, antiparallel, and the bounds on R"
+  },
+  {
+   "id": "L1-C29",
+   "type": "concept",
+   "tag": "Parallel and antiparallel",
+   "q": "Which statement about the magnitude of <b>A</b> + <b>B</b> is true for any angle between the vectors?",
+   "options": [
+    "It is always equal to A + B.",
+    "It is always larger than A + B.",
+    "It is always smaller than |A − B|.",
+    "It always lies between |A − B| and A + B."
+   ],
+   "answer": 3,
+   "exp": "The two extreme cases are antiparallel (smallest) and parallel (largest). Every other angle gives a value in between.",
+   "ref": "Deck: Rules: parallel, antiparallel, and the bounds on R"
+  },
+  {
+   "id": "L1-C30",
+   "type": "concept",
+   "tag": "Parallel and antiparallel",
+   "q": "A vector <b>A</b> is added to a vector antiparallel to it, of larger magnitude. Which way does the resultant point?",
+   "options": [
+    "The same way as the larger vector",
+    "The same way as <b>A</b>",
+    "Perpendicular to both",
+    "It has no direction, because the vectors cancel"
+   ],
+   "answer": 0,
+   "exp": "The larger vector wins. Only when the magnitudes are equal does the resultant become the zero vector.",
+   "ref": "Deck: Predicting the resultant: along one line"
+  },
+  {
+   "id": "L1-C31",
+   "type": "concept",
+   "tag": "Parallel and antiparallel",
+   "q": "Two vectors have the same magnitude and are antiparallel. What is their sum?",
+   "options": [
+    "Twice the magnitude of either vector",
+    "The scalar zero, which is not a vector",
+    "The zero vector",
+    "A vector perpendicular to both"
+   ],
+   "answer": 2,
+   "exp": "Equal and opposite vectors cancel completely. Note that the zero vector has zero magnitude and no particular direction.",
+   "ref": "Deck: Predicting the resultant: along one line"
+  },
+  {
+   "id": "L1-C32",
+   "type": "concept",
+   "tag": "Components and signs",
+   "q": "A vector points up and to the left, in the second quadrant. What are the signs of its components?",
+   "options": [
+    "A<sub>x</sub> is positive and A<sub>y</sub> is positive.",
+    "A<sub>x</sub> is negative and A<sub>y</sub> is positive.",
+    "A<sub>x</sub> is positive and A<sub>y</sub> is negative.",
+    "A<sub>x</sub> is negative and A<sub>y</sub> is negative."
+   ],
+   "answer": 1,
+   "exp": "The sign of each component tells which way along that axis the vector points. Left is negative x and up is positive y.",
+   "ref": "Deck: Signs and quadrants: predict first"
+  },
+  {
+   "id": "L1-C33",
+   "type": "concept",
+   "tag": "Components and signs",
+   "q": "A vector points down and to the left, in the third quadrant. What are the signs of its components?",
+   "options": [
+    "Both components are positive.",
+    "A<sub>x</sub> is positive and A<sub>y</sub> is negative.",
+    "A<sub>x</sub> is negative and A<sub>y</sub> is positive.",
+    "Both components are negative."
+   ],
+   "answer": 3,
+   "exp": "Left is −x and down is −y. Predicting the signs from a sketch before using a calculator catches many errors.",
+   "ref": "Deck: Signs and quadrants: predict first"
+  },
+  {
+   "id": "L1-C34",
+   "type": "concept",
+   "tag": "Components and signs",
+   "q": "A vector makes an angle of 30° with the x-axis in the fourth quadrant (below the axis, on the right). What are the signs of its components?",
+   "options": [
+    "A<sub>x</sub> is positive and A<sub>y</sub> is negative.",
+    "A<sub>x</sub> is negative and A<sub>y</sub> is positive.",
+    "Both are positive, because 30° is positive.",
+    "Both are negative, because the vector points downwards."
+   ],
+   "answer": 0,
+   "exp": "The angle being a positive number does not make both components positive. The quadrant decides each sign.",
+   "ref": "Deck: Signs and quadrants: predict first"
+  },
+  {
+   "id": "L1-C35",
+   "type": "concept",
+   "tag": "Components and signs",
+   "q": "In the usual formulas A<sub>x</sub> = A cos θ and A<sub>y</sub> = A sin θ, what is θ?",
+   "options": [
+    "The angle between the vector and the y-axis",
+    "Always the acute angle the vector makes with the nearest axis",
+    "The angle measured from the +x axis, anticlockwise to the vector",
+    "The angle between the vector and the horizontal, whatever the axes"
+   ],
+   "answer": 2,
+   "exp": "The formulas hold for the angle from +x, anticlockwise. If the angle is measured from another axis, cosine and sine may swap.",
+   "ref": "Deck: Resolving a vector into components"
+  },
+  {
+   "id": "L1-C36",
+   "type": "concept",
+   "tag": "Components and signs",
+   "q": "A vector makes an angle α with the y-axis. Which component is A sin α?",
+   "options": [
+    "A<sub>y</sub>, the component along the y-axis",
+    "A<sub>x</sub>, the component perpendicular to the y-axis",
+    "Neither component. It is the magnitude.",
+    "The component in the z direction"
+   ],
+   "answer": 1,
+   "exp": "The side opposite the angle is A sin α. When the angle is measured from y, the component along y uses cosine and the x-component uses sine.",
+   "ref": "Deck: Example 4: angles measured from other axes"
+  },
+  {
+   "id": "L1-C37",
+   "type": "concept",
+   "tag": "Components and signs",
+   "q": "A student resolves a vector and finds that both components are larger than the vector's magnitude. What should the student do?",
+   "options": [
+    "Accept it, since components can be larger than the vector.",
+    "Take the square root of each component.",
+    "Add the two components to get the magnitude.",
+    "Check the work, because each component must be no larger than the magnitude."
+   ],
+   "answer": 3,
+   "exp": "The magnitude is √(A<sub>x</sub>² + A<sub>y</sub>²), at least as large as either component. This is a quick reasonableness check.",
+   "ref": "Deck: Resolving a vector into components"
+  },
+  {
+   "id": "L1-C38",
+   "type": "concept",
+   "tag": "Components and signs",
+   "q": "Two students resolve the same vector with different axes. One gets A<sub>x</sub> = 4 and the other gets A<sub>x</sub> = 3. Is it possible that both are correct?",
+   "options": [
+    "Yes, if they chose axes with different orientations.",
+    "No. A component is a fixed property of the vector.",
+    "Yes, but only if one of them made an arithmetic error.",
+    "No. The components must always agree."
+   ],
+   "answer": 0,
+   "exp": "Components describe the vector relative to a set of axes. Different axes give different components for the same vector.",
+   "ref": "Deck: Graphs build understanding; components let us calculate"
+  },
+  {
+   "id": "L1-C39",
+   "type": "concept",
+   "tag": "Direction and angles",
+   "q": "A calculator gives tan⁻¹(A<sub>y</sub>/A<sub>x</sub>) = 30° for a vector with A<sub>x</sub> < 0 and A<sub>y</sub> < 0. What must we do?",
+   "options": [
+    "Nothing. The calculator always gives the correct direction.",
+    "Change the sign of the answer and use −30°.",
+    "Check the quadrant. The vector is in the third quadrant, so the direction is not 30° from +x.",
+    "Use 30° and swap the sign of A<sub>x</sub>."
+   ],
+   "answer": 2,
+   "exp": "The inverse tangent cannot tell opposite quadrants apart, because the ratio of two negatives is the same as the ratio of two positives. A sketch of the components fixes the quadrant.",
+   "ref": "Deck: Direction from components: a common error"
+  },
+  {
+   "id": "L1-C40",
+   "type": "concept",
+   "tag": "Direction and angles",
+   "q": "What does \"30° north of east\" mean?",
+   "options": [
+    "Start by pointing north, then rotate 30° towards east.",
+    "Start by pointing east, then rotate 30° towards north.",
+    "30° from the north pole.",
+    "A direction 30° to the south of east."
+   ],
+   "answer": 1,
+   "exp": "The direction word after \"of\" is the starting axis. \"North of east\" is closer to east than to north.",
+   "ref": "Deck: Example 4: angles measured from other axes"
+  },
+  {
+   "id": "L1-C41",
+   "type": "concept",
+   "tag": "Direction and angles",
+   "q": "What is the difference between \"30° north of east\" and \"30° east of north\"?",
+   "options": [
+    "They are the same direction.",
+    "They are opposite directions.",
+    "One is a vector and the other is a scalar.",
+    "They are different directions, because the angle is measured from different axes."
+   ],
+   "answer": 3,
+   "exp": "30° north of east lies 30° from east. 30° east of north lies 30° from north, which is 60° from east. The word after “of” is the axis we start from.",
+   "ref": "Deck: Example 4: angles measured from other axes"
+  },
+  {
+   "id": "L1-C42",
+   "type": "concept",
+   "tag": "Direction and angles",
+   "q": "Why do we need the quadrant, as well as the reference angle, to state the direction of a vector?",
+   "options": [
+    "The reference angle alone is not enough. We also need the quadrant to say which way the vector points.",
+    "The quadrant is not needed if the magnitude is known.",
+    "The reference angle is always measured from the y-axis.",
+    "The magnitude decides the quadrant."
+   ],
+   "answer": 0,
+   "exp": "Four different directions share the same reference angle. The signs of the components identify the quadrant.",
+   "ref": "Deck: Reconstructing: magnitude, reference angle, quadrant, direction"
+  },
+  {
+   "id": "L1-C43",
+   "type": "concept",
+   "tag": "Direction and angles",
+   "q": "Two different vectors have the same magnitude. Which statement is correct?",
+   "options": [
+    "They must be equal vectors.",
+    "They must be parallel.",
+    "They may point in different directions, so the vectors may be different.",
+    "They must point in opposite directions."
+   ],
+   "answer": 2,
+   "exp": "A vector needs both magnitude and direction. Equal magnitude alone does not make two vectors equal.",
+   "ref": "Deck: Magnitude and direction"
+  },
+  {
+   "id": "L1-C44",
+   "type": "concept",
+   "tag": "Direction and angles",
+   "q": "If both components of a vector are doubled, what happens to the vector?",
+   "options": [
+    "Its magnitude stays the same and its direction rotates.",
+    "Its magnitude doubles and its direction stays the same.",
+    "Its magnitude doubles and its direction doubles.",
+    "Its direction reverses."
+   ],
+   "answer": 1,
+   "exp": "Doubling both components scales the vector by 2. The ratio A<sub>y</sub>/A<sub>x</sub>, and so the direction, is unchanged.",
+   "ref": "Deck: Two equivalent descriptions of one vector"
+  },
+  {
+   "id": "L1-C45",
+   "type": "concept",
+   "tag": "Unit vectors",
+   "q": "What is a unit vector?",
+   "options": [
+    "A vector measured in metres",
+    "A vector whose components are all equal",
+    "A vector with a magnitude of one metre, one second or one kilogram",
+    "A vector of magnitude one, used to show a direction, with no units"
+   ],
+   "answer": 3,
+   "exp": "A unit vector is dimensionless. Its job is to point. We multiply it by a number with units to build a vector.",
+   "ref": "Deck: Unit vectors and the 3D Cartesian system"
+  },
+  {
+   "id": "L1-C46",
+   "type": "concept",
+   "tag": "Unit vectors",
+   "q": "In the expression <b>A</b> = A<sub>x</sub> <b>î</b> + A<sub>y</sub> <b>ĵ</b>, what does <b>î</b> do?",
+   "options": [
+    "It shows the +x direction and has magnitude one.",
+    "It multiplies the vector by the number i.",
+    "It shows the magnitude of <b>A</b>.",
+    "It rotates the vector by 90°."
+   ],
+   "answer": 0,
+   "exp": "The unit vector gives the direction, A<sub>x</sub> gives how much, and the sign of A<sub>x</sub> gives which way along x.",
+   "ref": "Deck: Unit vectors and the 3D Cartesian system"
+  },
+  {
+   "id": "L1-C47",
+   "type": "concept",
+   "tag": "Unit vectors",
+   "q": "The unit vector <b>Â</b> of a vector <b>A</b> is found by dividing <b>A</b> by its magnitude. What does <b>Â</b> tell us?",
+   "options": [
+    "The size of <b>A</b> only",
+    "Both the size and the direction of <b>A</b>",
+    "Only the direction of <b>A</b>",
+    "The angle between <b>A</b> and the x-axis only"
+   ],
+   "answer": 2,
+   "exp": "Dividing by the magnitude removes the size, and what remains is a pure direction of magnitude one.",
+   "ref": "Deck: The unit vector of a vector"
+  },
+  {
+   "id": "L1-C48",
+   "type": "concept",
+   "tag": "Unit vectors",
+   "q": "What is the magnitude of the unit vector <b>ĵ</b>?",
+   "options": [
+    "Zero",
+    "One, with no units",
+    "One metre",
+    "It depends on the vector it is attached to"
+   ],
+   "answer": 1,
+   "exp": "Unit vectors have magnitude 1 and no dimensions.",
+   "ref": "Deck: Unit vectors and the 3D Cartesian system"
+  },
+  {
+   "id": "L1-C49",
+   "type": "concept",
+   "tag": "Unit vectors",
+   "q": "A vector is written as <b>A</b> = −5 <b>î</b>. What is its direction?",
+   "options": [
+    "The +x direction, because the magnitude is positive",
+    "The +y direction",
+    "It has no direction",
+    "The −x direction"
+   ],
+   "answer": 3,
+   "exp": "A negative number multiplying a unit vector reverses the direction. The magnitude of <b>A</b> is still 5.",
+   "ref": "Deck: Unit vectors and the 3D Cartesian system"
+  },
+  {
+   "id": "L1-C50",
+   "type": "concept",
+   "tag": "Unit vectors",
+   "q": "Which statement about the unit vectors <b>î</b>, <b>ĵ</b> and <b>k̂</b> is correct?",
+   "options": [
+    "They are mutually perpendicular.",
+    "They are all parallel.",
+    "They all point in the +x direction.",
+    "They are perpendicular only when the axes are rotated."
+   ],
+   "answer": 0,
+   "exp": "They point along the three Cartesian axes, which are at right angles to one another.",
+   "ref": "Deck: Unit vectors and the 3D Cartesian system"
+  },
+  {
+   "id": "L1-C51",
+   "type": "concept",
+   "tag": "Polar and azimuthal angles",
+   "q": "In spherical coordinates, what is the polar angle θ?",
+   "options": [
+    "The angle measured from the +x axis in the xy-plane",
+    "The angle between the vector and the xy-plane",
+    "The angle measured from the +z axis to the vector",
+    "The angle between the vector and its own projection"
+   ],
+   "answer": 2,
+   "exp": "The polar angle runs from 0° (along +z) to 180° (along −z).",
+   "ref": "Deck: Components of a vector in 3D"
+  },
+  {
+   "id": "L1-C52",
+   "type": "concept",
+   "tag": "Polar and azimuthal angles",
+   "q": "In spherical coordinates, what is the azimuthal angle φ?",
+   "options": [
+    "The angle measured from the +z axis to the vector",
+    "The angle in the xy-plane, measured from +x to the projection of the vector",
+    "The angle between the vector and the z-axis",
+    "The angle between two vectors"
+   ],
+   "answer": 1,
+   "exp": "It is the longitude-like angle. It runs from 0° to 360°.",
+   "ref": "Deck: Components of a vector in 3D"
+  },
+  {
+   "id": "L1-C53",
+   "type": "concept",
+   "tag": "Polar and azimuthal angles",
+   "q": "A vector lies in the xy-plane. What is its polar angle θ?",
+   "options": [
+    "0°",
+    "180°",
+    "It cannot be defined.",
+    "90°"
+   ],
+   "answer": 3,
+   "exp": "The polar angle is measured from +z. A vector lying flat in the xy-plane is at a right angle to z.",
+   "ref": "Deck: Components of a vector in 3D"
+  },
+  {
+   "id": "L1-C54",
+   "type": "concept",
+   "tag": "Polar and azimuthal angles",
+   "q": "A vector points along +z. What can we say about its azimuthal angle?",
+   "options": [
+    "It is not defined, because the vector has no projection in the xy-plane.",
+    "It is 90°.",
+    "It is 180°.",
+    "It is 360°."
+   ],
+   "answer": 0,
+   "exp": "With no projection in the xy-plane, there is no direction in the plane to measure from x. The polar angle is 0°.",
+   "ref": "Deck: Components of a vector in 3D"
+  },
+  {
+   "id": "L1-C55",
+   "type": "concept",
+   "tag": "Polar and azimuthal angles",
+   "q": "What range of values can the polar angle θ take?",
+   "options": [
+    "0° to 360°",
+    "−90° to 90°",
+    "0° to 180°",
+    "0° to 90°"
+   ],
+   "answer": 2,
+   "exp": "From the +z axis to the −z axis. The azimuthal angle is the one that goes through 360°.",
+   "ref": "Deck: Components of a vector in 3D"
+  },
+  {
+   "id": "L1-C56",
+   "type": "concept",
+   "tag": "Dot product",
+   "q": "What kind of quantity is the dot product <b>A</b>·<b>B</b>?",
+   "options": [
+    "A vector perpendicular to both <b>A</b> and <b>B</b>",
+    "A scalar, a single number with a unit but no direction",
+    "A vector in the plane of <b>A</b> and <b>B</b>",
+    "A unit vector"
+   ],
+   "answer": 1,
+   "exp": "The dot product is also called the scalar product because its result has no direction.",
+   "ref": "Deck: The dot (scalar) product"
+  },
+  {
+   "id": "L1-C57",
+   "type": "concept",
+   "tag": "Dot product",
+   "q": "What is <b>A</b>·<b>A</b>?",
+   "options": [
+    "The zero vector",
+    "Zero",
+    "Twice the magnitude of <b>A</b>",
+    "The square of the magnitude of <b>A</b>"
+   ],
+   "answer": 3,
+   "exp": "The angle between a vector and itself is 0° and cos 0° = 1, so <b>A</b>·<b>A</b> = A². This is a scalar and it is not zero unless <b>A</b> = 0.",
+   "ref": "Deck: The dot (scalar) product"
+  },
+  {
+   "id": "L1-C58",
+   "type": "concept",
+   "tag": "Dot product",
+   "q": "When is the dot product of two non-zero vectors equal to zero?",
+   "options": [
+    "When they are perpendicular",
+    "When they are parallel",
+    "When they are antiparallel",
+    "Never, because both are non-zero"
+   ],
+   "answer": 0,
+   "exp": "A·B = AB cos φ is zero when cos φ = 0, that is φ = 90°.",
+   "ref": "Deck: Sign of the dot product, and which angle is φ"
+  },
+  {
+   "id": "L1-C59",
+   "type": "concept",
+   "tag": "Dot product",
+   "q": "The dot product of two vectors is negative. What does this tell us?",
+   "options": [
+    "The vectors are perpendicular.",
+    "One of the vectors has a negative magnitude.",
+    "The angle between the vectors, tail to tail, is greater than 90°.",
+    "The vectors are parallel."
+   ],
+   "answer": 2,
+   "exp": "cos φ is negative for φ between 90° and 180°. Magnitudes are never negative, so the sign comes only from the cosine.",
+   "ref": "Deck: Sign of the dot product, and which angle is φ"
+  },
+  {
+   "id": "L1-C60",
+   "type": "concept",
+   "tag": "Dot product",
+   "q": "The dot product <b>A</b>·<b>B</b> is positive and as large as possible. What can be said about <b>A</b> and <b>B</b>?",
+   "options": [
+    "They are perpendicular.",
+    "They are parallel.",
+    "They are antiparallel.",
+    "They have equal magnitudes."
+   ],
+   "answer": 1,
+   "exp": "The largest value, AB, comes when cos φ = 1, that is φ = 0°.",
+   "ref": "Deck: Sign of the dot product, and which angle is φ"
+  },
+  {
+   "id": "L1-C61",
+   "type": "concept",
+   "tag": "Dot product",
+   "q": "Is the dot product commutative, that is, is <b>A</b>·<b>B</b> equal to <b>B</b>·<b>A</b>?",
+   "options": [
+    "No, they differ by a sign.",
+    "No, they are perpendicular to each other.",
+    "Only when the vectors are parallel.",
+    "Yes, they are always equal."
+   ],
+   "answer": 3,
+   "exp": "A B cos φ is the same whichever vector we write first.",
+   "ref": "Deck: The dot (scalar) product"
+  },
+  {
+   "id": "L1-C62",
+   "type": "concept",
+   "tag": "Dot product",
+   "q": "Which angle is used for φ in A·B = AB cos φ?",
+   "options": [
+    "The angle between the vectors when they are placed tail to tail",
+    "The angle at the head of the head-to-tail triangle",
+    "The angle measured from the x-axis",
+    "Always an acute angle"
+   ],
+   "answer": 0,
+   "exp": "Using the inside angle of a head-to-tail triangle gives the supplementary angle, and the sign of the dot product comes out wrong.",
+   "ref": "Deck: Sign of the dot product, and which angle is φ"
+  },
+  {
+   "id": "L1-C63",
+   "type": "concept",
+   "tag": "Dot product",
+   "q": "What does the dot product tell us physically, when one of the vectors is a force and the other a displacement?",
+   "options": [
+    "The torque of the force",
+    "The direction in which the object will turn",
+    "How much of the force acts along the displacement, which gives the work done",
+    "The direction of the net force"
+   ],
+   "answer": 2,
+   "exp": "Work is force along the displacement times the displacement. Only the component of the force along the motion contributes.",
+   "ref": "Deck: Dot product and cross product compared"
+  },
+  {
+   "id": "L1-C64",
+   "type": "concept",
+   "tag": "Cross product",
+   "q": "What kind of quantity is the cross product <b>A</b>×<b>B</b>?",
+   "options": [
+    "A scalar",
+    "A vector, perpendicular to both <b>A</b> and <b>B</b>",
+    "A vector in the same plane as <b>A</b> and <b>B</b>",
+    "A unit vector"
+   ],
+   "answer": 1,
+   "exp": "The cross product is also called the vector product. Its direction comes from the right-hand rule.",
+   "ref": "Deck: The cross (vector) product: geometry first"
+  },
+  {
+   "id": "L1-C65",
+   "type": "concept",
+   "tag": "Cross product",
+   "q": "What is <b>A</b>×<b>A</b>?",
+   "options": [
+    "The square of the magnitude of <b>A</b>",
+    "A vector perpendicular to <b>A</b>, with magnitude A²",
+    "The number 1",
+    "The zero vector"
+   ],
+   "answer": 3,
+   "exp": "The angle between a vector and itself is 0° and sin 0° = 0, so the magnitude is zero. The result is a zero vector, not the number zero.",
+   "ref": "Deck: Using the right-hand rule"
+  },
+  {
+   "id": "L1-C66",
+   "type": "concept",
+   "tag": "Cross product",
+   "q": "Is the cross product commutative, that is, is <b>A</b>×<b>B</b> equal to <b>B</b>×<b>A</b>?",
+   "options": [
+    "No. They have the same magnitude but point in opposite directions.",
+    "Yes, they are always equal.",
+    "No. They have different magnitudes.",
+    "Yes, but only if the vectors are perpendicular."
+   ],
+   "answer": 0,
+   "exp": "<b>B</b>×<b>A</b> = −<b>A</b>×<b>B</b>. Reversing the order reverses the direction given by the right-hand rule.",
+   "ref": "Deck: Common mistakes in Contact B"
+  },
+  {
+   "id": "L1-C67",
+   "type": "concept",
+   "tag": "Cross product",
+   "q": "When is the cross product of two non-zero vectors the zero vector?",
+   "options": [
+    "When they are perpendicular",
+    "Only when they are parallel",
+    "When they are parallel or antiparallel",
+    "Never"
+   ],
+   "answer": 2,
+   "exp": "|A×B| = AB sin φ is zero when φ = 0° or 180°.",
+   "ref": "Deck: Using the right-hand rule"
+  },
+  {
+   "id": "L1-C68",
+   "type": "concept",
+   "tag": "Cross product",
+   "q": "When is the magnitude of the cross product of two vectors as large as possible?",
+   "options": [
+    "When they are parallel",
+    "When they are perpendicular",
+    "When they are antiparallel",
+    "When they have the same magnitude"
+   ],
+   "answer": 1,
+   "exp": "The largest value, AB, comes when sin φ = 1, that is φ = 90°.",
+   "ref": "Deck: The cross (vector) product: geometry first"
+  },
+  {
+   "id": "L1-C69",
+   "type": "concept",
+   "tag": "Cross product",
+   "q": "What is the direction of <b>A</b>×<b>B</b>?",
+   "options": [
+    "Along <b>A</b>",
+    "Along the resultant <b>A</b> + <b>B</b>",
+    "Halfway between <b>A</b> and <b>B</b>",
+    "Perpendicular to the plane of <b>A</b> and <b>B</b>, given by the right-hand rule"
+   ],
+   "answer": 3,
+   "exp": "Curl the fingers of the right hand from the first vector towards the second. The thumb points along the product.",
+   "ref": "Deck: Using the right-hand rule"
+  },
+  {
+   "id": "L1-C70",
+   "type": "concept",
+   "tag": "Cross product",
+   "q": "With the usual right-handed axes, what is î×ĵ?",
+   "options": [
+    "k̂",
+    "−k̂",
+    "ĵ",
+    "The number 1"
+   ],
+   "answer": 0,
+   "exp": "Curling the fingers from +x to +y, the thumb points along +z.",
+   "ref": "Deck: Cross products of the unit vectors"
+  },
+  {
+   "id": "L1-C71",
+   "type": "concept",
+   "tag": "Cross product",
+   "q": "With the usual right-handed axes, what is î×î?",
+   "options": [
+    "î",
+    "k̂",
+    "The zero vector",
+    "The number 1"
+   ],
+   "answer": 2,
+   "exp": "The angle between î and î is 0° and sin 0° = 0.",
+   "ref": "Deck: Cross products of the unit vectors"
+  },
+  {
+   "id": "L1-C72",
+   "type": "concept",
+   "tag": "Cross product",
+   "q": "Torque is defined by <b>τ</b> = <b>r</b>×<b>F</b>. What kind of quantity is torque?",
+   "options": [
+    "A scalar",
+    "A vector, perpendicular to the plane of <b>r</b> and <b>F</b>",
+    "A vector along <b>F</b>",
+    "A vector along <b>r</b>"
+   ],
+   "answer": 1,
+   "exp": "Because torque is a cross product, it is a vector, and the order of <b>r</b> and <b>F</b> matters.",
+   "ref": "Deck: Torque: the cross product in physics"
+  },
+  {
+   "id": "L1-C73",
+   "type": "concept",
+   "tag": "Cross product",
+   "q": "A mechanic pushes on a spanner. Which push turns the nut most effectively, for the same force?",
+   "options": [
+    "A push along the spanner",
+    "A push at 0° to the spanner",
+    "A push at 180° to the spanner",
+    "A push perpendicular to the spanner"
+   ],
+   "answer": 3,
+   "exp": "The torque has magnitude rF sin φ. Only the part of the force perpendicular to <b>r</b> turns the nut.",
+   "ref": "Deck: Torque: the cross product in physics"
+  },
+  {
+   "id": "L1-C74",
+   "type": "concept",
+   "tag": "Dot versus cross",
+   "q": "Which pair correctly matches each product with its type of result?",
+   "options": [
+    "Dot product: scalar. Cross product: vector.",
+    "Dot product: vector. Cross product: scalar.",
+    "Both are vectors.",
+    "Both are scalars."
+   ],
+   "answer": 0,
+   "exp": "This is the main reason for the names scalar product and vector product.",
+   "ref": "Deck: Dot product and cross product compared"
+  },
+  {
+   "id": "L1-C75",
+   "type": "concept",
+   "tag": "Dot versus cross",
+   "q": "For two perpendicular vectors, which statement is correct?",
+   "options": [
+    "The dot product has its largest value and the cross product is zero.",
+    "Both products are zero.",
+    "The dot product is zero and the cross product has its largest magnitude.",
+    "Both products have their largest values."
+   ],
+   "answer": 2,
+   "exp": "cos 90° = 0 and sin 90° = 1.",
+   "ref": "Deck: Dot product and cross product compared"
+  },
+  {
+   "id": "L1-C76",
+   "type": "concept",
+   "tag": "Dot versus cross",
+   "q": "For two parallel vectors, which statement is correct?",
+   "options": [
+    "The dot product is zero and the cross product has its largest value.",
+    "The dot product has its largest value and the cross product is zero.",
+    "Both are zero.",
+    "Both have their largest values."
+   ],
+   "answer": 1,
+   "exp": "cos 0° = 1 and sin 0° = 0.",
+   "ref": "Deck: Dot product and cross product compared"
+  },
+  {
+   "id": "L1-C77",
+   "type": "concept",
+   "tag": "Dot versus cross",
+   "q": "Which product changes sign when we swap the order of the vectors?",
+   "options": [
+    "The dot product only",
+    "Both products",
+    "Neither product",
+    "The cross product only"
+   ],
+   "answer": 3,
+   "exp": "The dot product is commutative. The cross product is anticommutative: <b>A</b>×<b>B</b> = −<b>B</b>×<b>A</b>.",
+   "ref": "Deck: Dot product and cross product compared"
+  },
+  {
+   "id": "L1-C78",
+   "type": "concept",
+   "tag": "Dot versus cross",
+   "q": "A student needs to find how much of a force acts along a displacement. Which product is suitable?",
+   "options": [
+    "The dot product",
+    "The cross product",
+    "Neither, because the components cannot be combined",
+    "Either, since they give the same result"
+   ],
+   "answer": 0,
+   "exp": "The dot product picks out the part of one vector along another. The cross product picks out the part perpendicular.",
+   "ref": "Deck: Dot product and cross product compared"
+  },
+  {
+   "id": "L1-C79",
+   "type": "concept",
+   "tag": "Dot versus cross",
+   "q": "What is the difference between <b>A</b>·<b>A</b> and <b>A</b>×<b>A</b>?",
+   "options": [
+    "Both are equal to A².",
+    "Both are the zero vector.",
+    "<b>A</b>·<b>A</b> is the scalar A². <b>A</b>×<b>A</b> is the zero vector.",
+    "<b>A</b>·<b>A</b> is the zero vector. <b>A</b>×<b>A</b> is the scalar A²."
+   ],
+   "answer": 2,
+   "exp": "The angle between a vector and itself is zero, so cos is 1 and sin is 0.",
+   "ref": "Deck: Dot product and cross product compared"
+  },
+  {
+   "id": "L1-C80",
+   "type": "concept",
+   "tag": "Dot versus cross",
+   "q": "The dot product of two vectors equals the product of their magnitudes. What is the cross product's magnitude?",
+   "options": [
+    "The same product of magnitudes",
+    "Zero",
+    "Half of that product",
+    "It cannot be found without the angle"
+   ],
+   "answer": 1,
+   "exp": "The dot product equals AB only when cos φ = 1, so φ = 0° and sin φ = 0. The angle is known from the statement.",
+   "ref": "Deck: Dot product and cross product compared"
+  },
+  {
+   "id": "L1-C81",
+   "type": "concept",
+   "tag": "Dot versus cross",
+   "q": "A student writes \"<b>A</b>·<b>B</b> = <b>C</b>\" with <b>C</b> a vector. What is wrong?",
+   "options": [
+    "Nothing, since the dot product of two vectors is a vector.",
+    "The dot product has no unit.",
+    "The dot product must be zero.",
+    "The dot product is a scalar, so it cannot equal a vector."
+   ],
+   "answer": 3,
+   "exp": "Both sides of an equation must be the same kind of quantity. A scalar cannot equal a vector.",
+   "ref": "Deck: Common mistakes in Contact B"
+  },
+  {
+   "id": "L1-C82",
+   "type": "concept",
+   "tag": "Units and dimensions",
+   "q": "A student writes the distance as 25 and forgets the unit. Why does this matter?",
+   "options": [
+    "A number without a unit is not a physical quantity, and the answer cannot be checked.",
+    "It does not matter, since the number is the physics.",
+    "It matters only for vectors.",
+    "It matters only for scalars."
+   ],
+   "answer": 0,
+   "exp": "The unit is part of the quantity. Units also allow a quick check that the formula was used correctly.",
+   "ref": "Deck: Before vectors: units and significant figures"
+  },
+  {
+   "id": "L1-C83",
+   "type": "concept",
+   "tag": "Units and dimensions",
+   "q": "Which of these cannot be a correct way of writing a force?",
+   "options": [
+    "25 N",
+    "25 kg m/s²",
+    "25 m",
+    "0.025 kN"
+   ],
+   "answer": 2,
+   "exp": "The metre is a unit of length. The newton, kg m/s² and kN are all units of force.",
+   "ref": "Deck: Before vectors: units and significant figures"
+  },
+  {
+   "id": "L1-C84",
+   "type": "concept",
+   "tag": "Units and dimensions",
+   "q": "Two vectors can be added only if they represent the same kind of physical quantity. Which sum makes sense?",
+   "options": [
+    "A displacement plus a force",
+    "A displacement plus a displacement",
+    "A force plus a velocity",
+    "A velocity plus a mass"
+   ],
+   "answer": 1,
+   "exp": "Adding quantities with different dimensions has no physical meaning.",
+   "ref": "Deck: Magnitude and direction"
+  },
+  {
+   "id": "L1-C85",
+   "type": "concept",
+   "tag": "Units and dimensions",
+   "q": "Which of these is the dimension of the dot product of a force and a displacement?",
+   "options": [
+    "The dimension of force only",
+    "The dimension of length only",
+    "Dimensionless",
+    "Force times length, the dimension of energy"
+   ],
+   "answer": 3,
+   "exp": "The dot product multiplies the magnitudes (with the cosine), so the units multiply: N·m = J.",
+   "ref": "Deck: The dot (scalar) product"
+  },
+  {
+   "id": "L1-C86",
+   "type": "concept",
+   "tag": "Units and dimensions",
+   "q": "What are the units of a unit vector?",
+   "options": [
+    "None. It is dimensionless.",
+    "Metres",
+    "Newtons",
+    "The same as the vector it comes from"
+   ],
+   "answer": 0,
+   "exp": "We divide the vector by its own magnitude, so the units cancel.",
+   "ref": "Deck: The unit vector of a vector"
+  },
+  {
+   "id": "L1-C87",
+   "type": "concept",
+   "tag": "Units and dimensions",
+   "q": "A cross product of a position (m) and a force (N) is calculated. What are the units of the result?",
+   "options": [
+    "N",
+    "m",
+    "N·m, the unit of torque",
+    "N/m"
+   ],
+   "answer": 2,
+   "exp": "The units of a product multiply, as with the magnitude of any cross product.",
+   "ref": "Deck: Torque: the cross product in physics"
+  },
+  {
+   "id": "L1-C88",
+   "type": "concept",
+   "tag": "Units and dimensions",
+   "q": "A student converts a speed from km/h to m/s by multiplying by 1000 and by 3600. What is wrong?",
+   "options": [
+    "Nothing is wrong.",
+    "The conversion factor for hours is wrong. It should divide by 3600, since there are 3600 seconds in an hour.",
+    "The student should have used 60 instead of 3600.",
+    "The conversion cannot be done."
+   ],
+   "answer": 1,
+   "exp": "Write the factors as ratios equal to 1 and check that the unwanted units cancel. 1 km/h = 1000 m / 3600 s.",
+   "ref": "Deck: Before vectors: units and significant figures"
+  },
+  {
+   "id": "L1-C89",
+   "type": "concept",
+   "tag": "Significant figures",
+   "q": "A measured length is written as 2.40 m. What does the trailing zero tell us?",
+   "options": [
+    "The zero is not important and can be dropped.",
+    "The length is exactly 2.4 m.",
+    "The length is known to the nearest metre.",
+    "The length is known to the nearest 0.01 m."
+   ],
+   "answer": 3,
+   "exp": "A zero after the decimal point is a significant figure. It shows the precision of the measurement.",
+   "ref": "Deck: Before vectors: units and significant figures"
+  },
+  {
+   "id": "L1-C90",
+   "type": "concept",
+   "tag": "Significant figures",
+   "q": "A calculator shows 3.8461538 for a result found by dividing two numbers measured to three significant figures each. What should we report?",
+   "options": [
+    "3.85, with three significant figures",
+    "3.8461538, since the calculator is more accurate",
+    "4, with one significant figure",
+    "3.846, with four significant figures"
+   ],
+   "answer": 0,
+   "exp": "The result cannot be more precise than the least precise input. Extra digits from the calculator carry no meaning.",
+   "ref": "Deck: Before vectors: units and significant figures"
+  },
+  {
+   "id": "L1-C91",
+   "type": "concept",
+   "tag": "Significant figures",
+   "q": "Two lengths are added: 12.5 m and 0.25 m. Which rule applies to the sum?",
+   "options": [
+    "Keep the number of significant figures of the most precise term.",
+    "Keep all the digits the calculator shows.",
+    "Keep the number of decimal places of the least precise term.",
+    "Multiply the precision of the terms."
+   ],
+   "answer": 2,
+   "exp": "For addition and subtraction, we count decimal places. For multiplication and division, we count significant figures.",
+   "ref": "Deck: Before vectors: units and significant figures"
+  },
+  {
+   "id": "L1-C92",
+   "type": "concept",
+   "tag": "Significant figures",
+   "q": "Which of the following is a reason not to round intermediate results in a long calculation?",
+   "options": [
+    "Rounding is not allowed in physics.",
+    "Rounding early can accumulate error in the final answer.",
+    "Intermediate results have no units.",
+    "Calculators round automatically."
+   ],
+   "answer": 1,
+   "exp": "Keep extra digits during the calculation, and round only the final answer to the right number of significant figures.",
+   "ref": "Deck: How good is a measured value?"
+  }
+ ]
+}

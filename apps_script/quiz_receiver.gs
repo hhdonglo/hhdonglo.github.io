@@ -381,12 +381,14 @@ function out_(t) { return ContentService.createTextOutput(t); }
 
 // ---------- Quiz_Control: the server decides what state a quiz is in ----------
 
-var CTL_HEADER = ['join_code', 'status', 'duration_min', 'end_time_ms', 'remaining_ms', 'allow_late_join', 'show_score', 'show_leaderboard', 'message', 'title', 'updated', 'current_q', 'q_seconds', 'q_deadline_ms', 'q_remaining_ms', 'mode', 'round', 'review_q', 'n_questions', 'question_ids', 'week'];
+var CTL_HEADER = ['join_code', 'status', 'duration_min', 'end_time_ms', 'remaining_ms', 'allow_late_join', 'show_score', 'show_leaderboard', 'message', 'title', 'updated', 'current_q', 'q_seconds', 'q_deadline_ms', 'q_remaining_ms', 'mode', 'round', 'review_q', 'n_questions', 'question_ids', 'week', 'bank'];
 
 function controlSheet_() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sh = ss.getSheetByName(CONTROL_TAB) || ss.insertSheet(CONTROL_TAB);
   if (sh.getLastRow() === 0) sh.appendRow(CTL_HEADER);
+  if (sh.getMaxColumns() < CTL_HEADER.length) sh.insertColumnsAfter(sh.getMaxColumns(), CTL_HEADER.length - sh.getMaxColumns());
+  if (sh.getRange(1, CTL_HEADER.length).getValue() !== CTL_HEADER[CTL_HEADER.length - 1]) sh.getRange(1, CTL_HEADER.length).setValue(CTL_HEADER[CTL_HEADER.length - 1]);
   return sh;
 }
 
@@ -466,11 +468,13 @@ function ctlStatus_(c) {
 function quizN_(c) { return Math.max(1, Math.min(20, Number(c.v[18]) || 5)); }
 function qids_(c) { return String(c.v[19] || '').split(',').filter(String); }
 function weekOf_(c) { return c ? Number(c.v[20]) || 1 : 1; }
+// Quiz type: 'concept' draws from quizzes/lectureN_concept.json (conceptual diagnostic); anything else is the usual practice bank.
+function isConcept_(c) { return !!c && String(c.v[21] || '').trim().toLowerCase() === 'concept'; }
 function liveEntry_(code, c) { // a code with its own entry (fixed questions) wins; otherwise the week's practice bank
   var m = siteJson_('/apps_script/live_quizzes.json');
   if (m[code]) return m[code];
   var w = weekFromCode_(code) || weekOf_(c);
-  return { bank: 'lecture' + w, ids: 'all', week: w };
+  return { bank: 'lecture' + w + (isConcept_(c) ? '_concept' : ''), ids: 'all', week: w, concept: isConcept_(c) };
 }
 function bankList_(name) { return siteJson_('/quizzes/' + name + '.json').questions; }
 function poolIds_(entry) { return Array.isArray(entry.ids) ? entry.ids : bankList_(entry.bank).map(function (q) { return q.id; }); }
@@ -631,8 +635,13 @@ function ctlAct_(p, code) {
     else if (field === 'show_score' || field === 'show_leaderboard') c.v[field === 'show_score' ? 6 : 7] = /^i/i.test(val) ? 'Immediate' : (/^n/i.test(val) ? 'Never' : 'OnRelease');
     else if (field === 'title') c.v[9] = val;
     else if (field === 'q_seconds') { var qs = Math.max(0, Math.min(600, Number(val) || 0)); c.v[12] = qs; val = String(qs); }
+    else if (field === 'quiz_type') {
+      var want = /^c/i.test(val) ? 'concept' : 'standard';
+      if (want === 'concept') { var cw = siteJson_('/apps_script/live_quizzes.json').concept_weeks || {}; if (!cw[String(weekFromCode_(code) || weekOf_(c))]) return { ok: false, why: 'no concept bank for that week yet' }; }
+      c.v[21] = want === 'concept' ? 'concept' : ''; c.v[19] = ''; c.v[18] = Math.max(5, Math.min(maxN_(code, c), quizN_(c))); val = want;
+    }
     else if (field === 'week' && weekFromCode_(code)) return { ok: false, why: 'the week is set by the join code' };
-    else if (field === 'week') { var wk = Math.max(1, Number(val) || 1); var wl = siteJson_('/apps_script/live_quizzes.json').weeks || {}; if (!wl[String(wk)]) return { ok: false, why: 'no practice bank for that week' }; c.v[20] = wk; c.v[19] = ''; c.v[18] = Math.max(5, Math.min(maxN_(code, c), quizN_(c))); val = String(wk); }
+    else if (field === 'week') { var wk = Math.max(1, Number(val) || 1); var wl = siteJson_('/apps_script/live_quizzes.json').weeks || {}; if (!wl[String(wk)]) return { ok: false, why: 'no practice bank for that week' }; if (isConcept_(c) && !((siteJson_('/apps_script/live_quizzes.json').concept_weeks || {})[String(wk)])) return { ok: false, why: 'no concept bank for that week yet' }; c.v[20] = wk; c.v[19] = ''; c.v[18] = Math.max(5, Math.min(maxN_(code, c), quizN_(c))); val = String(wk); }
     else if (field === 'n_questions') { var nn = Math.max(5, Math.min(maxN_(code, c), Number(val) || 5)); c.v[18] = nn; val = String(nn); }
     else if (field === 'mode') c.v[15] = /^t/i.test(val) ? 'timed' : 'paced';
     else return { ok: false, why: 'unknown setting' };
@@ -747,7 +756,7 @@ function latestAnswers_(code) { // {id: {name, ans:[5]}} for the current round; 
 function finalize_(code) {
   var key = keyRow_(code), got = latestAnswers_(code), cf = ctl_(code);
   if (!key) return;
-  var letters = lettersFor_(code, cf), nq = cf ? quizN_(cf) : 5, wk = cf ? weekOf_(cf) : '';
+  var letters = lettersFor_(code, cf), nq = cf ? quizN_(cf) : 5, wk = cf && !isConcept_(cf) ? weekOf_(cf) : ''; // a concept diagnostic has its own column (Quiz <code>), so it never overwrites the Week score
   var sh = stagedSheet_(), n = sh.getLastRow(), have = {}; // held until Release results
   var rnd = roundOf_(code);
   if (n > 1) {
@@ -769,6 +778,26 @@ function answerCounts_(code, q) { // how many have answered question q, and the 
     if (a) { n++; if (dist[a] !== undefined) dist[a]++; }
   });
   return { answered: n, dist: dist };
+}
+
+// Class diagnostic for a concept quiz: per question and per concept tag, how many answered and how many were right.
+// Counts only, never names or IDs. Works while the quiz runs (answers so far) and after it ends.
+function diagnostic_(code, c) {
+  try {
+    var e = liveEntry_(code, c); if (!e || e.inline) return null;
+    var ids = qids_(c), bank = bankList_(e.bank), got = latestAnswers_(code), byQ = [], tags = {}, order = [];
+    for (var i = 0; i < ids.length; i++) {
+      var q = null; for (var b = 0; b < bank.length; b++) if (bank[b].id === ids[i]) { q = bank[b]; break; }
+      if (!q) continue;
+      var right = 0, ans = 0, L = LETTERS[q.answer];
+      Object.keys(got).forEach(function (sid) { var a = got[sid].ans[i]; if (a) { ans++; if (a === L) right++; } });
+      var tag = q.tag || 'Untagged';
+      byQ.push({ q: i + 1, tag: tag, answered: ans, right: right, text: plainText_(q.q).slice(0, 110) });
+      if (!tags[tag]) { tags[tag] = { tag: tag, answered: 0, right: 0, questions: 0 }; order.push(tag); }
+      tags[tag].answered += ans; tags[tag].right += right; tags[tag].questions++;
+    }
+    return { byQ: byQ, byTag: order.map(function (t) { return tags[t]; }) };
+  } catch (err) { return null; }
 }
 
 // ---------- Totals: every student's quizzes, scores and average, rebuilt automatically ----------
@@ -1487,7 +1516,7 @@ function counts_(code) {
 // ---------- Portal and Control Centre support (additive: no existing action changes) ----------
 // SCRIPT_VERSION: change it whenever the script is redeployed; the Control Centre compares it with the version its page expects.
 // Key!M2 = Off hides "My results" from students (default On).
-var SCRIPT_VERSION = '2026-11-08-tidy-1';
+var SCRIPT_VERSION = '2026-11-09-portal-1';
 
 function resultsOn_() {
   try {
@@ -1514,6 +1543,63 @@ function setWeek_(p) { // host only; w=0 clears the choice
   return { ok: true, week: w };
 }
 
+// ---------- Portal settings: what students see, set by the lecturer in the Control Centre ----------
+// Stored in the "Portal" tab (Setting, Value). Public text only: the Portal shows it to every student, so never put a key or code here.
+// Keys: contacts, venue, notice, continue (1 to 12), title:N, hide_handout:N, hide_practice:N, hide_page:N (value 1 hides it).
+var PORTAL_TAB = 'Portal';
+
+function portalCfgMap_() {
+  var o = {};
+  try {
+    var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(PORTAL_TAB);
+    if (sh && sh.getLastRow() > 1) sh.getRange(2, 1, sh.getLastRow() - 1, 2).getValues().forEach(function (r) { var k = String(r[0]).trim(); if (k) o[k] = String(r[1]).trim(); });
+  } catch (err) { /* defaults apply */ }
+  return o;
+}
+
+function portalCfgPut_(k, v) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(PORTAL_TAB);
+  if (!sh) { sh = ss.insertSheet(PORTAL_TAB); sh.appendRow(['Setting', 'Value']); }
+  var n = sh.getLastRow();
+  if (n > 1) { var ks = sh.getRange(2, 1, n - 1, 1).getValues(); for (var i = 0; i < ks.length; i++) if (String(ks[i][0]).trim() === k) { sh.getRange(i + 2, 2).setValue(v); return; } }
+  sh.appendRow([k, v]);
+}
+
+function portalText_(v, max) { return String(v == null ? '' : v).replace(/[<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, max); }
+
+// The public part, small and without secrets. Empty values mean "use the default in data/portal.json".
+function portalPublic_() {
+  var m = portalCfgMap_(), c = Number(m['continue']);
+  var o = { contacts: m.contacts || '', venue: m.venue || '', notice: m.notice || '', cont: c >= 1 && c <= 12 ? c : 0, titles: {}, hide: { handout: [], practice: [], page: [] } };
+  Object.keys(m).forEach(function (k) {
+    var a = k.split(':'), n = Number(a[1]);
+    if (!(n >= 1 && n <= 12) || !m[k]) return;
+    if (a[0] === 'title') o.titles[n] = m[k];
+    else if (a[0] === 'hide_handout' && m[k] === '1') o.hide.handout.push(n);
+    else if (a[0] === 'hide_practice' && m[k] === '1') o.hide.practice.push(n);
+    else if (a[0] === 'hide_page' && m[k] === '1') o.hide.page.push(n);
+  });
+  return o;
+}
+
+// Host only. Sets whichever of contacts, venue, notice, cont, and (for week w) title, handout, practice, page are present.
+function portalSet_(p) {
+  var lk = LockService.getScriptLock(); lk.waitLock(10000);
+  try {
+    if (p.contacts !== undefined) portalCfgPut_('contacts', portalText_(p.contacts, 160));
+    if (p.venue !== undefined) portalCfgPut_('venue', portalText_(p.venue, 100));
+    if (p.notice !== undefined) portalCfgPut_('notice', portalText_(p.notice, 300));
+    if (p.cont !== undefined) { var c = Number(String(p.cont).replace(/\D/g, '')); portalCfgPut_('continue', c >= 1 && c <= 12 ? c : ''); }
+    var w = Number(String(p.w || '').replace(/\D/g, ''));
+    if (w >= 1 && w <= 12) {
+      if (p.title !== undefined) portalCfgPut_('title:' + w, portalText_(p.title, 100));
+      ['handout', 'practice', 'page'].forEach(function (k) { if (p[k] !== undefined) portalCfgPut_('hide_' + k + ':' + w, String(p[k]) === '0' ? '1' : ''); });
+    }
+    try { CacheService.getScriptCache().remove('portal'); } catch (err) { /* cache only */ }
+  } finally { lk.releaseLock(); }
+  return { ok: true, cfg: portalPublic_() };
+}
+
 function portalStatus_() { // public, no secrets: is attendance open, is a live quiz open, is "My results" on. Cached 5 s.
   var cache = null; try { cache = CacheService.getScriptCache(); var h = cache.get('portal'); if (h) return JSON.parse(h); } catch (err) { cache = null; }
   var att = 'closed';
@@ -1528,7 +1614,7 @@ function portalStatus_() { // public, no secrets: is attendance open, is a live 
       });
     }
   } catch (err) { /* leave none */ }
-  var o = { portal: 1, attendance: att, quiz: quiz, results: resultsOn_(), version: SCRIPT_VERSION, week: weekChoice_() };
+  var o = { portal: 1, attendance: att, quiz: quiz, results: resultsOn_(), version: SCRIPT_VERSION, week: weekChoice_(), cfg: portalPublic_() };
   if (cache) { try { cache.put('portal', JSON.stringify(o), 5); } catch (err) { /* cache only */ } }
   return o;
 }
@@ -1605,6 +1691,7 @@ function doGet(e) {
   if (p.action === 'version') return jsonp_(e, { ok: true, version: SCRIPT_VERSION }); // the Control Centre: does the page match this script?
   if (p.action === 'set_week') return jsonp_(e, hostOk_(p) ? setWeek_(p) : { ok: false, why: 'host key not accepted' }); // the Control Centre week selector
   if (p.action === 'portal_status') return jsonp_(e, portalStatus_()); // the student portal banner
+  if (p.action === 'portal_set') return jsonp_(e, hostOk_(p) ? portalSet_(p) : { ok: false, why: 'host key not accepted' }); // the Control Centre: contacts, venue, notice, titles, card links
   if (p.action === 'my_results') return jsonp_(e, portalResults_(p)); // a student's own attendance and quiz scores
   if (p.action === 'preclass') return jsonp_(e, hostOk_(p) ? preclass_(p) : { ok: false, why: 'host key not accepted' });
 
@@ -1697,7 +1784,7 @@ function doGet(e) {
     if (ch && paced_(ch) && Number(ch.v[11]) > 0) { var ac = answerCounts_(code, Number(ch.v[11])); out.answered = ac.answered; out.dist = ac.dist; }
     if (ch) { out.status = ctlStatus_(ch); out.state = out.status.state; var wks = {}; try { wks = siteJson_('/apps_script/live_quizzes.json').weeks || {}; } catch (er) { /* no list */ }
     var le2 = null; try { le2 = liveEntry_(code, ch); } catch (er) { /* offline */ }
-    out.weeks = wks; out.weekLocked = !!weekFromCode_(code); out.week = weekFromCode_(code) || weekOf_(ch); out.maxN = maxN_(code, ch); out.fixed = !!(le2 && le2.inline); out.settings = { n: quizN_(ch), duration: Number(ch.v[2]), allowLate: ch.v[5], showScore: ch.v[6], showBoard: ch.v[7] }; }
+    out.weeks = wks; out.weekLocked = !!weekFromCode_(code); out.week = weekFromCode_(code) || weekOf_(ch); out.maxN = maxN_(code, ch); out.fixed = !!(le2 && le2.inline); out.quizType = isConcept_(ch) ? 'concept' : 'standard'; try { out.conceptWeeks = siteJson_('/apps_script/live_quizzes.json').concept_weeks || {}; } catch (er) { out.conceptWeeks = {}; } if (isConcept_(ch)) out.diag = diagnostic_(code, ch); out.settings = { n: quizN_(ch), duration: Number(ch.v[2]), allowLate: ch.v[5], showScore: ch.v[6], showBoard: ch.v[7] }; }
     else out.state = state_(hk);
     return jsonp_(e, out);
   }

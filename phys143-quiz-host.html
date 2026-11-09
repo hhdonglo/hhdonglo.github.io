@@ -140,10 +140,16 @@ body.focus main{padding-top:1rem}
     <div id="h-dist"></div>
     <p class="note" id="h-names"></p>
    </section>
+   <section class="panel" id="h-diagp" hidden>
+    <h3>Class diagnostic: which concepts were missed</h3>
+    <div id="h-diag"></div>
+    <p class="note">Counts only, no names. Updates as answers arrive. Use it to decide what to re-teach before moving on.</p>
+   </section>
    <section class="panel">
     <label for="h-msg">Message to all students</label>
     <input type="text" id="h-msg" maxlength="200"> <button class="go alt" id="h-msgbtn">Send message</button> <button class="go alt" id="h-msgclr">Clear</button>
     <div class="row">
+     <div><label for="h-type">Quiz type</label><select id="h-type"><option value="standard">Practice questions (calculations and concepts)</option><option value="concept">Concept diagnostic (no calculations)</option></select></div>
      <div><label for="h-week">Week</label><select id="h-week"></select></div>
      <div><label for="h-n">Number of questions</label><select id="h-n"></select></div>
      <div><label for="h-qs">Seconds per question (0 = no timer)</label><select id="h-qs"><option>0</option><option>30</option><option>45</option><option>60</option><option>90</option><option>120</option><option>180</option></select></div>
@@ -246,10 +252,17 @@ function refresh(first){
   $("h-dist").innerHTML=h;
   $("h-names").textContent=d.notYet&&d.notYet.length?"Participants: "+d.notYet.join(", "):"";
   var pre=(s==="ready"||s==="lobby"||s==="draft");
-  var wk=Object.keys(d.weeks||{}).sort(function(a,b){return a-b}),wsig=wk.join(",")+"|"+d.maxN;
+  var cw=d.conceptWeeks||{},wk=Object.keys(d.weeks||{}).sort(function(a,b){return a-b});if(d.quizType==="concept")wk=wk.filter(function(k){return cw[k]});var wsig=wk.join(",")+"|"+d.maxN+"|"+d.quizType;
   if(cfg.wsig!==wsig){cfg.wsig=wsig;
    $("h-week").innerHTML=wk.map(function(k){return '<option value="'+k+'">Week '+k+': '+esc(d.weeks[k])+'</option>'}).join("");
    var no="";for(var n=5;n<=d.maxN;n++)no+='<option>'+n+'</option>';$("h-n").innerHTML=no}
+  $("h-type").disabled=!pre||d.fixed;setSel("h-type",d.quizType||"standard");
+  var dg=d.diag;$("h-diagp").hidden=!dg;
+  if(dg){var hh='<table><thead><tr><th>Concept</th><th>Right</th><th>Share right</th></tr></thead><tbody>';
+   dg.byTag.slice().sort(function(a,b){return (a.answered?a.right/a.answered:2)-(b.answered?b.right/b.answered:2)}).forEach(function(t){var pc=t.answered?Math.round(100*t.right/t.answered):null;hh+='<tr><td>'+esc(t.tag)+'</td><td>'+t.right+' / '+t.answered+'</td><td>'+(pc===null?'waiting':'<span class="bar"><i style="width:'+Math.round(pc*1.6)+'px"></i> '+pc+'%</span>')+'</td></tr>'});
+   hh+='</tbody></table><table><thead><tr><th>Q</th><th>Concept</th><th>Right</th><th>Share</th></tr></thead><tbody>';
+   dg.byQ.forEach(function(r){var pc=r.answered?Math.round(100*r.right/r.answered):null;hh+='<tr><td>'+r.q+'</td><td>'+esc(r.tag)+'</td><td>'+r.right+' / '+r.answered+'</td><td>'+(pc===null?"":pc+'%')+'</td></tr>'});
+   $("h-diag").innerHTML=hh+'</tbody></table>'}
   $("h-week").disabled=!pre||d.fixed||d.weekLocked;$("h-n").disabled=!pre||d.fixed;
   setSel("h-week",d.week);setSel("h-n",d.settings&&d.settings.n);
   setSel("h-qs",st.qSeconds);setSel("h-late",d.settings&&d.settings.allowLate);setSel("h-ss",d.settings&&d.settings.showScore);setSel("h-sb",d.settings&&d.settings.showBoard);
@@ -291,7 +304,7 @@ Array.prototype.forEach.call(document.querySelectorAll("[data-a]"),function(b){
 });
 $("h-msgbtn").addEventListener("click",function(){act("message","&text="+encodeURIComponent($("h-msg").value))});
 $("h-msgclr").addEventListener("click",function(){$("h-msg").value="";act("message","&text=")});
-[["h-week","week"],["h-n","n_questions"],["h-qs","q_seconds"],["h-late","allow_late_join"],["h-ss","show_score"],["h-sb","show_leaderboard"]].forEach(function(x){
+[["h-type","quiz_type"],["h-week","week"],["h-n","n_questions"],["h-qs","q_seconds"],["h-late","allow_late_join"],["h-ss","show_score"],["h-sb","show_leaderboard"]].forEach(function(x){
  $(x[0]).addEventListener("change",function(){act("set","&field="+x[1]+"&value="+encodeURIComponent($(x[0]).value))});
 });
 })();
