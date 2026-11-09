@@ -12,7 +12,15 @@
 <link rel="apple-touch-icon" href="assets/logo/apple-touch-icon.png">
 <link rel="stylesheet" href="assets/site.css">
 <script>if(!location.hash){if("scrollRestoration" in history)history.scrollRestoration="manual";window.addEventListener("pageshow",function(){if(!location.hash)window.scrollTo({top:0,left:0,behavior:"instant"})});}</script>
-<style>.cm-mine{outline:3px solid var(--brown-fill);outline-offset:2px}</style>
+<style>
+.cm-beta{display:inline-block;margin-left:.4rem;padding:.1rem .55rem;border:2px solid var(--brown);border-radius:999px;font-size:.8rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;vertical-align:middle;color:var(--brown)}
+.cm-note{padding:.7rem 1rem;border-left:4px solid var(--brown);background:var(--sky);border-radius:0 6px 6px 0}
+.cm-pick label{display:block;font-weight:600;margin-bottom:.4rem}
+.cm-row{display:flex;flex-wrap:wrap;gap:.75rem;align-items:center}
+.cm-row select{min-height:44px;min-width:12rem;padding:.4rem .6rem;font:inherit;color:inherit;background:var(--surface);border:1px solid var(--border);border-radius:6px}
+.cm-row select:focus-visible{outline:3px solid var(--brown);outline-offset:2px}
+.cm-ver{font-size:.92rem}
+</style>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -23,20 +31,29 @@
 <p class="course" data-render="banner-field">At the Edge of the Periodic Table</p>
 </div>
 </header>
-<nav class="jump" id="jump" aria-label="Sections"><div class="wrap"><button type="button" class="menu-btn" aria-expanded="false" aria-controls="jump-links"><span>Menu</span><span class="dots" aria-hidden="true">&#8943;</span></button><div class="links" id="jump-links"><a href="index.html">Home</a><div class="dd" data-key="research.html"><a href="research.html">Research</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Research links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="research.html#questions">Research Questions</a></li><li><a href="research.html#reaction-dynamics">Nuclear Reaction Dynamics</a></li><li><a href="research.html#uncertainty">Uncertainty Quantification</a></li><li><a href="earlier-research.html">Earlier Research</a></li></ul></div><div class="dd" data-key="projects.html"><a href="projects.html">Projects</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Projects links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="kewpie3.html">KEWPIE3</a></li><li><a href="projects.html#research-projects">Current Research</a></li></ul></div><div class="dd" data-key="data-engineering.html"><a href="data-engineering.html">Scientific Computing</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Scientific Computing links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="data-engineering.html#pipelines">Data Engineering</a></li><li><a href="data-engineering.html#retrieval">Machine Learning</a></li><li><a href="data-engineering.html#analysis">Data Analysis</a></li></ul></div><div class="dd" data-key="teaching.html"><a href="teaching.html" aria-current="page">Teaching</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Teaching links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="teaching.html#lecture-courses">Courses</a></li><li><a href="phys143.html#weekly">Lecture Notes</a></li><li><a href="mock-exam.html">Mock exam</a></li></ul></div><div class="dd" data-key="publications.html"><a href="publications.html">Publications</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Publications links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="publications.html#journal-articles">Journal Articles</a></li><li><a href="publications.html#preprints">Preprints</a></li><li><a href="publications.html#theses">Theses</a></li></ul></div><div class="dd" data-key="students.html"><a href="students.html">Students</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Students links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="students.html#undergraduate">Supervision</a></li><li><a href="students.html#research-projects">Project Opportunities</a></li></ul></div><a href="about.html">About</a><a href="cv.html" class="util first">CV</a><a href="contact.html" class="util">Contact</a></div></div></nav>
+<nav class="jump" id="jump" aria-label="Sections"><div class="wrap"><button type="button" class="menu-btn" aria-expanded="false" aria-controls="jump-links"><span>Menu</span><span class="dots" aria-hidden="true">&#8943;</span></button><div class="links" id="jump-links"><a href="index.html">Home</a><div class="dd" data-key="research.html"><a href="research.html">Research</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Research links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="research.html#questions">Research Questions</a></li><li><a href="research.html#reaction-dynamics">Nuclear Reaction Dynamics</a></li><li><a href="research.html#uncertainty">Uncertainty Quantification</a></li><li><a href="earlier-research.html">Earlier Research</a></li></ul></div><div class="dd" data-key="projects.html"><a href="projects.html">Projects</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Projects links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="kewpie3.html">KEWPIE3</a></li><li><a href="projects.html#research-projects">Current Research</a></li></ul></div><div class="dd" data-key="data-engineering.html"><a href="data-engineering.html">Scientific Computing</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Scientific Computing links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="data-engineering.html#pipelines">Data Engineering</a></li><li><a href="data-engineering.html#retrieval">Machine Learning</a></li><li><a href="data-engineering.html#analysis">Data Analysis</a></li></ul></div><div class="dd" data-key="teaching.html"><a href="teaching.html">Teaching</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Teaching links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="teaching.html#lecture-courses">Courses</a></li><li><a href="phys143.html#weekly">Lecture Notes</a></li><li><a href="mock-exam.html">Mock exam</a></li></ul></div><div class="dd" data-key="publications.html"><a href="publications.html">Publications</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Publications links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="publications.html#journal-articles">Journal Articles</a></li><li><a href="publications.html#preprints">Preprints</a></li><li><a href="publications.html#theses">Theses</a></li></ul></div><div class="dd" data-key="students.html"><a href="students.html">Students</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Students links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="students.html#undergraduate">Supervision</a></li><li><a href="students.html#research-projects">Project Opportunities</a></li></ul></div><a href="about.html">About</a><div class="dd" data-key="class-manager-app.html"><a href="class-manager-app.html" aria-current="page">Download</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Download links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="class-manager-app.html">Class Manager app for lecturers (Beta)</a></li></ul></div><a href="cv.html" class="util first">CV</a><a href="contact.html" class="util">Contact</a></div></div></nav>
 <main id="main"><div class="wrap">
-<p class="crumb"><a href="index.html">Home</a> &rsaquo; <a href="teaching.html">Teaching</a> &rsaquo; Class Manager app</p>
+<p class="crumb"><a href="index.html">Home</a> &rsaquo; Download &rsaquo; Class Manager app</p>
 <section aria-labelledby="cm-title">
-<h2 id="cm-title">Class Manager app</h2>
+<h2 id="cm-title">Class Manager app <span class="cm-beta">Beta</span></h2>
 <p class="sec-sub">A desktop app for lecturers: course pages, practice questions, a mock exam, a live class quiz and attendance by QR code, run from the lecturer's own computer.</p>
+<p class="cm-note" role="note"><strong>Beta.</strong> This version is not yet fully tested. Keep a copy of class records elsewhere, and report problems through the <a href="contact.html">Contact</a> page.</p>
 
 <section aria-labelledby="cm-download">
 <h3 class="sub2" id="cm-download">Download</h3>
-<p class="sec-sub" id="cm-os" role="status">Choose the version for your computer.</p>
-<div class="ov-grid" id="cm-dl">
-<article class="ov-card" data-os="win"><h4>Windows</h4><p>Windows 10 or 11, 64-bit.</p><p><a class="btn primary" href="https://github.com/hhdonglo/hhdonglo.github.io/releases/latest/download/Class-Manager-Windows.exe">Download for Windows</a></p></article>
-<article class="ov-card" data-os="mac"><h4>macOS</h4><p>macOS 11 or later, Intel and Apple silicon.</p><p><a class="btn primary" href="https://github.com/hhdonglo/hhdonglo.github.io/releases/latest/download/Class-Manager-macOS.dmg">Download for macOS</a></p></article>
-<article class="ov-card" data-os="linux"><h4>Linux</h4><p>AppImage for 64-bit Linux.</p><p><a class="btn primary" href="https://github.com/hhdonglo/hhdonglo.github.io/releases/latest/download/Class-Manager-Linux.AppImage">Download for Linux</a></p></article>
+<div class="ov-card cm-pick">
+<label for="cm-os-select">Version for your computer</label>
+<div class="cm-row">
+<select id="cm-os-select">
+<option value="win" data-href="https://github.com/hhdonglo/hhdonglo.github.io/releases/latest/download/Class-Manager-Windows.exe" data-req="Windows 10 or 11, 64-bit.">Windows</option>
+<option value="mac" data-href="https://github.com/hhdonglo/hhdonglo.github.io/releases/latest/download/Class-Manager-macOS.dmg" data-req="macOS 11 or later, Intel and Apple silicon.">macOS</option>
+<option value="linux" data-href="https://github.com/hhdonglo/hhdonglo.github.io/releases/latest/download/Class-Manager-Linux.AppImage" data-req="AppImage for 64-bit Linux.">Linux</option>
+</select>
+<a class="btn primary" id="cm-get" href="https://github.com/hhdonglo/hhdonglo.github.io/releases/latest/download/Class-Manager-Windows.exe">Download for Windows</a>
+</div>
+<p id="cm-req">Windows 10 or 11, 64-bit.</p>
+<p class="sec-sub" id="cm-os" role="status"></p>
+<p class="cm-ver">Version 0.2.0 (Beta). <a href="https://github.com/hhdonglo/hhdonglo.github.io/releases/latest">Release notes and all files</a></p>
 </div>
 </section>
 
@@ -47,6 +64,10 @@
 <li>Serves the course pages to students' phones over the classroom Wi-Fi, with a QR code to join.</li>
 <li>Runs a live class quiz with a projector view, timed questions, results and review.</li>
 <li>Takes attendance with a QR code that changes during the session, one mark per student per day.</li>
+<li>Gives each student a personal access code to see their own attendance, quiz results and practice progress.</li>
+<li>Shows teaching insights for each question, and forms student groups.</li>
+<li>Keeps a course calendar that students can add to their own calendars, with announcements and moderated class messages.</li>
+<li>Builds a library from the lecturer's own PDF, Word, PowerPoint and Markdown files, with search and summaries, and imports or drafts quiz questions for the lecturer to review before use. Drafting questions and full summaries use the lecturer's own Anthropic API key.</li>
 <li>Keeps attendance, quiz scores and marks on the lecturer's computer, and exports every table as a CSV file for Excel.</li>
 <li>Needs no account and no setup: the results workbook and the host key are created on first launch.</li>
 </ul>
@@ -81,17 +102,17 @@
 </div></main>
 <script>
 (function(){
-/* Put the version for this computer first and mark it; the other two stay available. */
+/* Preselect the version for this computer; the dropdown changes the button and the requirements line. */
+var sel=document.getElementById("cm-os-select"),get=document.getElementById("cm-get"),req=document.getElementById("cm-req"),note=document.getElementById("cm-os");
+if(!sel)return;
 var ua=navigator.userAgent||"",pf=(navigator.userAgentData&&navigator.userAgentData.platform)||navigator.platform||"";
-var os=/Win/i.test(pf+ua)?"win":/Mac/i.test(pf+ua)&&!/iPhone|iPad/i.test(ua)?"mac":/Linux|X11/i.test(pf+ua)&&!/Android/i.test(ua)?"linux":"";
-var grid=document.getElementById("cm-dl"),note=document.getElementById("cm-os");if(!grid)return;
-var names={win:"Windows",mac:"macOS",linux:"Linux"};
-if(!os){if(/Android|iPhone|iPad/i.test(ua))note.textContent="Class Manager runs on a laptop or desktop computer. Choose the version for that computer.";return}
-var card=grid.querySelector('[data-os="'+os+'"]');if(!card)return;
-grid.insertBefore(card,grid.firstChild);card.classList.add("cm-mine");
-var tag=document.createElement("p");tag.className="status";tag.textContent="Recommended for this computer";card.insertBefore(tag,card.firstChild);
-grid.querySelectorAll("article:not(.cm-mine) .btn").forEach(function(b){b.classList.remove("primary")});
-note.textContent="This computer appears to run "+names[os]+". The other versions are also listed.";
+var mobile=/Android|iPhone|iPad/i.test(ua);
+var os=mobile?"":/Win/i.test(pf+ua)?"win":/Mac/i.test(pf+ua)?"mac":/Linux|X11/i.test(pf+ua)?"linux":"";
+function show(){var o=sel.options[sel.selectedIndex];get.href=o.getAttribute("data-href");get.textContent="Download for "+o.textContent;req.textContent=o.getAttribute("data-req")}
+if(os){sel.value=os;note.textContent="Preselected for this computer. Choose another version from the list if needed."}
+else if(mobile)note.textContent="Class Manager runs on a laptop or desktop computer. Choose the version for that computer.";
+sel.addEventListener("change",function(){show();note.textContent=""});
+show();
 })();
 </script>
 <footer data-render="footer"><div class="wrap"><div class="foot-grid"><div><p class="foot-name">Hope Donglo, PhD</p><p>Lecturer in Physics · University of Ghana</p></div><nav aria-label="Footer"><ul><li><a href="research.html">Research</a></li><li><a href="projects.html">Projects</a></li><li><a href="data-engineering.html">Scientific Computing</a></li><li><a href="teaching.html">Teaching</a></li><li><a href="publications.html">Publications</a></li><li><a href="students.html">Students</a></li><li><a href="about.html">About</a></li><li><a href="cv.html">CV</a></li><li><a href="contact.html">Contact</a></li></ul></nav><ul class="foot-ext"><li><a href="https://scholar.google.com/citations?user=QW32BboAAAAJ&amp;hl=en" rel="noopener">Google Scholar ↗</a></li><li><a href="https://orcid.org/0009-0003-6142-8780" rel="noopener">ORCID ↗</a></li><li><a href="https://github.com/hhdonglo" rel="noopener">GitHub ↗</a></li><li><a href="https://www.linkedin.com/in/hopedonglo" rel="noopener">LinkedIn ↗</a></li><li><a href="https://phyanalytics.com/" rel="noopener">PhyAnalytics ↗</a></li></ul></div><p class="foot-note">© 2026 Hope Donglo · Anonymous visit counts, no cookies</p></div></footer>
