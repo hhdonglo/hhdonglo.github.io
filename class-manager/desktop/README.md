@@ -19,7 +19,9 @@ The first time it runs, Windows and macOS ask whether the app may accept connect
 
 **In class**
 
-1. Connect the laptop and the students' phones to the same Wi-Fi. If the university network does not let phones reach the laptop, switch on a phone hotspot and connect the laptop and the class to it.
+1. Choose how students connect, under **Students open** on the home screen:
+   - **Same Wi-Fi or hotspot** (the default): the laptop and the phones join the same Wi-Fi. If the university network does not let phones reach the laptop, switch on a phone hotspot and connect the laptop and the class to it.
+   - **Internet**: the app starts a temporary https address that students open from any network, including mobile data. Show the QR code; the address changes each time. Press **Stop internet access** at the end of the class. See "Internet access" below.
 2. **Attendance**: Lecturer menu, log in with the host key, Take attendance. Show the QR code on the projector. Students scan it and type their student ID. Close attendance, then submit it.
 3. **Live quiz**: Lecturer menu, Run quiz. Use join code `2627` followed by the week number (for example `26272` for week 2). Open **Projector display** on the projector. Students open the student address, choose Quiz, and enter their first name, student ID and the join code.
 4. Practice questions and the mock exam need nothing from the lecturer; students open them from the portal at any time while the app is running, or the lecturer can give them the course pages another way.
@@ -36,11 +38,20 @@ All data stays on the laptop, in the data folder shown at the bottom of the home
 
 **Another course.** Under Settings, change the course code, title and institution. To replace the lectures and questions, see the README one folder up.
 
+## Internet access
+
+Choosing **Internet** starts a Cloudflare quick tunnel: a free service that needs no account and no router settings. The first time, the app downloads Cloudflare's connector program (`cloudflared` version 2026.10.7, about 20 to 55 MB) from Cloudflare's GitHub releases into the app's data folder, and runs it only if its SHA-256 checksum matches the value in `tunnel.js`.
+
+- The tunnel reaches a second server inside the app that listens on this computer only. Every request through it is treated as coming from outside: the app's own screens (`/app/`) are refused, and each visitor is limited to 240 requests a minute. The host key, access codes and their lockouts work as on the local network.
+- Pages and QR codes that the lecturer opens (attendance, codes, calendar feed) use the https address while it is on.
+- Limits: the address lasts only while the app is open and changes at each start. Cloudflare describes quick tunnels as a service for testing, with no uptime guarantee and a limit of about 200 requests in flight at once; this is usually enough for one class. Traffic passes through Cloudflare's network and is subject to Cloudflare's terms. For a permanent address, use the Google Apps Script set-up instead (Settings).
+
 ## What runs where
 
 - `main.js`: starts the classroom server on the local network (port 8143 by default), opens the home screen, handles the app's own buttons.
 - `backend.js`: runs `apps_script/quiz_receiver.gs`, unchanged, against a workbook stored in the app's data folder, so every rule of the Google version (join codes, rounds, scoring, one check-in per ID per day, class list, Master and Totals) works the same way. Location checking for attendance is off, because phones share their location only with secure (https) addresses.
 - `google.js`: optional Google sign-in and the copy to a Google Sheet.
+- `tunnel.js`: internet access through a Cloudflare quick tunnel (above).
 - `authoring.js`: the resource library, search, summaries, question generation, import and the bank overlay (below).
 - `app/home.html`: the home screen. `app/author.html`: Resources and questions.
 - The course pages are the ones in the folder above, packed into the app.

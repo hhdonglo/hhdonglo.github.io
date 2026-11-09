@@ -32,6 +32,13 @@
 .hm td,.hm th{border-bottom:1px solid var(--border);padding:.3rem .55rem;text-align:left;white-space:nowrap}
 .hm th{position:sticky;top:0;background:var(--surface)}
 .hm details summary{cursor:pointer;font-weight:600}
+.hm .seg{display:flex;flex-wrap:wrap;gap:.4rem;margin:.3rem 0 .5rem;border:0;padding:0}
+.hm .seg legend{font-weight:600;margin-bottom:.3rem}
+.hm .seg label{display:inline-flex;align-items:center;gap:.4rem;margin:0;padding:.45rem .8rem;border:1.5px solid var(--border);border-radius:6px;font-weight:600;cursor:pointer}
+.hm .seg input{width:auto;min-height:0;margin:0}
+.hm .seg label:has(input:checked){border-color:var(--brown-fill);background:var(--sky)}
+.hm .seg label:has(input:focus-visible){outline:3px solid var(--brown);outline-offset:2px}
+.hm .tstate{font-weight:600}
 .hm [hidden]{display:none!important}
 </style>
 </head>
@@ -43,9 +50,15 @@
 <div class="grid">
  <div class="card">
   <h3>Students open</h3>
+  <fieldset class="seg"><legend>How students connect</legend>
+   <label><input type="radio" name="conn" value="lan" checked> Same Wi-Fi or hotspot</label>
+   <label><input type="radio" name="conn" value="net"> Internet</label>
+  </fieldset>
   <p class="addr" id="addr">…</p>
   <div id="qr" role="img" aria-label="QR code of the student address"></div>
-  <p class="note">Phones must be on the same Wi-Fi as this computer. If the university network blocks this, use a phone hotspot. Other addresses of this computer: <span id="more">none</span>.</p>
+  <p class="tstate" id="tstate" role="status" aria-live="polite"></p>
+  <div id="lan-note"><p class="note">Phones join the same Wi-Fi as this computer, or a phone hotspot that this computer is also connected to. If phones cannot open the address, the network keeps devices apart (common on university Wi-Fi): use a hotspot, or choose Internet. Other addresses of this computer: <span id="more">none</span>.</p></div>
+  <div id="net-note" hidden><p class="note">Students open the https address from any network, including mobile data, while this app is open. The address changes each time it starts, so show the new QR code. Traffic passes through Cloudflare's free quick tunnel service, which offers no uptime guarantee; for a class it is usually enough. The first time, the app downloads Cloudflare's connector program and checks it. The app's own screens are never reachable from the internet, and the lecturer pages still need the host key.</p><button id="t-stop" type="button" hidden>Stop internet access</button></div>
  </div>
  <div class="card">
   <h3>Lecturer tools</h3>
@@ -123,11 +136,23 @@ var $=function(i){return document.getElementById(i)};
 if(!window.cmApp){document.body.innerHTML="<p style='padding:2rem'>Open this page from the Class Manager app.</p>";return}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 var cur="";
+var lanBase="";
+function qr(url){try{var q=qrcode(0,"M");q.addData(url);q.make();$("qr").innerHTML=q.createSvgTag({cellSize:6,margin:1,scalable:true})}catch(e){}}
+function tshow(t){
+ t=t||{state:"off"};var net=document.querySelector('input[name=conn][value=net]'),on=t.state==="on";
+ if(on||t.state==="starting"||t.state==="downloading")net.checked=true;
+ var wantNet=net.checked;
+ $("net-note").hidden=!wantNet;$("lan-note").hidden=wantNet;$("t-stop").hidden=!(wantNet&&t.state!=="off"&&t.state!=="error");
+ var msg={off:"",downloading:"Downloading the connector program (first time only)…",starting:"Starting internet access…",stopping:"Stopping…",on:"Internet access is on.",error:"Internet access is off: "+(t.error||"")}[t.state]||"";
+ $("tstate").textContent=wantNet?msg:"";
+ var url=on?t.url:(wantNet?"":lanBase);
+ $("addr").textContent=url||"…";if(url)qr(url);else $("qr").innerHTML="";
+}
 function show(info){
  var s=info.settings;
- $("addr").textContent=info.base;
+ lanBase=info.base;
  $("more").textContent=info.addresses.slice(1).join(", ")||"none";
- try{var q=qrcode(0,"M");q.addData(info.base);q.make();$("qr").innerHTML=q.createSvgTag({cellSize:6,margin:1,scalable:true})}catch(e){}
+ tshow(info.tunnel);
  if(info.hostKey){$("key").textContent=info.hostKey}else{$("key").textContent="changed";$("keynote").textContent="You changed the host key on the quiz dashboard, so it is no longer shown here. Use your new key."}
  if(s.scriptUrl){$("keynote").textContent="This app is set to use your own Apps Script (Settings), so the host key is the one in your Google Sheet."}
  $("s-code").value=s.courseCode;$("s-title").value=s.courseTitle;$("s-inst").value=s.institution;$("s-url").value=s.scriptUrl;$("s-port").value=s.port;
@@ -154,6 +179,12 @@ function gshow(g){
  $("g-msg").textContent=g.lastError?"Last copy failed: "+g.lastError:"";
 }
 function reload(){return cmApp.info().then(show)}
+cmApp.onTunnel(tshow);
+document.querySelectorAll("input[name=conn]").forEach(function(r){r.addEventListener("change",function(){
+ if(r.value==="net"&&r.checked){tshow({state:"starting"});cmApp.tunnelStart().then(tshow)}
+ if(r.value==="lan"&&r.checked){cmApp.tunnelStop().then(tshow)}
+})});
+$("t-stop").addEventListener("click",function(){document.querySelector('input[name=conn][value=lan]').checked=true;cmApp.tunnelStop().then(tshow)});
 reload();
 document.querySelectorAll("[data-win]").forEach(function(b){b.addEventListener("click",function(){cmApp.openWindow(b.getAttribute("data-win"))})});
 $("tab").addEventListener("change",view);
