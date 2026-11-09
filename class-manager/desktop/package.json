@@ -30,6 +30,7 @@
       "preload.js",
       "backend.js",
       "google.js",
+      "authoring.js",
       "app/**/*",
       "google-oauth.json",
       "package.json"
@@ -88,5 +89,11 @@
     "publish": null
   },
   "desktopName": "class-manager.desktop",
-  "repository": "https://github.com/hhdonglo/hhdonglo.github.io"
+  "repository": "https://github.com/hhdonglo/hhdonglo.github.io",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.6.0",
+    "jszip": "^3.10.2",
+    "mammoth": "^1.13.0",
+    "unpdf": "^2.1.0"
+  }
 }

@@ -139,6 +139,8 @@ function createBackend(opts) {
     // The script reads the public question banks from the site; here they are next to the pages.
     fetch: (url) => {
       const p = decodeURIComponent(new URL(url).pathname).replace(/^\/+/, "");
+      const merged = opts.readSite ? opts.readSite(p) : null; // approved questions added to the course banks
+      if (merged !== null && merged !== undefined) return { getContentText: () => merged, getResponseCode: () => 200 };
       const full = path.normalize(path.join(WEB, p));
       let text = "", code = 404;
       if (full.startsWith(path.normalize(WEB + path.sep)) && fs.existsSync(full)) { text = fs.readFileSync(full, "utf8"); code = 200; }
@@ -146,7 +148,7 @@ function createBackend(opts) {
     }
   };
   const ContentService = {
-    MimeType: { JSON: "application/json", JAVASCRIPT: "text/javascript", TEXT: "text/plain" },
+    MimeType: { JSON: "application/json", JAVASCRIPT: "text/javascript", TEXT: "text/plain", ICAL: "text/calendar" },
     createTextOutput: (t) => { const o = { text: String(t == null ? "" : t), mime: "text/plain" }; o.setMimeType = (m) => { o.mime = m; return o; }; o.getContent = () => o.text; return o; }
   };
   const ctx = {
@@ -186,6 +188,8 @@ function createBackend(opts) {
     run: (name) => ctx[name](),
     // The app itself is trusted: it calls the script's own class list sync without the host key.
     rosterSync: (rows, replace) => asHost(() => ctx.rosterSync_({ rows: JSON.stringify(rows), mode: "apply", replace: replace ? "yes" : "" })),
+    // After questions are approved: the script must read the banks again rather than its five-minute copy.
+    dropSiteCache: () => { for (const k of [...store.keys()]) if (k.indexOf("site:") === 0) store.delete(k); },
     tabs: () => book.sheets.map((d) => ({ name: d.name, rows: sheetObj(d).getLastRow() })),
     tab: (name) => { const s = spreadsheet.getSheetByName(name); return s ? s.getDataRange().getDisplayValues() : null; },
     flush

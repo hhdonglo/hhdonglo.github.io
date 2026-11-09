@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Course calendar</title>
+<meta name="description" content="Lectures, tutorials, quizzes, examinations, deadlines and office hours, with agendas.">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/icon-192.png">
+<script src="config.js"></script>
+<link rel="stylesheet" href="assets/site.css">
+<script>if(!location.hash){if("scrollRestoration" in history)history.scrollRestoration="manual";window.addEventListener("pageshow",function(){if(!location.hash)window.scrollTo({top:0,left:0,behavior:"instant"})});}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="banner slim">
+<div class="wrap">
+<h1><a class="home-link" href="index.html" data-cm="courseCode">PHYS 143</a></h1>
+<p class="course" data-cm="courseTitle">Mechanics and Thermal Physics</p>
+</div>
+</header>
+<nav class="jump" id="jump" aria-label="Sections"><div class="wrap"><button type="button" class="menu-btn" aria-expanded="false" aria-controls="jump-links"><span>Menu</span><span class="dots" aria-hidden="true">&#8943;</span></button><div class="links" id="jump-links"><a href="index.html">Portal</a><a href="course.html">Lectures</a><a href="course.html#weekly">Practice</a><a href="mock-exam.html">Mock exam</a><a href="quiz.html">Live quiz</a><a href="calendar.html" aria-current="page">Calendar</a><a href="messages.html">Messages</a></div></div></nav>
+<main id="main"><div class="wrap">
+<h2>Course calendar</h2>
+<style>
+.cal{max-width:72rem;margin:0 auto;font-family:system-ui,sans-serif}
+.cal .panel{background:var(--surface);border:1px solid var(--border);border-top:5px solid var(--brown-edge);border-radius:8px;padding:1rem 1.2rem;box-shadow:var(--shadow);margin-bottom:1rem}
+.cal h3{margin:.1rem 0 .5rem;font-size:1.15rem}
+.cal .note{font:.9rem/1.5 system-ui,sans-serif;color:var(--muted)}
+.cal label{font:600 .9rem system-ui,sans-serif}
+.cal input,.cal select,.cal textarea{min-height:40px;padding:.3rem .5rem;border:1.5px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font:1rem system-ui,sans-serif;box-sizing:border-box}
+.cal textarea{width:100%;min-height:5rem;font:.95rem/1.45 system-ui,sans-serif}
+.cal input[type=checkbox]{min-height:0}
+.cal .go{min-height:40px;padding:.35rem 1rem;border:2px solid var(--brown-fill);border-radius:6px;background:var(--brown-fill);color:#fff;font:600 .95rem system-ui,sans-serif;cursor:pointer;margin:.25rem .35rem .25rem 0;text-decoration:none;display:inline-block}
+.cal .go.alt{background:var(--btn-bg);color:var(--btn-text)}
+.cal .go[aria-pressed=true]{background:var(--brown-fill);color:#fff}
+.cal .row{display:flex;flex-wrap:wrap;gap:.6rem 1rem;align-items:flex-end}
+.cal .bar{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:.5rem;margin-bottom:.6rem}
+.cal .bar h3{margin:0;min-width:12rem}
+.cal .err{color:#b3261e;font-weight:600}
+.cal [hidden]{display:none!important}
+.cal .month{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border-top:1px solid var(--border);border-left:1px solid var(--border)}
+.cal .month .dh{font:600 .8rem system-ui,sans-serif;color:var(--muted);padding:.3rem;border-right:1px solid var(--border);border-bottom:1px solid var(--border);text-align:center}
+.cal .month .d{min-height:6.2rem;padding:.25rem;border-right:1px solid var(--border);border-bottom:1px solid var(--border);overflow:hidden}
+.cal .month .d.out{opacity:.45}
+.cal .month .d.today{box-shadow:inset 0 0 0 2px var(--brown-fill)}
+.cal .month .n{font:600 .8rem system-ui,sans-serif;display:block;margin-bottom:.15rem}
+.cal .ev{display:block;width:100%;text-align:left;border:0;border-left:4px solid var(--k);background:color-mix(in srgb,var(--k) 14%,transparent);color:var(--text);border-radius:4px;padding:.12rem .3rem;margin:0 0 .18rem;font:.78rem/1.25 system-ui,sans-serif;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cal .ev:focus-visible,.cal .go:focus-visible{outline:3px solid var(--brown-fill);outline-offset:2px}
+.cal .week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:.4rem}
+.cal .week .col{border:1px solid var(--border);border-radius:6px;padding:.35rem;min-height:9rem}
+.cal .week .col.today{box-shadow:inset 0 0 0 2px var(--brown-fill)}
+.cal .week .col h4{margin:0 0 .3rem;font:600 .85rem system-ui,sans-serif}
+.cal .week .ev{white-space:normal}
+.cal .list .day{margin:.8rem 0 .3rem;font:700 1rem system-ui,sans-serif}
+.cal .list .ev{font-size:.95rem;padding:.4rem .6rem;white-space:normal}
+.cal .k{display:inline-block;font:600 .72rem system-ui,sans-serif;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-right:.35rem}
+.cal .legend{display:flex;flex-wrap:wrap;gap:.3rem .9rem;font-size:.85rem;margin-top:.6rem}
+.cal .legend span::before{content:"";display:inline-block;width:.8rem;height:.8rem;border-radius:2px;background:var(--k);margin-right:.3rem;vertical-align:-1px}
+.cal dialog{max-width:40rem;width:calc(100% - 2rem);border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--text);padding:1.1rem 1.3rem}
+.cal dialog::backdrop{background:rgba(0,0,0,.45)}
+.cal .det h3{font-size:1.3rem}
+.cal .det .agenda{white-space:pre-line;margin:.3rem 0 .8rem}
+.cal .det ul{margin:.3rem 0 .8rem 1.1rem;padding:0}
+.cal .grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(14rem,1fr));gap:.6rem 1rem}
+.cal .grid2 .wide{grid-column:1/-1}
+.cal .grid2 input,.cal .grid2 select{width:100%}.cal .grid2 input[type=checkbox]{width:auto;margin-right:.4rem}.cal .grid2 .ad{align-self:end;padding-bottom:.6rem}
+.cal code{font-size:.85rem;word-break:break-all}
+@media (max-width:720px){.cal .month .d{min-height:4.2rem}.cal .month .ev{font-size:0;padding:0;height:.45rem;border-left-width:0;background:var(--k)}.cal .week{grid-template-columns:1fr}.cal .week .col{min-height:0}}
+@media print{.cal .ctl,.cal .bar button,.cal .views{display:none!important}.cal .panel{box-shadow:none;border:0}}
+</style>
+<div class="cal">
+ <section class="panel">
+  <div class="bar">
+   <div class="views" role="group" aria-label="View"><button class="go alt" type="button" data-view="month">Month</button><button class="go alt" type="button" data-view="week">Week</button><button class="go alt" type="button" data-view="list">List</button></div>
+   <h3 id="c-title" aria-live="polite"></h3>
+   <div><button class="go alt" type="button" id="c-prev" aria-label="Previous">&#8249;</button><button class="go alt" type="button" id="c-today">Today</button><button class="go alt" type="button" id="c-next" aria-label="Next">&#8250;</button></div>
+  </div>
+  <div id="c-body" aria-live="polite"><p class="note">Loading the calendar…</p></div>
+  <div class="legend" id="c-legend"></div>
+  <p class="err" id="c-err" role="alert" hidden></p>
+ </section>
+ <section class="panel">
+  <h3>Add the calendar to your own</h3>
+  <p class="note">Subscribe once and new or changed events appear in your calendar program by themselves (most programs check every few hours). Or download the events as a file to import.</p>
+  <p><a class="go" id="c-sub" href="#">Subscribe in a calendar program</a><a class="go alt" id="c-gsub" href="#" target="_blank" rel="noopener">Subscribe in Google Calendar</a><button class="go alt" type="button" id="c-ics">Download all events (.ics)</button><button class="go alt" type="button" id="c-copy">Copy the feed address</button></p>
+  <p class="note">Feed address: <code id="c-feed"></code></p>
+  <p class="note" id="c-lanote" hidden>This calendar is served from the lecturer's computer on the classroom network. A subscription made here updates only while that computer is reachable, and Google Calendar cannot reach it; download the file instead, or ask the lecturer for the online feed.</p>
+ </section>
+ <section class="panel ctl" id="c-host" hidden>
+  <h3 id="c-ftitle">Add an event</h3>
+  <form id="c-form" autocomplete="off">
+   <input type="hidden" id="f-id">
+   <div class="grid2">
+    <div class="wide"><label for="f-title">Title</label><input type="text" id="f-title" maxlength="200" required placeholder="Lecture 5: Potential energy and energy conservation"></div>
+    <div><label for="f-kind">Kind</label><select id="f-kind"></select></div>
+    <div><label for="f-start">Starts</label><input type="datetime-local" id="f-start" required></div>
+    <div><label for="f-end">Ends</label><input type="datetime-local" id="f-end"></div>
+    <div class="ad"><label><input type="checkbox" id="f-allday"> All day</label></div>
+    <div><label for="f-loc">Place</label><input type="text" id="f-loc" maxlength="200" placeholder="Room or online link"></div>
+    <div><label for="f-week">Course week</label><select id="f-week"></select></div>
+    <div><label for="f-link">During the event</label><select id="f-link"><option value="">Nothing linked</option><option value="attendance">Attendance check-in</option><option value="quiz">Live quiz</option><option value="both">Attendance and live quiz</option></select></div>
+    <div><label for="f-vis">Who sees it</label><select id="f-vis"><option value="students">Students and lecturer</option><option value="lecturer">Lecturer only</option></select></div>
+    <div class="wide"><label for="f-agenda">Agenda (one item per line)</label><textarea id="f-agenda" maxlength="4000" placeholder="Gravitational potential energy&#10;Elastic potential energy&#10;Conservation of mechanical energy"></textarea></div>
+    <div class="wide"><label for="f-res">Resources (one per line: a title, a vertical bar, then the web address; or a course page such as lecture-5.html)</label><textarea id="f-res" maxlength="2000" placeholder="Lecture 5 slides | lecture-5.html&#10;Practice questions | lecture-5-practice.html"></textarea></div>
+   </div>
+   <details id="f-rep"><summary>Repeat this event</summary>
+    <div class="row" style="margin-top:.5rem">
+     <div><label for="f-count">Number of events</label><br><input type="number" id="f-count" min="1" max="30" value="12"></div>
+     <div><label for="f-every">Every</label><br><select id="f-every"><option value="7">week</option><option value="14">two weeks</option><option value="1">day</option></select></div>
+     <div style="flex:1;min-width:16rem"><label for="f-titles">Titles, one per event (optional; {n} is replaced by the week number)</label><br><textarea id="f-titles" rows="3" placeholder="Leave empty to use the title above for every event"></textarea></div>
+    </div>
+    <p class="note">With a course week set, each repeat moves to the next week, and its title can take the week's topic: use <button class="go alt" type="button" id="f-topics" style="min-height:30px;padding:0 .5rem;font-size:.85rem">fill titles from the course weeks</button></p>
+   </details>
+   <p><button class="go" type="submit" id="f-save">Save</button><button class="go alt" type="button" id="f-new">Clear the form</button><button class="go alt" type="button" id="f-del" hidden>Delete</button><button class="go alt" type="button" id="f-delser" hidden>Delete the whole series</button></p>
+   <p class="err" id="f-err" role="alert" hidden></p>
+  </form>
+ </section>
+ <p class="note ctl" id="c-hostlink"><a href="#" id="c-login">Lecturer: add or change events</a></p>
+ <dialog id="c-dlg" aria-labelledby="d-title"><div class="det" id="c-det"></div><p><button class="go alt" type="button" id="d-close">Close</button></p></dialog>
+</div>
+<script>
+(function(){
+"use strict";
+var SCRIPT_URL=window.CM.scriptUrl,$=function(i){return document.getElementById(i)},D=null,VIEW="month",CUR=new Date();
+var COLORS={lecture:"#1f5fa8",tutorial:"#2e7d4f",lab:"#6b4fa3",quiz:"#c2410c",exam:"#b3261e",deadline:"#a16207","office hours":"#0f766e",other:"#64748b"};
+var NAMES={lecture:"Lecture",tutorial:"Tutorial",lab:"Laboratory",quiz:"Quiz",exam:"Examination",deadline:"Deadline","office hours":"Office hours",other:"Other"};
+var MONTHS=["January","February","March","April","May","June","July","August","September","October","November","December"],DAYS=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+var KEY="";try{KEY=sessionStorage.getItem("phys143_hk")||""}catch(x){}
+try{VIEW=localStorage.getItem("cm_cal_view")||(innerWidth<720?"list":"month")}catch(x){}
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function jsonp(params,cb,ms){
+ var n="cb"+Date.now()+Math.floor(Math.random()*1e6),sc=document.createElement("script"),done=false,t;
+ function end(d){if(done)return;done=true;clearTimeout(t);delete window[n];if(sc.parentNode)sc.parentNode.removeChild(sc);cb(d)}
+ window[n]=end;sc.onerror=function(){end(null)};t=setTimeout(function(){end(null)},ms||30000);
+ sc.src=SCRIPT_URL+"?"+params+"&callback="+n+"&_="+Date.now();document.head.appendChild(sc);
+}
+function q(k,v){return"&"+k+"="+encodeURIComponent(v==null?"":v)}
+function err(t){$("c-err").textContent=t||"";$("c-err").hidden=!t}
+function ymd(d){return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2)}
+function parse(s){var m=/^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2}))?/.exec(s||"");return m?new Date(+m[1],m[2]-1,+m[3],+(m[4]||0),+(m[5]||0)):null}
+function hm(s){return s&&s.length>10?s.slice(11,16):""}
+function longDate(d){return DAYS[(d.getDay()+6)%7]+" "+d.getDate()+" "+MONTHS[d.getMonth()]+" "+d.getFullYear()}
+function when(ev){var s=parse(ev.start),e=parse(ev.end);if(ev.allDay){return longDate(s)+(ev.end&&ev.end.slice(0,10)!==ev.start?" to "+longDate(e):"")+" (all day)"}
+ return longDate(s)+", "+hm(ev.start)+(ev.kind==="deadline"?"":"–"+(ev.end&&ev.end.slice(0,10)!==ev.start.slice(0,10)?longDate(e)+", ":"")+hm(ev.end))}
+function onDay(ev,d){var k=ymd(d),s=ev.start.slice(0,10),e=(ev.end||ev.start).slice(0,10);return k>=s&&k<=e}
+function evs(){return D?D.events:[]}
+function evBtn(ev,full){var c=COLORS[ev.kind]||COLORS.other;return'<button type="button" class="ev" style="--k:'+c+'" data-ev="'+esc(ev.id)+'" title="'+esc(ev.title)+'">'+(full?'<span class="k">'+esc(NAMES[ev.kind]||ev.kind)+'</span>':'')+(ev.allDay?"":esc(hm(ev.start))+" ")+esc(ev.title)+(ev.visibility==="lecturer"?" (lecturer only)":"")+(full&&ev.location?' <span class="k" style="text-transform:none">'+esc(ev.location)+'</span>':'')+'</button>'}
+function monday(d){var x=new Date(d.getFullYear(),d.getMonth(),d.getDate());x.setDate(x.getDate()-((x.getDay()+6)%7));return x}
+function draw(){
+ [].forEach.call(document.querySelectorAll("[data-view]"),function(b){b.setAttribute("aria-pressed",b.getAttribute("data-view")===VIEW?"true":"false")});
+ var h="",today=ymd(new Date()),i,d;
+ if(VIEW==="month"){
+  var first=new Date(CUR.getFullYear(),CUR.getMonth(),1),start=monday(first);
+  $("c-title").textContent=MONTHS[CUR.getMonth()]+" "+CUR.getFullYear();
+  h='<div class="month" role="grid">'+DAYS.map(function(n){return'<div class="dh" role="columnheader"><abbr title="'+n+'">'+n.slice(0,3)+'</abbr></div>'}).join("");
+  for(i=0;i<42;i++){d=new Date(start.getFullYear(),start.getMonth(),start.getDate()+i);if(i===35&&d.getMonth()!==CUR.getMonth())break;
+   var list=evs().filter(function(ev){return onDay(ev,d)});
+   h+='<div class="d'+(d.getMonth()!==CUR.getMonth()?' out':'')+(ymd(d)===today?' today':'')+'" role="gridcell" aria-label="'+esc(longDate(d))+(list.length?", "+list.length+" event"+(list.length>1?"s":""):"")+'"><span class="n">'+d.getDate()+'</span>'+list.map(function(ev){return evBtn(ev)}).join("")+'</div>'}
+  h+='</div>';
+ }else if(VIEW==="week"){
+  var m=monday(CUR),sun=new Date(m.getFullYear(),m.getMonth(),m.getDate()+6);
+  $("c-title").textContent="Week of "+m.getDate()+" "+MONTHS[m.getMonth()]+(m.getFullYear()!==sun.getFullYear()?" "+m.getFullYear():"")+" to "+sun.getDate()+" "+MONTHS[sun.getMonth()]+" "+sun.getFullYear();
+  h='<div class="week">';
+  for(i=0;i<7;i++){d=new Date(m.getFullYear(),m.getMonth(),m.getDate()+i);var l2=evs().filter(function(ev){return onDay(ev,d)});
+   h+='<div class="col'+(ymd(d)===today?' today':'')+'"><h4>'+DAYS[i]+" "+d.getDate()+'</h4>'+(l2.length?l2.map(function(ev){return evBtn(ev,true)}).join(""):'<span class="note">Nothing scheduled</span>')+'</div>'}
+  h+='</div>';
+ }else{
+  var from=ymd(new Date(CUR.getFullYear(),CUR.getMonth(),CUR.getDate())),up=evs().filter(function(ev){return(ev.end||ev.start).slice(0,10)>=from}).slice(0,60),last="";
+  $("c-title").textContent="From "+longDate(parse(from));
+  h='<div class="list">'+(up.length?up.map(function(ev){var k=ev.start.slice(0,10),o="";if(k!==last){o='<p class="day">'+esc(longDate(parse(k)))+'</p>';last=k}return o+evBtn(ev,true)}).join(""):'<p class="note">No events from this date on.</p>')+'</div>';
+ }
+ $("c-body").innerHTML=h;
+ $("c-legend").innerHTML=Object.keys(NAMES).filter(function(k){return evs().some(function(ev){return ev.kind===k})}).map(function(k){return'<span style="--k:'+COLORS[k]+'">'+NAMES[k]+'</span>'}).join("");
+}
+function linkOf(line){var p=line.split("|"),t=p[0].trim(),u=(p[1]||p[0]).trim();if(!/^(https?:\/\/|[\w.-]+\.(html|pdf)([#?].*)?$)/i.test(u))return esc(line);return'<a href="'+esc(u)+'"'+(/^https?:/.test(u)?' target="_blank" rel="noopener"':'')+'>'+esc(p[1]?t:u)+'</a>'}
+function google(ev){return"https://calendar.google.com/calendar/render?action=TEMPLATE&text="+encodeURIComponent(ev.title)+"&dates="+ev.utcStart+"/"+ev.utcEnd+"&details="+encodeURIComponent(details(ev))+"&location="+encodeURIComponent(ev.location||"")}
+function outlook(ev){var iso=function(s,l){return ev.allDay?l.slice(0,10):new Date(Date.UTC(+s.slice(0,4),s.slice(4,6)-1,+s.slice(6,8),+s.slice(9,11),+s.slice(11,13))).toISOString()};
+ return"https://outlook.office.com/calendar/0/deeplink/compose?path=%2Fcalendar%2Faction%2Fcompose&rru=addevent&subject="+encodeURIComponent(ev.title)+"&startdt="+encodeURIComponent(iso(ev.utcStart,ev.start))+"&enddt="+encodeURIComponent(iso(ev.utcEnd,ev.end||ev.start))+(ev.allDay?"&allday=true":"")+"&body="+encodeURIComponent(details(ev))+"&location="+encodeURIComponent(ev.location||"")}
+function details(ev){var t=[];if(ev.agenda)t.push("Agenda:\n"+ev.agenda);if(ev.resources)t.push("Resources:\n"+ev.resources);return t.join("\n\n")}
+function show(id){
+ var ev=evs().filter(function(x){return x.id===id})[0];if(!ev)return;
+ var h='<h3 id="d-title">'+esc(ev.title)+'</h3><p><span class="k" style="color:'+(COLORS[ev.kind]||"")+'">'+esc(NAMES[ev.kind]||ev.kind)+'</span>'+esc(when(ev))+(ev.location?"<br>"+esc(ev.location):"")+(ev.week&&D.weeks[ev.week]?"<br>Week "+ev.week+": "+esc(D.weeks[ev.week]):ev.week?"<br>Week "+ev.week:"")+'</p>';
+ if(ev.agenda)h+='<h4>Agenda</h4><ol>'+ev.agenda.split("\n").filter(function(x){return x.trim()}).map(function(x){return"<li>"+esc(x.replace(/^\s*[-•*\d.)]+\s*/,""))+"</li>"}).join("")+'</ol>';
+ if(ev.resources)h+='<h4>Resources</h4><ul>'+ev.resources.split("\n").filter(function(x){return x.trim()}).map(function(x){return"<li>"+linkOf(x)+"</li>"}).join("")+'</ul>';
+ var isToday=onDay(ev,new Date());
+ if(ev.link&&!D.host)h+='<p class="note">'+(ev.link!=="quiz"?"Attendance is taken at this event"+(isToday?': <a href="attend.html">check in here</a> when the code is shown.':"."):"")+(ev.link!=="attendance"?(ev.link==="both"?" ":"")+"A live quiz is planned"+(isToday?': <a href="quiz.html">join it here</a>.':"."):"")+'</p>';
+ if(D.host){h+='<p>';if(ev.link==="attendance"||ev.link==="both")h+='<a class="go" href="attendance.html" target="_blank" rel="noopener">Take attendance</a>';
+  if(ev.link==="quiz"||ev.link==="both"){h+='<a class="go" href="quiz-host.html" target="_blank" rel="noopener">Run the live quiz</a>';if(ev.week)h+='<button class="go alt" type="button" data-setweek="'+ev.week+'">Set the live quiz to Week '+ev.week+'</button>'}
+  h+='<button class="go alt" type="button" data-edit="'+esc(ev.id)+'">Edit</button></p><p class="note" id="d-msg" role="status"></p>'}
+ h+='<p><a class="go alt" href="'+esc(google(ev))+'" target="_blank" rel="noopener">Add to Google Calendar</a><a class="go alt" href="'+esc(outlook(ev))+'" target="_blank" rel="noopener">Add to Outlook</a><button class="go alt" type="button" data-ics="'+esc(ev.id)+'">Download (.ics)</button></p>';
+ $("c-det").innerHTML=h;var dl=$("c-dlg");if(dl.showModal)dl.showModal();else dl.setAttribute("open","");
+}
+// iCalendar files are made in the page, so they work offline and need no download from the server.
+function icsText(t){return String(t||"").replace(/\\/g,"\\\\").replace(/;/g,"\;").replace(/,/g,"\\,").replace(/\n/g,"\\n")}
+function fold(l){var o=[],i=0;while(l.length-i>73){o.push((i?" ":"")+l.slice(i,i+73));i+=73}o.push((i?" ":"")+l.slice(i));return o.join("\r\n")}
+function ics(list){var st=new Date().toISOString().replace(/[-:]/g,"").replace(/\.\d+Z$/,"Z"),L=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Class Manager//Course calendar//EN","CALSCALE:GREGORIAN","METHOD:PUBLISH","X-WR-CALNAME:"+icsText((window.CM.courseCode||"Course")+" calendar")];
+ list.forEach(function(ev){L.push("BEGIN:VEVENT","UID:"+ev.id+"@class-manager","DTSTAMP:"+st);L.push(ev.allDay?"DTSTART;VALUE=DATE:"+ev.utcStart:"DTSTART:"+ev.utcStart,ev.allDay?"DTEND;VALUE=DATE:"+ev.utcEnd:"DTEND:"+ev.utcEnd,"SUMMARY:"+icsText(ev.title));if(ev.location)L.push("LOCATION:"+icsText(ev.location));if(details(ev))L.push("DESCRIPTION:"+icsText(details(ev)));L.push("END:VEVENT")});
+ L.push("END:VCALENDAR");return L.map(fold).join("\r\n")+"\r\n"}
+function save(name,text){var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([text],{type:"text/calendar"}));a.download=name;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},500)}
+function feed(){var base=window.CM.desktop?location.origin+"/calendar.ics":SCRIPT_URL+"?action=calendar_ics&course="+encodeURIComponent((window.CM.courseCode||"Course")+" calendar");return base}
+function load(cb){jsonp("action=calendar"+(KEY?q("hostkey",KEY):""),function(d){if(!d||!d.ok){err(d?"The calendar could not be loaded: "+(d.why||"unknown"):"The class server could not be reached, or it does not support the calendar yet (update the Apps Script).");return}err("");D=d;if(KEY&&!d.host){KEY="";try{sessionStorage.removeItem("phys143_hk")}catch(x){}}hostUi();draw();if(cb)cb()})}
+// ---------- lecturer ----------
+function hostUi(){$("c-host").hidden=!D.host;$("c-hostlink").hidden=!!D.host;
+ if(D.host&&!$("f-kind").options.length){$("f-kind").innerHTML=D.kinds.map(function(k){return'<option value="'+esc(k)+'">'+esc(NAMES[k]||k)+'</option>'}).join("");
+  $("f-week").innerHTML='<option value="0">None</option>'+Array.apply(null,Array(16)).map(function(_,i){i++;return'<option value="'+i+'">Week '+i+(D.weeks[i]?": "+esc(D.weeks[i]):"")+'</option>'}).join("")}}
+function ferr(t){$("f-err").textContent=t||"";$("f-err").hidden=!t}
+function fill(ev){ev=ev||{};$("f-id").value=ev.id||"";$("f-title").value=ev.title||"";$("f-kind").value=ev.kind||"lecture";$("f-allday").checked=!!ev.allDay;allday();
+ $("f-start").value=ev.start?(ev.allDay?ev.start.slice(0,10):ev.start):"";$("f-end").value=ev.end?(ev.allDay?ev.end.slice(0,10):ev.end):"";$("f-loc").value=ev.location||"";$("f-week").value=String(ev.week||0);$("f-link").value=ev.link||"";$("f-vis").value=ev.visibility||"students";$("f-agenda").value=ev.agenda||"";$("f-res").value=ev.resources||"";
+ $("f-del").hidden=!ev.id;$("f-delser").hidden=!ev.series;$("f-rep").hidden=!!ev.id;$("f-rep").open=false;$("c-ftitle").textContent=ev.id?"Edit the event":"Add an event";ferr("")}
+function allday(){var a=$("f-allday").checked;["f-start","f-end"].forEach(function(i){var v=$(i).value;$(i).type=a?"date":"datetime-local";$(i).value=a?v.slice(0,10):v&&v.length===10?v+"T09:00":v})}
+$("f-allday").addEventListener("change",allday);
+function edit(op,extra){ferr("");jsonp("action=calendar_edit&op="+op+q("hostkey",KEY)+(extra||""),function(d){if(!d){ferr("The class server could not be reached.");return}if(!d.ok){if(/host key/.test(d.why||"")){KEY="";try{sessionStorage.removeItem("phys143_hk")}catch(x){}load();return}ferr("Not saved: "+d.why);return}D=d;draw();fill();$("c-ftitle").scrollIntoView({block:"nearest"})})}
+$("c-form").addEventListener("submit",function(e){e.preventDefault();
+ var f=q("id",$("f-id").value)+q("title",$("f-title").value.trim())+q("kind",$("f-kind").value)+q("start",$("f-start").value)+q("end",$("f-end").value)+q("allday",$("f-allday").checked?"yes":"no")+q("location",$("f-loc").value.trim())+q("week",$("f-week").value)+q("link",$("f-link").value)+q("visibility",$("f-vis").value)+q("agenda",$("f-agenda").value.trim())+q("resources",$("f-res").value.trim());
+ if(!$("f-id").value&&$("f-rep").open&&Number($("f-count").value)>1)edit("series",f+q("count",$("f-count").value)+q("every",$("f-every").value)+q("titles",$("f-titles").value.trim()));else edit("save",f);
+ var s=parse($("f-start").value);if(s){CUR=s}});
+$("f-topics").addEventListener("click",function(){var w=Number($("f-week").value)||1,n=Math.max(1,Number($("f-count").value)||1),k=NAMES[$("f-kind").value]||"Lecture",t=[];for(var i=0;i<n;i++)t.push(k+" "+(w+i)+(D.weeks[w+i]?": "+D.weeks[w+i]:""));$("f-titles").value=t.join("\n");if(!Number($("f-week").value))$("f-week").value="1"});
+$("f-new").addEventListener("click",function(){fill()});
+$("f-del").addEventListener("click",function(){if(confirm("Delete this event?"))edit("delete",q("id",$("f-id").value))});
+$("f-delser").addEventListener("click",function(){if(confirm("Delete every event in this series?"))edit("delete_series",q("id",$("f-id").value))});
+$("c-login").addEventListener("click",function(e){e.preventDefault();var k=prompt("Host key");if(!k)return;jsonp("action=hostcheck&hostkey="+encodeURIComponent(k.trim()),function(d){if(d&&d.ok){KEY=k.trim();try{sessionStorage.setItem("phys143_hk",KEY)}catch(x){}load(function(){fill();$("c-host").scrollIntoView()})}else err(d?"That key was not accepted.":"Could not reach the class server.")},10000)});
+// ---------- shared ----------
+document.addEventListener("click",function(e){var b=e.target.closest("[data-ev],[data-ics],[data-edit],[data-setweek],[data-view]");if(!b)return;
+ if(b.hasAttribute("data-view")){VIEW=b.getAttribute("data-view");try{localStorage.setItem("cm_cal_view",VIEW)}catch(x){}draw();return}
+ if(b.hasAttribute("data-ev"))show(b.getAttribute("data-ev"));
+ if(b.hasAttribute("data-ics")){var ev=evs().filter(function(x){return x.id===b.getAttribute("data-ics")})[0];if(ev)save(ev.title.replace(/[^\w-]+/g,"-").slice(0,60)+".ics",ics([ev]))}
+ if(b.hasAttribute("data-edit")){var e2=evs().filter(function(x){return x.id===b.getAttribute("data-edit")})[0];$("c-dlg").close();fill(e2);$("c-host").scrollIntoView();$("f-title").focus()}
+ if(b.hasAttribute("data-setweek")){var w=b.getAttribute("data-setweek");jsonp("action=set_week"+q("w",w)+q("hostkey",KEY),function(d){$("d-msg").textContent=d&&d.ok?"The live quiz now uses Week "+w+".":"Not set"+(d&&d.why?": "+d.why:".")})}
+});
+$("d-close").addEventListener("click",function(){$("c-dlg").close()});
+function step(n){if(VIEW==="month")CUR=new Date(CUR.getFullYear(),CUR.getMonth()+n,1);else if(VIEW==="week")CUR=new Date(CUR.getFullYear(),CUR.getMonth(),CUR.getDate()+7*n);else CUR=new Date(CUR.getFullYear(),CUR.getMonth(),CUR.getDate()+14*n);draw()}
+$("c-prev").addEventListener("click",function(){step(-1)});$("c-next").addEventListener("click",function(){step(1)});$("c-today").addEventListener("click",function(){CUR=new Date();draw()});
+$("c-ics").addEventListener("click",function(){if(D)save(((window.CM.courseCode||"course")+"-calendar").replace(/[^\w-]+/g,"-")+".ics",ics(evs().filter(function(ev){return ev.visibility==="students"})))});
+var F=feed();$("c-feed").textContent=F;$("c-sub").href=F.replace(/^https?:/,"webcal:");$("c-gsub").href="https://calendar.google.com/calendar/render?cid="+encodeURIComponent(F.replace(/^https?:/,"webcal:"));
+$("c-copy").addEventListener("click",function(){var b=this;(navigator.clipboard?navigator.clipboard.writeText(F):Promise.reject()).then(function(){b.textContent="Copied"},function(){prompt("Feed address",F)})});
+if(window.CM.desktop){$("c-lanote").hidden=false;$("c-gsub").hidden=true}
+var h=/^#(\d{4}-\d{2}-\d{2})$/.exec(location.hash);if(h)CUR=parse(h[1]);
+load();
+})();
+</script>
+</div>
+</main>
+
+
+<footer><div class="wrap"><p class="foot-note"><span data-cm="courseCode">PHYS 143</span> · <span data-cm="courseTitle">Mechanics and Thermal Physics</span> · <span data-cm="institution">University of Ghana</span> · <a href="lecturer.html">Lecturer</a></p></div></footer>
+<script src="assets/render.js"></script>
+<script src="assets/site.js"></script>
+<script src="assets/tracking.js"></script>
+</body>
+</html>

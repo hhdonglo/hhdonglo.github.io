@@ -24,7 +24,7 @@
 <p class="course" data-cm="courseTitle">Mechanics and Thermal Physics</p>
 </div>
 </header>
-<nav class="jump" id="jump" aria-label="Sections"><div class="wrap"><button type="button" class="menu-btn" aria-expanded="false" aria-controls="jump-links"><span>Menu</span><span class="dots" aria-hidden="true">&#8943;</span></button><div class="links" id="jump-links"><a href="index.html">Portal</a><a href="course.html">Lectures</a><a href="course.html#weekly">Practice</a><a href="mock-exam.html">Mock exam</a><a href="quiz.html">Live quiz</a></div></div></nav>
+<nav class="jump" id="jump" aria-label="Sections"><div class="wrap"><button type="button" class="menu-btn" aria-expanded="false" aria-controls="jump-links"><span>Menu</span><span class="dots" aria-hidden="true">&#8943;</span></button><div class="links" id="jump-links"><a href="index.html">Portal</a><a href="course.html">Lectures</a><a href="course.html#weekly">Practice</a><a href="mock-exam.html">Mock exam</a><a href="quiz.html">Live quiz</a><a href="calendar.html">Calendar</a><a href="messages.html">Messages</a></div></div></nav>
 <main id="main"><div class="wrap">
 <style>
 .pt{max-width:30rem;margin:0 auto;font-family:system-ui,sans-serif}
@@ -69,6 +69,14 @@ body.focus main{padding-top:1.2rem}
  <div class="card banner" id="p-banner" aria-live="polite">Checking what is open in class.</div>
  <div class="card" id="p-primary"></div>
  <div class="card" id="p-week"></div>
+ <div class="card" id="p-news">
+  <h2>Announcements<span id="p-nbadge" hidden></span></h2>
+  <div id="p-ann"><p class="note">Loading…</p></div>
+  <h2 style="margin-top:.9rem">Coming up</h2>
+  <div id="p-cal"><p class="note">Loading…</p></div>
+  <a class="go alt" href="messages.html" id="p-msgs">Messages</a>
+  <a class="go alt" href="calendar.html">Course calendar</a>
+ </div>
  <div class="card" id="p-res" hidden>
   <details id="p-details"><summary>My progress</summary>
    <form id="p-form" autocomplete="off" novalidate>
@@ -92,6 +100,28 @@ body.focus main{padding-top:1.2rem}
  <div class="card"><details><summary>All lectures</summary><ul id="p-all"></ul></details></div>
  <p class="note">Corrections: contact your lecturer.</p>
 </div>
+<script>
+(function(){ // Announcements, the next events and unread messages; each part is optional and fails quietly.
+"use strict";
+var U=window.CM.scriptUrl,$=function(i){return document.getElementById(i)};
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function jp(p,cb){var n="pn"+Date.now()+Math.floor(Math.random()*1e6),sc=document.createElement("script"),done=false;function end(d){if(done)return;done=true;delete window[n];if(sc.parentNode)sc.parentNode.removeChild(sc);cb(d)}window[n]=end;sc.onerror=function(){end(null)};setTimeout(function(){end(null)},20000);sc.src=U+"?"+p+"&callback="+n+"&_="+Date.now();document.head.appendChild(sc)}
+var id="",code="";try{id=localStorage.getItem("phys143_portal_id")||"";code=localStorage.getItem("phys143_portal_code")||""}catch(x){}
+var who=id&&code?"&id="+encodeURIComponent(id)+"&code="+encodeURIComponent(code):"";
+jp("action=announcements"+who,function annCb(d){
+ if(!d||!d.ok){if(d&&who){who="";jp("action=announcements",annCb);return}$("p-ann").innerHTML='<p class="note">None at present.</p>';return}
+ var l=d.announcements.slice(0,3);
+ $("p-ann").innerHTML=l.length?l.map(function(a){return'<div class="rv"><strong>'+(a.pinned?"Pinned: ":"")+esc(a.title)+'</strong>'+(a.unread?' <span style="color:#b3261e;font-weight:700">New</span>':"")+'<br><span class="src">'+esc(a.at.replace("T"," "))+'</span>'+(a.text?'<br>'+esc(a.text.length>220?a.text.slice(0,220)+"…":a.text):"")+'</div>'}).join("")+(d.announcements.length>3?'<p class="note"><a href="messages.html">All announcements</a></p>':""):'<p class="note">None at present.</p>';
+});
+jp("action=calendar",function(d){
+ if(!d||!d.ok){$("p-cal").innerHTML='<p class="note">The calendar is not available.</p>';return}
+ var now=new Date(),t=now.getFullYear()+"-"+("0"+(now.getMonth()+1)).slice(-2)+"-"+("0"+now.getDate()).slice(-2);
+ var l=d.events.filter(function(e){return(e.end||e.start).slice(0,10)>=t}).slice(0,3);
+ $("p-cal").innerHTML=l.length?l.map(function(e){return'<div class="rv"><a href="calendar.html#'+esc(e.start.slice(0,10))+'"><strong>'+esc(e.title)+'</strong></a><br><span class="src">'+esc(e.start.slice(0,10)===t?"Today":e.start.slice(0,10))+(e.allDay?"":" "+esc(e.start.slice(11,16)))+(e.location?" · "+esc(e.location):"")+'</span></div>'}).join(""):'<p class="note">Nothing scheduled.</p>';
+});
+if(who)jp("action=chat"+who,function(d){if(d&&d.ok&&d.unread)$("p-msgs").textContent="Messages ("+d.unread+" unread)"});
+})();
+</script>
 <script src="assets/messages.js"></script>
 <script>
 (function(){

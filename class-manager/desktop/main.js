@@ -13,6 +13,7 @@ const os = require("os");
 const path = require("path");
 const { createBackend } = require("./backend");
 const { createGoogle } = require("./google");
+const { createAuthoring } = require("./authoring");
 
 const WEB = app.isPackaged ? path.join(process.resourcesPath, "web") : path.join(__dirname, "..");
 const DATA = () => path.join(app.getPath("userData"), "data");
@@ -24,7 +25,7 @@ const TYPES = {
   ".pdf": "application/pdf", ".woff2": "font/woff2", ".webmanifest": "application/manifest+json"
 };
 
-let settings, server = null, port = 0, win = null, backend = null, google = null;
+let settings, server = null, port = 0, win = null, backend = null, google = null, authoring = null;
 
 // ---------- settings ----------
 function loadSettings() {
@@ -59,6 +60,17 @@ function loadTokens() {
 function saveTokens(o) {
   const s = JSON.stringify(o || {});
   fs.writeFileSync(TOKENS(), safeStorage.isEncryptionAvailable() ? safeStorage.encryptString(s) : Buffer.from(s, "utf8"), { mode: 0o600 });
+}
+
+// Anthropic API key for summaries and question generation, encrypted with the system keychain where it is available.
+// It never leaves this computer except in requests to the Anthropic API.
+const AKEY = () => path.join(app.getPath("userData"), "anthropic.bin");
+function loadApiKey() {
+  try { const b = fs.readFileSync(AKEY()); return safeStorage.isEncryptionAvailable() ? safeStorage.decryptString(b) : b.toString("utf8"); } catch (e) { return ""; }
+}
+function saveApiKey(k) {
+  if (!k) { try { fs.unlinkSync(AKEY()); } catch (e) { /* none */ } return; }
+  fs.writeFileSync(AKEY(), safeStorage.isEncryptionAvailable() ? safeStorage.encryptString(k) : Buffer.from(k, "utf8"), { mode: 0o600 });
 }
 
 // ---------- network ----------
@@ -115,6 +127,15 @@ async function handle(req, res) {
   }
   if (req.method !== "GET" && req.method !== "HEAD") { res.writeHead(405); return res.end(); }
   if (p === "/") p = "/index.html";
+  if (p === "/calendar.ics") { // the course calendar as a feed that calendar programs on the network can subscribe to
+    const out = backend.doGet({ action: "calendar_ics", course: settings.courseCode + " calendar" });
+    res.writeHead(200, { "Content-Type": "text/calendar; charset=utf-8", "Content-Disposition": 'inline; filename="calendar.ics"', "Cache-Control": "no-cache" });
+    return res.end(out.text);
+  }
+  if (/^\/(quizzes\/lecture\d+|apps_script\/live_quizzes)\.json$/.test(p)) { // course banks with the lecturer's approved questions added
+    const merged = authoring.siteFile(p);
+    if (merged !== null) { res.writeHead(200, { "Content-Type": TYPES[".json"], "Cache-Control": "no-cache" }); return res.end(merged); }
+  }
   if (p === "/config.js") { res.writeHead(200, { "Content-Type": TYPES[".js"], "Cache-Control": "no-store" }); return res.end(configJs(req)); }
   if (p.startsWith("/app/")) { // the app's own screens are for this computer only
     if (!isThisComputer(req)) { res.writeHead(403); return res.end("Not available"); }
@@ -210,6 +231,43 @@ ipcMain.handle("cm:export", async () => {
 ipcMain.handle("cm:openData", () => shell.openPath(DATA()));
 ipcMain.handle("cm:run", (e, name) => { if (["refreshTotals", "rebuildMaster", "buildNamedAttendance"].includes(name)) { backend.run(name); backend.flush(); return true; } return false; });
 ipcMain.handle("cm:googleSignIn", async () => { try { return await google.signIn().then(() => google.syncNow()); } catch (e) { return Object.assign(google.status(), { lastError: e.message }); } });
+// ---------- resources and question authoring (app/author.html) ----------
+const DOC_TYPES = [{ name: "Teaching material", extensions: ["pdf", "docx", "pptx", "md", "markdown", "txt"] }];
+ipcMain.handle("cm:authStatus", () => authoring.status());
+ipcMain.handle("cm:authSettings", (e, o) => authoring.setSettings(o || {}));
+ipcMain.handle("cm:libList", () => authoring.listDocs());
+ipcMain.handle("cm:libAdd", async (e, lecture) => {
+  const r = await dialog.showOpenDialog(win, { title: "Add teaching material", filters: DOC_TYPES, properties: ["openFile", "multiSelections"] });
+  if (r.canceled || !r.filePaths.length) return null;
+  return authoring.addFiles(r.filePaths, lecture);
+});
+ipcMain.handle("cm:libAddPaths", (e, paths, lecture) => authoring.addFiles((paths || []).map(String), lecture)); // drag and drop
+ipcMain.handle("cm:libRemove", (e, id) => authoring.removeDoc(String(id)));
+ipcMain.handle("cm:libSet", (e, id, f) => authoring.setDoc(String(id), f || {}));
+ipcMain.handle("cm:libPassages", (e, id) => authoring.docPassages(String(id)));
+ipcMain.handle("cm:search", (e, q, o) => authoring.search(String(q || ""), o || {}));
+ipcMain.handle("cm:summarise", async (e, id, mode) => { try { return { ok: true, doc: await authoring.summarise(String(id), mode) }; } catch (err) { return { ok: false, why: err.message }; } });
+ipcMain.handle("cm:generate", async (e, o) => { try { return Object.assign({ ok: true }, await authoring.generate(o || {})); } catch (err) { return { ok: false, why: err.message }; } });
+ipcMain.handle("cm:banks", () => authoring.banks());
+ipcMain.handle("cm:bankTitle", (e, n, t) => { const r = authoring.setBankTitle(n, t); backend.dropSiteCache(); return r; });
+ipcMain.handle("cm:drafts", () => authoring.listDrafts());
+ipcMain.handle("cm:draftsAdd", (e, items, origin) => authoring.addDrafts(items, ["manual", "imported"].includes(origin) ? origin : "manual"));
+ipcMain.handle("cm:draftUpdate", (e, did, f) => authoring.updateDraft(String(did), f || {}));
+ipcMain.handle("cm:draftsReject", (e, dids) => authoring.rejectDrafts((dids || []).map(String)));
+ipcMain.handle("cm:approve", (e, dids) => { const r = authoring.approve((dids || []).map(String), "review screen"); backend.dropSiteCache(); return r; });
+ipcMain.handle("cm:withdraw", (e, id) => { const r = authoring.withdraw(String(id)); backend.dropSiteCache(); return r; });
+ipcMain.handle("cm:importFile", async (e, defaults) => {
+  const r = await dialog.showOpenDialog(win, { title: "Import questions", filters: [{ name: "Questions", extensions: ["docx", "pdf", "md", "markdown", "txt"] }], properties: ["openFile"] });
+  if (r.canceled || !r.filePaths[0]) return null;
+  try { return Object.assign({ ok: true }, await authoring.importFile(r.filePaths[0], defaults || {})); } catch (err) { return { ok: false, why: err.message }; }
+});
+ipcMain.handle("cm:importText", (e, text, defaults) => Object.assign({ ok: true }, authoring.importText(String(text || "").slice(0, 2000000), defaults || {})));
+ipcMain.handle("cm:saveTemplate", async (e, kind) => {
+  const ext = kind === "docx" ? "docx" : "md";
+  const r = await dialog.showSaveDialog(win, { title: "Save the question template", defaultPath: "question-template." + ext });
+  if (r.canceled || !r.filePath) return null;
+  fs.copyFileSync(path.join(__dirname, "app", "question-template." + ext), r.filePath); shell.showItemInFolder(r.filePath); return r.filePath;
+});
 ipcMain.handle("cm:googleSignOut", () => google.signOut());
 ipcMain.handle("cm:googleSync", () => google.syncNow());
 
@@ -222,7 +280,9 @@ app.whenReady().then(async () => {
     load: loadTokens, save: saveTokens, openBrowser: (u) => shell.openExternal(u), log: (m) => console.log("[google]", m),
     tabs: () => backend.tabs(), tab: (n) => backend.tab(n), title: () => "Class Manager: " + settings.courseCode + " results"
   });
-  backend = createBackend({ webRoot: WEB, dataFile: path.join(DATA(), "workbook.json"), log: (m) => console.log("[backend]", m), onChange: () => google && google.changed() });
+  authoring = createAuthoring({ dir: path.join(app.getPath("userData"), "authoring"), webRoot: WEB, loadKey: loadApiKey, saveKey: saveApiKey,
+    keyIsEncrypted: () => safeStorage.isEncryptionAvailable(), log: (m) => console.log("[authoring]", m) });
+  backend = createBackend({ readSite: (rel) => authoring.siteFile(rel), webRoot: WEB, dataFile: path.join(DATA(), "workbook.json"), log: (m) => console.log("[backend]", m), onChange: () => google && google.changed() });
   await restartServer();
   win = new BrowserWindow({ width: 1200, height: 880, title: "Class Manager", icon: path.join(WEB, "assets", "icon-512.png"),
     webPreferences: { preload: path.join(__dirname, "preload.js"), contextIsolation: true, sandbox: true, nodeIntegration: false } });

@@ -4,6 +4,8 @@ Written 9 November 2026. A description of the class management tool as it stands
 
 **Update, later on 9 November 2026.** Following the review, the package gained learning support; see "Learning support" in README.md. Of the gaps listed below, these are now closed: the own-results lookup needs a personal access code; the live quiz draw changes with each new workbook; every live answer is kept per question (Item_Log), so per-question statistics are computed; practice attempts record the questions asked. Four private tabs were added: Item_Log, Access_Codes, Question_Stats and Groups. Group marks now exist (groups.html), so "no group marks" below no longer holds.
 
+**Further update, 9 November 2026.** The desktop app gained a resource library with search, summaries, question generation with Claude, question import and a review queue (desktop/README.md, "Resources and questions"); the server script gained a course calendar, messages with moderation, and announcements (README.md, "Calendar, messages and announcements"). Line counts below describe the script before these additions.
+
 ## Purpose and architecture
 
 The class management tool runs one course from three layers: static pages that students and the lecturer open in a browser, one server script that holds every rule, and a private workbook that stores every record. It serves PHYS 143 (12 lectures plus an introduction, 347 practice questions) and is built so that the course content can be replaced.

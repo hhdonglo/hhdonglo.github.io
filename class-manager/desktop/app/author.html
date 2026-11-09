@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Resources and questions</title>
+<script src="/config.js"></script>
+<link rel="icon" href="/assets/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+.au{max-width:72rem;margin:0 auto;font-family:system-ui,sans-serif}
+.au h2{margin:1.2rem 0 .5rem}
+.au .tabs{display:flex;flex-wrap:wrap;gap:.3rem;margin:1rem 0 .8rem;border-bottom:2px solid var(--border)}
+.au .tabs button{margin:0;border:1.5px solid var(--border);border-bottom:0;border-radius:6px 6px 0 0;background:var(--btn-bg);color:var(--btn-text);min-height:42px;padding:.3rem .9rem;font:600 .95rem system-ui,sans-serif;cursor:pointer}
+.au .tabs button[aria-selected=true]{background:var(--brown-fill);border-color:var(--brown-fill);color:#fff}
+.au .card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem 1.2rem;box-shadow:var(--shadow);margin-bottom:1rem}
+.au .card h3{margin:0 0 .5rem;font-size:1.1rem}
+.au p{line-height:1.5}
+.au button.b{margin:.3rem .4rem .1rem 0;min-height:40px;padding:.35rem .9rem;border:1.5px solid var(--border);border-radius:6px;background:var(--btn-bg);color:var(--btn-text);font:600 .95rem system-ui,sans-serif;cursor:pointer}
+.au button.b.p{background:var(--brown-fill);border-color:var(--brown-fill);color:#fff}
+.au button.b.sm{min-height:30px;padding:.1rem .5rem;font-size:.82rem}
+.au button.b:disabled{opacity:.5;cursor:default}
+.au label{font-weight:600;font-size:.92rem}
+.au input,.au textarea,.au select{min-height:40px;padding:.3rem .55rem;border:1.5px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font:1rem system-ui,sans-serif;box-sizing:border-box}
+.au input[type=checkbox],.au input[type=radio]{min-height:0}
+.au textarea{width:100%;font:.95rem/1.45 system-ui,sans-serif}
+.au .row{display:flex;flex-wrap:wrap;gap:.6rem 1rem;align-items:flex-end;margin:.4rem 0}
+.au .note{color:var(--muted);font-size:.92rem}
+.au .msg{font-weight:600;min-height:1.4em}
+.au .err{color:#b3261e;font-weight:600}
+.au .warn{color:#8a5a00}
+@media (prefers-color-scheme:dark){.au .err{color:#ff8a80}.au .warn{color:#f0b85a}}
+.au [hidden]{display:none!important}
+.au table{border-collapse:collapse;width:100%;font-size:.92rem}
+.au td,.au th{border-bottom:1px solid var(--border);padding:.4rem .5rem;text-align:left;vertical-align:top}
+.au .q{border:1px solid var(--border);border-radius:8px;padding:.7rem .9rem;margin:.6rem 0}
+.au .q.bad{border-color:#b3261e}
+.au .q .stem{font-weight:600;margin:.2rem 0 .4rem}
+.au .q ol{margin:.2rem 0 .4rem 1.4rem;padding:0}
+.au .q ol li.ok{font-weight:700}
+.au .q ol li.ok::after{content:"  (correct)";color:#2e7d32;font-weight:600}
+.au .q .meta{font-size:.82rem;color:var(--muted)}
+.au .q .exp{font-size:.92rem;margin:.3rem 0}
+.au .q .issues{font-size:.88rem;margin:.3rem 0}
+.au .hit{border-left:4px solid var(--brown-fill);padding:.4rem .7rem;margin:.5rem 0;white-space:pre-wrap;font-size:.93rem}
+.au .sum{white-space:pre-wrap;line-height:1.5;border-left:4px solid var(--brown-fill);padding:.4rem .8rem;margin:.5rem 0}
+.au .drop{border:2px dashed var(--border);border-radius:8px;padding:1rem;text-align:center;color:var(--muted);margin:.6rem 0}
+.au .drop.on{border-color:var(--brown-fill);color:var(--text)}
+.au .ed{display:grid;grid-template-columns:repeat(auto-fill,minmax(14rem,1fr));gap:.5rem .9rem}
+.au .ed .wide{grid-column:1/-1}
+.au .ed input,.au .ed select{width:100%}
+.au .opt{display:flex;gap:.4rem;align-items:center;margin:.25rem 0}
+.au .opt input[type=text]{flex:1}
+.au .spin::after{content:"";display:inline-block;width:.9em;height:.9em;margin-left:.5em;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:sp 1s linear infinite;vertical-align:-2px}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media print{body *{visibility:hidden}#print,#print *{visibility:visible}#print{position:absolute;left:0;top:0;width:100%}}
+#print{display:none}@media print{#print{display:block;font:11pt/1.45 Georgia,serif;color:#000}#print h1{font-size:15pt}#print .pq{break-inside:avoid;margin:0 0 .8em}#print .key{break-before:page}}
+</style>
+</head>
+<body>
+<header class="banner slim"><div class="wrap"><h1><a class="home-link" href="home.html">Class Manager</a></h1><p class="course"><span data-cm="courseCode"></span> · Resources and questions</p></div></header>
+<main id="main"><div class="wrap au">
+<p><a href="home.html">Back to Class Manager</a></p>
+<div class="tabs" role="tablist">
+ <button role="tab" data-tab="lib">Library</button>
+ <button role="tab" data-tab="gen">Generate quizzes</button>
+ <button role="tab" data-tab="imp">Import questions</button>
+ <button role="tab" data-tab="new">Write a question</button>
+ <button role="tab" data-tab="rev">Review drafts <span id="n-drafts"></span></button>
+ <button role="tab" data-tab="bank">Question banks</button>
+ <button role="tab" data-tab="set">Settings</button>
+</div>
+
+<section data-panel="lib" hidden>
+ <div class="card">
+  <h3>Teaching material</h3>
+  <p class="note">Add your slides, notes and handouts (PDF, Word, PowerPoint, Markdown or text). Copies are kept in the app's data folder on this computer, and their text is indexed for search, summaries and question generation.</p>
+  <div class="row"><div><label for="l-lec">Lecture (optional)</label><br><select id="l-lec" class="lecsel"></select></div><div><button class="b p" type="button" id="l-add">Add files</button></div></div>
+  <div class="drop" id="l-drop">Or drop files here</div>
+  <p class="msg" id="l-msg" role="status"></p>
+  <div id="l-list"></div>
+ </div>
+ <div class="card">
+  <h3>Search the material</h3>
+  <div class="row"><input type="search" id="s-q" placeholder="For example: work-energy theorem" style="flex:1;min-width:16rem"><button class="b p" type="button" id="s-go">Search</button></div>
+  <div id="s-out"></div>
+ </div>
+ <div class="card" id="d-card" hidden>
+  <h3 id="d-name"></h3>
+  <div class="row"><button class="b p" type="button" id="d-sum">Summarise</button><button class="b" type="button" id="d-ext">Summarise without Claude</button><button class="b" type="button" id="d-copy">Copy the summary</button><button class="b" type="button" id="d-text">Show the extracted text</button></div>
+  <p class="msg" id="d-msg" role="status"></p>
+  <div id="d-out"></div>
+ </div>
+</section>
+
+<section data-panel="gen" hidden>
+ <div class="card">
+  <h3>Generate quizzes from your material</h3>
+  <p class="note" id="g-keynote"></p>
+  <div class="row">
+   <div><label for="g-lec">For lecture</label><br><select id="g-lec" class="lecsel"></select></div>
+   <div><label for="g-sets">Number of quizzes</label><br><input type="number" id="g-sets" min="1" max="6" value="2" style="width:6rem"></div>
+   <div><label for="g-per">Questions in each</label><br><input type="number" id="g-per" min="1" max="20" value="5" style="width:6rem"></div>
+   <div><label for="g-diff">Difficulty</label><br><select id="g-diff"><option value="">A mix</option><option value="easy">Easy</option><option value="moderate">Moderate</option><option value="difficult">Difficult</option></select></div>
+  </div>
+  <p><label>Question types</label><br>
+   <label style="font-weight:400"><input type="checkbox" class="g-type" value="concept" checked> Concept</label>
+   <label style="font-weight:400"><input type="checkbox" class="g-type" value="calc" checked> Calculation</label>
+   <label style="font-weight:400"><input type="checkbox" class="g-type" value="misconception" checked> Common misconception</label>
+   <label style="font-weight:400"><input type="checkbox" class="g-type" value="graph"> Graph or diagram (described in words)</label></p>
+  <p><label for="g-focus">Focus (optional)</label><br><input type="text" id="g-focus" maxlength="500" style="width:100%" placeholder="For example: conservation of mechanical energy with friction"></p>
+  <p><label for="g-notes">Further instructions (optional)</label><br><textarea id="g-notes" rows="2" maxlength="1500" placeholder="For example: use g = 9.80 m/s^2; avoid questions on springs"></textarea></p>
+  <p><label>From these documents</label></p><div id="g-docs"></div>
+  <p><button class="b p" type="button" id="g-go">Generate</button></p>
+  <p class="msg" id="g-msg" role="status"></p>
+  <p class="note">The questions are written only from passages of the chosen documents, retrieved by the focus you give (or from the whole documents when they are short). They arrive as drafts under Review drafts; none reaches students until you approve it. Only the documents and your instructions are sent to Anthropic; nothing about students is sent.</p>
+ </div>
+</section>
+
+<section data-panel="imp" hidden>
+ <div class="card">
+  <h3>Import questions you have written</h3>
+  <p class="note">Word (.docx), PDF, Markdown or text, written in the question template. Each question is checked, and you see a preview before anything is added.</p>
+  <div class="row">
+   <div><label for="i-lec">Lecture, when the file does not say</label><br><select id="i-lec" class="lecsel"></select></div>
+   <div><label for="i-diff">Difficulty, when the file does not say</label><br><select id="i-diff"><option value="">Not set</option><option value="easy">Easy</option><option value="moderate">Moderate</option><option value="difficult">Difficult</option></select></div>
+   <div><button class="b p" type="button" id="i-file">Choose a file</button></div>
+  </div>
+  <p><button class="b sm" type="button" data-tpl="docx">Save the template (Word)</button><button class="b sm" type="button" data-tpl="md">Save the template (Markdown)</button></p>
+  <details><summary>Or paste questions</summary><textarea id="i-text" rows="8" placeholder="Q1. …&#10;A) …&#10;B) …&#10;C) …&#10;D) …&#10;Answer: B&#10;Explanation: …"></textarea><button class="b" type="button" id="i-parse">Check the pasted questions</button></details>
+  <details><summary>The template</summary><pre id="i-tpl" style="white-space:pre-wrap;font-size:.85rem"></pre></details>
+  <p class="msg" id="i-msg" role="status"></p>
+  <div id="i-out"></div>
+  <p><button class="b p" type="button" id="i-add" hidden>Add the valid questions to the drafts</button></p>
+ </div>
+</section>
+
+<section data-panel="new" hidden>
+ <div class="card">
+  <h3 id="e-title">Write a question</h3>
+  <div id="e-form"></div>
+  <p><button class="b p" type="button" id="e-save">Save as a draft</button><button class="b" type="button" id="e-approve">Save and approve</button><button class="b" type="button" id="e-clear">Clear</button></p>
+  <p class="msg" id="e-msg" role="status"></p>
+ </div>
+</section>
+
+<section data-panel="rev" hidden>
+ <div class="card">
+  <h3>Drafts awaiting review</h3>
+  <p class="note">Check each question, edit it if needed, then approve. Approved questions join the lecture's bank at once: the practice page, the live quiz and the mock examination use them. Questions with an error (shown in red) cannot be approved until it is fixed.</p>
+  <div class="row"><div><label for="r-filter">Show</label><br><select id="r-filter"></select></div><div><button class="b" type="button" id="r-all">Select all</button><button class="b p" type="button" id="r-ok">Approve selected</button><button class="b" type="button" id="r-no">Discard selected</button><button class="b" type="button" id="r-print">Print the selected as a quiz with an answer key</button></div></div>
+  <p class="msg" id="r-msg" role="status"></p>
+  <div id="r-list"></div>
+ </div>
+</section>
+
+<section data-panel="bank" hidden>
+ <div class="card">
+  <h3>Question banks</h3>
+  <p class="note">Questions that come with the course stay as they are. Questions you approve here are kept in the app's data folder and added to the banks the pages read. Withdrawing an approved question returns it to the drafts.</p>
+  <div id="b-list"></div>
+ </div>
+</section>
+
+<section data-panel="set" hidden>
+ <div class="card">
+  <h3>Claude (optional)</h3>
+  <p>Summaries written by Claude and question generation use an Anthropic API key, which you enter once. It is stored on this computer<span id="k-enc"></span> and sent only to the Anthropic API. Without a key, the library, search, extractive summaries, import, writing questions and approval all work.</p>
+  <p id="k-state" class="msg"></p>
+  <div class="row"><div style="flex:1;min-width:18rem"><label for="k-key">API key</label><br><input type="password" id="k-key" autocomplete="off" placeholder="sk-ant-…" style="width:100%"></div><div><button class="b p" type="button" id="k-save">Save the key</button><button class="b" type="button" id="k-del">Remove the key</button></div></div>
+  <div class="row"><div><label for="k-model">Model</label><br><input type="text" id="k-model" style="width:16rem"></div><div><button class="b" type="button" id="k-msave">Save the model</button></div></div>
+  <p class="note">Keys are created at console.anthropic.com. Use of the API is charged to that account.</p>
+ </div>
+</section>
+<div id="print"></div>
+</div></main>
+<script>
+(function(){
+"use strict";
+var $=function(i){return document.getElementById(i)};
+if(!window.cmApp){document.body.innerHTML="<p style='padding:2rem'>Open this page from the Class Manager app.</p>";return}
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function plain(h){var d=document.createElement("div");d.innerHTML=h||"";return d.textContent}
+function busy(el,on,txt){el.classList.toggle("spin",!!on);if(txt!=null)el.textContent=txt}
+var TYPES={concept:"Concept",calc:"Calculation",graph:"Graph or diagram",misconception:"Common misconception"},L="ABCD",DOCS=[],DRAFTS=[],BANKS=[],STATUS={},PREVIEW=[],CURDOC=null;
+// ---------- tabs ----------
+function tab(t){document.querySelectorAll("[data-tab]").forEach(function(b){b.setAttribute("aria-selected",b.getAttribute("data-tab")===t)});document.querySelectorAll("[data-panel]").forEach(function(p){p.hidden=p.getAttribute("data-panel")!==t});try{sessionStorage.setItem("au_tab",t)}catch(x){}
+ if(t==="rev")loadDrafts();if(t==="bank")loadBanks();if(t==="gen")drawGen()}
+document.querySelectorAll("[data-tab]").forEach(function(b){b.addEventListener("click",function(){tab(b.getAttribute("data-tab"))})});
+function lecOptions(){var nums=BANKS.map(function(b){return b.lecture});for(var i=0;i<=16;i++)if(nums.indexOf(i)<0)nums.push(i);nums.sort(function(a,b){return a-b});
+ document.querySelectorAll(".lecsel").forEach(function(s){var v=s.value;s.innerHTML='<option value="">'+(s.id==="l-lec"?"Not set":"Choose")+'</option>'+nums.map(function(n){var b=BANKS.filter(function(x){return x.lecture===n})[0];return'<option value="'+n+'">Lecture '+n+(b&&b.title?": "+esc(b.title):"")+'</option>'}).join("");s.value=v})}
+// ---------- library ----------
+function loadDocs(){return cmApp.libList().then(function(d){DOCS=d;drawDocs();drawGen()})}
+function drawDocs(){
+ $("l-list").innerHTML=DOCS.length?'<table><tr><th>Document</th><th>Lecture</th><th>Size</th><th>Summary</th><th></th></tr>'+DOCS.map(function(d){return'<tr><td><strong>'+esc(d.name)+'</strong><br><span class="note">Added '+esc(d.added.slice(0,10))+'</span></td><td><select data-lec="'+d.id+'" aria-label="Lecture for '+esc(d.name)+'">'+$("l-lec").innerHTML+'</select></td><td>'+(d.parts>1?d.parts+" "+(d.kind==="pptx"?"slides":"pages")+", ":"")+d.passages+' passages</td><td>'+(d.summary?(d.summary.how==="claude"?"Written by Claude":"Extractive")+", "+esc(d.summary.at.slice(0,10)):"None")+'</td><td><button class="b sm" type="button" data-open="'+d.id+'">Open</button><button class="b sm" type="button" data-rm="'+d.id+'">Remove</button></td></tr>'}).join("")+'</table>':'<p class="note">No documents yet.</p>';
+ DOCS.forEach(function(d){var s=document.querySelector('[data-lec="'+d.id+'"]');if(s){s.querySelector("option").textContent="Not set";s.value=d.lecture==null?"":String(d.lecture)}});
+}
+function added(r){if(!r)return;$("l-msg").textContent=(r.added.length?"Added "+r.added.length+" document"+(r.added.length>1?"s":"")+". ":"")+r.errors.join(" ");loadDocs()}
+$("l-add").addEventListener("click",function(){$("l-msg").textContent="";cmApp.libAdd($("l-lec").value).then(added)});
+var drop=$("l-drop");["dragenter","dragover"].forEach(function(e){drop.addEventListener(e,function(ev){ev.preventDefault();drop.classList.add("on")})});
+["dragleave","drop"].forEach(function(e){drop.addEventListener(e,function(ev){ev.preventDefault();drop.classList.remove("on")})});
+drop.addEventListener("drop",function(ev){var ps=[].map.call(ev.dataTransfer.files,function(f){return cmApp.filePath(f)}).filter(Boolean);if(ps.length){$("l-msg").textContent="Reading…";cmApp.libAddPaths(ps,$("l-lec").value).then(added)}});
+$("l-list").addEventListener("change",function(e){var s=e.target.closest("[data-lec]");if(s)cmApp.libSet(s.getAttribute("data-lec"),{lecture:s.value}).then(loadDocs)});
+$("l-list").addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;
+ if(b.hasAttribute("data-rm")){var d=DOCS.filter(function(x){return x.id===b.getAttribute("data-rm")})[0];if(confirm("Remove "+d.name+" from the library? Questions already made from it stay."))cmApp.libRemove(d.id).then(function(){if(CURDOC===d.id)$("d-card").hidden=true;loadDocs()})}
+ if(b.hasAttribute("data-open"))openDoc(b.getAttribute("data-open"))});
+function openDoc(id){CURDOC=id;var d=DOCS.filter(function(x){return x.id===id})[0];$("d-card").hidden=false;$("d-name").textContent=d.name;$("d-msg").textContent="";
+ $("d-out").innerHTML=d.summary?'<p class="note">'+(d.summary.how==="claude"?"Summary written by Claude ("+esc(d.summary.model)+")":"Extractive summary")+", "+esc(d.summary.at.slice(0,16).replace("T"," "))+'</p><div class="sum">'+esc(d.summary.text)+'</div>':'<p class="note">No summary yet.</p>';
+ $("d-sum").disabled=!STATUS.hasKey;$("d-sum").title=STATUS.hasKey?"":"Add an API key under Settings";$("d-card").scrollIntoView({behavior:"smooth"})}
+function summarise(mode){var btn=mode?$("d-ext"):$("d-sum");busy(btn,true);$("d-msg").textContent=mode?"":"Claude is reading the document. A long document can take a minute or two.";
+ cmApp.summarise(CURDOC,mode).then(function(r){busy(btn,false);if(!r.ok){$("d-msg").textContent="Not done: "+r.why;return}$("d-msg").textContent="";var i=DOCS.findIndex(function(x){return x.id===CURDOC});DOCS[i]=r.doc;drawDocs();openDoc(CURDOC)})}
+$("d-sum").addEventListener("click",function(){summarise("")});$("d-ext").addEventListener("click",function(){summarise("extractive")});
+$("d-copy").addEventListener("click",function(){var d=DOCS.filter(function(x){return x.id===CURDOC})[0];if(d&&d.summary)navigator.clipboard.writeText(d.summary.text).then(function(){$("d-msg").textContent="Copied."})});
+$("d-text").addEventListener("click",function(){cmApp.libPassages(CURDOC).then(function(ps){$("d-out").innerHTML=ps.map(function(p){return'<div class="hit">'+(p.loc?"<strong>"+esc(p.loc)+"</strong>\n":"")+esc(p.text)+'</div>'}).join("")})});
+function search(){var qv=$("s-q").value.trim();if(!qv)return;cmApp.search(qv,{k:12}).then(function(r){$("s-out").innerHTML=r.length?r.map(function(h){var t=h.text,w=qv.toLowerCase().split(/\W+/).filter(function(x){return x.length>2});var html=esc(t);w.forEach(function(x){html=html.replace(new RegExp("("+x.replace(/[^\w]/g,"")+")","gi"),"<mark>$1</mark>")});return'<div class="hit"><strong>'+esc(h.name)+(h.loc?", "+esc(h.loc):"")+'</strong>\n'+html+'</div>'}).join(""):'<p class="note">Nothing matches.</p>'})}
+$("s-go").addEventListener("click",search);$("s-q").addEventListener("keydown",function(e){if(e.key==="Enter")search()});
+// ---------- generate ----------
+function drawGen(){$("g-keynote").innerHTML=STATUS.hasKey?"Questions are written by Claude ("+esc(STATUS.model)+").":"Generation needs an Anthropic API key. <a href='#' id='g-toset'>Add one under Settings</a>. Without a key you can still import and write questions.";
+ var t=$("g-toset");if(t)t.onclick=function(e){e.preventDefault();tab("set")};$("g-go").disabled=!STATUS.hasKey||!DOCS.length;
+ var lec=$("g-lec").value,checked={};[].forEach.call(document.querySelectorAll(".g-doc:checked"),function(c){checked[c.value]=1});
+ $("g-docs").innerHTML=DOCS.length?DOCS.map(function(d){var on=Object.keys(checked).length?checked[d.id]:(lec!==""?String(d.lecture)===lec:true);return'<label style="font-weight:400;display:block"><input type="checkbox" class="g-doc" value="'+d.id+'"'+(on?" checked":"")+'> '+esc(d.name)+(d.lecture!=null?' <span class="note">(Lecture '+d.lecture+')</span>':"")+'</label>'}).join(""):'<p class="note">Add documents in the Library first.</p>'}
+$("g-lec").addEventListener("change",function(){document.querySelectorAll(".g-doc").forEach(function(c){c.checked=false});drawGen();var any=document.querySelector(".g-doc:checked");if(!any)document.querySelectorAll(".g-doc").forEach(function(c){c.checked=true})});
+$("g-go").addEventListener("click",function(){
+ var docs=[].map.call(document.querySelectorAll(".g-doc:checked"),function(c){return c.value});if(!docs.length){$("g-msg").textContent="Choose at least one document.";return}
+ if($("g-lec").value===""){$("g-msg").textContent="Choose the lecture the questions are for.";return}
+ var b=$("g-go");b.disabled=true;busy(b,true);$("g-msg").textContent="Claude is writing the questions. This usually takes one to three minutes.";
+ cmApp.generate({lecture:$("g-lec").value,sets:$("g-sets").value,perSet:$("g-per").value,difficulty:$("g-diff").value,types:[].map.call(document.querySelectorAll(".g-type:checked"),function(c){return c.value}),focus:$("g-focus").value,notes:$("g-notes").value,docs:docs}).then(function(r){
+  busy(b,false);b.disabled=false;if(!r.ok){$("g-msg").textContent="Not done: "+r.why;return}
+  $("g-msg").innerHTML=r.drafts.length+" draft questions written from "+r.passages+" passages. <a href='#' id='g-rev'>Review them</a>.";$("g-rev").onclick=function(e){e.preventDefault();$("r-filter").dataset.want="gen";tab("rev")};count()})});
+// ---------- import ----------
+function issues(q){return(q.errors||[]).map(function(x){return'<div class="err">'+esc(x)+'</div>'}).join("")+(q.warnings||[]).map(function(x){return'<div class="warn">'+esc(x)+'</div>'}).join("")}
+function qhtml(q,extra){return'<div class="q'+((q.errors||[]).length?" bad":"")+'">'+(extra||"")+'<div class="meta">'+(q.lecture!=null&&q.lecture!==""?"Lecture "+esc(q.lecture):"No lecture")+" · "+esc(TYPES[q.type]||q.type)+(q.difficulty?" · "+esc(q.difficulty):"")+(q.set?" · "+esc(q.set):"")+(q.from?" · from "+esc(q.from):"")+(q.line?" (line "+q.line+")":"")+(q.note?" · "+esc(q.note):"")+'</div><div class="stem">'+q.q+'</div><ol type="A">'+(q.options||[]).map(function(o,i){return'<li'+(i===q.answer?' class="ok"':"")+'>'+o+'</li>'}).join("")+'</ol>'+(q.exp?'<div class="exp"><strong>Explanation.</strong> '+q.exp+'</div>':"")+(q.ref?'<div class="meta">Reference: '+esc(q.ref)+'</div>':"")+'<div class="issues">'+issues(q)+'</div></div>'}
+function preview(r){if(!r)return;if(!r.ok){$("i-msg").textContent="Not read: "+r.why;return}PREVIEW=r.items;var ok=r.items.filter(function(q){return!q.errors.length}).length;
+ $("i-msg").textContent=r.items.length?"Found "+r.items.length+" questions in "+r.name+": "+ok+" ready, "+(r.items.length-ok)+" with errors.":"No questions were found. Check that the file follows the template.";
+ $("i-out").innerHTML=r.items.map(function(q){return qhtml(q)}).join("");$("i-add").hidden=!ok;$("i-add").textContent="Add the "+ok+" valid question"+(ok>1?"s":"")+" to the drafts"}
+function defaults(){return{lecture:$("i-lec").value,difficulty:$("i-diff").value}}
+$("i-file").addEventListener("click",function(){$("i-msg").textContent="";cmApp.importFile(defaults()).then(preview)});
+$("i-parse").addEventListener("click",function(){cmApp.importText($("i-text").value,defaults()).then(function(r){r.name="the pasted text";preview(r)})});
+$("i-add").addEventListener("click",function(){var ok=PREVIEW.filter(function(q){return!q.errors.length});cmApp.draftsAdd(ok,"imported").then(function(a){$("i-msg").innerHTML=a.length+" questions added to the drafts. <a href='#' id='i-rev'>Review them</a>.";$("i-out").innerHTML="";$("i-add").hidden=true;$("i-rev").onclick=function(e){e.preventDefault();tab("rev")};count()})});
+document.querySelectorAll("[data-tpl]").forEach(function(b){b.addEventListener("click",function(){cmApp.saveTemplate(b.getAttribute("data-tpl")).then(function(p){if(p)$("i-msg").textContent="Saved to "+p})})});
+fetch("question-template.md").then(function(r){return r.text()}).then(function(t){$("i-tpl").textContent=t});
+// ---------- the question editor (write and edit) ----------
+function editor(host,q,id){q=q||{options:["","","",""],answer:-1};var o=(q.options||[]).concat(["","","",""]).slice(0,4);
+ host.innerHTML='<div class="ed"><div><label for="'+id+'lec">Lecture</label><select id="'+id+'lec" class="lecsel"></select></div><div><label for="'+id+'type">Type</label><select id="'+id+'type">'+Object.keys(TYPES).map(function(k){return'<option value="'+k+'">'+TYPES[k]+'</option>'}).join("")+'</select></div><div><label for="'+id+'diff">Difficulty</label><select id="'+id+'diff"><option value="">Not set</option><option value="easy">Easy</option><option value="moderate">Moderate</option><option value="difficult">Difficult</option></select></div>'+
+ '<div class="wide"><label for="'+id+'q">Question</label><textarea id="'+id+'q" rows="3"></textarea></div><div class="wide"><label>Options (select the correct one)</label>'+o.map(function(x,i){return'<div class="opt"><input type="radio" name="'+id+'ans" value="'+i+'" aria-label="Option '+L[i]+' is correct"'+(i===q.answer?" checked":"")+'><strong>'+L[i]+'</strong><input type="text" id="'+id+'o'+i+'" aria-label="Option '+L[i]+'"></div>'}).join("")+'</div>'+
+ '<div class="wide"><label for="'+id+'exp">Explanation (shown after a wrong answer)</label><textarea id="'+id+'exp" rows="2"></textarea></div><div class="wide"><label for="'+id+'ref">Reference</label><input type="text" id="'+id+'ref" maxlength="300" placeholder="Lecture 5 slides, slide 12"></div></div><p class="note">Superscripts and subscripts: m/s^2, 10^-3, v_0, v_{max}.</p>';
+ lecOptions();var tx=function(h){return plain(String(h||"").replace(/<sup>(.*?)<\/sup>/g,function(m,a){return/^-?[\d.]+$/.test(a)?"^"+a:"^{"+a+"}"}).replace(/<sub>(.*?)<\/sub>/g,function(m,a){return a.length===1?"_"+a:"_{"+a+"}"}).replace(/<br>/g,"\n"))};
+ $(id+"lec").value=q.lecture==null?"":String(q.lecture);$(id+"type").value=q.type||"concept";$(id+"diff").value=q.difficulty||"";$(id+"q").value=tx(q.q);$(id+"exp").value=tx(q.exp);$(id+"ref").value=q.ref||"";o.forEach(function(x,i){$(id+"o"+i).value=tx(x)})}
+function readEditor(id){var a=document.querySelector('input[name="'+id+'ans"]:checked');return{plainText:true,lecture:$(id+"lec").value,type:$(id+"type").value,difficulty:$(id+"diff").value,q:$(id+"q").value,options:[0,1,2,3].map(function(i){return $(id+"o"+i).value}),answer:a?Number(a.value):-1,exp:$(id+"exp").value,ref:$(id+"ref").value}}
+editor($("e-form"),null,"e");
+function saveNew(approve){var q=readEditor("e");cmApp.draftsAdd([q],"manual").then(function(a){var d=a[0];
+ if(!approve){$("e-msg").textContent="Saved as a draft."+(d.errors.length?" To approve it later: "+d.errors.join(" "):"");if(!d.errors.length)editor($("e-form"),{lecture:q.lecture,type:q.type,difficulty:q.difficulty,options:["","","",""],answer:-1},"e");count();return}
+ if(d.errors.length){$("e-msg").innerHTML='<span class="err">Saved as a draft but not approved: '+esc(d.errors.join(" "))+'</span>';count();return}
+ cmApp.approve([d.did]).then(function(r){$("e-msg").textContent="Approved as "+r.approved[0]+". It is now in the Lecture "+q.lecture+" bank.";editor($("e-form"),{lecture:q.lecture,type:q.type,difficulty:q.difficulty,options:["","","",""],answer:-1},"e");count()})})}
+$("e-save").addEventListener("click",function(){saveNew(false)});$("e-approve").addEventListener("click",function(){saveNew(true)});$("e-clear").addEventListener("click",function(){editor($("e-form"),null,"e");$("e-msg").textContent=""});
+// ---------- review ----------
+function count(){return cmApp.drafts().then(function(d){DRAFTS=d;$("n-drafts").textContent=d.length?"("+d.length+")":""})}
+function loadDrafts(){count().then(drawDrafts)}
+function drawDrafts(){
+ var f=$("r-filter"),want=f.dataset.want||f.value||"all",groups={};DRAFTS.forEach(function(d){var k=d.batch?"batch:"+d.batch:"origin:"+d.origin;groups[k]=(groups[k]||0)+1});
+ if(want==="gen"){var s=DRAFTS.filter(function(d){return d.batch}).map(function(d){return"batch:"+d.batch});want=s.length?s[s.length-1]:"all"}delete f.dataset.want;
+ f.innerHTML='<option value="all">All drafts ('+DRAFTS.length+')</option>'+Object.keys(groups).map(function(k){return'<option value="'+esc(k)+'">'+esc(k.indexOf("batch:")===0?"Generated "+k.slice(6):k==="origin:imported"?"Imported":k==="origin:manual"?"Written here":"Generated")+" ("+groups[k]+")</option>"}).join("");f.value=groups[want]?want:"all";
+ var list=DRAFTS.filter(function(d){var v=f.value;return v==="all"||(v.indexOf("batch:")===0?d.batch===v.slice(6):!d.batch&&d.origin===v.slice(7))});
+ $("r-list").innerHTML=list.length?list.map(function(d){return'<div data-did="'+d.did+'">'+qhtml(d,'<label style="float:right;font-weight:400"><input type="checkbox" class="r-sel" value="'+d.did+'"> Select</label>').replace('<div class="issues">','<p><button class="b sm" type="button" data-edit="'+d.did+'">Edit</button>'+(d.errors.length?"":'<button class="b sm p" type="button" data-ok="'+d.did+'">Approve</button>')+'<button class="b sm" type="button" data-no="'+d.did+'">Discard</button></p><div class="issues">')+'</div>'}).join(""):'<p class="note">No drafts.</p>'}
+$("r-filter").addEventListener("change",drawDrafts);
+function sel(){return[].map.call(document.querySelectorAll(".r-sel:checked"),function(c){return c.value})}
+function approve(ids){if(!ids.length){$("r-msg").textContent="Select questions first.";return}cmApp.approve(ids).then(function(r){$("r-msg").textContent=(r.approved.length?"Approved "+r.approved.length+": "+r.approved.join(", ")+".":"")+(r.skipped.length?" Not approved, "+r.skipped.length+" with errors.":"");loadDrafts()})}
+$("r-all").addEventListener("click",function(){var all=document.querySelectorAll(".r-sel"),on=[].some.call(all,function(c){return!c.checked});all.forEach(function(c){c.checked=on})});
+$("r-ok").addEventListener("click",function(){approve(sel())});
+$("r-no").addEventListener("click",function(){var s=sel();if(s.length&&confirm("Discard "+s.length+" draft"+(s.length>1?"s":"")+"?"))cmApp.draftsReject(s).then(function(){$("r-msg").textContent="Discarded.";loadDrafts()})});
+$("r-list").addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;
+ if(b.hasAttribute("data-ok"))approve([b.getAttribute("data-ok")]);
+ if(b.hasAttribute("data-no")&&confirm("Discard this draft?"))cmApp.draftsReject([b.getAttribute("data-no")]).then(loadDrafts);
+ if(b.hasAttribute("data-edit")){var did=b.getAttribute("data-edit"),d=DRAFTS.filter(function(x){return x.did===did})[0],box=b.closest("[data-did]");editor(box,d,"x"+did);
+  var p=document.createElement("p");p.innerHTML='<button class="b p" type="button" data-save="'+did+'">Save</button><button class="b" type="button" data-cancel="1">Cancel</button>';box.appendChild(p)}
+ if(b.hasAttribute("data-save")){var id2=b.getAttribute("data-save");cmApp.draftUpdate(id2,readEditor("x"+id2)).then(function(){$("r-msg").textContent="Saved.";loadDrafts()})}
+ if(b.hasAttribute("data-cancel"))drawDrafts()});
+$("r-print").addEventListener("click",function(){var s=sel();if(!s.length){$("r-msg").textContent="Select the questions to print.";return}
+ var qs=DRAFTS.filter(function(d){return s.indexOf(d.did)>=0}),title=qs[0].set||"Quiz";
+ $("print").innerHTML='<h1>'+esc((window.CM.courseCode||"")+" "+title)+'</h1><p>Name: ______________________ Student ID: ______________</p>'+qs.map(function(q,i){return'<div class="pq"><p><strong>'+(i+1)+'.</strong> '+q.q+'</p><ol type="A">'+q.options.map(function(o){return"<li>"+o+"</li>"}).join("")+'</ol></div>'}).join("")+
+  '<div class="key"><h1>Answer key: '+esc(title)+'</h1>'+qs.map(function(q,i){return'<div class="pq"><p><strong>'+(i+1)+". "+L[q.answer]+'</strong>'+(q.exp?" "+q.exp:"")+'</p></div>'}).join("")+'</div>';window.print()});
+// ---------- banks ----------
+function loadBanks(){return cmApp.banks().then(function(b){BANKS=b;lecOptions();drawBanks()})}
+function drawBanks(){$("b-list").innerHTML='<table><tr><th>Lecture</th><th>Title</th><th>From the course</th><th>Approved here</th><th>Live quiz</th></tr>'+BANKS.map(function(b){return'<tr><td>'+b.lecture+'</td><td>'+(b.base?esc(b.title):'<input type="text" value="'+esc(b.title)+'" data-btitle="'+b.lecture+'" aria-label="Title of lecture '+b.lecture+'" placeholder="Title"> <button class="b sm" type="button" data-bsave="'+b.lecture+'">Save</button>')+'</td><td>'+b.base+'</td><td>'+b.added+'</td><td>'+(b.live?"Yes":"No")+'</td></tr>'}).join("")+'</table>'+
+ BANKS.filter(function(b){return b.approved.length}).map(function(b){return'<h3 style="margin-top:1.2rem">Lecture '+b.lecture+': approved here</h3>'+b.approved.map(function(q){return qhtml(Object.assign({lecture:b.lecture},q),'<button class="b sm" type="button" style="float:right" data-wd="'+esc(q.id)+'">Withdraw</button><div class="meta"><strong>'+esc(q.id)+'</strong> · approved '+esc((q.approved||"").slice(0,10))+'</div>')}).join("")}).join("")}
+$("b-list").addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;
+ if(b.hasAttribute("data-wd")&&confirm("Withdraw "+b.getAttribute("data-wd")+" from the bank? It returns to the drafts. A live quiz already running that uses it should be finished first."))cmApp.withdraw(b.getAttribute("data-wd")).then(function(){loadBanks();count()});
+ if(b.hasAttribute("data-bsave")){var n=b.getAttribute("data-bsave");cmApp.bankTitle(n,document.querySelector('[data-btitle="'+n+'"]').value).then(function(x){BANKS=x;lecOptions();drawBanks()})}});
+// ---------- settings ----------
+function status(s){STATUS=s;$("k-state").textContent=s.hasKey?"A key is saved.":"No key is saved.";$("k-enc").textContent=s.keyStored?", encrypted with this computer's keychain,":"";$("k-model").value=s.model;drawGen();if(CURDOC)openDoc(CURDOC)}
+$("k-save").addEventListener("click",function(){var k=$("k-key").value.trim();if(!/^sk-ant-[\w-]{20,}$/.test(k)){$("k-state").textContent="That does not look like an Anthropic API key (it begins sk-ant-).";return}cmApp.authSettings({apiKey:k}).then(function(s){$("k-key").value="";status(s)})});
+$("k-del").addEventListener("click",function(){if(confirm("Remove the saved API key?"))cmApp.authSettings({apiKey:""}).then(status)});
+$("k-msave").addEventListener("click",function(){cmApp.authSettings({model:$("k-model").value}).then(function(s){status(s);$("k-state").textContent="Model saved: "+s.model})});
+// ---------- start ----------
+Promise.all([cmApp.authStatus().then(status),loadBanks(),loadDocs(),count()]).then(function(){var t="lib";try{t=sessionStorage.getItem("au_tab")||"lib"}catch(x){}tab(t)});
+})();
+</script>
+</body>
+</html>

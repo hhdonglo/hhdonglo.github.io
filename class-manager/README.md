@@ -67,6 +67,17 @@ Added in November 2026, for students and for the lecturer. All of it is computed
 
 New private tabs: Groups (one row per student per set), Item_Log (one row per student per live quiz question), Access_Codes and Question_Stats. Practice attempts now also record the IDs of the questions asked, and live answers record the confidence. `clearSemesterRecords` clears the three new tabs with the other term records.
 
+## Calendar, messages and announcements
+
+- **Calendar** (`calendar.html`): lectures, tutorials, laboratories, quizzes, examinations, deadlines and office hours, in month, week and list views. Each event can carry an agenda, resources (course pages or web addresses), a course week, and a linked attendance check-in or live quiz; from an event the lecturer opens attendance, the quiz controls, or sets the live quiz to that week. Events repeat weekly (or every two weeks, or daily) with titles taken from the course weeks. Events marked "Lecturer only" are never sent without the host key. Students add events to Google Calendar or Outlook, download them as an .ics file, or subscribe to the feed (`?action=calendar_ics` on the Apps Script address, or `/calendar.ics` in the desktop app). The portal shows the next three events.
+- **Messages** (`messages.html`): students sign in with their Student ID and access code; the lecturer with the host key. Conversations: the whole class, each lecturer-made group, groups that students make themselves (up to 12 members, five groups per student), a private conversation between each student and the lecturer, and, if the lecturer allows it, between two students. Messages are stored in the Messages tab and delivered when the recipient next opens the page, with unread counts and Sent or Read on one's own messages. A student sees only conversations they belong to; names come from the class list and Student IDs are shown only to the lecturer.
+- **Moderation**: the lecturer sees every conversation, removes and restores messages, pauses a student's messages, writes rules that students see, makes the whole-class conversation lecturer-only, switches chat off for students, allows or forbids student-made groups and messages between students, and downloads every message as CSV. Messages are limited to 1,000 characters and eight a minute per student.
+- **Announcements**: title, text, an optional link, an optional calendar event, pinned or not, shown from a chosen date and time, to everyone on the portal, to signed-in students only, or to chosen groups. Students see new ones marked on the portal and on the messages page.
+
+New private tabs: Calendar, Messages, Chat_Groups, Chat_Read and Announcements. Settings for chat are kept in the script properties.
+
+Limits. In the desktop app, messages, announcements and the calendar live on the lecturer's computer: they reach students only while that computer is on, the app is open and phones are on the same network, and they wait there until then. The Google-hosted version of the same script keeps them online at all times and needs no extra setup beyond the existing deployment. Pages check for new messages every eight seconds while open.
+
 The web version needs `apps_script/quiz_receiver.gs` from this folder deployed in its own Google Sheet for these features; the desktop app has them built in.
 
 ## Run it locally
@@ -128,4 +139,6 @@ The class list is loaded into the Roster tab from the lecturer's computer with `
 - Never put the host key, the class list, student names or any secret in this folder or on a page.
 - Public rankings show first names and scores only. Attendance and marks stay in the private Sheet.
 - Practice pages keep progress in the student's browser. Nothing is sent unless the student types an ID.
+- Messages are visible to the people in the conversation and to the lecturer, who can read every conversation. Students are told this on the page.
+- Summaries and question generation (desktop app) send only the lecturer's documents and instructions to Anthropic; nothing about students is ever sent.
 - A student's own record opens only with the student ID and that student's access code. Six wrong tries lock that ID for ten minutes.
