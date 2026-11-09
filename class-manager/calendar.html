@@ -16,8 +16,8 @@
 <a class="skip" href="#main">Skip to content</a>
 <header class="banner slim">
 <div class="wrap">
-<h1><a class="home-link" href="index.html" data-cm="courseCode">PHYS 143</a></h1>
-<p class="course" data-cm="courseTitle">Mechanics and Thermal Physics</p>
+<h1><a class="home-link" href="index.html" data-cm="courseCode">Course</a></h1>
+<p class="course" data-cm="courseTitle"></p>
 </div>
 </header>
 <nav class="jump" id="jump" aria-label="Sections"><div class="wrap"><button type="button" class="menu-btn" aria-expanded="false" aria-controls="jump-links"><span>Menu</span><span class="dots" aria-hidden="true">&#8943;</span></button><div class="links" id="jump-links"><a href="index.html">Portal</a><a href="course.html">Lectures</a><a href="course.html#weekly">Practice</a><a href="mock-exam.html">Mock exam</a><a href="quiz.html">Live quiz</a><a href="calendar.html" aria-current="page">Calendar</a><a href="messages.html">Messages</a></div></div></nav>
@@ -127,7 +127,7 @@ var SCRIPT_URL=window.CM.scriptUrl,$=function(i){return document.getElementById(
 var COLORS={lecture:"#1f5fa8",tutorial:"#2e7d4f",lab:"#6b4fa3",quiz:"#c2410c",exam:"#b3261e",deadline:"#a16207","office hours":"#0f766e",other:"#64748b"};
 var NAMES={lecture:"Lecture",tutorial:"Tutorial",lab:"Laboratory",quiz:"Quiz",exam:"Examination",deadline:"Deadline","office hours":"Office hours",other:"Other"};
 var MONTHS=["January","February","March","April","May","June","July","August","September","October","November","December"],DAYS=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
-var KEY="";try{KEY=sessionStorage.getItem("phys143_hk")||""}catch(x){}
+var KEY="";try{KEY=sessionStorage.getItem("cm_hk")||""}catch(x){}
 try{VIEW=localStorage.getItem("cm_cal_view")||(innerWidth<720?"list":"month")}catch(x){}
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function jsonp(params,cb,ms){
@@ -200,7 +200,7 @@ function ics(list){var st=new Date().toISOString().replace(/[-:]/g,"").replace(/
  L.push("END:VCALENDAR");return L.map(fold).join("\r\n")+"\r\n"}
 function save(name,text){var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([text],{type:"text/calendar"}));a.download=name;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},500)}
 function feed(){var base=window.CM.desktop?(window.CM.publicBase?window.CM.publicBase.replace(/\/$/,""):location.origin)+"/calendar.ics":SCRIPT_URL+"?action=calendar_ics&course="+encodeURIComponent((window.CM.courseCode||"Course")+" calendar");return base}
-function load(cb){jsonp("action=calendar"+(KEY?q("hostkey",KEY):""),function(d){if(!d||!d.ok){err(d?"The calendar could not be loaded: "+(d.why||"unknown"):"The class server could not be reached, or it does not support the calendar yet (update the Apps Script).");return}err("");D=d;if(KEY&&!d.host){KEY="";try{sessionStorage.removeItem("phys143_hk")}catch(x){}}hostUi();draw();if(cb)cb()})}
+function load(cb){jsonp("action=calendar"+(KEY?q("hostkey",KEY):""),function(d){if(!d||!d.ok){err(d?"The calendar could not be loaded: "+(d.why||"unknown"):"The class server could not be reached, or it does not support the calendar yet (update the Apps Script).");return}err("");D=d;if(KEY&&!d.host){KEY="";try{sessionStorage.removeItem("cm_hk")}catch(x){}}hostUi();draw();if(cb)cb()})}
 // ---------- lecturer ----------
 function hostUi(){$("c-host").hidden=!D.host;$("c-hostlink").hidden=!!D.host;
  if(D.host&&!$("f-kind").options.length){$("f-kind").innerHTML=D.kinds.map(function(k){return'<option value="'+esc(k)+'">'+esc(NAMES[k]||k)+'</option>'}).join("");
@@ -211,7 +211,7 @@ function fill(ev){ev=ev||{};$("f-id").value=ev.id||"";$("f-title").value=ev.titl
  $("f-del").hidden=!ev.id;$("f-delser").hidden=!ev.series;$("f-rep").hidden=!!ev.id;$("f-rep").open=false;$("c-ftitle").textContent=ev.id?"Edit the event":"Add an event";ferr("")}
 function allday(){var a=$("f-allday").checked;["f-start","f-end"].forEach(function(i){var v=$(i).value;$(i).type=a?"date":"datetime-local";$(i).value=a?v.slice(0,10):v&&v.length===10?v+"T09:00":v})}
 $("f-allday").addEventListener("change",allday);
-function edit(op,extra){ferr("");jsonp("action=calendar_edit&op="+op+q("hostkey",KEY)+(extra||""),function(d){if(!d){ferr("The class server could not be reached.");return}if(!d.ok){if(/host key/.test(d.why||"")){KEY="";try{sessionStorage.removeItem("phys143_hk")}catch(x){}load();return}ferr("Not saved: "+d.why);return}D=d;draw();fill();$("c-ftitle").scrollIntoView({block:"nearest"})})}
+function edit(op,extra){ferr("");jsonp("action=calendar_edit&op="+op+q("hostkey",KEY)+(extra||""),function(d){if(!d){ferr("The class server could not be reached.");return}if(!d.ok){if(/host key/.test(d.why||"")){KEY="";try{sessionStorage.removeItem("cm_hk")}catch(x){}load();return}ferr("Not saved: "+d.why);return}D=d;draw();fill();$("c-ftitle").scrollIntoView({block:"nearest"})})}
 $("c-form").addEventListener("submit",function(e){e.preventDefault();
  var f=q("id",$("f-id").value)+q("title",$("f-title").value.trim())+q("kind",$("f-kind").value)+q("start",$("f-start").value)+q("end",$("f-end").value)+q("allday",$("f-allday").checked?"yes":"no")+q("location",$("f-loc").value.trim())+q("week",$("f-week").value)+q("link",$("f-link").value)+q("visibility",$("f-vis").value)+q("agenda",$("f-agenda").value.trim())+q("resources",$("f-res").value.trim());
  if(!$("f-id").value&&$("f-rep").open&&Number($("f-count").value)>1)edit("series",f+q("count",$("f-count").value)+q("every",$("f-every").value)+q("titles",$("f-titles").value.trim()));else edit("save",f);
@@ -220,7 +220,7 @@ $("f-topics").addEventListener("click",function(){var w=Number($("f-week").value
 $("f-new").addEventListener("click",function(){fill()});
 $("f-del").addEventListener("click",function(){if(confirm("Delete this event?"))edit("delete",q("id",$("f-id").value))});
 $("f-delser").addEventListener("click",function(){if(confirm("Delete every event in this series?"))edit("delete_series",q("id",$("f-id").value))});
-$("c-login").addEventListener("click",function(e){e.preventDefault();var k=prompt("Host key");if(!k)return;jsonp("action=hostcheck&hostkey="+encodeURIComponent(k.trim()),function(d){if(d&&d.ok){KEY=k.trim();try{sessionStorage.setItem("phys143_hk",KEY)}catch(x){}load(function(){fill();$("c-host").scrollIntoView()})}else err(d?"That key was not accepted.":"Could not reach the class server.")},10000)});
+$("c-login").addEventListener("click",function(e){e.preventDefault();var k=prompt("Host key");if(!k)return;jsonp("action=hostcheck&hostkey="+encodeURIComponent(k.trim()),function(d){if(d&&d.ok){KEY=k.trim();try{sessionStorage.setItem("cm_hk",KEY)}catch(x){}load(function(){fill();$("c-host").scrollIntoView()})}else err(d?"That key was not accepted.":"Could not reach the class server.")},10000)});
 // ---------- shared ----------
 document.addEventListener("click",function(e){var b=e.target.closest("[data-ev],[data-ics],[data-edit],[data-setweek],[data-view]");if(!b)return;
  if(b.hasAttribute("data-view")){VIEW=b.getAttribute("data-view");try{localStorage.setItem("cm_cal_view",VIEW)}catch(x){}draw();return}
@@ -244,7 +244,7 @@ load();
 </main>
 
 
-<footer><div class="wrap"><p class="foot-note"><span data-cm="courseCode">PHYS 143</span> · <span data-cm="courseTitle">Mechanics and Thermal Physics</span> · <span data-cm="institution">University of Ghana</span> · <a href="lecturer.html">Lecturer</a></p></div></footer>
+<footer><div class="wrap"><p class="foot-note"><span data-cm="footer"></span><a href="lecturer.html">Lecturer</a></p></div></footer>
 <script src="assets/render.js"></script>
 <script src="assets/site.js"></script>
 <script src="assets/tracking.js"></script>

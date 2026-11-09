@@ -117,13 +117,12 @@ class-manager/
   quiz-host.html, quiz-display.html   quiz dashboard and projector view
   attendance.html           open, close and submit attendance; rotating QR code
   control.html              Control Centre: class list, results, tidy to class list
-  data/                     lectures.json, portal.json, pages/phys143.json, courses.json, site.json
-  quizzes/lectureN.json     question banks
-  PHYS143/                  lecture PDFs
+  data/                     lectures.json, portal.json, pages/course.json, site.json (empty course)
+  templates/                lecture and practice page templates
+  course-packs/phys143/     the PHYS 143 course pack source (lecture pages, PDFs, banks, data, bank tools)
   apps_script/              quiz_receiver.gs, live_quizzes.json
   assets/                   render.js, styles, QR library, KaTeX, icons
-  tools/                    quiz_src/ (Python sources, build.py), validate_quizzes.py, check_calcs.py, test_practice.mjs
-  desktop/                  the desktop app: main.js, backend.js, google.js, preload.js, app/home.html, package.json
+  desktop/                  the desktop app: main.js, backend.js, course.js (course folder and packs), table.js (class list files), google.js, preload.js, app/home.html, app/setup.html, package.json
 ```
 
 **Configuration points**

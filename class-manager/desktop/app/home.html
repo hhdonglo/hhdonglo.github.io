@@ -40,12 +40,28 @@
 .hm .seg label:has(input:focus-visible){outline:3px solid var(--brown);outline-offset:2px}
 .hm .tstate{font-weight:600}
 .hm [hidden]{display:none!important}
+.hm #setup{border-color:var(--brown-fill);margin-top:1rem}
+.hm .todo{list-style:none;padding:0;margin:.3rem 0}
+.hm .todo li{padding:.25rem 0;font-weight:600}
+.hm .todo .mk{display:inline-block;width:1.4em}
+.hm .todo li.done{color:var(--muted)}
+.hm .todo li.done .mk{color:#2e7d32}
+.hm button.link{border:0;background:none;padding:.1rem .3rem;min-height:0;margin:0;text-decoration:underline;color:var(--link);font-weight:600}
 </style>
 </head>
 <body>
-<header class="banner slim"><div class="wrap"><h1><a class="home-link" href="home.html">Class Manager</a></h1><p class="course"><span data-cm="courseCode"></span> · <span data-cm="courseTitle"></span></p></div></header>
+<header class="banner slim"><div class="wrap"><h1><a class="home-link" href="home.html">Class Manager</a></h1><p class="course" data-cm="courseHeading"></p></div></header>
 <main id="main"><div class="wrap hm">
 
+<div class="card" id="setup" hidden>
+ <h3>Finish setting up your course</h3>
+ <ul class="todo">
+  <li id="td-course"><span class="mk"></span> Course details <button type="button" class="link" data-setup="course">Open</button></li>
+  <li id="td-class"><span class="mk"></span> Class list <button type="button" class="link" data-setup="class">Open</button></li>
+  <li id="td-materials"><span class="mk"></span> Course materials <button type="button" class="link" data-setup="materials">Open</button></li>
+ </ul>
+ <p class="note">Each step can be done at any time. This list disappears when all three are done.</p>
+</div>
 <p class="note"><button type="button" id="readme">Instructions</button> Installation, connecting students, attendance, quizzes, results and troubleshooting.</p>
 <h2>In class</h2>
 <div class="grid">
@@ -80,8 +96,10 @@
   <button class="p" type="button" onclick="location.href='author.html'">Open resources and questions</button>
  </div>
  <div class="card">
-  <h3>Course pages</h3>
-  <p>Lectures, practice questions and the mock exam, as students see them.</p>
+  <h3>Course</h3>
+  <p>Course details, lectures and their files, and course packs.</p>
+  <button class="p" type="button" onclick="location.href='setup.html#course'">Course settings and lectures</button>
+  <p>As students see them:</p>
   <button data-win="index.html">Student portal</button>
   <button data-win="course.html">Lectures</button>
   <button data-win="mock-exam.html">Mock exam</button>
@@ -90,12 +108,8 @@
 
 <h2>Class list</h2>
 <div class="card">
- <p>Attendance and marks count only students on the class list. One student per line: student ID, then the name if you wish, separated by a comma. A spreadsheet saved as CSV works.</p>
- <textarea id="cl" placeholder="10000001, Ama Mensah&#10;10000002, Kofi Owusu"></textarea>
- <p><button type="button" id="cl-file">Choose a CSV file</button>
- <label style="display:inline;font-weight:400"><input type="checkbox" id="cl-replace" style="width:auto;min-height:0"> Replace the whole list (otherwise new IDs are added)</label></p>
- <p><button class="p" type="button" id="cl-go">Save class list</button></p>
- <p class="msg" id="cl-msg" role="status"></p>
+ <p>Attendance and marks count only students on the class list. <span id="cl-n"></span></p>
+ <p><button class="p" type="button" onclick="location.href='setup.html#class'">Add or replace students</button></p>
 </div>
 
 <h2>Results and marks</h2>
@@ -117,9 +131,7 @@
 <h2>Settings</h2>
 <div class="card">
  <form id="f">
-  <label for="s-code">Course code</label><input id="s-code" maxlength="40">
-  <label for="s-title">Course title</label><input id="s-title" maxlength="120">
-  <label for="s-inst">Institution</label><input id="s-inst" maxlength="120">
+  <p class="note">Course details are under Course settings and lectures.</p>
   <label for="s-port">Port</label><input id="s-port" type="number" min="1024" max="65535">
   <details><summary>Advanced: use your own Google Apps Script instead of this computer</summary>
    <p class="note">Leave empty to keep everything on this computer (recommended).</p>
@@ -156,7 +168,10 @@ function show(info){
  tshow(info.tunnel);
  if(info.hostKey){$("key").textContent=info.hostKey}else{$("key").textContent="changed";$("keynote").textContent="You changed the host key on the quiz dashboard, so it is no longer shown here. Use your new key."}
  if(s.scriptUrl){$("keynote").textContent="This app is set to use your own Apps Script (Settings), so the host key is the one in your Google Sheet."}
- $("s-code").value=s.courseCode;$("s-title").value=s.courseTitle;$("s-inst").value=s.institution;$("s-url").value=s.scriptUrl;$("s-port").value=s.port;
+ var st=info.setup;$("setup").hidden=st.complete;
+ [["td-course","course"],["td-class","classList"],["td-materials","materials"]].forEach(function(x){var ok=st.steps[x[1]];$(x[0]).className=ok?"done":"";$(x[0]).querySelector(".mk").textContent=ok?"\u2713":"\u25CB"});
+ $("cl-n").textContent=st.roster?st.roster+" students are on the list.":"No students on the list yet.";
+ $("s-url").value=s.scriptUrl;$("s-port").value=s.port;
  var sel=$("tab"),keep=cur||"Master";sel.innerHTML=info.tabs.map(function(t){return'<option value="'+esc(t.name)+'">'+esc(t.name)+' ('+Math.max(0,t.rows-1)+' rows)</option>'}).join("");
  if(info.tabs.some(function(t){return t.name===keep}))sel.value=keep;else if(info.tabs.some(function(t){return t.name==="Totals"}))sel.value="Totals";
  view();
@@ -189,15 +204,7 @@ $("t-stop").addEventListener("click",function(){document.querySelector('input[na
 reload();
 document.querySelectorAll("[data-win]").forEach(function(b){b.addEventListener("click",function(){cmApp.openWindow(b.getAttribute("data-win"))})});
 $("tab").addEventListener("change",view);
-$("cl-file").addEventListener("click",function(){cmApp.classListFile().then(function(t){if(t!=null)$("cl").value=t})});
-$("cl-go").addEventListener("click",function(){
- var rep=$("cl-replace").checked;
- if(rep&&!confirm("Replace the whole class list? Students not in the new list are removed from the list. Their past marks stay."))return;
- cmApp.classList($("cl").value,rep).then(function(r){
-  $("cl-msg").textContent=r&&r.ok?("Saved. "+r.added+" added, "+r.unchanged+" already on the list"+(r.removed?", "+r.removed+" removed":"")+(r.skipped?", "+r.skipped+" lines skipped":"")+". "+r.total+" students in total."):("Not saved: "+(r&&r.why||"unknown problem"));
-  if(r&&r.ok){$("cl").value="";reload()}
- });
-});
+document.querySelectorAll("[data-setup]").forEach(function(b){b.addEventListener("click",function(){location.href="setup.html#"+b.getAttribute("data-setup")})});
 $("refresh").addEventListener("click",function(){cmApp.run("refreshTotals").then(function(){$("r-msg").textContent="Totals refreshed.";reload()})});
 $("named").addEventListener("click",function(){cmApp.run("buildNamedAttendance").then(function(){cur="Attendance_Named";$("r-msg").textContent="Attendance with names is in the tab Attendance_Named.";reload()})});
 $("export").addEventListener("click",function(){cmApp.exportResults().then(function(d){if(d)$("r-msg").textContent="Exported to "+d})});
@@ -210,7 +217,7 @@ $("f").addEventListener("submit",function(e){
  e.preventDefault();
  var url=$("s-url").value.trim();
  if(url&&!/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(url)){$("saved").textContent="The address must look like https://script.google.com/macros/s/…/exec";return}
- cmApp.save({courseCode:$("s-code").value,courseTitle:$("s-title").value,institution:$("s-inst").value,scriptUrl:url,port:$("s-port").value}).then(function(){location.reload()});
+ cmApp.save({scriptUrl:url,port:$("s-port").value}).then(function(){location.reload()});
 });
 setInterval(function(){if(document.visibilityState==="visible")cmApp.info().then(function(i){gshow(i.google)})},30000);
 })();

@@ -141,9 +141,9 @@ function createBackend(opts) {
       const p = decodeURIComponent(new URL(url).pathname).replace(/^\/+/, "");
       const merged = opts.readSite ? opts.readSite(p) : null; // approved questions added to the course banks
       if (merged !== null && merged !== undefined) return { getContentText: () => merged, getResponseCode: () => 200 };
-      const full = path.normalize(path.join(WEB, p));
+      const full = opts.resolve ? opts.resolve(p) : path.normalize(path.join(WEB, p));
       let text = "", code = 404;
-      if (full.startsWith(path.normalize(WEB + path.sep)) && fs.existsSync(full)) { text = fs.readFileSync(full, "utf8"); code = 200; }
+      if (full && (opts.resolve || full.startsWith(path.normalize(WEB + path.sep))) && fs.existsSync(full)) { text = fs.readFileSync(full, "utf8"); code = 200; }
       return { getContentText: () => text, getResponseCode: () => code };
     }
   };

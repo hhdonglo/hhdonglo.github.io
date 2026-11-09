@@ -1,9 +1,9 @@
 CLASS MANAGER (BETA): INSTALLATION AND INSTRUCTIONS
 ===================================================
 
-Class Manager is a desktop app for lecturers. It runs live class quizzes,
-attendance, practice questions and a mock examination from the lecturer's own
-computer, and keeps every record on that computer.
+Class Manager is a desktop app for lecturers, for any course. It runs live
+class quizzes, attendance, practice questions and a mock examination from the
+lecturer's own computer, and keeps every record on that computer.
 
 This is a Beta version and is not yet fully tested. Keep a copy of class
 records elsewhere, and report problems through the Contact page of
@@ -43,15 +43,28 @@ Linux
 - The app creates its results workbook and a host key automatically. The host
   key is shown on the home screen. Type it when a lecturer page asks for it,
   and keep it private.
-- Under Settings, enter the course code, course title and institution.
+- A short setup then asks for what the app needs to know about the course.
+  Each step can be skipped and finished later: a checklist stays on the home
+  screen until all three are done, and "Course settings and lectures" on the
+  home screen changes any of it afterwards.
+    1. Course details: course code and title, lecturer, semester and teaching
+       dates; optionally the institution, a contact for students, a header
+       colour, a logo and a notice for the course pages.
+    2. Class list: choose a CSV or Excel (.xlsx) file, or paste the list. Say
+       which column holds the student ID and which holds the name, check the
+       preview and save. "Download a sample class list" saves a template.
+    3. Course materials: add each lecture (number, title, summary, learning
+       objectives) and its files (slides, handout, tutorial sheet and others);
+       add teaching material to the library; import existing question files.
+       A course pack (.zip) brings in a whole prepared course at once, and
+       "Export this course as a pack" makes one to move the course to another
+       computer or share it with a colleague.
 
 
 3. BEFORE THE FIRST CLASS
 -------------------------
 
-1. Under "Class list", paste the class list (student ID, then the name if
-   desired, one student per line) or choose a CSV file, and press
-   "Save class list".
+1. Check that the class list is complete (home screen, "Class list").
 2. To let students see their own progress, open "Access codes for students",
    type the host key, press "Create codes for students without one", then
    "Print slips", and hand each student their slip.
@@ -100,13 +113,16 @@ Attendance
   marked once per day. Close attendance, then submit it.
 
 Live quiz
-  Lecturer menu, Run quiz. The join code is 2627 followed by the week number
-  (for example 26272 for week 2). Open "Projector display" on the projector.
+  Lecturer menu, Run quiz. A quiz can be run for every lecture that has
+  approved questions in its bank. The join code is 2627 followed by the
+  week number (for example 26272 for week 2). Open "Projector display" on the projector.
   Students open the student address, choose Quiz, and enter their first
   name, student ID and the join code.
 
 Practice questions and mock examination
   Students open them from the portal at any time while the app is running.
+  Practice questions appear for each lecture that has a question bank; the
+  mock examination draws on questions marked as past examination questions.
 
 
 6. AFTER CLASS

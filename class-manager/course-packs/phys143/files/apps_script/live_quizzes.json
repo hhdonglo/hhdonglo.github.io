@@ -1,0 +1,19 @@
+{
+ "_default": {
+  "bank": "lecture1",
+  "ids": "all"
+ },
+ "weeks": {
+  "1": "Vectors",
+  "10": "Thermal properties of matter",
+  "11": "First law of thermodynamics",
+  "12": "Second law of thermodynamics",
+  "2": "Motion",
+  "3": "Newton’s laws",
+  "4": "Work and kinetic energy",
+  "5": "Potential energy and energy conservation",
+  "7": "Impulse and momentum",
+  "8": "Rotation",
+  "9": "Temperature and heat"
+ }
+}

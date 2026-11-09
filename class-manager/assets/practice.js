@@ -1,18 +1,11 @@
-/* PHYS 143 practice engine for one lecture page. Plain JavaScript, no libraries, no network calls other than loading quizzes/lectureN.json. Mounts into #quiz-app (data-lecture = lecture number). */
+/* Practice engine for one lecture page. Plain JavaScript, no libraries, no network calls other than loading quizzes/lectureN.json. Mounts into #quiz-app (data-lecture = lecture number). */
 (function () {
   'use strict';
 
-  var LECTURES = {
-    0: 'Orientation and physical quantities',
-    1: 'Vectors', 2: 'Motion', 3: 'Newton’s laws', 4: 'Work and kinetic energy',
-    5: 'Potential energy and energy conservation', 7: 'Impulse and momentum', 8: 'Rotation',
-    9: 'Temperature and heat', 10: 'Thermal properties of matter',
-    11: 'First law of thermodynamics', 12: 'Second law of thermodynamics'
-  };
+  var LECTURES = {}; /* lecture titles, read from data/portal.json (lectures: {number: title}) */
   function lab(n) { return n === 0 ? 'Introduction' : 'Lecture ' + n; }
-  var ORDER = [1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12];
   var QUIZ_LENGTH = 20;
-  var STORE_KEY = 'phys143.practice.v1';
+  var STORE_KEY = 'cm.practice.v1';
   var LETTERS = ['A', 'B', 'C', 'D'];
   var TYPE_LABEL = { concept: 'Concept', calc: 'Calculation', graph: 'Graph or diagram', misconception: 'Common misconception' };
 
@@ -20,7 +13,7 @@
   if (app) document.body.classList.add('focus');
   if (!app) return;
   var started = false;
-  window.PHYS143_QUIZ = window.PHYS143_QUIZ || {};
+  window.CM_QUIZ = window.CM_QUIZ || {};
 
   /* ---------- storage (every access guarded) ---------- */
   function loadStore() {
@@ -89,13 +82,11 @@
      FORM_URL  : the form's address ending in /viewform
      ENTRY     : the entry.NNNNNNNNN id of each field, from the form's "Get pre-filled link"
      Until FORM_URL is set the report link stays hidden (add ?reportpreview=1 to a practice page to preview it). */
-  var REPORT_FORM = {
-    FORM_URL: 'https://docs.google.com/forms/d/e/1FAIpQLSeks0aQI_OLforxFg-5oOxyVQw5mdNA0dbtPQqUmHAPNz_mkg/viewform',
-    ENTRY: { lecture: 'entry.639134261', id: 'entry.917742440', question: 'entry.1866410730', answer: 'entry.1771614469', comment: 'entry.1612452879' }
-  };
-  var reportLive = REPORT_FORM.FORM_URL.indexOf('PLACEHOLDER') === -1 || /[?&]reportpreview=1/.test(window.location.search);
+  var REPORT_FORM = (window.CM || {}).reportForm || null; // optional: { FORM_URL, ENTRY: { lecture, id, question, answer, comment } } in config.js
+  var reportLive = !!((window.CM || {}).scriptUrl || REPORT_FORM) || /[?&]reportpreview=1/.test(window.location.search); // reports go to the class server; the form is a fallback
   function clip(t, n) { t = plain(String(t == null ? '' : t)).replace(/\s+/g, ' ').trim(); return t.length > n ? t.slice(0, n - 1) + '…' : t; }
   function reportUrl(n, quiz, q, sel) {
+    if (!REPORT_FORM) return '#';
     var E = REPORT_FORM.ENTRY, shown = clip(q.options[q.answer], 200) + (sel != null && sel !== q.answer ? ' (my answer: ' + clip(q.options[sel], 200) + ')' : '');
     var parts = ['usp=pp_url',
       E.lecture + '=' + encodeURIComponent(lab(n) + (LECTURES[n] ? ': ' + LECTURES[n] : '')),
@@ -117,10 +108,10 @@
 
   /* ---------- loading data ---------- */
   function loadLecture(n, ok, fail) {
-    if (window.PHYS143_QUIZ[n]) { ok(window.PHYS143_QUIZ[n]); return; }
+    if (window.CM_QUIZ[n]) { ok(window.CM_QUIZ[n]); return; }
     fetch('quizzes/lecture' + n + '.json', { cache: 'no-cache' })
       .then(function (r) { if (!r.ok) throw new Error('missing'); return r.json(); })
-      .then(function (d) { window.PHYS143_QUIZ[n] = d; ok(d); })
+      .then(function (d) { window.CM_QUIZ[n] = d; ok(d); })
       .catch(fail);
   }
 
@@ -245,14 +236,14 @@
       P.querySelector('#report-send').addEventListener('click', function () {
         var f = reportFields(n, quiz, q, curSel); f.comment = P.querySelector('#report-text').value; f.page = window.location.href.split(/[?#]/)[0];
         st.textContent = 'Sending.';
-        window.PHYS143_TRACK.post('report', f, function (ok) {
+        window.CM_TRACK.post('report', f, function (ok) {
           if (ok) {
             P.parentNode.removeChild(P);
             var done = el('p', { id: 'report-done', 'class': 'note quiz-note', role: 'status' }, 'Report sent to the lecturer. Thank you.');
             nav.parentNode.insertBefore(done, nav.nextSibling);
             return;
           }
-          st.innerHTML = 'The report could not be sent. You can <a href="' + reportUrl(n, quiz, q, curSel) + '" target="_blank" rel="noopener noreferrer">use the form instead</a>.';
+          st.innerHTML = REPORT_FORM ? 'The report could not be sent. You can <a href="' + reportUrl(n, quiz, q, curSel) + '" target="_blank" rel="noopener noreferrer">use the form instead</a>.' : 'The report could not be sent. Try again later.';
         });
       });
       P.querySelector('#report-text').focus();
@@ -290,7 +281,7 @@
       nav.appendChild(nb);
       nav.appendChild(btn('Save and leave', '', function () { currentKeys = null; intro(n, quiz); }));
       if (repA) nav.appendChild(repA);
-      if (repA && window.PHYS143_TRACK && window.PHYS143_TRACK.post) repA.addEventListener('click', function (ev) { ev.preventDefault(); openReport(); });
+      if (repA && window.CM_TRACK && window.CM_TRACK.post) repA.addEventListener('click', function (ev) { ev.preventDefault(); openReport(); });
       nb.focus();
     }
 
@@ -335,7 +326,7 @@
       r.missed = (r.missed || []).filter(function (id) { return wrongIds.indexOf(id) !== -1 || run.order.indexOf(id) === -1; });
     }
     var summary = { mode: run.mode, score: score, total: total, wrong: wrongIds };
-    var sent = window.PHYS143_TRACK ? window.PHYS143_TRACK.send({ quiz: lab(n) + (run.mode === 'missed' ? ' (missed questions)' : ''), attempt: r.attempts, score: score, total: total, seconds: run.t0 ? Math.round((Date.now() - run.t0) / 1000) : null, wrong: wrongIds, asked: run.order }, function (ok) {
+    var sent = window.CM_TRACK ? window.CM_TRACK.send({ quiz: lab(n) + (run.mode === 'missed' ? ' (missed questions)' : ''), attempt: r.attempts, score: score, total: total, seconds: run.t0 ? Math.round((Date.now() - run.t0) / 1000) : null, wrong: wrongIds, asked: run.order }, function (ok) {
       var s2 = document.getElementById('quiz-send-state'); if (s2) s2.textContent = ok ? 'Result sent to the lecturer.' : 'Result not sent.';
     }) : false;
     r.run = null;
@@ -372,8 +363,8 @@
   function route() {
     currentKeys = null;
     var n = Number(app.getAttribute('data-lecture'));
-    if (!LECTURES[n]) { unavailable(n); return; }
     loadLecture(n, function (quiz) {
+      if (!LECTURES[n]) LECTURES[n] = quiz.title || '';
       var r0 = rec(n);
       if (r0.run && r0.run.v === 2) runQuiz(n, quiz);
       else if (!r0.attempts) startRun(n, quiz, 'all'); /* first visit: the first question appears at once */
@@ -382,6 +373,8 @@
     }, function () { unavailable(n); started = true; });
   }
   reportNote();
-  if (window.PHYS143_TRACK) window.PHYS143_TRACK.mount(app);
-  route();
+  if (window.CM_TRACK) window.CM_TRACK.mount(app);
+  fetch('data/portal.json', { cache: 'no-cache' }).then(function (r) { return r.json(); })
+    .then(function (p) { LECTURES = p.lectures || {}; if (p.intro_title) LECTURES[0] = p.intro_title; }, function () { /* titles come from the bank */ })
+    .then(route);
 })();

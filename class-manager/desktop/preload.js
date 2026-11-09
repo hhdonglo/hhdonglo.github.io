@@ -12,6 +12,10 @@ contextBridge.exposeInMainWorld("cmApp", {
   drafts: call("cm:drafts"), draftsAdd: call("cm:draftsAdd"), draftUpdate: call("cm:draftUpdate"), draftsReject: call("cm:draftsReject"),
   approve: call("cm:approve"), withdraw: call("cm:withdraw"), importFile: call("cm:importFile"), importText: call("cm:importText"), saveTemplate: call("cm:saveTemplate"),
   filePath: (f) => { try { return require("electron").webUtils.getPathForFile(f); } catch (e) { return ""; } },
+  setup: call("cm:setup"), saveCourse: call("cm:saveCourse"), setupSeen: call("cm:setupSeen"), chooseLogo: call("cm:chooseLogo"),
+  tableFile: call("cm:tableFile"), tableText: call("cm:tableText"), classRows: call("cm:classRows"), sampleClassList: call("cm:sampleClassList"),
+  lectures: call("cm:lectures"), saveLecture: call("cm:saveLecture"), removeLecture: call("cm:removeLecture"), lectureFile: call("cm:lectureFile"),
+  importPack: call("cm:importPack"), exportPack: call("cm:exportPack"),
   readme: call("cm:readme"), tunnelStart: call("cm:tunnelStart"), tunnelStop: call("cm:tunnelStop"),
   onTunnel: (fn) => { ipcRenderer.on("cm:tunnel", (e, st) => fn(st)); },
   googleSignIn: call("cm:googleSignIn"), googleSignOut: call("cm:googleSignOut"), googleSync: call("cm:googleSync")
