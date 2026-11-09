@@ -6,9 +6,9 @@ A desktop app for lecturers. It runs the course pages, practice quizzes, mock ex
 
 **Install**
 
-- **Windows**: run `Class Manager Setup 0.1.0.exe`. Windows may show "Windows protected your PC" because the app is not signed: choose **More info**, then **Run anyway**.
-- **macOS**: open `Class Manager-0.1.0-universal.dmg` and drag Class Manager to Applications. The first time, open it with a right-click (or Control-click) and **Open**. If macOS still refuses, open **System Settings, Privacy and Security** and press **Open Anyway**.
-- **Linux**: make `Class Manager-0.1.0.AppImage` executable and run it.
+- **Windows**: run `Class-Manager-Windows.exe`. Windows may show "Windows protected your PC" because the app is not signed: choose **More info**, then **Run anyway**.
+- **macOS**: open `Class-Manager-macOS.dmg` and drag Class Manager to Applications. The first time, open it with a right-click (or Control-click) and **Open**. If macOS still refuses, open **System Settings, Privacy and Security** and press **Open Anyway**.
+- **Linux**: make `Class-Manager-Linux.AppImage` executable and run it.
 
 The first time it runs, Windows and macOS ask whether the app may accept connections on the network. Allow it, at least on private networks; students' phones connect through it.
 

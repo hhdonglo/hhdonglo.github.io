@@ -58,7 +58,8 @@
         }
       ],
       "category": "public.app-category.education",
-      "identity": "-"
+      "identity": "-",
+      "artifactName": "Class-Manager-macOS.${ext}"
     },
     "win": {
       "target": [
@@ -68,7 +69,8 @@
             "x64"
           ]
         }
-      ]
+      ],
+      "artifactName": "Class-Manager-Windows.${ext}"
     },
     "nsis": {
       "oneClick": false,
@@ -79,7 +81,8 @@
       "target": [
         "AppImage"
       ],
-      "category": "Education"
+      "category": "Education",
+      "artifactName": "Class-Manager-Linux.${ext}"
     },
     "publish": null
   },
