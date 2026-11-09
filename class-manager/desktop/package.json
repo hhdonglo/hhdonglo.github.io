@@ -43,6 +43,7 @@
           "!desktop/**",
           "!tools/**",
           "!README.md",
+          "!STRUCTURE.md",
           "!.nojekyll"
         ]
       }
