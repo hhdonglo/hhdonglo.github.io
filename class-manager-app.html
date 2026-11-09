@@ -61,16 +61,16 @@
 <h3 class="sub2" id="cm-what">What it does</h3>
 <div class="ov-card">
 <ul>
-<li>Serves the course pages to students' phones over the classroom Wi-Fi or a phone hotspot, with a QR code to join.</li>
-<li>Can also give students a temporary internet address, through Cloudflare's free quick tunnel service, so that they join from any network while the app is open. This option has not yet been tested in real classes.</li>
-<li>Runs a live class quiz with a projector view, timed questions, results and review.</li>
-<li>Takes attendance with a QR code that changes during the session, one mark per student per day.</li>
-<li>Gives each student a personal access code to see their own attendance, quiz results and practice progress.</li>
-<li>Shows teaching insights for each question, and forms student groups.</li>
-<li>Keeps a course calendar that students can add to their own calendars, with announcements and moderated class messages.</li>
-<li>Builds a library from the lecturer's own PDF, Word, PowerPoint and Markdown files, with search and summaries, and imports or drafts quiz questions for the lecturer to review before use. Drafting questions and full summaries use the lecturer's own Anthropic API key.</li>
-<li>Keeps attendance, quiz scores and marks on the lecturer's computer, and exports every table as a CSV file for Excel.</li>
-<li>Needs no account and no setup: the results workbook and the host key are created on first launch.</li>
+<li>Live class quizzes, with a projector view, results and review.</li>
+<li>Attendance by QR code.</li>
+<li>Personal access for each student to their own attendance, quiz results and practice progress.</li>
+<li>Teaching insights for each question.</li>
+<li>Student groups for activities, with group marks.</li>
+<li>A course calendar, announcements and class messages.</li>
+<li>A library of the lecturer's own course files, with search, summaries and quiz drafting for the lecturer's review.</li>
+<li>All records kept on the lecturer's own computer, with export to Excel.</li>
+<li>Students join from their phones over the classroom Wi-Fi, a phone hotspot or the internet.</li>
+<li>No account and no setup needed.</li>
 </ul>
 </div>
 </section>
@@ -84,19 +84,28 @@
 <li><strong>macOS:</strong> open the disk image and drag Class Manager to Applications. The first time, right-click the app and choose Open. If macOS still refuses, open System Settings, Privacy and Security, and choose Open Anyway.</li>
 <li><strong>Linux:</strong> make the file executable and run it.</li>
 </ul>
-<p>When the app first starts, allow it to accept network connections on private networks, so that students' phones can reach it.</p>
+<p>When the app first starts, allow it to accept network connections on private networks, so that students' phones can reach it. The results workbook and the host key are created automatically on first launch.</p>
 </div>
 </section>
 
 <section aria-labelledby="cm-class">
-<h3 class="sub2" id="cm-class">In class</h3>
+<h3 class="sub2" id="cm-class">Instructions</h3>
 <div class="ov-card">
+<h4>In class</h4>
 <ol>
 <li>Open Class Manager and add the class list: student ID, then name if desired, one student per line, or a CSV file.</li>
-<li>Connect the computer and the students' phones to the same Wi-Fi. Where the university network keeps devices apart, a phone hotspot works.</li>
-<li>Open the Lecturer menu with the host key shown on the home screen, then take attendance or run a quiz.</li>
-<li>After class, view or export the Attendance, Master and Totals tables from the home screen.</li>
+<li>Under "Students open" on the home screen, choose how students connect, and show the address and QR code.
+<ul>
+<li><strong>Same Wi-Fi or hotspot:</strong> the computer and the students' phones join the same Wi-Fi. Where the university network keeps devices apart, connect the computer and the phones to a phone hotspot.</li>
+<li><strong>Internet:</strong> the app creates a temporary https address that students open from any network, including mobile data, while the app is open. It uses Cloudflare's free quick tunnel service, so class traffic passes through Cloudflare. The address changes each time, and the service offers no uptime guarantee. The first time, the app downloads Cloudflare's connector program. This option has not yet been tested in real classes.</li>
+</ul></li>
+<li>Open the Lecturer menu with the host key shown on the home screen, then take attendance or run a quiz. The attendance QR code changes during the session, and each student is marked once per day.</li>
+<li>After class, view the Attendance, Master and Totals tables on the home screen, or export every table as a CSV file for Excel.</li>
 </ol>
+<h4>Students' own progress</h4>
+<p>Under "Access codes for students", create a personal code for each student and print the slips. Students enter their student ID and code in the portal to see their own record.</p>
+<h4>Resources and questions</h4>
+<p>Add PDF, Word, PowerPoint or Markdown files to the library to search them and read summaries. Quiz questions can be imported from a file or drafted from the library, and each one is reviewed by the lecturer before use. Drafting questions and full summaries need the lecturer's own Anthropic API key, entered in the app's settings.</p>
 </div>
 </section>
 </section>
