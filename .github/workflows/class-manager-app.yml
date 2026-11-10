@@ -9,11 +9,6 @@ on:
         description: "Also put the installers in a draft GitHub Release, for example class-manager-v0.1.0 (leave empty to only build)"
         required: false
         default: ""
-      publish:
-        description: "Publish the release at once instead of leaving it as a draft"
-        type: boolean
-        required: false
-        default: false
       notes:
         description: "Extra sentence for the release notes (optional)"
         required: false
@@ -67,7 +62,7 @@ jobs:
           if-no-files-found: error
 
   release:
-    # A draft unless "publish" is ticked: nothing is public until the release is published.
+    # Always a draft: the Beta is sent on request, so releases are never public.
     # The download page no longer links to releases: the Beta is sent on request. Keep releases as drafts (not public).
     if: github.event_name == 'workflow_dispatch' && startsWith(inputs.release, 'class-manager-v')
     needs: build
@@ -90,11 +85,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ inputs.release }}
-          DRAFT: ${{ inputs.publish && ' ' || '--draft' }}
           EXTRA: ${{ inputs.notes }}
         run: |
           ls -l installers
           gh release create "${TAG}" installers/* \
-            --repo "${GITHUB_REPOSITORY}" --target "${GITHUB_SHA}" ${DRAFT} \
+            --repo "${GITHUB_REPOSITORY}" --target "${GITHUB_SHA}" --draft \
             --title "Class Manager ${TAG#class-manager-v}" \
             --notes "Installers for Windows, macOS and Linux. Installation and instructions are in Class-Manager-README.txt; the installers are not signed. Beta: not yet fully tested. ${EXTRA}"
