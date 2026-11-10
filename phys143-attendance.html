@@ -57,6 +57,12 @@ body.proj .att .lbl{font-size:clamp(1.2rem,3.2vh,2rem);color:var(--text);letter-
 body.proj .att .qr{width:min(78vh,92vw);height:min(78vh,92vw);padding:14px;border:0;background:#fff}
 body.proj .att #a-tick{font:600 clamp(1.1rem,3vh,1.8rem)/1.3 system-ui,sans-serif;color:var(--text)}
 body.proj .att .count{font-size:clamp(2rem,6vh,4rem)}
+/* Lecturer controls on the projector view: invisible until the mouse is over the bottom-right corner or C is pressed, so the QR stays the focus */
+.pctl{position:fixed;right:.6rem;bottom:.6rem;z-index:50;display:flex;gap:.4rem;align-items:center;flex-wrap:wrap;max-width:92vw;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.3rem .5rem;opacity:0;transition:opacity .2s}
+.pctl:hover,.pctl:focus-within,.pctl.on{opacity:1}
+.host .pctl .go{min-height:36px;padding:.2rem .9rem;font-size:.9rem;margin:0}
+.pctl .pstat{font:.85rem system-ui,sans-serif;color:var(--muted);max-width:22rem}
+body:not(.proj) #a-pctl{display:none!important}
 body.proj #a-wait p{font:700 clamp(2rem,6vh,4rem)/1.2 system-ui,sans-serif}
 </style>
 <div class="host att">
@@ -90,6 +96,12 @@ body.proj #a-wait p{font:700 clamp(2rem,6vh,4rem)/1.2 system-ui,sans-serif}
   <p><button class="go big" type="button" id="a-close">Close attendance and record absences</button> <button class="go alt" type="button" id="a-projbtn">Open projector view</button></p>
   <p class="note" id="a-msg" role="status"></p>
  </section>
+ <div class="pctl" id="a-pctl" hidden role="group" aria-label="Lecturer controls">
+  <span class="pstat" id="a-pstat" role="status"></span>
+  <button type="button" class="go alt" id="a-pstop">Stop</button>
+  <button type="button" class="go" id="a-psub">Submit</button>
+  <button type="button" class="go alt" id="a-pclr">Clear</button>
+ </div>
  <section class="panel" id="a-wait" hidden><p>Waiting for the lecturer to start attendance.</p></section>
  <p><button class="go alt" type="button" id="a-out">Log out</button></p>
 </div>
@@ -120,6 +132,7 @@ var lastOk=Date.now(); // when the sheet last answered; the projector view warns
 function draw(d){
  lastOk=Date.now();
  var ss=d&&d.session,open=ss&&ss.status==="Open";
+ if(PROJ)pctlState(open,!!(ss&&ss.pending>0&&!open));
  $("a-testnote").hidden=!(open&&ss.test);
  $("a-held").hidden=!(ss&&ss.pending>0&&!open);if(ss&&ss.pending>0&&!open)$("a-heldmsg").textContent="A closed session ("+ss.label+") is waiting: "+ss.present+" present. Submit it to record it, or discard it if it was only a trial.";
  if(open){
@@ -133,6 +146,17 @@ function draw(d){
  }
 }
 var lastLink="";
+// Projector view controls (lecturer only: they exist only in ?view=projector, need the lecturer login in this window, and stay invisible until hover or C). They press the same buttons as the lecturer panel, so every confirmation and server action is the same.
+function pctlState(open,held){
+ var bar=$("a-pctl");if(!bar)return;
+ $("a-pstop").hidden=!open;$("a-psub").hidden=!held;$("a-pclr").hidden=!(open||held);
+ bar.hidden=!(open||held);
+}
+function afterClose(){ // the lecturer panel goes to its idle screen; the projector view keeps watching and shows the waiting screen
+ if(PROJ){show("a-wait");if(!timer)timer=setInterval(poll,4000);poll();return}
+ if(timer){clearInterval(timer);timer=null}show("a-idle");
+}
+function pstat(t){$("a-pstat").textContent=t||""}
 function drawQr(t){
  if(!t){lastLink="";$("a-qr").innerHTML='<span style="display:block;padding:1.2rem;color:#b3261e;font:700 1.1rem/1.4 system-ui,sans-serif;text-align:left">No QR token received from the Apps Script. The deployed script is the old version. Paste the new quiz_receiver.gs, Save, then Deploy &gt; Manage deployments &gt; edit &gt; New version, and reload this page.</span>';return}
  if(t===lastLink)return;lastLink=t;
@@ -193,9 +217,9 @@ $("a-close").addEventListener("click",function(){
  $("a-msg").textContent="Closing...";
  call("attend_close","",function(d){
   if(!d||!d.ok){$("a-msg").textContent="Not closed: "+((d&&d.why)||"could not reach the class sheet")+".";return}
-  if(d.test){$("a-last").textContent="Trial run closed. Nothing was recorded ("+d.session.present+" check-in"+(d.session.present===1?"":"s")+" removed).";if(timer){clearInterval(timer);timer=null}show("a-idle");$("a-held").hidden=true;return}
+  if(d.test){$("a-last").textContent="Trial run closed. Nothing was recorded ("+d.session.present+" check-in"+(d.session.present===1?"":"s")+" removed).";afterClose();$("a-held").hidden=true;return}
   var x=d.session;$("a-held").hidden=false;$("a-heldmsg").textContent="A closed session is waiting: "+x.present+" present. Submit it to record it, or discard it if it was only a trial.";$("a-last").textContent="Closed and held, not yet recorded. "+x.present+" present, "+x.absent+" absent"+(x.notOnList?", "+x.notOnList+" not on the roster (see the Not_On_List tab)":"")+"."+(x.flagged?" "+x.flagged+" device(s) checked in more than one ID: see the Attendance_Flags tab.":"");
-  if(timer){clearInterval(timer);timer=null}show("a-idle");
+  afterClose();
  });
 });
 function heldAct(act,ask,done){
@@ -210,6 +234,23 @@ function heldAct(act,ask,done){
 $("a-submit").addEventListener("click",function(){heldAct("attend_submit","Submit attendance? Every rostered student not checked in is recorded as 0. This writes to the Attendance sheet.",function(d){return "Attendance submitted: "+(d.submitted||[]).join(", ")+"."})});
 $("a-discard").addEventListener("click",function(){heldAct("attend_discard","Discard this closed session and its check-ins? Nothing is written to the Attendance sheet. This cannot be undone.",function(d){return "Discarded "+d.discarded+" session and "+d.checkins+" check-in"+(d.checkins===1?"":"s")+". Nothing was recorded."})});
 $("a-out").addEventListener("click",signOut);
+if(PROJ){
+ ["a-last","a-msg"].forEach(function(id){new MutationObserver(function(){var t=$(id).textContent;if(t)pstat(t)}).observe($(id),{childList:true,characterData:true,subtree:true})});
+ $("a-pstop").addEventListener("click",function(){$("a-close").click()}); // the same confirm and the same close (a trial run is discarded when closed)
+ $("a-psub").addEventListener("click",function(){$("a-submit").click()});
+ $("a-pclr").addEventListener("click",function(){
+  var held=!$("a-held").hidden;
+  if(held){$("a-discard").click();return} // a closed session waiting: the same Discard and confirmation as the lecturer panel
+  if(!window.confirm("Stop this session and clear it? Nothing will be recorded."))return;
+  pstat("Clearing...");
+  call("attend_close","",function(c){
+   if(!c||!c.ok){pstat("Not stopped: "+((c&&c.why)||"could not reach the class sheet"));return}
+   if(c.test){pstat("Trial run cleared. Nothing was recorded.");poll();return}
+   call("attend_discard","",function(d){pstat(d&&d.ok?"Cleared. Nothing was recorded.":"Stopped, but not cleared: "+((d&&d.why)||"try Clear again"));poll()});
+  });
+ });
+ document.addEventListener("keydown",function(e){if((e.key==="c"||e.key==="C")&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName))$("a-pctl").classList.toggle("on")});
+}
 $("a-projbtn").addEventListener("click",function(){window.open("phys143-attendance.html?view=projector","_blank")}); // opened without noopener so the key in this tab is copied to the new one; it is never put in the address
 begin();
 })();
