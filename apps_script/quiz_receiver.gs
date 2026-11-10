@@ -1060,7 +1060,8 @@ function attSheet_() {
 function attRows_() { // [{row, code, label, status}]
   var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_CTL_TAB);
   if (!sh || sh.getLastRow() < 2) return [];
-  return sh.getRange(2, 1, sh.getLastRow() - 1, 9).getValues().map(function (r, i) { return { row: i + 2, code: String(r[0]).trim().toUpperCase(), label: String(r[1]), status: String(r[2]).trim(), secret: String(r[5] || ''), lat: r[6] === '' ? null : Number(r[6]), lon: r[7] === '' ? null : Number(r[7]), radius: Number(r[8]) || 0 }; });
+  if (sh.getMaxColumns() < 10) sh.insertColumnsAfter(sh.getMaxColumns(), 10 - sh.getMaxColumns());
+  return sh.getRange(2, 1, sh.getLastRow() - 1, 10).getValues().map(function (r, i) { return { row: i + 2, code: String(r[0]).trim().toUpperCase(), label: String(r[1]), status: String(r[2]).trim(), test: String(r[9]).trim() === 'Test', secret: String(r[5] || ''), lat: r[6] === '' ? null : Number(r[6]), lon: r[7] === '' ? null : Number(r[7]), radius: Number(r[8]) || 0 }; });
 }
 
 function attByCode_(code) { // the session with this code, or null; cached a few seconds (also caches "none", since every unknown code asks)
@@ -1332,7 +1333,7 @@ function attStatus_() { // the open session if there is one, else the latest, wi
   var present = attPresent_(cur.label), roster = {}; rosterRows_().forEach(function (r) { roster[r[0]] = 1; });
   var on = 0, off = 0; Object.keys(present).forEach(function (id) { if (roster[id]) on++; else off++; });
   var live = cur.status === 'Open' && cur.secret, now = Date.now(), slot = attSlot_(now);
-  return { ok: true, session: { link: live ? attLinkFor_(cur.secret, slot) : '', secondsLeft: live ? Math.max(1, Math.ceil(((slot + 1) * ATT_SLOT_SEC * 1000 - now) / 1000)) : 0, label: attColumn_(cur.label), status: cur.status, geo: cur.lat != null && ATT_GEO_MODE !== 'off' ? ATT_GEO_MODE : 'off', radius: cur.lat != null ? (cur.radius || ATT_GEO_RADIUS_M) : 0, present: on, relayed: attRelayedCount_(cur.label), notOnList: off, rosterSize: Object.keys(roster).length, pending: rows.filter(function (r) { return r.status === 'Closed'; }).length } };
+  return { ok: true, session: { link: live ? attLinkFor_(cur.secret, slot) : '', secondsLeft: live ? Math.max(1, Math.ceil(((slot + 1) * ATT_SLOT_SEC * 1000 - now) / 1000)) : 0, label: attColumn_(cur.label), status: cur.status, geo: cur.lat != null && ATT_GEO_MODE !== 'off' ? ATT_GEO_MODE : 'off', radius: cur.lat != null ? (cur.radius || ATT_GEO_RADIUS_M) : 0, test: !!cur.test, present: on, relayed: attRelayedCount_(cur.label), notOnList: off, rosterSize: Object.keys(roster).length, pending: rows.filter(function (r) { return r.status === 'Closed'; }).length } };
 }
 
 function attOpen_(p) {
@@ -1348,14 +1349,14 @@ function attOpen_(p) {
   if (!code) return { ok: false, why: 'could not find a free code' };
   // The session key is "dd/MM/yyyy #n": the "#n" keeps the sheet from turning it into a date, and n counts sessions on the same day.
   var base = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'dd/MM/yyyy'), n = 1;
-  rows.forEach(function (r) { if (r.label.indexOf(base + ' #') === 0) n++; });
+  rows.forEach(function (r) { if (r.status !== 'Discarded' && r.label.indexOf(base + ' #') === 0) n++; }); // a discarded trial run does not use up a number
   var label = base + ' #' + n;
   try { var lg = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_LOG_TAB); if (lg && lg.getLastRow() > 0 && !String(lg.getRange(1, 5).getValue()).trim()) lg.getRange(1, 5).setValue('Device'); if (lg && lg.getLastRow() > 0 && !String(lg.getRange(1, 6).getValue()).trim()) lg.getRange(1, 6).setValue('Location'); attLogCols_(); } catch (err) { /* header only */ }
   var secret = Utilities.getUuid() + Utilities.getUuid();
   var hla = p.lat === undefined || p.lat === '' ? NaN : Number(p.lat), hlo = Number(p.lon), hasGeo = !isNaN(hla) && !isNaN(hlo) && Math.abs(hla) <= 90 && Math.abs(hlo) <= 180;
   if (ATT_GEO_MODE === 'enforce' && !hasGeo && String(p.nogeo || '') !== '1') return { ok: false, why: 'location needed', needLocation: true }; // never start an unprotected session by accident
   var rad = Math.max(50, Math.min(Number(p.radius) || ATT_GEO_RADIUS_M, 5000));
-  attSheet_().appendRow([code, label, 'Open', new Date().toISOString(), '', secret, hasGeo ? hla : '', hasGeo ? hlo : '', hasGeo ? rad : '']);
+  attSheet_().appendRow([code, label, 'Open', new Date().toISOString(), '', secret, hasGeo ? hla : '', hasGeo ? hlo : '', hasGeo ? rad : '', String(p.test || '') === '1' ? 'Test' : '']); // column J: Test = a trial run, discarded when it is closed
   try { var oc = CacheService.getScriptCache(); oc.remove('att:' + code); oc.remove('att:open'); } catch (err) { /* cache only */ }
   log_('attendance:open', label, '', 'rotating');
   var sl = attSlot_(), now0 = Date.now();
@@ -1366,6 +1367,13 @@ function attOpen_(p) {
 function attClose_() {
   var rows = attRows_(), cur = null; rows.forEach(function (r) { if (r.status === 'Open') cur = r; });
   if (!cur) return { ok: false, why: 'no attendance session is open' };
+  if (cur.test) { // a trial run: nothing is kept, so it never counts as a session
+    var tn = Object.keys(attPresent_(cur.label)).length;
+    attSheet_().getRange(cur.row, 5).setValue(new Date().toISOString());
+    attDropSessions_([cur]);
+    log_('attendance:close', cur.label, '', 'trial discarded');
+    return { ok: true, test: true, discarded: true, session: { label: attColumn_(cur.label), status: 'Discarded', present: tn, absent: 0, notOnList: 0, flagged: 0 } };
+  }
   var present = attPresent_(cur.label), roster = rosterRows_(), col = attColumn_(cur.label);
   var sh = attSheet_(); sh.getRange(cur.row, 3).setValue('Closed'); sh.getRange(cur.row, 5).setValue(new Date().toISOString());
   try { var cc = CacheService.getScriptCache(); cc.remove('att:' + cur.code); cc.remove('att:open'); } catch (err) { /* cache only */ }
@@ -1415,6 +1423,13 @@ function attSubmit_() {
 function attDiscard_() {
   var sessions = attRows_().filter(function (r) { return r.status === 'Closed'; });
   if (!sessions.length) return { ok: false, why: 'no closed session is waiting' };
+  var gone = attDropSessions_(sessions);
+  log_('attendance:discard', String(sessions.length) + ' session(s)', '', 'rotating');
+  return { ok: true, discarded: sessions.length, checkins: gone };
+}
+
+// Remove sessions' check-ins from the log and mark them Discarded (used by Discard and by a trial run's close).
+function attDropSessions_(sessions) {
   var lg = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_LOG_TAB), gone = 0, labels = {};
   sessions.forEach(function (r) { labels[r.label] = true; });
   if (lg && lg.getLastRow() > 1) {
@@ -1422,9 +1437,8 @@ function attDiscard_() {
     for (var i = vals.length - 1; i >= 0; i--) if (labels[String(vals[i][0])]) { lg.deleteRow(i + 2); gone++; }
   }
   sessions.forEach(function (r) { attSheet_().getRange(r.row, 3).setValue('Discarded'); });
-  try { var cc = CacheService.getScriptCache(); cc.remove('attd:' + attDayKey_()); } catch (err) { /* cache only */ }
-  log_('attendance:discard', String(sessions.length) + ' session(s)', '', 'rotating');
-  return { ok: true, discarded: sessions.length, checkins: gone };
+  try { var cc = CacheService.getScriptCache(); cc.remove('attd:' + attDayKey_()); cc.remove('att:open'); } catch (err) { /* cache only */ }
+  return gone;
 }
 
 // ---------- POST: answers, joins, progress, reports, attempts ----------

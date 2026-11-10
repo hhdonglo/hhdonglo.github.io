@@ -52,7 +52,7 @@ body.focus main{padding-top:1rem}
 .att .toplinks{text-align:left;margin:0 0 .6rem}
 /* Projector view (?view=projector): QR, instruction, countdown and count only; no lecturer controls */
 body.proj .host.att{max-width:none}
-body.proj #a-toplinks,body.proj #a-out,body.proj #a-close,body.proj #a-msg,body.proj #a-idle,body.proj #a-projbtn{display:none!important}
+body.proj #a-testnote,body.proj #a-toplinks,body.proj #a-out,body.proj #a-close,body.proj #a-msg,body.proj #a-idle,body.proj #a-projbtn{display:none!important}
 body.proj .att .lbl{font-size:clamp(1.2rem,3.2vh,2rem);color:var(--text);letter-spacing:.03em;text-transform:none}
 body.proj .att .qr{width:min(78vh,92vw);height:min(78vh,92vw);padding:14px;border:0;background:#fff}
 body.proj .att #a-tick{font:600 clamp(1.1rem,3vh,1.8rem)/1.3 system-ui,sans-serif;color:var(--text)}
@@ -73,12 +73,18 @@ body.proj #a-wait p{font:700 clamp(2rem,6vh,4rem)/1.2 system-ui,sans-serif}
   <h3 style="margin:.1rem 0 .6rem">Attendance</h3>
   <p class="note"><label for="a-rad">Distance from this device that still counts as in class</label>
    <select id="a-rad"><option value="250">250 m</option><option value="500" selected>500 m (default)</option><option value="1000">1 km</option><option value="2000">2 km</option></select></p>
+  <p class="note"><label><input type="checkbox" id="a-test"> Trial run: do not record this session</label></p>
   <p><button class="go big" type="button" id="a-start">Start attendance</button></p>
   <p class="note" id="a-last"></p>
+  <div id="a-held" hidden style="border-top:1px dashed var(--border);margin-top:.8rem;padding-top:.8rem">
+   <p class="note" id="a-heldmsg"></p>
+   <p><button class="go" type="button" id="a-submit">Submit attendance</button> <button class="go alt" type="button" id="a-discard">Discard (it was a trial)</button></p>
+  </div>
  </section>
  <section class="panel" id="a-live" hidden>
   <p class="lbl">Scan this screen with your phone and enter your student ID. Your phone must be in the classroom.</p>
   <p><span id="a-qr" class="qr" role="img" aria-label="QR code to open the check-in page; it changes every 30 seconds" style="display:inline-block"></span></p>
+  <p class="note" id="a-testnote" role="status" hidden style="font-weight:700">Trial run: this session will not be recorded.</p>
   <p class="note" id="a-tick" role="status"></p>
   <p class="count" id="a-count" role="status"></p>
   <p><button class="go big" type="button" id="a-close">Close attendance and record absences</button> <button class="go alt" type="button" id="a-projbtn">Open projector view</button></p>
@@ -114,6 +120,8 @@ var lastOk=Date.now(); // when the sheet last answered; the projector view warns
 function draw(d){
  lastOk=Date.now();
  var ss=d&&d.session,open=ss&&ss.status==="Open";
+ $("a-testnote").hidden=!(open&&ss.test);
+ $("a-held").hidden=!(ss&&ss.pending>0&&!open);if(ss&&ss.pending>0&&!open)$("a-heldmsg").textContent="A closed session ("+ss.label+") is waiting: "+ss.present+" present. Submit it to record it, or discard it if it was only a trial.";
  if(open){
   drawQr(ss.link);left=ss.secondsLeft||0;stamp=Date.now();tickDraw();if(!tk)tk=setInterval(tickDraw,1000);
   $("a-count").textContent=ss.present+" present"+(ss.relayed&&!PROJ?" ("+ss.relayed+" through a neighbour's code)":"")+(ss.notOnList&&!PROJ?", "+ss.notOnList+" not on the list":"");
@@ -161,7 +169,7 @@ $("a-start").addEventListener("click",function(){
  $("a-start").disabled=true;$("a-last").textContent="Getting the classroom location...";
  var go=function(extra,note){
  $("a-last").textContent="Starting...";
- call("attend_open",extra,function(d){ // the sheet makes a new random code each time, never one used before
+ call("attend_open",extra+($("a-test").checked?"&test=1":""),function(d){ // the sheet makes a new random code each time, never one used before
   $("a-start").disabled=false;
   if(!d){$("a-last").textContent="Could not reach the class sheet. Try again.";return}
   if(!d.ok){$("a-last").textContent="Not started: "+(d.why||"refused")+".";return}
@@ -180,14 +188,27 @@ $("a-start").addEventListener("click",function(){
  },function(){noLoc("Location was not allowed or could not be found.")},{enableHighAccuracy:true,timeout:15000,maximumAge:0});
 });
 $("a-close").addEventListener("click",function(){
- if(!window.confirm("Close attendance? Check-ins stay held and are not recorded in the Attendance sheet until you press Submit attendance in the Control Centre."))return;
+ var trial=!$("a-testnote").hidden;
+ if(!window.confirm(trial?"Close this trial run? Nothing will be recorded.":"Close attendance? Check-ins stay held and are not recorded in the Attendance sheet until you press Submit attendance here or in the Control Centre."))return;
  $("a-msg").textContent="Closing...";
  call("attend_close","",function(d){
   if(!d||!d.ok){$("a-msg").textContent="Not closed: "+((d&&d.why)||"could not reach the class sheet")+".";return}
-  var x=d.session;$("a-last").textContent="Closed and held, not yet recorded. Submit it from the Control Centre. "+x.present+" present, "+x.absent+" absent"+(x.notOnList?", "+x.notOnList+" not on the roster (see the Not_On_List tab)":"")+"."+(x.flagged?" "+x.flagged+" device(s) checked in more than one ID: see the Attendance_Flags tab.":"");
+  if(d.test){$("a-last").textContent="Trial run closed. Nothing was recorded ("+d.session.present+" check-in"+(d.session.present===1?"":"s")+" removed).";if(timer){clearInterval(timer);timer=null}show("a-idle");$("a-held").hidden=true;return}
+  var x=d.session;$("a-held").hidden=false;$("a-heldmsg").textContent="A closed session is waiting: "+x.present+" present. Submit it to record it, or discard it if it was only a trial.";$("a-last").textContent="Closed and held, not yet recorded. "+x.present+" present, "+x.absent+" absent"+(x.notOnList?", "+x.notOnList+" not on the roster (see the Not_On_List tab)":"")+"."+(x.flagged?" "+x.flagged+" device(s) checked in more than one ID: see the Attendance_Flags tab.":"");
   if(timer){clearInterval(timer);timer=null}show("a-idle");
  });
 });
+function heldAct(act,ask,done){
+ if(!window.confirm(ask))return;
+ $("a-submit").disabled=true;$("a-discard").disabled=true;
+ call(act,"",function(d){
+  $("a-submit").disabled=false;$("a-discard").disabled=false;
+  if(!d||!d.ok){$("a-last").textContent="Not done: "+((d&&d.why)||"could not reach the class sheet")+".";return}
+  $("a-held").hidden=true;$("a-last").textContent=done(d);
+ });
+}
+$("a-submit").addEventListener("click",function(){heldAct("attend_submit","Submit attendance? Every rostered student not checked in is recorded as 0. This writes to the Attendance sheet.",function(d){return "Attendance submitted: "+(d.submitted||[]).join(", ")+"."})});
+$("a-discard").addEventListener("click",function(){heldAct("attend_discard","Discard this closed session and its check-ins? Nothing is written to the Attendance sheet. This cannot be undone.",function(d){return "Discarded "+d.discarded+" session and "+d.checkins+" check-in"+(d.checkins===1?"":"s")+". Nothing was recorded."})});
 $("a-out").addEventListener("click",signOut);
 $("a-projbtn").addEventListener("click",function(){window.open("phys143-attendance.html?view=projector","_blank")}); // opened without noopener so the key in this tab is copied to the new one; it is never put in the address
 begin();
