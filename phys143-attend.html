@@ -52,6 +52,18 @@ body.focus header.banner,body.focus nav.jump,body.focus .crumb,body.focus .sec-s
 body.focus main{padding-top:1.2rem}
 </style>
 <div class="ci">
+ <section class="panel" id="c-loc" aria-live="assertive" hidden style="border-top-color:#b3261e">
+  <h3>Location is required to check in</h3>
+  <p id="c-loc-msg">Your phone has not shared its location. Attendance is only recorded for students who are in the room, so check-in cannot continue without it.</p>
+  <button type="button" class="go" id="c-loc-btn">Try again</button>
+  <details class="note" open><summary>How to switch location on</summary>
+   <p><b>iPhone, Safari:</b> tap <b>aA</b> in the address bar, then <b>Website Settings</b>, then <b>Location</b>, and choose <b>Allow</b>. Also check Settings &gt; Privacy &amp; Security &gt; Location Services is on, and Safari Websites is set to <b>While Using</b>.</p>
+   <p><b>iPhone, Chrome:</b> Settings &gt; Chrome &gt; Location &gt; <b>While Using the App</b>.</p>
+   <p><b>Android, Chrome:</b> tap the icon at the left of the address bar, then <b>Permissions</b> (or <b>Site settings</b>) &gt; <b>Location</b> &gt; <b>Allow</b>. Make sure Location is switched on in the phone's quick settings.</p>
+   <p><b>Opened from WhatsApp, Instagram or another app?</b> Open the link in Chrome or Safari instead.</p>
+   <p>Then press <b>Try again</b>. This page also tries again by itself when you come back to it.</p>
+  </details>
+ </section>
  <section class="panel" id="c-form-wrap">
   <h1>Attendance check-in</h1>
   <form id="c-form" autocomplete="off" novalidate>
@@ -106,12 +118,29 @@ function devToken(){var t="";try{t=localStorage.getItem("phys143_dev")||""}catch
  return t}
 var DEV=devToken();
 var TOK=(/[?&]t=(r?[0-9a-f]{1,14})/.exec(location.search)||[0,""])[1]; // the projector token (8 hex) or a relay token (r + 14 hex)
-var POS=null; // this phone's location, used once for the check-in: the server keeps only the distance, never the coordinates
+var POS=null,POSWHY=""; // this phone's location, used once for the check-in: the server keeps only the distance, never the coordinates
 function getPos(cb){
- if(!navigator.geolocation){cb(null);return}
- navigator.geolocation.getCurrentPosition(function(p){POS={lat:p.coords.latitude,lon:p.coords.longitude,acc:p.coords.accuracy};cb(POS)},function(){cb(null)},{enableHighAccuracy:true,timeout:10000,maximumAge:60000});
+ if(!navigator.geolocation){POS=null;POSWHY="unsupported";cb(null);return}
+ navigator.geolocation.getCurrentPosition(function(p){POS={lat:p.coords.latitude,lon:p.coords.longitude,acc:p.coords.accuracy};POSWHY="";cb(POS)},function(e){POS=null;POSWHY=e&&e.code===1?"denied":(e&&e.code===3?"timeout":"unavailable");cb(null)},{enableHighAccuracy:true,timeout:15000,maximumAge:30000});
 }
-getPos(function(){}); // ask early so the phone has a fix by the time the form is filled in
+// A check-in is never sent without a location: if the phone refuses, this screen stays up and asks again (button, on coming back to the page, and when the permission changes).
+var LOCMSG={denied:"Your phone refused to share its location. Attendance is only recorded for students who are in the room, so check-in cannot continue without it. Allow location for this page, then try again.",
+ timeout:"Your phone could not find its location in time. Move near a window or outside for a moment, make sure Location is switched on, then try again.",
+ unavailable:"Your phone could not work out its location. Make sure Location is switched on, then try again.",
+ unsupported:"This browser cannot share a location. Open this link in Chrome or Safari, then try again."};
+function locShow(){$("c-loc-msg").textContent=LOCMSG[POSWHY]||LOCMSG.denied;$("c-loc").hidden=false;$("c-loc").scrollIntoView&&$("c-loc").scrollIntoView({block:"nearest"})}
+function locHide(){$("c-loc").hidden=true}
+function locTry(){
+ if($("c-loc-btn").disabled)return;
+ $("c-loc-btn").disabled=true;$("c-loc-msg").textContent="Asking for your location...";
+ getPos(function(p){$("c-loc-btn").disabled=false;if(p){locHide();err2("Location is on. Press Check in.")}else locShow()});
+}
+function err2(m){$("c-err").textContent=m;$("c-err").hidden=false}
+getPos(function(p){if(!p&&POSWHY==="denied")locShow()}); // ask early, so the phone has a fix by the time the form is filled in
+$("c-loc-btn").addEventListener("click",locTry);
+document.addEventListener("visibilitychange",function(){if(!document.hidden&&!$("c-loc").hidden)locTry()});
+window.addEventListener("focus",function(){if(!$("c-loc").hidden)locTry()});
+try{navigator.permissions&&navigator.permissions.query({name:"geolocation"}).then(function(pm){pm.onchange=function(){if(pm.state!=="denied"&&!$("c-loc").hidden)locTry()}})}catch(x){}
 function jsonp(params,cb){
  var n="cb"+Date.now()+Math.floor(Math.random()*1e6),sc=document.createElement("script"),done=false;
  function end(d){if(done)return;done=true;delete window[n];if(sc.parentNode)sc.parentNode.removeChild(sc);cb(d)}
@@ -132,10 +161,14 @@ $("c-form").addEventListener("submit",function(e){
   $("c-btn").disabled=false;
   if(!r){err(PHYSMSG.text("E8"));return}
   if(r.ok){if(r.relay!==false&&!r.already){ME=r.id;$("c-relaywrap").hidden=false}$("c-form-wrap").hidden=true;window.scrollTo(0,0);var h=r.already?"Already marked present today":"Check-in received";if(r.onList===false){$("c-mid").textContent=r.id;$("c-mh").textContent=h;$("c-missing").hidden=false}else{$("c-sid").textContent=r.id;$("c-dh").textContent=h;$("c-done").hidden=false}return}
+  if(r.why==="no location"){POSWHY="denied";locShow();return}
   err(PHYSMSG.fromWhy(r.why));
  });
  };
- if(POS)send(POS);else getPos(send);
+ getPos(function(p){ // never send without a location
+  if(!p){$("c-btn").disabled=false;locShow();return}
+  locHide();send(p)
+ });
 });
 // Relay: after a successful check-in, this phone can show a short-lived code for a neighbour. The server decides whether it may (same ID and phone, in this session, under the limits).
 var ME="",rTimer=null,rTick=null,rLeft=0,rStamp=0,rOk=0,rOn=false;
