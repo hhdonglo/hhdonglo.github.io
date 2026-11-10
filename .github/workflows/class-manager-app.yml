@@ -51,6 +51,8 @@ jobs:
         with:
           node-version: 22
       - run: npm ci
+      - name: Test the class statistics
+        run: npm test
       - name: Build installer (unsigned)
         run: npx electron-builder ${{ matrix.target }} --publish never
         env:

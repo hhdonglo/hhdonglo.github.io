@@ -214,6 +214,115 @@ dialog table{width:100%;font-size:.95rem}
 dialog td{white-space:normal;padding:.4rem .6rem}
 dialog td:last-child{text-align:right}
 
+
+/* sidebar section labels */
+.side-h{margin:.9rem .85rem .3rem;font-size:.7rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#7F8BA0}
+.side-h:first-of-type{margin-top:0}
+
+/* Insight screens */
+:root{--g-on:#4CC38A;--g-hard:#E0B254;--g-dis:#8EA6E0;--g-need:#E07A6E;--g-none:#7B869B;--bar:#5B8BD9;--bar-hi:#C9A15A;--grid:rgba(255,255,255,.08)}
+@media (prefers-color-scheme:light){:root{--g-on:#1F8A5B;--g-hard:#A36A00;--g-dis:#3F5FA8;--g-need:#B23A2E;--g-none:#6A7488;--bar:#2F62AE;--bar-hi:#7A4A2A;--grid:rgba(0,0,0,.08)}}
+.vh{display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+.vh p{margin:.35rem 0 0;color:var(--muted)}
+.collect .btn{background:var(--card)}
+.ins{display:grid;gap:var(--gap)}
+.livestrip{display:flex;align-items:center;flex-wrap:wrap;gap:.6rem 1rem;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:.6rem 1rem;margin:0 0 var(--gap);font-weight:600;font-size:.95rem}
+.livestrip .sep2{width:1px;height:1.2rem;background:var(--line)}
+.tiles4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--gap)}
+.tile{padding:1.1rem 1.2rem;display:flex;flex-direction:column;gap:.15rem}
+.tile .note{margin:0}
+.tbig{margin:0;font-size:2.2rem;font-weight:700;line-height:1.1;color:var(--head);font-variant-numeric:tabular-nums}
+.tile svg.bars{margin-top:.5rem}
+.ins>*,.ov2>*,.tiles4>*{min-width:0}
+.ov2{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:var(--gap);align-items:start}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.empty h3{margin-top:0}
+svg.bars{display:block;width:100%;height:auto;overflow:visible}
+svg.bars .grid{stroke:var(--grid);stroke-width:1}
+svg.bars .base{stroke:var(--line);stroke-width:1}
+svg.bars .ax{fill:var(--faint);font:11px system-ui,sans-serif}
+svg.bars .bar path{fill:var(--bar)}
+svg.bars .bar.hi path{fill:var(--bar-hi)}
+svg.bars .bar .hit{fill:transparent}
+svg.bars .bar:hover path{fill:var(--bar-hi)}
+/* the verdict */
+.verdict{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1.3fr) minmax(0,1fr);gap:1.5rem;border-left:4px solid var(--g-none)}
+.verdict.v-yes{border-left-color:var(--g-on)}.verdict.v-mixed{border-left-color:var(--g-hard)}.verdict.v-no{border-left-color:var(--g-need)}
+.v-word{display:flex;align-items:center;gap:.8rem;flex-wrap:wrap;margin:.2rem 0 .6rem}
+.v-word .vchip{font-size:1.6rem;padding:.3rem .9rem}
+.v-act{margin:.4rem 0}
+.vchip{display:inline-flex;align-items:center;gap:.4rem;padding:.12rem .6rem;border-radius:999px;font-weight:700;font-size:.85rem;background:var(--card-2);color:var(--text);border:1px solid var(--line);white-space:nowrap}
+.vchip b{font-weight:700}
+.vchip.v-yes{color:var(--g-on);border-color:currentColor}.vchip.v-mixed{color:var(--g-hard);border-color:currentColor}.vchip.v-no{color:var(--g-need);border-color:currentColor}.vchip.v-none{color:var(--g-none)}
+.warnline{color:var(--g-hard)}
+.sigs,.topics,.targets,.legend{list-style:none;margin:0;padding:0}
+.sigs li{display:flex;gap:.7rem;padding:.45rem 0;border-bottom:1px solid var(--line)}
+.sigs li:last-child{border-bottom:0}
+.sigs li div{display:flex;flex-direction:column}
+.sig{font-weight:700;font-size:1.1rem;width:1.3rem;flex:none;text-align:center}
+.sig.up{color:var(--g-on)}.sig.down{color:var(--g-need)}.sig.flat{color:var(--muted)}
+.topics li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.1rem .6rem;padding:.45rem 0;border-bottom:1px solid var(--line);align-items:center}
+.topics li .tnum{grid-column:1/-1}
+.topics li:last-child{border-bottom:0}
+.tnum{font-variant-numeric:tabular-nums}
+/* engagement */
+.stackbar{display:flex;gap:2px;height:1rem;border-radius:4px;overflow:hidden;margin:.4rem 0 .7rem;background:var(--card-2)}
+.stackbar span{display:block}
+.g-on{background:var(--g-on)}.g-hard{background:var(--g-hard)}.g-dis{background:var(--g-dis)}.g-need{background:var(--g-need)}.g-none{background:var(--g-none)}
+.legend li{margin:0}
+.lg,.gf{all:unset;box-sizing:border-box;cursor:pointer;display:inline-flex;align-items:center;gap:.5rem;font-size:var(--fs-sm);padding:.2rem .3rem;border-radius:.4rem}
+.lg{width:100%}
+.lg b,.gf b{margin-left:auto;font-variant-numeric:tabular-nums;color:var(--head)}
+.lg:hover,.gf:hover{background:rgba(255,255,255,.05)}
+.lg:focus-visible,.gf:focus-visible{outline:2px solid var(--focus)}
+.lg i,.gf i{width:.7rem;height:.7rem;border-radius:2px;flex:none}
+.gfilter,.qpick{gap:.5rem}
+.gf{border:1px solid var(--line);padding:.4rem .8rem;background:var(--card)}
+.gf b{margin-left:.3rem}
+.gf.on{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.gchip{display:inline-flex;align-items:center;padding:.1rem .55rem;border-radius:999px;font-size:.82rem;font-weight:700;color:#10151F;white-space:nowrap}
+@media (prefers-color-scheme:light){.gchip{color:#fff}}
+/* areas to target */
+.targets{counter-reset:t}
+.targets li{display:grid;grid-template-columns:5.2rem minmax(0,1fr);gap:.8rem;padding:.75rem 0;border-bottom:1px solid var(--line)}
+.targets li:last-child{border-bottom:0}
+.targets p{margin:.15rem 0}
+.tk{font-size:var(--fs-xs);font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding-top:.15rem}
+.todo-a{font-weight:600}
+.todo-a::before{content:"Suggested: ";color:var(--accent)}
+@media (prefers-color-scheme:dark){.todo-a::before{color:#E3C083}}
+/* tables on Insight screens */
+.ins-tbl{height:auto;max-height:calc(100vh - 20rem);min-height:0}
+.ins-tbl.short{max-height:24rem}
+.ins-tbl tbody tr[data-id]{cursor:pointer}
+.ins-tbl td.flag{color:var(--g-need);font-weight:700}
+.ins-tbl td{font-variant-numeric:tabular-nums}
+.th{padding:.9rem 1.2rem}
+.th summary{margin:0}
+.th-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0 1rem;align-items:end}
+.th-grid label.f{font-size:var(--fs-sm)}
+.th-grid input.f{max-width:9rem}
+dl.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.9rem 1rem;margin:0}
+dl.stats dt{font-size:var(--fs-xs);color:var(--muted);font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head);font-variant-numeric:tabular-nums}
+.opts{display:flex;gap:3px;align-items:flex-end;height:2.3rem}
+.opt{position:relative;width:1.35rem;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;border-radius:3px;background:var(--card-2)}
+.opt i{display:block;width:100%;background:var(--g-none);border-radius:3px 3px 0 0;min-height:1px}
+.opt.key i{background:var(--g-on)}
+.opt.mis i{background:var(--g-need)}
+.opt.key{outline:1.5px solid var(--g-on)}
+.opt b{position:absolute;bottom:-1.05rem;font-size:.68rem;color:var(--faint)}
+.ins-tbl td:has(.opts){padding-bottom:1.3rem}
+/* student record */
+.stu-d{width:min(52rem,94vw);max-width:none;max-height:92vh}
+.kv4{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;margin:1rem 0}
+.kv4 p{margin:0}
+.marks{display:flex;flex-wrap:wrap;gap:4px;margin:.2rem 0 1rem}
+.marks span{width:1.7rem;height:1.7rem;display:grid;place-items:center;border-radius:4px;font-size:.85rem;font-weight:700}
+.m-in{background:rgba(76,195,138,.18);color:var(--g-on)}.m-out{background:rgba(224,122,110,.16);color:var(--g-need)}.m-na{background:var(--card-2);color:var(--faint)}
+@media (max-width:1400px){.verdict{grid-template-columns:1fr 1fr}.v-top{grid-column:1/-1}}
+@media (max-width:1250px){.tiles4{grid-template-columns:repeat(2,minmax(0,1fr))}.ov2{grid-template-columns:1fr}.th-grid{grid-template-columns:1fr 1fr}}
+@media (max-width:900px){.verdict{grid-template-columns:1fr}.g2{grid-template-columns:1fr}}
 @media (max-width:1100px){.cols{grid-template-columns:1fr;grid-template-areas:"live" "a" "b"}.quick{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:1000px){.app{grid-template-columns:4.5rem minmax(0,1fr)}.nav span,.brand span{display:none}.nav{justify-content:center;padding:.55rem}.brand{justify-content:center;padding:.2rem 0 1.2rem}}
 @media (max-width:640px){.keybox>span{display:none}}
@@ -237,16 +346,27 @@ dialog td:last-child{text-align:right}
  <symbol id="i-check" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4M8.5 15l2.5 2.5 4.5-5"/></symbol>
  <symbol id="i-play" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M10 8.5v7l6-3.5z"/></symbol>
  <symbol id="i-expand" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/><rect x="9" y="9" width="6" height="6" rx="1"/></symbol>
+ <symbol id="i-pulse" viewBox="0 0 24 24"><path d="M3 12h4l2.5-6 5 12 2.5-6h4"/></symbol>
+ <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></symbol>
+ <symbol id="i-table" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M3 14.5h18M9 9v11"/></symbol>
+ <symbol id="i-qr" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M21 14v.01M14 21h3M21 18v3h-1"/></symbol>
  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></symbol>
 </svg>
 
 <div class="app">
 <nav class="side" aria-label="Class Manager">
  <div class="brand"><img src="/app/icon.svg" alt=""><span>Class Manager</span></div>
- <button class="nav" data-view="class" aria-current="page"><svg><use href="#i-live"/></svg><span>In Class</span></button>
+ <p class="side-h">Insight</p>
+ <button class="nav" data-view="overview" aria-current="page"><svg><use href="#i-pulse"/></svg><span>Class Overview</span></button>
+ <button class="nav" data-view="students"><svg><use href="#i-people"/></svg><span>Students</span></button>
+ <button class="nav" data-view="attendance"><svg><use href="#i-check"/></svg><span>Attendance</span></button>
+ <button class="nav" data-view="quizzes"><svg><use href="#i-chart"/></svg><span>Quizzes and Questions</span></button>
+ <p class="side-h">Run the class</p>
+ <button class="nav" data-view="class"><svg><use href="#i-live"/></svg><span>Class Tools</span></button>
+ <p class="side-h">Manage</p>
  <button class="nav" data-view="course"><svg><use href="#i-book"/></svg><span>Course and Content</span></button>
- <button class="nav" data-view="roster"><svg><use href="#i-people"/></svg><span>Class Roster</span></button>
- <button class="nav" data-view="grades"><svg><use href="#i-chart"/></svg><span>Grades and Results</span></button>
+ <button class="nav" data-view="roster"><svg><use href="#i-list"/></svg><span>Class Roster</span></button>
+ <button class="nav" data-view="grades"><svg><use href="#i-table"/></svg><span>Grades and Results</span></button>
  <div class="grow"></div>
  <div class="sep"></div>
  <button class="nav" id="readme"><svg><use href="#i-help"/></svg><span>Instructions</span></button>
@@ -261,8 +381,8 @@ dialog td:last-child{text-align:right}
 
 <main id="main">
 
-<!-- In Class -->
-<section class="view" id="v-class" aria-labelledby="h-class">
+<!-- Class Overview: how the class is doing. Computed in the backend (classStats_ in the server script) from the data already collected. -->
+<section class="view" id="v-overview" aria-labelledby="h-overview">
  <div class="banner" id="setup" hidden>
   <strong>Finish setting up your course</strong>
   <ul class="todo">
@@ -272,7 +392,50 @@ dialog td:last-child{text-align:right}
   </ul>
   <button type="button" class="x" id="setup-x" aria-label="Hide this reminder" title="Hide this reminder">&times;</button>
  </div>
- <header><h2 id="h-class">In Class</h2><p>Start an activity, follow it here, and show the scan code when students need it.</p></header>
+ <header class="vh"><div><h2 id="h-overview">Class Overview</h2><p id="ov-sub">How the class is doing, from attendance, live quizzes and practice.</p></div>
+  <div class="row collect" role="group" aria-label="Collect data">
+   <button class="btn sm" type="button" data-win="attendance.html"><svg><use href="#i-check"/></svg>Take attendance</button>
+   <button class="btn sm" type="button" data-win="quiz-host.html"><svg><use href="#i-play"/></svg>Run a quiz</button>
+   <button class="btn sm" type="button" data-scan><svg><use href="#i-qr"/></svg>Scan code</button>
+  </div></header>
+ <div class="livestrip" id="ov-live" hidden role="status" aria-live="polite"></div>
+ <div class="ins" id="ov"><p class="note">Working out the class statistics…</p></div>
+</section>
+
+<!-- Students -->
+<section class="view" id="v-students" aria-labelledby="h-students" hidden>
+ <header class="vh"><div><h2 id="h-students">Students</h2><p>Each student's attendance, quiz results and practice, with a suggested engagement group for your review.</p></div>
+  <div class="row"><button class="btn sm" type="button" id="st-csv">Download as CSV</button></div></header>
+ <details class="card sub th" id="th-box"><summary>Engagement rules and thresholds</summary>
+  <div class="th-grid">
+   <label class="f" for="th-effort">High effort from (effort score)</label><input class="f" id="th-effort" type="number" min="0" max="100" step="5">
+   <label class="f" for="th-perf">Good performance from (quiz average, %)</label><input class="f" id="th-perf" type="number" min="0" max="100" step="5">
+   <label class="f" for="th-idle">Practice counts as recent within (days)</label><input class="f" id="th-idle" type="number" min="1" max="120">
+   <label class="f" for="th-misses">Flag consecutive missed sessions from</label><input class="f" id="th-misses" type="number" min="1" max="20">
+  </div>
+  <p class="note">The effort score is the average of the parts that exist: attendance rate, the share of live quizzes taken, and recent practice (100 if the student practised within the period, otherwise 0). Performance is the live quiz average, or the practice average when no quiz has been taken. The groups are suggestions for you to review. They are never shown to students, and practice counts only when a student entered their ID, so a missing record is a prompt for a conversation, not evidence.</p>
+  <p class="row"><button class="btn primary sm" type="button" id="th-apply">Apply</button><button class="link" type="button" id="th-reset">Restore the defaults</button></p>
+ </details>
+ <div class="ins" id="st"></div>
+</section>
+
+<!-- Attendance -->
+<section class="view" id="v-attendance" aria-labelledby="h-att" hidden>
+ <header class="vh"><div><h2 id="h-att">Attendance</h2><p>Submitted sessions only. A session counts once you submit it to the attendance record.</p></div>
+  <div class="row"><button class="btn sm" type="button" data-win="attendance.html"><svg><use href="#i-check"/></svg>Take attendance</button></div></header>
+ <div class="ins" id="at"></div>
+</section>
+
+<!-- Quizzes and Questions -->
+<section class="view" id="v-quizzes" aria-labelledby="h-qz" hidden>
+ <header class="vh"><div><h2 id="h-qz">Quizzes and Questions</h2><p>Released live quiz results. Each student's latest round counts once.</p></div>
+  <div class="row"><button class="btn sm" type="button" data-win="quiz-host.html"><svg><use href="#i-play"/></svg>Run a quiz</button></div></header>
+ <div class="ins" id="qz"></div>
+</section>
+
+<!-- Class Tools: collecting the data -->
+<section class="view" id="v-class" aria-labelledby="h-class" hidden>
+ <header><h2 id="h-class">Class Tools</h2><p>The means of collecting the data: attendance, live quizzes, the student scan code and announcements. What they show about the class is under Insight.</p></header>
 
  <div class="quick" role="group" aria-label="Quick actions">
   <button class="btn primary qa" data-win="attendance.html" data-key="Shift+A"><svg><use href="#i-check"/></svg>Take attendance</button>
@@ -469,10 +632,14 @@ dialog td:last-child{text-align:right}
 <dialog id="keys-d" aria-labelledby="keys-h">
  <h2 id="keys-h">Keyboard shortcuts</h2>
  <table><tbody>
-  <tr><td>In Class</td><td><kbd data-k="1"></kbd></td></tr>
-  <tr><td>Course and Content</td><td><kbd data-k="2"></kbd></td></tr>
-  <tr><td>Class Roster</td><td><kbd data-k="3"></kbd></td></tr>
-  <tr><td>Grades and Results</td><td><kbd data-k="4"></kbd></td></tr>
+  <tr><td>Class Overview</td><td><kbd data-k="1"></kbd></td></tr>
+  <tr><td>Students</td><td><kbd data-k="2"></kbd></td></tr>
+  <tr><td>Attendance</td><td><kbd data-k="3"></kbd></td></tr>
+  <tr><td>Quizzes and Questions</td><td><kbd data-k="4"></kbd></td></tr>
+  <tr><td>Class Tools</td><td><kbd data-k="5"></kbd></td></tr>
+  <tr><td>Course and Content</td><td><kbd data-k="6"></kbd></td></tr>
+  <tr><td>Class Roster</td><td><kbd data-k="7"></kbd></td></tr>
+  <tr><td>Grades and Results</td><td><kbd data-k="8"></kbd></td></tr>
   <tr><td>App Settings</td><td><kbd data-k=","></kbd></td></tr>
   <tr><td>Show the student scan code</td><td><kbd data-k="Shift+S"></kbd></td></tr>
   <tr><td>Take attendance</td><td><kbd data-k="Shift+A"></kbd></td></tr>
@@ -485,6 +652,10 @@ dialog td:last-child{text-align:right}
  <form method="dialog" class="row" style="justify-content:flex-end;margin-top:1rem"><button class="btn primary">Close</button></form>
 </dialog>
 
+<dialog id="stu-d" class="stu-d" aria-labelledby="stu-h"><div id="stu-body"></div>
+ <form method="dialog" class="row" style="justify-content:flex-end;margin-top:1rem"><button class="btn primary">Close</button></form></dialog>
+
+<script src="/app/insights.js"></script>
 <script>
 (function(){
 "use strict";
@@ -499,14 +670,15 @@ function copy(text,btn){
 }
 
 /* ---- views ---- */
-var views=["class","course","roster","grades","settings"];
+var views=["overview","students","attendance","quizzes","class","course","roster","grades","settings"];
 function go(v){
- if(views.indexOf(v)<0)v="class";
+ if(views.indexOf(v)<0)v="overview";
  views.forEach(function(x){$("v-"+x).hidden=x!==v});
  document.querySelectorAll(".nav[data-view]").forEach(function(b){if(b.getAttribute("data-view")===v)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current")});
  store("cm-view",v);$("main").scrollTop=0;
  if(v==="grades")view();
- if(v==="class"&&typeof livePoll==="function")livePoll();
+ if(typeof livePoll==="function")livePoll();
+ if(window.cmInsights)cmInsights.show(v);
 }
 document.querySelectorAll(".nav[data-view]").forEach(function(b){b.addEventListener("click",function(){go(b.getAttribute("data-view"))})});
 
@@ -539,6 +711,9 @@ var scanD=$("scan-d");
 function scanOpen(){if(!scanD.open)scanD.showModal()}
 $("scan-open").addEventListener("click",scanOpen);
 $("qr-mini").addEventListener("click",scanOpen);
+document.querySelectorAll("[data-scan]").forEach(function(b){b.addEventListener("click",scanOpen)});
+document.addEventListener("click",function(e){var t=e.target.closest&&e.target.closest("[data-goview]");if(t)go(t.getAttribute("data-goview"))});
+window.cmGo=go;
 $("scan-full").addEventListener("click",function(){
  // A dialog cannot itself go full screen, so a plain panel with the same code does; leaving full screen returns to the scan code window.
  scanD.close();$("proj").requestFullscreen().catch(function(){scanOpen()});
@@ -549,6 +724,7 @@ document.addEventListener("fullscreenchange",function(){if(!document.fullscreenE
 /* ---- live activity: read from this computer every few seconds while In Class is shown ---- */
 function ago(iso){var t=Date.parse(iso);if(!t)return"";var m=Math.max(0,Math.round((Date.now()-t)/60000));return m<1?"opened just now":m<60?"opened "+m+" min ago":"opened "+Math.floor(m/60)+" h "+(m%60)+" min ago"}
 function plural(n,one,many){return n+" "+(n===1?one:many)}
+var st0={lobby:"waiting room",running:"running",paused:"paused"};
 function liveShow(d){
  if(!d)return;
  var a=d.attendance,tag=$("att-tag"),btn=$("att-btn"),txt=[];
@@ -572,8 +748,14 @@ function liveShow(d){
  var parts=[];if(a&&a.status==="Open")parts.push(a.present+(a.rosterSize?" of "+a.rosterSize:"")+" checked in");
  q.forEach(function(x){parts.push("Quiz "+x.code+": "+x.joined+" joined")});
  $("scan-live").textContent=parts.join(" · ");$("proj-live").textContent=parts.join(" · ");
+ var strip=[];
+ if(a&&a.status==="Open")strip.push("<span class='tag on'>Attendance open</span> "+a.present+(a.rosterSize?" of "+a.rosterSize:"")+" checked in"+(a.waiting?", "+plural(a.waiting,"waits","wait")+" for approval":""));
+ if(a&&a.status==="Closed")strip.push("<span class='tag held'>Attendance closed</span> "+a.present+" checked in, not yet submitted");
+ q.forEach(function(x){strip.push("<span class='tag on'>Quiz "+esc(x.code)+"</span> "+(st0[x.state]||esc(x.state))+", "+x.joined+" joined")});
+ $("ov-live").innerHTML=strip.join("<span class='sep2'></span>")+(strip.length?" <button class='link' type='button' data-goview='class'>Open Class Tools</button>":"");
+ $("ov-live").hidden=!strip.length;
 }
-function livePoll(){if(document.visibilityState==="visible"&&!$("v-class").hidden&&cmApp.live)cmApp.live().then(liveShow,function(){})}
+function livePoll(){if(document.visibilityState==="visible"&&cmApp.live)cmApp.live().then(liveShow,function(){})}
 $("lv-upd").textContent="Updates every few seconds";
 setInterval(livePoll,4000);
 
@@ -636,23 +818,23 @@ document.querySelectorAll("input[name=conn]").forEach(function(r){r.addEventList
  if(r.value==="lan"&&r.checked){cmApp.tunnelStop().then(tshow)}
 })});
 $("t-stop").addEventListener("click",function(){document.querySelector('input[name=conn][value=lan]').checked=true;cmApp.tunnelStop().then(tshow)});
-go(store("cm-view")||"class");
+go(store("cm-view")||"overview");
 livePoll();
 
 /* ---- keyboard shortcuts (zoom is handled by the app itself) ---- */
 var mac=/Mac/i.test(navigator.platform||navigator.userAgent);
 document.querySelectorAll("kbd[data-k]").forEach(function(k){var key=k.getAttribute("data-k");k.textContent=mac?"\u2318"+key.replace("Shift+","\u21e7"):"Ctrl+"+key});
-var mod=mac?"\u2318":"Ctrl+",vk={"class":"1","course":"2","roster":"3","grades":"4","settings":","};
+var mod=mac?"\u2318":"Ctrl+",vk={"overview":"1","students":"2","attendance":"3","quizzes":"4","class":"5","course":"6","roster":"7","grades":"8","settings":","};
 document.querySelectorAll(".nav[data-view]").forEach(function(b){b.title=b.querySelector("span").textContent+" ("+mod+vk[b.getAttribute("data-view")]+")"});
 document.querySelectorAll("[data-key]").forEach(function(b){b.title=b.textContent.trim()+" ("+mod+b.getAttribute("data-key").replace("Shift+",mac?"\u21e7":"Shift+")+")"});
 document.addEventListener("keydown",function(e){
  if(!(mac?e.metaKey:e.ctrlKey)||e.altKey)return;
- var k=e.key.toLowerCase(),map={"1":"class","2":"course","3":"roster","4":"grades",",":"settings"};
+ var k=e.key.toLowerCase(),map={"1":"overview","2":"students","3":"attendance","4":"quizzes","5":"class","6":"course","7":"roster","8":"grades",",":"settings"};
  if(map[k]&&!e.shiftKey){e.preventDefault();go(map[k]);var n=document.querySelector('.nav[data-view="'+map[k]+'"]');if(n)n.focus();return}
  if(k==="l"&&!e.shiftKey){e.preventDefault();cmApp.openWindow("lecturer.html");return}
  if(k==="p"&&!e.shiftKey){e.preventDefault();cmApp.openWindow("quiz-display.html");return}
  if(k==="c"&&e.shiftKey){e.preventDefault();$("copy-url").click();return}
- if(k==="s"&&e.shiftKey){e.preventDefault();go("class");scanOpen();return}
+ if(k==="s"&&e.shiftKey){e.preventDefault();scanOpen();return}
  if(k==="a"&&e.shiftKey){e.preventDefault();cmApp.openWindow("attendance.html");return}
  if(k==="/"||k==="?"){e.preventDefault();$("keys-d").showModal()}
 });
