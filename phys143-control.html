@@ -98,8 +98,6 @@ body.focus main{padding-top:0}
    <input type="text" id="sp-venue" maxlength="100" autocomplete="off" style="width:100%;min-height:44px;font-size:1rem">
    <label for="sp-notice" class="note">Notice</label>
    <input type="text" id="sp-notice" maxlength="300" autocomplete="off" style="width:100%;min-height:44px;font-size:1rem">
-   <label for="sp-cont" class="note">"Continue with" goes to</label>
-   <select id="sp-cont" style="min-height:44px;font-size:1rem;max-width:100%"><option value="0">The week to teach</option></select>
    <label for="sp-title" class="note">Title shown to students (this week)</label>
    <input type="text" id="sp-title" maxlength="100" autocomplete="off" style="width:100%;min-height:44px;font-size:1rem">
    <label class="cb"><input type="checkbox" id="sp-hh" checked> Show Handout (PDF)</label>
@@ -233,7 +231,7 @@ function loadWeek(){
 }
 (function(){var x=new XMLHttpRequest();x.open("GET","data/portal.json?_="+Date.now());
  x.onload=function(){try{CFGP=JSON.parse(x.responseText)}catch(e){$("t-lec").textContent="Could not read data/portal.json.";return}
-  for(var i=1;i<=12;i++){var o=document.createElement("option");o.value=i;o.textContent="Week "+i+": "+(CFGP.lectures[i]||"");$("t-week").appendChild(o);$("sp-cont").appendChild(o.cloneNode(true))}
+  for(var i=1;i<=12;i++){var o=document.createElement("option");o.value=i;o.textContent="Week "+i+": "+(CFGP.lectures[i]||"");$("t-week").appendChild(o)}
   WEEK=CFGP.currentWeek;showWeek();loadWeek()};
  x.onerror=function(){$("t-lec").textContent="Could not read data/portal.json."};x.send()})();
 $("t-week").addEventListener("change",function(){
@@ -262,7 +260,7 @@ function spLoad(){
  jsonp("action=portal_status",function(d){
   if(!d||d.portal!==1||!d.cfg){$("sp-msg").textContent="The script is not updated, so these settings cannot be saved yet. Paste the new script, Save, then Deploy a new version.";return}
   SPC=d.cfg;
-  $("sp-contacts").value=SPC.contacts;$("sp-venue").value=SPC.venue;$("sp-notice").value=SPC.notice;$("sp-cont").value=String(SPC.cont);
+  $("sp-contacts").value=SPC.contacts;$("sp-venue").value=SPC.venue;$("sp-notice").value=SPC.notice;
   spLoadFields();
   if(spFirst){spFirst=false;spCollapse(true)}
  });
@@ -270,7 +268,7 @@ function spLoad(){
 $("sp-save").addEventListener("click",function(){
  var w=WEEK;if(!w){$("sp-msg").textContent="Week not loaded yet.";return}
  $("sp-msg").textContent="Saving.";
- jsonp("action=portal_set&contacts="+encodeURIComponent($("sp-contacts").value)+"&venue="+encodeURIComponent($("sp-venue").value)+"&notice="+encodeURIComponent($("sp-notice").value)+"&cont="+$("sp-cont").value+"&w="+w+"&title="+encodeURIComponent($("sp-title").value)+"&handout="+($("sp-hh").checked?1:0)+"&practice="+($("sp-hp").checked?1:0)+"&page="+($("sp-hl").checked?1:0)+"&"+hk(),function(d){
+ jsonp("action=portal_set&contacts="+encodeURIComponent($("sp-contacts").value)+"&venue="+encodeURIComponent($("sp-venue").value)+"&notice="+encodeURIComponent($("sp-notice").value)+"&cont=0"+"&w="+w+"&title="+encodeURIComponent($("sp-title").value)+"&handout="+($("sp-hh").checked?1:0)+"&practice="+($("sp-hp").checked?1:0)+"&page="+($("sp-hl").checked?1:0)+"&"+hk(),function(d){
   if(!d||d.ok!==true){$("sp-msg").textContent="Not saved: "+(d&&d.why?d.why:"no answer, or the script is not updated")+".";return}
   SPC=d.cfg;$("sp-msg").textContent="Saved.";spCollapse(true,true);
  },20000);
