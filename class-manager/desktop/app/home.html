@@ -298,6 +298,16 @@ svg.bars .bar:hover path{fill:var(--bar-hi)}
 .ins-tbl td.flag{color:var(--g-need);font-weight:700}
 .ins-tbl td{font-variant-numeric:tabular-nums}
 .th{padding:.9rem 1.2rem}
+/* Learning Progress and the student record */
+.look-d{width:min(34rem,92vw)}
+.lv-legend{display:flex;flex-wrap:wrap;gap:.3rem 1rem}.lv-legend span{display:inline-flex;align-items:center;gap:.35rem}.lv-legend i{width:.7rem;height:.7rem;border-radius:2px}
+.ins-tbl .stackbar{margin:.2rem 0;min-width:8rem}
+.gp-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(10rem,1fr));gap:.6rem;margin-top:.4rem}
+.gp-cell{display:flex;flex-direction:column;gap:.1rem;border:1px solid var(--line);border-radius:.5rem;padding:.5rem .7rem;background:var(--card-2)}
+.gp-cell span:first-of-type{font-size:1.4rem;font-weight:700;color:var(--head);font-variant-numeric:tabular-nums}
+.stu-d h3.sec{margin:1.4rem 0 .5rem;font-size:var(--fs-h3);border-top:1px solid var(--line);padding-top:1rem}
+.tips{list-style:none;margin:0;padding:0}.tips li{display:grid;grid-template-columns:6.5rem minmax(0,1fr);gap:.8rem;padding:.5rem 0;border-bottom:1px solid var(--line)}.tips li:last-child{border-bottom:0}
+ul.plain{margin:.2rem 0;padding-left:1.1rem}ul.plain li{margin:.2rem 0}
 .th summary{margin:0}
 .th-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0 1rem;align-items:end}
 .th-grid label.f{font-size:var(--fs-sm)}
@@ -359,6 +369,7 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
  <p class="side-h">Insight</p>
  <button class="nav" data-view="overview" aria-current="page"><svg><use href="#i-pulse"/></svg><span>Class Overview</span></button>
  <button class="nav" data-view="students"><svg><use href="#i-people"/></svg><span>Students</span></button>
+ <button class="nav" data-view="progress"><svg><use href="#i-chart"/></svg><span>Learning Progress</span></button>
  <button class="nav" data-view="attendance"><svg><use href="#i-check"/></svg><span>Attendance</span></button>
  <button class="nav" data-view="quizzes"><svg><use href="#i-chart"/></svg><span>Quizzes and Questions</span></button>
  <p class="side-h">Run the class</p>
@@ -376,6 +387,7 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
 <header class="top">
  <h1 data-cm="courseHeading">Course</h1>
  <span class="chip" id="live" role="status" aria-live="polite"><span class="dot"></span><span id="live-t">Starting</span></span>
+ <button class="btn sm" type="button" id="look-top" title="Find a student by ID or name">Find a student</button>
  <span class="keybox" title="Type this key when the lecturer pages ask for it. Keep it private.">Host key <code id="key">…</code> <button class="btn sm" type="button" id="key-copy"><svg><use href="#i-copy"/></svg>Copy</button></span>
 </header>
 
@@ -417,6 +429,13 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
   <p class="row"><button class="btn primary sm" type="button" id="th-apply">Apply</button><button class="link" type="button" id="th-reset">Restore the defaults</button></p>
  </details>
  <div class="ins" id="st"></div>
+</section>
+
+<!-- Learning Progress: objectives, ask-discuss-revise, each student's progress, groups and group work (progress.js) -->
+<section class="view" id="v-progress" aria-labelledby="h-progress" hidden>
+ <header class="vh"><div><h2 id="h-progress">Learning Progress</h2><p>Progress by learning objective, the effect of pair discussion, and group work, from the students' own answers and submissions.</p></div>
+  <div class="row"><button class="btn sm" type="button" id="look-btn">Find a student</button><button class="btn sm" type="button" data-win="outcomes.html">Learning objectives</button><button class="btn sm" type="button" data-win="assignments.html">Group assignments</button></div></header>
+ <div class="ins" id="lp"><p class="note">Working out learning progress…</p></div>
 </section>
 
 <!-- Attendance -->
@@ -634,6 +653,7 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
  <table><tbody>
   <tr><td>Class Overview</td><td><kbd data-k="1"></kbd></td></tr>
   <tr><td>Students</td><td><kbd data-k="2"></kbd></td></tr>
+  <tr><td>Learning Progress</td><td><kbd data-k="9"></kbd></td></tr>
   <tr><td>Attendance</td><td><kbd data-k="3"></kbd></td></tr>
   <tr><td>Quizzes and Questions</td><td><kbd data-k="4"></kbd></td></tr>
   <tr><td>Class Tools</td><td><kbd data-k="5"></kbd></td></tr>
@@ -643,6 +663,7 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
   <tr><td>App Settings</td><td><kbd data-k=","></kbd></td></tr>
   <tr><td>Show the student scan code</td><td><kbd data-k="Shift+S"></kbd></td></tr>
   <tr><td>Take attendance</td><td><kbd data-k="Shift+A"></kbd></td></tr>
+  <tr><td>Find a student by ID or name</td><td><kbd data-k="K"></kbd></td></tr>
   <tr><td>Open the lecturer menu</td><td><kbd data-k="L"></kbd></td></tr>
   <tr><td>Open the projector display</td><td><kbd data-k="P"></kbd></td></tr>
   <tr><td>Copy the student address</td><td><kbd data-k="Shift+C"></kbd></td></tr>
@@ -655,7 +676,14 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
 <dialog id="stu-d" class="stu-d" aria-labelledby="stu-h"><div id="stu-body"></div>
  <form method="dialog" class="row" style="justify-content:flex-end;margin-top:1rem"><button class="btn primary">Close</button></form></dialog>
 
+<dialog id="look-d" class="look-d" aria-labelledby="look-h">
+ <h2 id="look-h">Find a student</h2>
+ <form id="look-form" autocomplete="off"><label for="look-in">Student ID or name</label>
+  <div class="row"><input class="f" id="look-in" list="look-list" style="flex:1"><button class="btn primary" type="submit">Open</button><button class="btn" type="button" id="look-x">Cancel</button></div>
+  <datalist id="look-list"></datalist><p class="note" id="look-msg" role="status"></p></form>
+</dialog>
 <script src="/app/insights.js"></script>
+<script src="/app/progress.js"></script>
 <script>
 (function(){
 "use strict";
@@ -670,7 +698,7 @@ function copy(text,btn){
 }
 
 /* ---- views ---- */
-var views=["overview","students","attendance","quizzes","class","course","roster","grades","settings"];
+var views=["overview","students","progress","attendance","quizzes","class","course","roster","grades","settings"];
 function go(v){
  if(views.indexOf(v)<0)v="overview";
  views.forEach(function(x){$("v-"+x).hidden=x!==v});
@@ -679,6 +707,7 @@ function go(v){
  if(v==="grades")view();
  if(typeof livePoll==="function")livePoll();
  if(window.cmInsights)cmInsights.show(v);
+ if(window.cmProgress)cmProgress.show(v);
 }
 document.querySelectorAll(".nav[data-view]").forEach(function(b){b.addEventListener("click",function(){go(b.getAttribute("data-view"))})});
 
@@ -824,12 +853,12 @@ livePoll();
 /* ---- keyboard shortcuts (zoom is handled by the app itself) ---- */
 var mac=/Mac/i.test(navigator.platform||navigator.userAgent);
 document.querySelectorAll("kbd[data-k]").forEach(function(k){var key=k.getAttribute("data-k");k.textContent=mac?"\u2318"+key.replace("Shift+","\u21e7"):"Ctrl+"+key});
-var mod=mac?"\u2318":"Ctrl+",vk={"overview":"1","students":"2","attendance":"3","quizzes":"4","class":"5","course":"6","roster":"7","grades":"8","settings":","};
+var mod=mac?"\u2318":"Ctrl+",vk={"overview":"1","students":"2","progress":"9","attendance":"3","quizzes":"4","class":"5","course":"6","roster":"7","grades":"8","settings":","};
 document.querySelectorAll(".nav[data-view]").forEach(function(b){b.title=b.querySelector("span").textContent+" ("+mod+vk[b.getAttribute("data-view")]+")"});
 document.querySelectorAll("[data-key]").forEach(function(b){b.title=b.textContent.trim()+" ("+mod+b.getAttribute("data-key").replace("Shift+",mac?"\u21e7":"Shift+")+")"});
 document.addEventListener("keydown",function(e){
  if(!(mac?e.metaKey:e.ctrlKey)||e.altKey)return;
- var k=e.key.toLowerCase(),map={"1":"overview","2":"students","3":"attendance","4":"quizzes","5":"class","6":"course","7":"roster","8":"grades",",":"settings"};
+ var k=e.key.toLowerCase(),map={"1":"overview","2":"students","9":"progress","3":"attendance","4":"quizzes","5":"class","6":"course","7":"roster","8":"grades",",":"settings"};
  if(map[k]&&!e.shiftKey){e.preventDefault();go(map[k]);var n=document.querySelector('.nav[data-view="'+map[k]+'"]');if(n)n.focus();return}
  if(k==="l"&&!e.shiftKey){e.preventDefault();cmApp.openWindow("lecturer.html");return}
  if(k==="p"&&!e.shiftKey){e.preventDefault();cmApp.openWindow("quiz-display.html");return}

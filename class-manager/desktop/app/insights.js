@@ -124,7 +124,7 @@
   }
   function studentOpen(id) {
     cmApp.studentStats(Object.assign({ id: id }, th())).then(function (r) {
-      if (!r || !r.ok) return;
+      if (!r || !r.ok) { $("stu-body").innerHTML = "<h2 id='stu-h'>Student " + esc(id) + "</h2><p class='msg'>" + esc(r && r.why ? "Not found: " + r.why + "." : "The record could not be read.") + "</p>"; if (!$("stu-d").open) $("stu-d").showModal(); return; }
       var s = r.student, h = "<h2 id='stu-h'>" + esc(s.name || s.id) + " <span class='note'>" + esc(s.id) + "</span></h2><p>" + chip(s.group) + " <span class='note'>Suggested, for your review: " + esc(s.why.join("; ")) + ".</span></p>";
       h += "<div class='kv4'><div><p class='lbl'>Attendance</p><p class='tbig'>" + num(s.attendance, "%") + "</p><p class='note'>" + s.present + " of " + s.sessions + " sessions; " + (s.missedInARow ? s.missedInARow + " missed in a row" : "present at the last session") + "</p></div>" +
         "<div><p class='lbl'>Quiz average</p><p class='tbig'>" + num(s.quizAverage, "%") + "</p><p class='note'>" + s.quizzesTaken + " taken; percentile " + num(s.percentile) + "</p></div>" +
@@ -133,7 +133,8 @@
       if (s.trajectory.length) h += "<p class='lbl'>Quiz results</p>" + bars(s.trajectory.map(function (x) { return x.pct; }), s.trajectory.map(function (x) { return x.quiz; }), { max: 100, unit: "%", h: 120, short: shortDate, title: "Quiz results" });
       if (r.mastery.length) h += "<p class='lbl'>Proportion correct by lecture</p>" + bars(r.mastery.map(function (x) { return x.pct; }), r.mastery.map(function (x) { return x.lecture === 0 ? "Intro" : "Lecture " + x.lecture; }), { max: 100, unit: "%", h: 110, short: function (l) { return l.replace("Lecture ", "L"); }, title: "Proportion correct by lecture", extra: r.mastery.map(function (x) { return "(" + x.right + " of " + x.asked + ")"; }) });
       if (r.revisit.length) h += "<p class='lbl'>Questions to revisit</p><p class='note'>" + r.revisit.map(function (q) { return esc(q.id) + " (" + esc(q.from) + ")"; }).join(", ") + "</p>";
-      $("stu-body").innerHTML = h; $("stu-d").showModal();
+      if (window.cmProgress) h += cmProgress.profileHtml(r); // progress by objective, group work and suggestions (progress.js)
+      $("stu-body").innerHTML = h; if (!$("stu-d").open) $("stu-d").showModal(); $("stu-d").scrollTop = 0;
     });
   }
 
@@ -206,5 +207,6 @@
   });
   // Fresh figures every minute while an Insight screen is open.
   setInterval(function () { if (document.visibilityState === "visible" && ["overview", "students", "attendance", "quizzes"].indexOf(cur) >= 0) load(true).then(function () { if (data && !document.querySelector("dialog[open]")) render(cur); }); }, 60000);
-  window.cmInsights = { show: show, reload: function () { return load(true).then(function () { if (data) render(cur); }); } };
+  window.cmInsights = { show: show, reload: function () { return load(true).then(function () { if (data) render(cur); }); }, open: studentOpen,
+    students: function () { return load().then(function () { return data ? data.students.map(function (s) { return { id: s.id, name: s.name }; }) : []; }); } };
 })();

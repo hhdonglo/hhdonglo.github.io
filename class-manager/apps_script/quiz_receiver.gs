@@ -2514,7 +2514,7 @@ function studentGroups_(id) {
 // Levels need at least PROG_MIN answers; with fewer the outcome reads "Not enough evidence". Nothing here is shown to students
 // except their own progress, behind their ID and access code.
 var QOUT_TAB = 'Question_Outcomes', QOUT_HEAD = ['Question ID', 'Lecture', 'Outcome', 'Set'];
-var PROG_MIN = 3, PROG_SECURE = 80, PROG_DEVELOPING = 50;
+var PROG_MIN = 3, PROG_SECURE = 70, PROG_DEVELOPING = 50; // the same bands as the student's Progress by lecture
 var PROG_LEVELS = ['Secure', 'Developing', 'Beginning', 'Not enough evidence'];
 
 function lecturesInfo_() { // {number: {title, outcomes: [text]}} from data/lectures.json

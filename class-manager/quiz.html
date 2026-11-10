@@ -56,6 +56,7 @@
 .try .opt{display:flex;gap:.7rem;align-items:flex-start;text-align:left;min-height:48px;padding:.55rem .8rem;border:1.5px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font:1rem Georgia,serif;cursor:pointer;width:100%}
 .try .opt b{font:700 1rem system-ui,sans-serif;color:var(--brown);min-width:1.4rem}
 @media (prefers-color-scheme:dark){.try .opt b{color:#e9c9a8}}
+.revote{margin:.6rem 0;padding:.6rem .8rem;border-left:4px solid var(--brown-fill);background:var(--sky);border-radius:4px;font-weight:600}
 .try .conf{margin:.7rem 0 .2rem}.try .conf .note{margin:.2rem 0 .3rem}
 .try .conf-b{display:flex;gap:.4rem;flex-wrap:wrap}
 .try .conf-b button{flex:1 1 6rem;min-height:44px;border:1.5px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font:600 .95rem system-ui,sans-serif;cursor:pointer}
@@ -135,6 +136,7 @@ body.focus .try .fun{display:block}
   <p class="note" id="banner" role="status" hidden></p>
   <p class="stem" id="stem"></p>
   <p class="note" id="pnote" role="status"></p>
+  <p class="revote" id="revote" role="status" hidden></p>
   <div class="opts" id="opts" role="radiogroup" aria-label="Answer options"></div>
   <div class="conf" id="conf" hidden><p class="note" id="conf-l">How sure are you? (optional)</p><div class="conf-b" role="radiogroup" aria-labelledby="conf-l"><button type="button" role="radio" aria-checked="false" data-c="H">Sure</button><button type="button" role="radio" aria-checked="false" data-c="M">Fairly sure</button><button type="button" role="radio" aria-checked="false" data-c="L">Guessing</button></div></div>
   <button type="button" class="go alt" id="prev" hidden>Back</button> <button type="button" class="go" id="next" disabled>Next</button>
@@ -279,6 +281,9 @@ function applyPaced(d){
  else b.hidden=true;
  if(d.state==="ended"||d.state==="released"){endPaced();return}
  if(d.currentQ&&d.currentQ!==st.curQ){st.curQ=d.currentQ;renderPaced()}
+ if(d.vote===2&&d.currentQ&&st.revoteQ!==d.currentQ){ // ask, discuss, revise: the lecturer opened a second vote on this question
+  st.revoteQ=d.currentQ;if(!st.first)st.first=[];st.first[st.curQ-1]=st.ans[st.curQ-1]||"";st.ans[st.curQ-1]="";if(st.conf)st.conf[st.curQ-1]="";renderPaced();
+ }
  setLocked();
 }
 function renderPaced(){
@@ -297,7 +302,10 @@ function renderPaced(){
   });
   o.appendChild(b);
  });
- $("pnote").textContent=st.ans[st.curQ-1]?"Your answer is sent. You can change it until time runs out.":"Choose an answer.";
+ var again=st.revoteQ===st.curQ,was=again&&st.first&&st.first[st.curQ-1];
+ $("revote").hidden=!again;
+ if(again)$("revote").textContent="Discuss this question with your neighbour: explain why you chose your answer. Then answer again; you may keep it or change it."+(was?" Your first answer was "+was+".":"");
+ $("pnote").textContent=st.ans[st.curQ-1]?"Your answer is sent. You can change it until time runs out.":(again?"Choose your answer after the discussion.":"Choose an answer.");
  drawConf();
 }
 // Confidence: optional, sent with the answer. It never changes the mark; it tells the lecturer where the class is guessing.
@@ -343,6 +351,7 @@ function reviewDraw(d){
   var k=L[i],ok=k===d.correct,me=k===d.mine,n=d.dist&&d.dist[k]||0;
   h+='<div class="ro'+(ok?" ok":"")+(me?" mine":"")+'"><b>'+k+'</b><span>'+o+'</span><span class="tag">'+(ok?"\u2713 correct<br>":"")+(me?"your answer<br>":"")+n+" chose this</span></div>"
  });
+ if(d.discussion){var dv=d.discussion;h+='<p class="note">After discussion the class went from '+(dv.beforePct===null?"–":dv.beforePct+"%")+' to '+(dv.afterPct===null?"–":dv.afterPct+"%")+' correct.'+(d.mineFirst&&d.mine&&d.mineFirst!==d.mine?" You changed your answer from "+d.mineFirst+" to "+d.mine+".":"")+'</p>'}
  if(d.explanation)h+='<div class="why">'+esc(d.explanation)+'</div>';
  box.innerHTML=h;box.hidden=false;end.classList.add("reviewing");
 }

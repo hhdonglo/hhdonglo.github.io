@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light dark">
+<title>Group assignments</title>
+<meta name="description" content="Set group assignments and review each group's work.">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/icon-192.png">
+<script src="config.js"></script>
+<link rel="stylesheet" href="assets/site.css">
+<link rel="stylesheet" href="assets/teaching.css">
+<script>if(!location.hash){if("scrollRestoration" in history)history.scrollRestoration="manual";window.addEventListener("pageshow",function(){if(!location.hash)window.scrollTo({top:0,left:0,behavior:"instant"})});}</script>
+</head>
+<body class="focus">
+<a class="skip" href="#main">Skip to content</a>
+<header class="banner slim">
+<div class="wrap">
+<h1><a class="home-link" href="index.html" data-cm="courseCode">Course</a></h1>
+<p class="course" data-cm="courseTitle"></p>
+</div>
+</header>
+<nav class="jump" id="jump" aria-label="Sections"><div class="wrap"><button type="button" class="menu-btn" aria-expanded="false" aria-controls="jump-links"><span>Menu</span><span class="dots" aria-hidden="true">&#8943;</span></button><div class="links" id="jump-links"><a href="index.html">Portal</a><a href="course.html">Lectures</a><a href="course.html#weekly">Practice</a><a href="mock-exam.html">Mock exam</a><a href="quiz.html">Live quiz</a><a href="calendar.html">Calendar</a><a href="messages.html">Messages</a></div></div></nav>
+<main id="main"><div class="wrap">
+
+<div class="tp">
+ <section class="panel" id="a-login" hidden>
+  <h3>Group assignments</h3>
+  <form id="a-form" autocomplete="off"><label for="a-key">Host key</label><br><input type="password" id="a-key" maxlength="40" autocomplete="new-password"> <button class="go" type="submit">Log in</button></form>
+  <p class="err" id="a-lerr" role="alert" hidden></p>
+ </section>
+ <div id="a-main" hidden>
+ <section class="panel">
+  <h3 id="a-fh">Set a group assignment</h3>
+  <p class="note">Choose a set of groups from Student groups, then give the task to all of its groups or to some of them. Give different tasks to different groups by setting one assignment per task. Each group submits one shared answer; each member records their own part and may rate their group-mates for you.</p>
+  <input type="hidden" id="a-id">
+  <div class="row">
+   <div><label for="a-set">Group set</label><br><select id="a-set"></select></div>
+   <div style="flex:1 1 18rem"><label for="a-title">Title</label><br><input type="text" id="a-title" maxlength="120" style="width:100%" placeholder="Design a launch to hit a target"></div>
+  </div>
+  <fieldset style="margin-top:.6rem"><legend class="muted">Groups</legend><label><input type="checkbox" id="a-all" checked> All groups</label><span id="a-gs"></span></fieldset>
+  <p style="margin:.6rem 0 0"><label for="a-brief">Task for the students</label></p>
+  <textarea id="a-brief" maxlength="4000" placeholder="What the group must do, what to hand in, and how it will be judged."></textarea>
+  <div class="row">
+   <div><label for="a-due">Due</label><br><input type="datetime-local" id="a-due"></div>
+   <div><label for="a-out">Out of (optional)</label><br><input type="number" id="a-out" min="0" step="any"></div>
+   <div style="flex:1 1 18rem"><label for="a-oc">Learning objective (optional)</label><br><select id="a-oc" style="width:100%"><option value="">None</option></select></div>
+  </div>
+  <p><button class="go" type="button" id="a-save">Set the assignment</button><button class="go alt" type="button" id="a-new" hidden>Clear the form</button><a class="go alt" href="groups.html">Student groups</a></p>
+  <p class="err" id="a-err" role="alert" hidden></p>
+ </section>
+ <section class="panel">
+  <h3>Assignments</h3>
+  <div class="scroll"><table id="a-tbl"></table></div>
+  <p class="note">Submitted counts groups with an answer; Contribution is the share of members who described their own part. When an assignment is linked to a learning objective, Before and after compares the members' answers on that objective before the task was set and since.</p>
+ </section>
+ <section class="panel" id="a-view" hidden></section>
+ </div>
+</div>
+<script>
+(function(){
+"use strict";
+var SCRIPT_URL=window.CM.scriptUrl,$=function(i){return document.getElementById(i)},D=null,V=null,KEY="";
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function jsonp(params,cb,ms){
+ var n="cb"+Date.now()+Math.floor(Math.random()*1e6),sc=document.createElement("script"),done=false,t;
+ function end(d){if(done)return;done=true;clearTimeout(t);delete window[n];if(sc.parentNode)sc.parentNode.removeChild(sc);cb(d)}
+ window[n]=end;sc.onerror=function(){end(null)};t=setTimeout(function(){end(null)},ms||30000);
+ sc.src=SCRIPT_URL+"?"+params+"&callback="+n+"&_="+Date.now();document.head.appendChild(sc);
+}
+try{KEY=sessionStorage.getItem("cm_hk")||""}catch(x){}
+function q(k,v){return"&"+k+"="+encodeURIComponent(v)}
+function err(t){$("a-err").textContent=t;$("a-err").hidden=!t}
+function call(op,extra,after){
+ err("");
+ jsonp("action=assignments&op="+op+"&hostkey="+encodeURIComponent(KEY)+(extra||""),function(d){
+  if(!d){err("The class server could not be reached, or it does not support group assignments yet (update the Apps Script).");return}
+  if(!d.ok){if(/host key/.test(d.why||"")){KEY="";try{sessionStorage.removeItem("cm_hk")}catch(x){}login();return}err("Not done: "+(d.why||"unknown"));return}
+  if(d.assignment){V=d.assignment;drawView()}else{D=d;draw()}
+  if(after)after(d);
+ });
+}
+var pct=function(v){return v===null||v===undefined?"–":v+"%"};
+function draw(){
+ var cur=$("a-set").value;
+ $("a-set").innerHTML=D.sets.length?D.sets.map(function(s){return'<option'+(s.name===cur?' selected':'')+'>'+esc(s.name)+'</option>'}).join(""):'<option value="">Make groups first</option>';
+ var oc=$("a-oc").value;$("a-oc").innerHTML='<option value="">None</option>'+D.outcomes.map(function(o){return'<option value="'+esc(o.key)+'"'+(o.key===oc?' selected':'')+'>'+esc(o.label)+'</option>'}).join("");
+ groupBoxes();
+ $("a-tbl").innerHTML=D.assignments.length?'<thead><tr><th>Assignment</th><th>Set and groups</th><th>Due</th><th>Submitted</th><th>On time</th><th>Marked</th><th>Contribution</th><th>Before and after</th><th></th></tr></thead><tbody>'+D.assignments.map(function(a){var m=a.measures,ba=m.beforeAfter;
+  return'<tr><td><b>'+esc(a.title)+'</b>'+(a.status==="closed"?' <span class="pill">Closed</span>':'')+(a.outcomeLabel?'<br><span class="muted">'+esc(a.outcomeLabel)+'</span>':'')+'</td><td>'+esc(a.set)+'<br><span class="muted">'+(a.groupsAllocated==="all"?"All groups":"Groups "+esc(a.groupsAllocated))+'</span></td><td>'+esc((a.due||"–").replace("T"," "))+'</td><td>'+m.submitted+' of '+m.allocated+'</td><td>'+m.onTime+'</td><td>'+m.marked+'</td><td>'+pct(m.contribution)+(m.peerFlags?'<br><span class="flag">'+m.peerFlags+' low peer rating'+(m.peerFlags===1?'':'s')+'</span>':'')+'</td><td>'+(ba?pct(ba.before)+' &rarr; '+pct(ba.after)+'<br><span class="muted">'+ba.beforeN+' and '+ba.afterN+' answers'+(ba.small?', few':'')+'</span>':'–')+'</td><td><button class="go sm" type="button" data-open="'+esc(a.id)+'">Open</button></td></tr>'}).join("")+'</tbody>':'<tbody><tr><td class="muted">No assignment yet.</td></tr></tbody>';
+}
+function groupBoxes(){
+ var s=(D.sets.filter(function(x){return x.name===$("a-set").value})[0])||{groups:[]};
+ $("a-gs").innerHTML=s.groups.map(function(g){return'<label><input type="checkbox" class="a-g" value="'+g+'"> Group '+g+'</label>'}).join("");
+ $("a-gs").hidden=$("a-all").checked;
+}
+function drawView(){
+ var a=V,m=a.measures,h='<div class="row" style="justify-content:space-between"><h3>'+esc(a.title)+'</h3><div><button class="go alt sm" type="button" data-edit="1">Edit</button><button class="go alt sm" type="button" data-st="'+(a.status==="closed"?"open":"close")+'">'+(a.status==="closed"?"Reopen":"Close to submissions")+'</button><button class="go alt sm" type="button" data-del="1">Delete</button><button class="go alt sm" type="button" data-x="1">Close this view</button></div></div>';
+ h+='<p class="muted">'+esc(a.set)+' &middot; '+(a.groupsAllocated==="all"?"all groups":"groups "+esc(a.groupsAllocated))+(a.due?' &middot; due '+esc(a.due.replace("T"," at ")):'')+' &middot; set '+esc(a.created)+'</p>';
+ if(a.brief)h+='<div class="work">'+esc(a.brief)+'</div>';
+ h+='<div class="kv"><div><span class="muted">Submitted</span><b>'+m.submitted+' of '+m.allocated+'</b></div><div><span class="muted">On time</span><b>'+m.onTime+'</b></div><div><span class="muted">Marked</span><b>'+m.marked+'</b></div><div><span class="muted">Members who gave their part</span><b>'+pct(m.contribution)+'</b></div>'+(m.beforeAfter?'<div><span class="muted">Objective, before and after</span><b>'+pct(m.beforeAfter.before)+' &rarr; '+pct(m.beforeAfter.after)+'</b></div>':'')+'</div>';
+ h+='<div class="grid">'+a.groups.map(function(g){
+  var st=g.submitted?(g.late?'<span class="pill late">Late</span>':'<span class="pill done">Submitted</span>'):'<span class="pill miss">Not submitted</span>';
+  return'<div class="card"><h4>Group '+g.group+' '+st+'</h4>'+(g.submitted?'<p class="muted">Latest by '+esc(g.by)+' on '+esc(g.time)+(g.versions>1?', '+g.versions+' versions':'')+'</p><div class="work">'+esc(g.text)+(g.link?'\n<a href="'+esc(g.link)+'" target="_blank" rel="noopener">'+esc(g.link)+'</a>':'')+'</div>':'')+
+   '<table><thead><tr><th>Member</th><th>Their part</th><th title="Average of group-mates\' ratings: 2 fully, 1 partly, 0 little">Peers</th></tr></thead><tbody>'+g.members.map(function(x){return'<tr><td>'+esc(x.name||x.id)+'</td><td>'+(x.part?esc(x.part):'<span class="muted">Not given</span>')+'</td><td'+(x.peerFlag?' class="flag"':'')+'>'+(x.peerAvg===null?'–':x.peerAvg+' <span class="muted">('+x.peerN+')</span>')+'</td></tr>'}).join("")+'</tbody></table>'+
+   '<div class="row" style="margin-top:.5rem"><div><label for="mk-'+g.group+'">Mark</label><br><input type="number" step="any" id="mk-'+g.group+'" value="'+(g.mark===null?"":esc(g.mark))+'"></div><div style="flex:1 1 12rem"><label for="fb-'+g.group+'">Feedback to the group</label><br><textarea id="fb-'+g.group+'" maxlength="2000" style="min-height:3.5rem">'+esc(g.feedback)+'</textarea></div></div><button class="go sm" type="button" data-mark="'+g.group+'">Save mark and feedback</button></div>'}).join("")+'</div>';
+ h+='<p class="note">Peer ratings are private to you and are a prompt for a conversation, not a mark. A rating is flagged when two or more group-mates rated a member as contributing little. The mark is copied to each member in Master and Scores as "Assignment: '+esc(a.title)+'" when Out of is set.</p>';
+ $("a-view").innerHTML=h;$("a-view").hidden=false;
+}
+$("a-tbl").addEventListener("click",function(e){var b=e.target.closest("[data-open]");if(b)call("view",q("id",b.getAttribute("data-open")),function(){$("a-view").scrollIntoView({behavior:"smooth"})})});
+$("a-view").addEventListener("click",function(e){
+ var b=e.target.closest("button");if(!b||!V)return;
+ if(b.hasAttribute("data-mark")){var g=b.getAttribute("data-mark");call("mark",q("id",V.id)+q("group",g)+q("mark",$("mk-"+g).value)+q("feedback",$("fb-"+g).value),function(){call("list")})}
+ if(b.hasAttribute("data-st")){call(b.getAttribute("data-st"),q("id",V.id),function(){call("view",q("id",V.id))})}
+ if(b.hasAttribute("data-del")&&confirm("Delete \""+V.title+"\"? Submissions stay in the Group_Work tab.")){call("delete",q("id",V.id),function(){V=null;$("a-view").hidden=true})}
+ if(b.hasAttribute("data-x")){V=null;$("a-view").hidden=true}
+ if(b.hasAttribute("data-edit")){$("a-id").value=V.id;$("a-set").value=V.set;$("a-title").value=V.title;$("a-brief").value=V.brief;$("a-due").value=V.due&&V.due.indexOf("T")>0?V.due:(V.due?V.due+"T23:59":"");$("a-out").value=V.outOf===""?"":V.outOf;$("a-oc").value=V.outcome||"";
+  $("a-all").checked=V.groupsAllocated==="all";groupBoxes();var gs=String(V.groupsAllocated).split(",");document.querySelectorAll(".a-g").forEach(function(c){c.checked=gs.indexOf(c.value)>=0});$("a-fh").textContent="Edit the assignment";$("a-save").textContent="Save changes";$("a-new").hidden=false;window.scrollTo({top:0,behavior:"smooth"})}
+});
+$("a-set").addEventListener("change",groupBoxes);$("a-all").addEventListener("change",groupBoxes);
+function clearForm(){$("a-id").value="";$("a-title").value="";$("a-brief").value="";$("a-due").value="";$("a-out").value="";$("a-oc").value="";$("a-all").checked=true;groupBoxes();$("a-fh").textContent="Set a group assignment";$("a-save").textContent="Set the assignment";$("a-new").hidden=true}
+$("a-new").addEventListener("click",clearForm);
+$("a-save").addEventListener("click",function(){
+ var gs=$("a-all").checked?"all":Array.prototype.map.call(document.querySelectorAll(".a-g:checked"),function(c){return c.value}).join(",");
+ if(!gs){err("Choose at least one group, or All groups.");return}
+ call("save",q("id",$("a-id").value)+q("set",$("a-set").value)+q("title",$("a-title").value)+q("brief",$("a-brief").value)+q("groups",gs)+q("due",$("a-due").value)+q("outof",$("a-out").value)+q("outcome",$("a-oc").value),function(d){var id=d.saved;clearForm();call("view",q("id",id))});
+});
+function login(){$("a-main").hidden=true;$("a-login").hidden=false;$("a-key").focus()}
+$("a-form").addEventListener("submit",function(e){e.preventDefault();var k=$("a-key").value.trim();if(!k)return;
+ jsonp("action=hostcheck&hostkey="+encodeURIComponent(k),function(d){if(d&&d.ok){KEY=k;try{sessionStorage.setItem("cm_hk",k)}catch(x){}$("a-login").hidden=true;$("a-main").hidden=false;call("list")}else{$("a-lerr").textContent=d?"That key was not accepted.":"Could not reach the class server.";$("a-lerr").hidden=false}},10000)});
+if(KEY){$("a-main").hidden=false;call("list")}else login();
+})();
+</script>
+</div>
+</main>
+
+
+<footer><div class="wrap"><p class="foot-note"><span data-cm="footer"></span><a href="lecturer.html">Lecturer</a></p></div></footer>
+<script src="assets/render.js"></script>
+<script src="assets/site.js"></script>
+<script src="assets/tracking.js"></script>
+</body>
+</html>
