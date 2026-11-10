@@ -10,14 +10,17 @@
   "scripts": {
     "start": "electron .",
     "test": "node --test test/*.test.js",
+    "test:browser": "node --test --test-concurrency=1 test/browser/*.test.js",
     "dist": "electron-builder",
     "dist:mac": "electron-builder --mac",
     "dist:win": "electron-builder --win",
     "dist:linux": "electron-builder --linux"
   },
   "devDependencies": {
+    "axe-core": "^4.14.0",
     "electron": "44.9.3",
-    "electron-builder": "26.18.0"
+    "electron-builder": "26.18.0",
+    "playwright": "^1.63.0"
   },
   "build": {
     "appId": "io.github.hhdonglo.classmanager",
