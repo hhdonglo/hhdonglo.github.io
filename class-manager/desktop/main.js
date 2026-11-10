@@ -312,6 +312,10 @@ ipcMain.handle("cm:live", () => {
   } catch (e) { /* no quiz yet */ }
   return out;
 });
+// Class statistics for the In Class summary and the Class Statistics screen, computed in the backend from the local workbook.
+const statOpts = (o) => { const p = {}; for (const k of ["effort", "perf", "idle", "misses", "id"]) if (o && o[k] !== undefined && o[k] !== "") p[k] = String(o[k]).slice(0, 20); return p; };
+ipcMain.handle("cm:stats", (e, o) => { try { return backend.stats(statOpts(o)); } catch (err) { return { ok: false, why: err.message }; } });
+ipcMain.handle("cm:studentStats", (e, o) => { try { return backend.studentStats(statOpts(o)); } catch (err) { return { ok: false, why: err.message }; } });
 ipcMain.handle("cm:tunnelStart", () => startTunnel());
 ipcMain.handle("cm:readme", () => shell.openPath(app.isPackaged ? path.join(process.resourcesPath, "README.txt") : path.join(__dirname, "README.txt")));
 ipcMain.handle("cm:tunnelStop", () => stopTunnel());

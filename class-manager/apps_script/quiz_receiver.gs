@@ -1597,7 +1597,7 @@ function counts_(code) {
 // ---------- Portal and Control Centre support (additive: no existing action changes) ----------
 // SCRIPT_VERSION: change it whenever the script is redeployed; the Control Centre compares it with the version its page expects.
 // Key!M2 = Off hides "My results" from students (default On).
-var SCRIPT_VERSION = '2026-11-09-calendar-1';
+var SCRIPT_VERSION = '2026-11-10-statistics-1';
 
 function resultsOn_() {
   try {
@@ -1787,11 +1787,11 @@ function practiceLecture_(quiz) { // 'Lecture 5 ...' -> 5, 'Introduction ...' ->
   var m = /^Lecture\s+(\d+)/i.exec(q); if (m) return Number(m[1]);
   return /^Introduction/i.test(q) ? 0 : null;
 }
-function attemptRows_() { // [{ts, id, quiz, score, total, wrong[], asked[], missed, mock, lec}]
+function attemptRows_() { // [{ts, id, quiz, score, total, secs, wrong[], asked[], missed, mock, lec}]
   var at = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Attempts');
   return bodyRows_(at, 9).map(function (r) {
     var quiz = String(r[2]);
-    return { ts: new Date(r[0]).getTime() || 0, id: normId_(r[1]), quiz: quiz, score: Number(r[4]) || 0, total: Number(r[5]) || 0,
+    return { ts: new Date(r[0]).getTime() || 0, id: normId_(r[1]), quiz: quiz, score: Number(r[4]) || 0, total: Number(r[5]) || 0, secs: Number(r[6]) || 0,
       wrong: splitIds_(r[7]), asked: splitIds_(r[8]), missed: /\(missed/i.test(quiz), mock: /mock/i.test(quiz), lec: practiceLecture_(quiz) };
   }).filter(function (x) { return x.id; });
 }
@@ -1845,6 +1845,41 @@ function studentLearning_(id) {
   return { mastery: mastery, revisit: revisit.slice(0, 60), practice: Object.keys(practice).map(function (k) { return practice[k]; }) };
 }
 
+// Per question: proportion correct (live, practice and mock), the spread of A to E, blanks, the most chosen wrong option,
+// the discrimination index (upper and lower 27 per cent by the rest of the quiz) and confidence counts. Used by Teaching insights and Class statistics.
+function questionStats_(items, attempts) {
+  var Q = {};
+  function q_(qid) { return Q[qid] || (Q[qid] = { id: qid, lecture: lectureOfQid_(qid), live: 0, liveRight: 0, dist: { A: 0, B: 0, C: 0, D: 0, E: 0 }, key: '', confWrong: 0, confAnswered: 0, lowRight: 0, pr: 0, prRight: 0, resp: [], blank: 0 }); }
+  var attemptTotals = {};
+  items.forEach(function (r) { var k = String(r[4]).trim() + '|' + String(r[1]).trim().toUpperCase() + '|' + (Number(r[2]) || 0); var t = attemptTotals[k] || (attemptTotals[k] = { right: 0, n: 0 }); t.n++; if (Number(r[9])) t.right++; });
+  items.forEach(function (r) {
+    var qid = String(r[6]).trim(); if (!qid) return;
+    var x = q_(qid), ok = Number(r[9]) ? 1 : 0, ans = String(r[7]).trim().toUpperCase(), cf = String(r[10]).trim().toUpperCase().charAt(0);
+    x.live++; x.liveRight += ok; x.key = String(r[8]).trim().toUpperCase() || x.key;
+    if (ans && x.dist[ans] !== undefined) x.dist[ans]++; else if (!ans) x.blank++;
+    if (cf) { x.confAnswered++; if (!ok && cf === 'H') x.confWrong++; if (ok && cf === 'L') x.lowRight++; }
+    var t = attemptTotals[String(r[4]).trim() + '|' + String(r[1]).trim().toUpperCase() + '|' + (Number(r[2]) || 0)];
+    x.resp.push({ ok: ok, total: t && t.n > 1 ? (t.right - ok) / (t.n - 1) : 0 }); // the rest of the quiz, without this question
+  });
+  attempts.forEach(function (a) { a.asked.forEach(function (qid) { var x = q_(qid); x.pr++; if (a.wrong.indexOf(qid) < 0) x.prRight++; }); });
+  var stats = Object.keys(Q).map(function (k) {
+    var x = Q[k], d = null, n = x.resp.length;
+    if (n >= 10) { // upper and lower 27 per cent by the rest of the quiz
+      var s = x.resp.slice().sort(function (a, b) { return b.total - a.total; }), g = Math.max(1, Math.round(0.27 * n));
+      var up = s.slice(0, g).reduce(function (t, v) { return t + v.ok; }, 0) / g, lo = s.slice(n - g).reduce(function (t, v) { return t + v.ok; }, 0) / g;
+      d = Math.round(100 * (up - lo)) / 100;
+    }
+    var wrongTop = '', wrongN = 0;
+    Object.keys(x.dist).forEach(function (L) { if (L !== x.key && x.dist[L] > wrongN) { wrongN = x.dist[L]; wrongTop = L; } });
+    var n2 = x.live + x.pr, p2 = n2 ? (x.liveRight + x.prRight) / n2 : null;
+    var label = n2 >= 10 ? (p2 >= 0.7 ? 'Easy' : p2 >= 0.3 ? 'Moderate' : 'Difficult') : '';
+    return { id: x.id, lecture: x.lecture, live: x.live, livePct: pct_(x.liveRight, x.live), key: x.key, dist: x.dist, wrongTop: wrongTop, wrongTopN: wrongN,
+      discrimination: d, confidentWrong: x.confWrong, unsureRight: x.lowRight, confAnswered: x.confAnswered, practice: x.pr, practicePct: pct_(x.prRight, x.pr),
+      blank: x.blank, answers: n2, pct: p2 === null ? null : Math.round(1000 * p2) / 10, label: label };
+  }).sort(function (a, b) { return a.lecture - b.lecture || (a.id < b.id ? -1 : 1); });
+  return stats;
+}
+
 // ---- Teaching insights (host only) ----
 function insights_(p) {
   var ss = SpreadsheetApp.getActiveSpreadsheet(), now = Date.now();
@@ -1895,35 +1930,7 @@ function insights_(p) {
   out.practice = { attempts: attempts.length, last7Days: recent, studentsLast7Days: Object.keys(recentIds).filter(function (x) { return !roster.length || inRoster[x]; }).length };
 
   // Question statistics.
-  var Q = {};
-  function q_(qid) { return Q[qid] || (Q[qid] = { id: qid, lecture: lectureOfQid_(qid), live: 0, liveRight: 0, dist: { A: 0, B: 0, C: 0, D: 0, E: 0 }, key: '', confWrong: 0, confAnswered: 0, lowRight: 0, pr: 0, prRight: 0, resp: [] }); }
-  var items = bodyRows_(ss.getSheetByName(ITEMS_TAB), 11), attemptTotals = {};
-  items.forEach(function (r) { var k = String(r[4]).trim() + '|' + String(r[1]).trim().toUpperCase() + '|' + (Number(r[2]) || 0); var t = attemptTotals[k] || (attemptTotals[k] = { right: 0, n: 0 }); t.n++; if (Number(r[9])) t.right++; });
-  items.forEach(function (r) {
-    var qid = String(r[6]).trim(); if (!qid) return;
-    var x = q_(qid), ok = Number(r[9]) ? 1 : 0, ans = String(r[7]).trim().toUpperCase(), cf = String(r[10]).trim().toUpperCase().charAt(0);
-    x.live++; x.liveRight += ok; x.key = String(r[8]).trim().toUpperCase() || x.key;
-    if (ans && x.dist[ans] !== undefined) x.dist[ans]++;
-    if (cf) { x.confAnswered++; if (!ok && cf === 'H') x.confWrong++; if (ok && cf === 'L') x.lowRight++; }
-    var t = attemptTotals[String(r[4]).trim() + '|' + String(r[1]).trim().toUpperCase() + '|' + (Number(r[2]) || 0)];
-    x.resp.push({ ok: ok, total: t && t.n > 1 ? (t.right - ok) / (t.n - 1) : 0 }); // the rest of the quiz, without this question
-  });
-  attempts.forEach(function (a) { a.asked.forEach(function (qid) { var x = q_(qid); x.pr++; if (a.wrong.indexOf(qid) < 0) x.prRight++; }); });
-  var stats = Object.keys(Q).map(function (k) {
-    var x = Q[k], d = null, n = x.resp.length;
-    if (n >= 10) { // upper and lower 27 per cent by the rest of the quiz
-      var s = x.resp.slice().sort(function (a, b) { return b.total - a.total; }), g = Math.max(1, Math.round(0.27 * n));
-      var up = s.slice(0, g).reduce(function (t, v) { return t + v.ok; }, 0) / g, lo = s.slice(n - g).reduce(function (t, v) { return t + v.ok; }, 0) / g;
-      d = Math.round(100 * (up - lo)) / 100;
-    }
-    var wrongTop = '', wrongN = 0;
-    Object.keys(x.dist).forEach(function (L) { if (L !== x.key && x.dist[L] > wrongN) { wrongN = x.dist[L]; wrongTop = L; } });
-    var n2 = x.live + x.pr, p2 = n2 ? (x.liveRight + x.prRight) / n2 : null;
-    var label = n2 >= 10 ? (p2 >= 0.7 ? 'Easy' : p2 >= 0.3 ? 'Moderate' : 'Difficult') : '';
-    return { id: x.id, lecture: x.lecture, live: x.live, livePct: pct_(x.liveRight, x.live), key: x.key, dist: x.dist, wrongTop: wrongTop, wrongTopN: wrongN,
-      discrimination: d, confidentWrong: x.confWrong, unsureRight: x.lowRight, confAnswered: x.confAnswered, practice: x.pr, practicePct: pct_(x.prRight, x.pr),
-      answers: n2, pct: p2 === null ? null : Math.round(1000 * p2) / 10, label: label };
-  }).sort(function (a, b) { return a.lecture - b.lecture || (a.id < b.id ? -1 : 1); });
+  var stats = questionStats_(bodyRows_(ss.getSheetByName(ITEMS_TAB), 11), attempts);
   out.questions = stats;
   var lecs = {};
   stats.forEach(function (s) { if (s.lecture < 0) return; var l = lecs[s.lecture] || (lecs[s.lecture] = { lecture: s.lecture, right: 0, n: 0 }); l.n += s.answers; l.right += s.pct === null ? 0 : s.pct * s.answers / 100; });
@@ -1953,6 +1960,330 @@ function insights_(p) {
     }));
   } catch (err) { out.statsTabError = String(err).slice(0, 120); }
   return out;
+}
+
+// ---------- Class statistics (host only): attendance, quizzes, each student's progress and suggested engagement groups ----------
+// Everything is computed here from the tabs the app already keeps; nothing is estimated. The engagement groups are a suggestion
+// for the lecturer to review, never shown to students. Thresholds come from the request so the lecturer can adjust them:
+//   effort (default 70): the effort score at or above which effort counts as high;
+//   perf (default 50): the quiz average at or above which performance counts as good;
+//   idle (default 14): days without practice before practice no longer counts as recent;
+//   misses (default 2): consecutive missed sessions that mark a student in the attendance list.
+var STATS_GROUPS = ['On track', 'Working hard but struggling', 'Disengaged', 'Needs a check-in', 'Not enough data'];
+
+function statNums_(xs) { // mean, median, sample standard deviation, quartiles, range and a 10-band histogram of percentages
+  var v = xs.filter(function (x) { return typeof x === 'number' && !isNaN(x); }).slice().sort(function (a, b) { return a - b; }), n = v.length;
+  var hist = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+  if (!n) return { n: 0, mean: null, median: null, sd: null, q1: null, q3: null, min: null, max: null, hist: hist };
+  var q = function (p) { var h = (n - 1) * p, lo = Math.floor(h), hi = Math.ceil(h); return v[lo] + (v[hi] - v[lo]) * (h - lo); };
+  var mean = v.reduce(function (a, b) { return a + b; }, 0) / n;
+  var sd = n > 1 ? Math.sqrt(v.reduce(function (a, b) { return a + (b - mean) * (b - mean); }, 0) / (n - 1)) : 0;
+  v.forEach(function (x) { hist[Math.max(0, Math.min(9, Math.floor(x / 10)))]++; }); // 100 joins the top band
+  var r1 = function (x) { return Math.round(x * 10) / 10; };
+  return { n: n, mean: r1(mean), median: r1(q(0.5)), sd: r1(sd), q1: r1(q(0.25)), q3: r1(q(0.75)), min: r1(v[0]), max: r1(v[n - 1]), hist: hist };
+}
+
+function statThresholds_(p) {
+  var num = function (v, d, lo, hi) { var x = Number(v); return isNaN(x) || v === '' || v === undefined ? d : Math.max(lo, Math.min(hi, x)); };
+  return { effort: num(p.effort, 70, 0, 100), perf: num(p.perf, 50, 0, 100), idle: num(p.idle, 14, 1, 120), misses: num(p.misses, 2, 1, 20) };
+}
+
+// The suggested group for one student, with the reasons in plain words. Effort is the mean of the parts that exist:
+// attendance rate, the share of live quizzes taken, and recent practice (100 if practised in the last `idle` days, else 0).
+function engagementOf_(s, th, have) {
+  var parts = [];
+  if (have.sessions && s.attendance !== null) parts.push(s.attendance);
+  if (have.quizzes) parts.push(100 * s.quizzesTaken / have.quizzes);
+  if (have.practice) parts.push(s.practiceRecent ? 100 : 0);
+  var effort = parts.length ? Math.round(parts.reduce(function (a, b) { return a + b; }, 0) / parts.length) : null;
+  var perf = s.quizAverage !== null ? s.quizAverage : s.practiceAverage;
+  var hiE = effort !== null && effort >= th.effort, hiP = perf !== null && perf >= th.perf, group;
+  if (effort === null || (!have.sessions && !have.quizzes)) group = 'Not enough data';
+  else if (perf === null) group = hiE ? 'Not enough data' : 'Needs a check-in';
+  else group = hiE ? (hiP ? 'On track' : 'Working hard but struggling') : (hiP ? 'Disengaged' : 'Needs a check-in');
+  var why = [];
+  if (have.sessions && s.attendance !== null) why.push('attendance ' + s.attendance + '%');
+  if (have.quizzes) why.push(s.quizzesTaken + ' of ' + have.quizzes + ' quizzes taken');
+  if (have.practice) why.push(s.practiceRecent ? 'practised in the last ' + th.idle + ' days' : 'no practice in the last ' + th.idle + ' days');
+  if (perf !== null) why.push((s.quizAverage !== null ? 'quiz average ' : 'practice average ') + perf + '%');
+  return { effort: effort, performance: perf, group: group, why: why };
+}
+
+function classStats_(p) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet(), now = Date.now(), th = statThresholds_(p || {});
+  var roster = rosterRows_().map(function (r) { return { id: normId_(r[0]), name: cleanName_(r[1]).trim() }; }).filter(function (r) { return r.id; });
+  var inRoster = {}; roster.forEach(function (r) { inRoster[r.id] = true; });
+  var out = { ok: true, version: SCRIPT_VERSION, generated: new Date(now).toISOString(), thresholds: th, rosterSize: roster.length, groupNames: STATS_GROUPS };
+
+  // ---- Attendance: the submitted grid (one column per session, in the order taken) ----
+  var at = ss.getSheetByName(ATT_TAB), grid = at && at.getLastRow() > 1 && at.getLastColumn() > 1 ? at.getRange(1, 1, at.getLastRow(), at.getLastColumn()).getValues() : null;
+  var sessions = [], attOf = {};
+  if (grid) {
+    for (var c = 1; c < grid[0].length; c++) if (String(grid[0][c]).trim()) sessions.push({ col: c, label: String(grid[0][c]).trim(), present: 0, counted: 0 });
+    for (var i = 1; i < grid.length; i++) {
+      var aid = normId_(grid[i][0]); if (!aid || (roster.length && !inRoster[aid])) continue;
+      var marks = [];
+      sessions.forEach(function (s) { var v = grid[i][s.col]; if (v === '' || v === null) { marks.push(null); return; } var on = Number(v) ? 1 : 0; marks.push(on); s.counted++; s.present += on; });
+      attOf[aid] = marks;
+    }
+  }
+  // Arrival: minutes from opening the check-in to each student's first check-in. Check-ins added or approved by the lecturer are left out.
+  var opened = {}; bodyRows_(ss.getSheetByName(ATT_CTL_TAB), 4).forEach(function (r) { var t = new Date(r[3]).getTime(); if (t) opened[attColumn_(String(r[1]))] = t; });
+  var firstIn = {}, lg = ss.getSheetByName(ATT_LOG_TAB);
+  bodyRows_(lg, 6).forEach(function (r) {
+    if (/lecturer/i.test(String(r[5]))) return;
+    var col = attColumn_(String(r[1])), id = normId_(r[2]), t = new Date(r[0]).getTime(); if (!id || !t || !opened[col]) return;
+    var k = col + '|' + id; if (!firstIn[k] || t < firstIn[k]) firstIn[k] = t;
+  });
+  var arrBySession = {}, arrByStudent = {};
+  Object.keys(firstIn).forEach(function (k) {
+    var col = k.split('|')[0], id = k.split('|')[1], m = Math.max(0, (firstIn[k] - opened[col]) / 60000);
+    (arrBySession[col] = arrBySession[col] || []).push(m); (arrByStudent[id] = arrByStudent[id] || []).push(m);
+  });
+  var ARR_BANDS = [[0, 2, 'Under 2 min'], [2, 5, '2 to 5 min'], [5, 10, '5 to 10 min'], [10, 15, '10 to 15 min'], [15, 1e9, '15 min or more']];
+  var band = function (xs) { return ARR_BANDS.map(function (b) { return { label: b[2], n: xs.filter(function (m) { return m >= b[0] && m < b[1]; }).length }; }); };
+  var allArr = []; Object.keys(arrBySession).forEach(function (k) { allArr = allArr.concat(arrBySession[k]); });
+  var bySession = sessions.map(function (s) { var a = statNums_(arrBySession[s.label] || []); return { label: s.label, present: s.present, counted: s.counted, rate: pct_(s.present, s.counted), arrivalMedian: a.median, arrivals: a.n }; });
+  var recent = bySession.slice(-3), earlier = bySession.slice(0, -3), avgRate = function (xs) { var p2 = 0, c2 = 0; xs.forEach(function (x) { p2 += x.present; c2 += x.counted; }); return pct_(p2, c2); };
+  out.attendance = { sessions: sessions.length, rate: avgRate(bySession), lastRate: bySession.length ? bySession[bySession.length - 1].rate : null,
+    recentRate: avgRate(recent), earlierRate: earlier.length ? avgRate(earlier) : null, bySession: bySession,
+    arrival: { median: statNums_(allArr).median, bands: band(allArr), latest: sessions.length ? band(arrBySession[sessions[sessions.length - 1].label] || []) : [] } };
+
+  // ---- Live quizzes: released results, the latest round per student and quiz ----
+  var rs = responses_(), rn = rs.getLastRow(), latest = {}, quizMeta = {};
+  (rn > 1 ? rs.getRange(2, 1, rn - 1, 14).getValues() : []).forEach(function (r) {
+    var id = normId_(r[2]), code = String(r[3]).trim().toUpperCase(); if (!id || !code || r[9] === '') return;
+    var wk = Number(r[13]) || 0, qk = wk ? 'Week ' + wk : 'Quiz ' + code, k = id + '|' + qk, rnd = Number(r[10]) || 0, ts = new Date(r[0]).getTime() || 0;
+    var m = quizMeta[qk] || (quizMeta[qk] = { quiz: qk, week: wk, first: ts, codes: {} }); m.codes[code] = true; if (ts && (!m.first || ts < m.first)) m.first = ts;
+    if (!latest[k] || rnd >= latest[k].rnd) latest[k] = { id: id, quiz: qk, rnd: rnd, score: Number(r[9]) || 0, n: Number(r[11]) || 5, code: code };
+  });
+  var order = Object.keys(quizMeta).sort(function (a, b) { var x = quizMeta[a], y = quizMeta[b]; return (x.first || 0) - (y.first || 0) || (x.week || 99) - (y.week || 99); });
+  var joined = {}; bodyRows_(ss.getSheetByName(PRESENCE_TAB), 5).forEach(function (r) { var code = String(r[3]).trim().toUpperCase(), id = normId_(r[1]); if (code && id) (joined[code] = joined[code] || {})[id] = true; });
+  var blanks = {}; bodyRows_(ss.getSheetByName(ITEMS_TAB), 11).forEach(function (r) { if (!String(r[7]).trim()) { var code = String(r[1]).trim().toUpperCase(); blanks[code] = (blanks[code] || 0) + 1; } });
+  var perStudentQuiz = {}; // id -> {quiz: pct}
+  Object.keys(latest).forEach(function (k) { var x = latest[k]; (perStudentQuiz[x.id] = perStudentQuiz[x.id] || {})[x.quiz] = x.n ? Math.round(1000 * x.score / x.n) / 10 : 0; });
+  out.quizzes = order.map(function (qk) {
+    var m = quizMeta[qk], ids = Object.keys(perStudentQuiz).filter(function (id) { return perStudentQuiz[id][qk] !== undefined && (!roster.length || inRoster[id]); });
+    var st = statNums_(ids.map(function (id) { return perStudentQuiz[id][qk]; })), j = {}, bl = 0, items = 0;
+    Object.keys(m.codes).forEach(function (code) { Object.keys(joined[code] || {}).forEach(function (id) { j[id] = true; }); bl += blanks[code] || 0; });
+    Object.keys(latest).forEach(function (k) { if (latest[k].quiz === qk) items += latest[k].n; });
+    var nj = Object.keys(j).length;
+    return { quiz: qk, week: m.week, date: m.first ? Utilities.formatDate(new Date(m.first), Session.getScriptTimeZone(), 'dd/MM/yyyy') : '', students: ids.length,
+      joined: nj, completion: nj ? pct_(Math.min(ids.length, nj), nj) : null, participation: roster.length ? pct_(ids.length, roster.length) : null,
+      unanswered: items ? pct_(bl, items) : null, stats: st };
+  });
+
+  // ---- Questions: difficulty, distractors and discrimination ----
+  var attempts = attemptRows_();
+  var itemRows = bodyRows_(ss.getSheetByName(ITEMS_TAB), 11), rep = repeatPairs_(itemRows, attempts);
+  out.questions = questionStats_(itemRows, attempts);
+  out.questions.forEach(function (q) { // a shared wrong answer: one wrong option chosen by a third or more of the live answers (10 or more)
+    var tot = 0; Object.keys(q.dist).forEach(function (L) { tot += q.dist[L]; });
+    var share = tot ? Math.round(100 * q.wrongTopN / (tot + q.blank)) : 0, again = rep.byQuestion[q.id];
+    q.misconception = q.wrongTop && q.live >= 10 && share >= 33 ? { option: q.wrongTop, share: share, of: tot + q.blank, persists: !!(again && again.pairs >= 5 && again.laterWrong / again.pairs >= 1 / 3) } : null;
+  });
+
+  // ---- Practice ----
+  var prac = {};
+  attempts.forEach(function (a) {
+    var x = prac[a.id] || (prac[a.id] = { n: 0, recent: 0, secs: 0, last: 0, best: {} });
+    x.n++; x.secs += a.secs; if (a.ts > x.last) x.last = a.ts; if (now - a.ts <= th.idle * 864e5) x.recent++;
+    if (!a.missed && a.total) { var key = a.quiz.replace(/\s*\(.*$/, ''), pc = 100 * a.score / a.total; if (!(key in x.best) || pc > x.best[key]) x.best[key] = pc; }
+  });
+
+  // ---- Each student ----
+  var have = { sessions: sessions.length, quizzes: order.length, practice: attempts.length > 0 };
+  var students = roster.map(function (r) {
+    var marks = attOf[r.id] || [], pres = 0, cnt = 0, run = 0, longest = 0;
+    marks.forEach(function (v) { if (v === null) return; cnt++; pres += v; if (v) run = 0; else { run++; longest = Math.max(longest, run); } });
+    var qs = perStudentQuiz[r.id] || {}, traj = order.filter(function (k) { return qs[k] !== undefined; }).map(function (k) { return { quiz: k, pct: qs[k] }; });
+    var sum = 0, outOf = 0; Object.keys(latest).forEach(function (k) { var x = latest[k]; if (x.id === r.id) { sum += x.score; outOf += x.n; } });
+    var pr = prac[r.id], bests = pr ? Object.keys(pr.best).map(function (k) { return pr.best[k]; }) : [];
+    var arr = statNums_(arrByStudent[r.id] || []);
+    return { id: r.id, name: r.name, attendance: cnt ? pct_(pres, cnt) : null, present: pres, sessions: cnt, missedInARow: run, longestMissed: longest,
+      marks: marks, arrivalMedian: arr.median, quizzesTaken: traj.length, quizAverage: outOf ? pct_(sum, outOf) : null, trajectory: traj,
+      change: traj.length > 1 ? Math.round(10 * (traj[traj.length - 1].pct - traj[traj.length - 2].pct)) / 10 : null,
+      practiceAttempts: pr ? pr.n : 0, practiceRecent: pr ? pr.recent : 0, practiceMinutes: pr ? Math.round(pr.secs / 60) : 0,
+      practiceAverage: bests.length ? Math.round(10 * bests.reduce(function (a, b) { return a + b; }, 0) / bests.length) / 10 : null,
+      lastPractice: pr && pr.last ? Utilities.formatDate(new Date(pr.last), Session.getScriptTimeZone(), 'dd/MM/yyyy') : '' };
+  });
+  // Percentile rank of the quiz average among students who have one: the share below, with ties counted as half.
+  var avgs = students.filter(function (s) { return s.quizAverage !== null; }).map(function (s) { return s.quizAverage; });
+  students.forEach(function (s) {
+    if (s.quizAverage === null || avgs.length < 2) { s.percentile = null; } else {
+      var below = avgs.filter(function (a) { return a < s.quizAverage; }).length, same = avgs.filter(function (a) { return a === s.quizAverage; }).length - 1;
+      s.percentile = Math.round(100 * (below + same / 2) / (avgs.length - 1));
+    }
+    var e = engagementOf_(s, th, have); s.effort = e.effort; s.performance = e.performance; s.group = e.group; s.why = e.why;
+  });
+  out.students = students;
+  var counts = {}; STATS_GROUPS.forEach(function (g) { counts[g] = 0; }); students.forEach(function (s) { counts[s.group]++; });
+  out.groups = counts;
+
+  // ---- Is the class learning, and where to target ----
+  out.learning = learningVerdict_(out, rep, th);
+  out.targets = targets_(out, out.learning, th);
+
+  // ---- The summary for the overview ----
+  var lastQ = out.quizzes.length ? out.quizzes[out.quizzes.length - 1] : null;
+  out.summary = {
+    attendanceRate: out.attendance.rate, lastSessionRate: out.attendance.lastRate, recentRate: out.attendance.recentRate, earlierRate: out.attendance.earlierRate,
+    missedInARow: students.filter(function (s) { return s.missedInARow >= th.misses; }).length,
+    quizzes: out.quizzes.length, quizAverage: statNums_(students.map(function (s) { return s.quizAverage; })).mean, lastQuiz: lastQ,
+    review: out.questions.filter(function (q) { return q.answers >= 5 && q.pct !== null; }).sort(function (a, b) { return a.pct - b.pct; }).slice(0, 3)
+      .map(function (q) { return { id: q.id, pct: q.pct, wrongTop: q.wrongTop, wrongTopN: q.wrongTopN, answers: q.answers }; })
+  };
+  return out;
+}
+
+// ---- Is the class learning? ----
+// A verdict from several kinds of evidence, never from one quiz. Each signal is +1 (improving), 0 (no clear change) or -1 (worse),
+// with its sample size. Direct evidence of learning counts twice: the change in answers to the same questions over time, and the
+// trend of the class's quiz scores. Attendance and participation can support a verdict but cannot make one on their own.
+// Minimum data: two released live quizzes with at least LEARN_MIN_STUDENTS students each, or LEARN_MIN_PAIRS repeated answers.
+var LEARN_MIN_STUDENTS = 10, LEARN_MIN_PAIRS = 30, LEARN_VERDICTS = ['Learning', 'Mixed', 'Not yet learning', 'Not enough data'];
+
+// Each student's first and latest answer to the same question (a live quiz, then practice, a mock exam or a later quiz).
+function repeatPairs_(items, attempts) {
+  var seen = {}; // id|qid -> [{t, ok}]
+  var add = function (id, qid, t, ok) { if (!id || !qid || !t) return; (seen[id + '|' + qid] = seen[id + '|' + qid] || []).push({ t: t, ok: ok }); };
+  items.forEach(function (r) { add(normId_(r[4]), String(r[6]).trim(), new Date(r[0]).getTime(), Number(r[9]) ? 1 : 0); });
+  attempts.forEach(function (a) { a.asked.forEach(function (q) { add(a.id, q, a.ts, a.wrong.indexOf(q) < 0 ? 1 : 0); }); });
+  var byLec = {}, byQ = {}, all = { n: 0, first: 0, last: 0 };
+  Object.keys(seen).forEach(function (k) {
+    var xs = seen[k]; if (xs.length < 2) return;
+    xs.sort(function (a, b) { return a.t - b.t; });
+    var l = lectureOfQid_(k.split('|')[1]), f = xs[0].ok, z = xs[xs.length - 1].ok;
+    var bq = byQ[k.split('|')[1]] || (byQ[k.split('|')[1]] = { pairs: 0, laterWrong: 0 }); bq.pairs++; bq.laterWrong += 1 - z;
+    var b = byLec[l] || (byLec[l] = { n: 0, first: 0, last: 0 }); b.n++; b.first += f; b.last += z; all.n++; all.first += f; all.last += z;
+  });
+  var fin = function (b) { return { pairs: b.n, firstPct: pct_(b.first, b.n), laterPct: pct_(b.last, b.n), gain: b.n ? Math.round(1000 * (b.last - b.first) / b.n) / 10 : null }; };
+  var out = { all: fin(all), byLecture: {}, byQuestion: byQ };
+  Object.keys(byLec).forEach(function (l) { out.byLecture[l] = fin(byLec[l]); });
+  return out;
+}
+
+function slope_(ys) { // least-squares change per step
+  var n = ys.length; if (n < 2) return null;
+  var mx = (n - 1) / 2, my = ys.reduce(function (a, b) { return a + b; }, 0) / n, sxy = 0, sxx = 0;
+  ys.forEach(function (y, i) { sxy += (i - mx) * (y - my); sxx += (i - mx) * (i - mx); });
+  return Math.round(10 * sxy / sxx) / 10;
+}
+
+function mixedAction_(sig, out) { // the evidence in a sentence: what improves, and what falls or persists
+  var UP = { repeat: 'answers improve when the same questions come back', scores: 'quiz scores are rising', participation: 'more students are taking the quizzes', attendance: 'attendance is rising' };
+  var DOWN = { repeat: 'answers do not improve when questions come back', scores: 'quiz scores are falling', misconceptions: 'some wrong answers persist', participation: 'fewer students are taking the quizzes', attendance: 'attendance is falling' };
+  var list = function (xs) { return xs.length < 2 ? xs.join('') : xs.slice(0, -1).join(', ') + ' and ' + xs[xs.length - 1]; };
+  var up = sig.filter(function (s) { return s.value > 0 && UP[s.key]; }).map(function (s) { return UP[s.key]; });
+  var down = sig.filter(function (s) { return s.value < 0 && DOWN[s.key]; }).map(function (s) { return DOWN[s.key]; });
+  var t = up.length && down.length ? list(up) + ', but ' + list(down) + '. ' : up.length ? list(up) + ', while other signs are flat. ' : down.length ? list(down) + '. ' : '';
+  return (t ? t.charAt(0).toUpperCase() + t.slice(1) : '') + 'Work through the areas to target, then check the weakest topic with a short follow-up quiz.';
+}
+function learningVerdict_(out, rep, th) {
+  var sig = [], small = [];
+  // 1. The same questions answered again later.
+  var ra = rep.all;
+  if (ra.pairs) {
+    var g = ra.gain, v = ra.pairs < LEARN_MIN_PAIRS ? 0 : g >= 10 ? 1 : g <= -5 ? -1 : 0;
+    if (ra.pairs < LEARN_MIN_PAIRS) small.push('only ' + ra.pairs + ' repeated answers to the same questions');
+    sig.push({ key: 'repeat', direct: true, value: v, n: ra.pairs, title: 'Same questions answered again',
+      text: 'Correct the first time ' + ra.firstPct + '%, the latest time ' + ra.laterPct + '% (' + (g >= 0 ? '+' : '') + g + ' points, ' + ra.pairs + ' repeated answers).' });
+  }
+  // 2. The class's quiz scores over time. Quizzes cover different lectures, so this is weaker evidence than the item above.
+  var qz = out.quizzes.filter(function (q) { return q.students >= LEARN_MIN_STUDENTS; });
+  if (qz.length >= 2) {
+    var sl = slope_(qz.map(function (q) { return q.stats.mean; })), v2 = qz.length < 3 ? 0 : sl >= 3 ? 1 : sl <= -3 ? -1 : 0;
+    if (qz.length < 3) small.push('only two quizzes, so the score trend is not used yet');
+    sig.push({ key: 'scores', direct: true, value: v2, n: qz.length, title: 'Quiz scores over time',
+      text: 'Class mean ' + qz.map(function (q) { return q.stats.mean + '%'; }).join(', ') + ' (' + (sl >= 0 ? '+' : '') + sl + ' points per quiz). Each quiz covers a different lecture, so a change in difficulty also moves this.' });
+  } else if (out.quizzes.length) small.push('fewer than two quizzes with ' + LEARN_MIN_STUDENTS + ' or more students');
+  // 3. Misconceptions that persist: the same wrong option chosen by a third or more of the class, in live answers and again later.
+  var persist = out.questions.filter(function (q) { return q.misconception && q.misconception.persists; });
+  var mis = out.questions.filter(function (q) { return q.misconception; });
+  if (mis.length) sig.push({ key: 'misconceptions', direct: false, value: persist.length >= 2 ? -1 : 0, n: mis.length, title: 'Shared wrong answers',
+    text: mis.length + ' question' + (mis.length === 1 ? '' : 's') + ' with one wrong option chosen by a third or more of the answers; ' + persist.length + ' still answered wrongly by a third or more of the class when asked again.' });
+  // 4. Participation and attendance, recent against earlier.
+  if (out.quizzes.length >= 4 && out.rosterSize) {
+    var half = Math.floor(out.quizzes.length / 2), part = function (xs) { return Math.round(xs.reduce(function (a, q) { return a + (q.participation || 0); }, 0) / xs.length); };
+    var pe = part(out.quizzes.slice(0, half)), pr2 = part(out.quizzes.slice(half)), d = pr2 - pe;
+    sig.push({ key: 'participation', direct: false, value: d <= -10 ? -1 : d >= 5 ? 1 : 0, n: out.quizzes.length, title: 'Quiz participation', text: 'Earlier quizzes ' + pe + '% of the class, recent quizzes ' + pr2 + '%.' });
+  }
+  var at = out.attendance;
+  if (at.sessions >= 6 && at.earlierRate !== null) {
+    var d2 = Math.round(10 * (at.recentRate - at.earlierRate)) / 10;
+    sig.push({ key: 'attendance', direct: false, value: d2 <= -10 ? -1 : d2 >= 5 ? 1 : 0, n: at.sessions, title: 'Attendance',
+      text: 'Earlier sessions ' + at.earlierRate + '%, the last three ' + at.recentRate + '%.' });
+  }
+  var direct = sig.filter(function (s) { return (s.key === 'repeat' && s.n >= LEARN_MIN_PAIRS) || (s.key === 'scores' && s.n >= 3); }); // enough for a verdict
+  var score = sig.reduce(function (a, s) { return a + s.value * (s.direct ? 2 : 1); }, 0), directNeg = sig.some(function (s) { return s.direct && s.value < 0; });
+  var verdict = !direct.length ? 'Not enough data' : score >= 2 && !directNeg ? 'Learning' : score <= -2 ? 'Not yet learning' : 'Mixed';
+  var confidence = verdict === 'Not enough data' ? '' : direct.length >= 2 && !small.length ? 'moderate' : 'low';
+  var action = {
+    'Learning': 'Keep the pace. Revisit the weakest topic below with a short follow-up quiz.',
+    'Mixed': mixedAction_(sig, out),
+    'Not yet learning': 'Slow down: re-teach the last topics with worked examples, and check with a short follow-up quiz on the same questions.',
+    'Not enough data': 'Run at least two live quizzes, and ask some of the same questions again later (practice or a follow-up quiz), to see whether answers improve.'
+  }[verdict];
+
+  // Per topic (lecture): proportion correct, change on repeated questions and shared wrong answers.
+  var lecs = {};
+  out.questions.forEach(function (q) { if (q.lecture < 0) return; var l = lecs[q.lecture] || (lecs[q.lecture] = { lecture: q.lecture, answers: 0, right: 0, mis: 0 }); l.answers += q.answers; l.right += (q.pct || 0) * q.answers / 100; if (q.misconception) l.mis++; });
+  var topics = Object.keys(lecs).map(function (k) {
+    var l = lecs[k], r = rep.byLecture[k] || { pairs: 0, gain: null }, pc = l.answers ? Math.round(1000 * l.right / l.answers) / 10 : null, v;
+    if (l.answers < 10) v = 'Not enough data';
+    else if (r.pairs >= 10 && r.gain >= 10) v = 'Learning';
+    else if (pc < 50 && (r.pairs < 10 || r.gain < 5)) v = 'Not yet learning';
+    else if (pc >= 70 && (r.pairs < 10 || r.gain > -5)) v = 'Learning';
+    else v = 'Mixed';
+    var ev = pc + '% correct from ' + l.answers + ' answers';
+    if (r.pairs) ev += '; repeated questions ' + r.firstPct + '% then ' + r.laterPct + '% (' + r.pairs + ' pairs)';
+    if (l.mis) ev += '; ' + l.mis + ' shared wrong answer' + (l.mis === 1 ? '' : 's');
+    return { lecture: l.lecture, label: l.lecture === 0 ? 'Introduction' : 'Lecture ' + l.lecture, verdict: v, pct: pc, answers: l.answers, pairs: r.pairs, gain: r.gain, misconceptions: l.mis, evidence: ev, small: l.answers < 20 || (r.pairs > 0 && r.pairs < 10) };
+  }).sort(function (a, b) { return a.lecture - b.lecture; });
+
+  return { verdict: verdict, verdicts: LEARN_VERDICTS, confidence: confidence, action: action, signals: sig, smallSample: small, topics: topics,
+    minimum: 'At least two released live quizzes with ' + LEARN_MIN_STUDENTS + ' or more students each, or ' + LEARN_MIN_PAIRS + ' repeated answers to the same questions. Three quizzes are needed before the score trend counts.',
+    notMeasured: 'The app has no separate pre-test or concept inventory, so learning is judged from repeated questions and quiz results only.' };
+}
+
+// ---- Areas to target: ranked, each with its evidence, sample size and a suggested action ----
+function targets_(out, learning, th) {
+  var t = [];
+  learning.topics.forEach(function (x) {
+    if (x.verdict === 'Not yet learning') t.push({ kind: 'Topic', title: x.label, weight: 90 - x.pct / 2, evidence: x.evidence, n: x.answers, action: 'Re-teach ' + x.label + ' with worked examples, then a short follow-up quiz on the same ideas.' });
+    else if (x.verdict === 'Mixed' && x.pct < 60) t.push({ kind: 'Topic', title: x.label, weight: 60 - x.pct / 2, evidence: x.evidence, n: x.answers, action: 'Revisit ' + x.label + ' briefly at the start of the next lecture.' });
+  });
+  out.questions.forEach(function (q) {
+    if (q.misconception) t.push({ kind: 'Question', title: q.id + ': option ' + q.misconception.option, weight: 50 + q.misconception.share / 2 + (q.misconception.persists ? 20 : 0),
+      evidence: q.misconception.share + '% of ' + q.misconception.of + ' live answers chose ' + q.misconception.option + ' (correct: ' + q.key + ')' + (q.confidentWrong ? '; ' + q.confidentWrong + ' were confident' : '') + (q.misconception.persists ? '; still wrong for a third or more when asked again' : ''),
+      n: q.misconception.of, action: 'Ask the class why ' + q.misconception.option + ' looks right, let them discuss in pairs, then ask a similar question.' });
+    else if (q.discrimination !== null && q.discrimination < 0.2 && q.pct !== null && q.pct < 50 && q.live >= 10)
+      t.push({ kind: 'Question', title: q.id, weight: 35, evidence: q.pct + '% correct; stronger and weaker students did about equally well (discrimination ' + q.discrimination + ')', n: q.live, action: 'Check the wording and the answer key.' });
+  });
+  var g = function (name) { return out.students.filter(function (s) { return s.group === name; }); };
+  var need = g('Needs a check-in'), hard = g('Working hard but struggling'), dis = g('Disengaged');
+  if (need.length) t.push({ kind: 'Students', title: need.length + ' to check in with', weight: 70, evidence: 'Low effort and low or no results: ' + need.slice(0, 4).map(function (s) { return s.name || s.id; }).join(', ') + (need.length > 4 ? ' and ' + (need.length - 4) + ' more' : ''), n: need.length, action: 'A short personal check-in. Look first at absences in a row.', group: 'Needs a check-in' });
+  if (hard.length) t.push({ kind: 'Students', title: hard.length + ' working hard but struggling', weight: 65, evidence: 'Attending and taking part, quiz average below ' + th.perf + '%', n: hard.length, action: 'Offer a tutorial or a study group; pair them with students who are on track.', group: 'Working hard but struggling' });
+  if (dis.length) t.push({ kind: 'Students', title: dis.length + ' doing well but less engaged', weight: 40, evidence: 'Results at or above ' + th.perf + '% with low attendance or participation', n: dis.length, action: 'Give them harder problems or a role as peer helpers.', group: 'Disengaged' });
+  var rate = out.attendance.rate;
+  out.attendance.bySession.forEach(function (s) {
+    if (s.rate !== null && rate !== null && s.counted >= 5 && (s.rate < rate - 15 || s.rate < 50)) t.push({ kind: 'Session', title: s.label, weight: 45 + (rate - s.rate) / 2, evidence: s.rate + '% present against ' + rate + '% for the term', n: s.counted, action: 'Check what happened that day (a clash, a deadline, the time slot) and repeat its key points.' });
+  });
+  out.quizzes.forEach(function (q) {
+    if (q.participation !== null && q.participation < 60) t.push({ kind: 'Quiz', title: q.quiz, weight: 40 + (60 - q.participation) / 2, evidence: q.participation + '% of the class took part' + (q.completion !== null ? ', ' + q.completion + '% of those who joined finished' : ''), n: q.students, action: 'Reopen it as practice, and remind the class when the next quiz runs.' });
+  });
+  t.forEach(function (x) { x.small = x.kind !== 'Students' && x.n < 10; }); // for students, n is how many, not a sample
+  return t.sort(function (a, b) { return b.weight - a.weight; }).slice(0, 12).map(function (x) { x.weight = Math.round(x.weight); return x; });
+}
+
+// Host only: one student in full, for the Class statistics student view: the row above plus mastery by lecture and questions to revisit.
+function studentStats_(p) {
+  var id = normId_(p.id); if (!id) return { ok: false, why: 'no student ID' };
+  var all = classStats_(p), me = null;
+  all.students.forEach(function (s) { if (s.id === id) me = s; });
+  if (!me) return { ok: false, why: 'that ID is not on the class list' };
+  var ln = { mastery: [], revisit: [], practice: [] }; try { ln = studentLearning_(id); } catch (err) { /* shown without it */ }
+  return { ok: true, student: me, sessions: all.attendance.bySession.map(function (s) { return s.label; }), mastery: ln.mastery, revisit: ln.revisit.slice(0, 15), practice: ln.practice, thresholds: all.thresholds };
 }
 
 // ---------- Student groups: made automatically, adjusted by hand, marked per group ----------
@@ -2548,6 +2879,8 @@ function doGet(e) {
     try { return jsonp_(e, groupsAct_(p)); } finally { gl.releaseLock(); }
   }
   if (p.action === 'insights') return jsonp_(e, hostOk_(p) ? insights_(p) : { ok: false, why: 'host key not accepted' }); // host only: Teaching insights
+  if (p.action === 'class_stats') return jsonp_(e, hostOk_(p) ? classStats_(p) : { ok: false, why: 'host key not accepted' }); // host only: Class statistics
+  if (p.action === 'student_stats') return jsonp_(e, hostOk_(p) ? studentStats_(p) : { ok: false, why: 'host key not accepted' }); // host only: one student in Class statistics
   if (p.action === 'access_codes') { // host only: list, create or replace students' personal codes for My results
     if (!hostOk_(p)) return jsonp_(e, { ok: false, why: 'host key not accepted' });
     var cl = LockService.getScriptLock(); cl.waitLock(20000);

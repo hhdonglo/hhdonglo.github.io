@@ -186,6 +186,9 @@ function createBackend(opts) {
     // Host key is held as a salted hash once it is changed from the dashboard; it cannot be shown then.
     hostKeyIsPlain: () => String(spreadsheet.getSheetByName("Key").getRange(2, 10).getValue()).indexOf("sha256:") !== 0,
     run: (name) => ctx[name](),
+    // Class statistics: computed by the script itself (classStats_, studentStats_), with the lecturer's thresholds.
+    stats: (p) => asHost(() => ctx.classStats_(Object.assign({}, p || {}))),
+    studentStats: (p) => asHost(() => ctx.studentStats_(Object.assign({}, p || {}))),
     // The app itself is trusted: it calls the script's own class list sync without the host key.
     rosterSync: (rows, replace) => asHost(() => ctx.rosterSync_({ rows: JSON.stringify(rows), mode: "apply", replace: replace ? "yes" : "" })),
     // After questions are approved: the script must read the banks again rather than its five-minute copy.
