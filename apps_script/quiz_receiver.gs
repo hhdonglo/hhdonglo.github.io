@@ -843,7 +843,7 @@ function refreshTotals() {
 }
 
 function onOpen() { // a PHYS 143 menu in the sheet
-  try { SpreadsheetApp.getUi().createMenu('PHYS 143').addItem('Refresh totals', 'refreshTotals').addItem('Release held quiz results', 'releaseHeldQuiz').addItem('Discard held quiz results', 'discardHeldQuiz').addItem('Submit attendance', 'submitAttendance').addItem('Named attendance view', 'buildNamedAttendance').addItem('Tidy to class list', 'tidyToClassList').addItem('Discard unsubmitted attendance', 'discardAttendance').addToUi(); } catch (err) { /* not opened from the sheet */ }
+  try { SpreadsheetApp.getUi().createMenu('PHYS 143').addItem('Refresh totals', 'refreshTotals').addItem('Release held quiz results', 'releaseHeldQuiz').addItem('Discard held quiz results', 'discardHeldQuiz').addItem('Submit attendance', 'submitAttendance').addItem('Named attendance view', 'buildNamedAttendance').addItem('Tidy to class list', 'tidyToClassList').addItem('Move non-class rows out of Attendance', 'moveNonClassAttendance').addItem('Keep only students who attended', 'keepAttendedOnly').addItem('Reset all results (clean slate)', 'resetAllResults').addItem('Discard unsubmitted attendance', 'discardAttendance').addToUi(); } catch (err) { /* not opened from the sheet */ }
 }
 
 function releaseHeldQuiz() { return commitQuiz_('', true); }
@@ -1006,6 +1006,155 @@ function tidyToClassList() { // sheet menu: shows the counts first and asks
   if (ui.alert('Remove rows of IDs not on the class list?', 'Attendance ' + d.attendance + ', Scores ' + d.scores + ', Master ' + d.master + ' row(s) with no marks will be deleted. ' + d.keptWithMarks + ' row(s) with marks stay. This cannot be undone.', ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
   var r = rosterTidy_({ mode: 'apply' });
   ui.alert(r.ok ? 'Done. Removed Attendance ' + r.attendance + ', Scores ' + r.scores + ', Master ' + r.master + ' row(s).' : r.why);
+}
+
+// Move non-class rows out of Attendance (sheet menu: PHYS 143 > Move non-class rows out of Attendance). Attendance lists every ID that was on the Roster when a session
+// was submitted, so IDs from an earlier, larger Roster stay as rows (all zeros) after the Roster is narrowed to the real class. This copies every Attendance row whose
+// ID is NOT on the current Roster (marks and all) to the private tab Attendance_Other, checks the copy, and only then removes those rows from Attendance. Nothing is
+// lost: Attendance_Other holds the full rows. The Roster is read fresh from the sheet (not the five-minute cache). mode dry only counts.
+function moveNonClassAttendance_(apply) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(ATT_TAB), roster = {}, nr = 0;
+  rosterRows_().forEach(function (r) { if (!roster[r[0]]) { roster[r[0]] = 1; nr++; } });
+  if (!nr) return { ok: false, why: 'the Roster tab is empty, so no one can be told apart from the class' };
+  if (!sh || sh.getLastRow() < 2) return { ok: true, moved: 0, kept: 0, roster: nr };
+  var lk = LockService.getScriptLock(); lk.waitLock(30000);
+  try {
+    var w = Math.max(1, sh.getLastColumn()), vals = sh.getRange(1, 1, sh.getLastRow(), w).getValues(), head = vals[0], mv = [], rows = [], kept = 0;
+    for (var i = 1; i < vals.length; i++) {
+      var id = normId_(vals[i][0]);
+      if (id.length < 4) continue; // a blank or odd row is left alone
+      if (roster[id]) kept++; else { mv.push(vals[i]); rows.push(i + 1); }
+    }
+    if (!apply || !mv.length) return { ok: true, mode: apply ? 'apply' : 'dry', moved: mv.length, kept: kept, roster: nr };
+    var bad = attArchiveRows_(ss, sh, head, w, mv, rows, 'Attendance_Other'); if (bad) return { ok: false, why: bad };
+    log_('attendance:move_non_class', String(mv.length) + ' rows', '', '');
+    return { ok: true, mode: 'apply', moved: mv.length, kept: kept, roster: nr };
+  } finally { lk.releaseLock(); }
+}
+
+function moveNonClassAttendance() { // sheet menu: shows the counts first and asks
+  var ui = SpreadsheetApp.getUi(), d = moveNonClassAttendance_(false);
+  if (!d.ok) { ui.alert(d.why); return; }
+  if (!d.moved) { ui.alert('Nothing to move.', 'Every ID in Attendance is on the Roster (' + d.roster + ' students).', ui.ButtonSet.OK); return; }
+  if (ui.alert('Move non-class rows out of Attendance?', d.moved + ' row(s) with IDs that are not on the Roster will be copied to the tab Attendance_Other and then removed from Attendance. ' + d.kept + ' class row(s) stay (Roster: ' + d.roster + ' students). Nothing is deleted: the full rows, with all marks, are kept in Attendance_Other.', ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
+  var r = moveNonClassAttendance_(true);
+  ui.alert(r.ok ? 'Done. Moved ' + r.moved + ' row(s) to Attendance_Other. Attendance now has ' + r.kept + ' class row(s).' : r.why);
+}
+
+// Copy rows to a backup tab, check the copy, and only then delete them from sh (rows = their 1-based row numbers, ascending). Returns '' on success, else the reason.
+function attArchiveRows_(ss, sh, head, w, mv, rows, tabName) {
+  var ar = ss.getSheetByName(tabName) || ss.insertSheet(tabName);
+  if (ar.getMaxColumns() < w) ar.insertColumnsAfter(ar.getMaxColumns(), w - ar.getMaxColumns());
+  ar.getRange(1, 1, 1, w).setNumberFormat('@').setValues([head]); ar.setFrozenRows(1);
+  var r0 = Math.max(2, ar.getLastRow() + 1);
+  ar.getRange(r0, 1, mv.length, 1).setNumberFormat('@');
+  ar.getRange(r0, 1, mv.length, w).setValues(mv);
+  SpreadsheetApp.flush();
+  var back = ar.getRange(r0, 1, mv.length, 1).getValues();
+  for (var c = 0; c < mv.length; c++) if (normId_(back[c][0]) !== normId_(mv[c][0])) return 'the copy to ' + tabName + ' could not be verified, so nothing was removed from Attendance';
+  var runs = [], start = rows[0], prev = rows[0];
+  for (var k = 1; k < rows.length; k++) { if (rows[k] === prev + 1) { prev = rows[k]; continue; } runs.push([start, prev]); start = prev = rows[k]; }
+  runs.push([start, prev]);
+  for (var m = runs.length - 1; m >= 0; m--) sh.deleteRows(runs[m][0], runs[m][1] - runs[m][0] + 1);
+  return '';
+}
+
+// Keep only the students who were present (a 1) in the chosen Attendance column(s); every other row is copied to a dated backup tab first, then removed.
+// cols = the column headings to keep, as typed by the lecturer (matched without regard to case; a heading that contains the text also matches). mode dry only counts.
+function keepAttendedOnly_(cols, apply) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(ATT_TAB);
+  if (!sh || sh.getLastRow() < 2) return { ok: false, why: 'the Attendance tab is empty' };
+  var lk = LockService.getScriptLock(); lk.waitLock(30000);
+  try {
+    var w = Math.max(2, sh.getLastColumn()), vals = sh.getRange(1, 1, sh.getLastRow(), w).getValues(), head = vals[0], idx = [], want = cols.map(function (c) { return String(c).trim().toLowerCase(); }).filter(String);
+    if (!want.length) return { ok: false, why: 'no column heading was given' };
+    for (var j = 1; j < head.length; j++) { var hj = String(head[j]).trim().toLowerCase(); if (hj && want.some(function (x) { return hj === x || hj.indexOf(x) >= 0; })) idx.push(j); }
+    if (!idx.length) return { ok: false, why: 'no Attendance column matches. Columns are: ' + head.slice(1).map(String).filter(String).join(' | ') };
+    var keep = 0, mv = [], rows = [];
+    for (var i = 1; i < vals.length; i++) {
+      if (normId_(vals[i][0]).length < 4) continue; // blank or odd rows are left alone
+      var present = idx.some(function (c) { return String(vals[i][c]).trim() === '1'; });
+      if (present) keep++; else { mv.push(vals[i]); rows.push(i + 1); }
+    }
+    var used = idx.map(function (c) { return String(head[c]); });
+    if (!apply || !mv.length) return { ok: true, mode: apply ? 'apply' : 'dry', keep: keep, remove: mv.length, columns: used };
+    if (!keep) return { ok: false, why: 'no one has a 1 in ' + used.join(', ') + ', so everyone would be removed. Nothing was changed' }; // never empty the tab
+    var tab = 'Attendance_Backup_' + Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyyMMdd_HHmm');
+    var bad = attArchiveRows_(ss, sh, head, w, mv, rows, tab); if (bad) return { ok: false, why: bad };
+    log_('attendance:keep_attended_only', mv.length + ' rows removed, backup ' + tab, '', '');
+    return { ok: true, mode: 'apply', keep: keep, remove: mv.length, columns: used, backup: tab };
+  } finally { lk.releaseLock(); }
+}
+
+function keepAttendedOnly() { // sheet menu: asks which column(s), shows the counts, asks again, then acts
+  var ui = SpreadsheetApp.getUi(), sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_TAB);
+  if (!sh || sh.getLastRow() < 2) { ui.alert('The Attendance tab is empty.'); return; }
+  var heads = sh.getRange(1, 2, 1, Math.max(1, sh.getLastColumn() - 1)).getValues()[0].map(String).filter(String);
+  var pr = ui.prompt('Keep only students who attended', 'Type the column heading(s) to keep, separated by commas. Attendance columns: ' + heads.join(' | '), ui.ButtonSet.OK_CANCEL);
+  if (pr.getSelectedButton() !== ui.Button.OK) return;
+  var d = keepAttendedOnly_(pr.getResponseText().split(','), false);
+  if (!d.ok) { ui.alert(d.why); return; }
+  if (!d.remove) { ui.alert('Nothing to remove.', 'Everyone in Attendance has a 1 in ' + d.columns.join(', ') + '.', ui.ButtonSet.OK); return; }
+  if (ui.alert('Remove everyone else?', d.keep + ' student(s) with a 1 in ' + d.columns.join(', ') + ' stay. ' + d.remove + ' row(s) will be copied to a new backup tab and then removed from Attendance. Nothing is lost.', ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
+  var r = keepAttendedOnly_(pr.getResponseText().split(','), true);
+  ui.alert(r.ok ? 'Done. Kept ' + r.keep + '. Removed ' + r.remove + ' row(s); they are in the tab ' + r.backup + '.' : r.why);
+}
+
+// Reset all results (clean slate; sheet menu: PHYS 143 > Reset all results (clean slate)).
+// RESULTS, emptied down to their header row: Attendance (then refilled with the Roster's IDs, no session columns), Attendance_Log, Not_On_List, Attendance_Flags,
+// Attendance_Control (sessions), Form Responses 1, Staged_Quiz (held results), Answers, Presence, Attempts, Archive (older rounds) and Log.
+// DERIVED, emptied completely (they rebuild by themselves from the next quiz): Scores, Master, Totals.
+// Every one of these is first copied to a dated backup tab, Backup_<tab>_<date_time> (session secrets blanked in the Attendance_Control backup), and the copy's row
+// count is checked; if any check fails nothing is cleared. NOT TOUCHED: Roster, Key, Quiz_Control, Explanations, Reports, Leaderboard (a formula view of Form Responses 1),
+// the question banks, live_quizzes.json and this script. Refused while an attendance session is open or a quiz is running.
+function resetTabs_() { return [ATT_TAB, ATT_LOG_TAB, NOTLIST_TAB, 'Attendance_Flags', ATT_CTL_TAB, RESPONSES_TAB, STAGED_TAB, ANSWERS_TAB, PRESENCE_TAB, 'Attempts', 'Archive', 'Log']; } // functions, not top-level vars: the tab-name constants are defined further down the file
+function resetDerived_() { return [SCORES_TAB, MASTER_TAB, TOTALS_TAB]; }
+
+function resetResults_(apply) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  if (attRows_().some(function (r) { return r.status === 'Open'; })) return { ok: false, why: 'an attendance session is open. Close it first' };
+  var cs = ss.getSheetByName(CONTROL_TAB);
+  if (cs && cs.getLastRow() > 1) { var st = cs.getRange(2, 2, cs.getLastRow() - 1, 1).getValues(); for (var q = 0; q < st.length; q++) if (/^(running|paused)$/i.test(String(st[q][0]).trim())) return { ok: false, why: 'a quiz is running or paused. End it first' }; }
+  var roster = {}; rosterRows_().forEach(function (r) { roster[r[0]] = 1; }); var rids = Object.keys(roster);
+  if (!rids.length) return { ok: false, why: 'the Roster tab is empty, so the fresh Attendance tab would have no students. Fill the Roster first' };
+  var counts = {}; resetTabs_().concat(resetDerived_()).forEach(function (n) { var s = ss.getSheetByName(n); if (s) counts[n] = Math.max(0, s.getLastRow() - (resetDerived_().indexOf(n) >= 0 ? 0 : 1)); });
+  if (!apply) return { ok: true, mode: 'dry', counts: counts, roster: rids.length };
+  var lk = LockService.getScriptLock(); lk.waitLock(30000);
+  try {
+    var stamp = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyyMMdd_HHmm'), backups = [];
+    Object.keys(counts).forEach(function (n) { // back everything up first, and check every copy before anything is emptied
+      var s = ss.getSheetByName(n), b = s.copyTo(ss); b.setName('Backup_' + n + '_' + stamp);
+      if (n === ATT_CTL_TAB && b.getLastRow() > 1) b.getRange(2, 6, b.getLastRow() - 1, 1).clearContent(); // no session secrets in a backup
+      SpreadsheetApp.flush();
+      if (b.getLastRow() !== s.getLastRow()) throw new Error('the backup of ' + n + ' could not be verified, so nothing was cleared');
+      backups.push(b.getName());
+    });
+    var wholeCopy = ''; // an extra safety copy of the whole Sheet, best effort: it uses only the Sheets permission already granted, and a failure here never stops the reset
+    try { wholeCopy = ss.copy('PHYS 143 Quizzes (Responses) backup ' + stamp).getUrl(); } catch (err) { wholeCopy = ''; }
+    Object.keys(counts).forEach(function (n) {
+      var s = ss.getSheetByName(n);
+      if (resetDerived_().indexOf(n) >= 0) { s.clear(); return; }
+      if (n === ATT_TAB) { if (s.getLastColumn() > 1) s.getRange(1, 2, Math.max(1, s.getLastRow()), s.getLastColumn() - 1).clearContent(); s.getRange(1, 1).setValue('Student ID'); }
+      if (s.getLastRow() > 1) s.deleteRows(2, s.getLastRow() - 1);
+    });
+    var at = ss.getSheetByName(ATT_TAB) || ss.insertSheet(ATT_TAB);
+    at.getRange(1, 1).setValue('Student ID'); at.setFrozenRows(1); at.setFrozenColumns(1);
+    at.getRange(2, 1, rids.length, 1).setNumberFormat('@'); at.getRange(2, 1, rids.length, 1).setValues(rids.map(function (i) { return [i]; }));
+    try { var cc = CacheService.getScriptCache(); cc.removeAll(['att:open', 'attd:' + attDayKey_()]); } catch (err) { /* cache only */ }
+    log_('results:reset', backups.length + ' backups, ' + rids.length + ' roster rows', '', '');
+    return { ok: true, mode: 'apply', counts: counts, roster: rids.length, backups: backups, wholeCopy: wholeCopy };
+  } catch (err) { return { ok: false, why: String(err && err.message || err) }; } finally { lk.releaseLock(); }
+}
+
+function resetAllResults() { // sheet menu: shows what will be cleared, asks, needs the word RESET typed, backs up, clears
+  var ui = SpreadsheetApp.getUi(), d = resetResults_(false);
+  if (!d.ok) { ui.alert(d.why); return; }
+  var lines = Object.keys(d.counts).map(function (n) { return n + ': ' + d.counts[n] + ' row(s)'; }).join('\n');
+  var pr = ui.prompt('Reset ALL results (clean slate)?', 'These tabs will be emptied (each is first copied to a backup tab, Backup_<tab>_<date_time>):\n' + lines + '\n\nAttendance is then refilled with the ' + d.roster + ' Student IDs on the Roster, with no session columns. Scores, Master and Totals rebuild by themselves from the next quiz.\n\nNOT touched: Roster, Key, Quiz_Control, Explanations, Reports, Leaderboard, the question banks and this script.\n\nType RESET to go ahead.', ui.ButtonSet.OK_CANCEL);
+  if (pr.getSelectedButton() !== ui.Button.OK || pr.getResponseText().trim() !== 'RESET') { ui.alert('Cancelled. Nothing was changed.'); return; }
+  var r = resetResults_(true);
+  try { refreshTotals(); } catch (err) { /* Totals rebuilds on the next quiz */ }
+  ui.alert(r.ok ? 'Done. Attendance lists ' + r.roster + ' roster IDs with no sessions; all other results are empty. Backups: ' + r.backups.join(', ') + (r.wholeCopy ? '. A copy of the whole Sheet was also saved in your Drive: ' + r.wholeCopy : '. The whole-Sheet copy in Drive was skipped (the backup tabs are in this Sheet).') : r.why);
 }
 
 // Named attendance view (lecturer only, from the sheet's PHYS 143 menu): writes a private tab Attendance_Named with Name, Student ID and a copy of every
@@ -1819,6 +1968,14 @@ function doGet(e) {
       if (p.action === 'attend_discard') return jsonp_(e, attDiscard_());
       return jsonp_(e, p.action === 'held_release_quiz' ? Object.assign({ ok: true }, commitQuiz_('', true)) : Object.assign({ ok: true }, discardQuiz_('', true)));
     } finally { hl.releaseLock(); }
+  }
+  if (p.action === 'results_reset') { // host only: preview (mode=dry) or run (mode=apply with confirm=RESET) the clean-slate reset; every cleared tab is backed up first
+    if (!hostOk_(p)) return jsonp_(e, { ok: false, why: 'host key not accepted' });
+    var rapply = String(p.mode || '') === 'apply';
+    if (rapply && String(p.confirm || '') !== 'RESET') return jsonp_(e, { ok: false, why: 'type RESET to confirm' });
+    var rres = resetResults_(rapply);
+    if (rapply && rres.ok) { try { refreshTotals(); } catch (err) { /* Totals rebuilds on the next quiz */ } }
+    return jsonp_(e, rres);
   }
   if (p.action === 'roster_tidy') return jsonp_(e, hostOk_(p) ? rosterTidy_(p) : { ok: false, why: 'host key not accepted' }); // host only: counts only
   if (p.action === 'roster_edit') return jsonp_(e, hostOk_(p) ? rosterEdit_(p) : { ok: false, why: 'host key not accepted' }); // host only: one ID at a time

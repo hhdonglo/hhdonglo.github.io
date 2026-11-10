@@ -67,6 +67,26 @@ body.focus main{padding-top:0}
    <p class="code" id="t-code">&nbsp;</p>
    <a class="go alt" id="t-hand" href="#" hidden>Open handout</a>
   </section>
+  <section class="panel wide" id="p-stu"><h3>Student Portal</h3>
+   <p class="note">What students see on the Portal. Public text only: never type a key or code here. Leave a box empty to use the default. Students see changes within about 15 seconds, with no site update.</p>
+   <label for="sp-contacts" class="note">Contact days and times</label>
+   <input type="text" id="sp-contacts" maxlength="160" autocomplete="off" style="width:100%;min-height:44px;font-size:1rem">
+   <label for="sp-venue" class="note">Venue</label>
+   <input type="text" id="sp-venue" maxlength="100" autocomplete="off" style="width:100%;min-height:44px;font-size:1rem">
+   <label for="sp-notice" class="note">Notice for students (one line, shown at the top)</label>
+   <input type="text" id="sp-notice" maxlength="300" autocomplete="off" style="width:100%;min-height:44px;font-size:1rem">
+   <label for="sp-cont" class="note">"Continue with" button goes to</label>
+   <select id="sp-cont" style="min-height:44px;font-size:1rem;max-width:100%"><option value="0">The week to teach</option></select>
+   <h3 style="margin-top:1rem">Lecture card for the week to teach</h3>
+   <label for="sp-title" class="note">Title shown on the card</label>
+   <input type="text" id="sp-title" maxlength="100" autocomplete="off" style="width:100%;min-height:44px;font-size:1rem">
+   <label class="cb"><input type="checkbox" id="sp-hh" checked> Show Handout (PDF)</label>
+   <label class="cb"><input type="checkbox" id="sp-hp" checked> Show Practice quiz</label>
+   <label class="cb"><input type="checkbox" id="sp-hl" checked> Show Lecture page</label>
+   <button class="go" type="button" id="sp-save">Save for students</button>
+   <p class="note" id="sp-msg" role="status"></p>
+   <p class="note">The live banner is automatic: it shows the quiz link when a quiz is in Lobby, Running or Paused, and the attendance steps when attendance is Open. Official course information stays on Sakai.</p>
+  </section>
   <section class="panel"><h3>Pre-class check</h3>
    <ul id="k-list"><li class="note">Not run yet.</li></ul>
    <label class="cb"><input type="checkbox" id="k-proj"> I opened the display on the projector and saw it</label>
@@ -94,6 +114,12 @@ body.focus main{padding-top:0}
    <button class="go alt sm" type="button" id="r-tidy">Tidy to class list</button>
    <p class="note" id="r-msg" role="status"></p>
   </section>
+  <section class="panel" id="p-rst"><h3>Reset results</h3>
+   <p class="note">Starts the term from a clean slate: empties attendance and quiz results. Every cleared tab is backed up first, and you type RESET to confirm. The class list, join codes and question banks are not touched.</p>
+   <button class="go alt" type="button" data-panel="p-rst" data-embed="e-rst" data-src="phys143-reset.html">Show reset controls here</button>
+   <a class="go alt" href="phys143-reset.html" target="_blank" rel="noopener">Open in its own window</a>
+   <div id="e-rst"></div>
+  </section>
   <section class="panel wide"><h3>Live quiz</h3>
    <p class="note">Opens the quiz controls here. Ending a quiz, starting a new round and releasing results each ask you to confirm.</p>
    <button class="go" type="button" data-embed="e-quiz" data-src="phys143-quiz-host.html">Show quiz controls here</button>
@@ -117,7 +143,7 @@ body.focus main{padding-top:0}
 (function(){
 "use strict";
 var SCRIPT_URL="https://script.google.com/macros/s/AKfycbzso5-FCU4erf_grbktH-AH-RKaPDap7TfJAw_TOSxNarTrJDe-PgyBzgIH7Fj2fjZ3/exec";
-var EXPECT_VERSION="2026-11-08-tidy-1"; // must equal SCRIPT_VERSION in apps_script/quiz_receiver.gs
+var EXPECT_VERSION="2026-11-09-portal-1"; // must equal SCRIPT_VERSION in apps_script/quiz_receiver.gs
 var $=function(i){return document.getElementById(i)};
 var KEY="";try{KEY=sessionStorage.getItem("phys143_hk")||""}catch(x){}
 if(!KEY){location.replace("phys143-lecturer.html");return}
@@ -167,12 +193,12 @@ function loadWeek(){
   WEEK=chosen||(CFGP&&CFGP.currentWeek);
   $("t-week").value=String(chosen);
   $("t-wmsg").textContent=chosen?"Chosen by you in this Control Centre.":(d&&d.portal===1?"Using the default in data/portal.json.":"The script is not updated, so the week cannot be changed here. Using data/portal.json.");
-  showWeek();
+  showWeek();spLoad();
  });
 }
 (function(){var x=new XMLHttpRequest();x.open("GET","data/portal.json?_="+Date.now());
  x.onload=function(){try{CFGP=JSON.parse(x.responseText)}catch(e){$("t-lec").textContent="Could not read data/portal.json.";return}
-  for(var i=1;i<=12;i++){var o=document.createElement("option");o.value=i;o.textContent="Week "+i+": "+(CFGP.lectures[i]||"");$("t-week").appendChild(o)}
+  for(var i=1;i<=12;i++){var o=document.createElement("option");o.value=i;o.textContent="Week "+i+": "+(CFGP.lectures[i]||"");$("t-week").appendChild(o);$("sp-cont").appendChild(o.cloneNode(true))}
   WEEK=CFGP.currentWeek;showWeek();loadWeek()};
  x.onerror=function(){$("t-lec").textContent="Could not read data/portal.json."};x.send()})();
 $("t-week").addEventListener("change",function(){
@@ -181,6 +207,32 @@ $("t-week").addEventListener("change",function(){
   if(!d||d.ok!==true){$("t-wmsg").textContent="Not saved: "+(d&&d.why?d.why:"no answer or script not updated")+".";return}
   loadWeek();
  });
+});
+// ---- student portal settings ----
+var SPC=null;
+function spLoadFields(){
+ if(!SPC||!WEEK)return;
+ var w=String(WEEK);
+ $("sp-contacts").placeholder=CFGP?CFGP.contacts:"";
+ $("sp-title").value=SPC.titles&&SPC.titles[w]||"";$("sp-title").placeholder=CFGP&&CFGP.lectures[w]||"";
+ var hd=SPC.hide||{handout:[],practice:[],page:[]};
+ $("sp-hh").checked=hd.handout.indexOf(Number(w))<0;$("sp-hp").checked=hd.practice.indexOf(Number(w))<0;$("sp-hl").checked=hd.page.indexOf(Number(w))<0;
+}
+function spLoad(){
+ jsonp("action=portal_status",function(d){
+  if(!d||d.portal!==1||!d.cfg){$("sp-msg").textContent="The script is not updated, so these settings cannot be saved yet. Paste the new script, Save, then Deploy a new version.";return}
+  SPC=d.cfg;
+  $("sp-contacts").value=SPC.contacts;$("sp-venue").value=SPC.venue;$("sp-notice").value=SPC.notice;$("sp-cont").value=String(SPC.cont);
+  spLoadFields();
+ });
+}
+$("sp-save").addEventListener("click",function(){
+ var w=WEEK;if(!w){$("sp-msg").textContent="Week not loaded yet.";return}
+ $("sp-msg").textContent="Saving.";
+ jsonp("action=portal_set&contacts="+encodeURIComponent($("sp-contacts").value)+"&venue="+encodeURIComponent($("sp-venue").value)+"&notice="+encodeURIComponent($("sp-notice").value)+"&cont="+$("sp-cont").value+"&w="+w+"&title="+encodeURIComponent($("sp-title").value)+"&handout="+($("sp-hh").checked?1:0)+"&practice="+($("sp-hp").checked?1:0)+"&page="+($("sp-hl").checked?1:0)+"&"+hk(),function(d){
+  if(!d||d.ok!==true){$("sp-msg").textContent="Not saved: "+(d&&d.why?d.why:"no answer, or the script is not updated")+".";return}
+  SPC=d.cfg;$("sp-msg").textContent="Saved. Students see it within about 15 seconds.";
+ },20000);
 });
 // ---- pre-class check ----
 function line(c,t){return'<li class="'+c+'"><b aria-hidden="true">'+(c==="ok"?"&#10003;":(c==="am"?"!":"&times;"))+'</b><span>'+t+'</span></li>'}

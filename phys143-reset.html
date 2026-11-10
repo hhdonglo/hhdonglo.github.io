@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light dark">
+<title>Reset results | Hope Donglo</title>
+<meta name="description" content="Lecturer-only reset of attendance and quiz results.">
+<link rel="icon" href="assets/logo/hd-favicon.svg" type="image/svg+xml">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/logo/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/logo/favicon-16.png">
+<link rel="apple-touch-icon" href="assets/logo/apple-touch-icon.png">
+<link rel="stylesheet" href="assets/site.css">
+<script>if(!location.hash){if("scrollRestoration" in history)history.scrollRestoration="manual";window.addEventListener("pageshow",function(){if(!location.hash)window.scrollTo({top:0,left:0,behavior:"instant"})});}</script>
+</head>
+<body class="focus">
+<a class="skip" href="#main">Skip to content</a>
+<header class="banner slim">
+<div class="wrap">
+<a class="brand-logo" href="index.html" aria-label="Home"><picture><source media="(max-width:700px)" srcset="assets/logo/hd-favicon.svg"><img src="assets/logo/hd-logo-horizontal.svg" width="233" height="56" alt="HD. Nuclear Physics, Scientific Computing"></picture></a>
+<h1><a class="home-link" href="index.html">Hope Donglo</a></h1>
+<p class="course" data-render="banner-field">At the Edge of the Periodic Table</p>
+</div>
+</header>
+<nav class="jump" id="jump" aria-label="Sections"><div class="wrap"><button type="button" class="menu-btn" aria-expanded="false" aria-controls="jump-links"><span>Menu</span><span class="dots" aria-hidden="true">&#8943;</span></button><div class="links" id="jump-links"><a href="index.html">Home</a><div class="dd" data-key="research.html"><a href="research.html">Research</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Research links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="research.html#programme">Research Areas</a></li><li><a href="projects.html">Current Projects</a></li><li><a href="publications.html">Publications</a></li><li><a href="kewpie3.html">Software / Codes</a></li></ul></div><div class="dd" data-key="teaching.html"><a href="teaching.html">Teaching</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Teaching links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="teaching.html#lecture-courses">Courses</a></li><li><a href="laboratory.html">Laboratory Guides</a></li><li><a href="teaching.html#student-resources">Resources</a></li></ul></div><div class="dd" data-key="students.html"><a href="students.html">Students</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="Students links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="students.html#research-projects">Opportunities</a></li></ul></div><div class="dd" data-key="about.html"><a href="about.html">About</a><button type="button" class="dd-btn" aria-expanded="false" aria-label="About links"><span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="about.html">Biography</a></li><li><a href="cv.html">CV</a></li><li><a href="contact.html">Contact</a></li></ul></div><div class="dd" data-key="Resources"><button type="button" class="dd-btn dd-label" aria-expanded="false">Resources<span aria-hidden="true">&#9662;</span></button><ul class="sub"><li><a href="class-manager-app.html">Downloads</a></li><li><a href="data-engineering.html">Data and Tools</a></li></ul></div></div></div></nav>
+<main id="main"><div class="wrap">
+<style>
+.host{max-width:46rem;margin:0 auto}
+.host .panel{background:var(--surface);border:1px solid var(--border);border-top:5px solid var(--brown-edge);border-radius:8px;padding:1.2rem 1.4rem;box-shadow:var(--shadow);margin-bottom:1rem}
+.host label{display:block;font:600 .95rem system-ui,sans-serif;margin:.6rem 0 .25rem}
+.host input[type=password],.host input[type=text]{width:100%;max-width:22rem;min-height:44px;padding:.4rem .6rem;border:1.5px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font:1rem system-ui,sans-serif}
+.host .go{min-height:48px;padding:.5rem 1.4rem;border:2px solid var(--brown-fill);border-radius:6px;background:var(--brown-fill);color:#fff;font:600 1.05rem system-ui,sans-serif;cursor:pointer;margin:.3rem .4rem 0 0;text-decoration:none;display:inline-block}
+.host .go.alt{background:var(--btn-bg);color:var(--btn-text)}
+.host .go.big{min-height:64px;font-size:1.3rem;padding:.7rem 1.8rem}
+.host .choices{display:flex;flex-wrap:wrap;gap:1rem}
+.host .choices .go{flex:1 1 14rem;text-align:center;min-height:96px;font-size:1.4rem;display:flex;align-items:center;justify-content:center}
+.host .note{font:.92rem/1.5 system-ui,sans-serif;color:var(--muted)}
+.host [hidden]{display:none!important}
+body.focus header.banner,body.focus nav.jump,body.focus .crumb,body.focus .sec-sub,body.focus aside.disclaimer,body.focus footer,body.focus a.skip,body.focus main h2{display:none!important}
+body.focus main{padding-top:1rem}
+</style>
+<div class="host">
+ <section class="panel" id="x-login">
+  <h3 style="margin:.1rem 0 .4rem">Lecturer login</h3>
+  <form id="x-form" autocomplete="off">
+   <label for="x-key">Key</label><input type="password" id="x-key" maxlength="40" autocomplete="new-password" autocapitalize="none" spellcheck="false">
+   <p><button class="go" type="submit">Log in</button></p>
+   <p class="note" id="x-err" role="alert" hidden></p>
+  </form>
+ </section>
+ <section class="panel" id="x-main" hidden>
+  <h3 style="margin:.1rem 0 .6rem">Reset all results (clean slate)</h3>
+  <p class="note">Empties attendance and quiz results so the term starts fresh. Every tab it clears is copied to a backup tab (<b>Backup_&lt;tab&gt;_&lt;date_time&gt;</b>) first, and a copy of the whole Sheet is saved in your Drive too. Nothing is cleared if a tab backup cannot be checked. The Roster, join codes, host key, quiz settings, question banks and the script are not touched. Attendance is refilled with the Student IDs on the Roster.</p>
+  <p><button class="go alt" type="button" id="x-preview">Show what will be cleared</button></p>
+  <div id="x-list" hidden>
+   <table id="x-table" style="width:100%;border-collapse:collapse;font:1rem system-ui,sans-serif"></table>
+   <p class="note" id="x-roster"></p>
+   <label for="x-type">Type RESET to confirm</label>
+   <input type="text" id="x-type" autocomplete="off" autocapitalize="characters" spellcheck="false" style="font:1.2rem system-ui,sans-serif;min-height:48px;padding:.4rem .7rem;max-width:14rem">
+   <p><button class="go big" type="button" id="x-go" disabled style="background:#b3261e;border-color:#b3261e">Reset all results</button></p>
+  </div>
+  <p class="note" id="x-msg" role="status"></p>
+  <p><a class="go alt" href="phys143-control.html">Back to the Control Centre</a> <button class="go alt" type="button" id="x-out">Log out</button></p>
+ </section>
+</div>
+<script>
+(function(){
+"use strict";
+var SCRIPT_URL="https://script.google.com/macros/s/AKfycbzso5-FCU4erf_grbktH-AH-RKaPDap7TfJAw_TOSxNarTrJDe-PgyBzgIH7Fj2fjZ3/exec";
+var $=function(i){return document.getElementById(i)};
+function jsonp(params,cb){
+ var n="cb"+Date.now()+Math.floor(Math.random()*1e6),sc=document.createElement("script"),done=false;
+ function end(d){if(done)return;done=true;delete window[n];if(sc.parentNode)sc.parentNode.removeChild(sc);cb(d)}
+ window[n]=end;sc.onerror=function(){end(null)};
+ sc.src=SCRIPT_URL+"?"+params+"&callback="+n+"&_="+Date.now();document.head.appendChild(sc);
+}
+var KEY="";try{KEY=sessionStorage.getItem("phys143_hk")||""}catch(x){}
+function saveKey(k){KEY=k;try{sessionStorage.setItem("phys143_hk",k)}catch(x){}}
+function signOut(){KEY="";try{sessionStorage.removeItem("phys143_hk")}catch(x){}location.reload()}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function hk(){return "hostkey="+encodeURIComponent(KEY)}
+function show(main){$("x-login").hidden=main;$("x-main").hidden=!main}
+function check(k,first){
+ jsonp("action=hostcheck&hostkey="+encodeURIComponent(k),function(d){
+  if(d&&d.ok){saveKey(k);show(true);return}
+  if(first){$("x-err").textContent=d?"That key was not accepted.":"Could not reach the class sheet. Check the connection.";$("x-err").hidden=false}
+  else{try{sessionStorage.removeItem("phys143_hk")}catch(x){}KEY="";show(false)}
+ });
+}
+$("x-form").addEventListener("submit",function(e){e.preventDefault();var k=$("x-key").value.trim();if(!k){$("x-err").textContent="Enter the key.";$("x-err").hidden=false;return}$("x-err").hidden=true;check(k,true)});
+$("x-out").addEventListener("click",signOut);
+$("x-preview").addEventListener("click",function(){
+ $("x-msg").textContent="Counting...";$("x-list").hidden=true;
+ jsonp("action=results_reset&mode=dry&"+hk(),function(d){
+  if(!d||d.ok!==true){$("x-msg").textContent="Not done: "+(d&&d.why?d.why:"no answer from the class sheet");return}
+  var h="<thead><tr><th style='text-align:left'>Tab</th><th style='text-align:right'>Rows to clear</th></tr></thead><tbody>";
+  Object.keys(d.counts).forEach(function(n){h+="<tr><td>"+esc(n)+"</td><td style='text-align:right'>"+esc(d.counts[n])+"</td></tr>"});
+  $("x-table").innerHTML=h+"</tbody>";
+  $("x-roster").textContent="Attendance will be refilled with the "+d.roster+" Student IDs on the Roster, with no session columns. Scores, Master and Totals rebuild from the next quiz.";
+  $("x-list").hidden=false;$("x-type").value="";$("x-go").disabled=true;$("x-msg").textContent="";
+ });
+});
+$("x-type").addEventListener("input",function(){$("x-go").disabled=$("x-type").value.trim()!=="RESET"});
+$("x-go").addEventListener("click",function(){
+ if($("x-type").value.trim()!=="RESET")return;
+ if(!window.confirm("Last check: reset ALL attendance and quiz results now? Backups are made first."))return;
+ $("x-go").disabled=true;$("x-msg").textContent="Backing up and clearing. This can take a minute. Please keep this page open.";
+ jsonp("action=results_reset&mode=apply&confirm=RESET&"+hk(),function(r){
+  if(!r||r.ok!==true){$("x-msg").textContent="Not done: "+(r&&r.why?r.why:"no answer from the class sheet. Check the Sheet before trying again")+".";$("x-go").disabled=false;return}
+  $("x-list").hidden=true;
+  $("x-msg").textContent="Done. Attendance now lists "+r.roster+" roster IDs with no sessions, and all other results are empty. Backups in this Sheet: "+(r.backups||[]).join(", ")+". "+(r.wholeCopy?"A copy of the whole Sheet was also saved in your Google Drive, named 'PHYS 143 Quizzes (Responses) backup' with the date.":"The extra whole-Sheet copy in Drive could not be made, but the backup tabs are safe in this Sheet.")+" Delete the backups when you no longer need them: they hold student IDs.";
+ });
+});
+if(window!==window.top){var bk=document.querySelector("#x-main a.go");if(bk)bk.hidden=true} // inside the Control Centre: no second Control Centre link
+if(KEY)check(KEY,false);else show(false);
+})();
+</script>
+</div>
+</main>
+
+
+<footer data-render="footer"><div class="wrap"><div class="foot-grid"><div><p class="foot-name">Hope Donglo, PhD</p><p>Lecturer in Physics · University of Ghana</p></div><nav aria-label="Footer"><ul><li><a href="research.html">Research</a></li><li><a href="projects.html">Projects</a></li><li><a href="data-engineering.html">Scientific Computing</a></li><li><a href="teaching.html">Teaching</a></li><li><a href="publications.html">Publications</a></li><li><a href="students.html">Students</a></li><li><a href="about.html">About</a></li><li><a href="cv.html">CV</a></li><li><a href="contact.html">Contact</a></li></ul></nav><ul class="foot-ext"><li><a href="https://scholar.google.com/citations?user=QW32BboAAAAJ&amp;hl=en" rel="noopener">Google Scholar ↗</a></li><li><a href="https://orcid.org/0009-0003-6142-8780" rel="noopener">ORCID ↗</a></li><li><a href="https://github.com/hhdonglo" rel="noopener">GitHub ↗</a></li><li><a href="https://www.linkedin.com/in/hopedonglo" rel="noopener">LinkedIn ↗</a></li><li><a href="https://phyanalytics.com/" rel="noopener">PhyAnalytics ↗</a></li></ul></div><p class="foot-note">© 2026 Hope Donglo · Anonymous visit counts, no cookies</p></div></footer>
+<script src="assets/render.js"></script>
+<script src="assets/site.js"></script>
+<script src="assets/tracking.js"></script>
+</body>
+</html>
