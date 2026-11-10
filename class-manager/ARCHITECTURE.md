@@ -314,6 +314,7 @@ Two warnings do not block approval: a missing explanation or difficulty, and a d
 | Suite | What it covers | Where |
 |---|---|---|
 | `tools/validate_quizzes.py`, `tools/check_calcs.py`, `tools/test_practice.mjs` | Bank schema and calculations, and the practice engine | Repository |
+| `desktop/test/` (`npm test`) | Class statistics, learning progress, and many courses: migration of a 0.7.0 data folder, the registry and routing, and two courses that share no records (class list, host key, access codes, attendance, lookup, statistics, content, Google Sheet, browser storage) | Repository |
 | Server checks | 36 (core and learning), 17 (groups), 14 (calendar), 38 (messages and announcements), run against `backend.js` | Session scratch files; not yet in the repository |
 | Browser checks | 17 (learning pages), 11 (groups pages), via Playwright against the running app | Session scratch files |
 | End to end, packaged app | 45 checks, via Playwright's Electron driver against `dist/linux-unpacked`, with a stand-in for the Anthropic API that records requests: library (four formats), search, both summaries, generation request shape, review and approval into served banks, import preview, manual entry, withdrawal, no student data in requests, calendar views and series, `.ics` and feed, portal, messages, moderation, delivery states, store and forward | Session scratch files |
@@ -336,6 +337,16 @@ None of the session suites has been run against Google Apps Script itself. Gener
 12. **Model output limits.** The schema does not force four options. Approval rejects any other count. Shuffling assumes explanations do not name option letters, and the prompt forbids that.
 13. **Scanned PDFs.** These have no text layer and cannot be read; there is no OCR.
 14. **Dates.** Calendar times follow the script's time zone, which in mode B is the computer's.
+
+### Many courses (desktop, 0.8.0)
+
+- **Registry.** `courses.json` in the app's data folder lists the courses (id, code, title, term, content source, archived), the course last shown and the default course. The id is made once from the course code and never changes, so students' links survive a rename.
+- **Folders.** Each course has `courses/<id>/` with `settings.json` (course details, Apps Script address), `data/workbook.json`, `authoring/` and `course/`. The app's own `settings.json` keeps only the port and text size. A course may link a folder of its own for its content instead of `course/`; the workbook and the authoring library never move there.
+- **Server.** Pages of a course are served under `/c/<id>/`, each with its own `config.js` and `/exec`. One backend (one vm context running the server script) per course, made on first use and kept while the app runs. Paths without the prefix serve the default course. Archived and unknown courses return 404. One tunnel serves every course through the same prefixes.
+- **Screens.** The app's screens are served under `/c/<id>/app/`. Each IPC call is resolved to the course in the calling window's address, so a window can act on no other course. The course dropdown navigates the window to another course.
+- **Students.** Records, host keys, access codes and phone registrations are per course. For every course but the default one, `config.js` prefixes the browser storage keys of the pages with the course id, so one phone keeps separate records per course.
+- **Google.** One sign-in for the app (`google.bin`); each course has its own Sheet, held in the same file under the course id. Mode A: each course stores its own Apps Script address.
+- **Migration.** On the first start of 0.8.0 the 0.7.0 layout (`settings.json`, `data/`, `course/`, `authoring/`) is moved, by renames inside the same folder, into the first course; the registry is written last, so an interrupted move finishes at the next start.
 
 ## 15. Candidate improvements
 

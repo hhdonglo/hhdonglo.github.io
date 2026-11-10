@@ -8,6 +8,7 @@ self.addEventListener("activate",function(e){e.waitUntil(caches.keys().then(func
 self.addEventListener("fetch",function(e){
  var r=e.request,u=new URL(r.url);
  if(r.method!=="GET"||u.origin!==location.origin)return;
+ if(/\/exec$/.test(u.pathname))return; // the desktop app's own server: student records are never cached
  e.respondWith(fetch(r).then(function(res){
   if(res.ok&&!/\.pdf$/i.test(u.pathname)){var cp=res.clone();caches.open(CACHE).then(function(c){c.put(r,cp)})}
   return res;

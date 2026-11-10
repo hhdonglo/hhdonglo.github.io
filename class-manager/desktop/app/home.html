@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="dark light">
 <title>Class Manager</title>
-<script src="/config.js"></script>
-<script src="/assets/qrcode.js"></script>
-<link rel="icon" href="/app/icon.svg" type="image/svg+xml">
+<script src="../config.js"></script>
+<script src="../assets/qrcode.js"></script>
+<link rel="icon" href="icon.svg" type="image/svg+xml">
 <style>
 /* Desktop layout: sidebar, workspace bar, one view at a time, status bar.
    Every size is in rem, and the root size grows with the window (15px on a laptop, up to 19px on a large screen),
@@ -56,6 +56,27 @@ kbd{font:600 .78rem ui-monospace,monospace;color:var(--faint);letter-spacing:.02
 .chip.busy .dot{background:var(--warn)}
 .keybox{display:inline-flex;align-items:center;gap:.6rem;font-size:var(--fs-sm);color:var(--muted);white-space:nowrap}
 .keybox code{font:700 1.02rem ui-monospace,monospace;color:var(--text);letter-spacing:.04em}
+/* course dropdown: the course every screen of this window shows */
+.sr{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.course-pick{flex:1;min-width:0;display:flex;align-items:center;gap:.6rem}
+.course-pick select{appearance:none;-webkit-appearance:none;flex:0 1 auto;max-width:100%;min-width:16rem;min-height:2.6rem;padding:.35rem 2.4rem .35rem .9rem;border:1px solid var(--line);border-radius:.6rem;
+ background:var(--card) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23A7B2C4' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right .9rem center;
+ color:var(--head);font:700 var(--fs-h1) system-ui,sans-serif;text-overflow:ellipsis;cursor:pointer}
+.course-pick select:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.course-pick .others{font-size:var(--fs-sm);color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.cd{max-width:min(64rem,94vw);width:64rem}
+.cd table{width:100%;border-collapse:collapse;font-size:.95rem}
+.cd th{position:static;cursor:default;text-align:left;font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);background:none;padding:.4rem .5rem;border-bottom:1px solid var(--line)}
+.cd td{padding:.55rem .5rem;border-bottom:1px solid var(--line);vertical-align:top;white-space:normal;text-align:left}
+.cd td:last-child{text-align:right;white-space:normal;width:17rem}
+.cd td:last-child .btn{margin:0 0 .35rem .3rem}
+.cd td.c-code{width:8.5rem}.cd td.c-title{min-width:12rem}.cd td.c-term{width:11rem}
+.cd input.f{min-height:2.2rem;padding:.25rem .55rem}
+.cd .path{font:600 .85rem ui-monospace,monospace;word-break:break-all;color:var(--muted)}
+.cd .add{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.6rem;align-items:end;margin-top:.6rem}
+.cd .add label{font-size:var(--fs-xs);font-weight:700;color:var(--muted)}
+.cd tr.arch td{opacity:.6}
+@media (max-width:900px){.cd .add{grid-template-columns:1fr 1fr}}
 
 /* main: views use the full width of the window, up to a comfortable limit on very large screens */
 main{grid-area:main;overflow:auto;padding:1.75rem var(--pad) 2.25rem}
@@ -366,7 +387,7 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
 
 <div class="app">
 <nav class="side" aria-label="Class Manager">
- <div class="brand"><img src="/app/icon.svg" alt=""><span>Class Manager</span></div>
+ <div class="brand"><img src="icon.svg" alt=""><span>Class Manager</span></div>
  <p class="side-h">Insight</p>
  <button class="nav" data-view="overview" aria-current="page"><svg><use href="#i-pulse"/></svg><span>Class Overview</span></button>
  <button class="nav" data-view="students"><svg><use href="#i-people"/></svg><span>Students</span></button>
@@ -386,7 +407,10 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
 </nav>
 
 <header class="top">
- <h1 data-cm="courseHeading">Course</h1>
+ <h1 class="sr" data-cm="courseHeading">Course</h1>
+ <div class="course-pick"><label class="sr" for="course-sel">Course</label>
+  <select id="course-sel" title="Choose the course. Every screen in this window shows the chosen course only."></select>
+  <span class="others" id="course-others" role="status" aria-live="polite"></span></div>
  <span class="chip" id="live" role="status" aria-live="polite"><span class="dot"></span><span id="live-t">Starting</span></span>
  <button class="btn sm" type="button" id="look-top" title="Find a student by ID or name">Find a student</button>
  <span class="keybox" title="Type this key when the lecturer pages ask for it. Keep it private.">Host key <code id="key">…</code> <button class="btn sm" type="button" id="key-copy"><svg><use href="#i-copy"/></svg>Copy</button></span>
@@ -534,6 +558,11 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
    <p>Search and summarise teaching material, generate quizzes from it, import questions from Word, PDF or Markdown, and approve questions into the banks.</p>
    <p class="row" style="margin-top:14px"><button class="btn primary" type="button" data-go="author.html">Open resources and questions</button></p>
   </div>
+  <div class="card">
+   <h3>Where this course lives</h3>
+   <p id="cc-where">…</p>
+   <p class="row" style="margin-top:14px"><button class="btn" type="button" id="cc-open">Open the content folder</button><button class="btn" type="button" id="cc-manage">Manage courses</button></p>
+  </div>
   <div class="card sub">
    <h3>As students see it</h3>
    <div class="row"><button class="btn" data-win="index.html">Student portal</button><button class="btn" data-win="course.html">Lectures</button><button class="btn" data-win="mock-exam.html">Mock exam</button></div>
@@ -582,8 +611,8 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
    <h3>Server</h3>
    <form id="f">
     <label class="f" for="s-port">Port</label><input class="f" id="s-port" type="number" min="1024" max="65535" style="max-width:10rem">
-    <details><summary>Advanced: use your own Google Apps Script instead of this computer</summary>
-     <p class="note">Leave empty to keep everything on this computer (recommended).</p>
+    <details><summary>Advanced: use your own Google Apps Script for this course instead of this computer</summary>
+     <p class="note">Leave empty to keep everything on this computer (recommended). Each course has its own address, its own Google Sheet and its own script deployment.</p>
      <label class="f" for="s-url">Apps Script web app address</label><input class="f" id="s-url" placeholder="https://script.google.com/macros/s/…/exec">
     </details>
     <p class="row" style="margin-top:16px"><button class="btn primary" type="submit">Save settings</button> <span id="saved" class="note" role="status"></span></p>
@@ -597,7 +626,7 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
   </div>
   <div class="card sub">
    <h3>Data</h3>
-   <dl class="kv"><dt>Data folder</dt><dd id="d-folder">…</dd><dt>Version</dt><dd id="d-ver">…</dd></dl>
+   <dl class="kv"><dt>This course's data</dt><dd id="d-folder">…</dd><dt>Version</dt><dd id="d-ver">…</dd></dl>
    <p class="row" style="margin-top:14px"><button class="btn" type="button" id="data">Open data folder</button></p>
   </div>
  </div>
@@ -649,6 +678,21 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
  <form method="dialog" class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn primary">Close</button></form>
 </dialog>
 
+<dialog id="courses-d" class="cd" aria-labelledby="courses-h">
+ <h2 id="courses-h">Courses</h2>
+ <p class="note">Each course has its own class list, attendance, quizzes, groups, assignments, learning objectives, messages, host key and Google Sheet. Nothing is shared between courses. A course's lectures and files are kept in the app, or in a folder you link, such as a copy of a GitHub repository. Student records are never written to a linked folder.</p>
+ <div id="cd-list"></div>
+ <h3 style="margin:1.2rem 0 .2rem">Add a course</h3>
+ <form id="cd-add" class="add">
+  <div><label for="cd-code">Course code</label><input class="f" id="cd-code" required maxlength="40" placeholder="PHYS 101"></div>
+  <div><label for="cd-title">Title</label><input class="f" id="cd-title" maxlength="120" placeholder="Mechanics"></div>
+  <div><label for="cd-term">Term</label><input class="f" id="cd-term" maxlength="80" placeholder="Semester 2, 2026/27"></div>
+  <div><label for="cd-copy">Copy institution and lecturer from</label><select class="f" id="cd-copy" style="min-width:0;width:100%"></select></div>
+  <div style="grid-column:1/-1" class="row"><button class="btn primary" type="submit">Add and open the course</button><span class="msg" id="cd-msg" role="status"></span></div>
+ </form>
+ <form method="dialog" class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn">Close</button></form>
+</dialog>
+
 <dialog id="keys-d" aria-labelledby="keys-h">
  <h2 id="keys-h">Keyboard shortcuts</h2>
  <table><tbody>
@@ -683,14 +727,14 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
   <div class="row"><input class="f" id="look-in" list="look-list" style="flex:1"><button class="btn primary" type="submit">Open</button><button class="btn" type="button" id="look-x">Cancel</button></div>
   <datalist id="look-list"></datalist><p class="note" id="look-msg" role="status"></p></form>
 </dialog>
-<script src="/app/insights.js"></script>
-<script src="/app/progress.js"></script>
+<script src="insights.js"></script>
+<script src="progress.js"></script>
 <script>
 (function(){
 "use strict";
 var $=function(i){return document.getElementById(i)};
 if(!window.cmApp){document.body.innerHTML="<p style='padding:2rem'>Open this page from the Class Manager app.</p>";return}
-function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
 function store(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
 function copy(text,btn){
  var done=function(){var t=btn.lastChild.textContent;btn.lastChild.textContent="Copied";setTimeout(function(){btn.lastChild.textContent=t},1400)};
@@ -842,6 +886,63 @@ function gshow(g){
  $("g-msg").textContent=g.lastError?"Last copy failed: "+g.lastError:"";
 }
 function reload(){return cmApp.info().then(show)}
+
+/* ---- courses: the dropdown switches this window, and everything in it, to another course ---- */
+var COURSES=[],CUR="";
+function cname(c){return(c.code||"New course")+(c.title?": "+c.title:"")}
+function drawCourses(d){
+ COURSES=d.list;CUR=d.current;
+ var sel=$("course-sel"),open=COURSES.filter(function(c){return!c.archived});
+ sel.innerHTML=open.map(function(c){return'<option value="'+esc(c.id)+'"'+(c.current?" selected":"")+(c.term?' title="'+esc(c.term)+'"':"")+'>'+esc(cname(c))+(c.live&&!c.current?" · in class now":"")+'</option>'}).join("")+
+  '<option disabled>──────────</option><option value="__add">Add a course…</option><option value="__manage">Manage courses…</option>';
+ sel.value=CUR;
+ var busy=open.filter(function(c){return c.live&&!c.current});
+ $("course-others").textContent=busy.length?(busy.map(function(c){return c.code||c.id}).join(", ")+(busy.length===1?" has":" have")+" a class running"):"";
+ var me=COURSES.find(function(c){return c.current})||{};
+ var src=me.source||{};
+ $("cc-where").innerHTML=src.kind==="folder"?"Lectures, files and question banks are read from and saved to the linked folder <span class='path' style='display:block;margin-top:.3rem'>"+esc(src.path)+"</span>"+(me.repo&&me.repo.url?"It is a copy of the repository "+esc(me.repo.url)+(me.repo.branch?" (branch "+esc(me.repo.branch)+")":"")+".":""):
+  "Lectures, files and question banks are kept in the app's data folder. To work from your own folder or a copy of a repository, link it under Manage courses.";
+ $("cd-copy").innerHTML='<option value="">Nothing</option>'+COURSES.map(function(c){return'<option value="'+esc(c.id)+'"'+(c.current?" selected":"")+'>'+esc(c.code||c.id)+'</option>'}).join("");
+ drawCourseTable();
+}
+function drawCourseTable(){
+ $("cd-list").innerHTML="<table><thead><tr><th>Code</th><th>Title</th><th>Term</th><th>Content</th><th></th></tr></thead><tbody>"+COURSES.map(function(c){
+  var src=c.source||{},where=src.kind==="folder"?"<span class='path'>"+esc(src.path)+"</span>"+(c.repo&&c.repo.url?"<br><span class='note'>Repository "+esc(c.repo.url.replace(/^https:\/\//,""))+(c.repo.branch?", "+esc(c.repo.branch):"")+"</span>":""):"<span class='note'>In the app</span>";
+  var acts=c.archived?"<button class='btn sm' data-cact='restore' data-id='"+esc(c.id)+"'>Restore</button>":
+   (c.current?"<span class='tag on'>Shown</span> ":"<button class='btn sm' data-cact='open' data-id='"+esc(c.id)+"'>Open</button> ")+
+   "<button class='btn sm' data-cact='save' data-id='"+esc(c.id)+"'>Save</button> "+
+   (src.kind==="folder"?"<button class='btn sm' data-cact='unlink' data-id='"+esc(c.id)+"'>Unlink folder</button> "+(c.repo?"<button class='btn sm' data-cact='pull' data-id='"+esc(c.id)+"'>Update from repository</button> ":""):"<button class='btn sm' data-cact='link' data-id='"+esc(c.id)+"'>Link a folder</button> ")+
+   "<button class='btn sm' data-cact='archive' data-id='"+esc(c.id)+"'>Archive</button>";
+  return"<tr class='"+(c.archived?"arch":"")+"'><td class='c-code'><input class='f' maxlength='40' data-cf='code' data-id='"+esc(c.id)+"' value='"+esc(c.code)+"' aria-label='Code of "+esc(c.code||c.id)+"'"+(c.archived?" disabled":"")+"></td>"+
+   "<td class='c-title'><input class='f' maxlength='120' data-cf='title' data-id='"+esc(c.id)+"' value='"+esc(c.title)+"' aria-label='Title'"+(c.archived?" disabled":"")+"></td>"+
+   "<td class='c-term'><input class='f' maxlength='80' data-cf='term' data-id='"+esc(c.id)+"' value='"+esc(c.term)+"' aria-label='Term'"+(c.archived?" disabled":"")+"></td>"+
+   "<td>"+where+(c.archived?"<br><span class='note'>Archived: its pages are not served, its records are kept.</span>":"")+"</td><td>"+acts+"</td></tr>"}).join("")+"</tbody></table>";
+}
+function loadCourses(){return cmApp.courses().then(drawCourses)}
+function cmsg(t){$("cd-msg").textContent=t||""}
+$("course-sel").addEventListener("change",function(){
+ var v=this.value;
+ if(v==="__add"||v==="__manage"){this.value=CUR;$("courses-d").showModal();if(v==="__add")$("cd-code").focus();return}
+ if(v&&v!==CUR)cmApp.switchCourse(v).then(function(r){if(r&&r.ok)location.href=r.url;else{alert(r&&r.why||"Not switched.");loadCourses()}});
+});
+$("cc-manage").addEventListener("click",function(){$("courses-d").showModal()});
+$("cc-open").addEventListener("click",function(){cmApp.openContent()});
+$("cd-add").addEventListener("submit",function(e){
+ e.preventDefault();cmsg("Adding…");
+ cmApp.addCourse({code:$("cd-code").value,title:$("cd-title").value,term:$("cd-term").value,copyFrom:$("cd-copy").value}).then(function(r){if(r&&r.ok)location.href=r.url;else cmsg(r&&r.why||"Not added.")});
+});
+$("cd-list").addEventListener("click",function(e){
+ var b=e.target.closest&&e.target.closest("[data-cact]");if(!b)return;
+ var id=b.getAttribute("data-id"),a=b.getAttribute("data-cact"),done=function(r){if(r&&r.why)cmsg(r.why);else if(r&&r.message)cmsg(r.message);else cmsg("");if(r&&r.url){location.href=r.url;return}loadCourses()};
+ if(a==="open")cmApp.switchCourse(id).then(done);
+ if(a==="save"){var v=function(f){var i=$("cd-list").querySelector("[data-cf='"+f+"'][data-id='"+id+"']");return i?i.value:""};cmApp.updateCourse(id,{code:v("code"),title:v("title"),term:v("term")}).then(function(r){done(r);if(r&&r.ok){cmsg("Saved.");if(id===CUR)setTimeout(function(){location.reload()},400)}})}
+ if(a==="archive"){if(confirm("Archive this course? Its pages stop being served to students. Its records stay on this computer and you can restore it at any time."))cmApp.archiveCourse(id,true).then(done)}
+ if(a==="restore")cmApp.archiveCourse(id,false).then(done);
+ if(a==="link")cmApp.linkFolder(id).then(function(r){if(r){done(r);if(r.ok&&id===CUR)reload()}});
+ if(a==="unlink"){if(confirm("Unlink the folder? The folder and its files stay as they are; the course goes back to the content kept in the app."))cmApp.linkFolder(id,true).then(done)}
+ if(a==="pull"){cmsg("Updating from the repository…");cmApp.pullCourse(id).then(done)}
+});
+setInterval(function(){if(document.visibilityState==="visible"&&!$("courses-d").open)loadCourses()},15000);
 cmApp.onTunnel(tshow);
 document.querySelectorAll("input[name=conn]").forEach(function(r){r.addEventListener("change",function(){
  if(r.value==="net"&&r.checked){tshow({state:"starting"});cmApp.tunnelStart().then(tshow)}
@@ -869,7 +970,7 @@ document.addEventListener("keydown",function(e){
  if(k==="/"||k==="?"){e.preventDefault();$("keys-d").showModal()}
 });
 $("keys").addEventListener("click",function(){$("keys-d").showModal()});
-reload();
+reload();loadCourses();
 document.querySelectorAll("[data-win]").forEach(function(b){b.addEventListener("click",function(){cmApp.openWindow(b.getAttribute("data-win"))})});
 document.querySelectorAll("[data-go]").forEach(function(b){b.addEventListener("click",function(){location.href=b.getAttribute("data-go")})});
 $("tab").addEventListener("change",function(){$("filter").value="";view()});

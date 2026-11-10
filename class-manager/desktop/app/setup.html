@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
 <title>Course setup | Class Manager</title>
-<script src="/config.js"></script>
-<link rel="icon" href="/app/icon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/site.css">
+<script src="../config.js"></script>
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/site.css">
 <style>
 html{font-size:clamp(15px,calc(9.5px + .42vw),19px)}
 .su{max-width:56rem;margin:0 auto;font-family:system-ui,sans-serif}
@@ -42,7 +42,7 @@ html{font-size:clamp(15px,calc(9.5px + .42vw),19px)}
 </style>
 </head>
 <body>
-<header class="banner slim"><div class="wrap"><h1><a class="home-link" href="home.html">Class Manager</a></h1><p class="course">Course setup</p></div></header>
+<header class="banner slim"><div class="wrap"><h1><a class="home-link" href="home.html">Class Manager</a></h1><p class="course"><span data-cm="courseCode">New course</span> · Course setup</p></div></header>
 <main id="main"><div class="wrap su">
 <p class="why" id="intro">Three short steps set the app up for your course. Each step can be skipped and finished later from the home screen, and everything stays editable.</p>
 <ol class="steps" id="steps">
@@ -163,7 +163,7 @@ function load(){return cmApp.setup().then(function(d){
  $("c-notice").value=S.notice||"";$("c-nl").value=S.noticeLinkLabel||"";$("c-nu").value=S.noticeLinkUrl||"";
  showLogo(S.logo);drawLecs();
 })}
-function showLogo(l){$("logo-img").hidden=!l;$("logo-clear").hidden=!l;if(l)$("logo-img").src="/"+l+"?t="+Date.now()}
+function showLogo(l){$("logo-img").hidden=!l;$("logo-clear").hidden=!l;if(l)$("logo-img").src="../"+l+"?t="+Date.now()}
 document.querySelectorAll("[data-go]").forEach(function(b){b.addEventListener("click",function(){go(b.getAttribute("data-go"))})});
 document.querySelectorAll("[data-skip]").forEach(function(b){b.addEventListener("click",function(){go(b.getAttribute("data-skip"))})});
 // ---------- course details ----------

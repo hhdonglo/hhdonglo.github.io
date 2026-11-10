@@ -201,15 +201,37 @@ Under "Course and Content", press "Open resources and questions".
 8. DATA, BACKUP AND PRIVACY
 ---------------------------
 
+MANY COURSES. One installation runs all your courses. The course list at the
+top of the window chooses the course; every screen in that window then shows
+that course only, and windows opened from it (attendance, quiz, projector)
+belong to it. "Add a course..." and "Manage courses..." in the same list add,
+rename, archive and restore courses. Each course has its own class list,
+attendance, quizzes, groups, assignments, learning objectives, messages, host
+key, student access codes, Google Sheet and Apps Script address. Nothing is
+shared: a student who takes two courses has two records and two codes. A class
+can go on in one course (students checking in, a quiz running) while you look
+at another; the course list marks a course that has a class running.
+Students open each course at its own address, which ends in /c/ and the
+course's short name. Addresses printed before version 0.8.0 still open the
+first course. Archiving a course stops its pages; its records stay.
+A course's lectures, files and question banks are kept in the app, or in a
+folder you link under "Manage courses", for example your own copy of a GitHub
+repository. If the folder is a Git repository, "Update from repository" runs
+git pull. Student records are never written to a linked folder.
+The first time 0.8.0 starts, the course you had becomes the first course,
+with all its records.
+
 All records stay on this computer, in the data folder shown in the status bar
-at the bottom of the window and under "App Settings":
+at the bottom of the window and under "App Settings" (each course has its own
+folder inside it, under "courses"):
   Windows: %APPDATA%\Class Manager
   macOS:   ~/Library/Application Support/Class Manager
   Linux:   ~/.config/Class Manager
 Back up this folder with the rest of your files.
 
 Optional: if this build offers "Sign in with Google", the app keeps a copy of
-every tab in one Google Sheet in your own Drive, and can see only that file.
+every tab in a Google Sheet in your own Drive, one Sheet for each course, and
+can see only those files. One sign-in serves every course.
 
 
 9. TROUBLESHOOTING

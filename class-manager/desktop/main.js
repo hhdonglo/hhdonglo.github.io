@@ -4,7 +4,10 @@
    - Runs the quiz and attendance server on this computer (backend.js): results, attendance and
      marks are stored in a local workbook, created automatically on first launch.
    - Optional: sign in with Google to keep a copy of every tab in a Google Sheet in the lecturer's
-     own Drive (google.js). */
+     own Drive (google.js).
+   - Many courses at once (courses.js): each course has its own folder, workbook, settings, Google Sheet
+     and pages under /c/<id>/. Every window belongs to one course, read from its address, and every
+     request from it acts on that course only. */
 "use strict";
 const { app, BrowserWindow, Menu, ipcMain, shell, dialog, safeStorage } = require("electron");
 const http = require("http");
@@ -17,13 +20,16 @@ const { createAuthoring } = require("./authoring");
 const { createTunnel, createLimiter } = require("./tunnel");
 const { createCourse } = require("./course");
 const { readTable } = require("./table");
+const { execFile } = require("child_process");
+const courses = require("./courses");
 
 const WEB = app.isPackaged ? path.join(process.resourcesPath, "web") : path.join(__dirname, "..");
-const DATA = () => path.join(app.getPath("userData"), "data");
-const SETTINGS_FILE = () => path.join(app.getPath("userData"), "settings.json");
+const ROOT = () => app.getPath("userData");
+const SETTINGS_FILE = () => path.join(ROOT(), "settings.json"); // the app's own settings: port and text size
 const TEMPLATES = app.isPackaged ? path.join(process.resourcesPath, "web", "templates") : path.join(__dirname, "..", "templates");
 const DEFAULTS = { courseCode: "", courseTitle: "", institution: "", lecturer: "", semester: "", startDate: "", endDate: "", contact: "", accent: "", logo: "", notice: "", noticeLinkLabel: "", noticeLinkUrl: "",
-  scriptUrl: "", port: 8143, setupSeen: false };
+  scriptUrl: "", setupSeen: false }; // one course's settings
+const APP_DEFAULTS = { port: 8143, zoom: 1 };
 const TYPES = {
   ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8",
   ".json": "application/json; charset=utf-8", ".svg": "image/svg+xml", ".png": "image/png", ".webp": "image/webp",
@@ -31,16 +37,26 @@ const TYPES = {
   ".pptx": "application/vnd.openxmlformats-officedocument.presentationml.presentation", ".md": "text/markdown; charset=utf-8", ".txt": "text/plain; charset=utf-8", ".woff2": "font/woff2", ".webmanifest": "application/manifest+json"
 };
 
-let settings, server = null, port = 0, win = null, backend = null, google = null, authoring = null;
-let course = null;
+let appSettings, server = null, port = 0, win = null, registry = null;
+const ctxs = new Map(); // course id -> { id, settings, course, authoring, backend, google }, made on first use
 let tunnel = null, tunnelServer = null, tunnelPort = 0;
 const allowRemote = createLimiter(240); // requests per minute per visitor through the internet address
 
 // ---------- settings ----------
-function loadSettings() {
-  try { return Object.assign({}, DEFAULTS, JSON.parse(fs.readFileSync(SETTINGS_FILE(), "utf8"))); } catch (e) { return Object.assign({}, DEFAULTS); }
+function loadAppSettings() {
+  const s = Object.assign({}, APP_DEFAULTS, readJson(SETTINGS_FILE(), {}));
+  return { port: Math.min(65535, Math.max(1024, Number(s.port) || APP_DEFAULTS.port)), zoom: clampZoom(s.zoom) };
 }
-function saveSettings(s) {
+function saveAppSettings(o) {
+  appSettings = { port: o.port == null ? appSettings.port : Math.min(65535, Math.max(1024, Number(o.port) || APP_DEFAULTS.port)), zoom: clampZoom(o.zoom == null ? appSettings.zoom : o.zoom) };
+  fs.mkdirSync(ROOT(), { recursive: true });
+  fs.writeFileSync(SETTINGS_FILE(), JSON.stringify(appSettings, null, 1));
+}
+function readJson(f, d) { try { return JSON.parse(fs.readFileSync(f, "utf8")); } catch (e) { return d; } }
+function loadCourseSettings(id) { return Object.assign({}, DEFAULTS, readJson(registry.dirs(id).settings, {})); }
+// Saves one course's settings. Fields left out keep their value.
+function saveSettings(c, s) {
+  const settings = c.settings;
   const url = String(s.scriptUrl == null ? settings.scriptUrl || "" : s.scriptUrl).trim();
   const txt = (k, n) => String(s[k] == null ? settings[k] || "" : s[k]).trim().slice(0, n);
   const day = (k) => (/^\d{4}-\d{2}-\d{2}$/.test(String(s[k] == null ? settings[k] || "" : s[k])) ? String(s[k] == null ? settings[k] : s[k]) : "");
@@ -52,24 +68,27 @@ function saveSettings(s) {
     accent: /^#[0-9a-f]{6}$/i.test(String(s.accent == null ? settings.accent : s.accent)) ? String(s.accent == null ? settings.accent : s.accent) : "",
     logo: s.logo == null ? settings.logo || "" : String(s.logo),
     setupSeen: s.setupSeen == null ? !!settings.setupSeen : !!s.setupSeen,
-    scriptUrl: /^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(url) ? url : "",
-    zoom: clampZoom(s.zoom == null ? settings.zoom : s.zoom),
-    port: Math.min(65535, Math.max(1024, Number(s.port) || DEFAULTS.port))
+    scriptUrl: /^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(url) ? url : ""
   };
-  fs.mkdirSync(app.getPath("userData"), { recursive: true });
-  fs.writeFileSync(SETTINGS_FILE(), JSON.stringify(clean, null, 1));
-  settings = Object.assign({}, DEFAULTS, clean);
+  const f = registry.dirs(c.id).settings;
+  fs.mkdirSync(path.dirname(f), { recursive: true });
+  fs.writeFileSync(f, JSON.stringify(clean, null, 1));
+  c.settings = Object.assign({}, DEFAULTS, clean);
+  registry.update(c.id, { code: clean.courseCode, title: clean.courseTitle, term: clean.semester }); // the course list shows the same names
 }
+// What the app's screens see as "settings": the course's settings with the app's port.
+const shownSettings = (c) => Object.assign({}, c.settings, { port: appSettings.port });
 
 // Google OAuth client of this build (registered once by the publisher; see desktop/README.md).
 function oauthClient() {
-  for (const f of [path.join(__dirname, "google-oauth.json"), path.join(app.getPath("userData"), "google-oauth.json")]) {
+  for (const f of [path.join(__dirname, "google-oauth.json"), path.join(ROOT(), "google-oauth.json")]) {
     try { const j = JSON.parse(fs.readFileSync(f, "utf8")); const c = j.installed || j; if (c.client_id) return c; } catch (e) { /* not set */ }
   }
   return {};
 }
 // Google sign-in tokens, encrypted with the system keychain where it is available.
-const TOKENS = () => path.join(app.getPath("userData"), "google.bin");
+// One sign-in for the app; each course keeps the address of its own Google Sheet in the same file (courses.js).
+const TOKENS = () => path.join(ROOT(), "google.bin");
 function loadTokens() {
   try { const b = fs.readFileSync(TOKENS()); return JSON.parse(safeStorage.isEncryptionAvailable() ? safeStorage.decryptString(b) : b.toString("utf8")); } catch (e) { return {}; }
 }
@@ -80,7 +99,7 @@ function saveTokens(o) {
 
 // Anthropic API key for summaries and question generation, encrypted with the system keychain where it is available.
 // It never leaves this computer except in requests to the Anthropic API.
-const AKEY = () => path.join(app.getPath("userData"), "anthropic.bin");
+const AKEY = () => path.join(ROOT(), "anthropic.bin");
 function loadApiKey() {
   try { const b = fs.readFileSync(AKEY()); return safeStorage.isEncryptionAvailable() ? safeStorage.decryptString(b) : b.toString("utf8"); } catch (e) { return ""; }
 }
@@ -104,16 +123,18 @@ function isThisComputer(req) {
   return ra === "127.0.0.1" || ra === "::1" || lanAddresses().some((a) => a.address === ra);
 }
 
-// config.js is generated from the settings. Without an Apps Script address the pages use this computer's server.
-function publicUrl() { const t = tunnel && tunnel.status(); return t && t.state === "on" ? t.url : ""; }
-function configJs(req, remote) {
+// config.js is generated from the course's settings. Without an Apps Script address the pages use this computer's server.
+function publicUrl() { const t = tunnel && tunnel.status(); return t && t.state === "on" ? t.url.replace(/\/?$/, "/") : ""; }
+function configJs(c, req, remote, r) {
   const src = fs.readFileSync(path.join(WEB, "config.js"), "utf8");
   const host = /^[\w.:\[\]-]+$/.test(req.headers.host || "") ? req.headers.host : "127.0.0.1:" + port;
-  const cm = { courseCode: settings.courseCode, courseTitle: settings.courseTitle, institution: settings.institution, lecturer: settings.lecturer, semester: settings.semester,
-    contact: settings.contact, accent: settings.accent, logo: settings.logo, notice: settings.notice ? { text: settings.notice, linkLabel: settings.noticeLinkLabel, linkUrl: settings.noticeLinkUrl } : null,
-    scriptUrl: settings.scriptUrl || (remote ? "https://" : "http://") + host + "/exec", desktop: true };
-  if (publicUrl()) cm.publicBase = publicUrl(); // QR codes and links for students use the internet address while it is on
-  return "/* Generated by the Class Manager app from its Settings. */\nwindow.CM = " + JSON.stringify(cm, null, 1) + ";\n\n" + src.slice(src.indexOf("/* Helpers"));
+  const s = c.settings;
+  const cm = { courseId: c.id, courseCode: s.courseCode, courseTitle: s.courseTitle, institution: s.institution, lecturer: s.lecturer, semester: s.semester,
+    contact: s.contact, accent: s.accent, logo: s.logo, notice: s.notice ? { text: s.notice, linkLabel: s.noticeLinkLabel, linkUrl: s.noticeLinkUrl } : null,
+    scriptUrl: s.scriptUrl || (remote ? "https://" : "http://") + host + (r.prefixed ? r.prefix : "/") + "exec", desktop: true };
+  if (publicUrl()) cm.publicBase = publicUrl() + r.prefix.slice(1); // QR codes and links for students use the internet address while it is on
+  // Every course but the default one keeps its own browser storage on students' phones and in the app's windows.
+  return courses.configScript(src, cm, c.id === registry.defaultId() ? "" : "cm@" + c.id + ":");
 }
 
 function readBody(req, max) {
@@ -132,17 +153,27 @@ async function handle(req, res, remote) {
   }
   let u;
   try { u = new URL(req.url, "http://x"); } catch (e) { res.writeHead(400); return res.end(); }
-  let p = decodeURIComponent(u.pathname);
+  let raw;
+  try { raw = decodeURIComponent(u.pathname); } catch (e) { res.writeHead(400); return res.end(); }
+  if (raw.startsWith("/app/") && !remote && isThisComputer(req)) { // the app's screens always belong to a course
+    res.writeHead(302, { Location: "/c/" + registry.active() + raw + u.search }); return res.end();
+  }
+  // Which course: /c/<id>/... or, without the prefix, the default course. Archived and unknown courses are not served.
+  const r = registry.route(raw);
+  if (r.redirect) { res.writeHead(302, { Location: r.redirect }); return res.end(); }
+  if (r.notFound) { res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" }); return res.end("This course is not available on this computer."); }
+  const c = ctx(r.id);
+  let p = r.rest;
   if (p === "/exec") {
-    // The quiz and attendance server: same requests as the Google web app.
+    // The quiz and attendance server of this course: same requests as the Google web app.
     try {
       const params = Object.fromEntries(u.searchParams);
       let out;
       if (req.method === "POST") {
-        const raw = await readBody(req, 200000);
-        Object.assign(params, Object.fromEntries(new URLSearchParams(raw)));
-        out = backend.doPost(params, raw);
-      } else out = backend.doGet(params);
+        const body = await readBody(req, 200000);
+        Object.assign(params, Object.fromEntries(new URLSearchParams(body)));
+        out = c.backend.doPost(params, body);
+      } else out = c.backend.doGet(params);
       res.writeHead(200, { "Content-Type": out.mime + "; charset=utf-8", "Cache-Control": "no-store", "Access-Control-Allow-Origin": "*" });
       return res.end(out.text);
     } catch (e) {
@@ -152,27 +183,28 @@ async function handle(req, res, remote) {
   if (req.method !== "GET" && req.method !== "HEAD") { res.writeHead(405); return res.end(); }
   if (p === "/") p = "/index.html";
   if (p === "/calendar.ics") { // the course calendar as a feed that calendar programs on the network can subscribe to
-    const out = backend.doGet({ action: "calendar_ics", course: (settings.courseCode || "Class") + " calendar" });
+    const out = c.backend.doGet({ action: "calendar_ics", course: (c.settings.courseCode || "Class") + " calendar" });
     res.writeHead(200, { "Content-Type": "text/calendar; charset=utf-8", "Content-Disposition": 'inline; filename="calendar.ics"', "Cache-Control": "no-cache" });
     return res.end(out.text);
   }
   if (/^\/(quizzes\/lecture\d+|apps_script\/live_quizzes)\.json$/.test(p)) { // course banks with the lecturer's approved questions added
-    const merged = authoring.siteFile(p);
+    const merged = c.authoring.siteFile(p);
     if (merged !== null) { res.writeHead(200, { "Content-Type": TYPES[".json"], "Cache-Control": "no-cache" }); return res.end(merged); }
   }
   if (p === "/data/portal.json") { // titles, handouts and practice lists follow the course's lectures and banks
-    const extra = authoring.banks().filter((b) => b.base + b.added > 0).map((b) => b.lecture);
-    res.writeHead(200, { "Content-Type": TYPES[".json"], "Cache-Control": "no-cache" }); return res.end(JSON.stringify(course.portal(extra)));
+    const extra = c.authoring.banks().filter((b) => b.base + b.added > 0).map((b) => b.lecture);
+    res.writeHead(200, { "Content-Type": TYPES[".json"], "Cache-Control": "no-cache" }); return res.end(JSON.stringify(c.course.portal(extra)));
   }
-  if (p === "/config.js") { res.writeHead(200, { "Content-Type": TYPES[".js"], "Cache-Control": "no-store" }); return res.end(configJs(req, remote)); }
+  if (p === "/config.js") { res.writeHead(200, { "Content-Type": TYPES[".js"], "Cache-Control": "no-store" }); return res.end(configJs(c, req, remote, r)); }
   if (p.startsWith("/app/")) { // the app's own screens are for this computer only
     if (remote || !isThisComputer(req)) { res.writeHead(403); return res.end("Not available"); }
     return sendFile(res, path.join(__dirname, "app", p.slice(5)), path.join(__dirname, "app"));
   }
   if (p.startsWith("/apps_script/") && !p.endsWith(".json")) { res.writeHead(404); return res.end(); }
-  const file = course.resolve(p);
+  if (/(^|\/)\.(git|env|ssh|DS_Store)(\/|$)/i.test(p)) { res.writeHead(404); return res.end(); } // a linked folder may be a repository
+  const file = c.course.resolve(p);
   if (file) return sendFile(res, file, path.dirname(file));
-  const tpl = course.page(p);
+  const tpl = c.course.page(p);
   if (tpl !== null) { res.writeHead(200, { "Content-Type": TYPES[".html"], "Cache-Control": "no-cache" }); return res.end(tpl); }
   res.writeHead(404, { "Content-Type": "text/plain" }); res.end("Not found");
 }
@@ -200,7 +232,7 @@ async function startTunnel() {
 function stopTunnel() { return tunnel ? tunnel.stop() : { state: "off" }; }
 async function restartServer() {
   if (server) await new Promise((r) => server.close(() => r()));
-  try { server = await listen(settings.port); } catch (e) { server = await listen(0); } // port in use: any free port
+  try { server = await listen(appSettings.port); } catch (e) { server = await listen(0); } // port in use: any free port
   port = server.address().port;
 }
 
@@ -209,13 +241,13 @@ async function restartServer() {
 // It is set again on every page load, so a zoom left over from an earlier version never shrinks the app.
 const ZOOM_STEPS = [0.8, 0.9, 1, 1.1, 1.25, 1.4, 1.6, 1.8, 2];
 function clampZoom(z) { z = Number(z) || 1; return Math.min(2, Math.max(0.8, Math.round(z * 100) / 100)); }
-function applyZoom(w) { try { w.webContents.setZoomFactor(clampZoom(settings.zoom)); } catch (e) {} }
+function applyZoom(w) { try { w.webContents.setZoomFactor(clampZoom(appSettings.zoom)); } catch (e) {} }
 function setZoom(dir) {
-  const now = clampZoom(settings.zoom);
+  const now = clampZoom(appSettings.zoom);
   let next = 1;
   if (dir > 0) next = ZOOM_STEPS.find((z) => z > now + 0.001) || 2;
   else if (dir < 0) next = ZOOM_STEPS.slice().reverse().find((z) => z < now - 0.001) || 0.8;
-  saveSettings({ zoom: next, port: settings.port });
+  saveAppSettings({ zoom: next });
   for (const w of BrowserWindow.getAllWindows()) applyZoom(w);
 }
 function zoomKeys(w) {
@@ -259,38 +291,55 @@ function newWindow(page, w, h) {
   secureWindow(bw); bw.loadURL(baseUrl() + page); return bw;
 }
 
-// ---------- the app's own screens ----------
-function info() {
-  return {
-    settings, base: baseUrl(), version: app.getVersion(),
-    addresses: lanAddresses().map((a) => "http://" + a.address + ":" + port + "/"),
-    tunnel: tunnel ? tunnel.status() : { state: "off" },
-    hostKey: backend.hostKeyIsPlain() ? backend.hostKey() : "",
-    tabs: backend.tabs(), google: google.status(), dataFolder: DATA(), setup: setupState()
-  };
+// ---------- courses ----------
+// One context per course, made on first use and kept while the app runs, so a class can go on in one course
+// (students checking in, a quiz running) while the lecturer looks at another.
+function makeCtx(id) {
+  const d = registry.dirs(id);
+  const c = { id, settings: loadCourseSettings(id) };
+  c.course = createCourse({ dir: d.course, web: WEB, templates: TEMPLATES });
+  c.authoring = createAuthoring({ dir: d.authoring, webRoot: WEB, resolve: c.course.resolve, bankNumbers: c.course.bankNumbers, loadKey: loadApiKey, saveKey: saveApiKey,
+    keyIsEncrypted: () => safeStorage.isEncryptionAvailable(), log: (m) => console.log("[authoring " + id + "]", m) });
+  const oc = oauthClient();
+  c.google = createGoogle({
+    clientId: oc.client_id || "", clientSecret: oc.client_secret || "",
+    load: () => courses.courseTokens(loadTokens(), id), save: (o) => saveTokens(courses.storeCourseTokens(loadTokens(), id, o)),
+    openBrowser: (u) => shell.openExternal(u), log: (m) => console.log("[google " + id + "]", m),
+    tabs: () => c.backend.tabs(), tab: (n) => c.backend.tab(n), title: () => "Class Manager: " + (c.settings.courseCode || "class") + " results"
+  });
+  c.backend = createBackend({ readSite: (rel) => c.authoring.siteFile(rel), webRoot: WEB, resolve: c.course.resolve, dataFile: d.workbook,
+    log: (m) => console.log("[backend " + id + "]", m), onChange: () => c.google && c.google.changed() });
+  return c;
 }
-// What the first-launch setup still needs. Every step can be skipped and finished later.
-function setupState() {
-  const roster = (backend.tabs().find((t) => t.name === "Roster") || { rows: 1 }).rows - 1;
-  const steps = {
-    course: !!settings.courseCode,
-    classList: roster > 0,
-    materials: course.hasContent() || authoring.listDocs().length > 0
-  };
-  return { steps, roster: Math.max(0, roster), complete: steps.course && steps.classList && steps.materials, seen: !!settings.setupSeen };
+function ctx(id) {
+  if (!ctxs.has(id)) ctxs.set(id, makeCtx(id));
+  return ctxs.get(id);
 }
-function parseClassList(text) {
-  // One student per line: ID, then an optional name, separated by a comma, semicolon or tab. A header line is skipped.
-  return String(text || "").split(/\r?\n/).map((l) => l.split(/[,;\t]/).map((x) => x.replace(/^"|"$/g, "").trim()))
-    .filter((r) => r[0] && /\d{4,12}/.test(r[0].replace(/\D/g, ""))).map((r) => [r[0].replace(/\D/g, ""), r[1] || ""]);
+function closeCtx(id) { // after the course's folder changes: saved now, made again on next use
+  const c = ctxs.get(id); if (!c) return;
+  try { c.backend.flush(); } catch (e) {}
+  ctxs.delete(id);
 }
-function csvCell(v) { v = String(v == null ? "" : v); return /[",\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
-
-ipcMain.handle("cm:info", () => info());
-// What is happening in class right now, for the In Class screen: the open (or latest) attendance session and any quiz in progress.
-// Read straight from the local workbook; nothing is estimated.
-ipcMain.handle("cm:live", () => {
+// The course a window belongs to, from its address (/c/<id>/...). A window never acts on another course.
+function ctxOf(e) {
+  const id = registry.idFromUrl(e.sender.getURL()) || registry.active();
+  return ctx(id);
+}
+const winOf = (e) => BrowserWindow.fromWebContents(e.sender) || win;
+// An IPC handler that receives the window's course first.
+const on = (ch, fn) => ipcMain.handle(ch, (e, ...a) => fn(ctxOf(e), e, ...a));
+const coursePrefix = (c) => "c/" + c.id + "/";
+const studentHome = (c) => baseUrl() + coursePrefix(c);
+function tunnelFor(c) { // the internet address of this course's pages
+  const t = tunnel ? Object.assign({}, tunnel.status()) : { state: "off" };
+  if (t.url) t.url = t.url.replace(/\/?$/, "/") + coursePrefix(c);
+  return t;
+}
+// What is happening in class right now in one course: the open (or latest) attendance session and any quiz in progress.
+// Read straight from the course's workbook; nothing is estimated.
+function liveOf(c) {
   const out = { attendance: null, quizzes: [], roster: 0 };
+  const backend = c.backend;
   try {
     const st = backend.run("attStatus_");
     const ses = st && st.session;
@@ -311,172 +360,286 @@ ipcMain.handle("cm:live", () => {
     }
   } catch (e) { /* no quiz yet */ }
   return out;
-});
-// Class statistics for the In Class summary and the Class Statistics screen, computed in the backend from the local workbook.
+}
+// The course list for the dropdown. A course that is not loaded has nothing running.
+function courseList(current) {
+  return registry.list().map((x) => {
+    let live = false;
+    if (ctxs.has(x.id) && !x.archived) { try { const l = liveOf(ctxs.get(x.id)); live = !!((l.attendance && l.attendance.status === "Open") || l.quizzes.length); } catch (e) {} }
+    return { id: x.id, code: x.code, title: x.title, term: x.term, archived: !!x.archived, source: x.source, current: x.id === current, live, isDefault: x.id === registry.defaultId(),
+      repo: x.source && x.source.kind === "folder" ? repoInfo(x.source.path) : null };
+  });
+}
+// A linked folder that is a Git repository: its remote address and branch, read from .git without running Git.
+function repoInfo(dir) {
+  try {
+    const cfg = fs.readFileSync(path.join(dir, ".git", "config"), "utf8");
+    const m = cfg.match(/\[remote "origin"\][^[]*?url\s*=\s*(\S+)/);
+    const head = fs.readFileSync(path.join(dir, ".git", "HEAD"), "utf8").trim();
+    const b = head.match(/^ref: refs\/heads\/(.+)$/);
+    return { url: m ? m[1].replace(/^git@github\.com:/, "https://github.com/").replace(/\.git$/, "") : "", branch: b ? b[1] : "" };
+  } catch (e) { return null; }
+}
+// The screen a course opens on: its setup until that has been seen once, then the home screen.
+const startPage = (c) => coursePrefix(c) + (c.settings.setupSeen ? "app/home.html" : "app/setup.html");
+
+// ---------- the app's own screens ----------
+function info(c) {
+  return {
+    settings: shownSettings(c), base: studentHome(c), version: app.getVersion(), courseId: c.id,
+    addresses: lanAddresses().map((a) => "http://" + a.address + ":" + port + "/" + coursePrefix(c)),
+    tunnel: tunnelFor(c),
+    hostKey: c.backend.hostKeyIsPlain() ? c.backend.hostKey() : "",
+    tabs: c.backend.tabs(), google: c.google.status(), dataFolder: registry.dirs(c.id).root, contentFolder: registry.dirs(c.id).course, setup: setupState(c)
+  };
+}
+// What the first-launch setup of a course still needs. Every step can be skipped and finished later.
+function setupState(c) {
+  const roster = (c.backend.tabs().find((t) => t.name === "Roster") || { rows: 1 }).rows - 1;
+  const steps = {
+    course: !!c.settings.courseCode,
+    classList: roster > 0,
+    materials: c.course.hasContent() || c.authoring.listDocs().length > 0
+  };
+  return { steps, roster: Math.max(0, roster), complete: steps.course && steps.classList && steps.materials, seen: !!c.settings.setupSeen };
+}
+function parseClassList(text) {
+  // One student per line: ID, then an optional name, separated by a comma, semicolon or tab. A header line is skipped.
+  return String(text || "").split(/\r?\n/).map((l) => l.split(/[,;\t]/).map((x) => x.replace(/^"|"$/g, "").trim()))
+    .filter((r) => r[0] && /\d{4,12}/.test(r[0].replace(/\D/g, ""))).map((r) => [r[0].replace(/\D/g, ""), r[1] || ""]);
+}
+function csvCell(v) { v = String(v == null ? "" : v); return /[",\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
+
+on("cm:info", (c) => info(c));
+on("cm:live", (c) => liveOf(c));
+// Class statistics for the In Class summary and the Class Statistics screen, computed in the backend from the course's workbook.
 const statOpts = (o) => { const p = {}; for (const k of ["effort", "perf", "idle", "misses", "id"]) if (o && o[k] !== undefined && o[k] !== "") p[k] = String(o[k]).slice(0, 20); return p; };
-ipcMain.handle("cm:stats", (e, o) => { try { return backend.stats(statOpts(o)); } catch (err) { return { ok: false, why: err.message }; } });
-ipcMain.handle("cm:studentStats", (e, o) => { try { return backend.studentStats(statOpts(o)); } catch (err) { return { ok: false, why: err.message }; } });
-ipcMain.handle("cm:progress", () => { try { return backend.progress({}); } catch (err) { return { ok: false, why: err.message }; } });
-ipcMain.handle("cm:tunnelStart", () => startTunnel());
+on("cm:stats", (c, e, o) => { try { return c.backend.stats(statOpts(o)); } catch (err) { return { ok: false, why: err.message }; } });
+on("cm:studentStats", (c, e, o) => { try { return c.backend.studentStats(statOpts(o)); } catch (err) { return { ok: false, why: err.message }; } });
+on("cm:progress", (c) => { try { return c.backend.progress({}); } catch (err) { return { ok: false, why: err.message }; } });
+on("cm:tunnelStart", async (c) => { await startTunnel(); return tunnelFor(c); });
 ipcMain.handle("cm:readme", () => shell.openPath(app.isPackaged ? path.join(process.resourcesPath, "README.txt") : path.join(__dirname, "README.txt")));
-ipcMain.handle("cm:tunnelStop", () => stopTunnel());
-ipcMain.handle("cm:save", async (e, s) => {
-  const before = settings.port; saveSettings(s);
-  if (settings.port !== before) { await restartServer(); win.loadURL(baseUrl() + "app/home.html"); }
-  return info();
+on("cm:tunnelStop", (c) => { stopTunnel(); return tunnelFor(c); });
+on("cm:save", async (c, e, s) => {
+  s = s || {};
+  const before = appSettings.port;
+  if (s.scriptUrl != null) saveSettings(c, { scriptUrl: s.scriptUrl }); // the Apps Script address belongs to the course
+  if (s.port != null) saveAppSettings({ port: s.port });
+  if (appSettings.port !== before) { await restartServer(); for (const w of BrowserWindow.getAllWindows()) { const id = registry.idFromUrl(w.webContents.getURL()) || registry.active(); w.loadURL(baseUrl() + startPage(ctx(id))); } }
+  return info(c);
 });
-ipcMain.handle("cm:openWindow", (e, page) => { if (/^[\w.-]+\.html([?#][\w=&#.-]*)?$/.test(page)) newWindow(page); });
+on("cm:openWindow", (c, e, page) => { if (/^[\w.-]+\.html([?#][\w=&#.-]*)?$/.test(page)) newWindow(coursePrefix(c) + page); });
 ipcMain.handle("cm:openExternal", (e, url) => { if (/^https:\/\//.test(String(url))) shell.openExternal(url); });
-ipcMain.handle("cm:classList", (e, text, replace) => {
+on("cm:classList", (c, e, text, replace) => {
   const rows = parseClassList(text);
   if (!rows.length) return { ok: false, why: "No student IDs found. Put one student per line: ID, then name if you wish." };
-  return backend.rosterSync(rows, !!replace);
+  return c.backend.rosterSync(rows, !!replace);
 });
-ipcMain.handle("cm:classListFile", async () => {
-  const r = await dialog.showOpenDialog(win, { title: "Choose the class list", filters: [{ name: "Class list", extensions: ["csv", "txt", "tsv"] }], properties: ["openFile"] });
+on("cm:classListFile", async (c, e) => {
+  const r = await dialog.showOpenDialog(winOf(e), { title: "Choose the class list", filters: [{ name: "Class list", extensions: ["csv", "txt", "tsv"] }], properties: ["openFile"] });
   if (r.canceled || !r.filePaths[0]) return null;
   return fs.readFileSync(r.filePaths[0], "utf8").slice(0, 2000000);
 });
-// ---------- course setup (app/setup.html) ----------
-ipcMain.handle("cm:setup", () => ({ settings, setup: setupState(), lectures: course.lectures(), kinds: course.KINDS, portal: course.portal() }));
-ipcMain.handle("cm:saveCourse", (e, o) => {
-  o = o || {}; saveSettings(Object.assign({}, o, { port: settings.port }));
-  course.setCourseInfo({ courseCode: settings.courseCode, contacts: o.contacts, currentWeek: o.currentWeek });
-  return { settings, setup: setupState() };
+
+// ---------- the course list: add, rename, archive, switch, link a folder ----------
+on("cm:courses", (c) => ({ current: c.id, list: courseList(c.id) }));
+on("cm:addCourse", async (c, e, o) => {
+  o = o || {};
+  const code = String(o.code || "").trim();
+  if (!code) return { ok: false, why: "Give the course a code, for example PHYS 101." };
+  const n = registry.add({ code, title: o.title, term: o.term });
+  const nc = ctx(n.id);
+  saveSettings(nc, { courseCode: code, courseTitle: String(o.title || ""), semester: String(o.term || "") });
+  if (o.copyFrom && registry.get(String(o.copyFrom))) { // reuse another course's details (institution, lecturer, contact, colour); never its students
+    const src = ctx(String(o.copyFrom)).settings;
+    saveSettings(nc, { institution: src.institution, lecturer: src.lecturer, contact: src.contact, accent: src.accent });
+  }
+  return { ok: true, id: n.id, url: baseUrl() + startPage(nc) };
 });
-ipcMain.handle("cm:setupSeen", () => { saveSettings({ setupSeen: true, port: settings.port }); return setupState(); });
-ipcMain.handle("cm:chooseLogo", async (e, clear) => {
+on("cm:updateCourse", (c, e, id, o) => {
+  id = String(id || ""); o = o || {};
+  if (!registry.get(id)) return { ok: false, why: "No such course." };
+  if (o.code != null && !String(o.code).trim()) return { ok: false, why: "The course code cannot be empty." };
+  saveSettings(ctx(id), { courseCode: o.code, courseTitle: o.title, semester: o.term });
+  return { ok: true, list: courseList(c.id) };
+});
+on("cm:archiveCourse", (c, e, id, archived) => {
+  id = String(id || "");
+  const r = registry.setArchived(id, !!archived);
+  if (!r.ok) return r;
+  if (archived) closeCtx(id); // its pages stop being served; its records stay in its folder
+  return { ok: true, list: courseList(c.id), url: id === c.id && archived ? baseUrl() + startPage(ctx(registry.active())) : "" };
+});
+on("cm:switchCourse", (c, e, id) => {
+  id = String(id || "");
+  if (!registry.setActive(id)) return { ok: false, why: "That course is archived or does not exist." };
+  return { ok: true, url: baseUrl() + startPage(ctx(id)) };
+});
+on("cm:linkFolder", async (c, e, id, unlink) => {
+  id = String(id || c.id);
+  if (!registry.get(id)) return { ok: false, why: "No such course." };
+  if (unlink) { closeCtx(id); registry.setSource(id, { kind: "app" }); return { ok: true, list: courseList(c.id) }; }
+  const r = await dialog.showOpenDialog(winOf(e), { title: "Choose the folder that holds this course's lectures and files", properties: ["openDirectory", "createDirectory"] });
+  if (r.canceled || !r.filePaths[0]) return null;
+  const other = registry.list().find((x) => x.id !== id && x.source && x.source.kind === "folder" && path.resolve(x.source.path) === path.resolve(r.filePaths[0]));
+  if (other) return { ok: false, why: "That folder is already linked to " + (other.code || other.id) + ". Each course needs its own folder." };
+  try { closeCtx(id); registry.setSource(id, { kind: "folder", path: r.filePaths[0] }); } catch (err) { return { ok: false, why: err.message }; }
+  ctx(id).backend.dropSiteCache();
+  return { ok: true, list: courseList(c.id) };
+});
+// A linked folder that is a Git repository: bring it up to date with git pull (fast-forward only, never a merge).
+on("cm:pullCourse", (c, e, id) => new Promise((resolve) => {
+  const x = registry.get(String(id || c.id));
+  if (!x || !x.source || x.source.kind !== "folder") return resolve({ ok: false, why: "This course is not linked to a folder." });
+  if (!repoInfo(x.source.path)) return resolve({ ok: false, why: "The linked folder is not a Git repository." });
+  execFile("git", ["-C", x.source.path, "pull", "--ff-only"], { timeout: 60000 }, (err, out, errOut) => {
+    if (err) return resolve({ ok: false, why: err.code === "ENOENT" ? "Git is not installed on this computer. Update the folder with your usual Git program." : String(errOut || err.message).trim().slice(0, 400) });
+    if (ctxs.has(x.id)) ctxs.get(x.id).backend.dropSiteCache();
+    resolve({ ok: true, message: String(out || "").trim().slice(0, 400) || "Up to date." });
+  });
+}));
+
+// ---------- course setup (app/setup.html) ----------
+on("cm:setup", (c) => ({ settings: shownSettings(c), setup: setupState(c), lectures: c.course.lectures(), kinds: c.course.KINDS, portal: c.course.portal(), courseId: c.id, linked: registry.dirs(c.id).linked }));
+on("cm:saveCourse", (c, e, o) => {
+  o = o || {}; const keep = Object.assign({}, o); delete keep.scriptUrl; delete keep.setupSeen; delete keep.port;
+  saveSettings(c, keep);
+  c.course.setCourseInfo({ courseCode: c.settings.courseCode, contacts: o.contacts, currentWeek: o.currentWeek });
+  return { settings: shownSettings(c), setup: setupState(c) };
+});
+on("cm:setupSeen", (c) => { saveSettings(c, { setupSeen: true }); return setupState(c); });
+on("cm:chooseLogo", async (c, e, clear) => {
   try {
-    if (clear) { course.setLogo(""); saveSettings({ logo: "", port: settings.port }); return { ok: true, logo: "" }; }
-    const r = await dialog.showOpenDialog(win, { title: "Choose a logo", filters: [{ name: "Image", extensions: ["png", "jpg", "jpeg", "svg", "webp"] }], properties: ["openFile"] });
+    if (clear) { c.course.setLogo(""); saveSettings(c, { logo: "" }); return { ok: true, logo: "" }; }
+    const r = await dialog.showOpenDialog(winOf(e), { title: "Choose a logo", filters: [{ name: "Image", extensions: ["png", "jpg", "jpeg", "svg", "webp"] }], properties: ["openFile"] });
     if (r.canceled || !r.filePaths[0]) return null;
-    const logo = course.setLogo(r.filePaths[0]); saveSettings({ logo, port: settings.port }); return { ok: true, logo };
+    const logo = c.course.setLogo(r.filePaths[0]); saveSettings(c, { logo }); return { ok: true, logo };
   } catch (err) { return { ok: false, why: err.message }; }
 });
-ipcMain.handle("cm:tableFile", async () => { // a class list as rows, from CSV, a text file or Excel (.xlsx)
-  const r = await dialog.showOpenDialog(win, { title: "Choose the class list", filters: [{ name: "Class list", extensions: ["csv", "xlsx", "txt", "tsv"] }], properties: ["openFile"] });
+ipcMain.handle("cm:tableFile", async (e) => { // a class list as rows, from CSV, a text file or Excel (.xlsx)
+  const r = await dialog.showOpenDialog(winOf(e), { title: "Choose the class list", filters: [{ name: "Class list", extensions: ["csv", "xlsx", "txt", "tsv"] }], properties: ["openFile"] });
   if (r.canceled || !r.filePaths[0]) return null;
   try { return { ok: true, name: path.basename(r.filePaths[0]), rows: await readTable(r.filePaths[0]) }; } catch (err) { return { ok: false, why: err.message }; }
 });
 ipcMain.handle("cm:tableText", (e, text) => ({ ok: true, rows: require("./table").splitText(String(text || "").slice(0, 2000000)) }));
-ipcMain.handle("cm:classRows", (e, rows, replace) => { // rows already mapped to [ID, name]
+on("cm:classRows", (c, e, rows, replace) => { // rows already mapped to [ID, name]
   const clean = (rows || []).map((r) => [String(r[0] || "").replace(/\D/g, ""), String(r[1] || "").trim().slice(0, 120)]).filter((r) => /^\d{4,12}$/.test(r[0]));
   if (!clean.length) return { ok: false, why: "No student IDs found in the chosen column. Student IDs must have 4 to 12 digits." };
-  return backend.rosterSync(clean, !!replace);
+  return c.backend.rosterSync(clean, !!replace);
 });
-ipcMain.handle("cm:sampleClassList", async () => {
-  const r = await dialog.showSaveDialog(win, { title: "Save a sample class list", defaultPath: "class-list-template.csv" });
+ipcMain.handle("cm:sampleClassList", async (e) => {
+  const r = await dialog.showSaveDialog(winOf(e), { title: "Save a sample class list", defaultPath: "class-list-template.csv" });
   if (r.canceled || !r.filePath) return null;
-  fs.writeFileSync(r.filePath, "\ufeffStudent ID,Name\r\n10000001,First Student\r\n10000002,Second Student\r\n10000003,Third Student\r\n");
+  fs.writeFileSync(r.filePath, "﻿Student ID,Name\r\n10000001,First Student\r\n10000002,Second Student\r\n10000003,Third Student\r\n");
   shell.showItemInFolder(r.filePath); return r.filePath;
 });
-ipcMain.handle("cm:lectures", () => course.lectures());
-ipcMain.handle("cm:saveLecture", (e, o) => { const r = course.saveLecture(o || {}); backend.dropSiteCache(); return r; });
-ipcMain.handle("cm:removeLecture", (e, n) => { const r = course.removeLecture(Number(n)); backend.dropSiteCache(); return r; });
-ipcMain.handle("cm:lectureFile", async (e, n, kind, remove) => {
-  if (remove) return course.removeLectureFile(Number(n), String(kind));
-  const r = await dialog.showOpenDialog(win, { title: "Choose the file", filters: [{ name: "Lecture file", extensions: ["pdf", "docx", "pptx", "md", "txt"] }], properties: ["openFile"] });
+on("cm:lectures", (c) => c.course.lectures());
+on("cm:saveLecture", (c, e, o) => { const r = c.course.saveLecture(o || {}); c.backend.dropSiteCache(); return r; });
+on("cm:removeLecture", (c, e, n) => { const r = c.course.removeLecture(Number(n)); c.backend.dropSiteCache(); return r; });
+on("cm:lectureFile", async (c, e, n, kind, remove) => {
+  if (remove) return c.course.removeLectureFile(Number(n), String(kind));
+  const r = await dialog.showOpenDialog(winOf(e), { title: "Choose the file", filters: [{ name: "Lecture file", extensions: ["pdf", "docx", "pptx", "md", "txt"] }], properties: ["openFile"] });
   if (r.canceled || !r.filePaths[0]) return null;
-  try { return course.addLectureFile(Number(n), String(kind), r.filePaths[0]); } catch (err) { return { ok: false, why: err.message }; }
+  try { return c.course.addLectureFile(Number(n), String(kind), r.filePaths[0]); } catch (err) { return { ok: false, why: err.message }; }
 });
-ipcMain.handle("cm:importPack", async () => {
-  const r = await dialog.showOpenDialog(win, { title: "Import a course pack", filters: [{ name: "Course pack", extensions: ["zip"] }], properties: ["openFile"] });
+on("cm:importPack", async (c, e) => {
+  if (registry.dirs(c.id).linked) return { ok: false, why: "This course reads its content from a linked folder, so a course pack cannot replace it. Add a new course for the pack, or unlink the folder first." };
+  const r = await dialog.showOpenDialog(winOf(e), { title: "Import a course pack", filters: [{ name: "Course pack", extensions: ["zip"] }], properties: ["openFile"] });
   if (r.canceled || !r.filePaths[0]) return null;
   try {
-    const out = await course.importPack(r.filePaths[0]);
-    const keep = { port: settings.port, scriptUrl: settings.scriptUrl, setupSeen: settings.setupSeen };
+    const out = await c.course.importPack(r.filePaths[0]);
+    const keep = { scriptUrl: c.settings.scriptUrl, setupSeen: c.settings.setupSeen };
     const ps = Object.assign({}, out.settings);
+    delete ps.port; delete ps.zoom;
     if (ps.notice && typeof ps.notice === "object") { ps.noticeLinkLabel = ps.notice.linkLabel || ""; ps.noticeLinkUrl = ps.notice.linkUrl || ""; ps.notice = ps.notice.text || ""; }
-    ps.logo = ["png", "jpg", "jpeg", "svg", "webp"].map((x) => "course-logo." + x).find((f) => course.resolve(f)) || "";
-    saveSettings(Object.assign({}, DEFAULTS, ps, keep));
-    backend.dropSiteCache();
-    return { ok: true, name: out.name, files: out.files, settings };
+    ps.logo = ["png", "jpg", "jpeg", "svg", "webp"].map((x) => "course-logo." + x).find((f) => c.course.resolve(f)) || "";
+    saveSettings(c, Object.assign({}, DEFAULTS, ps, keep));
+    c.backend.dropSiteCache();
+    return { ok: true, name: out.name, files: out.files, settings: shownSettings(c) };
   } catch (err) { return { ok: false, why: err.message }; }
 });
-ipcMain.handle("cm:exportPack", async () => {
-  const name = ((settings.courseCode || "course").replace(/[^\w-]+/g, "-") + "-course-pack.zip").toLowerCase();
-  const r = await dialog.showSaveDialog(win, { title: "Export the course as a course pack", defaultPath: name });
+on("cm:exportPack", async (c, e) => {
+  const name = ((c.settings.courseCode || "course").replace(/[^\w-]+/g, "-") + "-course-pack.zip").toLowerCase();
+  const r = await dialog.showSaveDialog(winOf(e), { title: "Export the course as a course pack", defaultPath: name });
   if (r.canceled || !r.filePath) return null;
-  try { await course.exportPack(r.filePath, settings); shell.showItemInFolder(r.filePath); return { ok: true, file: r.filePath }; } catch (err) { return { ok: false, why: err.message }; }
+  try { await c.course.exportPack(r.filePath, c.settings); shell.showItemInFolder(r.filePath); return { ok: true, file: r.filePath }; } catch (err) { return { ok: false, why: err.message }; }
 });
-ipcMain.handle("cm:tab", (e, name) => backend.tab(String(name)));
-ipcMain.handle("cm:export", async () => {
-  const r = await dialog.showOpenDialog(win, { title: "Choose a folder for the results", properties: ["openDirectory", "createDirectory"] });
+on("cm:tab", (c, e, name) => c.backend.tab(String(name)));
+on("cm:export", async (c, e) => {
+  const r = await dialog.showOpenDialog(winOf(e), { title: "Choose a folder for the results", properties: ["openDirectory", "createDirectory"] });
   if (r.canceled || !r.filePaths[0]) return null;
-  const dir = path.join(r.filePaths[0], "Class Manager results " + new Date().toISOString().slice(0, 10));
+  const label = (c.settings.courseCode || c.id).replace(/[^\w .-]+/g, "_");
+  const dir = path.join(r.filePaths[0], "Class Manager results " + label + " " + new Date().toISOString().slice(0, 10));
   fs.mkdirSync(dir, { recursive: true });
-  backend.tabs().forEach((t) => {
-    const rows = backend.tab(t.name) || [];
+  c.backend.tabs().forEach((t) => {
+    const rows = c.backend.tab(t.name) || [];
     fs.writeFileSync(path.join(dir, t.name.replace(/[^\w .-]/g, "_") + ".csv"), "﻿" + rows.map((r) => r.map(csvCell).join(",")).join("\r\n"));
   });
   shell.openPath(dir);
   return dir;
 });
-ipcMain.handle("cm:openData", () => shell.openPath(DATA()));
-ipcMain.handle("cm:run", (e, name) => { if (["refreshTotals", "rebuildMaster", "buildNamedAttendance"].includes(name)) { backend.run(name); backend.flush(); return true; } return false; });
-ipcMain.handle("cm:googleSignIn", async () => { try { return await google.signIn().then(() => google.syncNow()); } catch (e) { return Object.assign(google.status(), { lastError: e.message }); } });
+on("cm:openData", (c) => shell.openPath(registry.dirs(c.id).root));
+on("cm:openContent", (c) => { const d = registry.dirs(c.id).course; fs.mkdirSync(d, { recursive: true }); return shell.openPath(d); });
+on("cm:run", (c, e, name) => { if (["refreshTotals", "rebuildMaster", "buildNamedAttendance"].includes(name)) { c.backend.run(name); c.backend.flush(); return true; } return false; });
+on("cm:googleSignIn", async (c) => { try { return await c.google.signIn().then(() => c.google.syncNow()); } catch (e) { return Object.assign(c.google.status(), { lastError: e.message }); } });
 // ---------- resources and question authoring (app/author.html) ----------
 const DOC_TYPES = [{ name: "Teaching material", extensions: ["pdf", "docx", "pptx", "md", "markdown", "txt"] }];
-ipcMain.handle("cm:authStatus", () => authoring.status());
-ipcMain.handle("cm:authSettings", (e, o) => authoring.setSettings(o || {}));
-ipcMain.handle("cm:libList", () => authoring.listDocs());
-ipcMain.handle("cm:libAdd", async (e, lecture) => {
-  const r = await dialog.showOpenDialog(win, { title: "Add teaching material", filters: DOC_TYPES, properties: ["openFile", "multiSelections"] });
+on("cm:authStatus", (c) => c.authoring.status());
+on("cm:authSettings", (c, e, o) => c.authoring.setSettings(o || {}));
+on("cm:libList", (c) => c.authoring.listDocs());
+on("cm:libAdd", async (c, e, lecture) => {
+  const r = await dialog.showOpenDialog(winOf(e), { title: "Add teaching material", filters: DOC_TYPES, properties: ["openFile", "multiSelections"] });
   if (r.canceled || !r.filePaths.length) return null;
-  return authoring.addFiles(r.filePaths, lecture);
+  return c.authoring.addFiles(r.filePaths, lecture);
 });
-ipcMain.handle("cm:libAddPaths", (e, paths, lecture) => authoring.addFiles((paths || []).map(String), lecture)); // drag and drop
-ipcMain.handle("cm:libRemove", (e, id) => authoring.removeDoc(String(id)));
-ipcMain.handle("cm:libSet", (e, id, f) => authoring.setDoc(String(id), f || {}));
-ipcMain.handle("cm:libPassages", (e, id) => authoring.docPassages(String(id)));
-ipcMain.handle("cm:search", (e, q, o) => authoring.search(String(q || ""), o || {}));
-ipcMain.handle("cm:summarise", async (e, id, mode) => { try { return { ok: true, doc: await authoring.summarise(String(id), mode) }; } catch (err) { return { ok: false, why: err.message }; } });
-ipcMain.handle("cm:generate", async (e, o) => { try { return Object.assign({ ok: true }, await authoring.generate(o || {})); } catch (err) { return { ok: false, why: err.message }; } });
-ipcMain.handle("cm:banks", () => authoring.banks());
-ipcMain.handle("cm:bankTitle", (e, n, t) => { const r = authoring.setBankTitle(n, t); backend.dropSiteCache(); return r; });
-ipcMain.handle("cm:drafts", () => authoring.listDrafts());
-ipcMain.handle("cm:draftsAdd", (e, items, origin) => authoring.addDrafts(items, ["manual", "imported"].includes(origin) ? origin : "manual"));
-ipcMain.handle("cm:draftUpdate", (e, did, f) => authoring.updateDraft(String(did), f || {}));
-ipcMain.handle("cm:draftsReject", (e, dids) => authoring.rejectDrafts((dids || []).map(String)));
-ipcMain.handle("cm:approve", (e, dids) => { const r = authoring.approve((dids || []).map(String), "review screen"); backend.dropSiteCache(); return r; });
-ipcMain.handle("cm:withdraw", (e, id) => { const r = authoring.withdraw(String(id)); backend.dropSiteCache(); return r; });
-ipcMain.handle("cm:importFile", async (e, defaults) => {
-  const r = await dialog.showOpenDialog(win, { title: "Import questions", filters: [{ name: "Questions", extensions: ["docx", "pdf", "md", "markdown", "txt"] }], properties: ["openFile"] });
+on("cm:libAddPaths", (c, e, paths, lecture) => c.authoring.addFiles((paths || []).map(String), lecture)); // drag and drop
+on("cm:libRemove", (c, e, id) => c.authoring.removeDoc(String(id)));
+on("cm:libSet", (c, e, id, f) => c.authoring.setDoc(String(id), f || {}));
+on("cm:libPassages", (c, e, id) => c.authoring.docPassages(String(id)));
+on("cm:search", (c, e, q, o) => c.authoring.search(String(q || ""), o || {}));
+on("cm:summarise", async (c, e, id, mode) => { try { return { ok: true, doc: await c.authoring.summarise(String(id), mode) }; } catch (err) { return { ok: false, why: err.message }; } });
+on("cm:generate", async (c, e, o) => { try { return Object.assign({ ok: true }, await c.authoring.generate(o || {})); } catch (err) { return { ok: false, why: err.message }; } });
+on("cm:banks", (c) => c.authoring.banks());
+on("cm:bankTitle", (c, e, n, t) => { const r = c.authoring.setBankTitle(n, t); c.backend.dropSiteCache(); return r; });
+on("cm:drafts", (c) => c.authoring.listDrafts());
+on("cm:draftsAdd", (c, e, items, origin) => c.authoring.addDrafts(items, ["manual", "imported"].includes(origin) ? origin : "manual"));
+on("cm:draftUpdate", (c, e, did, f) => c.authoring.updateDraft(String(did), f || {}));
+on("cm:draftsReject", (c, e, dids) => c.authoring.rejectDrafts((dids || []).map(String)));
+on("cm:approve", (c, e, dids) => { const r = c.authoring.approve((dids || []).map(String), "review screen"); c.backend.dropSiteCache(); return r; });
+on("cm:withdraw", (c, e, id) => { const r = c.authoring.withdraw(String(id)); c.backend.dropSiteCache(); return r; });
+on("cm:importFile", async (c, e, defaults) => {
+  const r = await dialog.showOpenDialog(winOf(e), { title: "Import questions", filters: [{ name: "Questions", extensions: ["docx", "pdf", "md", "markdown", "txt"] }], properties: ["openFile"] });
   if (r.canceled || !r.filePaths[0]) return null;
-  try { return Object.assign({ ok: true }, await authoring.importFile(r.filePaths[0], defaults || {})); } catch (err) { return { ok: false, why: err.message }; }
+  try { return Object.assign({ ok: true }, await c.authoring.importFile(r.filePaths[0], defaults || {})); } catch (err) { return { ok: false, why: err.message }; }
 });
-ipcMain.handle("cm:importText", (e, text, defaults) => Object.assign({ ok: true }, authoring.importText(String(text || "").slice(0, 2000000), defaults || {})));
+on("cm:importText", (c, e, text, defaults) => Object.assign({ ok: true }, c.authoring.importText(String(text || "").slice(0, 2000000), defaults || {})));
 ipcMain.handle("cm:saveTemplate", async (e, kind) => {
   const ext = kind === "docx" ? "docx" : "md";
-  const r = await dialog.showSaveDialog(win, { title: "Save the question template", defaultPath: "question-template." + ext });
+  const r = await dialog.showSaveDialog(winOf(e), { title: "Save the question template", defaultPath: "question-template." + ext });
   if (r.canceled || !r.filePath) return null;
   fs.copyFileSync(path.join(__dirname, "app", "question-template." + ext), r.filePath); shell.showItemInFolder(r.filePath); return r.filePath;
 });
-ipcMain.handle("cm:googleSignOut", () => google.signOut());
-ipcMain.handle("cm:googleSync", () => google.syncNow());
+on("cm:googleSignOut", (c) => c.google.signOut());
+on("cm:googleSync", (c) => c.google.syncNow());
 
 // ---------- start ----------
+function flushAll() { for (const c of ctxs.values()) { try { c.backend.flush(); } catch (e) {} } }
 app.whenReady().then(async () => {
-  settings = loadSettings();
-  const oc = oauthClient();
-  google = createGoogle({
-    clientId: oc.client_id || "", clientSecret: oc.client_secret || "",
-    load: loadTokens, save: saveTokens, openBrowser: (u) => shell.openExternal(u), log: (m) => console.log("[google]", m),
-    tabs: () => backend.tabs(), tab: (n) => backend.tab(n), title: () => "Class Manager: " + (settings.courseCode || "class") + " results"
-  });
-  course = createCourse({ dir: path.join(app.getPath("userData"), "course"), web: WEB, templates: TEMPLATES });
-  authoring = createAuthoring({ dir: path.join(app.getPath("userData"), "authoring"), webRoot: WEB, resolve: course.resolve, bankNumbers: course.bankNumbers, loadKey: loadApiKey, saveKey: saveApiKey,
-    keyIsEncrypted: () => safeStorage.isEncryptionAvailable(), log: (m) => console.log("[authoring]", m) });
-  backend = createBackend({ readSite: (rel) => authoring.siteFile(rel), webRoot: WEB, resolve: course.resolve, dataFile: path.join(DATA(), "workbook.json"), log: (m) => console.log("[backend]", m), onChange: () => google && google.changed() });
+  // Before 0.8.0 the app held one course; it becomes the first course here, with all of its records.
+  const mig = courses.migrateLegacy(ROOT(), (m) => console.log("[courses]", m));
+  if (mig.migrated) { try { const t = loadTokens(); if (t.sheetId) saveTokens(courses.migrateTokens(t, mig.migrated)); } catch (e) {} }
+  registry = courses.createRegistry(ROOT());
+  registry.ensureOne();
+  appSettings = loadAppSettings();
   await restartServer();
-  tunnel = createTunnel({ dir: path.join(app.getPath("userData"), "tunnel"),
-    onChange: (st) => { for (const w of BrowserWindow.getAllWindows()) { try { w.webContents.send("cm:tunnel", st); } catch (e) {} } } });
+  tunnel = createTunnel({ dir: path.join(ROOT(), "tunnel"),
+    onChange: () => { for (const w of BrowserWindow.getAllWindows()) { try { const id = registry.idFromUrl(w.webContents.getURL()) || registry.active(); w.webContents.send("cm:tunnel", tunnelFor(ctx(id))); } catch (e) {} } } });
   appMenu();
   win = new BrowserWindow({ width: 1280, height: 860, minWidth: 900, minHeight: 600, title: "Class Manager", icon: path.join(__dirname, "app", "icon-512.png"),
     webPreferences: { preload: path.join(__dirname, "preload.js"), contextIsolation: true, sandbox: true, nodeIntegration: false } });
   secureWindow(win);
-  win.loadURL(baseUrl() + (settings.setupSeen ? "app/home.html" : "app/setup.html"));
-  app.on("activate", () => { if (BrowserWindow.getAllWindows().length === 0) newWindow("app/home.html", 1280, 860); });
+  win.loadURL(baseUrl() + startPage(ctx(registry.active())));
+  app.on("activate", () => { if (BrowserWindow.getAllWindows().length === 0) newWindow(startPage(ctx(registry.active())), 1280, 860); });
 });
-app.on("before-quit", () => { try { backend && backend.flush(); } catch (e) {} try { stopTunnel(); } catch (e) {} });
-app.on("window-all-closed", () => { try { backend && backend.flush(); } catch (e) {} try { stopTunnel(); } catch (e) {} if (server) server.close(); app.quit(); });
+app.on("before-quit", () => { flushAll(); try { stopTunnel(); } catch (e) {} });
+app.on("window-all-closed", () => { flushAll(); try { stopTunnel(); } catch (e) {} if (server) server.close(); app.quit(); });
