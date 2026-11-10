@@ -63,7 +63,6 @@ jobs:
 
   release:
     # Always a draft: the Beta is sent on request, so releases are never public.
-    # The download page no longer links to releases: the Beta is sent on request. Keep releases as drafts (not public).
     if: github.event_name == 'workflow_dispatch' && startsWith(inputs.release, 'class-manager-v')
     needs: build
     runs-on: ubuntu-latest
