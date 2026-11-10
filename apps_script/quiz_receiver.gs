@@ -455,6 +455,7 @@ function ctlStatus_(c) {
     duration: Number(c.v[2]) || 0, message: String(c.v[8] || ''), title: String(c.v[9] || ''),
     allowLate: allowLate_(c), showScore: visible_(c, 'show_score'), showBoard: visible_(c, 'show_leaderboard')
   };
+  o.quizType = isConcept_(c) ? 'concept' : 'standard'; // shown on student and projector pages
   o.reviewQ = Number(c.v[17]) || 0;
   o.round = Number(c.v[16]) || 0; // changes on every reset or new round, so student pages know to start over
   if (paced_(c)) { o.currentQ = Number(c.v[11]) || 0; o.totalQ = quizN_(c); o.qids = qids_(c); o.qSeconds = Number(c.v[12]) || 0; o.qDeadline = Number(c.v[13]) || 0; }
@@ -756,6 +757,10 @@ function latestAnswers_(code) { // {id: {name, ans:[5]}} for the current round; 
 function finalize_(code) {
   var key = keyRow_(code), got = latestAnswers_(code), cf = ctl_(code);
   if (!key) return;
+  if (isConcept_(cf)) { // diagnostic: answers stay in the Answers tab (class diagnostic, live ranking and own score are worked out from there); nothing goes to Form Responses 1, Master, Scores or Totals
+    Object.keys(got).forEach(function (id) { presence_(code, id, got[id].name, 'submitted'); });
+    return;
+  }
   var letters = lettersFor_(code, cf), nq = cf ? quizN_(cf) : 5, wk = cf && !isConcept_(cf) ? weekOf_(cf) : ''; // a concept diagnostic has its own column (Quiz <code>), so it never overwrites the Week score
   var sh = stagedSheet_(), n = sh.getLastRow(), have = {}; // held until Release results
   var rnd = roundOf_(code);
@@ -838,7 +843,7 @@ function refreshTotals() {
 }
 
 function onOpen() { // a PHYS 143 menu in the sheet
-  try { SpreadsheetApp.getUi().createMenu('PHYS 143').addItem('Refresh totals', 'refreshTotals').addItem('Release held quiz results', 'releaseHeldQuiz').addItem('Discard held quiz results', 'discardHeldQuiz').addItem('Submit attendance', 'submitAttendance').addItem('Named attendance view', 'buildNamedAttendance').addItem('Tidy to class list', 'tidyToClassList').addItem('Discard unsubmitted attendance', 'discardAttendance').addToUi(); } catch (err) { /* not opened from the sheet */ }
+  try { SpreadsheetApp.getUi().createMenu('PHYS 143').addItem('Refresh totals', 'refreshTotals').addItem('Release held quiz results', 'releaseHeldQuiz').addItem('Discard held quiz results', 'discardHeldQuiz').addItem('Submit attendance', 'submitAttendance').addItem('Named attendance view', 'buildNamedAttendance').addItem('Tidy to class list', 'tidyToClassList').addItem('Move non-class rows out of Attendance', 'moveNonClassAttendance').addItem('Keep only students who attended', 'keepAttendedOnly').addItem('Reset all results (clean slate)', 'resetAllResults').addItem('Discard unsubmitted attendance', 'discardAttendance').addToUi(); } catch (err) { /* not opened from the sheet */ }
 }
 
 function releaseHeldQuiz() { return commitQuiz_('', true); }
@@ -1003,6 +1008,155 @@ function tidyToClassList() { // sheet menu: shows the counts first and asks
   ui.alert(r.ok ? 'Done. Removed Attendance ' + r.attendance + ', Scores ' + r.scores + ', Master ' + r.master + ' row(s).' : r.why);
 }
 
+// Move non-class rows out of Attendance (sheet menu: PHYS 143 > Move non-class rows out of Attendance). Attendance lists every ID that was on the Roster when a session
+// was submitted, so IDs from an earlier, larger Roster stay as rows (all zeros) after the Roster is narrowed to the real class. This copies every Attendance row whose
+// ID is NOT on the current Roster (marks and all) to the private tab Attendance_Other, checks the copy, and only then removes those rows from Attendance. Nothing is
+// lost: Attendance_Other holds the full rows. The Roster is read fresh from the sheet (not the five-minute cache). mode dry only counts.
+function moveNonClassAttendance_(apply) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(ATT_TAB), roster = {}, nr = 0;
+  rosterRows_().forEach(function (r) { if (!roster[r[0]]) { roster[r[0]] = 1; nr++; } });
+  if (!nr) return { ok: false, why: 'the Roster tab is empty, so no one can be told apart from the class' };
+  if (!sh || sh.getLastRow() < 2) return { ok: true, moved: 0, kept: 0, roster: nr };
+  var lk = LockService.getScriptLock(); lk.waitLock(30000);
+  try {
+    var w = Math.max(1, sh.getLastColumn()), vals = sh.getRange(1, 1, sh.getLastRow(), w).getValues(), head = vals[0], mv = [], rows = [], kept = 0;
+    for (var i = 1; i < vals.length; i++) {
+      var id = normId_(vals[i][0]);
+      if (id.length < 4) continue; // a blank or odd row is left alone
+      if (roster[id]) kept++; else { mv.push(vals[i]); rows.push(i + 1); }
+    }
+    if (!apply || !mv.length) return { ok: true, mode: apply ? 'apply' : 'dry', moved: mv.length, kept: kept, roster: nr };
+    var bad = attArchiveRows_(ss, sh, head, w, mv, rows, 'Attendance_Other'); if (bad) return { ok: false, why: bad };
+    log_('attendance:move_non_class', String(mv.length) + ' rows', '', '');
+    return { ok: true, mode: 'apply', moved: mv.length, kept: kept, roster: nr };
+  } finally { lk.releaseLock(); }
+}
+
+function moveNonClassAttendance() { // sheet menu: shows the counts first and asks
+  var ui = SpreadsheetApp.getUi(), d = moveNonClassAttendance_(false);
+  if (!d.ok) { ui.alert(d.why); return; }
+  if (!d.moved) { ui.alert('Nothing to move.', 'Every ID in Attendance is on the Roster (' + d.roster + ' students).', ui.ButtonSet.OK); return; }
+  if (ui.alert('Move non-class rows out of Attendance?', d.moved + ' row(s) with IDs that are not on the Roster will be copied to the tab Attendance_Other and then removed from Attendance. ' + d.kept + ' class row(s) stay (Roster: ' + d.roster + ' students). Nothing is deleted: the full rows, with all marks, are kept in Attendance_Other.', ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
+  var r = moveNonClassAttendance_(true);
+  ui.alert(r.ok ? 'Done. Moved ' + r.moved + ' row(s) to Attendance_Other. Attendance now has ' + r.kept + ' class row(s).' : r.why);
+}
+
+// Copy rows to a backup tab, check the copy, and only then delete them from sh (rows = their 1-based row numbers, ascending). Returns '' on success, else the reason.
+function attArchiveRows_(ss, sh, head, w, mv, rows, tabName) {
+  var ar = ss.getSheetByName(tabName) || ss.insertSheet(tabName);
+  if (ar.getMaxColumns() < w) ar.insertColumnsAfter(ar.getMaxColumns(), w - ar.getMaxColumns());
+  ar.getRange(1, 1, 1, w).setNumberFormat('@').setValues([head]); ar.setFrozenRows(1);
+  var r0 = Math.max(2, ar.getLastRow() + 1);
+  ar.getRange(r0, 1, mv.length, 1).setNumberFormat('@');
+  ar.getRange(r0, 1, mv.length, w).setValues(mv);
+  SpreadsheetApp.flush();
+  var back = ar.getRange(r0, 1, mv.length, 1).getValues();
+  for (var c = 0; c < mv.length; c++) if (normId_(back[c][0]) !== normId_(mv[c][0])) return 'the copy to ' + tabName + ' could not be verified, so nothing was removed from Attendance';
+  var runs = [], start = rows[0], prev = rows[0];
+  for (var k = 1; k < rows.length; k++) { if (rows[k] === prev + 1) { prev = rows[k]; continue; } runs.push([start, prev]); start = prev = rows[k]; }
+  runs.push([start, prev]);
+  for (var m = runs.length - 1; m >= 0; m--) sh.deleteRows(runs[m][0], runs[m][1] - runs[m][0] + 1);
+  return '';
+}
+
+// Keep only the students who were present (a 1) in the chosen Attendance column(s); every other row is copied to a dated backup tab first, then removed.
+// cols = the column headings to keep, as typed by the lecturer (matched without regard to case; a heading that contains the text also matches). mode dry only counts.
+function keepAttendedOnly_(cols, apply) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(ATT_TAB);
+  if (!sh || sh.getLastRow() < 2) return { ok: false, why: 'the Attendance tab is empty' };
+  var lk = LockService.getScriptLock(); lk.waitLock(30000);
+  try {
+    var w = Math.max(2, sh.getLastColumn()), vals = sh.getRange(1, 1, sh.getLastRow(), w).getValues(), head = vals[0], idx = [], want = cols.map(function (c) { return String(c).trim().toLowerCase(); }).filter(String);
+    if (!want.length) return { ok: false, why: 'no column heading was given' };
+    for (var j = 1; j < head.length; j++) { var hj = String(head[j]).trim().toLowerCase(); if (hj && want.some(function (x) { return hj === x || hj.indexOf(x) >= 0; })) idx.push(j); }
+    if (!idx.length) return { ok: false, why: 'no Attendance column matches. Columns are: ' + head.slice(1).map(String).filter(String).join(' | ') };
+    var keep = 0, mv = [], rows = [];
+    for (var i = 1; i < vals.length; i++) {
+      if (normId_(vals[i][0]).length < 4) continue; // blank or odd rows are left alone
+      var present = idx.some(function (c) { return String(vals[i][c]).trim() === '1'; });
+      if (present) keep++; else { mv.push(vals[i]); rows.push(i + 1); }
+    }
+    var used = idx.map(function (c) { return String(head[c]); });
+    if (!apply || !mv.length) return { ok: true, mode: apply ? 'apply' : 'dry', keep: keep, remove: mv.length, columns: used };
+    if (!keep) return { ok: false, why: 'no one has a 1 in ' + used.join(', ') + ', so everyone would be removed. Nothing was changed' }; // never empty the tab
+    var tab = 'Attendance_Backup_' + Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyyMMdd_HHmm');
+    var bad = attArchiveRows_(ss, sh, head, w, mv, rows, tab); if (bad) return { ok: false, why: bad };
+    log_('attendance:keep_attended_only', mv.length + ' rows removed, backup ' + tab, '', '');
+    return { ok: true, mode: 'apply', keep: keep, remove: mv.length, columns: used, backup: tab };
+  } finally { lk.releaseLock(); }
+}
+
+function keepAttendedOnly() { // sheet menu: asks which column(s), shows the counts, asks again, then acts
+  var ui = SpreadsheetApp.getUi(), sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_TAB);
+  if (!sh || sh.getLastRow() < 2) { ui.alert('The Attendance tab is empty.'); return; }
+  var heads = sh.getRange(1, 2, 1, Math.max(1, sh.getLastColumn() - 1)).getValues()[0].map(String).filter(String);
+  var pr = ui.prompt('Keep only students who attended', 'Type the column heading(s) to keep, separated by commas. Attendance columns: ' + heads.join(' | '), ui.ButtonSet.OK_CANCEL);
+  if (pr.getSelectedButton() !== ui.Button.OK) return;
+  var d = keepAttendedOnly_(pr.getResponseText().split(','), false);
+  if (!d.ok) { ui.alert(d.why); return; }
+  if (!d.remove) { ui.alert('Nothing to remove.', 'Everyone in Attendance has a 1 in ' + d.columns.join(', ') + '.', ui.ButtonSet.OK); return; }
+  if (ui.alert('Remove everyone else?', d.keep + ' student(s) with a 1 in ' + d.columns.join(', ') + ' stay. ' + d.remove + ' row(s) will be copied to a new backup tab and then removed from Attendance. Nothing is lost.', ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
+  var r = keepAttendedOnly_(pr.getResponseText().split(','), true);
+  ui.alert(r.ok ? 'Done. Kept ' + r.keep + '. Removed ' + r.remove + ' row(s); they are in the tab ' + r.backup + '.' : r.why);
+}
+
+// Reset all results (clean slate; sheet menu: PHYS 143 > Reset all results (clean slate)).
+// RESULTS, emptied down to their header row: Attendance (then refilled with the Roster's IDs, no session columns), Attendance_Log, Not_On_List, Attendance_Flags,
+// Attendance_Control (sessions), Form Responses 1, Staged_Quiz (held results), Answers, Presence, Attempts, Archive (older rounds) and Log.
+// DERIVED, emptied completely (they rebuild by themselves from the next quiz): Scores, Master, Totals.
+// Every one of these is first copied to a dated backup tab, Backup_<tab>_<date_time> (session secrets blanked in the Attendance_Control backup), and the copy's row
+// count is checked; if any check fails nothing is cleared. NOT TOUCHED: Roster, Key, Quiz_Control, Explanations, Reports, Leaderboard (a formula view of Form Responses 1),
+// the question banks, live_quizzes.json and this script. Refused while an attendance session is open or a quiz is running.
+function resetTabs_() { return [ATT_TAB, ATT_LOG_TAB, NOTLIST_TAB, 'Attendance_Flags', ATT_CTL_TAB, RESPONSES_TAB, STAGED_TAB, ANSWERS_TAB, PRESENCE_TAB, 'Attempts', 'Archive', 'Log', 'Auto_Added']; } // functions, not top-level vars: the tab-name constants are defined further down the file
+function resetDerived_() { return [SCORES_TAB, MASTER_TAB, TOTALS_TAB]; }
+
+function resetResults_(apply) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  if (attRows_().some(function (r) { return r.status === 'Open'; })) return { ok: false, why: 'an attendance session is open. Close it first' };
+  var cs = ss.getSheetByName(CONTROL_TAB);
+  if (cs && cs.getLastRow() > 1) { var st = cs.getRange(2, 2, cs.getLastRow() - 1, 1).getValues(); for (var q = 0; q < st.length; q++) if (/^(running|paused)$/i.test(String(st[q][0]).trim())) return { ok: false, why: 'a quiz is running or paused. End it first' }; }
+  var roster = {}; rosterRows_().forEach(function (r) { roster[r[0]] = 1; }); var rids = Object.keys(roster);
+  if (!rids.length) return { ok: false, why: 'the Roster tab is empty, so the fresh Attendance tab would have no students. Fill the Roster first' };
+  var counts = {}; resetTabs_().concat(resetDerived_()).forEach(function (n) { var s = ss.getSheetByName(n); if (s) counts[n] = Math.max(0, s.getLastRow() - (resetDerived_().indexOf(n) >= 0 ? 0 : 1)); });
+  if (!apply) return { ok: true, mode: 'dry', counts: counts, roster: rids.length };
+  var lk = LockService.getScriptLock(); lk.waitLock(30000);
+  try {
+    var stamp = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyyMMdd_HHmm'), backups = [];
+    Object.keys(counts).forEach(function (n) { // back everything up first, and check every copy before anything is emptied
+      var s = ss.getSheetByName(n), b = s.copyTo(ss); b.setName('Backup_' + n + '_' + stamp);
+      if (n === ATT_CTL_TAB && b.getLastRow() > 1) b.getRange(2, 6, b.getLastRow() - 1, 1).clearContent(); // no session secrets in a backup
+      SpreadsheetApp.flush();
+      if (b.getLastRow() !== s.getLastRow()) throw new Error('the backup of ' + n + ' could not be verified, so nothing was cleared');
+      backups.push(b.getName());
+    });
+    var wholeCopy = ''; // an extra safety copy of the whole Sheet, best effort: it uses only the Sheets permission already granted, and a failure here never stops the reset
+    try { wholeCopy = ss.copy('PHYS 143 Quizzes (Responses) backup ' + stamp).getUrl(); } catch (err) { wholeCopy = ''; }
+    Object.keys(counts).forEach(function (n) {
+      var s = ss.getSheetByName(n);
+      if (resetDerived_().indexOf(n) >= 0) { s.clear(); return; }
+      if (n === ATT_TAB) { if (s.getLastColumn() > 1) s.getRange(1, 2, Math.max(1, s.getLastRow()), s.getLastColumn() - 1).clearContent(); s.getRange(1, 1).setValue('Student ID'); }
+      if (s.getLastRow() > 1) s.deleteRows(2, s.getLastRow() - 1);
+    });
+    var at = ss.getSheetByName(ATT_TAB) || ss.insertSheet(ATT_TAB);
+    at.getRange(1, 1).setValue('Student ID'); at.setFrozenRows(1); at.setFrozenColumns(1);
+    at.getRange(2, 1, rids.length, 1).setNumberFormat('@'); at.getRange(2, 1, rids.length, 1).setValues(rids.map(function (i) { return [i]; }));
+    try { var cc = CacheService.getScriptCache(); cc.removeAll(['att:open', 'attd:' + attDayKey_()]); } catch (err) { /* cache only */ }
+    log_('results:reset', backups.length + ' backups, ' + rids.length + ' roster rows', '', '');
+    return { ok: true, mode: 'apply', counts: counts, roster: rids.length, backups: backups, wholeCopy: wholeCopy };
+  } catch (err) { return { ok: false, why: String(err && err.message || err) }; } finally { lk.releaseLock(); }
+}
+
+function resetAllResults() { // sheet menu: shows what will be cleared, asks, needs the word RESET typed, backs up, clears
+  var ui = SpreadsheetApp.getUi(), d = resetResults_(false);
+  if (!d.ok) { ui.alert(d.why); return; }
+  var lines = Object.keys(d.counts).map(function (n) { return n + ': ' + d.counts[n] + ' row(s)'; }).join('\n');
+  var pr = ui.prompt('Reset ALL results (clean slate)?', 'These tabs will be emptied (each is first copied to a backup tab, Backup_<tab>_<date_time>):\n' + lines + '\n\nAttendance is then refilled with the ' + d.roster + ' Student IDs on the Roster, with no session columns. Scores, Master and Totals rebuild by themselves from the next quiz.\n\nNOT touched: Roster, Key, Quiz_Control, Explanations, Reports, Leaderboard, the question banks and this script.\n\nType RESET to go ahead.', ui.ButtonSet.OK_CANCEL);
+  if (pr.getSelectedButton() !== ui.Button.OK || pr.getResponseText().trim() !== 'RESET') { ui.alert('Cancelled. Nothing was changed.'); return; }
+  var r = resetResults_(true);
+  try { refreshTotals(); } catch (err) { /* Totals rebuilds on the next quiz */ }
+  ui.alert(r.ok ? 'Done. Attendance lists ' + r.roster + ' roster IDs with no sessions; all other results are empty. Backups: ' + r.backups.join(', ') + (r.wholeCopy ? '. A copy of the whole Sheet was also saved in your Drive: ' + r.wholeCopy : '. The whole-Sheet copy in Drive was skipped (the backup tabs are in this Sheet).') : r.why);
+}
+
 // Named attendance view (lecturer only, from the sheet's PHYS 143 menu): writes a private tab Attendance_Named with Name, Student ID and a copy of every
 // Attendance column, so the lecturer can see who was present. The Attendance tab itself stays IDs only (the format Sakai imports). Run again to refresh.
 function buildNamedAttendance() {
@@ -1055,7 +1209,8 @@ function attSheet_() {
 function attRows_() { // [{row, code, label, status}]
   var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_CTL_TAB);
   if (!sh || sh.getLastRow() < 2) return [];
-  return sh.getRange(2, 1, sh.getLastRow() - 1, 9).getValues().map(function (r, i) { return { row: i + 2, code: String(r[0]).trim().toUpperCase(), label: String(r[1]), status: String(r[2]).trim(), secret: String(r[5] || ''), lat: r[6] === '' ? null : Number(r[6]), lon: r[7] === '' ? null : Number(r[7]), radius: Number(r[8]) || 0 }; });
+  if (sh.getMaxColumns() < 10) sh.insertColumnsAfter(sh.getMaxColumns(), 10 - sh.getMaxColumns());
+  return sh.getRange(2, 1, sh.getLastRow() - 1, 10).getValues().map(function (r, i) { return { row: i + 2, code: String(r[0]).trim().toUpperCase(), label: String(r[1]), status: String(r[2]).trim(), test: String(r[9]).trim() === 'Test', secret: String(r[5] || ''), lat: r[6] === '' ? null : Number(r[6]), lon: r[7] === '' ? null : Number(r[7]), radius: Number(r[8]) || 0 }; });
 }
 
 function attByCode_(code) { // the session with this code, or null; cached a few seconds (also caches "none", since every unknown code asks)
@@ -1158,7 +1313,12 @@ function attCheckIn_(p, code) { // the student side of the check-in: the code, t
   if (dev.length < 16) return { ok: false, why: 'update page' }; // an old cached page without a device token: reload
   dev = attDevHash_(dev); // only the salted hash is ever stored
   if (attFails_('d' + dev) >= ATT_MAX_FAILS || attFails_('i' + aid) >= ATT_MAX_FAILS) return { ok: false, why: 'slow down' };
-  if (ATT_REQUIRE_LINK && !attLinkOk_(ses, String(p.t || '').replace(/[^0-9a-f]/g, '').slice(0, 8))) { attFailAdd_('d' + dev); attFailAdd_('i' + aid); return { ok: false, why: 'old link' }; } // scan the live QR code again
+  var tk = String(p.t || '').replace(/[^0-9a-fr]/g, '').slice(0, 15), rl = null;
+  if (tk.charAt(0) === 'r') { // a relay code from a neighbour's phone
+    rl = attRelayCheck_(ses, tk);
+    if (!rl.ok) { attFailAdd_('d' + dev); attFailAdd_('i' + aid); return { ok: false, why: 'old relay' }; }
+    if (normId_(rl.via) === aid) return { ok: false, why: 'old relay' }; // nobody relays to themselves
+  } else if (ATT_REQUIRE_LINK && !attLinkOk_(ses, tk.slice(0, 8))) { attFailAdd_('d' + dev); attFailAdd_('i' + aid); return { ok: false, why: 'old link' }; } // scan the live QR code again
   var onl = !!rosterSet_()[aid], day = attDayKey_(); // the student is told only whether their own ID was found; nothing else about the roster
   if (attDayHas_(day, aid)) return { ok: true, id: aid, onList: onl, already: true }; // one mark per ID per day: nothing is added
   var geo = attGeo_(ses, p);
@@ -1168,9 +1328,122 @@ function attCheckIn_(p, code) { // the student side of the check-in: the code, t
   }
   var others = attDeviceIds_(ses.label, dev), n = Object.keys(others).length;
   if (n >= ATT_DEVICE_IDS) { attFlag_(ses.label, aid, dev, 'device already used for ' + Object.keys(others).join(', ')); return { ok: false, why: 'device used' }; }
-  append_(ATT_LOG_TAB, ['Timestamp', 'Session', 'Student ID', 'On roster', 'Device', 'Location'], [new Date(), ses.label, aid, onl ? 'Yes' : 'No', dev, attGeoText_(geo)]); // appendRow is atomic: no lock for 200 students at once
+  if (!onl && attAutoAddOn_() && attIdPlausible_(aid) && attAutoAdd_(aid, ses.label)) onl = true; // an unlisted but plausible ID joins the Roster: it counts as present
+  var via = '', depth = 0;
+  if (rl) { // a relayed check-in: enforce the per-code and per-student limits under a lock so two scans cannot both take the last use
+    var lk = LockService.getScriptLock(); lk.waitLock(10000);
+    try {
+      var cache = CacheService.getScriptCache(), ukey = 'ru:' + rl.rid + ':' + rl.slot, usedN = Number(cache.get(ukey) || 0);
+      if (usedN >= ATT_RELAY_USES) { attFlag_(ses.label, aid, dev, 'relay code already used ' + usedN + ' times'); return { ok: false, why: 'relay used' }; }
+      var lgs = attLogCols_(), lrows = lgs && lgs.getLastRow() > 1 ? lgs.getRange(2, 1, lgs.getLastRow() - 1, 8).getValues() : [], vouched = 0;
+      lrows.forEach(function (r) { if (String(r[1]) === ses.label && String(r[6]) && normId_(r[6]) === normId_(rl.via)) vouched++; });
+      if (vouched >= ATT_RELAY_MAX_PER) { attFlag_(ses.label, aid, dev, 'relay limit reached for ' + rl.via); return { ok: false, why: 'relay limit' }; }
+      cache.put(ukey, String(usedN + 1), 120);
+      via = normId_(rl.via); depth = rl.depth + 1;
+      append_(ATT_LOG_TAB, ['Timestamp', 'Session', 'Student ID', 'On roster', 'Device', 'Location', 'Via', 'Depth'], [new Date(), ses.label, aid, onl ? 'Yes' : 'No', dev, attGeoText_(geo), via, depth]);
+    } finally { lk.releaseLock(); }
+  } else {
+    append_(ATT_LOG_TAB, ['Timestamp', 'Session', 'Student ID', 'On roster', 'Device', 'Location', 'Via', 'Depth'], [new Date(), ses.label, aid, onl ? 'Yes' : 'No', dev, attGeoText_(geo), '', 0]); // appendRow is atomic: no lock for 200 students at once
+  }
   attDayAdd_(day, aid);
-  return { ok: true, id: aid, onList: onl };
+  return { ok: true, id: aid, onList: onl, relay: ATT_RELAY && depth < ATT_RELAY_MAX_DEPTH };
+}
+
+// ---------- Auto-add: a check-in whose ID is not on the Roster joins the Roster ----------
+// When the lecturer has auto-add on (the default; the toggle is on the attendance panel, stored in the script property att_autoadd), a check-in that has already passed
+// the QR token, location, one-phone-one-ID and rate-limit checks, and whose ID looks like the Roster's IDs (digits only, the Roster's usual length, not one repeated digit),
+// is added to the Roster so the student counts as present. The Roster row gets a note in column C ("auto-added <session>"), the ID is also listed in the Auto_Added tab, and the
+// attendance panel lists the IDs added in the session with a Remove button, so a typo is easy to spot and take off. An ID that fails the format check still goes to Not_On_List.
+var ATT_AUTOADD_TAB = 'Auto_Added';
+
+function attAutoAddOn_() { try { return PropertiesService.getScriptProperties().getProperty('att_autoadd') !== '0'; } catch (err) { return true; } }
+
+function attIdPlausible_(aid) {
+  if (!/^\d+$/.test(aid) || /^(\d)\1+$/.test(aid)) return false;
+  var lens = {}, best = 0, bl = 0;
+  rosterRows_().forEach(function (r) { lens[r[0].length] = (lens[r[0].length] || 0) + 1; });
+  Object.keys(lens).forEach(function (k) { if (lens[k] > best) { best = lens[k]; bl = Number(k); } });
+  return best > 0 && aid.length === bl; // the Roster must have IDs to compare with, and the same length as most of them
+}
+
+function attAutoAdd_(aid, label) { // true when the ID is on the Roster afterwards
+  var lk = LockService.getScriptLock(); if (!lk.tryLock(8000)) return false;
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(ROSTER_TAB); if (!sh) return false;
+    var n = sh.getLastRow(), col = n > 0 ? sh.getRange(1, 1, n, 1).getValues() : [];
+    for (var i = 0; i < col.length; i++) if (normId_(col[i][0]) === aid) return true; // another phone added it a moment ago
+    if (sh.getMaxColumns() < 3) sh.insertColumnsAfter(sh.getMaxColumns(), 3 - sh.getMaxColumns());
+    if (!String(sh.getRange(1, 3).getValue()).trim()) sh.getRange(1, 3).setValue('Note');
+    var day = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'dd/MM/yyyy');
+    var r0 = n + 1; sh.getRange(r0, 1, 1, 3).setNumberFormat('@').setValues([[aid, '', 'auto-added ' + label + ' (' + day + ')']]);
+    try { CacheService.getScriptCache().remove('roster'); } catch (err) { /* cache only */ }
+    append_(ATT_AUTOADD_TAB, ['Timestamp', 'Session', 'Student ID', 'Note'], [new Date(), label, aid, 'checked in, not on the Roster, added automatically']);
+    log_('attendance:autoadd', label, '', '');
+    return true;
+  } finally { lk.releaseLock(); }
+}
+
+function attAutoAddedList_(label) { // the IDs auto-added in one session (host only: it is part of attend_status)
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_AUTOADD_TAB), out = [];
+  if (!sh || sh.getLastRow() < 2) return out;
+  sh.getRange(2, 2, sh.getLastRow() - 1, 2).getValues().forEach(function (r) { if (String(r[0]) === label) out.push(normId_(r[1])); });
+  return out.slice(0, 200);
+}
+
+// ---------- Attendance relay: a checked-in student's phone passes the check-in on to a neighbour ----------
+// For a large hall where the back rows cannot scan the projector. A student who has checked in during this session may show a relay QR on their phone.
+// The relay token names its source (an opaque id, never the Student ID), is an HMAC of the session secret, changes every ATT_RELAY_SLOT_SEC seconds and is valid for
+// ATT_RELAY_GRACE_SLOTS slots before the current one. Each token works for ATT_RELAY_USES scans, a student may vouch for at most ATT_RELAY_MAX_PER others, and a
+// chain stops at ATT_RELAY_MAX_DEPTH (the projector is depth 0). The scanning phone still passes the location, device and rate-limit checks. Every relayed
+// check-in is logged with who vouched (Via) and the depth, so a chain can be audited. Set ATT_RELAY = false to switch the whole thing off.
+var ATT_RELAY = true, ATT_RELAY_SLOT_SEC = 10, ATT_RELAY_GRACE_SLOTS = 1, ATT_RELAY_USES = 2, ATT_RELAY_MAX_PER = 5, ATT_RELAY_MAX_DEPTH = 2;
+
+function attHex_(sig, n) { var h = ''; for (var i = 0; i < n; i++) h += ('0' + (sig[i] & 255).toString(16)).slice(-2); return h; }
+function attRelaySlot_(t) { return Math.floor((t || Date.now()) / (ATT_RELAY_SLOT_SEC * 1000)); }
+function attRelayRid_(secret, aid) { return attHex_(Utilities.computeHmacSha256Signature('rid:' + aid, secret), 3); }
+function attRelayTok_(secret, rid, slot) { return attHex_(Utilities.computeHmacSha256Signature('rl:' + rid + ':' + slot, secret), 4); }
+
+function attLogCols_() { // make sure the log has the Via and Depth columns and headings
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_LOG_TAB);
+  if (!sh) return null;
+  if (sh.getMaxColumns() < 8) sh.insertColumnsAfter(sh.getMaxColumns(), 8 - sh.getMaxColumns());
+  if (sh.getLastRow() > 0) { if (!String(sh.getRange(1, 7).getValue()).trim()) sh.getRange(1, 7).setValue('Via'); if (!String(sh.getRange(1, 8).getValue()).trim()) sh.getRange(1, 8).setValue('Depth'); }
+  return sh;
+}
+
+// A student asks for a relay code. They must already be in this session's log (same ID and same phone), below the depth limit and under the cap.
+function attRelayIssue_(p) {
+  if (!ATT_RELAY) return { ok: false, why: 'relay off' };
+  var ses = attOpenSession_(); if (!ses) return { ok: false, why: 'closed' };
+  var aid = normId_(p.id), dev = String(p.dev || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 40);
+  if (aid.length < 4 || aid.length > 12 || dev.length < 16) return { ok: false, why: 'bad id' };
+  dev = attDevHash_(dev);
+  if (attFails_('d' + dev) >= ATT_MAX_FAILS) return { ok: false, why: 'slow down' };
+  var sh = attLogCols_(); if (!sh || sh.getLastRow() < 2) return { ok: false, why: 'not checked in' };
+  var rows = sh.getRange(2, 1, sh.getLastRow() - 1, 8).getValues(), mine = null, used = 0;
+  rows.forEach(function (r) {
+    if (String(r[1]) !== ses.label) return;
+    if (normId_(r[2]) === aid && String(r[4]) === dev) mine = r;
+    if (String(r[6]) && normId_(r[6]) === aid) used++;
+  });
+  if (!mine) return { ok: false, why: 'not checked in' }; // only a phone that checked in this ID in this session can relay
+  var depth = Number(mine[7]) || 0;
+  if (depth >= ATT_RELAY_MAX_DEPTH) return { ok: false, why: 'no relay' };
+  if (used >= ATT_RELAY_MAX_PER) return { ok: false, why: 'relay limit', remaining: 0 };
+  var rid = attRelayRid_(ses.secret, aid), now = Date.now(), slot = attRelaySlot_(now);
+  try { CacheService.getScriptCache().put('rl:' + rid, aid + '|' + depth, 21600); } catch (err) { return { ok: false, why: 'busy' }; }
+  return { ok: true, token: 'r' + rid + attRelayTok_(ses.secret, rid, slot), secondsLeft: Math.max(1, Math.ceil(((slot + 1) * ATT_RELAY_SLOT_SEC * 1000 - now) / 1000)), remaining: ATT_RELAY_MAX_PER - used };
+}
+
+// Is this a valid relay token right now? {ok, rid, via, depth, slot}
+function attRelayCheck_(ses, t) {
+  var m = /^r([0-9a-f]{6})([0-9a-f]{8})$/.exec(t);
+  if (!ATT_RELAY || !m || !ses || !ses.secret) return { ok: false };
+  var info = ''; try { info = CacheService.getScriptCache().get('rl:' + m[1]) || ''; } catch (err) { info = ''; }
+  if (!info) return { ok: false };
+  var parts = info.split('|'), slot = attRelaySlot_();
+  for (var d = 0; d <= ATT_RELAY_GRACE_SLOTS; d++) if (attRelayTok_(ses.secret, m[1], slot - d) === m[2]) return { ok: true, rid: m[1], via: parts[0], depth: Number(parts[1]) || 0, slot: slot - d };
+  return { ok: false };
 }
 
 function attFlagDevices_(label) { // at closing: devices that checked in more than one ID (catches two phones' taps that raced), added to the Flags tab
@@ -1236,15 +1509,22 @@ function attPresent_(label) { // {id: true} for one session, from the log
   return got;
 }
 
+function attRelayedCount_(label) { // how many check-ins in this session came through a neighbour's relay code
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_LOG_TAB), n = 0;
+  if (!sh || sh.getLastRow() < 2 || sh.getLastColumn() < 7) return 0;
+  sh.getRange(2, 2, sh.getLastRow() - 1, 6).getValues().forEach(function (r) { if (String(r[0]) === label && String(r[5]).trim()) n++; });
+  return n;
+}
+
 function attStatus_() { // the open session if there is one, else the latest, with live counts
   var rows = attRows_(), cur = null;
   rows.forEach(function (r) { if (r.status === 'Open') cur = r; });
   if (!cur && rows.length) cur = rows[rows.length - 1];
-  if (!cur) return { ok: true, session: null };
+  if (!cur) return { ok: true, session: null, autoAdd: attAutoAddOn_() };
   var present = attPresent_(cur.label), roster = {}; rosterRows_().forEach(function (r) { roster[r[0]] = 1; });
   var on = 0, off = 0; Object.keys(present).forEach(function (id) { if (roster[id]) on++; else off++; });
   var live = cur.status === 'Open' && cur.secret, now = Date.now(), slot = attSlot_(now);
-  return { ok: true, session: { link: live ? attLinkFor_(cur.secret, slot) : '', secondsLeft: live ? Math.max(1, Math.ceil(((slot + 1) * ATT_SLOT_SEC * 1000 - now) / 1000)) : 0, label: attColumn_(cur.label), status: cur.status, geo: cur.lat != null && ATT_GEO_MODE !== 'off' ? ATT_GEO_MODE : 'off', radius: cur.lat != null ? (cur.radius || ATT_GEO_RADIUS_M) : 0, present: on, notOnList: off, rosterSize: Object.keys(roster).length, pending: rows.filter(function (r) { return r.status === 'Closed'; }).length } };
+  return { ok: true, autoAdd: attAutoAddOn_(), session: { autoAdded: attAutoAddedList_(cur.label), link: live ? attLinkFor_(cur.secret, slot) : '', secondsLeft: live ? Math.max(1, Math.ceil(((slot + 1) * ATT_SLOT_SEC * 1000 - now) / 1000)) : 0, label: attColumn_(cur.label), status: cur.status, geo: cur.lat != null && ATT_GEO_MODE !== 'off' ? ATT_GEO_MODE : 'off', radius: cur.lat != null ? (cur.radius || ATT_GEO_RADIUS_M) : 0, test: !!cur.test, present: on, relayed: attRelayedCount_(cur.label), notOnList: off, rosterSize: Object.keys(roster).length, pending: rows.filter(function (r) { return r.status === 'Closed'; }).length } };
 }
 
 function attOpen_(p) {
@@ -1260,14 +1540,14 @@ function attOpen_(p) {
   if (!code) return { ok: false, why: 'could not find a free code' };
   // The session key is "dd/MM/yyyy #n": the "#n" keeps the sheet from turning it into a date, and n counts sessions on the same day.
   var base = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'dd/MM/yyyy'), n = 1;
-  rows.forEach(function (r) { if (r.label.indexOf(base + ' #') === 0) n++; });
+  rows.forEach(function (r) { if (r.status !== 'Discarded' && r.label.indexOf(base + ' #') === 0) n++; }); // a discarded trial run does not use up a number
   var label = base + ' #' + n;
-  try { var lg = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_LOG_TAB); if (lg && lg.getLastRow() > 0 && !String(lg.getRange(1, 5).getValue()).trim()) lg.getRange(1, 5).setValue('Device'); if (lg && lg.getLastRow() > 0 && !String(lg.getRange(1, 6).getValue()).trim()) lg.getRange(1, 6).setValue('Location'); } catch (err) { /* header only */ }
+  try { var lg = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_LOG_TAB); if (lg && lg.getLastRow() > 0 && !String(lg.getRange(1, 5).getValue()).trim()) lg.getRange(1, 5).setValue('Device'); if (lg && lg.getLastRow() > 0 && !String(lg.getRange(1, 6).getValue()).trim()) lg.getRange(1, 6).setValue('Location'); attLogCols_(); } catch (err) { /* header only */ }
   var secret = Utilities.getUuid() + Utilities.getUuid();
   var hla = p.lat === undefined || p.lat === '' ? NaN : Number(p.lat), hlo = Number(p.lon), hasGeo = !isNaN(hla) && !isNaN(hlo) && Math.abs(hla) <= 90 && Math.abs(hlo) <= 180;
   if (ATT_GEO_MODE === 'enforce' && !hasGeo && String(p.nogeo || '') !== '1') return { ok: false, why: 'location needed', needLocation: true }; // never start an unprotected session by accident
   var rad = Math.max(50, Math.min(Number(p.radius) || ATT_GEO_RADIUS_M, 5000));
-  attSheet_().appendRow([code, label, 'Open', new Date().toISOString(), '', secret, hasGeo ? hla : '', hasGeo ? hlo : '', hasGeo ? rad : '']);
+  attSheet_().appendRow([code, label, 'Open', new Date().toISOString(), '', secret, hasGeo ? hla : '', hasGeo ? hlo : '', hasGeo ? rad : '', String(p.test || '') === '1' ? 'Test' : '']); // column J: Test = a trial run, discarded when it is closed
   try { var oc = CacheService.getScriptCache(); oc.remove('att:' + code); oc.remove('att:open'); } catch (err) { /* cache only */ }
   log_('attendance:open', label, '', 'rotating');
   var sl = attSlot_(), now0 = Date.now();
@@ -1278,6 +1558,13 @@ function attOpen_(p) {
 function attClose_() {
   var rows = attRows_(), cur = null; rows.forEach(function (r) { if (r.status === 'Open') cur = r; });
   if (!cur) return { ok: false, why: 'no attendance session is open' };
+  if (cur.test) { // a trial run: nothing is kept, so it never counts as a session
+    var tn = Object.keys(attPresent_(cur.label)).length;
+    attSheet_().getRange(cur.row, 5).setValue(new Date().toISOString());
+    attDropSessions_([cur]);
+    log_('attendance:close', cur.label, '', 'trial discarded');
+    return { ok: true, test: true, discarded: true, session: { label: attColumn_(cur.label), status: 'Discarded', present: tn, absent: 0, notOnList: 0, flagged: 0 } };
+  }
   var present = attPresent_(cur.label), roster = rosterRows_(), col = attColumn_(cur.label);
   var sh = attSheet_(); sh.getRange(cur.row, 3).setValue('Closed'); sh.getRange(cur.row, 5).setValue(new Date().toISOString());
   try { var cc = CacheService.getScriptCache(); cc.remove('att:' + cur.code); cc.remove('att:open'); } catch (err) { /* cache only */ }
@@ -1327,6 +1614,13 @@ function attSubmit_() {
 function attDiscard_() {
   var sessions = attRows_().filter(function (r) { return r.status === 'Closed'; });
   if (!sessions.length) return { ok: false, why: 'no closed session is waiting' };
+  var gone = attDropSessions_(sessions);
+  log_('attendance:discard', String(sessions.length) + ' session(s)', '', 'rotating');
+  return { ok: true, discarded: sessions.length, checkins: gone };
+}
+
+// Remove sessions' check-ins from the log and mark them Discarded (used by Discard and by a trial run's close).
+function attDropSessions_(sessions) {
   var lg = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_LOG_TAB), gone = 0, labels = {};
   sessions.forEach(function (r) { labels[r.label] = true; });
   if (lg && lg.getLastRow() > 1) {
@@ -1334,9 +1628,8 @@ function attDiscard_() {
     for (var i = vals.length - 1; i >= 0; i--) if (labels[String(vals[i][0])]) { lg.deleteRow(i + 2); gone++; }
   }
   sessions.forEach(function (r) { attSheet_().getRange(r.row, 3).setValue('Discarded'); });
-  try { var cc = CacheService.getScriptCache(); cc.remove('attd:' + attDayKey_()); } catch (err) { /* cache only */ }
-  log_('attendance:discard', String(sessions.length) + ' session(s)', '', 'rotating');
-  return { ok: true, discarded: sessions.length, checkins: gone };
+  try { var cc = CacheService.getScriptCache(); cc.remove('attd:' + attDayKey_()); cc.remove('att:open'); } catch (err) { /* cache only */ }
+  return gone;
 }
 
 // ---------- POST: answers, joins, progress, reports, attempts ----------
@@ -1485,6 +1778,16 @@ function reviewData_(code, id) {
 
 function ranking_(code, me) {
   var list = [];
+  var cc = ctl_(code);
+  if (isConcept_(cc)) { // diagnostic: ranked live for the round from the Answers tab; nothing here is kept as marks
+    var gotR = latestAnswers_(code), lettersR = lettersFor_(code, cc);
+    Object.keys(gotR).forEach(function (sid) {
+      var sc = mark_(lettersR, gotR[sid].ans).reduce(function (x, y) { return x + y; }, 0);
+      list.push({ name: String(gotR[sid].name), score: sc, n: lettersR.length, me: !!me && sid === me });
+    });
+    list.sort(function (x, y) { return y.score - x.score || x.name.localeCompare(y.name); });
+    return list.slice(0, 300);
+  }
   {
     var rnd = roundOf_(code), data = respRows_(); // held and released rows. Timestamp, First Name, ID, Join Code, Q1 to Q5, Score, Round, Questions, Answers, Week
     for (var r = 0; r < data.length; r++) {
@@ -1516,7 +1819,7 @@ function counts_(code) {
 // ---------- Portal and Control Centre support (additive: no existing action changes) ----------
 // SCRIPT_VERSION: change it whenever the script is redeployed; the Control Centre compares it with the version its page expects.
 // Key!M2 = Off hides "My results" from students (default On).
-var SCRIPT_VERSION = '2026-11-09-portal-1';
+var SCRIPT_VERSION = '2026-11-10-rank-1';
 
 function resultsOn_() {
   try {
@@ -1695,6 +1998,7 @@ function doGet(e) {
   if (p.action === 'my_results') return jsonp_(e, portalResults_(p)); // a student's own attendance and quiz scores
   if (p.action === 'preclass') return jsonp_(e, hostOk_(p) ? preclass_(p) : { ok: false, why: 'host key not accepted' });
 
+  if (p.action === 'attend_relay') return jsonp_(e, attRelayIssue_(p)); // a checked-in student asks for a relay code (no host key; the phone must be in this session's log)
   if (p.action === 'attend') return jsonp_(e, attCheckIn_(p, code)); // a student checks in: the Student ID, the QR token, the device token and the phone's rounded location
   if (p.action === 'hostcheck') return jsonp_(e, { ok: hostOk_(p) }); // the lecturer menu: is this key right?
   if (p.action === 'held_status') return jsonp_(e, hostOk_(p) ? heldStatus_() : { ok: false, why: 'host key not accepted' }); // host only: what is waiting for release
@@ -1706,6 +2010,20 @@ function doGet(e) {
       if (p.action === 'attend_discard') return jsonp_(e, attDiscard_());
       return jsonp_(e, p.action === 'held_release_quiz' ? Object.assign({ ok: true }, commitQuiz_('', true)) : Object.assign({ ok: true }, discardQuiz_('', true)));
     } finally { hl.releaseLock(); }
+  }
+  if (p.action === 'attend_autoadd') { // host only: read or set the auto-add switch
+    if (!hostOk_(p)) return jsonp_(e, { ok: false, why: 'host key not accepted' });
+    var am = String(p.mode || '');
+    if (am === 'on' || am === 'off') { try { PropertiesService.getScriptProperties().setProperty('att_autoadd', am === 'on' ? '1' : '0'); log_('attendance:autoadd_switch', am, '', ''); } catch (err) { return jsonp_(e, { ok: false, why: 'could not save the setting' }); } }
+    return jsonp_(e, { ok: true, on: attAutoAddOn_() });
+  }
+  if (p.action === 'results_reset') { // host only: preview (mode=dry) or run (mode=apply with confirm=RESET) the clean-slate reset; every cleared tab is backed up first
+    if (!hostOk_(p)) return jsonp_(e, { ok: false, why: 'host key not accepted' });
+    var rapply = String(p.mode || '') === 'apply';
+    if (rapply && String(p.confirm || '') !== 'RESET') return jsonp_(e, { ok: false, why: 'type RESET to confirm' });
+    var rres = resetResults_(rapply);
+    if (rapply && rres.ok) { try { refreshTotals(); } catch (err) { /* Totals rebuilds on the next quiz */ } }
+    return jsonp_(e, rres);
   }
   if (p.action === 'roster_tidy') return jsonp_(e, hostOk_(p) ? rosterTidy_(p) : { ok: false, why: 'host key not accepted' }); // host only: counts only
   if (p.action === 'roster_edit') return jsonp_(e, hostOk_(p) ? rosterEdit_(p) : { ok: false, why: 'host key not accepted' }); // host only: one ID at a time
@@ -1793,12 +2111,19 @@ function doGet(e) {
     var cd = ctl_(code);
     if (!keyRow_(code)) return jsonp_(e, { ok: false });
     var dn = counts_(code), dr = { ok: true, controlled: !!cd, joined: dn.joined, inprogress: dn.inprogress, submitted: dn.submitted, rows: [] };
-    if (cd) { dr.review = reviewData_(code, ''); dr.status = ctlStatus_(cd); if (visible_(cd, 'show_leaderboard')) dr.rows = ranking_(code, '').slice(0, 20); }
+    if (cd) { dr.review = reviewData_(code, ''); dr.status = ctlStatus_(cd); var ds = eff_(cd); if (when_(cd, 'show_leaderboard') !== 'never' && (ds === 'ended' || ds === 'released')) dr.rows = ranking_(code, '').slice(0, 20); } // projector only: the ranking (first names and scores, no IDs) shows as soon as the lecturer ends the quiz, even while the marks are still held; students still see theirs only per show_leaderboard
     return jsonp_(e, dr);
   }
 
   if (p.action === 'result') {
     var id = clean_(p.id, 20), key = keyRow_(code), cx = ctl_(code);
+    if (cx && isConcept_(cx) && id) { // diagnostic: own score from the Answers tab, never from Form Responses 1
+      var gd = latestAnswers_(code);
+      if (!gd[id]) return jsonp_(e, { found: false, outcome: lastOutcome_(id, code), keyMissing: !key });
+      if (!visible_(cx, 'show_score')) return jsonp_(e, { found: true, scoreHidden: true, outcome: lastOutcome_(id, code) });
+      var fl = mark_(lettersFor_(code, cx), gd[id].ans);
+      return jsonp_(e, { found: true, score: fl.reduce(function (x, y) { return x + y; }, 0), total: fl.length, flags: fl, outcome: lastOutcome_(id, code) });
+    }
     if (key && id) {
       var rnd2 = roundOf_(code), rows = respRows_().map(function (r) { return r.slice(2, 14); }); // ID, Join Code, Q1 to Q5, Score, Round, Questions, Answers, Week
       for (var i = 0; i < rows.length; i++) {

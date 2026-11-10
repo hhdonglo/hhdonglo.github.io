@@ -41,12 +41,14 @@ Linux
   network connections. Allow it, at least on private networks: students'
   phones connect through it.
 - The app creates its results workbook and a host key automatically. The host
-  key is shown on the home screen. Type it when a lecturer page asks for it,
+  key is shown in the bar at the top of the window, with a Copy button. Type
+  it when a lecturer page asks for it,
   and keep it private.
 - A short setup then asks for what the app needs to know about the course.
-  Each step can be skipped and finished later: a checklist stays on the home
-  screen until all three are done, and "Course settings and lectures" on the
-  home screen changes any of it afterwards.
+  Each step can be skipped and finished later: a reminder bar stays at the top
+  of "In Class" until all three are done (it can be hidden), and "Course
+  settings and lectures" under "Course and Content" changes any of it
+  afterwards.
     1. Course details: course code and title, lecturer, semester and teaching
        dates; optionally the institution, a contact for students, a header
        colour, a logo and a notice for the course pages.
@@ -64,8 +66,8 @@ Linux
 3. BEFORE THE FIRST CLASS
 -------------------------
 
-1. Check that the class list is complete (home screen, "Class list").
-2. To let students see their own progress, open "Access codes for students",
+1. Check that the class list is complete ("Class Roster" in the sidebar).
+2. To let students see their own progress, open "Access codes",
    type the host key, press "Create codes for students without one", then
    "Print slips", and hand each student their slip.
 
@@ -73,8 +75,9 @@ Linux
 4. CONNECTING STUDENTS
 ----------------------
 
-Under "Students open" on the home screen, choose how students connect, then
-show the address and the QR code on the projector.
+Under "In Class" (the first screen), choose how students connect, then show
+the address and the QR code on the projector. "Copy link" copies the address;
+"How this works" explains the two ways of connecting.
 
 Same Wi-Fi or hotspot (the default)
   The computer and the students' phones join the same Wi-Fi network. If
@@ -111,7 +114,7 @@ Attendance
   projector. The code changes during the session, so it must be scanned in
   the room. Students scan it and type their student ID and personal access
   code; each student is marked once per day. Create the access codes and
-  print the slips first (Access codes for students).
+  print the slips first (Access codes).
 
   No one can check in for a friend. A classmate's ID is refused without that
   student's access code, and the first phone a student checks in with is
@@ -141,7 +144,7 @@ Practice questions and mock examination
 6. AFTER CLASS
 --------------
 
-- Under "Results and marks", choose a tab (Attendance, Master, Totals and
+- Under "Grades and Results", choose a tab (Attendance, Master, Totals and
   others) to view it.
 - "Export all tabs" saves every tab as a CSV file that opens in Excel.
 - "Attendance with names" shows names next to the attendance marks.
@@ -157,7 +160,7 @@ Practice questions and mock examination
 7. RESOURCES AND QUESTIONS
 --------------------------
 
-On the home screen, press "Open resources and questions".
+Under "Course and Content", press "Open resources and questions".
 
 - Add PDF, Word (.docx), PowerPoint (.pptx), Markdown or text files to the
   library to search them and read summaries. A scanned PDF without a text
@@ -175,8 +178,8 @@ On the home screen, press "Open resources and questions".
 8. DATA, BACKUP AND PRIVACY
 ---------------------------
 
-All records stay on this computer, in the data folder shown at the bottom of
-the home screen:
+All records stay on this computer, in the data folder shown in the status bar
+at the bottom of the window and under "App Settings":
   Windows: %APPDATA%\Class Manager
   macOS:   ~/Library/Application Support/Class Manager
   Linux:   ~/.config/Class Manager
@@ -200,10 +203,10 @@ Internet access does not start
   connections to Cloudflare will stop it.
 
 The host key is not shown
-  If the host key was changed on the quiz dashboard, the home screen no
-  longer shows it. Use the new key.
+  If the host key was changed on the quiz dashboard, the app no longer
+  shows it. Use the new key.
 
 The app reports that a port is in use
   Another program uses port 8143. The app then chooses a free port by
-  itself; the address on the home screen is always the right one. The port
-  can also be set under Settings.
+  itself; the address under "In Class" is always the right one. The port
+  can also be set under "App Settings".

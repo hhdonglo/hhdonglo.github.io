@@ -21,12 +21,13 @@ var M={
  E14:["Too many attempts. Wait ten minutes, then try again.","wait"],
  E15:["The system is being updated. Refresh this page. If it continues, tell your lecturer.","refresh"],
  E16:["The service is busy. Wait a few seconds and try again. Tell your lecturer.","retry"],
+ E17:["This relay code has already been used or has expired. Ask your neighbour to show their code again, or scan the screen at the front.","rescan"],
  E0:["Something went wrong. Try again. If it continues, tell your lecturer.","retry"]
 };
 // Server reason strings (the "why" field of the attend and quiz replies) to catalogue codes.
 var WHY={
  "bad id":"E1","old link":"E3","no token":"E4","no location":"E5","too far":"E6","device used":"E10",
- "not on list":"E2","results off":"E11","closed":"E11","slow down":"E14","update page":"E15","not joined":"E13","quiz closed":"E11","bad code":"E12"
+ "not on list":"E2","results off":"E11","closed":"E11","slow down":"E14","update page":"E15","not joined":"E13","quiz closed":"E11","bad code":"E12","old relay":"E17","relay used":"E17","relay limit":"E17"
 };
 function code(why){return WHY[why]||"E0"}
 // text(code) returns the message with its reference, e.g. "... (Ref E3)".
