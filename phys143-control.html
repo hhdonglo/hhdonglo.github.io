@@ -45,11 +45,12 @@
 .cc .wide,.cc .panel.open{grid-column:1/-1}.cc iframe{width:100%;height:80vh;min-height:30rem;border:1px solid var(--border);border-radius:6px;margin-top:.6rem;background:var(--surface)}
 .cc .go.sm{min-height:40px;padding:.3rem .8rem;font-size:.9rem}
 .cc details.held{margin:.6rem 0 .2rem}.cc details.held summary{cursor:pointer;font-size:.95rem;min-height:36px;display:flex;align-items:center}.cc details.held li{font-size:.88rem;padding:.3rem 0}
-.cc details.fold>summary{cursor:pointer;list-style:none;display:block;min-height:5.2rem;position:relative;padding-right:2rem}
+.cc details.fold>summary{cursor:pointer;list-style:none;display:block;min-height:8rem;position:relative;padding-right:1.6rem}
 .cc details.fold>summary b{display:block;font-size:1rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
-.cc details.fold>summary small{display:block;margin:.35rem 0 0;font-size:1.05rem;font-weight:600;color:var(--text)}
+.cc details.fold>summary small{display:block;margin:.35rem 0 0;font-size:.95rem;font-weight:600;color:var(--text);overflow-wrap:anywhere}
 .cc details.fold>summary::-webkit-details-marker{display:none}.cc details.fold>summary::after{content:"\25BE";position:absolute;right:0;top:0;font-size:1.1rem;color:var(--muted)}.cc details.fold[open]>summary::after{content:"\25B4"}.cc details.fold[open]>summary{min-height:0;margin-bottom:.4rem}
 .cc .panel{padding:.7rem 1rem}.cc .panel:has(details[open]){grid-column:1/-1}.cc .grid{grid-template-columns:repeat(auto-fit,minmax(14rem,1fr));gap:.5rem}.cc .note{margin:.3rem 0}
+.cc .face{margin:.5rem 0 0;display:inline-flex}.cc details.fold[open] .face{display:none}
 .cc [hidden]{display:none!important}
 body.focus header.banner,body.focus nav.jump,body.focus .crumb,body.focus .sec-sub,body.focus aside.disclaimer,body.focus footer,body.focus a.skip,body.focus main h2{display:none!important}
 body.focus main{padding-top:0}
@@ -72,7 +73,7 @@ body.focus main{padding-top:0}
    <p class="code" id="t-code">&nbsp;</p>
    <a class="go alt" id="t-hand" href="#" hidden>Open handout</a>
   </section>
-  <section class="panel" id="p-stu"><details class="fold" id="d-stu"><summary><b>Student Portal</b><small id="sp-sum"></small></summary>
+  <section class="panel" id="p-stu"><details class="fold" id="d-stu"><summary><b>Student Portal</b><small id="sp-sum"></small><span class="go sm face" role="button" tabindex="0" data-d="d-stu" data-t="">Edit</span></summary>
    <div id="sp-form">
    <p class="note">Public text only. Empty = default. Live in about 15 s.</p>
    <label for="sp-contacts" class="note">Contacts</label>
@@ -93,13 +94,13 @@ body.focus main{padding-top:0}
    <p class="note" id="sp-msg" role="status"></p>
    </div>
   </details></section>
-  <section class="panel"><details class="fold" id="d-pre"><summary><b>Pre-class check</b><small id="st-pre">Not run yet</small></summary>
+  <section class="panel"><details class="fold" id="d-pre"><summary><b>Pre-class check</b><small id="st-pre">Not run yet</small><span class="go sm face" role="button" tabindex="0" data-d="d-pre" data-t="k-run">Run checks</span></summary>
    <ul id="k-list"><li class="note">Not run yet.</li></ul>
    <label class="cb"><input type="checkbox" id="k-proj"> Projector display seen</label>
    <button class="go" type="button" id="k-run">Run checks</button>
   </details></section>
-  <section class="panel" id="p-att"><details class="fold" id="d-att"><summary><b>Attendance</b><small id="st-att">Checking</small></summary>
-      <button class="go" type="button" data-panel="p-att" data-embed="e-att" data-src="phys143-attendance.html">Show here</button>
+  <section class="panel" id="p-att"><details class="fold" id="d-att"><summary><b>Attendance</b><small id="st-att">Checking</small><span class="go sm face" role="button" tabindex="0" data-d="d-att" data-t="bt-att">Start / Show here</span></summary>
+      <button class="go" type="button" id="bt-att" data-panel="p-att" data-embed="e-att" data-src="phys143-attendance.html">Show here</button>
    <a class="go alt" href="phys143-attendance.html" target="_blank" rel="noopener">Own window</a>
    <details class="held" id="h-det"><summary id="h-sum">Held sessions: checking</summary>
     <ul id="h-list"><li class="note">Checking.</li></ul></details>
@@ -108,7 +109,7 @@ body.focus main{padding-top:0}
    <p class="note" id="h-msg" role="status"></p>
    <div id="e-att"></div>
   </details></section>
-  <section class="panel" id="p-ros"><details class="fold"><summary><b>Class list</b><small>Add, remove, check an ID</small></summary>
+  <section class="panel" id="p-ros"><details class="fold" id="d-ros"><summary><b>Class list</b><small>Add, remove, check an ID</small><span class="go sm face" role="button" tabindex="0" data-d="d-ros" data-t="r-id">Add or remove</span></summary>
    <p class="note">Add or remove one ID. Past marks are kept.</p>
    <input type="text" id="r-id" inputmode="numeric" autocomplete="off" placeholder="Student ID" aria-label="Student ID">
    <input type="text" id="r-nm" autocomplete="off" placeholder="Name (optional, for Add)" aria-label="Name">
@@ -118,14 +119,14 @@ body.focus main{padding-top:0}
    <button class="go alt sm" type="button" id="r-tidy">Tidy to class list</button>
    <p class="note" id="r-msg" role="status"></p>
   </details></section>
-  <section class="panel" id="p-rst"><details class="fold"><summary><b>Reset results</b><small>New term</small></summary>
+  <section class="panel" id="p-rst"><details class="fold" id="d-rst"><summary><b>Reset results</b><small>New term, needs RESET typed</small><span class="go sm face" role="button" tabindex="0" data-d="d-rst" data-t="bt-rst">Reset results…</span></summary>
    <p class="note">New term: backs up, then empties results. Type RESET to confirm.</p>
-   <button class="go alt" type="button" data-panel="p-rst" data-embed="e-rst" data-src="phys143-reset.html">Show here</button>
+   <button class="go alt" type="button" id="bt-rst" data-panel="p-rst" data-embed="e-rst" data-src="phys143-reset.html">Show here</button>
    <a class="go alt" href="phys143-reset.html" target="_blank" rel="noopener">Own window</a>
    <div id="e-rst"></div>
   </details></section>
-  <section class="panel"><details class="fold" id="d-quiz"><summary><b>Live quiz</b><small id="st-quiz">Checking</small></summary>
-   <button class="go" type="button" data-embed="e-quiz" data-src="phys143-quiz-host.html">Show here</button>
+  <section class="panel"><details class="fold" id="d-quiz"><summary><b>Live quiz</b><small id="st-quiz">Checking</small><span class="go sm face" role="button" tabindex="0" data-d="d-quiz" data-t="bt-quiz">Show quiz controls</span></summary>
+   <button class="go" type="button" id="bt-quiz" data-embed="e-quiz" data-src="phys143-quiz-host.html">Show here</button>
    <a class="go alt" href="phys143-quiz-host.html" target="_blank" rel="noopener">Own window</a>
    <a class="go alt" href="phys143-quiz-display.html" target="_blank" rel="noopener">Projector display</a>
    <details class="held"><summary>How held results work</summary><p class="note">Quiz results are held until you release them. Nothing a student sends is written to Form Responses 1, Master, Scores or Totals before then. Master keeps every released score for the semester; releasing the same week again updates that student's cell and never touches earlier weeks.</p></details>
@@ -135,7 +136,7 @@ body.focus main{padding-top:0}
    <p class="note" id="h-qmsg" role="status"></p>
    <div id="e-quiz"></div>
   </details></section>
-  <section class="panel"><details class="fold"><summary><b>After class</b><small id="st-aft">No session</small></summary>
+  <section class="panel"><details class="fold" id="d-aft"><summary><b>After class</b><small id="st-aft">No session</small><span class="go sm face" role="button" tabindex="0" data-d="d-aft" data-t="">Open</span></summary>
    <ul id="x-list"><li class="note">Attendance summary appears here.</li></ul>
    <p class="note">Check Attendance, Not_On_List and Flags; export for Sakai; delete test rows.</p>
    <button class="go alt" type="button" id="x-out">Log out</button>
@@ -329,6 +330,8 @@ $("r-tidy").addEventListener("click",function(){
 $("r-add").addEventListener("click",function(){rosterDo("add")});
 $("r-rm").addEventListener("click",function(){rosterDo("remove")});
 $("r-ck").addEventListener("click",function(){rosterDo("check")});
+document.querySelectorAll(".face").forEach(function(f){function go(e){e.preventDefault();e.stopPropagation();var d=$(f.getAttribute("data-d"));d.open=true;var t=f.getAttribute("data-t"),el=t&&$(t);if(!el)return;if(el.hasAttribute("data-embed")){if(!$(el.getAttribute("data-embed")).firstChild)el.click()}else if(el.tagName==="BUTTON")el.click();else el.focus()}
+ f.addEventListener("click",go);f.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" ")go(e)})});
 // ---- embedded host pages (same site, same host key in this tab) ----
 document.querySelectorAll("[data-embed]").forEach(function(b){b.addEventListener("click",function(){
  var box=$(b.getAttribute("data-embed"));
