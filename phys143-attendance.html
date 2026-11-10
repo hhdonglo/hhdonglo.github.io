@@ -57,8 +57,8 @@ body.proj .att .lbl{font-size:clamp(1.2rem,3.2vh,2rem);color:var(--text);letter-
 body.proj .att .qr{width:min(78vh,92vw);height:min(78vh,92vw);padding:14px;border:0;background:#fff}
 body.proj .att #a-tick{font:600 clamp(1.1rem,3vh,1.8rem)/1.3 system-ui,sans-serif;color:var(--text)}
 body.proj .att .count{font-size:clamp(2rem,6vh,4rem)}
-/* Lecturer controls on the projector view: invisible until the mouse is over the bottom-right corner or C is pressed, so the QR stays the focus */
-.pctl{position:fixed;right:.6rem;bottom:.6rem;z-index:50;display:flex;gap:.4rem;align-items:center;flex-wrap:wrap;max-width:92vw;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.3rem .5rem;opacity:0;transition:opacity .2s}
+/* Lecturer controls on the projector view: a small, dimmed bar in the bottom-right corner that brightens on hover or focus (C toggles it fully on), so the QR stays the focus */
+.pctl{position:fixed;right:.6rem;bottom:.6rem;z-index:50;display:flex;gap:.4rem;align-items:center;flex-wrap:wrap;max-width:92vw;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.3rem .5rem;opacity:.55;transition:opacity .2s}
 .pctl:hover,.pctl:focus-within,.pctl.on{opacity:1}
 .host .pctl .go{min-height:36px;padding:.2rem .9rem;font-size:.9rem;margin:0}
 .pctl .pstat{font:.85rem system-ui,sans-serif;color:var(--muted);max-width:22rem}
@@ -104,9 +104,9 @@ body.proj #a-wait p{font:700 clamp(2rem,6vh,4rem)/1.2 system-ui,sans-serif}
  </section>
  <div class="pctl" id="a-pctl" hidden role="group" aria-label="Lecturer controls">
   <span class="pstat" id="a-pstat" role="status"></span>
-  <button type="button" class="go alt" id="a-pstop">Stop</button>
-  <button type="button" class="go" id="a-psub">Submit</button>
-  <button type="button" class="go alt" id="a-pclr">Clear</button>
+  <button type="button" class="go alt" id="a-pstop">Stop attendance</button>
+  <button type="button" class="go" id="a-psub">Submit to the sheet</button>
+  <button type="button" class="go alt" id="a-pclr">Discard</button>
  </div>
  <section class="panel" id="a-wait" hidden><p>Waiting for the lecturer to start attendance.</p></section>
  <p><button class="go alt" type="button" id="a-out">Log out</button></p>
@@ -159,7 +159,7 @@ function draw(d){
  }
 }
 var lastLink="";
-// Projector view controls (lecturer only: they exist only in ?view=projector, need the lecturer login in this window, and stay invisible until hover or C). They press the same buttons as the lecturer panel, so every confirmation and server action is the same.
+// Projector view controls (lecturer only: they exist only in ?view=projector, need the lecturer login in this window, and stay dimmed until hover, focus or C). They press the same buttons as the lecturer panel, so every confirmation and server action is the same.
 function pctlState(open,held){
  var bar=$("a-pctl");if(!bar)return;
  $("a-pstop").hidden=!open;$("a-psub").hidden=!held;$("a-pclr").hidden=!(open||held);
