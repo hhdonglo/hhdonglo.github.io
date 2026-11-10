@@ -45,6 +45,10 @@
 .cc .wide,.cc .panel.open{grid-column:1/-1}.cc iframe{width:100%;height:80vh;min-height:30rem;border:1px solid var(--border);border-radius:6px;margin-top:.6rem;background:var(--surface)}
 .cc .go.sm{min-height:40px;padding:.3rem .8rem;font-size:.9rem}
 .cc details.held{margin:.6rem 0 .2rem}.cc details.held summary{cursor:pointer;font-size:.95rem;min-height:36px;display:flex;align-items:center}.cc details.held li{font-size:.88rem;padding:.3rem 0}
+.cc details.fold>summary{cursor:pointer;list-style:none;min-height:36px;display:flex;align-items:center;justify-content:space-between;font-size:1rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+.cc details.fold small{font-weight:400;text-transform:none;letter-spacing:0;margin-left:.6rem;flex:1;color:var(--muted)}
+.cc details.fold>summary::-webkit-details-marker{display:none}.cc details.fold>summary::after{content:"+";font-size:1.3rem}.cc details.fold[open]>summary::after{content:"\2212"}
+.cc .panel{padding:.7rem 1rem}.cc .note{margin:.3rem 0}
 .cc [hidden]{display:none!important}
 body.focus header.banner,body.focus nav.jump,body.focus .crumb,body.focus .sec-sub,body.focus aside.disclaimer,body.focus footer,body.focus a.skip,body.focus main h2{display:none!important}
 body.focus main{padding-top:0}
@@ -60,52 +64,51 @@ body.focus main{padding-top:0}
  <div class="grid">
   <section class="panel"><h3>Today's lecture</h3>
    <p id="t-lec"><b>Loading</b></p>
-   <label for="t-week" class="note">Week to teach (the Portal follows this)</label>
+   <label for="t-week" class="note">Week to teach</label>
    <select id="t-week" style="min-height:44px;font-size:1rem;max-width:100%"><option value="0">Default from data/portal.json</option></select>
    <p class="note" id="t-wmsg" role="status"></p>
    <p class="note" style="margin:0">Join code</p>
    <p class="code" id="t-code">&nbsp;</p>
    <a class="go alt" id="t-hand" href="#" hidden>Open handout</a>
   </section>
-  <section class="panel wide" id="p-stu"><h3>Student Portal</h3>
-   <p class="note">What students see on the Portal. Public text only: never type a key or code here. Leave a box empty to use the default. Students see changes within about 15 seconds, with no site update.</p>
-   <label for="sp-contacts" class="note">Contact days and times</label>
+  <section class="panel wide" id="p-stu"><details class="fold" id="d-stu"><summary>Student Portal <small id="sp-sum"></small></summary>
+   <div id="sp-form">
+   <p class="note">Public text only. Empty = default. Live in about 15 s.</p>
+   <label for="sp-contacts" class="note">Contacts</label>
    <input type="text" id="sp-contacts" maxlength="160" autocomplete="off" style="width:100%;min-height:44px;font-size:1rem">
    <label for="sp-venue" class="note">Venue</label>
    <input type="text" id="sp-venue" maxlength="100" autocomplete="off" style="width:100%;min-height:44px;font-size:1rem">
-   <label for="sp-notice" class="note">Notice for students (one line, shown at the top)</label>
+   <label for="sp-notice" class="note">Notice</label>
    <input type="text" id="sp-notice" maxlength="300" autocomplete="off" style="width:100%;min-height:44px;font-size:1rem">
-   <label for="sp-cont" class="note">"Continue with" button goes to</label>
+   <label for="sp-cont" class="note">"Continue with" goes to</label>
    <select id="sp-cont" style="min-height:44px;font-size:1rem;max-width:100%"><option value="0">The week to teach</option></select>
-   <h3 style="margin-top:1rem">Lecture card for the week to teach</h3>
-   <label for="sp-title" class="note">Title shown on the card</label>
+   <h3 style="margin-top:1rem">Card for the week to teach</h3>
+   <label for="sp-title" class="note">Card title</label>
    <input type="text" id="sp-title" maxlength="100" autocomplete="off" style="width:100%;min-height:44px;font-size:1rem">
    <label class="cb"><input type="checkbox" id="sp-hh" checked> Show Handout (PDF)</label>
    <label class="cb"><input type="checkbox" id="sp-hp" checked> Show Practice quiz</label>
    <label class="cb"><input type="checkbox" id="sp-hl" checked> Show Lecture page</label>
-   <button class="go" type="button" id="sp-save">Save for students</button>
+   <button class="go" type="button" id="sp-save">Save</button>
    <p class="note" id="sp-msg" role="status"></p>
-   <p class="note">The live banner is automatic: it shows the quiz link when a quiz is in Lobby, Running or Paused, and the attendance steps when attendance is Open. Official course information stays on Sakai.</p>
-  </section>
-  <section class="panel"><h3>Pre-class check</h3>
+   </div>
+  </details></section>
+  <section class="panel"><details class="fold" id="d-pre"><summary>Pre-class check</summary>
    <ul id="k-list"><li class="note">Not run yet.</li></ul>
-   <label class="cb"><input type="checkbox" id="k-proj"> I opened the display on the projector and saw it</label>
+   <label class="cb"><input type="checkbox" id="k-proj"> Projector display seen</label>
    <button class="go" type="button" id="k-run">Run checks</button>
-  </section>
-  <section class="panel" id="p-att"><h3>Attendance</h3>
-   <p class="note">Open the attendance controls here, or in their own window for the projector. Closing asks you to confirm.</p>
-   <button class="go" type="button" data-panel="p-att" data-embed="e-att" data-src="phys143-attendance.html">Show attendance here</button>
-   <a class="go alt" href="phys143-attendance.html" target="_blank" rel="noopener">Open in its own window</a>
+  </details></section>
+  <section class="panel" id="p-att"><details class="fold" id="d-att"><summary>Attendance</summary>
+      <button class="go" type="button" data-panel="p-att" data-embed="e-att" data-src="phys143-attendance.html">Show here</button>
+   <a class="go alt" href="phys143-attendance.html" target="_blank" rel="noopener">Own window</a>
    <details class="held" id="h-det"><summary id="h-sum">Held sessions: checking</summary>
-    <p class="note">Held until you submit. Nothing is written to the Attendance sheet before then.</p>
     <ul id="h-list"><li class="note">Checking.</li></ul></details>
    <button class="go sm" type="button" id="h-sa">Submit attendance</button>
    <button class="go alt sm" type="button" id="h-da">Discard unsubmitted</button>
    <p class="note" id="h-msg" role="status"></p>
    <div id="e-att"></div>
-  </section>
-  <section class="panel" id="p-ros"><h3>Class list</h3>
-   <p class="note">Add a student who joined, or take off one who left. Leavers keep the marks already recorded. IDs are never shown back.</p>
+  </details></section>
+  <section class="panel" id="p-ros"><details class="fold"><summary>Class list</summary>
+   <p class="note">Add or remove one ID. Past marks are kept.</p>
    <input type="text" id="r-id" inputmode="numeric" autocomplete="off" placeholder="Student ID" aria-label="Student ID">
    <input type="text" id="r-nm" autocomplete="off" placeholder="Name (optional, for Add)" aria-label="Name">
    <button class="go sm" type="button" id="r-add">Add</button>
@@ -113,30 +116,29 @@ body.focus main{padding-top:0}
    <button class="go alt sm" type="button" id="r-ck">Check</button>
    <button class="go alt sm" type="button" id="r-tidy">Tidy to class list</button>
    <p class="note" id="r-msg" role="status"></p>
-  </section>
-  <section class="panel" id="p-rst"><h3>Reset results</h3>
-   <p class="note">Starts the term from a clean slate: empties attendance and quiz results. Every cleared tab is backed up first, and you type RESET to confirm. The class list, join codes and question banks are not touched.</p>
-   <button class="go alt" type="button" data-panel="p-rst" data-embed="e-rst" data-src="phys143-reset.html">Show reset controls here</button>
-   <a class="go alt" href="phys143-reset.html" target="_blank" rel="noopener">Open in its own window</a>
+  </details></section>
+  <section class="panel" id="p-rst"><details class="fold"><summary>Reset results</summary>
+   <p class="note">New term: backs up, then empties results. Type RESET to confirm.</p>
+   <button class="go alt" type="button" data-panel="p-rst" data-embed="e-rst" data-src="phys143-reset.html">Show here</button>
+   <a class="go alt" href="phys143-reset.html" target="_blank" rel="noopener">Own window</a>
    <div id="e-rst"></div>
-  </section>
-  <section class="panel wide"><h3>Live quiz</h3>
-   <p class="note">Opens the quiz controls here. Ending a quiz, starting a new round and releasing results each ask you to confirm.</p>
-   <button class="go" type="button" data-embed="e-quiz" data-src="phys143-quiz-host.html">Show quiz controls here</button>
-   <a class="go alt" href="phys143-quiz-host.html" target="_blank" rel="noopener">Open in its own window</a>
-   <a class="go alt" href="phys143-quiz-display.html" target="_blank" rel="noopener">Open projector display</a>
-   <p class="note">Quiz results are held until you release them. Nothing a student sends is written to Form Responses 1, Master, Scores or Totals before then. Master keeps every released score for the semester; releasing the same week again updates that student's cell and never touches earlier weeks.</p>
+  </details></section>
+  <section class="panel wide"><details class="fold" id="d-quiz"><summary>Live quiz</summary>
+   <button class="go" type="button" data-embed="e-quiz" data-src="phys143-quiz-host.html">Show here</button>
+   <a class="go alt" href="phys143-quiz-host.html" target="_blank" rel="noopener">Own window</a>
+   <a class="go alt" href="phys143-quiz-display.html" target="_blank" rel="noopener">Projector display</a>
+   <details class="held"><summary>How held results work</summary><p class="note">Quiz results are held until you release them. Nothing a student sends is written to Form Responses 1, Master, Scores or Totals before then. Master keeps every released score for the semester; releasing the same week again updates that student's cell and never touches earlier weeks.</p></details>
    <ul id="h-ql"><li class="note">Checking.</li></ul>
    <button class="go" type="button" id="h-rq">Release held quiz results</button>
    <button class="go alt" type="button" id="h-dq">Discard held quiz results</button>
    <p class="note" id="h-qmsg" role="status"></p>
    <div id="e-quiz"></div>
-  </section>
-  <section class="panel"><h3>After class</h3>
+  </details></section>
+  <section class="panel"><details class="fold"><summary>After class</summary>
    <ul id="x-list"><li class="note">Attendance summary appears here.</li></ul>
-   <p class="note">Then: check the Attendance and Not_On_List tabs and the Flags, export Attendance for Sakai, and delete any test rows.</p>
+   <p class="note">Check Attendance, Not_On_List and Flags; export for Sakai; delete test rows.</p>
    <button class="go alt" type="button" id="x-out">Log out</button>
-  </section>
+  </details></section>
  </div>
 </div>
 <script>
@@ -160,7 +162,7 @@ function dot(id,c){$(id).className="dot "+c}
 var lastErr=null;
 function err(m){var t=new Date();lastErr=("0"+t.getHours()).slice(-2)+":"+("0"+t.getMinutes()).slice(-2)+" "+m;$("s-e").textContent=lastErr;dot("s-ed","r")}
 // ---- status strip ----
-var misses=0;
+var misses=0,attAuto=false,qAuto=false;
 function poll(){
  jsonp("action=attend_status&"+hk(),function(d,ms){
   if(!d){misses++;dot("s-bd","r");$("s-b").textContent="No answer";err("Backend did not answer");return}
@@ -168,14 +170,14 @@ function poll(){
   if(d.ok===false){err(String(d.why||"Host key not accepted"));return}
   var s=d.session;
   if(!s){dot("s-ad","");$("s-a").textContent="No session";$("s-c").textContent="None"}
-  else if(s.status==="Open"){dot("s-ad","g");$("s-a").textContent="Open, QR "+s.secondsLeft+" s";$("s-c").textContent=s.present+" in, "+s.notOnList+" not on list, roster "+s.rosterSize}
+  else if(s.status==="Open"){if(!$("d-att").open&&!attAuto){attAuto=true;$("d-att").open=true}dot("s-ad","g");$("s-a").textContent="Open, QR "+s.secondsLeft+" s";$("s-c").textContent=s.present+" in, "+s.notOnList+" not on list, roster "+s.rosterSize}
   else{dot("s-ad","");$("s-a").textContent="Closed ("+s.label+")";$("s-c").textContent=s.present+" in, "+s.notOnList+" not on list"}
   if(s){$("x-list").innerHTML="<li><span>Session "+esc(s.label)+": "+esc(s.status)+". Checked in "+s.present+", not on the list "+s.notOnList+", roster size "+s.rosterSize+".</span></li>"}
  });
  jsonp("action=portal_status",function(d){
   if(!d||d.portal!==1){dot("s-qd","a");$("s-q").textContent="Unknown (old script?)";return}
   var m={none:["","None open"],lobby:["a","Lobby open"],running:["g","Running"],paused:["a","Paused"]}[d.quiz]||["","None open"];
-  dot("s-qd",m[0]);$("s-q").textContent=m[1];
+  if(d.quiz!=="none"&&!qAuto){qAuto=true;$("d-quiz").open=true}dot("s-qd",m[0]);$("s-q").textContent=m[1];
  });
 }
 poll();setInterval(poll,4000);
@@ -218,12 +220,22 @@ function spLoadFields(){
  var hd=SPC.hide||{handout:[],practice:[],page:[]};
  $("sp-hh").checked=hd.handout.indexOf(Number(w))<0;$("sp-hp").checked=hd.practice.indexOf(Number(w))<0;$("sp-hl").checked=hd.page.indexOf(Number(w))<0;
 }
+function spCollapse(c,saved){
+ var any=SPC&&(SPC.contacts||SPC.venue||SPC.notice||SPC.cont||Object.keys(SPC.titles||{}).length||(SPC.hide&&(SPC.hide.handout.length||SPC.hide.practice.length||SPC.hide.page.length)));
+ var t=[],w=String(WEEK||"");
+ if(any){t.push("Week "+w+(CFGP&&CFGP.lectures[w]?" "+(SPC.titles&&SPC.titles[w]||CFGP.lectures[w]):""));
+  if(SPC.contacts)t.push("contacts");if(SPC.venue)t.push("venue");t.push(SPC.notice?"notice":"no notice")}
+ $("sp-sum").textContent=any?(saved?"Saved: ":"")+t.join(", "):"Not set";
+ $("d-stu").open=!(c&&any);
+}
+var spFirst=true;
 function spLoad(){
  jsonp("action=portal_status",function(d){
   if(!d||d.portal!==1||!d.cfg){$("sp-msg").textContent="The script is not updated, so these settings cannot be saved yet. Paste the new script, Save, then Deploy a new version.";return}
   SPC=d.cfg;
   $("sp-contacts").value=SPC.contacts;$("sp-venue").value=SPC.venue;$("sp-notice").value=SPC.notice;$("sp-cont").value=String(SPC.cont);
   spLoadFields();
+  if(spFirst){spFirst=false;spCollapse(true)}
  });
 }
 $("sp-save").addEventListener("click",function(){
@@ -231,7 +243,7 @@ $("sp-save").addEventListener("click",function(){
  $("sp-msg").textContent="Saving.";
  jsonp("action=portal_set&contacts="+encodeURIComponent($("sp-contacts").value)+"&venue="+encodeURIComponent($("sp-venue").value)+"&notice="+encodeURIComponent($("sp-notice").value)+"&cont="+$("sp-cont").value+"&w="+w+"&title="+encodeURIComponent($("sp-title").value)+"&handout="+($("sp-hh").checked?1:0)+"&practice="+($("sp-hp").checked?1:0)+"&page="+($("sp-hl").checked?1:0)+"&"+hk(),function(d){
   if(!d||d.ok!==true){$("sp-msg").textContent="Not saved: "+(d&&d.why?d.why:"no answer, or the script is not updated")+".";return}
-  SPC=d.cfg;$("sp-msg").textContent="Saved. Students see it within about 15 seconds.";
+  SPC=d.cfg;$("sp-msg").textContent="Saved.";spCollapse(true,true);
  },20000);
 });
 // ---- pre-class check ----
