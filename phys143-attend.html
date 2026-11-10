@@ -54,15 +54,19 @@ body.focus main{padding-top:1.2rem}
 <div class="ci">
  <section class="panel" id="c-loc" aria-live="assertive" hidden style="border-top-color:#b3261e">
   <h3>Location is required to check in</h3>
-  <p id="c-loc-msg">Your phone has not shared its location. Attendance is only recorded for students who are in the room, so check-in cannot continue without it.</p>
+  <p><b>No attendance is recorded until your phone shares its location.</b> Your location is used once, to confirm you are in the room. Only the distance is kept, not where you are.</p>
+  <p id="c-loc-msg" class="note"></p>
   <button type="button" class="go" id="c-loc-btn">Try again</button>
-  <details class="note" open><summary>How to switch location on</summary>
-   <p><b>iPhone, Safari:</b> tap <b>aA</b> in the address bar, then <b>Website Settings</b>, then <b>Location</b>, and choose <b>Allow</b>. Also check Settings &gt; Privacy &amp; Security &gt; Location Services is on, and Safari Websites is set to <b>While Using</b>.</p>
-   <p><b>iPhone, Chrome:</b> Settings &gt; Chrome &gt; Location &gt; <b>While Using the App</b>.</p>
-   <p><b>Android, Chrome:</b> tap the icon at the left of the address bar, then <b>Permissions</b> (or <b>Site settings</b>) &gt; <b>Location</b> &gt; <b>Allow</b>. Make sure Location is switched on in the phone's quick settings.</p>
-   <p><b>Opened from WhatsApp, Instagram or another app?</b> Open the link in Chrome or Safari instead.</p>
-   <p>Then press <b>Try again</b>. This page also tries again by itself when you come back to it.</p>
-  </details>
+  <p class="note">After you change the setting, come back to this page. It checks again by itself, or press <b>Try again</b>.</p>
+  <div id="c-loc-steps">
+   <details class="note" id="c-st-ios" open><summary><b>iPhone, Safari</b></summary>
+    <ol><li>Tap <b>aA</b> at the left of the address bar.</li><li>Tap <b>Website Settings</b>, then <b>Location</b>.</li><li>Choose <b>Allow</b>.</li><li>If it stays blocked: open the <b>Settings</b> app &gt; <b>Privacy &amp; Security</b> &gt; <b>Location Services</b>, switch it <b>On</b>, then <b>Safari Websites</b> &gt; <b>While Using the App</b>.</li><li>Return to this page and press <b>Try again</b>.</li></ol></details>
+   <details class="note" id="c-st-ioschrome"><summary><b>iPhone, Chrome</b></summary>
+    <ol><li>Open the <b>Settings</b> app and scroll to <b>Chrome</b>.</li><li>Tap <b>Location</b> and choose <b>While Using the App</b>.</li><li>Also check <b>Privacy &amp; Security</b> &gt; <b>Location Services</b> is <b>On</b>.</li><li>Return to Chrome and press <b>Try again</b>.</li></ol></details>
+   <details class="note" id="c-st-android"><summary><b>Android, Chrome</b></summary>
+    <ol><li>Tap the icon at the left of the address bar (a lock or sliders).</li><li>Tap <b>Permissions</b> (or <b>Site settings</b>), then <b>Location</b>, then <b>Allow</b>.</li><li>Swipe down from the top of the screen and make sure <b>Location</b> is switched on.</li><li>Return to this page and press <b>Try again</b>.</li></ol></details>
+   <p class="note" id="c-st-app" hidden><b>You may have opened this link inside another app (WhatsApp, Instagram, Facebook).</b> Those apps often block location. Tap the menu (&#8942; or the share icon) and choose <b>Open in Chrome</b> or <b>Open in Safari</b>, then check in there.</p>
+  </div>
  </section>
  <section class="panel" id="c-form-wrap">
   <h1>Attendance check-in</h1>
@@ -128,6 +132,13 @@ var LOCMSG={denied:"Your phone refused to share its location. Attendance is only
  timeout:"Your phone could not find its location in time. Move near a window or outside for a moment, make sure Location is switched on, then try again.",
  unavailable:"Your phone could not work out its location. Make sure Location is switched on, then try again.",
  unsupported:"This browser cannot share a location. Open this link in Chrome or Safari, then try again."};
+(function(){ // open the steps that match this phone first
+ var ua=navigator.userAgent||"",ios=/iPhone|iPad|iPod/.test(ua),chrome=/CriOS|Chrome/.test(ua),inapp=/FBAN|FBAV|Instagram|Line\/|MicroMessenger|Snapchat|; wv\)/.test(ua);
+ var set=function(id,open){var e=document.getElementById(id);if(e)e.open=open};
+ set("c-st-ios",ios&&!/CriOS/.test(ua));set("c-st-ioschrome",ios&&/CriOS/.test(ua));set("c-st-android",/Android/.test(ua));
+ if(!ios&&!/Android/.test(ua)){set("c-st-ios",true);set("c-st-android",true)}
+ if(inapp)document.getElementById("c-st-app").hidden=false;
+})();
 function locShow(){$("c-loc-msg").textContent=LOCMSG[POSWHY]||LOCMSG.denied;$("c-loc").hidden=false;$("c-loc").scrollIntoView&&$("c-loc").scrollIntoView({block:"nearest"})}
 function locHide(){$("c-loc").hidden=true}
 function locTry(){
