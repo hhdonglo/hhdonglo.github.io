@@ -52,30 +52,35 @@
 </div>
 
 <div class="ov-card cm-pick">
+<h3 class="h4" id="cm-request">Access to the Beta</h3>
+<p>The Beta is shared on request while it is being tested. Send a short request by email; a download link and the installation instructions follow by reply.</p>
 <label for="cm-os-select">Version for your computer</label>
 <div class="cm-row">
 <select id="cm-os-select">
-<option value="win" data-href="https://github.com/hhdonglo/hhdonglo.github.io/releases/latest/download/Class-Manager-Windows.exe" data-req="Windows 10 or 11, 64-bit.">Windows</option>
-<option value="mac" data-href="https://github.com/hhdonglo/hhdonglo.github.io/releases/latest/download/Class-Manager-macOS.dmg" data-req="macOS 11 or later, Intel and Apple silicon.">macOS</option>
-<option value="linux" data-href="https://github.com/hhdonglo/hhdonglo.github.io/releases/latest/download/Class-Manager-Linux.AppImage" data-req="AppImage for 64-bit Linux.">Linux</option>
+<option value="win" data-req="Windows 10 or 11, 64-bit.">Windows</option>
+<option value="mac" data-req="macOS 11 or later, Intel and Apple silicon.">macOS</option>
+<option value="linux" data-req="AppImage for 64-bit Linux.">Linux</option>
 </select>
-<a class="btn primary" id="cm-get" href="https://github.com/hhdonglo/hhdonglo.github.io/releases/latest/download/Class-Manager-Windows.exe">Download for Windows</a>
+<a class="btn primary" id="cm-get" href="mailto:hdonglo@ug.edu.gh?subject=Request%20for%20the%20Class%20Manager%20Beta">Request the Beta by email</a>
 </div>
 <p id="cm-req">Windows 10 or 11, 64-bit.</p>
 <p class="sec-sub" id="cm-os" role="status"></p>
-<p>Installation and instructions are in the <a href="https://github.com/hhdonglo/hhdonglo.github.io/releases/latest/download/Class-Manager-README.txt">README</a> that comes with the app.</p>
+<p>Requests go to <a href="mailto:hdonglo@ug.edu.gh">hdonglo@ug.edu.gh</a>. Please give your name, institution, the course you would use it for and your computer.</p>
 </div>
 </section>
 </div></main>
 <script>
 (function(){
-/* Preselect the version for this computer; the dropdown changes the button and the requirements line. */
+/* Preselect the version for this computer; the dropdown changes the request email and the requirements line. */
 var sel=document.getElementById("cm-os-select"),get=document.getElementById("cm-get"),req=document.getElementById("cm-req"),note=document.getElementById("cm-os");
 if(!sel)return;
 var ua=navigator.userAgent||"",pf=(navigator.userAgentData&&navigator.userAgentData.platform)||navigator.platform||"";
 var mobile=/Android|iPhone|iPad/i.test(ua);
 var os=mobile?"":/Win/i.test(pf+ua)?"win":/Mac/i.test(pf+ua)?"mac":/Linux|X11/i.test(pf+ua)?"linux":"";
-function show(){var o=sel.options[sel.selectedIndex];get.href=o.getAttribute("data-href");get.textContent="Download for "+o.textContent;req.textContent=o.getAttribute("data-req")}
+function show(){var o=sel.options[sel.selectedIndex];
+var body="Dear Dr Donglo,\r\n\r\nI would like to request access to the Class Manager Beta for "+o.textContent+".\r\n\r\nName:\r\nInstitution:\r\nCourse it will be used for:\r\n\r\nKind regards,\r\n";
+get.href="mailto:hdonglo@ug.edu.gh?subject="+encodeURIComponent("Request for the Class Manager Beta ("+o.textContent+")")+"&body="+encodeURIComponent(body);
+get.textContent="Request the Beta for "+o.textContent;req.textContent=o.getAttribute("data-req")}
 if(os){sel.value=os;note.textContent="Preselected for this computer. Choose another version from the list if needed."}
 else if(mobile)note.textContent="Class Manager runs on a laptop or desktop computer. Choose the version for that computer.";
 sel.addEventListener("change",function(){show();note.textContent=""});
