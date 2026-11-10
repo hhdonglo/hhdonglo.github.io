@@ -79,7 +79,9 @@ body.focus main{padding-top:1.2rem}
   <p class="tick" aria-hidden="true">&#10003;</p>
   <h3 id="c-dh">Check-in received</h3>
   <p>Student ID <b id="c-sid"></b></p>
-  <div class="relay" id="c-relay" hidden>
+ </section>
+ <section class="panel done" id="c-relaywrap" aria-live="polite" hidden style="margin-top:1rem">
+<div class="relay" id="c-relay">
    <button type="button" class="go alt" id="c-relay-btn">Help a friend check in</button>
    <div id="c-relay-box" hidden>
     <p class="note">Show this only to a classmate sitting near you in the room. It changes every few seconds and works for two scans. It does not work outside the room.</p>
@@ -129,7 +131,7 @@ $("c-form").addEventListener("submit",function(e){
  jsonp("action=attend&id="+encodeURIComponent(id)+"&dev="+DEV+"&t="+TOK+loc,function(r){
   $("c-btn").disabled=false;
   if(!r){err(PHYSMSG.text("E8"));return}
-  if(r.ok){$("c-form-wrap").hidden=true;window.scrollTo(0,0);var h=r.already?"Already marked present today":"Check-in received";if(r.onList===false){$("c-mid").textContent=r.id;$("c-mh").textContent=h;$("c-missing").hidden=false}else{$("c-sid").textContent=r.id;$("c-dh").textContent=h;$("c-done").hidden=false;if(r.relay&&!r.already){ME=r.id;$("c-relay").hidden=false}}return}
+  if(r.ok){if(r.relay!==false&&!r.already){ME=r.id;$("c-relaywrap").hidden=false}$("c-form-wrap").hidden=true;window.scrollTo(0,0);var h=r.already?"Already marked present today":"Check-in received";if(r.onList===false){$("c-mid").textContent=r.id;$("c-mh").textContent=h;$("c-missing").hidden=false}else{$("c-sid").textContent=r.id;$("c-dh").textContent=h;$("c-done").hidden=false}return}
   err(PHYSMSG.fromWhy(r.why));
  });
  };
@@ -163,7 +165,7 @@ function rFetch(){
 $("c-relay-btn").addEventListener("click",function(){rOn=true;rOk=Date.now();$("c-relay-btn").hidden=true;$("c-relay-box").hidden=false;$("c-relay-msg").textContent="";rTick=setInterval(rTickDraw,1000);rFetch()});
 $("c-relay-stop").addEventListener("click",function(){rStop("")});
 document.addEventListener("visibilitychange",function(){if(document.hidden&&rOn)rStop("Stopped while this page was in the background. Press the button to show it again.")});
-function again(){$("c-done").hidden=true;$("c-missing").hidden=true;$("c-form-wrap").hidden=false;$("c-id").value="";$("c-id").focus()}
+function again(){rStop("");$("c-relaywrap").hidden=true;$("c-done").hidden=true;$("c-missing").hidden=true;$("c-form-wrap").hidden=false;$("c-id").value="";$("c-id").focus()}
 $("c-again2").addEventListener("click",again);
 })();
 </script>
