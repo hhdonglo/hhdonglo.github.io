@@ -16,7 +16,9 @@ const b64url = (b) => b.toString("base64").replace(/\+/g, "-").replace(/\//g, "_
 function createGoogle(opts) {
   // opts: { clientId, clientSecret, load(), save(obj), openBrowser(url), log, tabs(), tab(name), title() }
   let state = opts.load() || {}; // { refresh, email, sheetId, sheetUrl }
-  let access = null, accessExp = 0, timer = null, syncing = false, lastSync = 0, lastError = "";
+  // One Google account serves every course, so a sign-in or sign-out made for another course is read again here.
+  function fresh() { if (!syncing) state = opts.load() || {}; }
+  let access = null, accessFor = "", accessExp = 0, timer = null, syncing = false, lastSync = 0, lastError = "";
 
   const configured = () => !!opts.clientId;
 
@@ -34,7 +36,7 @@ function createGoogle(opts) {
         try {
           const tok = await token({ code: u.searchParams.get("code"), code_verifier: verifier, grant_type: "authorization_code", redirect_uri: redirect });
           state.refresh = tok.refresh_token || state.refresh;
-          access = tok.access_token; accessExp = Date.now() + (tok.expires_in - 60) * 1000;
+          access = tok.access_token; accessFor = state.refresh; accessExp = Date.now() + (tok.expires_in - 60) * 1000;
           state.email = emailFrom(tok.id_token);
           opts.save(state);
           done("Signed in. You can close this tab and return to Class Manager.");
@@ -65,6 +67,7 @@ function createGoogle(opts) {
   }
 
   async function bearer() {
+    if (state.refresh !== accessFor) { access = null; accessFor = state.refresh || ""; } // signed out, or signed in again for another course
     if (access && Date.now() < accessExp) return access;
     if (!state.refresh) throw new Error("Not signed in.");
     const tok = await token({ refresh_token: state.refresh, grant_type: "refresh_token" });
@@ -91,6 +94,7 @@ function createGoogle(opts) {
 
   // Copy every local tab to the Google Sheet (whole-tab replace; the local workbook is the source).
   async function syncNow() {
+    fresh();
     if (!state.refresh || syncing) return status();
     syncing = true;
     try {
@@ -115,6 +119,7 @@ function createGoogle(opts) {
 
   // Called after every change to the local workbook: copy at most once every 30 seconds.
   function changed() {
+    fresh();
     if (!state.refresh || timer) return;
     timer = setTimeout(() => { timer = null; syncNow(); }, 30000);
   }
@@ -127,6 +132,7 @@ function createGoogle(opts) {
   }
 
   function status() {
+    fresh();
     return { configured: configured(), signedIn: !!state.refresh, email: state.email || "", sheetUrl: state.sheetUrl || "", lastSync, lastError, syncing };
   }
 

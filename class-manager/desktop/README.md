@@ -36,7 +36,7 @@ All data stays on the laptop, in the data folder shown at the bottom of the home
 
 **Optional: Google Drive copy.** If this build has Google sign-in, press **Sign in with Google**. The app creates one Google Sheet in your own Drive and keeps a copy of every tab there, updated within a minute of each change. The app can see only the file it creates.
 
-**Another course.** Under Settings, change the course code, title and institution. To replace the lectures and questions, see the README one folder up.
+**Many courses.** One installation runs all your courses. The course list at the top of the home screen chooses the course, and every screen in that window then shows that course only. "Add a course…" and "Manage courses…" in the same list add, rename, archive and restore courses, and link a course to its own folder (for example a local copy of a GitHub repository holding its lectures and banks). Each course has its own class list, attendance, quizzes, groups, assignments, learning objectives, messages, host key, access codes, Google Sheet and Apps Script address; nothing is shared between courses. Students open each course at `/c/<course>/` on the app's address; addresses from before 0.8.0 still open the first course. On the first start of 0.8.0 the existing course becomes the first course with all its records.
 
 ## Internet access
 
@@ -48,7 +48,8 @@ Choosing **Internet** starts a Cloudflare quick tunnel: a free service that need
 
 ## What runs where
 
-- `main.js`: starts the classroom server on the local network (port 8143 by default), opens the home screen, handles the app's own buttons.
+- `main.js`: starts the classroom server on the local network (port 8143 by default), opens the home screen, handles the app's own buttons. Each course is served under `/c/<id>/`; each window belongs to the course in its address, and its buttons act on that course only.
+- `courses.js`: the course registry (`courses.json`), each course's folders, the move of a 0.7.0 data folder into the first course, and the per-course `config.js`. No Electron dependency; tested in `test/courses.test.js`.
 - `backend.js`: runs `apps_script/quiz_receiver.gs`, unchanged, against a workbook stored in the app's data folder, so every rule of the Google version (join codes, rounds, scoring, one check-in per ID per day, class list, Master and Totals) works the same way. Location checking for attendance is off, because phones share their location only with secure (https) addresses.
 - `google.js`: optional Google sign-in and the copy to a Google Sheet.
 - `tunnel.js`: internet access through a Cloudflare quick tunnel (above).
