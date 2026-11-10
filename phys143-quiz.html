@@ -75,6 +75,10 @@ aside.disclaimer .sakai-link{font-size:.8rem}
 .try .note{font:.92rem/1.5 system-ui,sans-serif;color:var(--muted)}
 .try .wr{text-align:center;padding:.4rem 0 .2rem}
 .try .wr .hello{font:700 1.4rem system-ui,sans-serif;margin:.2rem 0 .4rem}
+.try .wr-share{margin:.8rem auto 0;padding:.6rem;border:1px dashed var(--border);border-radius:8px;text-align:center;max-width:24rem}
+.try .wr-share p{margin:.3rem 0}
+.try .wr-share img{display:block;margin:.4rem auto;width:min(68vw,300px);height:min(68vw,300px);background:#fff;padding:4px;border-radius:6px}
+.try .wr-share .jc{font:700 1.6rem ui-monospace,Menlo,monospace;letter-spacing:.08em}
 .try .wr .nq{font:600 1rem system-ui,sans-serif;margin:.6rem 0;color:var(--muted)}
 .try .dots{display:flex;justify-content:center;gap:.5rem;margin:1.1rem 0 .5rem}
 .try .dots i{width:12px;height:12px;border-radius:50%;background:var(--brown-fill);opacity:.25;animation:wr 1.2s infinite ease-in-out}
@@ -114,6 +118,13 @@ body.focus .try .fun{display:block}
    <p id="wr-msg" role="status">Your lecturer will start the quiz shortly. This page will begin by itself.</p>
    <p class="nq" id="wr-n"></p>
    <div class="dots" id="wr-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+   <div class="wr-share" id="wr-share" hidden>
+    <p class="lbl">Show this to a friend next to you</p>
+    <img id="wr-qr" alt="QR code to join this quiz, with the join code filled in" width="300" height="300" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==">
+    <p>Join code: <span class="jc" id="wr-code"></span></p>
+    <button type="button" class="go" id="wr-copy" style="margin-top:.4rem">Share or copy link</button>
+    <p class="note" id="wr-copied" role="status"></p>
+   </div>
   </div>
   <details class="note" style="margin-top:.8rem" open><summary>How it works</summary><p>I show one question at a time. Choose an answer before the clock runs out. Only your first attempt counts.</p></details>
  </section>
@@ -143,6 +154,7 @@ body.focus .try .fun{display:block}
   </div>
  </section>
 </div>
+<script src="assets/qrcode.js"></script>
 <script src="assets/messages.js"></script>
 <script>
 (function(){
@@ -201,7 +213,7 @@ function gate(){
    if(s==="paused"&&!st.joined){stop("This quiz is paused. Ask your lecturer.");return}
    if((s==="ready"||s==="draft")&&!st.joined){stop(PHYSMSG.text("E11"));return}
    if(s==="paused"){wait("The quiz is paused by your lecturer. This page will continue by itself.");return}
-   if(s!=="running"){wait("");return}
+   if(s!=="running"){wait("");shareShow(s==="lobby");return}
    if(!st.joined&&!d.allowLate){stop("This quiz has already started and late joining is closed. Ask your lecturer.");return}
    btn.disabled=false;er.hidden=true;
    if(!st.joined){st.joined=true;join()}
@@ -209,7 +221,7 @@ function gate(){
    if(d.paced)startPaced(d);else startTimed(d);return}
   var state=d&&d.state?d.state:"started";
   if(state==="stopped"){stop(PHYSMSG.text("E11"));return}
-  if(state==="waiting"){wait("");return}
+  if(state==="waiting"){wait("");shareShow(true);return}
   btn.disabled=false;er.hidden=true;
   if(!st.joined){st.joined=true;join()}
   ask();
@@ -224,8 +236,19 @@ function doAttend(d,btn,er){ // an attendance code: only the student ID is used;
   $("att-id").textContent=r.id;$("t-att").textContent=r.already?"Already marked present today":"Marked present";$("att-msg").textContent=r.onList===false?"Your ID is not on the class list. Please see your lecturer. Student ID ":"Student ID ";show("s-att");
  });
 }
+function joinUrl(c){return new URL("phys143-quiz.html",location.href).href.replace(/[?#].*$/,"")+"?code="+encodeURIComponent(String(c).toUpperCase())}
+function drawQr(img,url){if(!img||typeof qrcode!=="function"||img.getAttribute("data-qr-url")===url)return;try{var q=qrcode(0,"M");q.addData(url);q.make();img.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(q.createSvgTag({cellSize:8,margin:4,scalable:true}));img.setAttribute("data-qr-url",url)}catch(x){}}
+function shareShow(on){var b=$("wr-share");if(!b)return;b.hidden=!on;if(on){$("wr-code").textContent=st.code;drawQr($("wr-qr"),joinUrl(st.code))}}
+$("wr-copy").addEventListener("click",function(){var u=joinUrl(st.code),m=$("wr-copied");
+ function done(t){m.textContent=t}
+ if(navigator.share){navigator.share({title:"PHYS 143 quiz",text:"Join the quiz with code "+st.code,url:u}).catch(function(){})}
+ else if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(u).then(function(){done("Link copied.")},function(){done(u)})}
+ else done(u)});
+(function(){var m=/[?&]code=([^&#]+)/.exec(location.search);if(!m)return;var c="";try{c=decodeURIComponent(m[1]).toUpperCase().replace(/[^A-Z0-9-]/g,"").slice(0,30)}catch(x){}
+ if(c){$("in-code").value=c;var f=$("in-name");if(f&&!f.value)setTimeout(function(){try{f.focus()}catch(x){}},0)}})();
 function roomShow(m,n,closed){
  if($("s-wait").hidden)show("s-wait");
+ shareShow(false);
  $("t-wait").textContent="Welcome, "+st.name;
  $("wr-msg").textContent=m||"Your lecturer will start the quiz shortly. This page will begin by itself.";
  $("wr-n").textContent=n?"This quiz has "+n+" question"+(n===1?"":"s")+".":"";
