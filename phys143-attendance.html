@@ -50,6 +50,14 @@ body.focus main{padding-top:1rem}
 .att .lbl{font:600 1rem system-ui,sans-serif;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:0}
 .att input.codein{text-align:center;font:700 2.4rem ui-monospace,Menlo,monospace;max-width:12rem;letter-spacing:.1em}
 .att .toplinks{text-align:left;margin:0 0 .6rem}
+/* Projector view (?view=projector): QR, instruction, countdown and count only; no lecturer controls */
+body.proj .host.att{max-width:none}
+body.proj #a-toplinks,body.proj #a-out,body.proj #a-close,body.proj #a-msg,body.proj #a-idle,body.proj #a-projbtn{display:none!important}
+body.proj .att .lbl{font-size:clamp(1.2rem,3.2vh,2rem);color:var(--text);letter-spacing:.03em;text-transform:none}
+body.proj .att .qr{width:min(78vh,92vw);height:min(78vh,92vw);padding:14px;border:0;background:#fff}
+body.proj .att #a-tick{font:600 clamp(1.1rem,3vh,1.8rem)/1.3 system-ui,sans-serif;color:var(--text)}
+body.proj .att .count{font-size:clamp(2rem,6vh,4rem)}
+body.proj #a-wait p{font:700 clamp(2rem,6vh,4rem)/1.2 system-ui,sans-serif}
 </style>
 <div class="host att">
  <p class="toplinks" id="a-toplinks"><a href="phys143-lecturer.html">&larr; Lecturer menu</a></p>
@@ -73,9 +81,10 @@ body.focus main{padding-top:1rem}
   <p><span id="a-qr" class="qr" role="img" aria-label="QR code to open the check-in page; it changes every 30 seconds" style="display:inline-block"></span></p>
   <p class="note" id="a-tick" role="status"></p>
   <p class="count" id="a-count" role="status"></p>
-  <p><button class="go big" type="button" id="a-close">Close attendance and record absences</button></p>
+  <p><button class="go big" type="button" id="a-close">Close attendance and record absences</button> <button class="go alt" type="button" id="a-projbtn">Open projector view</button></p>
   <p class="note" id="a-msg" role="status"></p>
  </section>
+ <section class="panel" id="a-wait" hidden><p>Waiting for the lecturer to start attendance.</p></section>
  <p><button class="go alt" type="button" id="a-out">Log out</button></p>
 </div>
 <script src="assets/qrcode.js"></script>
@@ -92,12 +101,14 @@ function jsonp(params,cb){
 }
 var KEY="";try{KEY=sessionStorage.getItem("phys143_hk")||""}catch(x){}
 function saveKey(k){KEY=k;try{sessionStorage.setItem("phys143_hk",k)}catch(x){}}
+var PROJ=/[?&]view=projector/.test(location.search); // projector view: the lecturer logs in once on this window; nothing here can close or change the session
+if(PROJ){document.body.classList.add("focus","proj")}
 var EMBEDDED=window!==window.top; // inside the Control Centre: no lecturer menu, stay on the attendance controls
 if(EMBEDDED){var tl=document.getElementById("a-toplinks");if(tl)tl.hidden=true}
 function signOut(){KEY="";try{sessionStorage.removeItem("phys143_hk")}catch(x){}if(EMBEDDED)location.reload();else location.href="phys143-lecturer.html"}
 
 try{var sr=localStorage.getItem("phys143_rad");if(sr)setTimeout(function(){var e=$("a-rad");if(e&&e.querySelector('option[value="'+sr+'"]'))e.value=sr},0)}catch(x){}
-var timer=null,tk=null,left=0,stamp=0,show=function(id){["a-login","a-idle","a-live"].forEach(function(x){$(x).hidden=(x!==id)})};
+var timer=null,tk=null,left=0,stamp=0,show=function(id){["a-login","a-idle","a-live","a-wait"].forEach(function(x){$(x).hidden=(x!==id)})};
 function call(act,extra,cb){jsonp("action="+act+"&hostkey="+encodeURIComponent(KEY)+(extra||""),cb)}
 function draw(d){
  var ss=d&&d.session,open=ss&&ss.status==="Open";
@@ -106,6 +117,7 @@ function draw(d){
   $("a-count").textContent=ss.present+" present"+(ss.notOnList?", "+ss.notOnList+" not on the list":"");
   show("a-live");if(!timer)timer=setInterval(poll,4000);
  } else {
+  if(PROJ){if(tk){clearInterval(tk);tk=null}show("a-wait");if(!timer)timer=setInterval(poll,4000);return} // keep watching: the QR appears as soon as the lecturer starts
   if(timer){clearInterval(timer);timer=null}if(tk){clearInterval(tk);tk=null}
   show("a-idle");
  }
@@ -172,6 +184,7 @@ $("a-close").addEventListener("click",function(){
  });
 });
 $("a-out").addEventListener("click",signOut);
+$("a-projbtn").addEventListener("click",function(){window.open("phys143-attendance.html?view=projector","_blank")}); // opened without noopener so the key in this tab is copied to the new one; it is never put in the address
 begin();
 })();
 </script>
