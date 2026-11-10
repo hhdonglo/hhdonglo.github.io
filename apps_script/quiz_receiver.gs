@@ -453,7 +453,7 @@ function ctlStatus_(c) {
     timed: !paced_(c), paced: paced_(c), state: s, serverNow: now, endTime: Number(c.v[3]) || 0,
     remainingMs: s === 'paused' ? Number(paced_(c) ? c.v[14] : c.v[4]) || 0 : (s === 'running' && !paced_(c) ? Math.max(0, Number(c.v[3]) - now) : 0),
     duration: Number(c.v[2]) || 0, message: String(c.v[8] || ''), title: String(c.v[9] || ''),
-    allowLate: allowLate_(c), showScore: !isConcept_(c) && visible_(c, 'show_score'), showBoard: !isConcept_(c) && visible_(c, 'show_leaderboard')
+    allowLate: allowLate_(c), showScore: visible_(c, 'show_score'), showBoard: visible_(c, 'show_leaderboard')
   };
   o.quizType = isConcept_(c) ? 'concept' : 'standard'; // shown on student and projector pages
   o.reviewQ = Number(c.v[17]) || 0;
@@ -757,7 +757,7 @@ function latestAnswers_(code) { // {id: {name, ans:[5]}} for the current round; 
 function finalize_(code) {
   var key = keyRow_(code), got = latestAnswers_(code), cf = ctl_(code);
   if (!key) return;
-  if (isConcept_(cf)) { // diagnostic: answers stay in the Answers tab for the Class diagnostic panel only; nothing goes to Form Responses 1, Master, Scores or Totals
+  if (isConcept_(cf)) { // diagnostic: answers stay in the Answers tab (class diagnostic, live ranking and own score are worked out from there); nothing goes to Form Responses 1, Master, Scores or Totals
     Object.keys(got).forEach(function (id) { presence_(code, id, got[id].name, 'submitted'); });
     return;
   }
@@ -1490,7 +1490,16 @@ function reviewData_(code, id) {
 
 function ranking_(code, me) {
   var list = [];
-  if (isConcept_(ctl_(code))) return list; // a diagnostic quiz is never ranked
+  var cc = ctl_(code);
+  if (isConcept_(cc)) { // diagnostic: ranked live for the round from the Answers tab; nothing here is kept as marks
+    var gotR = latestAnswers_(code), lettersR = lettersFor_(code, cc);
+    Object.keys(gotR).forEach(function (sid) {
+      var sc = mark_(lettersR, gotR[sid].ans).reduce(function (x, y) { return x + y; }, 0);
+      list.push({ name: String(gotR[sid].name), score: sc, n: lettersR.length, me: !!me && sid === me });
+    });
+    list.sort(function (x, y) { return y.score - x.score || x.name.localeCompare(y.name); });
+    return list.slice(0, 300);
+  }
   {
     var rnd = roundOf_(code), data = respRows_(); // held and released rows. Timestamp, First Name, ID, Join Code, Q1 to Q5, Score, Round, Questions, Answers, Week
     for (var r = 0; r < data.length; r++) {
@@ -1741,7 +1750,6 @@ function doGet(e) {
   if (p.action === 'ranking') { // live class ranking for one join code: first names and scores only
     var rk = keyRow_(code), me = clean_(p.id, 20), cr = ctl_(code);
     if (!rk) return jsonp_(e, { hidden: false, rows: [] });
-    if (cr && isConcept_(cr)) return jsonp_(e, { hidden: true, diagnostic: true, rows: [] });
     if (cr) {
       if (!visible_(cr, 'show_leaderboard')) return jsonp_(e, { hidden: true, waitRelease: true, rows: [] });
       return jsonp_(e, { hidden: false, closed: eff_(cr) === 'released', rows: ranking_(code, me) });
@@ -1806,7 +1814,13 @@ function doGet(e) {
 
   if (p.action === 'result') {
     var id = clean_(p.id, 20), key = keyRow_(code), cx = ctl_(code);
-    if (cx && isConcept_(cx) && id) { var gd = latestAnswers_(code); return jsonp_(e, gd[id] ? { found: true, diagnostic: true } : { found: false, outcome: lastOutcome_(id, code), keyMissing: !key }); }
+    if (cx && isConcept_(cx) && id) { // diagnostic: own score from the Answers tab, never from Form Responses 1
+      var gd = latestAnswers_(code);
+      if (!gd[id]) return jsonp_(e, { found: false, outcome: lastOutcome_(id, code), keyMissing: !key });
+      if (!visible_(cx, 'show_score')) return jsonp_(e, { found: true, scoreHidden: true, outcome: lastOutcome_(id, code) });
+      var fl = mark_(lettersFor_(code, cx), gd[id].ans);
+      return jsonp_(e, { found: true, score: fl.reduce(function (x, y) { return x + y; }, 0), total: fl.length, flags: fl, outcome: lastOutcome_(id, code) });
+    }
     if (key && id) {
       var rnd2 = roundOf_(code), rows = respRows_().map(function (r) { return r.slice(2, 14); }); // ID, Join Code, Q1 to Q5, Score, Round, Questions, Answers, Week
       for (var i = 0; i < rows.length; i++) {

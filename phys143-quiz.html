@@ -453,10 +453,6 @@ function poll(n){
  });
 }
 function showMine(d){
- if(d.diagnostic){
-  clearInterval(st.live);$("t-end").textContent="Thank you, "+st.name;
-  $("end-msg").textContent="Your answers are recorded for the class diagnostic. This quiz is not for marks and has no ranking.";
-  $("end-msg").hidden=false;$("mine").hidden=true;$("board").hidden=true;return}
  if(d.scoreHidden){
   $("t-end").textContent="Thank you, "+st.name;
   $("end-msg").textContent="Your answers are recorded. Your score will appear when your lecturer releases the results.";
