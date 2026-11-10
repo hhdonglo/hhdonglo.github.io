@@ -387,12 +387,13 @@ function out_(t) { return ContentService.createTextOutput(t); }
 
 // ---------- Quiz_Control: the server decides what state a quiz is in ----------
 
-var CTL_HEADER = ['join_code', 'status', 'duration_min', 'end_time_ms', 'remaining_ms', 'allow_late_join', 'show_score', 'show_leaderboard', 'message', 'title', 'updated', 'current_q', 'q_seconds', 'q_deadline_ms', 'q_remaining_ms', 'mode', 'round', 'review_q', 'n_questions', 'question_ids', 'week'];
+var CTL_HEADER = ['join_code', 'status', 'duration_min', 'end_time_ms', 'remaining_ms', 'allow_late_join', 'show_score', 'show_leaderboard', 'message', 'title', 'updated', 'current_q', 'q_seconds', 'q_deadline_ms', 'q_remaining_ms', 'mode', 'round', 'review_q', 'n_questions', 'question_ids', 'week', 'vote', 'discussed'];
 
 function controlSheet_() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sh = ss.getSheetByName(CONTROL_TAB) || ss.insertSheet(CONTROL_TAB);
   if (sh.getLastRow() === 0) sh.appendRow(CTL_HEADER);
+  else if (!String(sh.getRange(1, 22).getValue()).trim()) sh.getRange(1, 22, 1, 2).setValues([['vote', 'discussed']]); // tabs made before the second vote
   return sh;
 }
 
@@ -438,6 +439,8 @@ function eff_(c) {
 }
 
 function paced_(c) { return String(c.v[15]).trim().toLowerCase() !== 'timed'; }
+function voteOf_(c) { return Number(c.v[21]) === 2 ? 2 : 1; } // 2 while the class answers the open question a second time, after discussing it
+function discussedOf_(c) { return String(c.v[22] || '').split(',').map(Number).filter(function (x) { return x > 0; }); } // questions that had a second vote
 
 function when_(c, name) { // 'immediate' | 'onrelease' | 'never'
   var m = { show_score: 6, show_leaderboard: 7 };
@@ -461,7 +464,7 @@ function ctlStatus_(c) {
   };
   o.reviewQ = Number(c.v[17]) || 0;
   o.round = Number(c.v[16]) || 0; // changes on every reset or new round, so student pages know to start over
-  if (paced_(c)) { o.currentQ = Number(c.v[11]) || 0; o.totalQ = quizN_(c); o.qids = qids_(c); o.qSeconds = Number(c.v[12]) || 0; o.qDeadline = Number(c.v[13]) || 0; }
+  if (paced_(c)) { o.currentQ = Number(c.v[11]) || 0; o.totalQ = quizN_(c); o.qids = qids_(c); o.qSeconds = Number(c.v[12]) || 0; o.qDeadline = Number(c.v[13]) || 0; o.vote = voteOf_(c); o.discussed = discussedOf_(c); }
   return o;
 }
 
@@ -549,7 +552,7 @@ function ctlAct_(p, code) {
   if (act === 'init') {
     if (c) return { ok: true, status: ctlStatus_(c) };
     var sh = controlSheet_();
-    sh.appendRow([code, 'Ready', 10, 0, 10 * 60000, 'Yes', 'OnRelease', 'OnRelease', '', '', new Date().toISOString(), 0, 60, 0, 0, 'paced', 0, 0, 5, '', weekFromCode_(code) || 1]);
+    sh.appendRow([code, 'Ready', 10, 0, 10 * 60000, 'Yes', 'OnRelease', 'OnRelease', '', '', new Date().toISOString(), 0, 60, 0, 0, 'paced', 0, 0, 5, '', weekFromCode_(code) || 1, 1, '']);
     log_('control:init', 'host', '', code);
     return { ok: true, status: ctlStatus_(ctl_(code, true)) };
   }
@@ -561,12 +564,19 @@ function ctlAct_(p, code) {
   else if (act === 'start') {
     if (['ready', 'lobby', 'draft'].indexOf(s) < 0) return { ok: false, why: 'can only start from Ready or Lobby (now ' + s + ')' };
     c.v[1] = 'Running'; c.v[3] = now + dur; c.v[4] = dur;
-    if (pc) { if (!keepQs_(code, c)) chooseQuestions_(code, c); c.v[11] = 1; c.v[13] = qms ? now + qms : 0; detail = 'question 1'; }
+    if (pc) { if (!keepQs_(code, c)) chooseQuestions_(code, c); c.v[11] = 1; c.v[13] = qms ? now + qms : 0; c.v[21] = 1; c.v[22] = ''; detail = 'question 1'; }
   }
   else if (act === 'next') { // paced only: move the whole class on
     if (!pc || s !== 'running') return { ok: false, why: 'start the quiz first' };
     if ((Number(c.v[11]) || 0) >= quizN_(c)) { finalize_(code); c.v[1] = 'Ended'; detail = 'after question ' + quizN_(c); }
-    else { c.v[11] = (Number(c.v[11]) || 0) + 1; c.v[13] = qms ? now + qms : 0; detail = 'question ' + c.v[11]; }
+    else { c.v[11] = (Number(c.v[11]) || 0) + 1; c.v[13] = qms ? now + qms : 0; c.v[21] = 1; detail = 'question ' + c.v[11]; }
+  }
+  else if (act === 'revote') { // ask, discuss, revise: the class has voted on the open question, discussed it in pairs, and now answers it again
+    if (!pc || s !== 'running') return { ok: false, why: 'only while a paced quiz is running' };
+    var rq = Number(c.v[11]) || 0; if (!rq) return { ok: false, why: 'no question is open' };
+    if (voteOf_(c) === 2) return { ok: false, why: 'the second vote is already open' };
+    var dl = discussedOf_(c); if (dl.indexOf(rq) < 0) dl.push(rq);
+    c.v[21] = 2; c.v[22] = dl.join(','); c.v[13] = qms ? now + qms : 0; detail = 'second vote on question ' + rq;
   }
   else if (act === 'pause') {
     if (s !== 'running') return { ok: false, why: 'not running' };
@@ -616,7 +626,7 @@ function ctlAct_(p, code) {
     var ps2 = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(PRESENCE_TAB);
     if (ps2) for (var pj = ps2.getLastRow(); pj >= 2; pj--) if (String(ps2.getRange(pj, 4).getValue()).trim().toUpperCase() === code) ps2.deleteRow(pj);
     var sameQs = act === 'restartsame' && qids_(c).length > 0 && qids_(c).length === quizN_(c);
-    c.v[16] = (Number(c.v[16]) || 0) + 1; c.v[1] = 'Lobby'; c.v[3] = 0; c.v[4] = dur; c.v[11] = 0; c.v[13] = 0; c.v[14] = 0; c.v[8] = ''; c.v[17] = 0;
+    c.v[16] = (Number(c.v[16]) || 0) + 1; c.v[1] = 'Lobby'; c.v[3] = 0; c.v[4] = dur; c.v[11] = 0; c.v[13] = 0; c.v[14] = 0; c.v[8] = ''; c.v[17] = 0; c.v[21] = 1; c.v[22] = '';
     var props = PropertiesService.getScriptProperties();
     if (sameQs) props.setProperty('keep:' + code, String(c.v[16])); else props.deleteProperty('keep:' + code);
     detail = 'round ' + c.v[16] + (sameQs ? ', same questions' : ', new questions');
@@ -624,7 +634,7 @@ function ctlAct_(p, code) {
   else if (act === 'newround') { // student records are kept; a new round starts the class ranking again from zero
     var ps = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(PRESENCE_TAB);
     if (ps) for (var pi = ps.getLastRow(); pi >= 2; pi--) if (String(ps.getRange(pi, 4).getValue()).trim().toUpperCase() === code) ps.deleteRow(pi);
-    c.v[16] = (Number(c.v[16]) || 0) + 1; c.v[1] = 'Lobby'; c.v[3] = 0; c.v[4] = dur; c.v[11] = 0; c.v[13] = 0; c.v[14] = 0; c.v[8] = ''; c.v[17] = 0;
+    c.v[16] = (Number(c.v[16]) || 0) + 1; c.v[1] = 'Lobby'; c.v[3] = 0; c.v[4] = dur; c.v[11] = 0; c.v[13] = 0; c.v[14] = 0; c.v[8] = ''; c.v[17] = 0; c.v[21] = 1; c.v[22] = '';
     detail = 'round ' + c.v[16];
   }
   else if (act === 'review') { // go over the answers with the class: only after the quiz has ended
@@ -744,16 +754,20 @@ function heldStatus_() {
 
 // ---------- Paced answers: stored as given, compiled into Form Responses 1 when the quiz ends ----------
 
-function latestAnswers_(code) { // {id: {name, ans:[5]}} for the current round; the last answer to each question wins
+function latestAnswers_(code) { // {id: {name, ans:[5], conf, first}} for the current round; the last answer to each question wins
+  // first: the answer given before a second vote (ask, discuss, revise); the same as ans when there was no second vote.
   var out = {}, sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ANSWERS_TAB);
   if (!sh || sh.getLastRow() < 2) return out;
   var cc = ctl_(code), round = cc ? Number(cc.v[16]) || 0 : 0, N = cc ? quizN_(cc) : 5;
-  var rows = sh.getRange(2, 2, sh.getLastRow() - 1, 7).getValues(); // ID, First Name, Join Code, Q, Answer, Round, Confidence
+  var rows = sh.getRange(2, 2, sh.getLastRow() - 1, 8).getValues(); // ID, First Name, Join Code, Q, Answer, Round, Confidence, Vote
   for (var i = 0; i < rows.length; i++) {
     if (String(rows[i][2]).trim().toUpperCase() !== code || (Number(rows[i][5]) || 0) !== round) continue;
     var id = String(rows[i][0]).trim(), q = Number(rows[i][3]);
-    if (!out[id]) out[id] = { name: String(rows[i][1]), ans: new Array(N).join(',').split(','), conf: new Array(N).join(',').split(',') };
-    if (q >= 1 && q <= N) { out[id].ans[q - 1] = String(rows[i][4]); out[id].conf[q - 1] = String(rows[i][6] || ''); }
+    if (!out[id]) out[id] = { name: String(rows[i][1]), ans: new Array(N).join(',').split(','), conf: new Array(N).join(',').split(','), first: new Array(N).join(',').split(','), second: [] };
+    if (q >= 1 && q <= N) {
+      out[id].ans[q - 1] = String(rows[i][4]); out[id].conf[q - 1] = String(rows[i][6] || '');
+      if (Number(rows[i][7]) !== 2) out[id].first[q - 1] = String(rows[i][4]); else out[id].second[q - 1] = true;
+    }
   }
   return out;
 }
@@ -774,16 +788,30 @@ function finalize_(code) {
     else sh.appendRow(rw);
     presence_(code, id, a.name, 'submitted');
   });
-  try { logItems_(code, rnd, wk, cf ? qids_(cf) : [], letters, got); } catch (err) { log_('item log failed', String(err).slice(0, 120), '', code); }
+  try { logItems_(code, rnd, wk, cf ? qids_(cf) : [], letters, got, cf ? discussedOf_(cf) : []); } catch (err) { log_('item log failed', String(err).slice(0, 120), '', code); }
 }
 
-function answerCounts_(code, q) { // how many have answered question q, and the spread of A to E
-  var got = latestAnswers_(code), dist = { A: 0, B: 0, C: 0, D: 0, E: 0 }, n = 0;
+function answerCounts_(code, q) { // how many have answered question q, and the spread of A to E; with the first vote when there was a second
+  var got = latestAnswers_(code), dist = { A: 0, B: 0, C: 0, D: 0, E: 0 }, n = 0, fdist = { A: 0, B: 0, C: 0, D: 0, E: 0 }, fn = 0, again = 0;
   Object.keys(got).forEach(function (id) {
-    var a = got[id].ans[q - 1];
+    var a = got[id].ans[q - 1], f = got[id].first[q - 1];
     if (a) { n++; if (dist[a] !== undefined) dist[a]++; }
+    if (f) { fn++; if (fdist[f] !== undefined) fdist[f]++; }
+    if (got[id].second[q - 1]) again++;
   });
-  return { answered: n, dist: dist };
+  return { answered: n, dist: dist, first: { answered: fn, dist: fdist }, changed: again };
+}
+// Before and after a second vote on question q: the two spreads and how answers moved, once the correct letter may be shown.
+function discussionMoves_(got, q, key) {
+  var o = { before: { A: 0, B: 0, C: 0, D: 0, E: 0 }, after: { A: 0, B: 0, C: 0, D: 0, E: 0 }, beforeN: 0, afterN: 0, wrongToRight: 0, rightToWrong: 0, stayedRight: 0, stayedWrong: 0, pairs: 0 };
+  Object.keys(got).forEach(function (id) {
+    var f = got[id].first[q - 1], a = got[id].ans[q - 1];
+    if (f && o.before[f] !== undefined) { o.before[f]++; o.beforeN++; }
+    if (a && o.after[a] !== undefined) { o.after[a]++; o.afterN++; }
+    if (f && a && key) { o.pairs++; var fr = f === key, ar = a === key; if (fr && ar) o.stayedRight++; else if (fr) o.rightToWrong++; else if (ar) o.wrongToRight++; else o.stayedWrong++; }
+  });
+  o.beforePct = key ? pct_(o.before[key] || 0, o.beforeN) : null; o.afterPct = key ? pct_(o.after[key] || 0, o.afterN) : null;
+  return o;
 }
 
 // ---------- Totals: every student's quizzes, scores and average, rebuilt automatically ----------
@@ -1457,8 +1485,8 @@ function doPost(e) {
     if (Number(ca.v[13]) && Date.now() > Number(ca.v[13]) + GRACE_MS) return fin_('question closed');
     if (!allowLate_(ca) && !hasPresence_(code, id)) return fin_('not joined');
     var cfv = String(p.conf || '').trim().toUpperCase().charAt(0); if ('HML'.indexOf(cfv) < 0) cfv = '';
-    var ash = append_(ANSWERS_TAB, ['Timestamp', 'ID', 'First Name', 'Join Code', 'Q', 'Answer', 'Round', 'Confidence'], [new Date(), id, name, code, qn, al, Number(ca.v[16]) || 0, cfv]);
-    try { var hc = CacheService.getScriptCache(); if (!hc.get('ansHdr')) { if (!String(ash.getRange(1, 8).getValue()).trim()) ash.getRange(1, 8).setValue('Confidence'); hc.put('ansHdr', '1', 21600); } } catch (err) { /* header only */ }
+    var ash = append_(ANSWERS_TAB, ['Timestamp', 'ID', 'First Name', 'Join Code', 'Q', 'Answer', 'Round', 'Confidence', 'Vote'], [new Date(), id, name, code, qn, al, Number(ca.v[16]) || 0, cfv, voteOf_(ca)]);
+    try { var hc = CacheService.getScriptCache(); if (!hc.get('ansHdr2')) { if (!String(ash.getRange(1, 8).getValue()).trim()) ash.getRange(1, 8).setValue('Confidence'); if (!String(ash.getRange(1, 9).getValue()).trim()) ash.getRange(1, 9).setValue('Vote'); hc.put('ansHdr2', '1', 21600); } } catch (err) { /* header only */ }
     return out_('ok');
   }
   if (p.kind === 'join' || p.kind === 'progress') { // lobby and live participation
@@ -1559,7 +1587,9 @@ function reviewData_(code, id) {
   }
   var err = '';
   if (!expl) { var bx = bankExplanation_(code, q); expl = bx.text; err = bx.error; }
-  return { q: q, correct: lettersFor_(code, c)[q - 1] || '', dist: dist, answered: n, mine: id && got[id] ? got[id].ans[q - 1] : '', explanation: expl, explanationError: err };
+  var key = lettersFor_(code, c)[q - 1] || '', o = { q: q, correct: key, dist: dist, answered: n, mine: id && got[id] ? got[id].ans[q - 1] : '', explanation: expl, explanationError: err };
+  if (discussedOf_(c).indexOf(q) >= 0) { o.discussion = discussionMoves_(got, q, key); if (id && got[id]) o.mineFirst = got[id].first[q - 1]; }
+  return o;
 }
 
 // ---------- GET (JSONP): status, own result, ranking, host and display data ----------
@@ -1597,7 +1627,7 @@ function counts_(code) {
 // ---------- Portal and Control Centre support (additive: no existing action changes) ----------
 // SCRIPT_VERSION: change it whenever the script is redeployed; the Control Centre compares it with the version its page expects.
 // Key!M2 = Off hides "My results" from students (default On).
-var SCRIPT_VERSION = '2026-11-10-statistics-1';
+var SCRIPT_VERSION = '2026-11-10-pedagogy-1';
 
 function resultsOn_() {
   try {
@@ -1670,6 +1700,8 @@ function portalResults_(p) {
   }
   try { out.groups = studentGroups_(id); } catch (err) { out.groups = []; }
   try { var ln = studentLearning_(id); out.mastery = ln.mastery; out.revisit = ln.revisit; out.practice = ln.practice; } catch (err) { out.learningError = true; }
+  try { var sp = studentProgress_(id); out.progress = { outcomes: sp.outcomes.map(function (o) { return { label: o.label, answers: o.answers, start: o.start, current: o.current, gain: o.gain, level: o.level }; }), timeline: sp.timeline, overall: { answers: sp.overall.answers, start: sp.overall.start, current: sp.overall.current, gain: sp.overall.gain }, minimum: sp.minimum }; } catch (err) { out.progressError = true; }
+  try { out.groupWork = asgRows_().filter(function (a) { return (out.groups || []).some(function (g) { return g.set === a.set && asgFor_(a, g.group); }); }).length; } catch (err) { out.groupWork = 0; }
   return out;
 }
 
@@ -1699,7 +1731,8 @@ function preclass_(p) {
 //   The lecturer creates the codes and prints a slip per student from the Access codes page (codes.html).
 // Question_Stats (private): rewritten each time the lecturer opens Teaching insights (insights.html), so it can be exported or copied.
 var ITEMS_TAB = 'Item_Log', CODES_TAB = 'Access_Codes', QSTATS_TAB = 'Question_Stats';
-var ITEMS_HEADER = ['Timestamp', 'Join Code', 'Round', 'Week', 'Student ID', 'Q', 'Question ID', 'Answer', 'Correct answer', 'Correct', 'Confidence'];
+var ITEMS_HEADER = ['Timestamp', 'Join Code', 'Round', 'Week', 'Student ID', 'Q', 'Question ID', 'Answer', 'Correct answer', 'Correct', 'Confidence', 'First answer', 'Discussed'];
+var ITEMS_W = ITEMS_HEADER.length; // First answer and Discussed: the answer before a second vote, and 1 when the question had one
 var CODE_ALPHA = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; // no 0, O, 1, I or L: easy to read from a printed slip
 var CONF_WORD = { H: 'High', M: 'Medium', L: 'Low' };
 
@@ -1720,24 +1753,27 @@ function splitIds_(s) { return String(s || '').split(/[\s,]+/).map(function (x) 
 function pct_(a, b) { return b ? Math.round(1000 * a / b) / 10 : null; }
 
 // ---- Item_Log ----
-function logItems_(code, rnd, wk, ids, letters, got) {
-  var sh = sheetWith_(ITEMS_TAB, ITEMS_HEADER), now = new Date(), add = [];
+function logItems_(code, rnd, wk, ids, letters, got, discussed) {
+  var sh = sheetWith_(ITEMS_TAB, ITEMS_HEADER), now = new Date(), add = [], disc = {};
+  (discussed || []).forEach(function (q) { disc[q] = true; });
+  if (!String(sh.getRange(1, 12).getValue()).trim()) sh.getRange(1, 12, 1, 2).setValues([['First answer', 'Discussed']]);
   Object.keys(got).forEach(function (id) {
     var a = got[id];
     for (var q = 0; q < letters.length; q++) {
       var ans = String(a.ans[q] || '');
-      add.push([now, code, rnd, wk || '', id, q + 1, ids[q] || '', ans, letters[q] || '', letters[q] && ans === letters[q] ? 1 : 0, (a.conf && a.conf[q]) || '']);
+      add.push([now, code, rnd, wk || '', id, q + 1, ids[q] || '', ans, letters[q] || '', letters[q] && ans === letters[q] ? 1 : 0, (a.conf && a.conf[q]) || '',
+        disc[q + 1] ? String((a.first && a.first[q]) || '') : '', disc[q + 1] ? 1 : '']);
     }
   });
-  var rows = bodyRows_(sh, 11), clash = rows.some(function (r) { return String(r[1]).trim().toUpperCase() === code && (Number(r[2]) || 0) === rnd; });
-  if (clash) rewriteBody_(sh, 11, rows.filter(function (r) { return !(String(r[1]).trim().toUpperCase() === code && (Number(r[2]) || 0) === rnd); }).concat(add)); // a reopened quiz is compiled again
-  else if (add.length) sh.getRange(sh.getLastRow() + 1, 1, add.length, 11).setValues(add);
+  var rows = bodyRows_(sh, ITEMS_W), clash = rows.some(function (r) { return String(r[1]).trim().toUpperCase() === code && (Number(r[2]) || 0) === rnd; });
+  if (clash) rewriteBody_(sh, ITEMS_W, rows.filter(function (r) { return !(String(r[1]).trim().toUpperCase() === code && (Number(r[2]) || 0) === rnd); }).concat(add)); // a reopened quiz is compiled again
+  else if (add.length) sh.getRange(sh.getLastRow() + 1, 1, add.length, ITEMS_W).setValues(add);
 }
 function dropItems_(pairs) { // pairs: {'CODE|round': true}, from a discard
   var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ITEMS_TAB);
   if (!sh || !Object.keys(pairs).length) return;
-  var rows = bodyRows_(sh, 11), keep = rows.filter(function (r) { return !pairs[String(r[1]).trim().toUpperCase() + '|' + (Number(r[2]) || 0)]; });
-  if (keep.length !== rows.length) rewriteBody_(sh, 11, keep);
+  var rows = bodyRows_(sh, ITEMS_W), keep = rows.filter(function (r) { return !pairs[String(r[1]).trim().toUpperCase() + '|' + (Number(r[2]) || 0)]; });
+  if (keep.length !== rows.length) rewriteBody_(sh, ITEMS_W, keep);
 }
 function releasedSet_() { // 'ID|CODE|round' of every released live result (Form Responses 1, not the held rows)
   var rs = responses_(), n = rs.getLastRow(), out = {};
@@ -2283,7 +2319,8 @@ function studentStats_(p) {
   all.students.forEach(function (s) { if (s.id === id) me = s; });
   if (!me) return { ok: false, why: 'that ID is not on the class list' };
   var ln = { mastery: [], revisit: [], practice: [] }; try { ln = studentLearning_(id); } catch (err) { /* shown without it */ }
-  return { ok: true, student: me, sessions: all.attendance.bySession.map(function (s) { return s.label; }), mastery: ln.mastery, revisit: ln.revisit.slice(0, 15), practice: ln.practice, thresholds: all.thresholds };
+  var prof = null; try { prof = studentProfile_(id, all, me); } catch (err) { prof = { error: String(err).slice(0, 160) }; }
+  return { ok: true, student: me, sessions: all.attendance.bySession.map(function (s) { return s.label; }), mastery: ln.mastery, revisit: ln.revisit.slice(0, 15), practice: ln.practice, thresholds: all.thresholds, profile: prof };
 }
 
 // ---------- Student groups: made automatically, adjusted by hand, marked per group ----------
@@ -2468,6 +2505,381 @@ function studentGroups_(id) {
     var others = rows.filter(function (r) { return r.set === m.set && r.group === m.group && r.id !== id; }).map(function (r) { return String(r.name || '').trim() || 'Classmate'; });
     return { set: m.set, group: m.group, members: others, mark: m.mark === '' ? null : m.mark, outOf: m.outOf === '' ? null : m.outOf };
   });
+}
+
+// ---------- Teaching for learning: outcomes, progress by outcome, ask-discuss-revise evidence, group assignments ----------
+// Each question can be linked to one of its lecture's learning objectives (Question_Outcomes tab, set by the lecturer; a question's own
+// "outcome" field in the bank is used when the tab has no entry). Answers are then read as evidence for that outcome, in time order:
+// released live quiz answers (Item_Log) and practice and mock exam questions (Attempts). Untagged questions count for their lecture.
+// Levels need at least PROG_MIN answers; with fewer the outcome reads "Not enough evidence". Nothing here is shown to students
+// except their own progress, behind their ID and access code.
+var QOUT_TAB = 'Question_Outcomes', QOUT_HEAD = ['Question ID', 'Lecture', 'Outcome', 'Set'];
+var PROG_MIN = 3, PROG_SECURE = 80, PROG_DEVELOPING = 50;
+var PROG_LEVELS = ['Secure', 'Developing', 'Beginning', 'Not enough evidence'];
+
+function lecturesInfo_() { // {number: {title, outcomes: [text]}} from data/lectures.json
+  var out = {};
+  try {
+    var d = siteJson_('/data/lectures.json');
+    (d.groups || []).forEach(function (g) { (g.lectures || []).forEach(function (l) { var n = Number(l.number); if (!isNaN(n)) out[n] = { title: String(l.title || ''), outcomes: (l.outcomes || []).map(function (x) { return plainText_(x); }) }; }); });
+  } catch (err) { /* no lecture list */ }
+  return out;
+}
+function bankFor_(n) { try { return bankList_('lecture' + n) || []; } catch (err) { return []; } }
+function outcomeTagRows_() { return bodyRows_(SpreadsheetApp.getActiveSpreadsheet().getSheetByName(QOUT_TAB), 4); }
+// {qid: {lec, n}}: the lecturer's tags first, then the bank's own field.
+function outcomeMap_(lects) {
+  var map = {};
+  Object.keys(lects).forEach(function (k) {
+    bankFor_(k).forEach(function (q) { var n = Number(q.outcome); if (q.id && n >= 1 && n <= lects[k].outcomes.length) map[q.id] = { lec: Number(k), n: n, from: 'bank' }; });
+  });
+  outcomeTagRows_().forEach(function (r) { var id = String(r[0]).trim(), n = Number(r[2]); if (!id) return; if (n > 0) map[id] = { lec: Number(r[1]), n: n, from: 'lecturer' }; else delete map[id]; });
+  return map;
+}
+function outcomeKey_(qid, map) { var t = map[qid]; if (t) return 'L' + t.lec + '.' + t.n; var l = lectureOfQid_(qid); return l >= 0 ? 'L' + l : ''; }
+function outcomeLabel_(key, lects) {
+  var m = /^L(\d+)(?:\.(\d+))?$/.exec(key); if (!m) return key;
+  var l = lects[Number(m[1])], lname = Number(m[1]) === 0 ? 'Introduction' : 'Lecture ' + m[1];
+  if (!m[2]) return lname + ' (not linked to an objective)';
+  var t = l && l.outcomes[Number(m[2]) - 1];
+  return lname + ', objective ' + m[2] + (t ? ': ' + t : '');
+}
+var STOP_ = { the: 1, and: 1, for: 1, are: 1, how: 1, its: 1, has: 1, was: 1, why: 1, who: 1, use: 1, one: 1, two: 1, with: 1, that: 1, this: 1, from: 1, into: 1, which: 1, what: 1, when: 1, their: 1, there: 1, these: 1, those: 1, will: 1, able: 1, students: 1, student: 1, should: 1, using: 1, between: 1, given: 1, value: 1, following: 1, correct: 1, answer: 1 };
+function stems_(t) { return plainText_(t).toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').split(/\s+/).filter(function (w) { return w.length > 2 && !STOP_[w]; }).map(function (w) { return w.replace(/ies$/, 'y').replace(/(ing|ed|es|s)$/, ''); }).filter(function (w) { return w.length > 2; }); }
+function suggestOutcome_(q, outcomes) { // the objective whose words the question shares most, or 0
+  var qs = {}; stems_(q.q + ' ' + (q.exp || '') + ' ' + (q.options || []).join(' ')).forEach(function (w) { qs[w] = 1; });
+  var best = 0, bestScore = 0;
+  outcomes.forEach(function (o, i) { var sc = 0, seen = {}; stems_(o).forEach(function (w) { if (qs[w] && !seen[w]) { seen[w] = 1; sc++; } }); if (sc > bestScore) { bestScore = sc; best = i + 1; } });
+  return best;
+}
+
+// Host only: list the lectures, their objectives and every question with its link; save links; accept suggestions.
+function outcomesAct_(p) {
+  var op = String(p.op || 'list').toLowerCase(), lects = lecturesInfo_();
+  if (op === 'save' || op === 'accept') {
+    var sh = sheetWith_(QOUT_TAB, QOUT_HEAD), rows = outcomeTagRows_(), byId = {}, now = new Date(), changes = [];
+    rows.forEach(function (r, i) { byId[String(r[0]).trim()] = i; });
+    if (op === 'save') { try { changes = JSON.parse(String(p.tags || '[]')); } catch (err) { return { ok: false, why: 'the links could not be read' }; } }
+    else {
+      var ln = Number(p.lecture), lo = lects[ln]; if (!lo) return { ok: false, why: 'no such lecture' };
+      var cur = outcomeMap_(lects);
+      bankFor_(ln).forEach(function (q) { if (q.id && !cur[q.id]) { var sg = suggestOutcome_(q, lo.outcomes); if (sg) changes.push({ id: q.id, lecture: ln, outcome: sg }); } });
+    }
+    changes.slice(0, 2000).forEach(function (c) {
+      var id = clean_(c.id, 40).replace(/^'/, ''), l = Number(c.lecture), n = Math.max(0, Math.min(20, Number(c.outcome) || 0)); if (!id) return;
+      if (isNaN(l) || l < 0) l = lectureOfQid_(id);
+      var row = [id, l, n, now];
+      if (byId[id] !== undefined) rows[byId[id]] = row; else { byId[id] = rows.length; rows.push(row); }
+    });
+    rewriteBody_(sh, 4, rows);
+    log_('outcome links', op + ': ' + changes.length, '', '');
+    var res = outcomesAct_({ op: 'list' }); res.saved = changes.length; return res;
+  }
+  // list
+  var map = outcomeMap_(lects), ev = evidence_(), cls = classOutcomes_(ev, lects), byKey = {};
+  cls.forEach(function (o) { byKey[o.key] = o; });
+  var lectures = Object.keys(lects).map(Number).sort(function (a, b) { return a - b; }).map(function (n) {
+    var l = lects[n], bank = bankFor_(n), count = {};
+    var qs = bank.map(function (q) {
+      var t = map[q.id], sg = l.outcomes.length ? suggestOutcome_(q, l.outcomes) : 0;
+      if (t) count[t.n] = (count[t.n] || 0) + 1;
+      return { id: q.id, text: plainText_(q.q).slice(0, 220), type: q.type || '', outcome: t ? t.n : 0, from: t ? t.from : '', suggested: sg };
+    });
+    return { number: n, title: l.title, questions: qs, untagged: qs.filter(function (q) { return !q.outcome; }).length,
+      outcomes: l.outcomes.map(function (text, i) { var k = 'L' + n + '.' + (i + 1), c = byKey[k]; return { n: i + 1, text: text, questions: count[i + 1] || 0, answers: c ? c.answers : 0, pct: c ? c.pct : null, students: c ? c.students : 0, levels: c ? c.levels : null }; }) };
+  });
+  return { ok: true, lectures: lectures, levels: PROG_LEVELS, minimum: PROG_MIN };
+}
+
+// Every answer as evidence, by student, in time order: {id: [{t, qid, ok, src, key}]}
+function evidence_() {
+  var lects = lecturesInfo_(), map = outcomeMap_(lects), out = {}, rel = releasedSet_();
+  function add(id, t, qid, ok, src) { if (!id || !qid) return; var k = outcomeKey_(qid, map); if (!k) return; (out[id] = out[id] || []).push({ t: t, qid: qid, ok: ok, src: src, key: k }); }
+  bodyRows_(SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ITEMS_TAB), ITEMS_W).forEach(function (r) {
+    var id = normId_(r[4]), code = String(r[1]).trim().toUpperCase(), rnd = Number(r[2]) || 0;
+    if (!rel[String(r[4]).trim() + '|' + code + '|' + rnd] || !String(r[7]).trim()) return; // released and answered
+    add(id, new Date(r[0]).getTime() || 0, String(r[6]).trim(), Number(r[9]) ? 1 : 0, 'live');
+  });
+  attemptRows_().forEach(function (a) { a.asked.forEach(function (q) { add(a.id, a.ts, q, a.wrong.indexOf(q) < 0 ? 1 : 0, a.mock ? 'mock' : 'practice'); }); });
+  Object.keys(out).forEach(function (id) { out[id].sort(function (a, b) { return a.t - b.t; }); });
+  out._lects = lects; out._map = map;
+  return out;
+}
+function levelOf_(n, cur) { return n < PROG_MIN || cur === null ? 'Not enough evidence' : cur >= PROG_SECURE ? 'Secure' : cur >= PROG_DEVELOPING ? 'Developing' : 'Beginning'; }
+// Starting level: the first answers; current level: the latest answers (three each once there are six, otherwise half each).
+function progressOf_(evs) {
+  var n = evs.length, k = n >= 6 ? 3 : Math.floor(n / 2), ok = evs.reduce(function (a, e) { return a + e.ok; }, 0);
+  var start = k ? pct_(evs.slice(0, k).reduce(function (a, e) { return a + e.ok; }, 0), k) : null;
+  var cur = k ? pct_(evs.slice(n - k).reduce(function (a, e) { return a + e.ok; }, 0), k) : (n ? pct_(ok, n) : null);
+  return { answers: n, right: ok, pct: pct_(ok, n), start: start, current: cur, gain: start !== null && cur !== null ? Math.round(10 * (cur - start)) / 10 : null, level: levelOf_(n, cur),
+    first: n ? evs[0].t : 0, last: n ? evs[n - 1].t : 0 };
+}
+function fmtDay_(t) { return t ? Utilities.formatDate(new Date(t), Session.getScriptTimeZone(), 'dd/MM/yyyy') : ''; }
+// One student's progress: by outcome, and over time (proportion correct per calendar week of answers).
+function studentProgress_(id, ev) {
+  ev = ev || evidence_(); var mine = ev[id] || [], lects = ev._lects, by = {};
+  mine.forEach(function (e) { (by[e.key] = by[e.key] || []).push(e); });
+  var outcomes = Object.keys(by).map(function (k) { var p = progressOf_(by[k]); p.key = k; p.label = outcomeLabel_(k, lects); p.linked = /\./.test(k); return p; })
+    .sort(function (a, b) { return a.key.localeCompare(b.key, undefined, { numeric: true }); });
+  var weeks = {}, order = [];
+  mine.forEach(function (e) { var d = new Date(e.t), monday = new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay() + 6) % 7)).getTime(); if (!weeks[monday]) { weeks[monday] = { right: 0, n: 0 }; order.push(monday); } weeks[monday].right += e.ok; weeks[monday].n++; });
+  var timeline = order.sort(function (a, b) { return a - b; }).map(function (w) { return { week: fmtDay_(w), n: weeks[w].n, pct: pct_(weeks[w].right, weeks[w].n) }; });
+  var all = progressOf_(mine), lv = {}; PROG_LEVELS.forEach(function (l) { lv[l] = 0; }); outcomes.forEach(function (o) { lv[o.level]++; });
+  return { overall: all, outcomes: outcomes, timeline: timeline, levels: lv, minimum: PROG_MIN };
+}
+// The class, outcome by outcome: who has evidence, the mean current level, the mean gain and how many students are at each level.
+function classOutcomes_(ev, lects) {
+  var roster = {}; rosterRows_().forEach(function (r) { var id = normId_(r[0]); if (id) roster[id] = true; });
+  var keys = {};
+  Object.keys(ev).forEach(function (id) {
+    if (id.charAt(0) === '_' || (Object.keys(roster).length && !roster[id])) return;
+    var by = {}; ev[id].forEach(function (e) { (by[e.key] = by[e.key] || []).push(e); });
+    Object.keys(by).forEach(function (k) { var p = progressOf_(by[k]), o = keys[k] || (keys[k] = { key: k, students: 0, answers: 0, right: 0, cur: [], gain: [], levels: {} }); o.students++; o.answers += p.answers; o.right += p.right; if (p.answers >= PROG_MIN) o.cur.push(p.current); if (p.gain !== null && p.answers >= 4) o.gain.push(p.gain); o.levels[p.level] = (o.levels[p.level] || 0) + 1; });
+  });
+  var mean = function (xs) { return xs.length ? Math.round(10 * xs.reduce(function (a, b) { return a + b; }, 0) / xs.length) / 10 : null; };
+  return Object.keys(keys).map(function (k) { var o = keys[k]; PROG_LEVELS.forEach(function (l) { o.levels[l] = o.levels[l] || 0; }); return { key: k, label: outcomeLabel_(k, lects), linked: /\./.test(k), students: o.students, answers: o.answers, pct: pct_(o.right, o.answers), current: mean(o.cur), gain: mean(o.gain), gainN: o.gain.length, levels: o.levels }; })
+    .sort(function (a, b) { return a.key.localeCompare(b.key, undefined, { numeric: true }); });
+}
+
+// Ask, discuss, revise: every question that had a second vote, from Item_Log (both answers kept).
+// Normalised gain = (after - before) / (100 - before), the share of the possible improvement that discussion achieved.
+function discussionStats_() {
+  var rows = bodyRows_(SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ITEMS_TAB), ITEMS_W), qs = {}, order = [], byStudent = {};
+  rows.forEach(function (r) {
+    if (Number(r[12]) !== 1) return;
+    var k = String(r[1]).trim().toUpperCase() + '|' + (Number(r[2]) || 0) + '|' + r[5], key = String(r[8]).trim(), f = String(r[11]).trim(), a = String(r[7]).trim(), id = normId_(r[4]);
+    var q = qs[k] || (qs[k] = { code: String(r[1]).trim().toUpperCase(), round: Number(r[2]) || 0, q: Number(r[5]), qid: String(r[6]).trim(), week: r[3], date: fmtDay_(new Date(r[0]).getTime()), before: 0, beforeN: 0, after: 0, afterN: 0, wrongToRight: 0, rightToWrong: 0, pairs: 0 });
+    if (order.indexOf(k) < 0) order.push(k);
+    if (f) { q.beforeN++; if (f === key) q.before++; }
+    if (a) { q.afterN++; if (a === key) q.after++; }
+    if (f && a) { q.pairs++; var s = byStudent[id] || (byStudent[id] = { pairs: 0, wrongToRight: 0, rightToWrong: 0, stayedRight: 0, stayedWrong: 0 }); s.pairs++;
+      if (f !== key && a === key) { q.wrongToRight++; s.wrongToRight++; } else if (f === key && a !== key) { q.rightToWrong++; s.rightToWrong++; } else if (f === key) s.stayedRight++; else s.stayedWrong++; }
+  });
+  var gainOf = function (b, a) { return b === null || a === null || b >= 100 ? null : Math.round(100 * (a - b) / (100 - b)) / 100; };
+  var list = order.map(function (k) { var q = qs[k]; q.beforePct = pct_(q.before, q.beforeN); q.afterPct = pct_(q.after, q.afterN); q.gain = gainOf(q.beforePct, q.afterPct); return q; });
+  var B = 0, BN = 0, A = 0, AN = 0, w2r = 0, r2w = 0, pairs = 0;
+  list.forEach(function (q) { B += q.before; BN += q.beforeN; A += q.after; AN += q.afterN; w2r += q.wrongToRight; r2w += q.rightToWrong; pairs += q.pairs; });
+  var bp = pct_(B, BN), ap = pct_(A, AN);
+  return { questions: list, rounds: list.length, pairs: pairs, beforePct: bp, afterPct: ap, gain: gainOf(bp, ap), wrongToRight: w2r, rightToWrong: r2w, byStudent: byStudent,
+    note: 'Normalised gain is the share of the possible improvement reached after discussion (0 none, 1 all). A question where most were right at first has little room to gain.' };
+}
+
+// ---- Group assignments: allocated to some or all groups of a set; one shared submission per group, each member's own part, and private peer ratings ----
+var ASG_TAB = 'Assignments', ASG_HEAD = ['ID', 'Set', 'Groups', 'Title', 'Brief', 'Due', 'Outcome', 'Out of', 'Status', 'Created', 'Updated'];
+var GW_TAB = 'Group_Work', GW_HEAD = ['Time', 'Assignment ID', 'Set', 'Group', 'Student ID', 'Kind', 'Text', 'Link', 'Rating'];
+var AMK_TAB = 'Assignment_Marks', AMK_HEAD = ['Assignment ID', 'Group', 'Mark', 'Feedback', 'Marked'];
+var PEER_WORD = { full: 'Contributed fully', part: 'Contributed partly', little: 'Contributed little' }, PEER_VAL = { full: 2, part: 1, little: 0 };
+
+function asgRows_() {
+  return bodyRows_(SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ASG_TAB), 11).map(function (r) {
+    return { id: String(r[0]).trim(), set: String(r[1]).replace(/^'/, ''), groups: String(r[2] || 'all'), title: String(r[3]), brief: String(r[4]), due: String(r[5] || '').replace(/^'/, ''),
+      outcome: String(r[6] || '').replace(/^'/, ''), outOf: r[7] === '' ? '' : Number(r[7]), status: String(r[8] || 'open'), created: new Date(r[9]).getTime() || 0, updated: r[10] };
+  }).filter(function (a) { return a.id; });
+}
+function asgSave_(list) { rewriteBody_(sheetWith_(ASG_TAB, ASG_HEAD), 11, list.map(function (a) { return [a.id, "'" + a.set, a.groups, a.title, a.brief, a.due ? "'" + a.due : '', a.outcome ? "'" + a.outcome : '', a.outOf, a.status, new Date(a.created || Date.now()), new Date()]; })); }
+function asgFor_(a, g) { return a.groups === 'all' || String(a.groups).split(',').map(Number).indexOf(Number(g)) >= 0; }
+function gwRows_() {
+  return bodyRows_(SpreadsheetApp.getActiveSpreadsheet().getSheetByName(GW_TAB), 9).map(function (r) {
+    return { t: new Date(r[0]).getTime() || 0, aid: String(r[1]).trim(), set: String(r[2]).replace(/^'/, ''), group: Number(r[3]) || 0, id: normId_(r[4]), kind: String(r[5]), text: String(r[6] || ''), link: String(r[7] || ''), rating: String(r[8] || '') };
+  });
+}
+function amkRows_() { var o = {}; bodyRows_(SpreadsheetApp.getActiveSpreadsheet().getSheetByName(AMK_TAB), 5).forEach(function (r) { o[String(r[0]).trim() + '|' + Number(r[1])] = { mark: r[2] === '' ? null : Number(r[2]), feedback: String(r[3] || ''), marked: r[4] }; }); return o; }
+function dueMs_(due) { var d = calDate_(due); if (!d) return 0; if (!/T/.test(due)) d.setHours(23, 59, 0, 0); return d.getTime(); }
+function safeLink_(s) { var t = String(s || '').trim().slice(0, 300); return /^https?:\/\/[^\s<>"']+$/i.test(t) ? t : ''; }
+
+// How one group did on one assignment: the latest shared submission, each member's part, the peer ratings (lecturer only) and the mark.
+function groupWorkOf_(a, g, members, work, marks, names) {
+  var mine = work.filter(function (w) { return w.aid === a.id && w.group === g; }), due = dueMs_(a.due);
+  var subs = mine.filter(function (w) { return w.kind === 'work'; }), last = subs.length ? subs[subs.length - 1] : null;
+  var parts = {}, peers = {};
+  mine.forEach(function (w) { if (w.kind === 'part') parts[w.id] = w; if (w.kind === 'peer') { var r = {}; try { r = JSON.parse(w.rating) || {}; } catch (err) { r = {}; } peers[w.id] = r; } });
+  var mem = members.map(function (id) {
+    var got = []; Object.keys(peers).forEach(function (rater) { if (rater !== id && peers[rater][id] && PEER_VAL[peers[rater][id]] !== undefined) got.push(PEER_VAL[peers[rater][id]]); });
+    var avg = got.length ? Math.round(100 * got.reduce(function (x, y) { return x + y; }, 0) / got.length) / 100 : null;
+    return { id: id, name: names[id] || '', part: parts[id] ? parts[id].text : '', partTime: parts[id] ? fmtDay_(parts[id].t) : '', rated: !!peers[id], peerAvg: avg, peerN: got.length,
+      peerFlag: avg !== null && got.length >= 2 && avg < 1, submitted: subs.some(function (w) { return w.id === id; }) };
+  });
+  var mk = marks[a.id + '|' + g] || null;
+  return { group: g, members: mem, submitted: !!last, text: last ? last.text : '', link: last ? last.link : '', by: last ? (names[last.id] || last.id) : '', time: last ? fmtDay_(last.t) : '', versions: subs.length,
+    onTime: last ? (!due || last.t <= due) : null, late: !!(last && due && last.t > due), mark: mk ? mk.mark : null, feedback: mk ? mk.feedback : '',
+    parts: mem.filter(function (m) { return m.part; }).length, ratedBy: mem.filter(function (m) { return m.rated; }).length };
+}
+// Members' outcome evidence before the task was set and after it, for an assignment linked to an outcome.
+function asgBeforeAfter_(a, ids, ev) {
+  if (!a.outcome) return null;
+  var b = { r: 0, n: 0 }, f = { r: 0, n: 0 };
+  ids.forEach(function (id) { (ev[id] || []).forEach(function (e) { if (e.key !== a.outcome) return; var x = e.t < a.created ? b : f; x.n++; x.r += e.ok; }); });
+  return { outcome: a.outcome, label: outcomeLabel_(a.outcome, ev._lects), before: pct_(b.r, b.n), beforeN: b.n, after: pct_(f.r, f.n), afterN: f.n, small: b.n < 10 || f.n < 10 };
+}
+function asgSummary_(a, rows, work, marks, names, ev) {
+  var groups = {}; rows.filter(function (r) { return r.set === a.set && asgFor_(a, r.group); }).forEach(function (r) { (groups[r.group] = groups[r.group] || []).push(r.id); });
+  var list = Object.keys(groups).map(Number).sort(function (x, y) { return x - y; }).map(function (g) { return groupWorkOf_(a, g, groups[g], work, marks, names); });
+  var students = 0, parts = 0, flags = 0; list.forEach(function (g) { students += g.members.length; parts += g.parts; g.members.forEach(function (m) { if (m.peerFlag) flags++; }); });
+  var allIds = []; Object.keys(groups).forEach(function (g) { allIds = allIds.concat(groups[g]); });
+  return { id: a.id, set: a.set, title: a.title, brief: a.brief, due: a.due, outcome: a.outcome, outcomeLabel: a.outcome ? outcomeLabel_(a.outcome, ev._lects) : '', outOf: a.outOf, status: a.status, groupsAllocated: a.groups,
+    created: fmtDay_(a.created), groups: list, measures: { allocated: list.length, submitted: list.filter(function (g) { return g.submitted; }).length, onTime: list.filter(function (g) { return g.onTime; }).length,
+      marked: list.filter(function (g) { return g.mark !== null; }).length, contribution: pct_(parts, students), students: students, peerFlags: flags, beforeAfter: asgBeforeAfter_(a, allIds, ev) } };
+}
+
+// Host only: list, save, delete, close or reopen, and mark group assignments.
+function assignmentsAct_(p) {
+  var op = String(p.op || 'list').toLowerCase(), list = asgRows_(), rows = groupRows_();
+  var names = {}; rosterRows_().forEach(function (r) { var id = normId_(r[0]); if (id) names[id] = cleanName_(r[1]); });
+  if (op === 'save') {
+    var set = clean_(p.set, 60).replace(/^'/, ''), title = clean_(p.title, 120), brief = String(p.brief || '').replace(/\r/g, '').slice(0, 4000).trim();
+    if (!set || !rows.some(function (r) { return r.set === set; })) return { ok: false, why: 'choose a group set first' };
+    if (!title) return { ok: false, why: 'give the assignment a title' };
+    var gs = String(p.groups || 'all').toLowerCase() === 'all' ? 'all' : String(p.groups).split(/[\s,]+/).map(Number).filter(function (x) { return x > 0; }).join(',');
+    if (!gs) return { ok: false, why: 'choose at least one group' };
+    var due = String(p.due || '') ? calWhen_(p.due) : ''; if (p.due && !due) return { ok: false, why: 'the due date is not valid' };
+    var oo = String(p.outof || '').trim(); if (oo !== '' && !(Number(oo) > 0)) return { ok: false, why: 'out of must be a positive number' };
+    var outc = /^L\d+(\.\d+)?$/.test(String(p.outcome || '')) ? String(p.outcome) : '';
+    var a = list.filter(function (x) { return x.id === String(p.id || ''); })[0];
+    if (!a) { a = { id: 'A' + Utilities.getUuid().replace(/-/g, '').slice(0, 8).toUpperCase(), created: Date.now(), status: 'open' }; list.push(a); }
+    a.set = set; a.groups = gs; a.title = title; a.brief = brief; a.due = due; a.outcome = outc; a.outOf = oo === '' ? '' : Number(oo);
+    asgSave_(list); log_('assignment saved', a.title + ' (' + set + ', groups ' + gs + ')', '', '');
+    var r1 = assignmentsAct_({ op: 'list' }); r1.saved = a.id; return r1;
+  }
+  var a2 = list.filter(function (x) { return x.id === String(p.id || ''); })[0];
+  if (op === 'delete' || op === 'close' || op === 'open') {
+    if (!a2) return { ok: false, why: 'no such assignment' };
+    if (op === 'delete') { list = list.filter(function (x) { return x !== a2; }); log_('assignment deleted', a2.title, '', ''); }
+    else a2.status = op === 'close' ? 'closed' : 'open';
+    asgSave_(list); return assignmentsAct_({ op: 'list' });
+  }
+  if (op === 'mark') {
+    if (!a2) return { ok: false, why: 'no such assignment' };
+    var g = Number(p.group) || 0, mk = String(p.mark || '').trim(), fb = String(p.feedback || '').replace(/\r/g, '').slice(0, 2000).trim();
+    if (mk !== '' && isNaN(Number(mk))) return { ok: false, why: 'the mark must be a number' };
+    var members = rows.filter(function (r) { return r.set === a2.set && r.group === g; });
+    if (!members.length || !asgFor_(a2, g)) return { ok: false, why: 'that group does not have this assignment' };
+    var sh = sheetWith_(AMK_TAB, AMK_HEAD), mrows = bodyRows_(sh, 5).filter(function (r) { return !(String(r[0]).trim() === a2.id && Number(r[1]) === g); });
+    mrows.push([a2.id, g, mk === '' ? '' : Number(mk), fb, new Date()]); rewriteBody_(sh, 5, mrows);
+    if (mk !== '' && a2.outOf !== '') updateMaster_(members.filter(function (r) { return names[r.id] !== undefined; }).map(function (r) { return { id: r.id, name: r.name, label: 'Assignment: ' + a2.title, score: Number(mk), n: Number(a2.outOf) }; }));
+    log_('assignment mark', a2.title + ' group ' + g + ': ' + mk, '', '');
+    return assignmentsAct_({ op: 'view', id: a2.id });
+  }
+  var work = gwRows_(), marks = amkRows_(), ev = evidence_();
+  if (op === 'view') { if (!a2) return { ok: false, why: 'no such assignment' }; return { ok: true, assignment: asgSummary_(a2, rows, work, marks, names, ev) }; }
+  var sets = {}; rows.forEach(function (r) { (sets[r.set] = sets[r.set] || {})[r.group] = 1; });
+  return { ok: true, assignments: list.map(function (a) { var s = asgSummary_(a, rows, work, marks, names, ev); delete s.groups; return s; }),
+    sets: Object.keys(sets).map(function (k) { return { name: k, groups: Object.keys(sets[k]).map(Number).sort(function (x, y) { return x - y; }) }; }),
+    outcomes: Object.keys(ev._lects).map(Number).sort(function (x, y) { return x - y; }).reduce(function (acc, n) { ev._lects[n].outcomes.forEach(function (t, i) { acc.push({ key: 'L' + n + '.' + (i + 1), label: outcomeLabel_('L' + n + '.' + (i + 1), ev._lects) }); }); return acc; }, []) };
+}
+
+// Students: their groups' assignments, submit the group's work, record their own part, rate their group-mates (seen by the lecturer only).
+function studentAuth_(p) {
+  var id = normId_(p.id), given = normCode_(p.access);
+  if (id.length < 4 || id.length > 12) return { why: 'bad id' };
+  if (attFails_('r' + id) >= ATT_MAX_FAILS) return { why: 'slow down' };
+  var mine = rosterSet_()[id] ? codesMap_()[id] : null;
+  if (!mine || !given || mine.code !== given) { attFailAdd_('r' + id); return { why: 'not recognised' }; }
+  return { id: id };
+}
+function groupWork_(p) {
+  var au = studentAuth_(p); if (!au.id) return { ok: false, why: au.why };
+  var id = au.id, op = String(p.op || 'list').toLowerCase(), rows = groupRows_(), list = asgRows_();
+  var names = {}; rosterRows_().forEach(function (r) { var x = normId_(r[0]); if (x) names[x] = cleanName_(r[1]); });
+  var myGroups = rows.filter(function (r) { return r.id === id; });
+  function mineFor(aid) { var a = list.filter(function (x) { return x.id === aid; })[0]; if (!a) return null; var g = myGroups.filter(function (r) { return r.set === a.set && asgFor_(a, r.group); })[0]; return g ? { a: a, g: g.group } : null; }
+  if (op === 'submit' || op === 'part' || op === 'peer') {
+    var m = mineFor(String(p.aid || '')); if (!m) return { ok: false, why: 'this assignment is not for your group' };
+    if (m.a.status === 'closed') return { ok: false, why: 'this assignment is closed' };
+    var row = null;
+    if (op === 'submit') { var tx = chatTxt_(p.text, 8000), lk = safeLink_(p.link); if (!tx && !lk) return { ok: false, why: 'write the answer or give a link' }; if (p.link && !lk) return { ok: false, why: 'the link must start with https://' }; row = [new Date(), m.a.id, "'" + m.a.set, m.g, id, 'work', tx, lk, '']; }
+    else if (op === 'part') { var pt = chatTxt_(p.text, 1000); if (!pt) return { ok: false, why: 'say what you did' }; row = [new Date(), m.a.id, "'" + m.a.set, m.g, id, 'part', pt, '', '']; }
+    else {
+      var r = {}; try { r = JSON.parse(String(p.ratings || '{}')) || {}; } catch (err) { return { ok: false, why: 'the ratings could not be read' }; }
+      var mates = rows.filter(function (x) { return x.set === m.a.set && x.group === m.g && x.id !== id; }).map(function (x) { return x.id; }), clean = {};
+      mates.forEach(function (x) { if (PEER_VAL[r[x]] !== undefined) clean[x] = r[x]; });
+      if (!Object.keys(clean).length) return { ok: false, why: 'rate at least one group-mate' };
+      row = [new Date(), m.a.id, "'" + m.a.set, m.g, id, 'peer', '', '', JSON.stringify(clean)];
+    }
+    var gl = LockService.getScriptLock(); gl.waitLock(20000);
+    try { append_(GW_TAB, GW_HEAD, row); } finally { gl.releaseLock(); }
+    log_('group work ' + op, m.a.title + ' group ' + m.g, id, '');
+  }
+  var work = gwRows_(), marks = amkRows_();
+  var out = [];
+  list.forEach(function (a) {
+    var g = myGroups.filter(function (r) { return r.set === a.set && asgFor_(a, r.group); })[0]; if (!g) return;
+    var members = rows.filter(function (r) { return r.set === a.set && r.group === g.group; }).map(function (r) { return r.id; });
+    var s = groupWorkOf_(a, g.group, members, work, marks, names), me = s.members.filter(function (x) { return x.id === id; })[0] || {};
+    var myPeer = work.filter(function (w) { return w.aid === a.id && w.id === id && w.kind === 'peer'; }).pop(), pr = {}; try { pr = myPeer ? JSON.parse(myPeer.rating) : {}; } catch (err) { pr = {}; }
+    out.push({ id: a.id, set: a.set, group: g.group, title: a.title, brief: a.brief, due: a.due, status: a.status, outOf: a.outOf,
+      mates: s.members.filter(function (x) { return x.id !== id; }).map(function (x) { return { id: x.id, name: String(x.name || '').trim() || 'Classmate', myRating: pr[x.id] || '' }; }),
+      submitted: s.submitted, text: s.text, link: s.link, by: s.by, time: s.time, versions: s.versions, late: s.late, myPart: me.part || '', rated: !!myPeer,
+      mark: s.mark, feedback: s.mark !== null || s.feedback ? s.feedback : '' });
+  });
+  return { ok: true, assignments: out, ratingWords: PEER_WORD };
+}
+
+// Host only: the groups of one set, laid out for the projector (first name and the initial of the last name).
+function groupsDisplay_(p) {
+  var r = groupsAct_({ op: 'list', set: p.set }); if (!r.ok) return r;
+  var short = function (n) { var w = String(n || '').trim().split(/\s+/); return w.length > 1 ? w[0] + ' ' + w[w.length - 1].charAt(0) + '.' : (w[0] || 'Student'); };
+  var asg = asgRows_().filter(function (a) { return a.set === r.set && a.status !== 'closed'; });
+  return { ok: true, set: r.set, sets: r.sets, groups: r.groups.map(function (g) { return { group: g.group, members: g.members.map(function (m) { return short(m.name); }), tasks: asg.filter(function (a) { return asgFor_(a, g.group); }).map(function (a) { return a.title; }) }; }) };
+}
+
+// Host only: the Learning Progress screen: outcomes for the class, ask-discuss-revise evidence, group work, and each student's overall progress.
+function learningProgress_(p) {
+  var ev = evidence_(), lects = ev._lects, roster = rosterRows_().map(function (r) { return { id: normId_(r[0]), name: cleanName_(r[1]).trim() }; }).filter(function (r) { return r.id; });
+  var disc = discussionStats_(), asg = assignmentsAct_({ op: 'list' });
+  var students = roster.map(function (r) {
+    var sp = studentProgress_(r.id, ev), d = disc.byStudent[r.id] || null;
+    return { id: r.id, name: r.name, answers: sp.overall.answers, start: sp.overall.start, current: sp.overall.current, gain: sp.overall.gain, level: sp.overall.level, levels: sp.levels,
+      outcomes: sp.outcomes.map(function (o) { return { key: o.key, current: o.current, level: o.level, answers: o.answers, gain: o.gain }; }), discussion: d };
+  });
+  var groups = groupRows_(), sets = {};
+  groups.forEach(function (g) { var s = sets[g.set] || (sets[g.set] = {}); (s[g.group] = s[g.group] || []).push(g.id); });
+  var byId = {}; students.forEach(function (s) { byId[s.id] = s; });
+  var groupProgress = Object.keys(sets).map(function (name) {
+    return { set: name, groups: Object.keys(sets[name]).map(Number).sort(function (a, b) { return a - b; }).map(function (g) {
+      var m = sets[name][g].map(function (id) { return byId[id]; }).filter(Boolean), cur = m.filter(function (s) { return s.current !== null && s.answers >= PROG_MIN; }), gn = m.filter(function (s) { return s.gain !== null && s.answers >= 4; });
+      var avg = function (xs, k) { return xs.length ? Math.round(10 * xs.reduce(function (a, s) { return a + s[k]; }, 0) / xs.length) / 10 : null; };
+      return { group: g, members: m.length, current: avg(cur, 'current'), gain: avg(gn, 'gain'), withEvidence: cur.length };
+    }) };
+  });
+  return { ok: true, generated: new Date().toISOString(), minimum: PROG_MIN, levelsNames: PROG_LEVELS, thresholds: { secure: PROG_SECURE, developing: PROG_DEVELOPING },
+    outcomes: classOutcomes_(ev, lects), discussion: { rounds: disc.rounds, pairs: disc.pairs, beforePct: disc.beforePct, afterPct: disc.afterPct, gain: disc.gain, wrongToRight: disc.wrongToRight, rightToWrong: disc.rightToWrong, questions: disc.questions, note: disc.note },
+    assignments: asg.assignments || [], students: students, groupProgress: groupProgress };
+}
+
+// The student profile for the lookup: the statistics record, progress by outcome, group work, and suggestions for the lecturer.
+function studentProfile_(id, all, me) {
+  var ev = evidence_(), sp = studentProgress_(id, ev), disc = discussionStats_().byStudent[id] || null, th = all.thresholds;
+  var rows = groupRows_(), list = asgRows_(), work = gwRows_(), marks = amkRows_(), names = {};
+  rosterRows_().forEach(function (r) { var x = normId_(r[0]); if (x) names[x] = cleanName_(r[1]); });
+  var groupWork = [];
+  list.forEach(function (a) {
+    var g = rows.filter(function (r) { return r.id === id && r.set === a.set && asgFor_(a, r.group); })[0]; if (!g) return;
+    var members = rows.filter(function (r) { return r.set === a.set && r.group === g.group; }).map(function (r) { return r.id; });
+    var s = groupWorkOf_(a, g.group, members, work, marks, names), m = s.members.filter(function (x) { return x.id === id; })[0];
+    groupWork.push({ title: a.title, set: a.set, group: g.group, due: a.due, submitted: s.submitted, late: s.late, mark: s.mark, outOf: a.outOf, part: m ? m.part : '', peerAvg: m ? m.peerAvg : null, peerN: m ? m.peerN : 0, peerFlag: m ? m.peerFlag : false });
+  });
+  var known = sp.outcomes.filter(function (o) { return o.answers >= PROG_MIN; });
+  var strengths = known.filter(function (o) { return o.level === 'Secure'; }).sort(function (a, b) { return b.current - a.current || b.answers - a.answers; }).slice(0, 3);
+  var weak = known.filter(function (o) { return o.level === 'Beginning' || (o.level === 'Developing' && o.current < 60); }).sort(function (a, b) { return a.current - b.current || b.answers - a.answers; }).slice(0, 3);
+  // Classmates who are secure where this student is weakest: a possible partner for the next pair or group task.
+  var partners = [];
+  if (weak.length) {
+    var k = weak[0].key;
+    Object.keys(ev).forEach(function (x) { if (x === id || x.charAt(0) === '_' || !names[x]) return; var es = ev[x].filter(function (e) { return e.key === k; }); if (es.length < PROG_MIN) return; var pr = progressOf_(es); if (pr.level === 'Secure') partners.push({ id: x, name: names[x], current: pr.current }); });
+    partners.sort(function (a, b) { return b.current - a.current; }); partners = partners.slice(0, 3);
+  }
+  var tips = [];
+  if (sp.overall.answers < 2 * PROG_MIN && (me.quizzesTaken || 0) < 2) tips.push({ kind: 'Evidence', text: 'Too little evidence for a judgement: ' + sp.overall.answers + ' answers so far. Look again after the next quiz.' });
+  if (me.missedInARow >= th.misses) tips.push({ kind: 'Check-in', text: 'Missed the last ' + me.missedInARow + ' sessions. A short, private check-in on how things are going.' });
+  if (weak.length) tips.push({ kind: 'Revision', text: 'Revise ' + weak[0].label + ' (' + weak[0].current + '% in the latest answers, ' + weak[0].answers + ' answers). Point to the practice for that lecture and the questions to revisit.' });
+  if (partners.length) tips.push({ kind: 'Pairing', text: 'For the next pair task, a partner secure on that objective: ' + partners.map(function (x) { return x.name; }).join(', ') + '.' });
+  if (me.group === 'Working hard but struggling') tips.push({ kind: 'Support', text: 'Effort is high but results are low. Worked examples and a short feedback conversation are likely to help more than extra practice alone.' });
+  if (!me.practiceRecent && me.practiceAttempts >= 0 && all.students.some(function (s) { return s.practiceAttempts; })) tips.push({ kind: 'Practice', text: 'No practice in the last ' + th.idle + ' days. Encourage short retrieval practice spread over the week.' });
+  if (disc && disc.pairs >= 3 && disc.rightToWrong > disc.wrongToRight) tips.push({ kind: 'Discussion', text: 'After discussion this student changed from right to wrong more often (' + disc.rightToWrong + ') than from wrong to right (' + disc.wrongToRight + '). Ask them to explain their reasoning before they change.' });
+  groupWork.filter(function (g) { return g.submitted && !g.part; }).slice(0, 1).forEach(function (g) { tips.push({ kind: 'Group work', text: 'Has not described their own part in "' + g.title + '". Ask what they contributed.' }); });
+  groupWork.filter(function (g) { return g.peerFlag; }).slice(0, 1).forEach(function (g) { tips.push({ kind: 'Group work', text: 'Group-mates rated their contribution to "' + g.title + '" as low (' + g.peerN + ' ratings). Talk to the group before acting on it.' }); });
+  if (!tips.length) tips.push({ kind: 'On track', text: 'Nothing calls for action. Keep the challenge up: an extension question or a peer-explainer role.' });
+  return { progress: sp, discussion: disc, groupWork: groupWork, groups: studentGroups_(id), strengths: strengths, weak: weak, partners: partners, suggestions: tips };
 }
 
 // ---------- Course calendar: lectures, tutorials, quizzes, examinations, deadlines and office hours, each with an agenda ----------
@@ -2878,6 +3290,16 @@ function doGet(e) {
     var gl = LockService.getScriptLock(); gl.waitLock(30000);
     try { return jsonp_(e, groupsAct_(p)); } finally { gl.releaseLock(); }
   }
+  if (p.action === 'outcomes' || p.action === 'assignments') { // host only: links from questions to objectives; group assignments
+    if (!hostOk_(p)) return jsonp_(e, { ok: false, why: 'host key not accepted' });
+    var rd = String(p.op || 'list').toLowerCase(), fn = p.action === 'outcomes' ? outcomesAct_ : assignmentsAct_;
+    if (rd === 'list' || rd === 'view') return jsonp_(e, fn(p));
+    var ol = LockService.getScriptLock(); ol.waitLock(30000);
+    try { return jsonp_(e, fn(p)); } finally { ol.releaseLock(); }
+  }
+  if (p.action === 'groups_display') return jsonp_(e, hostOk_(p) ? groupsDisplay_(p) : { ok: false, why: 'host key not accepted' }); // host only: groups on the projector
+  if (p.action === 'learning_progress') return jsonp_(e, hostOk_(p) ? learningProgress_(p) : { ok: false, why: 'host key not accepted' }); // host only: Learning Progress
+  if (p.action === 'group_work') return jsonp_(e, groupWork_(p)); // a student: ID and access code; their group's assignments
   if (p.action === 'insights') return jsonp_(e, hostOk_(p) ? insights_(p) : { ok: false, why: 'host key not accepted' }); // host only: Teaching insights
   if (p.action === 'class_stats') return jsonp_(e, hostOk_(p) ? classStats_(p) : { ok: false, why: 'host key not accepted' }); // host only: Class statistics
   if (p.action === 'student_stats') return jsonp_(e, hostOk_(p) ? studentStats_(p) : { ok: false, why: 'host key not accepted' }); // host only: one student in Class statistics
@@ -2980,7 +3402,7 @@ function doGet(e) {
     if (!ch && weekFromCode_(code)) { ctlAct_({ act: 'init' }, code); ch = ctl_(code); }
     var cn = counts_(code), rows2 = ranking_(code, '');
     var out = { ok: true, review: ch ? reviewData_(code, '') : { q: 0 }, controlled: !!ch, joined: cn.joined, inprogress: cn.inprogress, submitted: cn.submitted, notYet: cn.notYet, rows: rows2 };
-    if (ch && paced_(ch) && Number(ch.v[11]) > 0) { var ac = answerCounts_(code, Number(ch.v[11])); out.answered = ac.answered; out.dist = ac.dist; }
+    if (ch && paced_(ch) && Number(ch.v[11]) > 0) { var ac = answerCounts_(code, Number(ch.v[11])); out.answered = ac.answered; out.dist = ac.dist; if (voteOf_(ch) === 2 || discussedOf_(ch).indexOf(Number(ch.v[11])) >= 0) { out.firstVote = ac.first; out.changed = ac.changed; } }
     if (ch) { out.status = ctlStatus_(ch); out.state = out.status.state; var wks = {}; try { wks = siteJson_('/apps_script/live_quizzes.json').weeks || {}; } catch (er) { /* no list */ }
     var le2 = null; try { le2 = liveEntry_(code, ch); } catch (er) { /* offline */ }
     out.weeks = wks; out.weekLocked = !!weekFromCode_(code); out.week = weekFromCode_(code) || weekOf_(ch); out.maxN = maxN_(code, ch); out.fixed = !!(le2 && le2.inline); out.settings = { n: quizN_(ch), duration: Number(ch.v[2]), allowLate: ch.v[5], showScore: ch.v[6], showBoard: ch.v[7] }; }
@@ -2992,7 +3414,8 @@ function doGet(e) {
     var cd = ctl_(code);
     if (!keyRow_(code)) return jsonp_(e, { ok: false });
     var dn = counts_(code), dr = { ok: true, controlled: !!cd, joined: dn.joined, inprogress: dn.inprogress, submitted: dn.submitted, rows: [] };
-    if (cd) { dr.review = reviewData_(code, ''); dr.status = ctlStatus_(cd); if (visible_(cd, 'show_leaderboard')) dr.rows = ranking_(code, '').slice(0, 20); }
+    if (cd) { dr.review = reviewData_(code, ''); dr.status = ctlStatus_(cd); if (visible_(cd, 'show_leaderboard')) dr.rows = ranking_(code, '').slice(0, 20);
+      if (paced_(cd) && voteOf_(cd) === 2 && Number(cd.v[11]) > 0) { var dac = answerCounts_(code, Number(cd.v[11])); dr.revote = { q: Number(cd.v[11]), firstAnswered: dac.first.answered, answered: dac.changed }; } } // counts only: no spread before the question closes
     return jsonp_(e, dr);
   }
 
