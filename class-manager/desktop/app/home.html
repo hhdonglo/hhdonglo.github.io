@@ -3,188 +3,435 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="dark light">
 <title>Class Manager</title>
 <script src="/config.js"></script>
 <script src="/assets/qrcode.js"></script>
 <link rel="icon" href="/app/icon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/site.css">
 <style>
-.hm{max-width:64rem;margin:0 auto;font-family:system-ui,sans-serif}
-.hm h2{margin:1.4rem 0 .5rem}
-.hm .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(18rem,1fr));gap:1rem}
-.hm .card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem 1.2rem;box-shadow:var(--shadow)}
-.hm .card h3{margin:0 0 .5rem;font-size:1.1rem}
-.hm .card p{margin:.35rem 0;line-height:1.5}
-.hm button{margin:.35rem .4rem .1rem 0;min-height:42px;padding:.4rem 1rem;border:1.5px solid var(--border);border-radius:6px;background:var(--btn-bg);color:var(--btn-text);font:600 .98rem system-ui,sans-serif;cursor:pointer}
-.hm button.p{background:var(--brown-fill);border-color:var(--brown-fill);color:#fff}
-.hm .addr{font:700 1.3rem ui-monospace,monospace;word-break:break-all;margin:.4rem 0}
-.hm .key{font:700 1.3rem ui-monospace,monospace;letter-spacing:.05em}
-.hm #qr{width:180px;height:180px;background:#fff;padding:6px;border-radius:6px;border:1px solid var(--border)}
-.hm #qr svg{width:100%;height:100%}
-.hm label{display:block;font-weight:600;margin:.7rem 0 .2rem}
-.hm input,.hm textarea,.hm select{width:100%;min-height:42px;padding:.35rem .6rem;border:1.5px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font:1rem system-ui,sans-serif;box-sizing:border-box}
-.hm textarea{min-height:7rem;font-family:ui-monospace,monospace}
-.hm .note{color:var(--muted);font-size:.93rem}
-.hm .msg{font-weight:600;min-height:1.4em}
-.hm .tbl{overflow:auto;max-height:26rem;border:1px solid var(--border);border-radius:6px;margin-top:.6rem}
-.hm table{border-collapse:collapse;font-size:.9rem;width:max-content;min-width:100%}
-.hm td,.hm th{border-bottom:1px solid var(--border);padding:.3rem .55rem;text-align:left;white-space:nowrap}
-.hm th{position:sticky;top:0;background:var(--surface)}
-.hm details summary{cursor:pointer;font-weight:600}
-.hm .seg{display:flex;flex-wrap:wrap;gap:.4rem;margin:.3rem 0 .5rem;border:0;padding:0}
-.hm .seg legend{font-weight:600;margin-bottom:.3rem}
-.hm .seg label{display:inline-flex;align-items:center;gap:.4rem;margin:0;padding:.45rem .8rem;border:1.5px solid var(--border);border-radius:6px;font-weight:600;cursor:pointer}
-.hm .seg input{width:auto;min-height:0;margin:0}
-.hm .seg label:has(input:checked){border-color:var(--brown-fill);background:var(--sky)}
-.hm .seg label:has(input:focus-visible){outline:3px solid var(--brown);outline-offset:2px}
-.hm .tstate{font-weight:600}
-.hm [hidden]{display:none!important}
-.hm #setup{border-color:var(--brown-fill);margin-top:1rem}
-.hm .todo{list-style:none;padding:0;margin:.3rem 0}
-.hm .todo li{padding:.25rem 0;font-weight:600}
-.hm .todo .mk{display:inline-block;width:1.4em}
-.hm .todo li.done{color:var(--muted)}
-.hm .todo li.done .mk{color:#2e7d32}
-.hm button.link{border:0;background:none;padding:.1rem .3rem;min-height:0;margin:0;text-decoration:underline;color:var(--link);font-weight:600}
+/* Desktop layout: fixed sidebar, workspace bar, one view at a time, slim status bar. */
+:root{
+ --bg:#0E131C; --side:#0B1018; --panel:#131924; --card:#1B2333; --card-2:#222C3F; --line:#263247;
+ --text:#E6ECF5; --muted:#9AA7BC; --head:#F4F1EA; --accent:#C9A15A; --accent-ink:#1A1408;
+ --primary:#2F5FA7; --primary-h:#3A6FBF; --danger:#B4473C; --danger-h:#C65449;
+ --ok:#4CC38A; --warn:#E0B254; --off:#7B869B; --focus:#F2C9A0;
+ --r:10px; --fs-h1:1.15rem; --fs-h2:1.05rem; --fs-h3:.78rem;
+}
+@media (prefers-color-scheme:light){:root{
+ --bg:#EEF2F8; --side:#16294B; --panel:#F6F8FC; --card:#FFFFFF; --card-2:#F1F4FA; --line:#D6DEEA;
+ --text:#22304A; --muted:#5B6678; --head:#16294B; --accent:#7A4A2A; --accent-ink:#fff;
+ --primary:#1F3A68; --primary-h:#2A4C85; --focus:#7A4A2A;
+}}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;overflow:hidden}
+[hidden]{display:none!important}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.app{display:grid;grid-template-columns:232px 1fr;grid-template-rows:56px 1fr 28px;grid-template-areas:"side top" "side main" "status status";height:100vh}
+
+/* sidebar */
+.side{grid-area:side;background:var(--side);display:flex;flex-direction:column;padding:14px 10px;gap:2px;border-right:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px;padding:4px 10px 18px;color:#F4F1EA;font-weight:700;font-size:1rem}
+.brand img{width:28px;height:28px;border-radius:7px}
+.nav{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:12px;width:100%;padding:9px 12px;border-radius:8px;color:#B9C4D6;font-weight:600;font-size:.93rem;cursor:pointer}
+.nav svg{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.nav:hover{background:rgba(255,255,255,.06);color:#fff}
+.nav[aria-current="page"]{background:rgba(201,161,90,.16);color:#F4F1EA;box-shadow:inset 3px 0 0 #C9A15A}
+.nav:focus-visible{outline:2px solid #F2C9A0}
+.side .grow{flex:1}
+.side .sep{height:1px;background:rgba(255,255,255,.08);margin:8px 6px}
+
+/* workspace bar */
+.top{grid-area:top;display:flex;align-items:center;gap:14px;padding:0 22px;background:var(--panel);border-bottom:1px solid var(--line)}
+.top h1{margin:0;font-size:var(--fs-h1);font-weight:700;color:var(--head);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+.chip{display:inline-flex;align-items:center;gap:7px;padding:4px 11px;border-radius:999px;background:var(--card);font-size:.82rem;font-weight:600;white-space:nowrap}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--off)}
+.chip.live .dot{background:var(--ok);box-shadow:0 0 0 3px rgba(76,195,138,.18)}
+.chip.busy .dot{background:var(--warn)}
+.keybox{display:inline-flex;align-items:center;gap:8px;font-size:.82rem;color:var(--muted);white-space:nowrap}
+.keybox code{font:700 .9rem ui-monospace,monospace;color:var(--text);letter-spacing:.04em}
+
+/* main */
+main{grid-area:main;overflow:auto;padding:22px 26px 30px}
+.view{max-width:78rem;margin:0 auto}
+.view>header{margin:0 0 16px}
+.view h2{margin:0;font-size:var(--fs-h2);font-weight:700;color:var(--head)}
+.view>header p{margin:4px 0 0;color:var(--muted);font-size:.92rem}
+.card{background:var(--card);border-radius:var(--r);padding:18px 20px}
+.card.sub{background:var(--card-2)}
+.card h3{margin:0 0 12px;font-size:var(--fs-h3);font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.card p{margin:.35rem 0}
+.cols{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:18px;align-items:start}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(20rem,1fr));gap:18px}
+.stack{display:grid;gap:18px}
+.note{color:var(--muted);font-size:.88rem}
+.msg{font-weight:600;min-height:1.4em;font-size:.9rem}
+
+/* buttons: primary solid, secondary outline, text link */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:38px;padding:7px 16px;border-radius:8px;font:600 .92rem system-ui,sans-serif;cursor:pointer;border:1px solid var(--line);background:transparent;color:var(--text)}
+.btn:hover{background:rgba(255,255,255,.05);border-color:var(--muted)}
+@media (prefers-color-scheme:light){.btn:hover{background:rgba(0,0,0,.04)}}
+.btn.primary{background:var(--primary);border-color:var(--primary);color:#fff}
+.btn.primary:hover{background:var(--primary-h);border-color:var(--primary-h)}
+.btn.danger{background:var(--danger);border-color:var(--danger);color:#fff}
+.btn.danger:hover{background:var(--danger-h)}
+.btn.sm{min-height:30px;padding:4px 11px;font-size:.84rem}
+.link{all:unset;cursor:pointer;color:var(--accent);font-weight:600;font-size:.9rem}
+@media (prefers-color-scheme:dark){.link{color:#E3C083}}
+.link:hover{text-decoration:underline}
+.link:focus-visible{outline:2px solid var(--focus)}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.tools{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tools .btn{width:100%;justify-content:flex-start}
+.tools .btn svg,.btn svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+/* banner */
+.banner{display:flex;align-items:center;gap:18px;flex-wrap:wrap;background:linear-gradient(90deg,rgba(201,161,90,.16),rgba(201,161,90,.05));border-radius:var(--r);padding:12px 16px;margin-bottom:18px}
+.banner strong{color:var(--head)}
+.todo{display:flex;gap:16px;list-style:none;margin:0;padding:0;flex:1;flex-wrap:wrap}
+.todo li{display:flex;align-items:center;gap:6px;font-size:.9rem;font-weight:600}
+.todo .mk{width:1.1em;text-align:center;color:var(--muted)}
+.todo li.done{color:var(--muted)}
+.todo li.done .mk{color:var(--ok)}
+.todo li.done .link{display:none}
+.x{all:unset;cursor:pointer;width:28px;height:28px;display:grid;place-items:center;border-radius:6px;color:var(--muted);font-size:1.2rem}
+.x:hover{background:rgba(255,255,255,.08);color:var(--text)}
+.x:focus-visible{outline:2px solid var(--focus)}
+
+/* connection card */
+.seg{display:inline-flex;padding:3px;border-radius:9px;background:var(--bg);gap:2px;margin:0 0 16px}
+.seg label{position:relative;padding:6px 14px;border-radius:7px;font-weight:600;font-size:.88rem;color:var(--muted);cursor:pointer}
+.seg input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.seg label:has(input:checked){background:var(--card-2);color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,.25)}
+.seg label:has(input:focus-visible){outline:2px solid var(--focus)}
+.conn{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:20px;align-items:start}
+.lbl{font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 4px}
+.addr{font:600 1.15rem ui-monospace,monospace;word-break:break-all;margin:0 0 12px;color:var(--head)}
+#qr{width:184px;height:184px;background:#fff;padding:8px;border-radius:10px}
+#qr svg{width:100%;height:100%;display:block}
+#qr:empty{background:var(--card-2)}
+.tstate{font-weight:600;font-size:.9rem;margin:10px 0 0}
+.tstate.err{color:#F0A49A}
+.more{margin-top:14px}
+
+/* tables */
+.tbl{overflow:auto;border-radius:8px;background:var(--panel);height:calc(100vh - 290px);min-height:16rem}
+table{border-collapse:collapse;font-size:.88rem;width:max-content;min-width:100%}
+td,th{border-bottom:1px solid var(--line);padding:6px 12px;text-align:left;white-space:nowrap}
+th{position:sticky;top:0;background:var(--card-2);font-weight:700;cursor:pointer;user-select:none}
+th[aria-sort="ascending"]::after{content:" \25B2";font-size:.7em}
+th[aria-sort="descending"]::after{content:" \25BC";font-size:.7em}
+tbody tr:hover{background:rgba(255,255,255,.03)}
+
+/* forms */
+label.f{display:block;font-weight:600;font-size:.88rem;margin:12px 0 4px}
+input.f,select.f{width:100%;min-height:38px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--text);font:inherit}
+select.f{width:auto;min-width:12rem}
+#r-msg:empty{display:none}
+details summary{cursor:pointer;font-weight:600;font-size:.9rem;margin-top:14px}
+.kv{display:grid;grid-template-columns:6rem 1fr;gap:6px 14px;font-size:.9rem;margin:0}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0;word-break:break-all}
+.big{font-size:2rem;font-weight:700;color:var(--head);line-height:1.1}
+
+/* status bar */
+.status{grid-area:status;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 14px;background:var(--side);color:#8D99AD;font-size:.76rem;border-top:1px solid var(--line)}
+.status span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* modal */
+dialog{border:0;border-radius:12px;background:var(--card);color:var(--text);max-width:34rem;padding:22px 24px}
+dialog::backdrop{background:rgba(5,8,14,.6)}
+dialog h2{margin:0 0 10px;font-size:var(--fs-h2);color:var(--head)}
+dialog p{margin:.5rem 0;line-height:1.55}
+
+@media (max-width:980px){.cols{grid-template-columns:1fr}.app{grid-template-columns:72px 1fr}.nav span,.brand span{display:none}.nav{justify-content:center}}
+@media (max-width:640px){.conn{grid-template-columns:1fr}.tools{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-<header class="banner slim"><div class="wrap"><h1><a class="home-link" href="home.html">Class Manager</a></h1><p class="course" data-cm="courseHeading"></p></div></header>
-<main id="main"><div class="wrap hm">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+ <symbol id="i-live" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M6.3 6.3a8 8 0 0 0 0 11.4M17.7 6.3a8 8 0 0 1 0 11.4M3.5 3.5a12 12 0 0 0 0 17M20.5 3.5a12 12 0 0 1 0 17"/></symbol>
+ <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 21h15"/></symbol>
+ <symbol id="i-people" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6 6 0 0 1 3.5 6"/></symbol>
+ <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></symbol>
+ <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.1a1.6 1.6 0 0 0-2.7-1.1l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.6 1.6 0 0 0 3.6 15H3a2 2 0 1 1 0-4h.1a1.6 1.6 0 0 0 1.1-2.7l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.6 1.6 0 0 0 9 4.6V3a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 2.7 1.1l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1A1.6 1.6 0 0 0 19.4 9H21a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"/></symbol>
+ <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17.5v.01"/></symbol>
+ <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></symbol>
+ <symbol id="i-screen" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M12 16v4M8 20h8"/></symbol>
+ <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></symbol>
+ <symbol id="i-bulb" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></symbol>
+ <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol>
+ <symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></symbol>
+ <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M17 6l3 3M14 9l2 2"/></symbol>
+ <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></symbol>
+</svg>
 
-<div class="card" id="setup" hidden>
- <h3>Finish setting up your course</h3>
- <ul class="todo">
-  <li id="td-course"><span class="mk"></span> Course details <button type="button" class="link" data-setup="course">Open</button></li>
-  <li id="td-class"><span class="mk"></span> Class list <button type="button" class="link" data-setup="class">Open</button></li>
-  <li id="td-materials"><span class="mk"></span> Course materials <button type="button" class="link" data-setup="materials">Open</button></li>
- </ul>
- <p class="note">Each step can be done at any time. This list disappears when all three are done.</p>
-</div>
-<p class="note"><button type="button" id="readme">Instructions</button> Installation, connecting students, attendance, quizzes, results and troubleshooting.</p>
-<h2>In class</h2>
-<div class="grid">
- <div class="card">
-  <h3>Students open</h3>
-  <fieldset class="seg"><legend>How students connect</legend>
-   <label><input type="radio" name="conn" value="lan" checked> Same Wi-Fi or hotspot</label>
-   <label><input type="radio" name="conn" value="net"> Internet</label>
-  </fieldset>
-  <p class="addr" id="addr">…</p>
-  <div id="qr" role="img" aria-label="QR code of the student address"></div>
-  <p class="tstate" id="tstate" role="status" aria-live="polite"></p>
-  <div id="lan-note"><p class="note">Phones join the same Wi-Fi as this computer, or a phone hotspot that this computer is also connected to. If phones cannot open the address, the network keeps devices apart (common on university Wi-Fi): use a hotspot, or choose Internet. Other addresses of this computer: <span id="more">none</span>.</p></div>
-  <div id="net-note" hidden><p class="note">Students open the https address from any network, including mobile data, while this app is open. The address changes each time it starts, so show the new QR code. Traffic passes through Cloudflare's free quick tunnel service, which offers no uptime guarantee; for a class it is usually enough. The first time, the app downloads Cloudflare's connector program and checks it. The app's own screens are never reachable from the internet, and the lecturer pages still need the host key.</p><button id="t-stop" type="button" hidden>Stop internet access</button></div>
- </div>
- <div class="card">
-  <h3>Lecturer tools</h3>
-  <p>Host key: <span class="key" id="key">…</span></p>
-  <p class="note" id="keynote">Type this key when the lecturer pages ask for it. Keep it private.</p>
-  <button class="p" data-win="lecturer.html">Lecturer menu</button>
-  <button data-win="quiz-display.html">Projector display</button>
-  <button data-win="control.html">Control Centre</button>
-  <button data-win="insights.html">Teaching insights</button>
-  <button data-win="codes.html">Access codes for students</button>
-  <button data-win="groups.html">Student groups</button>
-  <button data-win="calendar.html">Calendar</button>
-  <button data-win="messages.html">Messages and announcements</button>
- </div>
- <div class="card">
-  <h3>Resources and questions</h3>
-  <p>Your teaching material in one library: search it, summarise it, generate quizzes from it, import questions from Word, PDF or Markdown, and approve questions into the banks.</p>
-  <button class="p" type="button" onclick="location.href='author.html'">Open resources and questions</button>
- </div>
- <div class="card">
-  <h3>Course</h3>
-  <p>Course details, lectures and their files, and course packs.</p>
-  <button class="p" type="button" onclick="location.href='setup.html#course'">Course settings and lectures</button>
-  <p>As students see them:</p>
-  <button data-win="index.html">Student portal</button>
-  <button data-win="course.html">Lectures</button>
-  <button data-win="mock-exam.html">Mock exam</button>
- </div>
-</div>
+<div class="app">
+<nav class="side" aria-label="Class Manager">
+ <div class="brand"><img src="/app/icon.svg" alt=""><span>Class Manager</span></div>
+ <button class="nav" data-view="class" aria-current="page"><svg><use href="#i-live"/></svg><span>In Class</span></button>
+ <button class="nav" data-view="course"><svg><use href="#i-book"/></svg><span>Course and Content</span></button>
+ <button class="nav" data-view="roster"><svg><use href="#i-people"/></svg><span>Class Roster</span></button>
+ <button class="nav" data-view="grades"><svg><use href="#i-chart"/></svg><span>Grades and Results</span></button>
+ <div class="grow"></div>
+ <div class="sep"></div>
+ <button class="nav" id="readme"><svg><use href="#i-help"/></svg><span>Instructions</span></button>
+ <button class="nav" data-view="settings"><svg><use href="#i-gear"/></svg><span>App Settings</span></button>
+</nav>
 
-<h2>Class list</h2>
-<div class="card">
- <p>Attendance and marks count only students on the class list. <span id="cl-n"></span></p>
- <p><button class="p" type="button" onclick="location.href='setup.html#class'">Add or replace students</button></p>
-</div>
+<header class="top">
+ <h1 data-cm="courseHeading">Course</h1>
+ <span class="chip" id="live" role="status" aria-live="polite"><span class="dot"></span><span id="live-t">Starting</span></span>
+ <span class="keybox" title="Type this key when the lecturer pages ask for it. Keep it private.">Host key <code id="key">…</code> <button class="btn sm" type="button" id="key-copy"><svg><use href="#i-copy"/></svg>Copy</button></span>
+</header>
 
-<h2>Results and marks</h2>
-<div class="card">
- <p>Everything is saved on this computer as it happens. Choose a tab to view it, or export all tabs as CSV files that open in Excel.</p>
- <label for="tab">Tab</label><select id="tab"></select>
- <p><button type="button" id="refresh">Refresh totals</button><button type="button" id="named">Attendance with names</button><button class="p" type="button" id="export">Export all tabs</button><button type="button" id="data">Open data folder</button></p>
+<main id="main">
+
+<!-- In Class -->
+<section class="view" id="v-class" aria-labelledby="h-class">
+ <div class="banner" id="setup" hidden>
+  <strong>Finish setting up your course</strong>
+  <ul class="todo">
+   <li id="td-course"><span class="mk"></span> Course details <button type="button" class="link" data-setup="course">Open</button></li>
+   <li id="td-class"><span class="mk"></span> Class list <button type="button" class="link" data-setup="class">Open</button></li>
+   <li id="td-materials"><span class="mk"></span> Course materials <button type="button" class="link" data-setup="materials">Open</button></li>
+  </ul>
+  <button type="button" class="x" id="setup-x" aria-label="Hide this reminder" title="Hide this reminder">&times;</button>
+ </div>
+ <header><h2 id="h-class">In Class</h2><p>Students scan the code or type the address. Lecturer screens open in their own windows.</p></header>
+ <div class="cols">
+  <div class="card">
+   <h3>Access and connection</h3>
+   <fieldset class="seg" style="border:0"><legend class="lbl" style="position:absolute;left:-9999px">How students connect</legend>
+    <label><input type="radio" name="conn" value="lan" checked> Same Wi-Fi or hotspot</label>
+    <label><input type="radio" name="conn" value="net"> Internet</label>
+   </fieldset>
+   <div class="conn">
+    <div>
+     <p class="lbl">Student address</p>
+     <p class="addr" id="addr">…</p>
+     <div class="row">
+      <button class="btn primary" type="button" id="copy-url"><svg><use href="#i-copy"/></svg>Copy link</button>
+      <button class="btn danger" id="t-stop" type="button" hidden>Stop internet access</button>
+      <button class="link" type="button" id="how">How this works</button>
+     </div>
+     <p class="tstate" id="tstate" role="status" aria-live="polite"></p>
+     <p class="note more" id="more-p">Other addresses of this computer: <span id="more">none</span>.</p>
+    </div>
+    <div id="qr" role="img" aria-label="QR code of the student address"></div>
+   </div>
+  </div>
+  <div class="stack">
+   <div class="card">
+    <h3>Class tools</h3>
+    <div class="tools">
+     <button class="btn primary" data-win="lecturer.html"><svg><use href="#i-menu"/></svg>Lecturer menu</button>
+     <button class="btn" data-win="quiz-display.html"><svg><use href="#i-screen"/></svg>Projector display</button>
+     <button class="btn" data-win="control.html"><svg><use href="#i-sliders"/></svg>Control Centre</button>
+     <button class="btn" data-win="insights.html"><svg><use href="#i-bulb"/></svg>Teaching insights</button>
+    </div>
+   </div>
+   <div class="card sub">
+    <h3>More</h3>
+    <div class="tools">
+     <button class="btn" data-win="groups.html"><svg><use href="#i-people"/></svg>Student groups</button>
+     <button class="btn" data-win="calendar.html"><svg><use href="#i-cal"/></svg>Calendar</button>
+     <button class="btn" data-win="messages.html"><svg><use href="#i-chat"/></svg>Announcements</button>
+     <button class="btn" data-win="codes.html"><svg><use href="#i-key"/></svg>Access codes</button>
+    </div>
+    <p class="note" id="keynote" style="margin-top:12px">Lecturer pages ask for the host key shown at the top. Keep it private.</p>
+   </div>
+  </div>
+ </div>
+</section>
+
+<!-- Course and Content -->
+<section class="view" id="v-course" aria-labelledby="h-course" hidden>
+ <header><h2 id="h-course">Course and Content</h2><p>Course details, lectures, teaching material and question banks.</p></header>
+ <div class="grid2">
+  <div class="card">
+   <h3>Course</h3>
+   <p>Course details, lectures and their files, and course packs.</p>
+   <p class="row" style="margin-top:14px"><button class="btn primary" type="button" data-go="setup.html#course">Course settings and lectures</button></p>
+  </div>
+  <div class="card">
+   <h3>Resources and questions</h3>
+   <p>Search and summarise teaching material, generate quizzes from it, import questions from Word, PDF or Markdown, and approve questions into the banks.</p>
+   <p class="row" style="margin-top:14px"><button class="btn primary" type="button" data-go="author.html">Open resources and questions</button></p>
+  </div>
+  <div class="card sub">
+   <h3>As students see it</h3>
+   <div class="row"><button class="btn" data-win="index.html">Student portal</button><button class="btn" data-win="course.html">Lectures</button><button class="btn" data-win="mock-exam.html">Mock exam</button></div>
+  </div>
+ </div>
+</section>
+
+<!-- Class Roster -->
+<section class="view" id="v-roster" aria-labelledby="h-roster" hidden>
+ <header><h2 id="h-roster">Class Roster</h2><p>Attendance and marks count only students on the class list.</p></header>
+ <div class="grid2">
+  <div class="card">
+   <h3>Class list</h3>
+   <p class="big" id="cl-big">0</p>
+   <p class="note" id="cl-n"></p>
+   <p class="row" style="margin-top:14px"><button class="btn primary" type="button" data-go="setup.html#class">Add or replace students</button><button class="btn" type="button" id="roster-view">View the list</button></p>
+  </div>
+  <div class="card sub">
+   <h3>Student access</h3>
+   <p>Each student signs in with a personal access code. Groups are formed from the same list.</p>
+   <div class="row" style="margin-top:14px"><button class="btn" data-win="codes.html">Access codes</button><button class="btn" data-win="groups.html">Student groups</button></div>
+  </div>
+ </div>
+</section>
+
+<!-- Grades and Results -->
+<section class="view" id="v-grades" aria-labelledby="h-grades" hidden>
+ <header><h2 id="h-grades">Grades and Results</h2><p>Saved on this computer as it happens. Click a column heading to sort.</p></header>
+ <div class="row" style="margin-bottom:12px">
+  <label for="tab" class="lbl" style="margin:0">Tab</label><select id="tab" class="f"></select>
+  <input id="filter" class="f" type="search" placeholder="Filter rows" aria-label="Filter rows" style="width:11rem">
+  <span style="flex:1"></span>
+  <button class="btn" type="button" id="refresh">Refresh totals</button>
+  <button class="btn" type="button" id="named">Attendance with names</button>
+  <button class="btn primary" type="button" id="export">Export all tabs</button>
+ </div>
  <p class="msg" id="r-msg" role="status"></p>
  <div class="tbl" id="tbl"></div>
+</section>
+
+<!-- App Settings -->
+<section class="view" id="v-settings" aria-labelledby="h-settings" hidden>
+ <header><h2 id="h-settings">App Settings</h2><p>Course details are under Course and Content.</p></header>
+ <div class="grid2">
+  <div class="card">
+   <h3>Server</h3>
+   <form id="f">
+    <label class="f" for="s-port">Port</label><input class="f" id="s-port" type="number" min="1024" max="65535" style="max-width:10rem">
+    <details><summary>Advanced: use your own Google Apps Script instead of this computer</summary>
+     <p class="note">Leave empty to keep everything on this computer (recommended).</p>
+     <label class="f" for="s-url">Apps Script web app address</label><input class="f" id="s-url" placeholder="https://script.google.com/macros/s/…/exec">
+    </details>
+    <p class="row" style="margin-top:16px"><button class="btn primary" type="submit">Save settings</button> <span id="saved" class="note" role="status"></span></p>
+   </form>
+  </div>
+  <div class="card" id="g">
+   <h3>Google Drive copy (optional)</h3>
+   <p id="g-text">…</p>
+   <p class="row" style="margin-top:14px"><button class="btn primary" type="button" id="g-in" hidden>Sign in with Google</button><button class="btn" type="button" id="g-sync" hidden>Copy now</button><button class="btn" type="button" id="g-open" hidden>Open the Google Sheet</button><button class="link" type="button" id="g-out" hidden>Sign out</button></p>
+   <p class="msg" id="g-msg" role="status"></p>
+  </div>
+  <div class="card sub">
+   <h3>Data</h3>
+   <dl class="kv"><dt>Data folder</dt><dd id="d-folder">…</dd><dt>Version</dt><dd id="d-ver">…</dd></dl>
+   <p class="row" style="margin-top:14px"><button class="btn" type="button" id="data">Open data folder</button></p>
+  </div>
+ </div>
+</section>
+</main>
+
+<footer class="status"><span id="sb-left">Class Manager</span><span id="sb-right"></span></footer>
 </div>
 
-<h2>Google Drive copy (optional)</h2>
-<div class="card" id="g">
- <p id="g-text">…</p>
- <p><button class="p" type="button" id="g-in" hidden>Sign in with Google</button><button type="button" id="g-sync" hidden>Copy now</button><button type="button" id="g-open" hidden>Open the Google Sheet</button><button type="button" id="g-out" hidden>Sign out</button></p>
- <p class="msg" id="g-msg" role="status"></p>
-</div>
+<dialog id="how-d" aria-labelledby="how-h">
+ <h2 id="how-h">How students connect</h2>
+ <div id="how-lan"><p><strong>Same Wi-Fi or hotspot.</strong> Phones join the same Wi-Fi as this computer, or a phone hotspot that this computer is also connected to.</p>
+ <p>If phones cannot open the address, the network keeps devices apart, which is common on university Wi-Fi. Use a hotspot, or choose Internet.</p></div>
+ <div id="how-net"><p><strong>Internet.</strong> Students open the https address from any network, including mobile data, while this app is open. The address changes each time it starts, so show the new QR code.</p>
+ <p>Traffic passes through Cloudflare's free quick tunnel service, which offers no uptime guarantee; for a class it is usually enough. The first time, the app downloads Cloudflare's connector program and checks it.</p>
+ <p>The app's own screens are never reachable from the internet, and the lecturer pages still need the host key.</p></div>
+ <form method="dialog" class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn primary">Close</button></form>
+</dialog>
 
-<h2>Settings</h2>
-<div class="card">
- <form id="f">
-  <p class="note">Course details are under Course settings and lectures.</p>
-  <label for="s-port">Port</label><input id="s-port" type="number" min="1024" max="65535">
-  <details><summary>Advanced: use your own Google Apps Script instead of this computer</summary>
-   <p class="note">Leave empty to keep everything on this computer (recommended).</p>
-   <label for="s-url">Apps Script web app address</label><input id="s-url" placeholder="https://script.google.com/macros/s/…/exec">
-  </details>
-  <p><button class="p" type="submit">Save settings</button> <span id="saved" class="note" role="status"></span></p>
- </form>
-</div>
-<p class="note" id="ver"></p>
-</div></main>
 <script>
 (function(){
 "use strict";
 var $=function(i){return document.getElementById(i)};
 if(!window.cmApp){document.body.innerHTML="<p style='padding:2rem'>Open this page from the Class Manager app.</p>";return}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
-var cur="";
-var lanBase="";
+function store(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
+function copy(text,btn){
+ var done=function(){var t=btn.lastChild.textContent;btn.lastChild.textContent="Copied";setTimeout(function(){btn.lastChild.textContent=t},1400)};
+ if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(done,function(){fallback()})}else fallback();
+ function fallback(){var a=document.createElement("textarea");a.value=text;document.body.appendChild(a);a.select();try{document.execCommand("copy");done()}catch(e){}a.remove()}
+}
+
+/* ---- views ---- */
+var views=["class","course","roster","grades","settings"];
+function go(v){
+ if(views.indexOf(v)<0)v="class";
+ views.forEach(function(x){$("v-"+x).hidden=x!==v});
+ document.querySelectorAll(".nav[data-view]").forEach(function(b){if(b.getAttribute("data-view")===v)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current")});
+ store("cm-view",v);$("main").scrollTop=0;
+ if(v==="grades")view();
+}
+document.querySelectorAll(".nav[data-view]").forEach(function(b){b.addEventListener("click",function(){go(b.getAttribute("data-view"))})});
+
+/* ---- connection ---- */
+var cur="",lanBase="",lanCount=0,hostKey="";
 function qr(url){try{var q=qrcode(0,"M");q.addData(url);q.make();$("qr").innerHTML=q.createSvgTag({cellSize:6,margin:1,scalable:true})}catch(e){}}
+function live(cls,txt){$("live").className="chip "+cls;$("live-t").textContent=txt}
 function tshow(t){
  t=t||{state:"off"};var net=document.querySelector('input[name=conn][value=net]'),on=t.state==="on";
  if(on||t.state==="starting"||t.state==="downloading")net.checked=true;
  var wantNet=net.checked;
- $("net-note").hidden=!wantNet;$("lan-note").hidden=wantNet;$("t-stop").hidden=!(wantNet&&t.state!=="off"&&t.state!=="error");
- var msg={off:"",downloading:"Downloading the connector program (first time only)…",starting:"Starting internet access…",stopping:"Stopping…",on:"Internet access is on.",error:"Internet access is off: "+(t.error||"")}[t.state]||"";
- $("tstate").textContent=wantNet?msg:"";
+ $("t-stop").hidden=!(wantNet&&t.state!=="off"&&t.state!=="error");
+ $("more-p").hidden=wantNet;
+ $("how-lan").hidden=wantNet;$("how-net").hidden=!wantNet;
+ var msg={off:"",downloading:"Downloading the connector program (first time only)…",starting:"Starting internet access…",stopping:"Stopping…",on:"",error:"Internet access is off: "+(t.error||"")}[t.state]||"";
+ $("tstate").textContent=wantNet?msg:"";$("tstate").className="tstate"+(t.state==="error"?" err":"");
  var url=on?t.url:(wantNet?"":lanBase);
  $("addr").textContent=url||"…";if(url)qr(url);else $("qr").innerHTML="";
+ $("copy-url").disabled=!url;
+ if(wantNet){if(on)live("live","Live: Internet");else if(t.state==="error")live("","Offline");else live("busy","Connecting")}
+ else live(lanCount?"live":"",lanCount?"Live: Same Wi-Fi":"Offline: no network");
 }
+$("copy-url").addEventListener("click",function(){var u=$("addr").textContent;if(u&&u!=="…")copy(u,$("copy-url"))});
+$("key-copy").addEventListener("click",function(){if(hostKey)copy(hostKey,$("key-copy"))});
+$("how").addEventListener("click",function(){$("how-d").showModal()});
+
+/* ---- data from the app ---- */
 function show(info){
  var s=info.settings;
- lanBase=info.base;
+ lanBase=info.base;lanCount=info.addresses.length;
  $("more").textContent=info.addresses.slice(1).join(", ")||"none";
  tshow(info.tunnel);
- if(info.hostKey){$("key").textContent=info.hostKey}else{$("key").textContent="changed";$("keynote").textContent="You changed the host key on the quiz dashboard, so it is no longer shown here. Use your new key."}
- if(s.scriptUrl){$("keynote").textContent="This app is set to use your own Apps Script (Settings), so the host key is the one in your Google Sheet."}
- var st=info.setup;$("setup").hidden=st.complete;
- [["td-course","course"],["td-class","classList"],["td-materials","materials"]].forEach(function(x){var ok=st.steps[x[1]];$(x[0]).className=ok?"done":"";$(x[0]).querySelector(".mk").textContent=ok?"\u2713":"\u25CB"});
- $("cl-n").textContent=st.roster?st.roster+" students are on the list.":"No students on the list yet.";
+ hostKey=info.hostKey||"";
+ if(hostKey){$("key").textContent=hostKey;$("key-copy").hidden=false}else{$("key").textContent="changed";$("key-copy").hidden=true;$("keynote").textContent="You changed the host key on the quiz dashboard, so it is no longer shown here. Use your new key."}
+ if(s.scriptUrl){$("keynote").textContent="This app is set to use your own Apps Script (App Settings), so the host key is the one in your Google Sheet."}
+ var st=info.setup;$("setup").hidden=st.complete||store("cm-setup-hidden")==="1";
+ [["td-course","course"],["td-class","classList"],["td-materials","materials"]].forEach(function(x){var ok=st.steps[x[1]];$(x[0]).className=ok?"done":"";$(x[0]).querySelector(".mk").textContent=ok?"✓":"○"});
+ $("cl-big").textContent=st.roster||0;
+ $("cl-n").textContent=st.roster?(st.roster===1?"student is":"students are")+" on the list.":"No students on the list yet.";
  $("s-url").value=s.scriptUrl;$("s-port").value=s.port;
  var sel=$("tab"),keep=cur||"Master";sel.innerHTML=info.tabs.map(function(t){return'<option value="'+esc(t.name)+'">'+esc(t.name)+' ('+Math.max(0,t.rows-1)+' rows)</option>'}).join("");
  if(info.tabs.some(function(t){return t.name===keep}))sel.value=keep;else if(info.tabs.some(function(t){return t.name==="Totals"}))sel.value="Totals";
- view();
+ if(!$("v-grades").hidden)view();
  gshow(info.google);
- $("ver").textContent="Class Manager "+info.version+" · data folder: "+info.dataFolder;
+ $("d-folder").textContent=info.dataFolder;$("d-ver").textContent=info.version;
+ $("sb-left").textContent="Class Manager "+info.version;
+ $("sb-right").textContent="Data folder: "+info.dataFolder;$("sb-right").title=info.dataFolder;
 }
+
+/* ---- grades table: full width, sortable, filterable ---- */
+var rows=[],sortCol=-1,sortDir=1;
 function view(){
  cur=$("tab").value;if(!cur)return;
- cmApp.tab(cur).then(function(rows){
-  rows=rows||[];if(!rows.length){$("tbl").innerHTML="<p class='note' style='padding:.6rem'>Empty.</p>";return}
-  $("tbl").innerHTML="<table><thead><tr>"+rows[0].map(function(h){return"<th>"+esc(h)+"</th>"}).join("")+"</tr></thead><tbody>"+rows.slice(1,1001).map(function(r){return"<tr>"+r.map(function(v){return"<td>"+esc(v)+"</td>"}).join("")+"</tr>"}).join("")+"</tbody></table>"+(rows.length>1001?"<p class='note'>First 1000 rows shown. Export to see all.</p>":"");
- });
+ cmApp.tab(cur).then(function(r){rows=r||[];sortCol=-1;draw()});
 }
+function draw(){
+ if(!rows.length){$("tbl").innerHTML="<p class='note' style='padding:.8rem 1rem'>Empty.</p>";return}
+ var q=$("filter").value.trim().toLowerCase(),body=rows.slice(1);
+ if(q)body=body.filter(function(r){return r.some(function(v){return String(v).toLowerCase().indexOf(q)>=0})});
+ if(sortCol>=0)body=body.slice().sort(function(a,b){var x=a[sortCol],y=b[sortCol],nx=parseFloat(x),ny=parseFloat(y);
+  if(!isNaN(nx)&&!isNaN(ny)&&String(nx)===String(x).trim()&&String(ny)===String(y).trim())return(nx-ny)*sortDir;
+  return String(x==null?"":x).localeCompare(String(y==null?"":y),undefined,{numeric:true})*sortDir});
+ var n=body.length;
+ $("tbl").innerHTML="<table><thead><tr>"+rows[0].map(function(h,i){return"<th scope='col' tabindex='0' data-c='"+i+"'"+(i===sortCol?" aria-sort='"+(sortDir>0?"ascending":"descending")+"'":"")+">"+esc(h)+"</th>"}).join("")+"</tr></thead><tbody>"+body.slice(0,1000).map(function(r){return"<tr>"+r.map(function(v){return"<td>"+esc(v)+"</td>"}).join("")+"</tr>"}).join("")+"</tbody></table>"+(n>1000?"<p class='note' style='padding:.6rem 1rem'>First 1000 of "+n+" rows shown. Export to see all.</p>":"");
+ $("tbl").querySelectorAll("th").forEach(function(th){var f=function(){var c=+th.getAttribute("data-c");sortDir=c===sortCol?-sortDir:1;sortCol=c;draw();var t=$("tbl").querySelector("th[data-c='"+c+"']");if(t)t.focus()};th.addEventListener("click",f);th.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();f()}})});
+}
+$("filter").addEventListener("input",draw);
+$("roster-view").addEventListener("click",function(){cur="Roster";go("grades")});
+
 function gshow(g){
  var t=$("g-text");
  ["g-in","g-sync","g-open","g-out"].forEach(function(i){$(i).hidden=true});
@@ -201,12 +448,15 @@ document.querySelectorAll("input[name=conn]").forEach(function(r){r.addEventList
  if(r.value==="lan"&&r.checked){cmApp.tunnelStop().then(tshow)}
 })});
 $("t-stop").addEventListener("click",function(){document.querySelector('input[name=conn][value=lan]').checked=true;cmApp.tunnelStop().then(tshow)});
+go(store("cm-view")||"class");
 reload();
 document.querySelectorAll("[data-win]").forEach(function(b){b.addEventListener("click",function(){cmApp.openWindow(b.getAttribute("data-win"))})});
-$("tab").addEventListener("change",view);
+document.querySelectorAll("[data-go]").forEach(function(b){b.addEventListener("click",function(){location.href=b.getAttribute("data-go")})});
+$("tab").addEventListener("change",function(){$("filter").value="";view()});
 document.querySelectorAll("[data-setup]").forEach(function(b){b.addEventListener("click",function(){location.href="setup.html#"+b.getAttribute("data-setup")})});
-$("refresh").addEventListener("click",function(){cmApp.run("refreshTotals").then(function(){$("r-msg").textContent="Totals refreshed.";reload()})});
-$("named").addEventListener("click",function(){cmApp.run("buildNamedAttendance").then(function(){cur="Attendance_Named";$("r-msg").textContent="Attendance with names is in the tab Attendance_Named.";reload()})});
+$("setup-x").addEventListener("click",function(){store("cm-setup-hidden","1");$("setup").hidden=true});
+$("refresh").addEventListener("click",function(){cmApp.run("refreshTotals").then(function(){$("r-msg").textContent="Totals refreshed.";reload().then(view)})});
+$("named").addEventListener("click",function(){cmApp.run("buildNamedAttendance").then(function(){cur="Attendance_Named";$("r-msg").textContent="Attendance with names is in the tab Attendance_Named.";reload().then(view)})});
 $("export").addEventListener("click",function(){cmApp.exportResults().then(function(d){if(d)$("r-msg").textContent="Exported to "+d})});
 $("data").addEventListener("click",function(){cmApp.openData()});
 $("readme").addEventListener("click",function(){cmApp.readme()});
