@@ -62,6 +62,10 @@
 .cc .adm{grid-column:1/-1}.cc .grid.in{margin-top:.5rem}
 .cc details.fold>summary{min-height:6rem}
 .cc .go.quiet{background:transparent;border-color:transparent;color:var(--muted);text-decoration:underline}
+.cc .cols{display:grid;grid-template-columns:1fr;gap:.6rem;margin-top:.6rem}.cc .col{display:flex;flex-direction:column;gap:.5rem;min-width:0}
+@media (min-width:56rem){.cc .cols{grid-template-columns:minmax(18rem,5fr) minmax(0,7fr);align-items:start}}
+.cc .col h2.grp{margin:.5rem 0 0}
+.cc .go.ghost{background:transparent;border-color:transparent;color:var(--muted);text-decoration:underline;min-height:40px;padding:.3rem .5rem}
 .cc [hidden]{display:none!important}
 body.focus header.banner,body.focus nav.jump,body.focus .crumb,body.focus .sec-sub,body.focus aside.disclaimer,body.focus footer,body.focus a.skip,body.focus main h2{display:none!important}
 body.focus main{padding-top:0}
@@ -74,14 +78,15 @@ body.focus main{padding-top:0}
   <div><b>Counts</b><span id="s-c">None</span></div>
   <div class="diag"><b>Last error</b><span class="dot" id="s-ed"></span><span id="s-e">None</span></div>
  </div>
- <div class="grid">
+ <div class="cols">
+  <div class="col">
   <section class="panel overview"><h3>Current lecture</h3>
    <p id="t-lec"><b>Loading</b></p>
    <label for="t-week" class="note">Week to teach</label>
    <select id="t-week" style="min-height:44px;font-size:1rem;max-width:100%"><option value="0">Default from data/portal.json</option></select>
    <p class="note" id="t-wmsg" role="status"></p>
    <p class="note" style="margin:0">Join code <span class="code" id="t-code">&nbsp;</span> <button class="go alt sm" type="button" id="t-copy">Copy</button></p>
-   <a class="go alt" id="t-hand" href="#" hidden>Open handout</a>
+   <a class="go ghost sm" id="t-hand" href="#" hidden>Open handout</a>
   </section>
   <h2 class="grp">Before class</h2>
   <section class="panel" id="p-stu"><details class="fold" id="d-stu"><summary><b>Student Portal</b><small id="sp-sum"></small><span class="go sm face" role="button" tabindex="0" data-d="d-stu" data-t="">Edit</span></summary>
@@ -110,35 +115,35 @@ body.focus main{padding-top:0}
    <label class="cb"><input type="checkbox" id="k-proj"> Projector display seen</label>
    <button class="go" type="button" id="k-run">Run checks</button>
   </details></section>
+  </div>
+  <div class="col">
   <h2 class="grp">During class</h2>
   <section class="panel"><details class="fold" id="d-quiz"><summary><b>Live quiz</b><small id="st-quiz">Checking</small><span class="go sm face" role="button" tabindex="0" data-d="d-quiz" data-t="bt-quiz">Show quiz controls</span></summary>
    <button class="go" type="button" id="bt-quiz" data-embed="e-quiz" data-src="phys143-quiz-host.html">Show here</button>
-   <a class="go alt" href="phys143-quiz-host.html" target="_blank" rel="noopener">Own window</a>
-   <a class="go alt" href="phys143-quiz-display.html" target="_blank" rel="noopener">Projector display</a>
+   <a class="go ghost" href="phys143-quiz-host.html" target="_blank" rel="noopener">Own window</a>
+   <a class="go ghost" href="phys143-quiz-display.html" target="_blank" rel="noopener">Projector display</a>
    <details class="held"><summary>How held results work</summary><p class="note">Quiz results are held until you release them. Nothing a student sends is written to Form Responses 1, Master, Scores or Totals before then. Master keeps every released score for the semester; releasing the same week again updates that student's cell and never touches earlier weeks.</p></details>
    <ul id="h-ql"><li class="note">Checking.</li></ul>
    <button class="go sm" type="button" id="h-rq">Release held quiz results</button>
-   <button class="go alt sm quiet" type="button" id="h-dq">Discard held quiz results</button>
+   <button class="go ghost sm" type="button" id="h-dq">Discard held quiz results</button>
    <p class="note" id="h-qmsg" role="status"></p>
    <div id="e-quiz"></div>
   </details></section>
   <section class="panel" id="p-att"><details class="fold" id="d-att"><summary><b>Attendance</b><small id="st-att">Checking</small><span class="go sm face" role="button" tabindex="0" data-d="d-att" data-t="bt-att">Start / Show here</span></summary>
       <button class="go" type="button" id="bt-att" data-panel="p-att" data-embed="e-att" data-src="phys143-attendance.html">Show here</button>
-   <a class="go alt" href="phys143-attendance.html" target="_blank" rel="noopener">Own window</a>
+   <a class="go ghost" href="phys143-attendance.html" target="_blank" rel="noopener">Own window</a>
    <details class="held" id="h-det"><summary id="h-sum">Held sessions: checking</summary>
     <ul id="h-list"><li class="note">Checking.</li></ul></details>
    <button class="go sm" type="button" id="h-sa">Submit attendance</button>
-   <button class="go alt sm" type="button" id="h-da">Discard unsubmitted</button>
+   <button class="go ghost sm" type="button" id="h-da">Discard unsubmitted</button>
    <p class="note" id="h-msg" role="status"></p>
    <div id="e-att"></div>
   </details></section>
-  <h2 class="grp">After class</h2>
   <section class="panel"><details class="fold" id="d-aft"><summary><b>After class</b><small>Review, export, log out</small><span class="go sm face" role="button" tabindex="0" data-d="d-aft" data-t="">Open</span></summary>
    <ul id="x-list"><li class="note">Attendance summary appears here.</li></ul>
    <p class="note">Check Attendance, Not_On_List and Flags; export for Sakai; delete test rows.</p>
    <button class="go alt" type="button" id="x-out">Log out</button>
   </details></section>
-  <h2 class="grp">Administration</h2>
   <section class="panel adm"><details class="fold" id="d-adm"><summary><b>Advanced</b><small>Class list, reset results</small></summary>
    <div class="grid in">
   <section class="panel" id="p-ros"><details class="fold" id="d-ros"><summary><b>Class list</b><small>Add, remove, check an ID</small><span class="go sm face" role="button" tabindex="0" data-d="d-ros" data-t="r-id">Add or remove</span></summary>
@@ -154,11 +159,12 @@ body.focus main{padding-top:0}
   <section class="panel" id="p-rst"><details class="fold" id="d-rst"><summary><b>Reset results</b><small>New term, needs RESET typed</small><span class="go sm face" role="button" tabindex="0" data-d="d-rst" data-t="bt-rst">Reset results…</span></summary>
    <p class="note">New term: backs up, then empties results. Type RESET to confirm.</p>
    <button class="go alt" type="button" id="bt-rst" data-panel="p-rst" data-embed="e-rst" data-src="phys143-reset.html">Show here</button>
-   <a class="go alt" href="phys143-reset.html" target="_blank" rel="noopener">Own window</a>
+   <a class="go ghost" href="phys143-reset.html" target="_blank" rel="noopener">Own window</a>
    <div id="e-rst"></div>
   </details></section>
    </div>
   </details></section>
+  </div>
  </div>
 </div>
 <script>
