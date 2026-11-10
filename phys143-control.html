@@ -68,6 +68,8 @@
 .cc .go.ghost{background:transparent;border-color:transparent;color:var(--muted);text-decoration:underline;min-height:40px;padding:.3rem .5rem}
 .cc details.cfold{margin:0;font-size:1rem}.cc details.cfold[open]>summary{border-bottom:0}
 .cc .stu-sub{margin-top:.8rem;padding-top:.6rem;border-top:1px solid var(--border)}.cc #d-stu>summary{min-height:0}
+#sp-form input[type=text]{min-height:38px!important}#sp-form label.note{margin:.3rem 0 .1rem;display:block}#sp-form label.cb{min-height:34px}
+#sp-form .sg{margin:.7rem 0 .1rem;padding-top:.5rem;border-top:1px solid var(--border);font-weight:700;font-size:.85rem;color:var(--muted)}#sp-form .sg:first-of-type{border-top:0;margin-top:.2rem;padding-top:0}
 .cc [hidden]{display:none!important}
 body.focus header.banner,body.focus nav.jump,body.focus .crumb,body.focus .sec-sub,body.focus aside.disclaimer,body.focus footer,body.focus a.skip,body.focus main h2{display:none!important}
 body.focus main{padding-top:0}
@@ -92,14 +94,17 @@ body.focus main{padding-top:0}
      <div class="stu-sub"><details class="cfold" id="d-stu"><summary><small id="sp-sum"></small><span class="go sm face" role="button" tabindex="0" data-d="d-stu" data-t="">Edit</span></summary>
    <div id="sp-form">
    <p class="note">Public text only. Empty = default. Live in about 15 s.</p>
+   <p class="sg">Schedule shown to students</p>
    <label for="sp-contacts" class="note">Contact days and times</label>
    <input type="text" id="sp-contacts" maxlength="160" autocomplete="off" style="width:100%;min-height:44px;font-size:1rem">
    <label for="sp-venue" class="note">Venue</label>
    <input type="text" id="sp-venue" maxlength="100" autocomplete="off" style="width:100%;min-height:44px;font-size:1rem">
+   <p class="sg">Message</p>
    <label for="sp-notice" class="note">Notice</label>
    <input type="text" id="sp-notice" maxlength="300" autocomplete="off" style="width:100%;min-height:44px;font-size:1rem">
    <label for="sp-title" class="note">Title shown to students (this week)</label>
    <input type="text" id="sp-title" maxlength="100" autocomplete="off" style="width:100%;min-height:44px;font-size:1rem">
+   <p class="sg">Links on this week's card</p>
    <label class="cb"><input type="checkbox" id="sp-hh" checked> Show Handout (PDF)</label>
    <label class="cb"><input type="checkbox" id="sp-hp" checked> Show Practice quiz</label>
    <label class="cb"><input type="checkbox" id="sp-hl" checked> Show Lecture page</label>
@@ -253,7 +258,7 @@ function spLoadFields(){
 function spCollapse(c,saved){
  var any=SPC&&(SPC.contacts||SPC.venue||SPC.notice||SPC.cont||Object.keys(SPC.titles||{}).length||(SPC.hide&&(SPC.hide.handout.length||SPC.hide.practice.length||SPC.hide.page.length)));
  $("sp-sum").innerHTML="Student notice: "+(SPC&&SPC.notice?esc(SPC.notice):"none")+(saved?" (saved)":"");showWeek();
- $("d-stu").open=!(c&&any);
+ $("d-stu").open=!c;
 }
 var spFirst=true;
 function spLoad(){
