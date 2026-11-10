@@ -66,6 +66,7 @@ main>.wrap{max-width:none!important;padding:0 1.5rem}
   <form id="d-form"><label for="d-code" class="lbl">Join code</label><br><input type="text" id="d-code" maxlength="30" style="font:1.4rem system-ui;padding:.4rem .8rem;margin:.5rem"> <button class="btn primary" type="submit" style="min-height:48px;padding:0 1.4rem">Show display</button></form>
  </section>
  <div id="d-main" hidden>
+  <p class="state" id="d-type" style="font-weight:700;text-align:center"></p>
   <div class="layout">
    <aside class="panel side" id="d-join">
     <img src="assets/figures/phys143-quiz-qr.svg" alt="QR code to join the quiz" width="340" height="340">
@@ -116,6 +117,7 @@ function refresh(){
   $("d-ask").hidden=true;$("d-main").hidden=false;$("d-showcode").textContent=cfg.code;
   $("d-joined").textContent=d.joined;$("d-joined2").textContent=d.joined;$("d-answered").textContent=d.answered||0;
   var st=d.status;cfg.c=st;cfg.at=Date.now();
+  if(st&&st.quizType)$("d-type").textContent=st.quizType==="concept"?"Diagnostic quiz":"Quiz";
   var s=st?st.state:"started";ctlSync(s);var live=s==="running"||s==="paused",fin=s==="ended"||s==="released";
   $("d-join").hidden=live||fin;
   var qkey=cfg.code+"|"+(st&&st.qids||[]).join(",");

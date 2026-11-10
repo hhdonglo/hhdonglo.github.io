@@ -119,3 +119,10 @@ Nothing a student sends reaches Form Responses 1, Master, Scores, Totals or Atte
 
 ## Concept diagnostic quiz (no calculations)
 A second quiz type that draws only from `quizzes/lectureN_concept.json` (each question carries a `tag`, the concept it tests). On the host page choose **Quiz type: Concept diagnostic** before Start; week and number of questions work as usual. A week is offered only if it is listed under `concept_weeks` in `apps_script/live_quizzes.json` (now Week 1). While the quiz runs, and afterwards, the host page shows **Class diagnostic**: per concept and per question, how many answered and how many were right (counts only, no names or IDs). Scores go to their own column ("Quiz <code>"), so they never overwrite the Week score from the practice-style quiz. Needs the updated `quiz_receiver.gs` pasted and redeployed, then run `setup` once (adds the `bank` column to Quiz_Control).
+
+### Adding a concept bank for another lecture (no code change)
+1. Write `quizzes/lectureN_concept.json` in the same format as `lecture1_concept.json`: `{"lecture": N, "title": "...", "questions": [...]}`, each question with `id` (unique, for example `LN-C01`), `type`, `tag` (the concept, spelled identically every time it recurs, as the diagnostic groups by this text), `q`, four `options`, `answer` (0 to 3), `exp`, `ref`.
+2. Check that the practice bank `quizzes/lectureN.json` exists and the week is listed under `weeks` in `apps_script/live_quizzes.json`.
+3. Add the week to `concept_weeks` in the same file, for example `"2": "Motion"`.
+4. Push the two files. No Apps Script change or redeploy is needed. On the host page, choose Concept diagnostic and that week.
+Limitation: the quiz system has no course field yet. Banks are `quizzes/lectureN*.json` and join codes are 2627 + week, which belong to PHYS 143. A second course would need a course prefix on the bank name and on the join code.

@@ -31,7 +31,7 @@
 <main id="main"><div class="wrap">
 <p class="crumb"><a href="index.html">Home</a> &rsaquo; <a href="teaching.html">Teaching</a> &rsaquo; <a href="phys143.html">PHYS 143</a> &rsaquo; <a href="phys143-portal.html">Portal</a> &rsaquo; Quiz</p>
 <h2 id="try-title">PHYS 143 quiz</h2>
-<p class="sec-sub">Live class quiz</p>
+<p class="sec-sub" id="qtype">Live class quiz</p>
 <style>
 .try{max-width:46rem;margin:0 auto}
 .try .panel{background:var(--surface);border:1px solid var(--border);border-top:5px solid var(--brown-edge);border-radius:8px;padding:1.2rem 1.3rem;box-shadow:var(--shadow)}
@@ -182,12 +182,14 @@ $("f-start").addEventListener("submit",function(e){
  st.name=n;st.id=d;st.code=c;st.ans=[];st.i=0;
  gate();
 });
+function setType(d){var e=$("qtype");if(e&&d&&d.quizType)e.textContent=d.quizType==="concept"?"Diagnostic quiz: checks your understanding of concepts, not for marks":"Quiz"}
 function gate(){
  var er=$("err"),btn=$("f-start").querySelector("button");
  jsonp("action=status&code="+encodeURIComponent(st.code),function(d){
   if(d&&d.known===false){btn.disabled=false;er.textContent=PHYSMSG.text("E12");er.hidden=false;return}
   if(!d){btn.disabled=false;er.textContent=PHYSMSG.text("E8");er.hidden=false;return}
   if(d.attendance){doAttend(d,btn,er);return}
+  setType(d);
   if(!st.name){btn.disabled=false;er.textContent="Please enter your first name for the quiz.";er.hidden=false;return}
   var nq=d.totalQ||QS.length;
   if(d.round!==undefined)st.round=d.round; // the round this run belongs to
@@ -253,6 +255,7 @@ function pacedClosed(){
  return !!(st.qDeadline&&Date.now()+st.off>st.qDeadline);
 }
 function applyPaced(d){
+ setType(d);
  st.off=d.serverNow-Date.now();st.paused=d.state==="paused";st.remain=d.remainingMs;st.qDeadline=d.qDeadline||0;st.qSeconds=d.qSeconds||0;
  var b=$("banner");
  if(st.paused){b.textContent="Paused by your lecturer. The clock has stopped.";b.hidden=false}
@@ -450,6 +453,10 @@ function poll(n){
  });
 }
 function showMine(d){
+ if(d.diagnostic){
+  clearInterval(st.live);$("t-end").textContent="Thank you, "+st.name;
+  $("end-msg").textContent="Your answers are recorded for the class diagnostic. This quiz is not for marks and has no ranking.";
+  $("end-msg").hidden=false;$("mine").hidden=true;$("board").hidden=true;return}
  if(d.scoreHidden){
   $("t-end").textContent="Thank you, "+st.name;
   $("end-msg").textContent="Your answers are recorded. Your score will appear when your lecturer releases the results.";
