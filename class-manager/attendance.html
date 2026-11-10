@@ -48,6 +48,18 @@ body.focus main{padding-top:1rem}
 .att .lbl{font:600 1rem system-ui,sans-serif;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:0}
 .att input.codein{text-align:center;font:700 2.4rem ui-monospace,Menlo,monospace;max-width:12rem;letter-spacing:.1em}
 .att .toplinks{text-align:left;margin:0 0 .6rem}
+.att .rv{text-align:left}
+.att .rv h3{margin:.1rem 0 .4rem}
+.att .rv ul{list-style:none;padding:0;margin:.6rem 0}
+.att .rv li{border:1px solid var(--border);border-radius:6px;padding:.6rem .8rem;margin:.5rem 0}
+.att .rv li.wait{border-left:5px solid #b26a00}
+.att .rv li .why{font:.95rem/1.45 system-ui,sans-serif;margin:.2rem 0 .3rem}
+.att .rv li .st{font:600 .9rem system-ui,sans-serif;color:var(--muted)}
+.att .rv .go{min-height:40px;font-size:.95rem;padding:.3rem .9rem}
+.att .rv .add{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center}
+.att .rv .add input{max-width:12rem}
+.att .waiting{font:700 1.2rem system-ui,sans-serif;color:#b26a00}
+@media (prefers-color-scheme:dark){.att .waiting{color:#ffb74d}}
 </style>
 <div class="host att">
  <p class="toplinks"><a href="lecturer.html">&larr; Lecturer menu</a></p>
@@ -65,14 +77,24 @@ body.focus main{padding-top:1rem}
    <select id="a-rad"><option value="250">250 m</option><option value="500" selected>500 m (default)</option><option value="1000">1 km</option><option value="2000">2 km</option></select></p>
   <p><button class="go big" type="button" id="a-start">Start attendance</button></p>
   <p class="note" id="a-last"></p>
+  <p class="note" id="a-nocode" hidden></p>
  </section>
  <section class="panel" id="a-live" hidden>
-  <p class="lbl">Scan this screen with your phone and enter your student ID. Your phone must be in the classroom.</p>
+  <p class="lbl">Scan this screen with your phone and enter your student ID and access code. Your phone must be in the classroom.</p>
   <p><span id="a-qr" class="qr" role="img" aria-label="QR code to open the check-in page; it changes every 30 seconds" style="display:inline-block"></span></p>
   <p class="note" id="a-tick" role="status"></p>
   <p class="count" id="a-count" role="status"></p>
+  <p class="waiting" id="a-waiting" role="status" hidden></p>
   <p><button class="go big" type="button" id="a-close">Close attendance and record absences</button></p>
   <p class="note" id="a-msg" role="status"></p>
+ </section>
+ <section class="panel rv" id="a-review" hidden>
+  <h3>Check-ins to review <span class="note" id="r-label"></span></h3>
+  <p class="note">Each student checks in with their ID and personal access code, and the first phone they use is registered to them for the term. A check-in from a phone registered to someone else, or from a phone other than the student's own, waits here until you approve it. Approve it only when you can see the student in the room.</p>
+  <p class="note" id="r-none">Nothing to review for this session.</p>
+  <ul id="r-list"></ul>
+  <div class="add" id="r-addwrap"><label for="r-add" style="margin:0">Add a student who is present</label><input type="text" id="r-add" inputmode="numeric" maxlength="12" placeholder="Student ID"><button class="go alt" type="button" id="r-addbtn">Mark present</button></div>
+  <p class="note" id="r-msg" role="status"></p>
  </section>
  <p><button class="go alt" type="button" id="a-out">Log out</button></p>
 </div>
@@ -100,13 +122,55 @@ function draw(d){
  if(open){
   drawQr(ss.link);left=ss.secondsLeft||0;stamp=Date.now();tickDraw();if(!tk)tk=setInterval(tickDraw,1000);
   $("a-count").textContent=ss.present+" present"+(ss.notOnList?", "+ss.notOnList+" not on the list":"");
+  $("a-waiting").hidden=!ss.waiting;$("a-waiting").textContent=ss.waiting?ss.waiting+" waiting for your approval (see below)":"";
+  if((ss.waiting||0)!==lastWaiting){lastWaiting=ss.waiting||0;review()}
   show("a-live");if(!timer)timer=setInterval(poll,4000);
  } else {
   if(timer){clearInterval(timer);timer=null}if(tk){clearInterval(tk);tk=null}
   show("a-idle");
  }
 }
-var lastLink="";
+var lastLink="",lastWaiting=-1;
+function esc(t){return String(t==null?"":t).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+var RV=null;
+function review(){call("attend_review","",function(d){if(d&&d.ok)drawReview(d)})}
+function drawReview(d){
+ RV=d;var ss=d.session;$("a-review").hidden=!ss;if(!ss)return;
+ $("r-label").textContent="("+ss.label+(ss.status==="Submitted"?", submitted":"")+")";
+ var can=!!d.canRemove,seen={},items=[];
+ (d.items||[]).filter(function(it){return it.reason!=="approved by the lecturer"}).slice().reverse().forEach(function(it){var k=it.ids.join(",")+"|"+it.reason;if(seen[k]){seen[k].n++;return}it.n=1;seen[k]=it;items.push(it)}); // repeats shown once, with a count
+ items.sort(function(x,y){return (y.pending?1:0)-(x.pending?1:0)});
+ $("r-none").hidden=items.length>0;$("r-addwrap").hidden=!can;
+ $("r-list").innerHTML=items.map(function(it,k){
+  var who=it.ids.map(function(i,j){return "<b>"+esc(i)+"</b>"+(it.names[j]?" "+esc(it.names[j]):"")}).join(", ");
+  var one=it.ids.length===1?it.ids[0]:"",here=one&&it.present.indexOf(one)>=0;
+  var refused=/\(refused\)$/.test(it.reason),removed=/removed by the lecturer/.test(it.reason),byhand=/by the lecturer$/.test(it.reason);
+  var st=it.pending?(here?"Approved, counted present":"Waiting for your approval, not counted"):refused?(here?"Refused; the student later checked in correctly":"Refused, not counted"):(one&&!removed&&!byhand?(here?"Counted present":"Not counted"):"");
+  var b="";
+  if(can&&one&&it.pending&&!here)b+='<button class="go" type="button" data-act="approve" data-id="'+esc(one)+'">Approve</button>';
+  if(can&&one&&here&&(it.pending||!refused&&!removed&&!byhand))b+='<button class="go alt" type="button" data-act="remove" data-id="'+esc(one)+'">Remove check-in</button>';
+  if(can&&!one)it.ids.forEach(function(i){if(it.present.indexOf(i)>=0)b+='<button class="go alt" type="button" data-act="remove" data-id="'+esc(i)+'">Remove '+esc(i)+'</button>'});
+  if(one&&it.phone.indexOf(one)>=0&&/phone other than|different phone/.test(it.reason))b+='<button class="go alt" type="button" data-act="reset" data-id="'+esc(one)+'">Forget registered phone</button>';
+  return '<li'+(it.pending&&!here?' class="wait"':'')+'><div>'+who+'</div><p class="why">'+esc(it.reason.replace(/^waiting for approval: /,"").replace(/ \(refused\)$/,""))+(it.n>1?" ("+it.n+" times)":"")+'</p>'+(st?'<p class="st">'+st+'</p>':'')+(b?'<p>'+b+'</p>':'')+'</li>';
+ }).join("");
+}
+$("r-list").addEventListener("click",function(e){
+ var t=e.target.closest("button[data-act]");if(!t||!RV)return;var id=t.getAttribute("data-id"),act=t.getAttribute("data-act"),lab=encodeURIComponent(RV.session.label);
+ if(act==="reset"&&!window.confirm("Forget the phone registered to "+id+"? The next phone this student checks in with becomes their registered phone."))return;
+ if(act==="remove"&&!window.confirm("Remove the check-in of "+id+" from this session?"))return;
+ t.disabled=true;$("r-msg").textContent="Saving...";
+ call(act==="approve"?"attend_approve":act==="remove"?"attend_remove":"attend_phone_reset","&id="+encodeURIComponent(id)+"&label="+lab,function(d){
+  $("r-msg").textContent=!d?"Could not reach the class sheet.":!d.ok?"Not done: "+(d.why||"refused")+".":act==="approve"?id+" is counted present.":act==="remove"?"Check-in of "+id+" removed.":"The registered phone of "+id+" is forgotten.";
+  review();poll();
+ });
+});
+$("r-addbtn").addEventListener("click",function(){
+ var id=$("r-add").value.replace(/\D/g,"");if(!id||!RV)return;
+ call("attend_approve","&manual=1&id="+encodeURIComponent(id)+"&label="+encodeURIComponent(RV.session.label),function(d){
+  $("r-msg").textContent=!d?"Could not reach the class sheet.":!d.ok?"Not added: "+(d.why||"refused")+".":(d.added?id+" is counted present.":id+" was already present.");
+  if(d&&d.ok)$("r-add").value="";review();poll();
+ });
+});
 function drawQr(t){
  if(!t){lastLink="";$("a-qr").innerHTML='<span style="display:block;padding:1.2rem;color:#b3261e;font:700 1.1rem/1.4 system-ui,sans-serif;text-align:left">No QR token received from the Apps Script. The deployed script is the old version. Paste the new quiz_receiver.gs, Save, then Deploy &gt; Manage deployments &gt; edit &gt; New version, and reload this page.</span>';return}
  if(t===lastLink)return;lastLink=t;
@@ -125,6 +189,8 @@ function begin(){
  call("attend_status","",function(d){
   if(!d||!d.ok){try{sessionStorage.removeItem("cm_hk")}catch(x){}KEY="";show("a-login");if(d)$("a-err").textContent="";return}
   var ss=d.session;
+  review();
+  var nc=(ss&&ss.noCode)||d.noCode||0;if(nc){$("a-nocode").hidden=false;$("a-nocode").innerHTML="<b>"+nc+" student(s) on the class list have no access code yet</b> and cannot check in. <a href=\"codes.html\">Create the codes and print the slips</a> before you start."}
   if(ss&&ss.status!=="Open")$("a-last").textContent="Last session "+ss.label+": "+ss.present+" present"+(ss.notOnList?", "+ss.notOnList+" not on the list":"")+".";
   draw(d);
  });
@@ -163,8 +229,8 @@ $("a-close").addEventListener("click",function(){
  $("a-msg").textContent="Closing...";
  call("attend_close","",function(d){
   if(!d||!d.ok){$("a-msg").textContent="Not closed: "+((d&&d.why)||"could not reach the class sheet")+".";return}
-  var x=d.session;$("a-last").textContent="Closed and held, not yet recorded. Submit it from the Control Centre. "+x.present+" present, "+x.absent+" absent"+(x.notOnList?", "+x.notOnList+" not on the roster (see the Not_On_List tab)":"")+"."+(x.flagged?" "+x.flagged+" device(s) checked in more than one ID: see the Attendance_Flags tab.":"");
-  if(timer){clearInterval(timer);timer=null}show("a-idle");
+  var x=d.session;$("a-last").textContent="Closed and held, not yet recorded. Submit it from the Control Centre. "+x.present+" present, "+x.absent+" absent"+(x.notOnList?", "+x.notOnList+" not on the roster (see the Not_On_List tab)":"")+"."+(x.flagged?" "+x.flagged+" device(s) checked in more than one ID.":"")+" Review the list below before you submit.";
+  if(timer){clearInterval(timer);timer=null}show("a-idle");review();
  });
 });
 $("a-out").addEventListener("click",signOut);
