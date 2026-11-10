@@ -113,6 +113,7 @@ body.focus main{padding-top:1rem}
      <button class="go alt" data-a="lobby" data-show="ready,draft">Open lobby</button>
      <button class="go big" data-a="start" data-show="ready,draft,lobby">Start quiz</button>
      <button class="go big" data-a="next" data-show="running">Next question</button>
+     <button class="go alt" data-a="revote" data-show="running" data-vote="1" title="Ask, discuss, revise: students talk to a neighbour for a minute, then answer this question again. Both answers are kept.">Discuss and vote again</button>
      <button class="go alt" data-a="pause" data-show="running">Pause</button>
      <button class="go big" data-a="resume" data-show="paused">Resume</button>
      <button class="go alt" data-a="extend" data-min="1" data-show="running,paused">+1 min</button>
@@ -223,8 +224,9 @@ function refresh(first){
    var r=b.getAttribute("data-rev");
    if(r==="on"&&!(st.reviewQ>0))b.hidden=true;
    if(r==="off"&&st.reviewQ>0)b.hidden=true;
+   if(b.getAttribute("data-vote")==="1"&&st.vote===2)b.hidden=true;
   });
-  $("h-state").textContent=(LABEL[s]||s)+(s==="lobby"?": "+d.joined:"")+(st.reviewQ>0?" \u00b7 reviewing question "+st.reviewQ:"");
+  $("h-state").textContent=(LABEL[s]||s)+(s==="lobby"?": "+d.joined:"")+(st.reviewQ>0?" \u00b7 reviewing question "+st.reviewQ:"")+(live&&st.vote===2?" \u00b7 second vote, after discussion":"");
   var qkey=cfg.code+"|"+(st.qids||[]).join(",");
   if(st.qids&&st.qids.length&&cfg.qkey!==qkey){cfg.qkey=qkey;jsonp("action=questions&code="+encodeURIComponent(cfg.code),function(r){cfg.qs=(r&&r.questions)||[];refresh(false)})}
   var Q=cfg.qs&&cfg.qs[(st.currentQ||0)-1];
@@ -235,12 +237,18 @@ function refresh(first){
   if(Qr){
    var rh='<p class="lbl">Reviewing question '+rv.q+' of '+(st.totalQ||5)+' ('+rv.answered+' answered)</p><div style="font-size:1.15rem;margin:.3rem 0">'+Qr.stem+'</div>';
    Qr.opts.forEach(function(o,i){var k="ABCDE"[i];rh+='<div class="ro'+(k===rv.correct?" ok":"")+'"><b>'+k+'</b><span>'+o+'</span><span class="n">'+(k===rv.correct?"\u2713 ":"")+(rv.dist[k]||0)+'</span></div>'});
+   if(rv.discussion){var dv=rv.discussion;rh+='<p class="note" style="margin:.5rem 0"><b>Discussion:</b> '+(dv.beforePct===null?"–":dv.beforePct+"%")+' correct before, '+(dv.afterPct===null?"–":dv.afterPct+"%")+' after. '+dv.wrongToRight+' moved from wrong to right, '+dv.rightToWrong+' from right to wrong ('+dv.pairs+' students voted twice).</p>'}
    rh+=rv.explanation?'<p style="border-left:4px solid var(--brown-edge);padding:.2rem .8rem">'+esc(rv.explanation)+'</p>':'<p class="err">No explanation shown to students: '+esc(rv.explanationError||"none found")+'</p>';
    $("h-rev").innerHTML=rh;
   }
   $("h-joined").textContent=d.joined;$("h-ans").textContent=d.answered||0;
   var dist=d.dist,h="";
-  if(dist){var mx=Math.max(1,dist.A,dist.B,dist.C,dist.D,dist.E);"ABCDE".split("").forEach(function(k){h+='<div class="bar"><b style="width:1.2rem">'+k+'</b><i style="width:'+Math.round(dist[k]/mx*260)+'px"></i> '+dist[k]+'</div>'});}
+  if(dist&&d.firstVote){ // ask, discuss, revise: the first vote beside the second, for the lecturer only
+   var fd=d.firstVote.dist,mx2=Math.max(1,fd.A,fd.B,fd.C,fd.D,fd.E,dist.A,dist.B,dist.C,dist.D,dist.E);
+   h='<p class="note">First vote: '+d.firstVote.answered+' answered. Second vote so far: '+(d.changed||0)+'.</p>';
+   "ABCDE".split("").forEach(function(k){h+='<div class="bar"><b style="width:1.2rem">'+k+'</b><i style="width:'+Math.round(fd[k]/mx2*200)+'px;opacity:.45" title="First vote"></i> '+fd[k]+' &rarr; <i style="width:'+Math.round(dist[k]/mx2*200)+'px" title="Now"></i> '+dist[k]+'</div>'});
+  }
+  else if(dist){var mx=Math.max(1,dist.A,dist.B,dist.C,dist.D,dist.E);"ABCDE".split("").forEach(function(k){h+='<div class="bar"><b style="width:1.2rem">'+k+'</b><i style="width:'+Math.round(dist[k]/mx*260)+'px"></i> '+dist[k]+'</div>'});}
   $("h-dist").innerHTML=h;
   $("h-names").textContent=d.notYet&&d.notYet.length?"Participants: "+d.notYet.join(", "):"";
   var pre=(s==="ready"||s==="lobby"||s==="draft");

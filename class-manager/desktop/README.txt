@@ -144,6 +144,29 @@ Practice questions and mock examination
 6. AFTER CLASS
 --------------
 
+The app opens on "Class Overview", which shows how the class is doing. The
+figures are worked out on this computer from the attendance, quiz and
+practice records; nothing is estimated.
+
+- "Is the class learning?" gives a verdict (Learning, Mixed, Not yet
+  learning, or Not enough data) with the evidence behind it: whether
+  students answer the same questions better when they come back, the trend
+  of quiz scores, wrong answers shared by many students, and participation
+  and attendance. It needs at least two released quizzes with 10 or more
+  students, or 30 repeated answers, and never judges from one quiz.
+- "Areas to target" ranks the topics, questions, students, sessions and
+  quizzes that most need attention, each with its evidence, sample size and
+  a suggested action.
+- "Students" lists every student with attendance, absences in a row,
+  arrival time, quiz results, change and percentile, practice, and a
+  suggested engagement group (On track, Working hard but struggling,
+  Disengaged, Needs a check-in). The groups are suggestions for you to
+  review, are never shown to students, and their thresholds can be changed.
+- "Attendance" and "Quizzes and Questions" show rates by session, arrival
+  times, score distributions, and each question's difficulty and options.
+
+The QR code, attendance and quizzes are under "Class Tools".
+
 - Under "Grades and Results", choose a tab (Attendance, Master, Totals and
   others) to view it.
 - "Export all tabs" saves every tab as a CSV file that opens in Excel.
@@ -201,6 +224,11 @@ Internet access does not start
   Check the computer's internet connection and try again. The first start
   needs to download the connector program. A firewall that blocks outgoing
   connections to Cloudflare will stop it.
+
+Text is too small or too large
+  Press Cmd and plus or minus (Ctrl on Windows and Linux) to change the size
+  of everything in the app, and Cmd or Ctrl and 0 for the normal size. The
+  app remembers the size. Press Cmd or Ctrl and / for all keyboard shortcuts.
 
 The host key is not shown
   If the host key was changed on the quiz dashboard, the app no longer

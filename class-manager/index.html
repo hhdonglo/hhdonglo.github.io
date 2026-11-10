@@ -198,6 +198,7 @@ function showResults(r){
  // Groups the lecturer has made, with the other members and any group mark.
  var gr=r.groups||[];
  if(gr.length)h+='<h2 style="margin-top:.9rem">My groups</h2>'+gr.map(function(g){return'<div class="rv"><b>'+esc(g.set)+': Group '+g.group+'</b>'+(g.mark!==null&&g.mark!==undefined?' <span class="src">Group mark '+esc(g.mark)+(g.outOf?' / '+esc(g.outOf):'')+'</span>':'')+'<br><span class="src">With: '+esc(g.members.join(", ")||"no one else yet")+'</span></div>'}).join("");
+ if(r.groupWork)h+='<p><a href="group-work.html">Group work: '+r.groupWork+' assignment'+(r.groupWork===1?'':'s')+' for your groups <span aria-hidden="true">&rsaquo;</span></a></p>';
  // Where to focus: the weakest lectures with enough answers to judge.
  var weak=ms.filter(function(m){return m.asked>=5&&m.pct<70}).sort(function(a,b){return a.pct-b.pct}).slice(0,3);
  h+='<h2 style="margin-top:.9rem">Where to focus</h2>';
@@ -212,6 +213,14 @@ function showResults(r){
    return '<div class="lv '+b[0]+'"><span class="t">'+esc(m.lecture===0?"Introduction":"Lecture "+m.lecture)+'</span><span class="p">'+m.pct+'%</span>'+
     '<span class="bar" role="img" aria-label="'+m.pct+' percent"><i style="width:'+Math.max(2,m.pct)+'%"></i></span><span class="s">'+b[1]+'. '+m.right+' of '+m.asked+' answers correct'+(lecTitle(m.lecture)?'. '+esc(lecTitle(m.lecture)):'')+'</span></div>'}).join("")+
    '<p class="note">From your latest practice attempt for each lecture, your latest mock exam and the released live quizzes. Secure is 70 per cent or more, Developing 50 to 69, Needs work below 50.</p>';
+ }
+ // Progress by learning objective: where each objective started and where it is now, from the student's own answers.
+ var po=r.progress&&r.progress.outcomes||[],linked=po.filter(function(o){return /objective/.test(o.label)});
+ if(linked.length){
+  h+='<h2 style="margin-top:.9rem">Progress by learning objective</h2>'+linked.map(function(o){var cur=o.current===null?0:o.current,b=o.level==="Secure"?"ok":o.level==="Developing"?"mid":o.level==="Beginning"?"low":"";
+   return '<div class="lv '+b+'"><span class="t">'+esc(o.label)+'</span><span class="p">'+(o.current===null?"–":o.current+"%")+'</span>'+
+    '<span class="bar" role="img" aria-label="'+cur+' percent now"><i style="width:'+Math.max(2,cur)+'%"></i></span><span class="s">'+esc(o.level)+'. '+o.answers+(o.answers===1?' answer':' answers')+(o.start!==null&&o.answers>=4?'; started at '+o.start+'%, now '+o.current+'%':'')+'.</span></div>'}).join("")+
+   '<p class="note">"Now" is your latest answers on that objective; "started" is your first ones. At least '+(r.progress.minimum||3)+' answers are needed before a level is shown.</p>';
  }
  // Questions to revisit, with the slide to look at.
  h+='<h2 style="margin-top:.9rem">Questions to revisit</h2><div id="p-rv">'+(rv.length?'<p class="note">Loading the questions.</p>':'<p class="note">None at the moment.</p>')+'</div>';

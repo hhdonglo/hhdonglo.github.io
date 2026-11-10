@@ -45,6 +45,8 @@
 .gp .g .mk{display:flex;gap:.3rem;align-items:center;flex-wrap:wrap;font-size:.85rem}
 .gp .g .mk input{width:4.2rem;min-height:32px}
 .gp .err{color:#b3261e;font-weight:600}
+.gp .g .task{margin:0 0 .4rem;font-weight:600;color:var(--brown-edge)}
+body.proj .gp .g .task{font-size:1.3rem}
 .gp [hidden]{display:none!important}
 .gp .id{color:var(--muted);font-size:.8rem}
 body.proj .gp .ctl,body.proj .gp .g li select,body.proj .gp .id,body.proj .gp .g .mk,body.proj .gp .g .lkb{display:none!important}
@@ -80,7 +82,7 @@ body.focus main{padding-top:1rem}
  <section class="panel">
   <div class="row ctl">
    <div><label for="g-sets">Set</label><br><select id="g-sets"></select></div>
-   <div><button class="go alt" type="button" id="g-proj">Projector view</button><button class="go alt" type="button" id="g-csv">Download CSV</button><button class="go alt" type="button" id="g-print">Print</button><button class="go alt" type="button" id="g-del">Delete this set</button><a class="go alt" href="control.html">Control Centre</a></div>
+   <div><button class="go alt" type="button" id="g-proj">Projector view</button><button class="go alt" type="button" id="g-csv">Download CSV</button><button class="go alt" type="button" id="g-print">Print</button><a class="go alt" href="assignments.html">Group assignments</a><button class="go alt" type="button" id="g-del">Delete this set</button><a class="go alt" href="control.html">Control Centre</a></div>
   </div>
   <p id="g-ptitle" hidden></p>
   <p class="note ctl" id="g-sum" role="status"></p>
@@ -107,7 +109,7 @@ function call(op,extra,after){
  jsonp("action=groups&op="+op+"&hostkey="+encodeURIComponent(KEY)+(extra||""),function(d){
   if(!d){err("The class server could not be reached, or it does not support groups yet (update the Apps Script).");return}
   if(!d.ok){if(/host key/.test(d.why||"")){KEY="";try{sessionStorage.removeItem("cm_hk")}catch(x){}login();return}err("Not done: "+(d.why||"unknown"));return}
-  D=d;draw();if(after)after(d);
+  D=d;draw();tasks();if(after)after(d);
  });
 }
 function q(k,v){return"&"+k+"="+encodeURIComponent(v)}
@@ -121,6 +123,15 @@ function draw(){
   return'<div class="g'+(g.locked?' lk':'')+'"><h4><span>Group '+g.group+'</span><button class="go alt sm lkb" type="button" data-lock="'+g.group+'" aria-pressed="'+(g.locked?"true":"false")+'">'+(g.locked?"Locked":"Lock")+'</button></h4><ul>'+
    g.members.map(function(m){return'<li><span>'+esc(m.name||m.id)+' <span class="id">'+esc(m.id)+'</span></span><select data-move="'+esc(m.id)+'" aria-label="Group for '+esc(m.name||m.id)+'">'+opts(g.group)+'</select></li>'}).join("")+
    '</ul><div class="mk"><label for="mk'+g.group+'">Mark</label><input type="number" step="any" id="mk'+g.group+'" value="'+(g.mark===""||g.mark==null?"":esc(g.mark))+'"><span>out of</span><input type="number" step="any" min="0" id="oo'+g.group+'" aria-label="Out of" value="'+(g.outOf===""||g.outOf==null?"":esc(g.outOf))+'"><button class="go sm" type="button" data-mark="'+g.group+'">Save</button></div></div>'}).join("");
+}
+// The open assignments of each group, under its name (and on the projector, so every group can see its task).
+function tasks(){
+ if(!D||!D.set)return;
+ jsonp("action=groups_display&hostkey="+encodeURIComponent(KEY)+"&set="+encodeURIComponent(D.set),function(r){
+  if(!r||!r.ok)return;
+  r.groups.forEach(function(g){var b=document.querySelector('#g-grid [data-lock="'+g.group+'"]'),card=b&&b.closest(".g");if(!card||!g.tasks.length)return;
+   var p=card.querySelector(".task")||document.createElement("p");p.className="task";p.textContent="Task: "+g.tasks.join("; ");card.querySelector("h4").after(p)});
+ });
 }
 $("g-grid").addEventListener("click",function(e){
  var b=e.target.closest("button");if(!b)return;

@@ -9,143 +9,334 @@
 <script src="/assets/qrcode.js"></script>
 <link rel="icon" href="/app/icon.svg" type="image/svg+xml">
 <style>
-/* Desktop layout: fixed sidebar, workspace bar, one view at a time, slim status bar. */
+/* Desktop layout: sidebar, workspace bar, one view at a time, status bar.
+   Every size is in rem, and the root size grows with the window (15px on a laptop, up to 19px on a large screen),
+   so the whole interface scales together. Cmd or Ctrl with plus, minus and 0 zoom on top of that. */
 :root{
- --bg:#0E131C; --side:#0B1018; --panel:#131924; --card:#1B2333; --card-2:#222C3F; --line:#263247;
- --text:#E6ECF5; --muted:#9AA7BC; --head:#F4F1EA; --accent:#C9A15A; --accent-ink:#1A1408;
- --primary:#2F5FA7; --primary-h:#3A6FBF; --danger:#B4473C; --danger-h:#C65449;
+ --bg:#0E131C; --side:#0B1018; --panel:#131924; --card:#1B2333; --card-2:#202A3C; --line:#2A3650;
+ --text:#E6ECF5; --muted:#A3AFC2; --faint:#7F8BA0; --head:#F4F1EA; --accent:#C9A15A; --accent-ink:#1A1408;
+ --primary:#2F62AE; --primary-h:#3A70C2; --danger:#B4473C; --danger-h:#C65449;
  --ok:#4CC38A; --warn:#E0B254; --off:#7B869B; --focus:#F2C9A0;
- --r:10px; --fs-h1:1.15rem; --fs-h2:1.05rem; --fs-h3:.78rem;
+ --r:12px; --gap:1.25rem; --pad:1.5rem;
+ --fs-h1:1.3rem; --fs-h2:1.75rem; --fs-h3:1.08rem; --fs-sm:.9rem; --fs-xs:.8rem;
 }
 @media (prefers-color-scheme:light){:root{
- --bg:#EEF2F8; --side:#16294B; --panel:#F6F8FC; --card:#FFFFFF; --card-2:#F1F4FA; --line:#D6DEEA;
- --text:#22304A; --muted:#5B6678; --head:#16294B; --accent:#7A4A2A; --accent-ink:#fff;
+ --bg:#EEF2F8; --side:#16294B; --panel:#F6F8FC; --card:#FFFFFF; --card-2:#F4F6FB; --line:#D3DBE8;
+ --text:#1F2D45; --muted:#4F5B70; --faint:#6A7488; --head:#16294B; --accent:#7A4A2A; --accent-ink:#fff;
  --primary:#1F3A68; --primary-h:#2A4C85; --focus:#7A4A2A;
 }}
 *{box-sizing:border-box}
+html{font-size:clamp(15px,calc(9.5px + .42vw),19px)}
 html,body{height:100%;margin:0}
-body{background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;overflow:hidden}
+body{background:var(--bg);color:var(--text);font:1rem/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased}
 [hidden]{display:none!important}
 :focus-visible{outline:2px solid var(--focus);outline-offset:2px}
-.app{display:grid;grid-template-columns:232px 1fr;grid-template-rows:56px 1fr 28px;grid-template-areas:"side top" "side main" "status status";height:100vh}
+kbd{font:600 .78rem ui-monospace,monospace;color:var(--faint);letter-spacing:.02em}
+.app{display:grid;grid-template-columns:16rem minmax(0,1fr);grid-template-rows:4rem 1fr 2.1rem;grid-template-areas:"side top" "side main" "status status";height:100vh}
 
 /* sidebar */
-.side{grid-area:side;background:var(--side);display:flex;flex-direction:column;padding:14px 10px;gap:2px;border-right:1px solid var(--line)}
-.brand{display:flex;align-items:center;gap:10px;padding:4px 10px 18px;color:#F4F1EA;font-weight:700;font-size:1rem}
-.brand img{width:28px;height:28px;border-radius:7px}
-.nav{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:12px;width:100%;padding:9px 12px;border-radius:8px;color:#B9C4D6;font-weight:600;font-size:.93rem;cursor:pointer}
-.nav svg{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.side{grid-area:side;background:var(--side);display:flex;flex-direction:column;padding:1rem .75rem;gap:.2rem;border-right:1px solid var(--line);overflow:auto}
+.brand{display:flex;align-items:center;gap:.75rem;padding:.2rem .7rem 1.4rem;color:#F4F1EA;font-weight:700;font-size:1.12rem}
+.brand img{width:2.1rem;height:2.1rem;border-radius:.5rem}
+.nav{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:.85rem;width:100%;min-height:2.9rem;padding:.55rem .85rem;border-radius:.6rem;color:#C2CCDC;font-weight:600;font-size:1rem;cursor:pointer}
+.nav svg{width:1.35rem;height:1.35rem;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.nav span{flex:1}
 .nav:hover{background:rgba(255,255,255,.06);color:#fff}
 .nav[aria-current="page"]{background:rgba(201,161,90,.16);color:#F4F1EA;box-shadow:inset 3px 0 0 #C9A15A}
-.nav:focus-visible{outline:2px solid #F2C9A0}
+.nav:focus-visible{outline:2px solid #F2C9A0;outline-offset:0}
 .side .grow{flex:1}
-.side .sep{height:1px;background:rgba(255,255,255,.08);margin:8px 6px}
+.side .sep{height:1px;background:rgba(255,255,255,.08);margin:.6rem .5rem}
 
 /* workspace bar */
-.top{grid-area:top;display:flex;align-items:center;gap:14px;padding:0 22px;background:var(--panel);border-bottom:1px solid var(--line)}
-.top h1{margin:0;font-size:var(--fs-h1);font-weight:700;color:var(--head);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
-.chip{display:inline-flex;align-items:center;gap:7px;padding:4px 11px;border-radius:999px;background:var(--card);font-size:.82rem;font-weight:600;white-space:nowrap}
-.dot{width:8px;height:8px;border-radius:50%;background:var(--off)}
+.top{grid-area:top;display:flex;align-items:center;gap:1.25rem;padding:0 var(--pad);background:var(--panel);border-bottom:1px solid var(--line)}
+.top h1{margin:0;font-size:var(--fs-h1);font-weight:700;color:var(--head);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
+.chip{display:inline-flex;align-items:center;gap:.55rem;padding:.35rem .9rem;border-radius:999px;background:var(--card);font-size:var(--fs-sm);font-weight:600;white-space:nowrap}
+.dot{width:.6rem;height:.6rem;border-radius:50%;background:var(--off)}
 .chip.live .dot{background:var(--ok);box-shadow:0 0 0 3px rgba(76,195,138,.18)}
 .chip.busy .dot{background:var(--warn)}
-.keybox{display:inline-flex;align-items:center;gap:8px;font-size:.82rem;color:var(--muted);white-space:nowrap}
-.keybox code{font:700 .9rem ui-monospace,monospace;color:var(--text);letter-spacing:.04em}
+.keybox{display:inline-flex;align-items:center;gap:.6rem;font-size:var(--fs-sm);color:var(--muted);white-space:nowrap}
+.keybox code{font:700 1.02rem ui-monospace,monospace;color:var(--text);letter-spacing:.04em}
 
-/* main */
-main{grid-area:main;overflow:auto;padding:22px 26px 30px}
-.view{max-width:78rem;margin:0 auto}
-.view>header{margin:0 0 16px}
-.view h2{margin:0;font-size:var(--fs-h2);font-weight:700;color:var(--head)}
-.view>header p{margin:4px 0 0;color:var(--muted);font-size:.92rem}
-.card{background:var(--card);border-radius:var(--r);padding:18px 20px}
+/* main: views use the full width of the window, up to a comfortable limit on very large screens */
+main{grid-area:main;overflow:auto;padding:1.75rem var(--pad) 2.25rem}
+.view{max-width:120rem;margin:0 auto}
+.view>header{margin:0 0 1.4rem}
+.view h2{margin:0;font-size:var(--fs-h2);line-height:1.2;font-weight:700;color:var(--head)}
+.view>header p{margin:.35rem 0 0;color:var(--muted);font-size:1rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:var(--pad)}
 .card.sub{background:var(--card-2)}
-.card h3{margin:0 0 12px;font-size:var(--fs-h3);font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
-.card p{margin:.35rem 0}
-.cols{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:18px;align-items:start}
-.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(20rem,1fr));gap:18px}
-.stack{display:grid;gap:18px}
-.note{color:var(--muted);font-size:.88rem}
-.msg{font-weight:600;min-height:1.4em;font-size:.9rem}
+.card h3{margin:0 0 1rem;font-size:var(--fs-h3);font-weight:700;color:var(--head)}
+.card p{margin:.4rem 0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,22rem),1fr));gap:var(--gap)}
+.stack{display:grid;gap:var(--gap);align-content:start}
+.note{color:var(--muted);font-size:var(--fs-sm)}
+.msg{font-weight:600;min-height:1.4em;font-size:var(--fs-sm)}
+.lbl{font-size:var(--fs-xs);font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin:0 0 .35rem}
 
-/* buttons: primary solid, secondary outline, text link */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:38px;padding:7px 16px;border-radius:8px;font:600 .92rem system-ui,sans-serif;cursor:pointer;border:1px solid var(--line);background:transparent;color:var(--text)}
+/* buttons: one primary per group (solid), secondary (outline), destructive (red, kept apart), text link */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.6rem;min-height:2.6rem;padding:.5rem 1.1rem;border-radius:.55rem;font:600 .98rem system-ui,sans-serif;cursor:pointer;border:1px solid var(--line);background:transparent;color:var(--text)}
 .btn:hover{background:rgba(255,255,255,.05);border-color:var(--muted)}
 @media (prefers-color-scheme:light){.btn:hover{background:rgba(0,0,0,.04)}}
+.btn:disabled{opacity:.5;cursor:default}
 .btn.primary{background:var(--primary);border-color:var(--primary);color:#fff}
 .btn.primary:hover{background:var(--primary-h);border-color:var(--primary-h)}
 .btn.danger{background:var(--danger);border-color:var(--danger);color:#fff}
 .btn.danger:hover{background:var(--danger-h)}
-.btn.sm{min-height:30px;padding:4px 11px;font-size:.84rem}
-.link{all:unset;cursor:pointer;color:var(--accent);font-weight:600;font-size:.9rem}
+.btn.sm{min-height:2.1rem;padding:.3rem .8rem;font-size:var(--fs-sm)}
+.btn svg{width:1.2rem;height:1.2rem;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.link{all:unset;cursor:pointer;color:var(--accent);font-weight:600;font-size:.95rem}
 @media (prefers-color-scheme:dark){.link{color:#E3C083}}
 .link:hover{text-decoration:underline}
-.link:focus-visible{outline:2px solid var(--focus)}
-.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-.tools{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.tools .btn{width:100%;justify-content:flex-start}
-.tools .btn svg,.btn svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.link:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.row{display:flex;flex-wrap:wrap;gap:.75rem;align-items:center}
+
+/* In Class: quick actions, then live activity beside the scan code card and tools; three columns on wide windows */
+.quick{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.75rem;margin:0 0 var(--gap)}
+.qa{min-height:3.6rem;font-size:1.02rem;justify-content:flex-start;padding:.7rem 1.1rem}
+.qa svg{width:1.45rem;height:1.45rem}
+.cols{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);grid-template-areas:"live a" "live b";gap:var(--gap);align-items:start}
+.card-head{display:flex;align-items:baseline;justify-content:space-between;gap:1rem;margin:0 0 1rem}
+.card-head h3{margin:0}
+.tools{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,13rem),1fr));gap:.75rem}
+.tools.list{grid-template-columns:1fr}
+.tools .btn{width:100%;justify-content:flex-start;min-height:3.1rem;padding:.65rem 1rem;font-size:1rem;text-align:left}
+.tools .btn svg{width:1.35rem;height:1.35rem}
+.card.sub .tools .btn{border-color:transparent;background:rgba(255,255,255,.035)}
+.card.sub .tools .btn:hover{background:rgba(255,255,255,.07);border-color:var(--line)}
+@media (prefers-color-scheme:light){.card.sub .tools .btn{background:rgba(0,0,0,.03)}}
+@media (min-width:1700px){.cols{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) minmax(0,1fr);grid-template-areas:"live a b"}}
+
+/* live activity */
+.act{padding:1.1rem 0 1.25rem;border-top:1px solid var(--line)}
+.act:last-child{padding-bottom:0}
+.act-top{display:flex;align-items:center;gap:.8rem;margin:0 0 .6rem;flex-wrap:wrap}
+.tag{display:inline-flex;align-items:center;gap:.45rem;padding:.2rem .7rem;border-radius:999px;background:var(--card-2);font-size:var(--fs-sm);font-weight:700;color:var(--muted)}
+.tag::before{content:"";width:.55rem;height:.55rem;border-radius:50%;background:var(--off)}
+.tag.on{color:var(--text)}
+.tag.on::before{background:var(--ok);box-shadow:0 0 0 3px rgba(76,195,138,.18)}
+.tag.held::before{background:var(--warn)}
+.count{margin:0;font-size:3rem;font-weight:700;line-height:1.05;color:var(--head);font-variant-numeric:tabular-nums}
+.count .of{font-size:1.4rem;font-weight:600;color:var(--muted);margin-left:.35rem}
+.act-main{margin:0 0 1rem}
+.act-main .note{margin:.3rem 0 0}
+.qrow{display:flex;align-items:baseline;gap:1rem;padding:.55rem 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.qrow:last-child{border-bottom:0}
+.qrow b{font:700 1.05rem ui-monospace,monospace;color:var(--head)}
+.qrow .qn{margin-left:auto;font-weight:700;font-size:1.25rem;color:var(--head);font-variant-numeric:tabular-nums}
+#quiz-list{margin:0 0 1rem}
+
+/* student scan code card */
+.sm-chip{font-size:var(--fs-xs);padding:.25rem .7rem}
+.scan-row{display:grid;grid-template-columns:auto minmax(0,1fr);gap:1.1rem;align-items:center}
+.qr-mini{all:unset;box-sizing:border-box;cursor:zoom-in;width:7.5rem;aspect-ratio:1;background:#fff;padding:.4rem;border-radius:.55rem}
+.qr-mini:focus-visible{outline:2px solid var(--focus);outline-offset:3px}
+.qr-mini svg{width:100%;height:100%;display:block}
+.qr-mini:empty{background:var(--card-2)}
+.addr-mini{font:600 1.05rem/1.35 ui-monospace,monospace;word-break:break-all;margin:0 0 .8rem;color:var(--head)}
+
+/* scan code window: large QR first, everything else below it; full screen for the projector */
+.scan-d{width:min(64rem,94vw);max-width:none;max-height:94vh;padding:1.25rem 1.6rem 1.6rem}
+.scan-bar{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;margin:0 0 1rem}
+.scan-bar h2{margin:0;font-size:1.3rem}
+.scan-bar form{margin:0}
+.scan-d #qr{width:min(100%,calc(94vh - 19rem),44rem)}
+.scan-ctl{gap:1rem}
+.proj{display:none}
+.proj:fullscreen{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.2rem;background:var(--bg);color:var(--text);padding:2rem}
+.proj-qr{width:min(92vw,calc(100vh - 13rem));aspect-ratio:1;background:#fff;padding:1.2rem;border-radius:1rem}
+.proj-qr svg{width:100%;height:100%;display:block}
+.proj-addr{margin:0;font:700 clamp(1.8rem,3.4vw,3.6rem)/1.2 ui-monospace,monospace;color:var(--head);text-align:center;word-break:break-all}
+.proj-live{margin:0;font-size:1.3rem;color:var(--muted)}
+.proj-exit{position:absolute;top:1.2rem;right:1.2rem}
 
 /* banner */
-.banner{display:flex;align-items:center;gap:18px;flex-wrap:wrap;background:linear-gradient(90deg,rgba(201,161,90,.16),rgba(201,161,90,.05));border-radius:var(--r);padding:12px 16px;margin-bottom:18px}
+.banner{display:flex;align-items:center;gap:1.25rem;flex-wrap:wrap;background:linear-gradient(90deg,rgba(201,161,90,.16),rgba(201,161,90,.05));border:1px solid rgba(201,161,90,.25);border-radius:var(--r);padding:.85rem 1.1rem;margin-bottom:1.5rem}
 .banner strong{color:var(--head)}
-.todo{display:flex;gap:16px;list-style:none;margin:0;padding:0;flex:1;flex-wrap:wrap}
-.todo li{display:flex;align-items:center;gap:6px;font-size:.9rem;font-weight:600}
+.todo{display:flex;gap:1.25rem;list-style:none;margin:0;padding:0;flex:1;flex-wrap:wrap}
+.todo li{display:flex;align-items:center;gap:.45rem;font-size:.95rem;font-weight:600}
 .todo .mk{width:1.1em;text-align:center;color:var(--muted)}
 .todo li.done{color:var(--muted)}
 .todo li.done .mk{color:var(--ok)}
 .todo li.done .link{display:none}
-.x{all:unset;cursor:pointer;width:28px;height:28px;display:grid;place-items:center;border-radius:6px;color:var(--muted);font-size:1.2rem}
+.x{all:unset;cursor:pointer;width:2.2rem;height:2.2rem;display:grid;place-items:center;border-radius:.4rem;color:var(--muted);font-size:1.35rem}
 .x:hover{background:rgba(255,255,255,.08);color:var(--text)}
 .x:focus-visible{outline:2px solid var(--focus)}
 
 /* connection card */
-.seg{display:inline-flex;padding:3px;border-radius:9px;background:var(--bg);gap:2px;margin:0 0 16px}
-.seg label{position:relative;padding:6px 14px;border-radius:7px;font-weight:600;font-size:.88rem;color:var(--muted);cursor:pointer}
+.seg{display:inline-flex;padding:.25rem;border-radius:.65rem;background:var(--bg);gap:.2rem;margin:0;border:0}
+.seg label{position:relative;padding:.5rem 1.1rem;border-radius:.5rem;font-weight:600;font-size:.95rem;color:var(--muted);cursor:pointer}
 .seg input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
 .seg label:has(input:checked){background:var(--card-2);color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,.25)}
 .seg label:has(input:focus-visible){outline:2px solid var(--focus)}
-.conn{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:20px;align-items:start}
-.lbl{font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 4px}
-.addr{font:600 1.15rem ui-monospace,monospace;word-break:break-all;margin:0 0 12px;color:var(--head)}
-#qr{width:184px;height:184px;background:#fff;padding:8px;border-radius:10px}
+/* QR first and as large as the card and window allow; everything else centred below it */
+.conn{display:flex;flex-direction:column;align-items:center;text-align:center}
+.conn .row{justify-content:center}
+.addr{font:600 clamp(1.2rem,1.7vw,1.8rem)/1.3 ui-monospace,monospace;word-break:break-all;margin:0 0 1rem;color:var(--head)}
+#qr{aspect-ratio:1;background:#fff;padding:.9rem;border-radius:.9rem;margin:0 0 1.1rem}
 #qr svg{width:100%;height:100%;display:block}
 #qr:empty{background:var(--card-2)}
-.tstate{font-weight:600;font-size:.9rem;margin:10px 0 0}
+.tstate{font-weight:600;font-size:.95rem;margin:.8rem 0 0}
 .tstate.err{color:#F0A49A}
-.more{margin-top:14px}
+.more{margin-top:1.1rem}
+.stopbox{margin-top:1.2rem;padding-top:1.1rem;border-top:1px solid var(--line);align-self:stretch}
 
 /* tables */
-.tbl{overflow:auto;border-radius:8px;background:var(--panel);height:calc(100vh - 290px);min-height:16rem}
-table{border-collapse:collapse;font-size:.88rem;width:max-content;min-width:100%}
-td,th{border-bottom:1px solid var(--line);padding:6px 12px;text-align:left;white-space:nowrap}
+.tbl{overflow:auto;border-radius:.6rem;border:1px solid var(--line);background:var(--panel);height:calc(100vh - 19rem);min-height:16rem}
+table{border-collapse:collapse;font-size:.95rem;width:max-content;min-width:100%}
+td,th{border-bottom:1px solid var(--line);padding:.5rem .9rem;text-align:left;white-space:nowrap}
 th{position:sticky;top:0;background:var(--card-2);font-weight:700;cursor:pointer;user-select:none}
 th[aria-sort="ascending"]::after{content:" \25B2";font-size:.7em}
 th[aria-sort="descending"]::after{content:" \25BC";font-size:.7em}
 tbody tr:hover{background:rgba(255,255,255,.03)}
 
 /* forms */
-label.f{display:block;font-weight:600;font-size:.88rem;margin:12px 0 4px}
-input.f,select.f{width:100%;min-height:38px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--text);font:inherit}
-select.f{width:auto;min-width:12rem}
+label.f{display:block;font-weight:600;font-size:.95rem;margin:1rem 0 .35rem}
+input.f,select.f{width:100%;min-height:2.6rem;padding:.4rem .75rem;border:1px solid var(--line);border-radius:.55rem;background:var(--panel);color:var(--text);font:inherit}
+select.f{width:auto;min-width:14rem}
 #r-msg:empty{display:none}
-details summary{cursor:pointer;font-weight:600;font-size:.9rem;margin-top:14px}
-.kv{display:grid;grid-template-columns:6rem 1fr;gap:6px 14px;font-size:.9rem;margin:0}
+details summary{cursor:pointer;font-weight:600;font-size:.95rem;margin-top:1.1rem}
+.kv{display:grid;grid-template-columns:7rem 1fr;gap:.45rem 1rem;font-size:.95rem;margin:0}
 .kv dt{color:var(--muted)}
 .kv dd{margin:0;word-break:break-all}
-.big{font-size:2rem;font-weight:700;color:var(--head);line-height:1.1}
+.big{font-size:2.6rem;font-weight:700;color:var(--head);line-height:1.1}
 
 /* status bar */
-.status{grid-area:status;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 14px;background:var(--side);color:#8D99AD;font-size:.76rem;border-top:1px solid var(--line)}
+.status{grid-area:status;display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:0 1rem;background:var(--side);color:#A3AEC0;font-size:.85rem;border-top:1px solid var(--line)}
+.status .link{font-size:.85rem;color:#E3C083}
 .status span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* modal */
-dialog{border:0;border-radius:12px;background:var(--card);color:var(--text);max-width:34rem;padding:22px 24px}
+dialog{border:1px solid var(--line);border-radius:var(--r);background:var(--card);color:var(--text);max-width:38rem;padding:1.6rem 1.8rem}
 dialog::backdrop{background:rgba(5,8,14,.6)}
-dialog h2{margin:0 0 10px;font-size:var(--fs-h2);color:var(--head)}
-dialog p{margin:.5rem 0;line-height:1.55}
+dialog h2{margin:0 0 .75rem;font-size:1.3rem;color:var(--head)}
+dialog p{margin:.6rem 0;line-height:1.6}
+dialog table{width:100%;font-size:.95rem}
+dialog td{white-space:normal;padding:.4rem .6rem}
+dialog td:last-child{text-align:right}
 
-@media (max-width:980px){.cols{grid-template-columns:1fr}.app{grid-template-columns:72px 1fr}.nav span,.brand span{display:none}.nav{justify-content:center}}
-@media (max-width:640px){.conn{grid-template-columns:1fr}.tools{grid-template-columns:1fr}}
+
+/* sidebar section labels */
+.side-h{margin:.9rem .85rem .3rem;font-size:.7rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#7F8BA0}
+.side-h:first-of-type{margin-top:0}
+
+/* Insight screens */
+:root{--g-on:#4CC38A;--g-hard:#E0B254;--g-dis:#8EA6E0;--g-need:#E07A6E;--g-none:#7B869B;--bar:#5B8BD9;--bar-hi:#C9A15A;--grid:rgba(255,255,255,.08)}
+@media (prefers-color-scheme:light){:root{--g-on:#1F8A5B;--g-hard:#A36A00;--g-dis:#3F5FA8;--g-need:#B23A2E;--g-none:#6A7488;--bar:#2F62AE;--bar-hi:#7A4A2A;--grid:rgba(0,0,0,.08)}}
+.vh{display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+.vh p{margin:.35rem 0 0;color:var(--muted)}
+.collect .btn{background:var(--card)}
+.ins{display:grid;gap:var(--gap)}
+.livestrip{display:flex;align-items:center;flex-wrap:wrap;gap:.6rem 1rem;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:.6rem 1rem;margin:0 0 var(--gap);font-weight:600;font-size:.95rem}
+.livestrip .sep2{width:1px;height:1.2rem;background:var(--line)}
+.tiles4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--gap)}
+.tile{padding:1.1rem 1.2rem;display:flex;flex-direction:column;gap:.15rem}
+.tile .note{margin:0}
+.tbig{margin:0;font-size:2.2rem;font-weight:700;line-height:1.1;color:var(--head);font-variant-numeric:tabular-nums}
+.tile svg.bars{margin-top:.5rem}
+.ins>*,.ov2>*,.tiles4>*{min-width:0}
+.ov2{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:var(--gap);align-items:start}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.empty h3{margin-top:0}
+svg.bars{display:block;width:100%;height:auto;overflow:visible}
+svg.bars .grid{stroke:var(--grid);stroke-width:1}
+svg.bars .base{stroke:var(--line);stroke-width:1}
+svg.bars .ax{fill:var(--faint);font:11px system-ui,sans-serif}
+svg.bars .bar path{fill:var(--bar)}
+svg.bars .bar.hi path{fill:var(--bar-hi)}
+svg.bars .bar .hit{fill:transparent}
+svg.bars .bar:hover path{fill:var(--bar-hi)}
+/* the verdict */
+.verdict{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1.3fr) minmax(0,1fr);gap:1.5rem;border-left:4px solid var(--g-none)}
+.verdict.v-yes{border-left-color:var(--g-on)}.verdict.v-mixed{border-left-color:var(--g-hard)}.verdict.v-no{border-left-color:var(--g-need)}
+.v-word{display:flex;align-items:center;gap:.8rem;flex-wrap:wrap;margin:.2rem 0 .6rem}
+.v-word .vchip{font-size:1.6rem;padding:.3rem .9rem}
+.v-act{margin:.4rem 0}
+.vchip{display:inline-flex;align-items:center;gap:.4rem;padding:.12rem .6rem;border-radius:999px;font-weight:700;font-size:.85rem;background:var(--card-2);color:var(--text);border:1px solid var(--line);white-space:nowrap}
+.vchip b{font-weight:700}
+.vchip.v-yes{color:var(--g-on);border-color:currentColor}.vchip.v-mixed{color:var(--g-hard);border-color:currentColor}.vchip.v-no{color:var(--g-need);border-color:currentColor}.vchip.v-none{color:var(--g-none)}
+.warnline{color:var(--g-hard)}
+.sigs,.topics,.targets,.legend{list-style:none;margin:0;padding:0}
+.sigs li{display:flex;gap:.7rem;padding:.45rem 0;border-bottom:1px solid var(--line)}
+.sigs li:last-child{border-bottom:0}
+.sigs li div{display:flex;flex-direction:column}
+.sig{font-weight:700;font-size:1.1rem;width:1.3rem;flex:none;text-align:center}
+.sig.up{color:var(--g-on)}.sig.down{color:var(--g-need)}.sig.flat{color:var(--muted)}
+.topics li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.1rem .6rem;padding:.45rem 0;border-bottom:1px solid var(--line);align-items:center}
+.topics li .tnum{grid-column:1/-1}
+.topics li:last-child{border-bottom:0}
+.tnum{font-variant-numeric:tabular-nums}
+/* engagement */
+.stackbar{display:flex;gap:2px;height:1rem;border-radius:4px;overflow:hidden;margin:.4rem 0 .7rem;background:var(--card-2)}
+.stackbar span{display:block}
+.g-on{background:var(--g-on)}.g-hard{background:var(--g-hard)}.g-dis{background:var(--g-dis)}.g-need{background:var(--g-need)}.g-none{background:var(--g-none)}
+.legend li{margin:0}
+.lg,.gf{all:unset;box-sizing:border-box;cursor:pointer;display:inline-flex;align-items:center;gap:.5rem;font-size:var(--fs-sm);padding:.2rem .3rem;border-radius:.4rem}
+.lg{width:100%}
+.lg b,.gf b{margin-left:auto;font-variant-numeric:tabular-nums;color:var(--head)}
+.lg:hover,.gf:hover{background:rgba(255,255,255,.05)}
+.lg:focus-visible,.gf:focus-visible{outline:2px solid var(--focus)}
+.lg i,.gf i{width:.7rem;height:.7rem;border-radius:2px;flex:none}
+.gfilter,.qpick{gap:.5rem}
+.gf{border:1px solid var(--line);padding:.4rem .8rem;background:var(--card)}
+.gf b{margin-left:.3rem}
+.gf.on{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.gchip{display:inline-flex;align-items:center;padding:.1rem .55rem;border-radius:999px;font-size:.82rem;font-weight:700;color:#10151F;white-space:nowrap}
+@media (prefers-color-scheme:light){.gchip{color:#fff}}
+/* areas to target */
+.targets{counter-reset:t}
+.targets li{display:grid;grid-template-columns:5.2rem minmax(0,1fr);gap:.8rem;padding:.75rem 0;border-bottom:1px solid var(--line)}
+.targets li:last-child{border-bottom:0}
+.targets p{margin:.15rem 0}
+.tk{font-size:var(--fs-xs);font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding-top:.15rem}
+.todo-a{font-weight:600}
+.todo-a::before{content:"Suggested: ";color:var(--accent)}
+@media (prefers-color-scheme:dark){.todo-a::before{color:#E3C083}}
+/* tables on Insight screens */
+.ins-tbl{height:auto;max-height:calc(100vh - 20rem);min-height:0}
+.ins-tbl.short{max-height:24rem}
+.ins-tbl tbody tr[data-id]{cursor:pointer}
+.ins-tbl td.obj{white-space:normal;min-width:14rem;max-width:30rem}
+.ins-tbl td.flag{color:var(--g-need);font-weight:700}
+.ins-tbl td{font-variant-numeric:tabular-nums}
+.th{padding:.9rem 1.2rem}
+/* Learning Progress and the student record */
+.look-d{width:min(34rem,92vw)}
+.lv-legend{display:flex;flex-wrap:wrap;gap:.3rem 1rem}.lv-legend span{display:inline-flex;align-items:center;gap:.35rem}.lv-legend i{width:.7rem;height:.7rem;border-radius:2px}
+.ins-tbl .stackbar{margin:.2rem 0;min-width:8rem}
+.gp-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(10rem,1fr));gap:.6rem;margin-top:.4rem}
+.gp-cell{display:flex;flex-direction:column;gap:.1rem;border:1px solid var(--line);border-radius:.5rem;padding:.5rem .7rem;background:var(--card-2)}
+.gp-cell span:first-of-type{font-size:1.4rem;font-weight:700;color:var(--head);font-variant-numeric:tabular-nums}
+.stu-d h3.sec{margin:1.4rem 0 .5rem;font-size:var(--fs-h3);border-top:1px solid var(--line);padding-top:1rem}
+.tips{list-style:none;margin:0;padding:0}.tips li{display:grid;grid-template-columns:6.5rem minmax(0,1fr);gap:.8rem;padding:.5rem 0;border-bottom:1px solid var(--line)}.tips li:last-child{border-bottom:0}
+ul.plain{margin:.2rem 0;padding-left:1.1rem}ul.plain li{margin:.2rem 0}
+.th summary{margin:0}
+.th-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0 1rem;align-items:end}
+.th-grid label.f{font-size:var(--fs-sm)}
+.th-grid input.f{max-width:9rem}
+dl.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.9rem 1rem;margin:0}
+dl.stats dt{font-size:var(--fs-xs);color:var(--muted);font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head);font-variant-numeric:tabular-nums}
+.opts{display:flex;gap:3px;align-items:flex-end;height:2.3rem}
+.opt{position:relative;width:1.35rem;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;border-radius:3px;background:var(--card-2)}
+.opt i{display:block;width:100%;background:var(--g-none);border-radius:3px 3px 0 0;min-height:1px}
+.opt.key i{background:var(--g-on)}
+.opt.mis i{background:var(--g-need)}
+.opt.key{outline:1.5px solid var(--g-on)}
+.opt b{position:absolute;bottom:-1.05rem;font-size:.68rem;color:var(--faint)}
+.ins-tbl td:has(.opts){padding-bottom:1.3rem}
+/* student record */
+.stu-d{width:min(52rem,94vw);max-width:none;max-height:92vh}
+.kv4{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;margin:1rem 0}
+.kv4 p{margin:0}
+.marks{display:flex;flex-wrap:wrap;gap:4px;margin:.2rem 0 1rem}
+.marks span{width:1.7rem;height:1.7rem;display:grid;place-items:center;border-radius:4px;font-size:.85rem;font-weight:700}
+.m-in{background:rgba(76,195,138,.18);color:var(--g-on)}.m-out{background:rgba(224,122,110,.16);color:var(--g-need)}.m-na{background:var(--card-2);color:var(--faint)}
+@media (max-width:1400px){.verdict{grid-template-columns:1fr 1fr}.v-top{grid-column:1/-1}}
+@media (max-width:1250px){.tiles4{grid-template-columns:repeat(2,minmax(0,1fr))}.ov2{grid-template-columns:1fr}.th-grid{grid-template-columns:1fr 1fr}}
+@media (max-width:900px){.verdict{grid-template-columns:1fr}.g2{grid-template-columns:1fr}}
+@media (max-width:1100px){.cols{grid-template-columns:1fr;grid-template-areas:"live" "a" "b"}.quick{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:1000px){.app{grid-template-columns:4.5rem minmax(0,1fr)}.nav span,.brand span{display:none}.nav{justify-content:center;padding:.55rem}.brand{justify-content:center;padding:.2rem 0 1.2rem}}
+@media (max-width:640px){.keybox>span{display:none}}
 </style>
 </head>
 <body>
@@ -163,16 +354,31 @@ dialog p{margin:.5rem 0;line-height:1.55}
  <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol>
  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></symbol>
  <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M17 6l3 3M14 9l2 2"/></symbol>
+ <symbol id="i-check" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4M8.5 15l2.5 2.5 4.5-5"/></symbol>
+ <symbol id="i-play" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M10 8.5v7l6-3.5z"/></symbol>
+ <symbol id="i-expand" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/><rect x="9" y="9" width="6" height="6" rx="1"/></symbol>
+ <symbol id="i-pulse" viewBox="0 0 24 24"><path d="M3 12h4l2.5-6 5 12 2.5-6h4"/></symbol>
+ <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></symbol>
+ <symbol id="i-table" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M3 14.5h18M9 9v11"/></symbol>
+ <symbol id="i-qr" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M21 14v.01M14 21h3M21 18v3h-1"/></symbol>
  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></symbol>
 </svg>
 
 <div class="app">
 <nav class="side" aria-label="Class Manager">
  <div class="brand"><img src="/app/icon.svg" alt=""><span>Class Manager</span></div>
- <button class="nav" data-view="class" aria-current="page"><svg><use href="#i-live"/></svg><span>In Class</span></button>
+ <p class="side-h">Insight</p>
+ <button class="nav" data-view="overview" aria-current="page"><svg><use href="#i-pulse"/></svg><span>Class Overview</span></button>
+ <button class="nav" data-view="students"><svg><use href="#i-people"/></svg><span>Students</span></button>
+ <button class="nav" data-view="progress"><svg><use href="#i-chart"/></svg><span>Learning Progress</span></button>
+ <button class="nav" data-view="attendance"><svg><use href="#i-check"/></svg><span>Attendance</span></button>
+ <button class="nav" data-view="quizzes"><svg><use href="#i-chart"/></svg><span>Quizzes and Questions</span></button>
+ <p class="side-h">Run the class</p>
+ <button class="nav" data-view="class"><svg><use href="#i-live"/></svg><span>Class Tools</span></button>
+ <p class="side-h">Manage</p>
  <button class="nav" data-view="course"><svg><use href="#i-book"/></svg><span>Course and Content</span></button>
- <button class="nav" data-view="roster"><svg><use href="#i-people"/></svg><span>Class Roster</span></button>
- <button class="nav" data-view="grades"><svg><use href="#i-chart"/></svg><span>Grades and Results</span></button>
+ <button class="nav" data-view="roster"><svg><use href="#i-list"/></svg><span>Class Roster</span></button>
+ <button class="nav" data-view="grades"><svg><use href="#i-table"/></svg><span>Grades and Results</span></button>
  <div class="grow"></div>
  <div class="sep"></div>
  <button class="nav" id="readme"><svg><use href="#i-help"/></svg><span>Instructions</span></button>
@@ -182,13 +388,14 @@ dialog p{margin:.5rem 0;line-height:1.55}
 <header class="top">
  <h1 data-cm="courseHeading">Course</h1>
  <span class="chip" id="live" role="status" aria-live="polite"><span class="dot"></span><span id="live-t">Starting</span></span>
+ <button class="btn sm" type="button" id="look-top" title="Find a student by ID or name">Find a student</button>
  <span class="keybox" title="Type this key when the lecturer pages ask for it. Keep it private.">Host key <code id="key">…</code> <button class="btn sm" type="button" id="key-copy"><svg><use href="#i-copy"/></svg>Copy</button></span>
 </header>
 
 <main id="main">
 
-<!-- In Class -->
-<section class="view" id="v-class" aria-labelledby="h-class">
+<!-- Class Overview: how the class is doing. Computed in the backend (classStats_ in the server script) from the data already collected. -->
+<section class="view" id="v-overview" aria-labelledby="h-overview">
  <div class="banner" id="setup" hidden>
   <strong>Finish setting up your course</strong>
   <ul class="todo">
@@ -198,48 +405,116 @@ dialog p{margin:.5rem 0;line-height:1.55}
   </ul>
   <button type="button" class="x" id="setup-x" aria-label="Hide this reminder" title="Hide this reminder">&times;</button>
  </div>
- <header><h2 id="h-class">In Class</h2><p>Students scan the code or type the address. Lecturer screens open in their own windows.</p></header>
+ <header class="vh"><div><h2 id="h-overview">Class Overview</h2><p id="ov-sub">How the class is doing, from attendance, live quizzes and practice.</p></div>
+  <div class="row collect" role="group" aria-label="Collect data">
+   <button class="btn sm" type="button" data-win="attendance.html"><svg><use href="#i-check"/></svg>Take attendance</button>
+   <button class="btn sm" type="button" data-win="quiz-host.html"><svg><use href="#i-play"/></svg>Run a quiz</button>
+   <button class="btn sm" type="button" data-scan><svg><use href="#i-qr"/></svg>Scan code</button>
+  </div></header>
+ <div class="livestrip" id="ov-live" hidden role="status" aria-live="polite"></div>
+ <div class="ins" id="ov"><p class="note">Working out the class statistics…</p></div>
+</section>
+
+<!-- Students -->
+<section class="view" id="v-students" aria-labelledby="h-students" hidden>
+ <header class="vh"><div><h2 id="h-students">Students</h2><p>Each student's attendance, quiz results and practice, with a suggested engagement group for your review.</p></div>
+  <div class="row"><button class="btn sm" type="button" id="st-csv">Download as CSV</button></div></header>
+ <details class="card sub th" id="th-box"><summary>Engagement rules and thresholds</summary>
+  <div class="th-grid">
+   <label class="f" for="th-effort">High effort from (effort score)</label><input class="f" id="th-effort" type="number" min="0" max="100" step="5">
+   <label class="f" for="th-perf">Good performance from (quiz average, %)</label><input class="f" id="th-perf" type="number" min="0" max="100" step="5">
+   <label class="f" for="th-idle">Practice counts as recent within (days)</label><input class="f" id="th-idle" type="number" min="1" max="120">
+   <label class="f" for="th-misses">Flag consecutive missed sessions from</label><input class="f" id="th-misses" type="number" min="1" max="20">
+  </div>
+  <p class="note">The effort score is the average of the parts that exist: attendance rate, the share of live quizzes taken, and recent practice (100 if the student practised within the period, otherwise 0). Performance is the live quiz average, or the practice average when no quiz has been taken. The groups are suggestions for you to review. They are never shown to students, and practice counts only when a student entered their ID, so a missing record is a prompt for a conversation, not evidence.</p>
+  <p class="row"><button class="btn primary sm" type="button" id="th-apply">Apply</button><button class="link" type="button" id="th-reset">Restore the defaults</button></p>
+ </details>
+ <div class="ins" id="st"></div>
+</section>
+
+<!-- Learning Progress: objectives, ask-discuss-revise, each student's progress, groups and group work (progress.js) -->
+<section class="view" id="v-progress" aria-labelledby="h-progress" hidden>
+ <header class="vh"><div><h2 id="h-progress">Learning Progress</h2><p>Progress by learning objective, the effect of pair discussion, and group work, from the students' own answers and submissions.</p></div>
+  <div class="row"><button class="btn sm" type="button" id="look-btn">Find a student</button><button class="btn sm" type="button" data-win="outcomes.html">Learning objectives</button><button class="btn sm" type="button" data-win="assignments.html">Group assignments</button></div></header>
+ <div class="ins" id="lp"><p class="note">Working out learning progress…</p></div>
+</section>
+
+<!-- Attendance -->
+<section class="view" id="v-attendance" aria-labelledby="h-att" hidden>
+ <header class="vh"><div><h2 id="h-att">Attendance</h2><p>Submitted sessions only. A session counts once you submit it to the attendance record.</p></div>
+  <div class="row"><button class="btn sm" type="button" data-win="attendance.html"><svg><use href="#i-check"/></svg>Take attendance</button></div></header>
+ <div class="ins" id="at"></div>
+</section>
+
+<!-- Quizzes and Questions -->
+<section class="view" id="v-quizzes" aria-labelledby="h-qz" hidden>
+ <header class="vh"><div><h2 id="h-qz">Quizzes and Questions</h2><p>Released live quiz results. Each student's latest round counts once.</p></div>
+  <div class="row"><button class="btn sm" type="button" data-win="quiz-host.html"><svg><use href="#i-play"/></svg>Run a quiz</button></div></header>
+ <div class="ins" id="qz"></div>
+</section>
+
+<!-- Class Tools: collecting the data -->
+<section class="view" id="v-class" aria-labelledby="h-class" hidden>
+ <header><h2 id="h-class">Class Tools</h2><p>The means of collecting the data: attendance, live quizzes, the student scan code and announcements. What they show about the class is under Insight.</p></header>
+
+ <div class="quick" role="group" aria-label="Quick actions">
+  <button class="btn primary qa" data-win="attendance.html" data-key="Shift+A"><svg><use href="#i-check"/></svg>Take attendance</button>
+  <button class="btn qa" data-win="quiz-host.html"><svg><use href="#i-play"/></svg>Run a quiz</button>
+  <button class="btn qa" data-win="quiz-display.html" data-key="P"><svg><use href="#i-screen"/></svg>Projector display</button>
+  <button class="btn qa" data-win="messages.html"><svg><use href="#i-chat"/></svg>Send an announcement</button>
+ </div>
+
  <div class="cols">
-  <div class="card">
-   <h3>Access and connection</h3>
-   <fieldset class="seg" style="border:0"><legend class="lbl" style="position:absolute;left:-9999px">How students connect</legend>
-    <label><input type="radio" name="conn" value="lan" checked> Same Wi-Fi or hotspot</label>
-    <label><input type="radio" name="conn" value="net"> Internet</label>
-   </fieldset>
-   <div class="conn">
-    <div>
-     <p class="lbl">Student address</p>
-     <p class="addr" id="addr">…</p>
-     <div class="row">
-      <button class="btn primary" type="button" id="copy-url"><svg><use href="#i-copy"/></svg>Copy link</button>
-      <button class="btn danger" id="t-stop" type="button" hidden>Stop internet access</button>
-      <button class="link" type="button" id="how">How this works</button>
-     </div>
-     <p class="tstate" id="tstate" role="status" aria-live="polite"></p>
-     <p class="note more" id="more-p">Other addresses of this computer: <span id="more">none</span>.</p>
+  <div class="card live-card" style="grid-area:live">
+   <div class="card-head"><h3>Live activity</h3><span class="note" id="lv-upd"></span></div>
+   <div class="act" id="lv-att">
+    <div class="act-top"><span class="tag" id="att-tag">Attendance</span><span class="note" id="att-meta"></span></div>
+    <div class="act-main">
+     <p class="count"><span id="att-n">0</span><span class="of" id="att-of"></span></p>
+     <p class="note" id="att-text">No attendance session is open.</p>
     </div>
-    <div id="qr" role="img" aria-label="QR code of the student address"></div>
+    <div class="row"><button class="btn" type="button" data-win="attendance.html" id="att-btn">Take attendance</button></div>
+   </div>
+   <div class="act" id="lv-quiz">
+    <div class="act-top"><span class="tag" id="quiz-tag">Live quiz</span><span class="note" id="quiz-meta"></span></div>
+    <div id="quiz-list"><p class="note">No quiz is running.</p></div>
+    <div class="row"><button class="btn" type="button" data-win="quiz-host.html" id="quiz-btn">Run a quiz</button><button class="btn" type="button" data-win="control.html">Control Centre</button></div>
    </div>
   </div>
-  <div class="stack">
+
+  <div class="stack" style="grid-area:a">
+   <div class="card scan-card">
+    <div class="card-head"><h3>Student scan code</h3><span class="chip sm-chip" id="live-mini"><span class="dot"></span><span id="live-mini-t">Starting</span></span></div>
+    <div class="scan-row">
+     <button type="button" class="qr-mini" id="qr-mini" aria-label="Show the scan code large" title="Show the scan code large"></button>
+     <div class="scan-txt">
+      <p class="addr-mini" id="addr-mini">…</p>
+      <div class="row">
+       <button class="btn primary" type="button" id="scan-open" data-key="Shift+S"><svg><use href="#i-expand"/></svg>Show scan code</button>
+       <button class="btn" type="button" id="copy-mini"><svg><use href="#i-copy"/></svg>Copy link</button>
+      </div>
+     </div>
+    </div>
+   </div>
    <div class="card">
     <h3>Class tools</h3>
-    <div class="tools">
-     <button class="btn primary" data-win="lecturer.html"><svg><use href="#i-menu"/></svg>Lecturer menu</button>
-     <button class="btn" data-win="quiz-display.html"><svg><use href="#i-screen"/></svg>Projector display</button>
+    <div class="tools list">
+     <button class="btn" data-win="lecturer.html" data-key="L"><svg><use href="#i-menu"/></svg>Lecturer menu</button>
      <button class="btn" data-win="control.html"><svg><use href="#i-sliders"/></svg>Control Centre</button>
      <button class="btn" data-win="insights.html"><svg><use href="#i-bulb"/></svg>Teaching insights</button>
     </div>
    </div>
+  </div>
+
+  <div class="stack" style="grid-area:b">
    <div class="card sub">
-    <h3>More</h3>
+    <h3>More tools</h3>
     <div class="tools">
      <button class="btn" data-win="groups.html"><svg><use href="#i-people"/></svg>Student groups</button>
      <button class="btn" data-win="calendar.html"><svg><use href="#i-cal"/></svg>Calendar</button>
-     <button class="btn" data-win="messages.html"><svg><use href="#i-chat"/></svg>Announcements</button>
      <button class="btn" data-win="codes.html"><svg><use href="#i-key"/></svg>Access codes</button>
     </div>
-    <p class="note" id="keynote" style="margin-top:12px">Lecturer pages ask for the host key shown at the top. Keep it private.</p>
+    <p class="note" id="keynote" style="margin-top:1rem">Lecturer pages ask for the host key shown at the top. Keep it private.</p>
    </div>
   </div>
  </div>
@@ -329,7 +604,39 @@ dialog p{margin:.5rem 0;line-height:1.55}
 </section>
 </main>
 
-<footer class="status"><span id="sb-left">Class Manager</span><span id="sb-right"></span></footer>
+<footer class="status"><span id="sb-left">Class Manager</span><button class="link" type="button" id="keys">Keyboard shortcuts</button><span id="sb-right"></span></footer>
+</div>
+
+<dialog id="scan-d" class="scan-d" aria-labelledby="scan-h">
+ <div class="scan-bar">
+  <h2 id="scan-h">Scan to open the course</h2>
+  <span class="note" id="scan-live" role="status" aria-live="polite"></span>
+  <span style="flex:1"></span>
+  <button class="btn" type="button" id="scan-full"><svg><use href="#i-expand"/></svg><span>Project full screen</span></button>
+  <form method="dialog"><button class="btn" id="scan-close" title="Close (Esc). Everything keeps running.">Close</button></form>
+ </div>
+ <div class="conn">
+  <div id="qr" role="img" aria-label="QR code of the student address"></div>
+  <p class="addr" id="addr">…</p>
+  <div class="row scan-ctl">
+   <button class="btn primary" type="button" id="copy-url"><svg><use href="#i-copy"/></svg>Copy link</button>
+   <fieldset class="seg"><legend class="lbl" style="position:absolute;left:-9999px">How students connect</legend>
+    <label><input type="radio" name="conn" value="lan" checked> Same Wi-Fi or hotspot</label>
+    <label><input type="radio" name="conn" value="net"> Internet</label>
+   </fieldset>
+   <button class="link" type="button" id="how">How this works</button>
+  </div>
+  <p class="tstate" id="tstate" role="status" aria-live="polite"></p>
+  <p class="note more" id="more-p">Other addresses of this computer: <span id="more">none</span>.</p>
+  <div class="stopbox" id="t-stopbox" hidden><button class="btn danger" id="t-stop" type="button">Stop internet access</button></div>
+ </div>
+</dialog>
+
+<div id="proj" class="proj" role="region" aria-label="Scan code on the projector">
+ <button class="btn proj-exit" type="button" id="proj-exit">Exit full screen (Esc)</button>
+ <div class="proj-qr" id="proj-qr" role="img" aria-label="QR code of the student address"></div>
+ <p class="proj-addr" id="proj-addr"></p>
+ <p class="proj-live" id="proj-live"></p>
 </div>
 
 <dialog id="how-d" aria-labelledby="how-h">
@@ -342,6 +649,42 @@ dialog p{margin:.5rem 0;line-height:1.55}
  <form method="dialog" class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn primary">Close</button></form>
 </dialog>
 
+<dialog id="keys-d" aria-labelledby="keys-h">
+ <h2 id="keys-h">Keyboard shortcuts</h2>
+ <table><tbody>
+  <tr><td>Class Overview</td><td><kbd data-k="1"></kbd></td></tr>
+  <tr><td>Students</td><td><kbd data-k="2"></kbd></td></tr>
+  <tr><td>Learning Progress</td><td><kbd data-k="9"></kbd></td></tr>
+  <tr><td>Attendance</td><td><kbd data-k="3"></kbd></td></tr>
+  <tr><td>Quizzes and Questions</td><td><kbd data-k="4"></kbd></td></tr>
+  <tr><td>Class Tools</td><td><kbd data-k="5"></kbd></td></tr>
+  <tr><td>Course and Content</td><td><kbd data-k="6"></kbd></td></tr>
+  <tr><td>Class Roster</td><td><kbd data-k="7"></kbd></td></tr>
+  <tr><td>Grades and Results</td><td><kbd data-k="8"></kbd></td></tr>
+  <tr><td>App Settings</td><td><kbd data-k=","></kbd></td></tr>
+  <tr><td>Show the student scan code</td><td><kbd data-k="Shift+S"></kbd></td></tr>
+  <tr><td>Take attendance</td><td><kbd data-k="Shift+A"></kbd></td></tr>
+  <tr><td>Find a student by ID or name</td><td><kbd data-k="K"></kbd></td></tr>
+  <tr><td>Open the lecturer menu</td><td><kbd data-k="L"></kbd></td></tr>
+  <tr><td>Open the projector display</td><td><kbd data-k="P"></kbd></td></tr>
+  <tr><td>Copy the student address</td><td><kbd data-k="Shift+C"></kbd></td></tr>
+  <tr><td>Larger text, smaller text, actual size</td><td><kbd data-k="+"></kbd> <kbd data-k="-"></kbd> <kbd data-k="0"></kbd></td></tr>
+  <tr><td>This list</td><td><kbd data-k="/"></kbd></td></tr>
+ </tbody></table>
+ <form method="dialog" class="row" style="justify-content:flex-end;margin-top:1rem"><button class="btn primary">Close</button></form>
+</dialog>
+
+<dialog id="stu-d" class="stu-d" aria-labelledby="stu-h"><div id="stu-body"></div>
+ <form method="dialog" class="row" style="justify-content:flex-end;margin-top:1rem"><button class="btn primary">Close</button></form></dialog>
+
+<dialog id="look-d" class="look-d" aria-labelledby="look-h">
+ <h2 id="look-h">Find a student</h2>
+ <form id="look-form" autocomplete="off"><label for="look-in">Student ID or name</label>
+  <div class="row"><input class="f" id="look-in" list="look-list" style="flex:1"><button class="btn primary" type="submit">Open</button><button class="btn" type="button" id="look-x">Cancel</button></div>
+  <datalist id="look-list"></datalist><p class="note" id="look-msg" role="status"></p></form>
+</dialog>
+<script src="/app/insights.js"></script>
+<script src="/app/progress.js"></script>
 <script>
 (function(){
 "use strict";
@@ -356,38 +699,95 @@ function copy(text,btn){
 }
 
 /* ---- views ---- */
-var views=["class","course","roster","grades","settings"];
+var views=["overview","students","progress","attendance","quizzes","class","course","roster","grades","settings"];
 function go(v){
- if(views.indexOf(v)<0)v="class";
+ if(views.indexOf(v)<0)v="overview";
  views.forEach(function(x){$("v-"+x).hidden=x!==v});
  document.querySelectorAll(".nav[data-view]").forEach(function(b){if(b.getAttribute("data-view")===v)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current")});
  store("cm-view",v);$("main").scrollTop=0;
  if(v==="grades")view();
+ if(typeof livePoll==="function")livePoll();
+ if(window.cmInsights)cmInsights.show(v);
+ if(window.cmProgress)cmProgress.show(v);
 }
 document.querySelectorAll(".nav[data-view]").forEach(function(b){b.addEventListener("click",function(){go(b.getAttribute("data-view"))})});
 
 /* ---- connection ---- */
 var cur="",lanBase="",lanCount=0,hostKey="";
-function qr(url){try{var q=qrcode(0,"M");q.addData(url);q.make();$("qr").innerHTML=q.createSvgTag({cellSize:6,margin:1,scalable:true})}catch(e){}}
-function live(cls,txt){$("live").className="chip "+cls;$("live-t").textContent=txt}
+function qr(url){try{var q=qrcode(0,"M");q.addData(url);q.make();var svg=q.createSvgTag({cellSize:6,margin:1,scalable:true});$("qr").innerHTML=svg;$("qr-mini").innerHTML=svg;$("proj-qr").innerHTML=svg}catch(e){}}
+function live(cls,txt){$("live").className="chip "+cls;$("live-t").textContent=txt;$("live-mini").className="chip sm-chip "+cls;$("live-mini-t").textContent=txt}
 function tshow(t){
  t=t||{state:"off"};var net=document.querySelector('input[name=conn][value=net]'),on=t.state==="on";
  if(on||t.state==="starting"||t.state==="downloading")net.checked=true;
  var wantNet=net.checked;
- $("t-stop").hidden=!(wantNet&&t.state!=="off"&&t.state!=="error");
+ $("t-stopbox").hidden=!(wantNet&&t.state!=="off"&&t.state!=="error");
  $("more-p").hidden=wantNet;
  $("how-lan").hidden=wantNet;$("how-net").hidden=!wantNet;
  var msg={off:"",downloading:"Downloading the connector program (first time only)…",starting:"Starting internet access…",stopping:"Stopping…",on:"",error:"Internet access is off: "+(t.error||"")}[t.state]||"";
  $("tstate").textContent=wantNet?msg:"";$("tstate").className="tstate"+(t.state==="error"?" err":"");
  var url=on?t.url:(wantNet?"":lanBase);
- $("addr").textContent=url||"…";if(url)qr(url);else $("qr").innerHTML="";
- $("copy-url").disabled=!url;
+ $("addr").textContent=url||"…";$("proj-addr").textContent=url||"…";$("addr-mini").textContent=url||(wantNet?"Starting internet access…":"…");if(url)qr(url);else{$("qr").innerHTML="";$("qr-mini").innerHTML=""}
+ $("copy-url").disabled=!url;$("copy-mini").disabled=!url;
  if(wantNet){if(on)live("live","Live: Internet");else if(t.state==="error")live("","Offline");else live("busy","Connecting")}
  else live(lanCount?"live":"",lanCount?"Live: Same Wi-Fi":"Offline: no network");
 }
 $("copy-url").addEventListener("click",function(){var u=$("addr").textContent;if(u&&u!=="…")copy(u,$("copy-url"))});
 $("key-copy").addEventListener("click",function(){if(hostKey)copy(hostKey,$("key-copy"))});
 $("how").addEventListener("click",function(){$("how-d").showModal()});
+$("copy-mini").addEventListener("click",function(){var u=$("addr").textContent;if(u&&u!=="…")copy(u,$("copy-mini"))});
+
+/* ---- scan code window: on demand, full screen for the projector; closing it stops nothing ---- */
+var scanD=$("scan-d");
+function scanOpen(){if(!scanD.open)scanD.showModal()}
+$("scan-open").addEventListener("click",scanOpen);
+$("qr-mini").addEventListener("click",scanOpen);
+document.querySelectorAll("[data-scan]").forEach(function(b){b.addEventListener("click",scanOpen)});
+document.addEventListener("click",function(e){var t=e.target.closest&&e.target.closest("[data-goview]");if(t)go(t.getAttribute("data-goview"))});
+window.cmGo=go;
+$("scan-full").addEventListener("click",function(){
+ // A dialog cannot itself go full screen, so a plain panel with the same code does; leaving full screen returns to the scan code window.
+ scanD.close();$("proj").requestFullscreen().catch(function(){scanOpen()});
+});
+$("proj-exit").addEventListener("click",function(){if(document.fullscreenElement)document.exitFullscreen()});
+document.addEventListener("fullscreenchange",function(){if(!document.fullscreenElement)scanOpen()});
+
+/* ---- live activity: read from this computer every few seconds while In Class is shown ---- */
+function ago(iso){var t=Date.parse(iso);if(!t)return"";var m=Math.max(0,Math.round((Date.now()-t)/60000));return m<1?"opened just now":m<60?"opened "+m+" min ago":"opened "+Math.floor(m/60)+" h "+(m%60)+" min ago"}
+function plural(n,one,many){return n+" "+(n===1?one:many)}
+var st0={lobby:"waiting room",running:"running",paused:"paused"};
+function liveShow(d){
+ if(!d)return;
+ var a=d.attendance,tag=$("att-tag"),btn=$("att-btn"),txt=[];
+ if(!a){tag.className="tag";tag.textContent="Attendance";$("att-n").textContent="";$("att-of").textContent="";$("att-meta").textContent="";
+  $("att-text").textContent="No attendance session yet."+(d.roster?" "+plural(d.roster,"student is","students are")+" on the class list.":"");btn.textContent="Take attendance"}
+ else{
+  $("att-n").textContent=a.present;$("att-of").textContent=a.rosterSize?"of "+a.rosterSize+" checked in":"checked in";
+  if(a.status==="Open"){tag.className="tag on";tag.textContent="Attendance open";$("att-meta").textContent=a.label+(a.opened?", "+ago(a.opened):"");btn.textContent="Show the check-in screen"}
+  else if(a.status==="Closed"){tag.className="tag held";tag.textContent="Attendance closed, not yet submitted";$("att-meta").textContent=a.label;btn.textContent="Review and submit"}
+  else{tag.className="tag";tag.textContent="Last attendance";$("att-meta").textContent=a.label;btn.textContent="Take attendance"}
+  if(a.waiting)txt.push(plural(a.waiting,"check-in waits","check-ins wait")+" for your approval.");
+  if(a.notOnList)txt.push(plural(a.notOnList,"ID is","IDs are")+" not on the class list.");
+  if(a.status==="Submitted"&&!txt.length)txt.push("Submitted to the attendance record.");
+  $("att-text").textContent=txt.join(" ");
+ }
+ var q=d.quizzes||[],qt=$("quiz-tag");
+ if(!q.length){qt.className="tag";qt.textContent="Live quiz";$("quiz-list").innerHTML="<p class='note'>No quiz is running.</p>";$("quiz-btn").textContent="Run a quiz";$("quiz-meta").textContent=""}
+ else{qt.className="tag on";qt.textContent=q.length===1?"Quiz in progress":q.length+" quizzes in progress";$("quiz-btn").textContent="Quiz administration";
+  var st={lobby:"Waiting room",running:"Running",paused:"Paused"};
+  $("quiz-list").innerHTML=q.map(function(x){return"<div class='qrow'><b>"+esc(x.code)+"</b><span>"+esc(x.title||"Quiz")+"</span><span class='note'>"+(st[x.state]||esc(x.state))+"</span><span class='qn'>"+x.joined+" <span class='note'>joined</span></span></div>"}).join("")}
+ var parts=[];if(a&&a.status==="Open")parts.push(a.present+(a.rosterSize?" of "+a.rosterSize:"")+" checked in");
+ q.forEach(function(x){parts.push("Quiz "+x.code+": "+x.joined+" joined")});
+ $("scan-live").textContent=parts.join(" · ");$("proj-live").textContent=parts.join(" · ");
+ var strip=[];
+ if(a&&a.status==="Open")strip.push("<span class='tag on'>Attendance open</span> "+a.present+(a.rosterSize?" of "+a.rosterSize:"")+" checked in"+(a.waiting?", "+plural(a.waiting,"waits","wait")+" for approval":""));
+ if(a&&a.status==="Closed")strip.push("<span class='tag held'>Attendance closed</span> "+a.present+" checked in, not yet submitted");
+ q.forEach(function(x){strip.push("<span class='tag on'>Quiz "+esc(x.code)+"</span> "+(st0[x.state]||esc(x.state))+", "+x.joined+" joined")});
+ $("ov-live").innerHTML=strip.join("<span class='sep2'></span>")+(strip.length?" <button class='link' type='button' data-goview='class'>Open Class Tools</button>":"");
+ $("ov-live").hidden=!strip.length;
+}
+function livePoll(){if(document.visibilityState==="visible"&&cmApp.live)cmApp.live().then(liveShow,function(){})}
+$("lv-upd").textContent="Updates every few seconds";
+setInterval(livePoll,4000);
 
 /* ---- data from the app ---- */
 function show(info){
@@ -448,7 +848,27 @@ document.querySelectorAll("input[name=conn]").forEach(function(r){r.addEventList
  if(r.value==="lan"&&r.checked){cmApp.tunnelStop().then(tshow)}
 })});
 $("t-stop").addEventListener("click",function(){document.querySelector('input[name=conn][value=lan]').checked=true;cmApp.tunnelStop().then(tshow)});
-go(store("cm-view")||"class");
+go(store("cm-view")||"overview");
+livePoll();
+
+/* ---- keyboard shortcuts (zoom is handled by the app itself) ---- */
+var mac=/Mac/i.test(navigator.platform||navigator.userAgent);
+document.querySelectorAll("kbd[data-k]").forEach(function(k){var key=k.getAttribute("data-k");k.textContent=mac?"\u2318"+key.replace("Shift+","\u21e7"):"Ctrl+"+key});
+var mod=mac?"\u2318":"Ctrl+",vk={"overview":"1","students":"2","progress":"9","attendance":"3","quizzes":"4","class":"5","course":"6","roster":"7","grades":"8","settings":","};
+document.querySelectorAll(".nav[data-view]").forEach(function(b){b.title=b.querySelector("span").textContent+" ("+mod+vk[b.getAttribute("data-view")]+")"});
+document.querySelectorAll("[data-key]").forEach(function(b){b.title=b.textContent.trim()+" ("+mod+b.getAttribute("data-key").replace("Shift+",mac?"\u21e7":"Shift+")+")"});
+document.addEventListener("keydown",function(e){
+ if(!(mac?e.metaKey:e.ctrlKey)||e.altKey)return;
+ var k=e.key.toLowerCase(),map={"1":"overview","2":"students","9":"progress","3":"attendance","4":"quizzes","5":"class","6":"course","7":"roster","8":"grades",",":"settings"};
+ if(map[k]&&!e.shiftKey){e.preventDefault();go(map[k]);var n=document.querySelector('.nav[data-view="'+map[k]+'"]');if(n)n.focus();return}
+ if(k==="l"&&!e.shiftKey){e.preventDefault();cmApp.openWindow("lecturer.html");return}
+ if(k==="p"&&!e.shiftKey){e.preventDefault();cmApp.openWindow("quiz-display.html");return}
+ if(k==="c"&&e.shiftKey){e.preventDefault();$("copy-url").click();return}
+ if(k==="s"&&e.shiftKey){e.preventDefault();scanOpen();return}
+ if(k==="a"&&e.shiftKey){e.preventDefault();cmApp.openWindow("attendance.html");return}
+ if(k==="/"||k==="?"){e.preventDefault();$("keys-d").showModal()}
+});
+$("keys").addEventListener("click",function(){$("keys-d").showModal()});
 reload();
 document.querySelectorAll("[data-win]").forEach(function(b){b.addEventListener("click",function(){cmApp.openWindow(b.getAttribute("data-win"))})});
 document.querySelectorAll("[data-go]").forEach(function(b){b.addEventListener("click",function(){location.href=b.getAttribute("data-go")})});
