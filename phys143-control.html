@@ -48,7 +48,7 @@
 .cc details.fold>summary{cursor:pointer;list-style:none;min-height:36px;display:flex;align-items:center;justify-content:space-between;font-size:1rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
 .cc details.fold small{font-weight:400;text-transform:none;letter-spacing:0;margin-left:.6rem;flex:1;color:var(--muted)}
 .cc details.fold>summary::-webkit-details-marker{display:none}.cc details.fold>summary::after{content:"+";font-size:1.3rem}.cc details.fold[open]>summary::after{content:"\2212"}
-.cc .panel{padding:.7rem 1rem}.cc .note{margin:.3rem 0}
+.cc .panel{padding:.5rem 1rem}.cc .panel:has(details[open]){grid-column:1/-1}.cc .grid{grid-template-columns:repeat(auto-fit,minmax(14rem,1fr));gap:.5rem}.cc .note{margin:.3rem 0}
 .cc [hidden]{display:none!important}
 body.focus header.banner,body.focus nav.jump,body.focus .crumb,body.focus .sec-sub,body.focus aside.disclaimer,body.focus footer,body.focus a.skip,body.focus main h2{display:none!important}
 body.focus main{padding-top:0}
@@ -71,7 +71,7 @@ body.focus main{padding-top:0}
    <p class="code" id="t-code">&nbsp;</p>
    <a class="go alt" id="t-hand" href="#" hidden>Open handout</a>
   </section>
-  <section class="panel wide" id="p-stu"><details class="fold" id="d-stu"><summary>Student Portal <small id="sp-sum"></small></summary>
+  <section class="panel" id="p-stu"><details class="fold" id="d-stu"><summary>Student Portal <small id="sp-sum"></small></summary>
    <div id="sp-form">
    <p class="note">Public text only. Empty = default. Live in about 15 s.</p>
    <label for="sp-contacts" class="note">Contacts</label>
@@ -123,7 +123,7 @@ body.focus main{padding-top:0}
    <a class="go alt" href="phys143-reset.html" target="_blank" rel="noopener">Own window</a>
    <div id="e-rst"></div>
   </details></section>
-  <section class="panel wide"><details class="fold" id="d-quiz"><summary>Live quiz</summary>
+  <section class="panel"><details class="fold" id="d-quiz"><summary>Live quiz</summary>
    <button class="go" type="button" data-embed="e-quiz" data-src="phys143-quiz-host.html">Show here</button>
    <a class="go alt" href="phys143-quiz-host.html" target="_blank" rel="noopener">Own window</a>
    <a class="go alt" href="phys143-quiz-display.html" target="_blank" rel="noopener">Projector display</a>

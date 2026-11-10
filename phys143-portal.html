@@ -57,6 +57,7 @@ body.focus main{padding-top:1.2rem}
  <h1>PHYS 143 Portal</h1>
  <p class="sub" id="p-contacts">University Physics</p>
  <p class="note"><a href="portal.html">&lsaquo; Change course</a></p>
+ <div class="card" id="p-notice" hidden></div>
  <div class="card banner" id="p-banner" aria-live="polite">Checking what is open in class.</div>
  <div class="card" id="p-primary"></div>
  <div class="card" id="p-week"></div>
@@ -79,6 +80,7 @@ body.focus main{padding-top:1.2rem}
   <button class="go alt" type="button" id="p-inst-btn">Install the Portal</button>
  </div>
  <div class="card"><details><summary>All lectures</summary><ul id="p-all"></ul></details></div>
+ <p class="note">This is a personal page, not an official course page. Official information is on <a href="https://sakai.ug.edu.gh/portal/site/!gateway/tool/55840c0d-ea44-4827-84cb-5270d764ecf7" rel="noopener">Sakai</a>.</p>
  <p class="note">Corrections: contact your lecturer.</p>
 </div>
 <script src="assets/messages.js"></script>
@@ -96,8 +98,14 @@ function jsonp(params,cb,ms){
  sc.src=SCRIPT_URL+"?"+params+"&callback="+n+"&_="+Date.now();document.head.appendChild(sc);
 }
 function render(){
- var w=String((LIVE&&LIVE.portal===1&&LIVE.week>=1)?LIVE.week:CFG.currentWeek),title=CFG.lectures[w]||"",L=LIVE&&LIVE.portal===1?LIVE:null;
- $("p-contacts").textContent="University Physics. Contacts: "+CFG.contacts+".";
+ var L=LIVE&&LIVE.portal===1?LIVE:null,S=(L&&L.cfg)||{titles:{},hide:{handout:[],practice:[],page:[]}};
+ // The lecturer's settings (Control Centre) win; data/portal.json supplies the defaults.
+ var w=String((L&&L.week>=1)?L.week:CFG.currentWeek),cw=String(S.cont>=1?S.cont:w);
+ function title(n){return (S.titles&&S.titles[n])||CFG.lectures[n]||""}
+ function shown(kind,n){return !(S.hide&&S.hide[kind]&&S.hide[kind].indexOf(Number(n))>=0)}
+ var c=[S.contacts||CFG.contacts,S.venue].filter(Boolean).join(". Venue: ");
+ $("p-contacts").textContent="University Physics"+(c?". Contacts: "+c+".":"");
+ var nt=$("p-notice");nt.textContent=S.notice||"";nt.hidden=!S.notice;
  var b=$("p-banner"),p=$("p-primary"),h="";
  if(L&&L.attendance==="open"){
   b.textContent="Attendance is open.";b.className="card banner on";
@@ -107,15 +115,15 @@ function render(){
   h='<h2>Next step</h2><a class="go" href="phys143-quiz.html">Join live quiz</a><p class="note">Enter the join code shown in class.</p>';
  }else{
   b.textContent=L?"No live activity right now.":"Live status is not available. The links below still work.";b.className="card banner";
-  h='<h2>Next step</h2><a class="go" href="phys143-lecture-'+w+'.html">Continue with Lecture '+w+'</a>';
+  h='<h2>Next step</h2><a class="go" href="phys143-lecture-'+cw+'.html">Continue with Lecture '+esc(cw)+'</a>';
  }
  p.innerHTML=h;
- var hw=CFG.handouts[w],pr=CFG.practice.indexOf(Number(w))>=0;
- $("p-week").innerHTML='<h2>This week: Lecture '+esc(w)+'</h2><p><b>'+esc(title)+'</b></p><ul>'+
-  (hw?'<li><a href="'+esc(hw)+'">Handout (PDF) <span aria-hidden="true">&rsaquo;</span></a></li>':'')+
-  (pr?'<li><a href="phys143-lecture-'+w+'-practice.html">Practice quiz <span aria-hidden="true">&rsaquo;</span></a></li>':'')+
-  '<li><a href="phys143-lecture-'+w+'.html">Lecture page <span aria-hidden="true">&rsaquo;</span></a></li></ul>';
- var all="";for(var i=1;i<=12;i++){all+='<li><a href="phys143-lecture-'+i+'.html"><span>'+i+'. '+esc(CFG.lectures[i]||"")+'</span><span aria-hidden="true">&rsaquo;</span></a></li>'}
+ var hw=CFG.handouts[w],pr=CFG.practice.indexOf(Number(w))>=0,li="";
+ if(hw&&shown("handout",w))li+='<li><a href="'+esc(hw)+'">Handout (PDF) <span aria-hidden="true">&rsaquo;</span></a></li>';
+ if(pr&&shown("practice",w))li+='<li><a href="phys143-lecture-'+w+'-practice.html">Practice quiz <span aria-hidden="true">&rsaquo;</span></a></li>';
+ if(shown("page",w))li+='<li><a href="phys143-lecture-'+w+'.html">Lecture page <span aria-hidden="true">&rsaquo;</span></a></li>';
+ $("p-week").innerHTML='<h2>This week: Lecture '+esc(w)+'</h2><p><b>'+esc(title(w))+'</b></p>'+(li?'<ul>'+li+'</ul>':'');
+ var all="";for(var i=1;i<=12;i++){all+='<li><a href="phys143-lecture-'+i+'.html"><span>'+i+'. '+esc(title(i))+'</span><span aria-hidden="true">&rsaquo;</span></a></li>'}
  $("p-all").innerHTML=all;
  // My results needs a script that supports it; hidden otherwise.
  var res=CFG.settings.showMyResults&&L&&L.results===true;
