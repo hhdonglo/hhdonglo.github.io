@@ -1819,7 +1819,7 @@ function counts_(code) {
 // ---------- Portal and Control Centre support (additive: no existing action changes) ----------
 // SCRIPT_VERSION: change it whenever the script is redeployed; the Control Centre compares it with the version its page expects.
 // Key!M2 = Off hides "My results" from students (default On).
-var SCRIPT_VERSION = '2026-11-09-portal-1';
+var SCRIPT_VERSION = '2026-11-10-rank-1';
 
 function resultsOn_() {
   try {
@@ -2111,7 +2111,7 @@ function doGet(e) {
     var cd = ctl_(code);
     if (!keyRow_(code)) return jsonp_(e, { ok: false });
     var dn = counts_(code), dr = { ok: true, controlled: !!cd, joined: dn.joined, inprogress: dn.inprogress, submitted: dn.submitted, rows: [] };
-    if (cd) { dr.review = reviewData_(code, ''); dr.status = ctlStatus_(cd); if (visible_(cd, 'show_leaderboard')) dr.rows = ranking_(code, '').slice(0, 20); }
+    if (cd) { dr.review = reviewData_(code, ''); dr.status = ctlStatus_(cd); var ds = eff_(cd); if (when_(cd, 'show_leaderboard') !== 'never' && (ds === 'ended' || ds === 'released')) dr.rows = ranking_(code, '').slice(0, 20); } // projector only: the ranking (first names and scores, no IDs) shows as soon as the lecturer ends the quiz, even while the marks are still held; students still see theirs only per show_leaderboard
     return jsonp_(e, dr);
   }
 
