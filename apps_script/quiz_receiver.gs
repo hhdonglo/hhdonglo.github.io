@@ -1107,7 +1107,7 @@ function keepAttendedOnly() { // sheet menu: asks which column(s), shows the cou
 // Every one of these is first copied to a dated backup tab, Backup_<tab>_<date_time> (session secrets blanked in the Attendance_Control backup), and the copy's row
 // count is checked; if any check fails nothing is cleared. NOT TOUCHED: Roster, Key, Quiz_Control, Explanations, Reports, Leaderboard (a formula view of Form Responses 1),
 // the question banks, live_quizzes.json and this script. Refused while an attendance session is open or a quiz is running.
-function resetTabs_() { return [ATT_TAB, ATT_LOG_TAB, NOTLIST_TAB, 'Attendance_Flags', ATT_CTL_TAB, RESPONSES_TAB, STAGED_TAB, ANSWERS_TAB, PRESENCE_TAB, 'Attempts', 'Archive', 'Log']; } // functions, not top-level vars: the tab-name constants are defined further down the file
+function resetTabs_() { return [ATT_TAB, ATT_LOG_TAB, NOTLIST_TAB, 'Attendance_Flags', ATT_CTL_TAB, RESPONSES_TAB, STAGED_TAB, ANSWERS_TAB, PRESENCE_TAB, 'Attempts', 'Archive', 'Log', 'Auto_Added']; } // functions, not top-level vars: the tab-name constants are defined further down the file
 function resetDerived_() { return [SCORES_TAB, MASTER_TAB, TOTALS_TAB]; }
 
 function resetResults_(apply) {
@@ -1328,6 +1328,7 @@ function attCheckIn_(p, code) { // the student side of the check-in: the code, t
   }
   var others = attDeviceIds_(ses.label, dev), n = Object.keys(others).length;
   if (n >= ATT_DEVICE_IDS) { attFlag_(ses.label, aid, dev, 'device already used for ' + Object.keys(others).join(', ')); return { ok: false, why: 'device used' }; }
+  if (!onl && attAutoAddOn_() && attIdPlausible_(aid) && attAutoAdd_(aid, ses.label)) onl = true; // an unlisted but plausible ID joins the Roster: it counts as present
   var via = '', depth = 0;
   if (rl) { // a relayed check-in: enforce the per-code and per-student limits under a lock so two scans cannot both take the last use
     var lk = LockService.getScriptLock(); lk.waitLock(10000);
@@ -1346,6 +1347,47 @@ function attCheckIn_(p, code) { // the student side of the check-in: the code, t
   }
   attDayAdd_(day, aid);
   return { ok: true, id: aid, onList: onl, relay: ATT_RELAY && depth < ATT_RELAY_MAX_DEPTH };
+}
+
+// ---------- Auto-add: a check-in whose ID is not on the Roster joins the Roster ----------
+// When the lecturer has auto-add on (the default; the toggle is on the attendance panel, stored in the script property att_autoadd), a check-in that has already passed
+// the QR token, location, one-phone-one-ID and rate-limit checks, and whose ID looks like the Roster's IDs (digits only, the Roster's usual length, not one repeated digit),
+// is added to the Roster so the student counts as present. The Roster row gets a note in column C ("auto-added <session>"), the ID is also listed in the Auto_Added tab, and the
+// attendance panel lists the IDs added in the session with a Remove button, so a typo is easy to spot and take off. An ID that fails the format check still goes to Not_On_List.
+var ATT_AUTOADD_TAB = 'Auto_Added';
+
+function attAutoAddOn_() { try { return PropertiesService.getScriptProperties().getProperty('att_autoadd') !== '0'; } catch (err) { return true; } }
+
+function attIdPlausible_(aid) {
+  if (!/^\d+$/.test(aid) || /^(\d)\1+$/.test(aid)) return false;
+  var lens = {}, best = 0, bl = 0;
+  rosterRows_().forEach(function (r) { lens[r[0].length] = (lens[r[0].length] || 0) + 1; });
+  Object.keys(lens).forEach(function (k) { if (lens[k] > best) { best = lens[k]; bl = Number(k); } });
+  return best > 0 && aid.length === bl; // the Roster must have IDs to compare with, and the same length as most of them
+}
+
+function attAutoAdd_(aid, label) { // true when the ID is on the Roster afterwards
+  var lk = LockService.getScriptLock(); if (!lk.tryLock(8000)) return false;
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(ROSTER_TAB); if (!sh) return false;
+    var n = sh.getLastRow(), col = n > 0 ? sh.getRange(1, 1, n, 1).getValues() : [];
+    for (var i = 0; i < col.length; i++) if (normId_(col[i][0]) === aid) return true; // another phone added it a moment ago
+    if (sh.getMaxColumns() < 3) sh.insertColumnsAfter(sh.getMaxColumns(), 3 - sh.getMaxColumns());
+    if (!String(sh.getRange(1, 3).getValue()).trim()) sh.getRange(1, 3).setValue('Note');
+    var day = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'dd/MM/yyyy');
+    var r0 = n + 1; sh.getRange(r0, 1, 1, 3).setNumberFormat('@').setValues([[aid, '', 'auto-added ' + label + ' (' + day + ')']]);
+    try { CacheService.getScriptCache().remove('roster'); } catch (err) { /* cache only */ }
+    append_(ATT_AUTOADD_TAB, ['Timestamp', 'Session', 'Student ID', 'Note'], [new Date(), label, aid, 'checked in, not on the Roster, added automatically']);
+    log_('attendance:autoadd', label, '', '');
+    return true;
+  } finally { lk.releaseLock(); }
+}
+
+function attAutoAddedList_(label) { // the IDs auto-added in one session (host only: it is part of attend_status)
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_AUTOADD_TAB), out = [];
+  if (!sh || sh.getLastRow() < 2) return out;
+  sh.getRange(2, 2, sh.getLastRow() - 1, 2).getValues().forEach(function (r) { if (String(r[0]) === label) out.push(normId_(r[1])); });
+  return out.slice(0, 200);
 }
 
 // ---------- Attendance relay: a checked-in student's phone passes the check-in on to a neighbour ----------
@@ -1478,11 +1520,11 @@ function attStatus_() { // the open session if there is one, else the latest, wi
   var rows = attRows_(), cur = null;
   rows.forEach(function (r) { if (r.status === 'Open') cur = r; });
   if (!cur && rows.length) cur = rows[rows.length - 1];
-  if (!cur) return { ok: true, session: null };
+  if (!cur) return { ok: true, session: null, autoAdd: attAutoAddOn_() };
   var present = attPresent_(cur.label), roster = {}; rosterRows_().forEach(function (r) { roster[r[0]] = 1; });
   var on = 0, off = 0; Object.keys(present).forEach(function (id) { if (roster[id]) on++; else off++; });
   var live = cur.status === 'Open' && cur.secret, now = Date.now(), slot = attSlot_(now);
-  return { ok: true, session: { link: live ? attLinkFor_(cur.secret, slot) : '', secondsLeft: live ? Math.max(1, Math.ceil(((slot + 1) * ATT_SLOT_SEC * 1000 - now) / 1000)) : 0, label: attColumn_(cur.label), status: cur.status, geo: cur.lat != null && ATT_GEO_MODE !== 'off' ? ATT_GEO_MODE : 'off', radius: cur.lat != null ? (cur.radius || ATT_GEO_RADIUS_M) : 0, test: !!cur.test, present: on, relayed: attRelayedCount_(cur.label), notOnList: off, rosterSize: Object.keys(roster).length, pending: rows.filter(function (r) { return r.status === 'Closed'; }).length } };
+  return { ok: true, autoAdd: attAutoAddOn_(), session: { autoAdded: attAutoAddedList_(cur.label), link: live ? attLinkFor_(cur.secret, slot) : '', secondsLeft: live ? Math.max(1, Math.ceil(((slot + 1) * ATT_SLOT_SEC * 1000 - now) / 1000)) : 0, label: attColumn_(cur.label), status: cur.status, geo: cur.lat != null && ATT_GEO_MODE !== 'off' ? ATT_GEO_MODE : 'off', radius: cur.lat != null ? (cur.radius || ATT_GEO_RADIUS_M) : 0, test: !!cur.test, present: on, relayed: attRelayedCount_(cur.label), notOnList: off, rosterSize: Object.keys(roster).length, pending: rows.filter(function (r) { return r.status === 'Closed'; }).length } };
 }
 
 function attOpen_(p) {
@@ -1968,6 +2010,12 @@ function doGet(e) {
       if (p.action === 'attend_discard') return jsonp_(e, attDiscard_());
       return jsonp_(e, p.action === 'held_release_quiz' ? Object.assign({ ok: true }, commitQuiz_('', true)) : Object.assign({ ok: true }, discardQuiz_('', true)));
     } finally { hl.releaseLock(); }
+  }
+  if (p.action === 'attend_autoadd') { // host only: read or set the auto-add switch
+    if (!hostOk_(p)) return jsonp_(e, { ok: false, why: 'host key not accepted' });
+    var am = String(p.mode || '');
+    if (am === 'on' || am === 'off') { try { PropertiesService.getScriptProperties().setProperty('att_autoadd', am === 'on' ? '1' : '0'); log_('attendance:autoadd_switch', am, '', ''); } catch (err) { return jsonp_(e, { ok: false, why: 'could not save the setting' }); } }
+    return jsonp_(e, { ok: true, on: attAutoAddOn_() });
   }
   if (p.action === 'results_reset') { // host only: preview (mode=dry) or run (mode=apply with confirm=RESET) the clean-slate reset; every cleared tab is backed up first
     if (!hostOk_(p)) return jsonp_(e, { ok: false, why: 'host key not accepted' });

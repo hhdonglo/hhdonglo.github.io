@@ -63,10 +63,16 @@ body.proj .att .count{font-size:clamp(2rem,6vh,4rem)}
 .host .pctl .go{min-height:36px;padding:.2rem .9rem;font-size:.9rem;margin:0}
 .pctl .pstat{font:.85rem system-ui,sans-serif;color:var(--muted);max-width:22rem}
 body:not(.proj) #a-pctl{display:none!important}
+body.proj #a-autorow,body.proj #a-autolist{display:none!important}
+#a-autolist ul{list-style:none;padding:0;margin:.3rem 0;display:flex;flex-wrap:wrap;gap:.4rem}
+#a-autolist li{border:1px solid var(--border);border-radius:6px;padding:.15rem .5rem;font:.95rem system-ui,sans-serif}
+#a-autolist button{margin-left:.4rem;font-size:.85rem;cursor:pointer}
 body.proj #a-wait p{font:700 clamp(2rem,6vh,4rem)/1.2 system-ui,sans-serif}
 </style>
 <div class="host att">
  <p class="toplinks" id="a-toplinks"><a href="phys143-lecturer.html">&larr; Lecturer menu</a></p>
+ <p class="note" id="a-autorow" hidden><label><input type="checkbox" id="a-autoadd"> Add students who check in but are not on the class list (auto-add)</label> <span id="a-automsg"></span></p>
+ <div class="note" id="a-autolist" hidden><b>Added automatically this session. Check for typos:</b><ul id="a-autoul"></ul></div>
  <section class="panel" id="a-login" hidden>
   <h3 style="margin:.1rem 0 .4rem">Lecturer login</h3>
   <form id="a-form" autocomplete="off">
@@ -129,7 +135,14 @@ try{var sr=localStorage.getItem("phys143_rad");if(sr)setTimeout(function(){var e
 var timer=null,tk=null,left=0,stamp=0,show=function(id){["a-login","a-idle","a-live","a-wait"].forEach(function(x){$(x).hidden=(x!==id)})};
 function call(act,extra,cb){jsonp("action="+act+"&hostkey="+encodeURIComponent(KEY)+(extra||""),cb)}
 var lastOk=Date.now(); // when the sheet last answered; the projector view warns, then hides a stale QR, if it stops answering
+function autoUi(d){
+ if(PROJ||!d)return;
+ $("a-autorow").hidden=false;var cb=$("a-autoadd");if(document.activeElement!==cb&&d.autoAdd!==undefined)cb.checked=!!d.autoAdd;
+ var L=(d.session&&d.session.autoAdded)||[];$("a-autolist").hidden=!L.length;
+ $("a-autoul").innerHTML=L.map(function(i){return "<li>"+i+" <button type=\"button\" data-rm=\""+i+"\" aria-label=\"Remove "+i+" from the class list\">Remove</button></li>"}).join("");
+}
 function draw(d){
+ autoUi(d);
  lastOk=Date.now();
  var ss=d&&d.session,open=ss&&ss.status==="Open";
  if(PROJ)pctlState(open,!!(ss&&ss.pending>0&&!open));
@@ -234,6 +247,10 @@ function heldAct(act,ask,done){
 $("a-submit").addEventListener("click",function(){heldAct("attend_submit","Submit attendance? Every rostered student not checked in is recorded as 0. This writes to the Attendance sheet.",function(d){return "Attendance submitted: "+(d.submitted||[]).join(", ")+"."})});
 $("a-discard").addEventListener("click",function(){heldAct("attend_discard","Discard this closed session and its check-ins? Nothing is written to the Attendance sheet. This cannot be undone.",function(d){return "Discarded "+d.discarded+" session and "+d.checkins+" check-in"+(d.checkins===1?"":"s")+". Nothing was recorded."})});
 $("a-out").addEventListener("click",signOut);
+$("a-autoadd").addEventListener("change",function(){var on=$("a-autoadd").checked;$("a-automsg").textContent="Saving...";call("attend_autoadd","&mode="+(on?"on":"off"),function(r){$("a-automsg").textContent=r&&r.ok?(r.on?"On":"Off"):"Not saved (is the Apps Script updated?)";if(r&&r.ok)$("a-autoadd").checked=!!r.on})});
+$("a-autoul").addEventListener("click",function(e){var b=e.target.closest("button[data-rm]");if(!b)return;var id=b.getAttribute("data-rm");
+ if(!window.confirm("Take "+id+" off the class list? Use this for a typo. A check-in already recorded for it moves to Not_On_List when you submit."))return;
+ call("roster_edit","&op=remove&id="+encodeURIComponent(id),function(r){$("a-automsg").textContent=r&&r.ok?"Removed "+id+".":"Not removed: "+((r&&r.why)||"no answer");poll()})});
 if(PROJ){
  ["a-last","a-msg"].forEach(function(id){new MutationObserver(function(){var t=$(id).textContent;if(t)pstat(t)}).observe($(id),{childList:true,characterData:true,subtree:true})});
  $("a-pstop").addEventListener("click",function(){$("a-close").click()}); // the same confirm and the same close (a trial run is discarded when closed)
