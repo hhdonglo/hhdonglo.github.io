@@ -121,20 +121,22 @@ main{grid-area:main;overflow:auto;padding:1.75rem var(--pad) 2.25rem}
 .x:focus-visible{outline:2px solid var(--focus)}
 
 /* connection card */
-.seg{display:inline-flex;padding:.25rem;border-radius:.65rem;background:var(--bg);gap:.2rem;margin:0 0 1.4rem;border:0}
+.seg{display:inline-flex;padding:.25rem;border-radius:.65rem;background:var(--bg);gap:.2rem;margin:1.1rem 0 0;border:0}
 .seg label{position:relative;padding:.5rem 1.1rem;border-radius:.5rem;font-weight:600;font-size:.95rem;color:var(--muted);cursor:pointer}
 .seg input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
 .seg label:has(input:checked){background:var(--card-2);color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,.25)}
 .seg label:has(input:focus-visible){outline:2px solid var(--focus)}
-.conn{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:1.75rem;align-items:start}
-.addr{font:600 clamp(1.15rem,1.6vw,1.6rem)/1.3 ui-monospace,monospace;word-break:break-all;margin:0 0 1.1rem;color:var(--head)}
-#qr{width:clamp(11rem,15vw,19rem);aspect-ratio:1;background:#fff;padding:.6rem;border-radius:.75rem}
+/* QR first and as large as the card and window allow; everything else centred below it */
+.conn{display:flex;flex-direction:column;align-items:center;text-align:center}
+.conn .row{justify-content:center}
+.addr{font:600 clamp(1.2rem,1.7vw,1.8rem)/1.3 ui-monospace,monospace;word-break:break-all;margin:0 0 1rem;color:var(--head)}
+#qr{width:min(100%,clamp(15rem,27vw,34rem),max(15rem,calc(100vh - 36rem)));aspect-ratio:1;background:#fff;padding:.8rem;border-radius:.9rem;margin:0 0 1.1rem}
 #qr svg{width:100%;height:100%;display:block}
 #qr:empty{background:var(--card-2)}
 .tstate{font-weight:600;font-size:.95rem;margin:.8rem 0 0}
 .tstate.err{color:#F0A49A}
 .more{margin-top:1.1rem}
-.stopbox{margin-top:1.4rem;padding-top:1.1rem;border-top:1px solid var(--line)}
+.stopbox{margin-top:1.2rem;padding-top:1.1rem;border-top:1px solid var(--line);align-self:stretch}
 
 /* tables */
 .tbl{overflow:auto;border-radius:.6rem;border:1px solid var(--line);background:var(--panel);height:calc(100vh - 19rem);min-height:16rem}
@@ -172,7 +174,7 @@ dialog td:last-child{text-align:right}
 
 @media (max-width:1100px){.cols{grid-template-columns:1fr}}
 @media (max-width:1000px){.app{grid-template-columns:4.5rem minmax(0,1fr)}.nav span,.brand span{display:none}.nav{justify-content:center;padding:.55rem}.brand{justify-content:center;padding:.2rem 0 1.2rem}}
-@media (max-width:640px){.conn{grid-template-columns:1fr}.keybox>span{display:none}}
+@media (max-width:640px){.keybox>span{display:none}}
 </style>
 </head>
 <body>
@@ -229,23 +231,21 @@ dialog td:last-child{text-align:right}
  <div class="cols">
   <div class="card">
    <h3>Access and connection</h3>
-   <fieldset class="seg" style="border:0"><legend class="lbl" style="position:absolute;left:-9999px">How students connect</legend>
-    <label><input type="radio" name="conn" value="lan" checked> Same Wi-Fi or hotspot</label>
-    <label><input type="radio" name="conn" value="net"> Internet</label>
-   </fieldset>
    <div class="conn">
-    <div>
-     <p class="lbl">Student address</p>
-     <p class="addr" id="addr">…</p>
-     <div class="row">
-      <button class="btn primary" type="button" id="copy-url"><svg><use href="#i-copy"/></svg>Copy link</button>
-      <button class="link" type="button" id="how">How this works</button>
-     </div>
-     <p class="tstate" id="tstate" role="status" aria-live="polite"></p>
-     <p class="note more" id="more-p">Other addresses of this computer: <span id="more">none</span>.</p>
-     <div class="stopbox" id="t-stopbox" hidden><button class="btn danger" id="t-stop" type="button">Stop internet access</button></div>
-    </div>
     <div id="qr" role="img" aria-label="QR code of the student address"></div>
+    <p class="lbl">Student address</p>
+    <p class="addr" id="addr">…</p>
+    <div class="row">
+     <button class="btn primary" type="button" id="copy-url"><svg><use href="#i-copy"/></svg>Copy link</button>
+     <button class="link" type="button" id="how">How this works</button>
+    </div>
+    <fieldset class="seg"><legend class="lbl" style="position:absolute;left:-9999px">How students connect</legend>
+     <label><input type="radio" name="conn" value="lan" checked> Same Wi-Fi or hotspot</label>
+     <label><input type="radio" name="conn" value="net"> Internet</label>
+    </fieldset>
+    <p class="tstate" id="tstate" role="status" aria-live="polite"></p>
+    <p class="note more" id="more-p">Other addresses of this computer: <span id="more">none</span>.</p>
+    <div class="stopbox" id="t-stopbox" hidden><button class="btn danger" id="t-stop" type="button">Stop internet access</button></div>
    </div>
   </div>
   <div class="stack">
