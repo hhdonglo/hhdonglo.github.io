@@ -69,7 +69,7 @@ These parts are fixed page structure and are edited in the `.html` files on gith
 - the body of the uncertainty analysis lecture page (`uncertainty.html`)
 - the page layout, colours and fonts (`assets/site.css`)
 
-The CV PDF itself is replaced by uploading a new `Hope_Donglo_CV.pdf` in the Media tab.
+The full CV is not downloadable from the site. The CV page button opens an email request; the PDF is sent by reply.
 
 ## If something goes wrong
 

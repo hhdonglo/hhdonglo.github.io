@@ -7,11 +7,11 @@
           "style": "plain",
           "lead": true,
           "paragraphs": [
-            "A summary of the academic record. The full CV, with all sections, is available as a PDF."
+            "A summary of the academic record. The full CV is available on request by email."
           ],
-          "button_label": "Download CV →",
-          "button_url": "cv/Hope_Donglo_CV.pdf",
-          "button_style": "primary dl"
+          "button_label": "Request the full CV →",
+          "button_url": "mailto:hdonglo@ug.edu.gh?subject=Request%20for%20the%20full%20CV&body=Dear%20Dr%20Donglo%2C%0D%0A%0D%0AI%20would%20like%20to%20request%20a%20copy%20of%20your%20full%20CV.%0D%0A%0D%0AName%3A%0D%0AInstitution%20or%20organisation%3A%0D%0APurpose%20of%20the%20request%3A%0D%0A%0D%0AKind%20regards%2C%0D%0A",
+          "button_style": "primary"
         }
       ]
     },

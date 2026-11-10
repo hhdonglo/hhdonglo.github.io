@@ -1,0 +1,25 @@
+# Turns every public Class Manager release back into a draft, so its installers
+# can no longer be downloaded by visitors. Drafts stay visible to the repository owner.
+name: Class Manager releases to drafts
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  to-draft:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Make public class-manager releases drafts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release list --repo "${GITHUB_REPOSITORY}" --limit 100 --json tagName,isDraft \
+            --jq '.[] | select(.isDraft | not) | .tagName | select(startswith("class-manager-v"))' |
+          while read -r tag; do
+            echo "Draft: ${tag}"
+            gh release edit "${tag}" --repo "${GITHUB_REPOSITORY}" --draft=true
+          done
+          gh release list --repo "${GITHUB_REPOSITORY}" --limit 100
