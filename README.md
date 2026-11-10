@@ -67,7 +67,6 @@ apps_script/
   live_quizzes.json                          week names and default bank for live quizzes
 PHYS143/lecture_N/ and PHYS143/introduction/ lecture PDFs (section 6)
 PHYS105/lecture_1/                           the uncertainty analysis lecture PDF
-cv/                                          Hope_Donglo_CV.pdf and its .tex source (not linked from the site; the CV page offers it on request by email)
 tools/                                       build, check and test scripts (section 13)
 .pages.yml                                   Pages CMS forms
 .nojekyll                                    tells GitHub Pages not to run Jekyll
