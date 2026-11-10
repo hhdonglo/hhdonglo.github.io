@@ -1163,7 +1163,12 @@ function attCheckIn_(p, code) { // the student side of the check-in: the code, t
   if (dev.length < 16) return { ok: false, why: 'update page' }; // an old cached page without a device token: reload
   dev = attDevHash_(dev); // only the salted hash is ever stored
   if (attFails_('d' + dev) >= ATT_MAX_FAILS || attFails_('i' + aid) >= ATT_MAX_FAILS) return { ok: false, why: 'slow down' };
-  if (ATT_REQUIRE_LINK && !attLinkOk_(ses, String(p.t || '').replace(/[^0-9a-f]/g, '').slice(0, 8))) { attFailAdd_('d' + dev); attFailAdd_('i' + aid); return { ok: false, why: 'old link' }; } // scan the live QR code again
+  var tk = String(p.t || '').replace(/[^0-9a-fr]/g, '').slice(0, 15), rl = null;
+  if (tk.charAt(0) === 'r') { // a relay code from a neighbour's phone
+    rl = attRelayCheck_(ses, tk);
+    if (!rl.ok) { attFailAdd_('d' + dev); attFailAdd_('i' + aid); return { ok: false, why: 'old relay' }; }
+    if (normId_(rl.via) === aid) return { ok: false, why: 'old relay' }; // nobody relays to themselves
+  } else if (ATT_REQUIRE_LINK && !attLinkOk_(ses, tk.slice(0, 8))) { attFailAdd_('d' + dev); attFailAdd_('i' + aid); return { ok: false, why: 'old link' }; } // scan the live QR code again
   var onl = !!rosterSet_()[aid], day = attDayKey_(); // the student is told only whether their own ID was found; nothing else about the roster
   if (attDayHas_(day, aid)) return { ok: true, id: aid, onList: onl, already: true }; // one mark per ID per day: nothing is added
   var geo = attGeo_(ses, p);
@@ -1173,9 +1178,80 @@ function attCheckIn_(p, code) { // the student side of the check-in: the code, t
   }
   var others = attDeviceIds_(ses.label, dev), n = Object.keys(others).length;
   if (n >= ATT_DEVICE_IDS) { attFlag_(ses.label, aid, dev, 'device already used for ' + Object.keys(others).join(', ')); return { ok: false, why: 'device used' }; }
-  append_(ATT_LOG_TAB, ['Timestamp', 'Session', 'Student ID', 'On roster', 'Device', 'Location'], [new Date(), ses.label, aid, onl ? 'Yes' : 'No', dev, attGeoText_(geo)]); // appendRow is atomic: no lock for 200 students at once
+  var via = '', depth = 0;
+  if (rl) { // a relayed check-in: enforce the per-code and per-student limits under a lock so two scans cannot both take the last use
+    var lk = LockService.getScriptLock(); lk.waitLock(10000);
+    try {
+      var cache = CacheService.getScriptCache(), ukey = 'ru:' + rl.rid + ':' + rl.slot, usedN = Number(cache.get(ukey) || 0);
+      if (usedN >= ATT_RELAY_USES) { attFlag_(ses.label, aid, dev, 'relay code already used ' + usedN + ' times'); return { ok: false, why: 'relay used' }; }
+      var lgs = attLogCols_(), lrows = lgs && lgs.getLastRow() > 1 ? lgs.getRange(2, 1, lgs.getLastRow() - 1, 8).getValues() : [], vouched = 0;
+      lrows.forEach(function (r) { if (String(r[1]) === ses.label && String(r[6]) && normId_(r[6]) === normId_(rl.via)) vouched++; });
+      if (vouched >= ATT_RELAY_MAX_PER) { attFlag_(ses.label, aid, dev, 'relay limit reached for ' + rl.via); return { ok: false, why: 'relay limit' }; }
+      cache.put(ukey, String(usedN + 1), 120);
+      via = normId_(rl.via); depth = rl.depth + 1;
+      append_(ATT_LOG_TAB, ['Timestamp', 'Session', 'Student ID', 'On roster', 'Device', 'Location', 'Via', 'Depth'], [new Date(), ses.label, aid, onl ? 'Yes' : 'No', dev, attGeoText_(geo), via, depth]);
+    } finally { lk.releaseLock(); }
+  } else {
+    append_(ATT_LOG_TAB, ['Timestamp', 'Session', 'Student ID', 'On roster', 'Device', 'Location', 'Via', 'Depth'], [new Date(), ses.label, aid, onl ? 'Yes' : 'No', dev, attGeoText_(geo), '', 0]); // appendRow is atomic: no lock for 200 students at once
+  }
   attDayAdd_(day, aid);
-  return { ok: true, id: aid, onList: onl };
+  return { ok: true, id: aid, onList: onl, relay: ATT_RELAY && depth < ATT_RELAY_MAX_DEPTH };
+}
+
+// ---------- Attendance relay: a checked-in student's phone passes the check-in on to a neighbour ----------
+// For a large hall where the back rows cannot scan the projector. A student who has checked in during this session may show a relay QR on their phone.
+// The relay token names its source (an opaque id, never the Student ID), is an HMAC of the session secret, changes every ATT_RELAY_SLOT_SEC seconds and is valid for
+// ATT_RELAY_GRACE_SLOTS slots before the current one. Each token works for ATT_RELAY_USES scans, a student may vouch for at most ATT_RELAY_MAX_PER others, and a
+// chain stops at ATT_RELAY_MAX_DEPTH (the projector is depth 0). The scanning phone still passes the location, device and rate-limit checks. Every relayed
+// check-in is logged with who vouched (Via) and the depth, so a chain can be audited. Set ATT_RELAY = false to switch the whole thing off.
+var ATT_RELAY = true, ATT_RELAY_SLOT_SEC = 10, ATT_RELAY_GRACE_SLOTS = 1, ATT_RELAY_USES = 2, ATT_RELAY_MAX_PER = 5, ATT_RELAY_MAX_DEPTH = 2;
+
+function attHex_(sig, n) { var h = ''; for (var i = 0; i < n; i++) h += ('0' + (sig[i] & 255).toString(16)).slice(-2); return h; }
+function attRelaySlot_(t) { return Math.floor((t || Date.now()) / (ATT_RELAY_SLOT_SEC * 1000)); }
+function attRelayRid_(secret, aid) { return attHex_(Utilities.computeHmacSha256Signature('rid:' + aid, secret), 3); }
+function attRelayTok_(secret, rid, slot) { return attHex_(Utilities.computeHmacSha256Signature('rl:' + rid + ':' + slot, secret), 4); }
+
+function attLogCols_() { // make sure the log has the Via and Depth columns and headings
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_LOG_TAB);
+  if (!sh) return null;
+  if (sh.getMaxColumns() < 8) sh.insertColumnsAfter(sh.getMaxColumns(), 8 - sh.getMaxColumns());
+  if (sh.getLastRow() > 0) { if (!String(sh.getRange(1, 7).getValue()).trim()) sh.getRange(1, 7).setValue('Via'); if (!String(sh.getRange(1, 8).getValue()).trim()) sh.getRange(1, 8).setValue('Depth'); }
+  return sh;
+}
+
+// A student asks for a relay code. They must already be in this session's log (same ID and same phone), below the depth limit and under the cap.
+function attRelayIssue_(p) {
+  if (!ATT_RELAY) return { ok: false, why: 'relay off' };
+  var ses = attOpenSession_(); if (!ses) return { ok: false, why: 'closed' };
+  var aid = normId_(p.id), dev = String(p.dev || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 40);
+  if (aid.length < 4 || aid.length > 12 || dev.length < 16) return { ok: false, why: 'bad id' };
+  dev = attDevHash_(dev);
+  if (attFails_('d' + dev) >= ATT_MAX_FAILS) return { ok: false, why: 'slow down' };
+  var sh = attLogCols_(); if (!sh || sh.getLastRow() < 2) return { ok: false, why: 'not checked in' };
+  var rows = sh.getRange(2, 1, sh.getLastRow() - 1, 8).getValues(), mine = null, used = 0;
+  rows.forEach(function (r) {
+    if (String(r[1]) !== ses.label) return;
+    if (normId_(r[2]) === aid && String(r[4]) === dev) mine = r;
+    if (String(r[6]) && normId_(r[6]) === aid) used++;
+  });
+  if (!mine) return { ok: false, why: 'not checked in' }; // only a phone that checked in this ID in this session can relay
+  var depth = Number(mine[7]) || 0;
+  if (depth >= ATT_RELAY_MAX_DEPTH) return { ok: false, why: 'no relay' };
+  if (used >= ATT_RELAY_MAX_PER) return { ok: false, why: 'relay limit', remaining: 0 };
+  var rid = attRelayRid_(ses.secret, aid), now = Date.now(), slot = attRelaySlot_(now);
+  try { CacheService.getScriptCache().put('rl:' + rid, aid + '|' + depth, 21600); } catch (err) { return { ok: false, why: 'busy' }; }
+  return { ok: true, token: 'r' + rid + attRelayTok_(ses.secret, rid, slot), secondsLeft: Math.max(1, Math.ceil(((slot + 1) * ATT_RELAY_SLOT_SEC * 1000 - now) / 1000)), remaining: ATT_RELAY_MAX_PER - used };
+}
+
+// Is this a valid relay token right now? {ok, rid, via, depth, slot}
+function attRelayCheck_(ses, t) {
+  var m = /^r([0-9a-f]{6})([0-9a-f]{8})$/.exec(t);
+  if (!ATT_RELAY || !m || !ses || !ses.secret) return { ok: false };
+  var info = ''; try { info = CacheService.getScriptCache().get('rl:' + m[1]) || ''; } catch (err) { info = ''; }
+  if (!info) return { ok: false };
+  var parts = info.split('|'), slot = attRelaySlot_();
+  for (var d = 0; d <= ATT_RELAY_GRACE_SLOTS; d++) if (attRelayTok_(ses.secret, m[1], slot - d) === m[2]) return { ok: true, rid: m[1], via: parts[0], depth: Number(parts[1]) || 0, slot: slot - d };
+  return { ok: false };
 }
 
 function attFlagDevices_(label) { // at closing: devices that checked in more than one ID (catches two phones' taps that raced), added to the Flags tab
@@ -1241,6 +1317,13 @@ function attPresent_(label) { // {id: true} for one session, from the log
   return got;
 }
 
+function attRelayedCount_(label) { // how many check-ins in this session came through a neighbour's relay code
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_LOG_TAB), n = 0;
+  if (!sh || sh.getLastRow() < 2 || sh.getLastColumn() < 7) return 0;
+  sh.getRange(2, 2, sh.getLastRow() - 1, 6).getValues().forEach(function (r) { if (String(r[0]) === label && String(r[5]).trim()) n++; });
+  return n;
+}
+
 function attStatus_() { // the open session if there is one, else the latest, with live counts
   var rows = attRows_(), cur = null;
   rows.forEach(function (r) { if (r.status === 'Open') cur = r; });
@@ -1249,7 +1332,7 @@ function attStatus_() { // the open session if there is one, else the latest, wi
   var present = attPresent_(cur.label), roster = {}; rosterRows_().forEach(function (r) { roster[r[0]] = 1; });
   var on = 0, off = 0; Object.keys(present).forEach(function (id) { if (roster[id]) on++; else off++; });
   var live = cur.status === 'Open' && cur.secret, now = Date.now(), slot = attSlot_(now);
-  return { ok: true, session: { link: live ? attLinkFor_(cur.secret, slot) : '', secondsLeft: live ? Math.max(1, Math.ceil(((slot + 1) * ATT_SLOT_SEC * 1000 - now) / 1000)) : 0, label: attColumn_(cur.label), status: cur.status, geo: cur.lat != null && ATT_GEO_MODE !== 'off' ? ATT_GEO_MODE : 'off', radius: cur.lat != null ? (cur.radius || ATT_GEO_RADIUS_M) : 0, present: on, notOnList: off, rosterSize: Object.keys(roster).length, pending: rows.filter(function (r) { return r.status === 'Closed'; }).length } };
+  return { ok: true, session: { link: live ? attLinkFor_(cur.secret, slot) : '', secondsLeft: live ? Math.max(1, Math.ceil(((slot + 1) * ATT_SLOT_SEC * 1000 - now) / 1000)) : 0, label: attColumn_(cur.label), status: cur.status, geo: cur.lat != null && ATT_GEO_MODE !== 'off' ? ATT_GEO_MODE : 'off', radius: cur.lat != null ? (cur.radius || ATT_GEO_RADIUS_M) : 0, present: on, relayed: attRelayedCount_(cur.label), notOnList: off, rosterSize: Object.keys(roster).length, pending: rows.filter(function (r) { return r.status === 'Closed'; }).length } };
 }
 
 function attOpen_(p) {
@@ -1267,7 +1350,7 @@ function attOpen_(p) {
   var base = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'dd/MM/yyyy'), n = 1;
   rows.forEach(function (r) { if (r.label.indexOf(base + ' #') === 0) n++; });
   var label = base + ' #' + n;
-  try { var lg = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_LOG_TAB); if (lg && lg.getLastRow() > 0 && !String(lg.getRange(1, 5).getValue()).trim()) lg.getRange(1, 5).setValue('Device'); if (lg && lg.getLastRow() > 0 && !String(lg.getRange(1, 6).getValue()).trim()) lg.getRange(1, 6).setValue('Location'); } catch (err) { /* header only */ }
+  try { var lg = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_LOG_TAB); if (lg && lg.getLastRow() > 0 && !String(lg.getRange(1, 5).getValue()).trim()) lg.getRange(1, 5).setValue('Device'); if (lg && lg.getLastRow() > 0 && !String(lg.getRange(1, 6).getValue()).trim()) lg.getRange(1, 6).setValue('Location'); attLogCols_(); } catch (err) { /* header only */ }
   var secret = Utilities.getUuid() + Utilities.getUuid();
   var hla = p.lat === undefined || p.lat === '' ? NaN : Number(p.lat), hlo = Number(p.lon), hasGeo = !isNaN(hla) && !isNaN(hlo) && Math.abs(hla) <= 90 && Math.abs(hlo) <= 180;
   if (ATT_GEO_MODE === 'enforce' && !hasGeo && String(p.nogeo || '') !== '1') return { ok: false, why: 'location needed', needLocation: true }; // never start an unprotected session by accident
@@ -1710,6 +1793,7 @@ function doGet(e) {
   if (p.action === 'my_results') return jsonp_(e, portalResults_(p)); // a student's own attendance and quiz scores
   if (p.action === 'preclass') return jsonp_(e, hostOk_(p) ? preclass_(p) : { ok: false, why: 'host key not accepted' });
 
+  if (p.action === 'attend_relay') return jsonp_(e, attRelayIssue_(p)); // a checked-in student asks for a relay code (no host key; the phone must be in this session's log)
   if (p.action === 'attend') return jsonp_(e, attCheckIn_(p, code)); // a student checks in: the Student ID, the QR token, the device token and the phone's rounded location
   if (p.action === 'hostcheck') return jsonp_(e, { ok: hostOk_(p) }); // the lecturer menu: is this key right?
   if (p.action === 'held_status') return jsonp_(e, hostOk_(p) ? heldStatus_() : { ok: false, why: 'host key not accepted' }); // host only: what is waiting for release

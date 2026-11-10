@@ -46,6 +46,8 @@
 @media (prefers-color-scheme:dark){.ci .done .tick.warn{color:#ffb74d}}
 .ci .note{font:.92rem/1.5 system-ui,sans-serif;color:var(--muted)}
 .ci [hidden]{display:none!important}
+.ci .relay{margin-top:1.2rem;border-top:1px dashed var(--border);padding-top:1rem}
+.ci .relay img{display:block;margin:.6rem auto;width:min(78vw,320px);height:min(78vw,320px);background:#fff;padding:6px;border-radius:6px}
 body.focus header.banner,body.focus nav.jump,body.focus .crumb,body.focus .sec-sub,body.focus aside.disclaimer,body.focus footer,body.focus a.skip,body.focus main h2{display:none!important}
 body.focus main{padding-top:1.2rem}
 </style>
@@ -77,8 +79,19 @@ body.focus main{padding-top:1.2rem}
   <p class="tick" aria-hidden="true">&#10003;</p>
   <h3 id="c-dh">Check-in received</h3>
   <p>Student ID <b id="c-sid"></b></p>
+  <div class="relay" id="c-relay" hidden>
+   <button type="button" class="go alt" id="c-relay-btn">Help a friend check in</button>
+   <div id="c-relay-box" hidden>
+    <p class="note">Show this only to a classmate sitting near you in the room. It changes every few seconds and works for two scans. It does not work outside the room.</p>
+    <img id="c-relay-qr" alt="Relay QR code for a classmate to scan" width="320" height="320" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==">
+    <p class="note" id="c-relay-tick" role="status"></p>
+    <button type="button" class="go alt" id="c-relay-stop">Stop showing</button>
+   </div>
+   <p class="note" id="c-relay-msg" role="status"></p>
+  </div>
  </section>
 </div>
+<script src="assets/qrcode.js"></script>
 <script src="assets/messages.js"></script>
 <script>
 (function(){
@@ -90,7 +103,7 @@ function devToken(){var t="";try{t=localStorage.getItem("phys143_dev")||""}catch
  if(t.length<16){var a=new Uint8Array(12);(window.crypto||window.msCrypto).getRandomValues(a);t="";for(var i=0;i<a.length;i++)t+=("0"+a[i].toString(16)).slice(-2);try{localStorage.setItem("phys143_dev",t)}catch(x){}}
  return t}
 var DEV=devToken();
-var TOK=(/[?&]t=([0-9a-f]{1,8})/.exec(location.search)||[0,""])[1];
+var TOK=(/[?&]t=(r?[0-9a-f]{1,14})/.exec(location.search)||[0,""])[1]; // the projector token (8 hex) or a relay token (r + 14 hex)
 var POS=null; // this phone's location, used once for the check-in: the server keeps only the distance, never the coordinates
 function getPos(cb){
  if(!navigator.geolocation){cb(null);return}
@@ -116,12 +129,40 @@ $("c-form").addEventListener("submit",function(e){
  jsonp("action=attend&id="+encodeURIComponent(id)+"&dev="+DEV+"&t="+TOK+loc,function(r){
   $("c-btn").disabled=false;
   if(!r){err(PHYSMSG.text("E8"));return}
-  if(r.ok){$("c-form-wrap").hidden=true;window.scrollTo(0,0);var h=r.already?"Already marked present today":"Check-in received";if(r.onList===false){$("c-mid").textContent=r.id;$("c-mh").textContent=h;$("c-missing").hidden=false}else{$("c-sid").textContent=r.id;$("c-dh").textContent=h;$("c-done").hidden=false}return}
+  if(r.ok){$("c-form-wrap").hidden=true;window.scrollTo(0,0);var h=r.already?"Already marked present today":"Check-in received";if(r.onList===false){$("c-mid").textContent=r.id;$("c-mh").textContent=h;$("c-missing").hidden=false}else{$("c-sid").textContent=r.id;$("c-dh").textContent=h;$("c-done").hidden=false;if(r.relay&&!r.already){ME=r.id;$("c-relay").hidden=false}}return}
   err(PHYSMSG.fromWhy(r.why));
  });
  };
  if(POS)send(POS);else getPos(send);
 });
+// Relay: after a successful check-in, this phone can show a short-lived code for a neighbour. The server decides whether it may (same ID and phone, in this session, under the limits).
+var ME="",rTimer=null,rTick=null,rLeft=0,rStamp=0,rOk=0,rOn=false;
+function rDraw(tok){
+ try{var q=qrcode(0,"M");q.addData(location.origin+location.pathname+"?t="+tok);q.make();$("c-relay-qr").src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(q.createSvgTag({cellSize:8,margin:4,scalable:true}))}catch(x){}
+}
+function rTickDraw(){
+ var lag=Date.now()-rOk;
+ if(lag>25000){$("c-relay-qr").src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";$("c-relay-tick").textContent="Connection lost. Waiting to reconnect...";return}
+ var r=rLeft-Math.floor((Date.now()-rStamp)/1000);
+ $("c-relay-tick").textContent=lag>12000?"Connection is slow. This code may be out of date.":"This code changes in "+Math.max(r,0)+" s";
+}
+function rStop(msg){rOn=false;clearTimeout(rTimer);clearInterval(rTick);rTimer=null;rTick=null;$("c-relay-box").hidden=true;$("c-relay-btn").hidden=false;if(msg!==undefined)$("c-relay-msg").textContent=msg}
+function rFetch(){
+ if(!rOn)return;
+ jsonp("action=attend_relay&id="+encodeURIComponent(ME)+"&dev="+DEV,function(r){
+  if(!rOn)return;
+  if(!r){rTimer=setTimeout(rFetch,3000);return}
+  if(!r.ok){
+   var m=r.why==="relay limit"?"You have already helped as many classmates as allowed.":(r.why==="no relay"?"This code cannot be passed on any further. Ask a classmate nearer the front.":(r.why==="closed"?"Attendance has closed.":"Could not make a relay code now. Try again in a moment."));
+   rStop(m);return}
+  rOk=Date.now();rLeft=r.secondsLeft||10;rStamp=Date.now();rDraw(r.token);rTickDraw();
+  $("c-relay-msg").textContent=r.remaining!=null?"You can help "+r.remaining+" more classmate"+(r.remaining===1?"":"s")+".":"";
+  rTimer=setTimeout(rFetch,Math.max(2000,rLeft*1000-500));
+ });
+}
+$("c-relay-btn").addEventListener("click",function(){rOn=true;rOk=Date.now();$("c-relay-btn").hidden=true;$("c-relay-box").hidden=false;$("c-relay-msg").textContent="";rTick=setInterval(rTickDraw,1000);rFetch()});
+$("c-relay-stop").addEventListener("click",function(){rStop("")});
+document.addEventListener("visibilitychange",function(){if(document.hidden&&rOn)rStop("Stopped while this page was in the background. Press the button to show it again.")});
 function again(){$("c-done").hidden=true;$("c-missing").hidden=true;$("c-form-wrap").hidden=false;$("c-id").value="";$("c-id").focus()}
 $("c-again2").addEventListener("click",again);
 })();

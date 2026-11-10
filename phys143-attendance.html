@@ -110,11 +110,13 @@ function signOut(){KEY="";try{sessionStorage.removeItem("phys143_hk")}catch(x){}
 try{var sr=localStorage.getItem("phys143_rad");if(sr)setTimeout(function(){var e=$("a-rad");if(e&&e.querySelector('option[value="'+sr+'"]'))e.value=sr},0)}catch(x){}
 var timer=null,tk=null,left=0,stamp=0,show=function(id){["a-login","a-idle","a-live","a-wait"].forEach(function(x){$(x).hidden=(x!==id)})};
 function call(act,extra,cb){jsonp("action="+act+"&hostkey="+encodeURIComponent(KEY)+(extra||""),cb)}
+var lastOk=Date.now(); // when the sheet last answered; the projector view warns, then hides a stale QR, if it stops answering
 function draw(d){
+ lastOk=Date.now();
  var ss=d&&d.session,open=ss&&ss.status==="Open";
  if(open){
   drawQr(ss.link);left=ss.secondsLeft||0;stamp=Date.now();tickDraw();if(!tk)tk=setInterval(tickDraw,1000);
-  $("a-count").textContent=ss.present+" present"+(ss.notOnList?", "+ss.notOnList+" not on the list":"");
+  $("a-count").textContent=ss.present+" present"+(ss.relayed&&!PROJ?" ("+ss.relayed+" through a neighbour's code)":"")+(ss.notOnList&&!PROJ?", "+ss.notOnList+" not on the list":"");
   show("a-live");if(!timer)timer=setInterval(poll,4000);
  } else {
   if(PROJ){if(tk){clearInterval(tk);tk=null}show("a-wait");if(!timer)timer=setInterval(poll,4000);return} // keep watching: the QR appears as soon as the lecturer starts
@@ -132,7 +134,10 @@ function drawQr(t){
 }
 function tickDraw(){
  var r=left-Math.floor((Date.now()-stamp)/1000);
- $("a-tick").textContent=left?"The QR code changes in "+Math.max(r,0)+" s":"";
+$("a-tick").textContent=left?"The QR code changes in "+Math.max(r,0)+" s":"";
+ var lag=Date.now()-lastOk;
+ if(PROJ&&lag>60000){lastLink="";$("a-qr").innerHTML="";$("a-tick").textContent="Connection lost. Waiting to reconnect..."}
+ else if(PROJ&&lag>15000)$("a-tick").textContent="Connection is slow. The QR code may be out of date.";
  if(left&&r<=0){left=0;poll()}
 }
 function poll(){call("attend_status","",function(d){if(d&&d.ok)draw(d)})}
