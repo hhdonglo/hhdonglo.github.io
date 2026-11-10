@@ -67,7 +67,6 @@ apps_script/
   live_quizzes.json                          week names and default bank for live quizzes
 PHYS143/lecture_N/ and PHYS143/introduction/ lecture PDFs (section 6)
 PHYS105/lecture_1/                           the uncertainty analysis lecture PDF
-cv/                                          Hope_Donglo_CV.pdf and its .tex source
 tools/                                       build, check and test scripts (section 13)
 .pages.yml                                   Pages CMS forms
 .nojekyll                                    tells GitHub Pages not to run Jekyll
@@ -324,7 +323,7 @@ The Roster tab is filled from the lecturer's computer with a script, so the clas
 
 **Regenerate the QR codes.** `assets/figures/phys143-attend-qr.svg` points to the attendance check-in page and `phys143-quiz-qr.svg` to the quiz page. If a page address changes, make a new SVG with any QR tool (for example `segno`) and replace the file.
 
-**Update the CV.** Replace `cv/Hope_Donglo_CV.pdf` (and `.tex` if used).
+**Update the CV.** The CV page has no download link: visitors request the full CV by email. Keep the master copy of the PDF outside the public site.
 
 ## 16. How to: redeploy the Apps Script
 
