@@ -8,6 +8,8 @@
 .tp input[type=text],.tp input[type=number],.tp input[type=password],.tp input[type=url],.tp input[type=datetime-local],.tp select,.tp textarea{min-height:40px;padding:.3rem .5rem;border:1.5px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font:1rem system-ui,sans-serif;max-width:100%}
 .tp textarea{width:100%;min-height:6rem;line-height:1.45}
 .tp input[type=number]{width:5.5rem}
+.tp input[type=url]{width:100%}
+.tp .row>div{max-width:100%}
 .tp .go{min-height:44px;padding:.4rem 1.1rem;border:2px solid var(--brown-fill);border-radius:6px;background:var(--brown-fill);color:#fff;font:600 1rem system-ui,sans-serif;cursor:pointer;margin:.3rem .4rem .3rem 0;text-decoration:none;display:inline-block}
 .tp .go.alt{background:var(--btn-bg);color:var(--btn-text)}
 .tp .go.sm{min-height:34px;padding:.15rem .6rem;font-size:.85rem;margin:0 .3rem 0 0}

@@ -219,7 +219,7 @@ function showResults(r){
  if(linked.length){
   h+='<h2 style="margin-top:.9rem">Progress by learning objective</h2>'+linked.map(function(o){var cur=o.current===null?0:o.current,b=o.level==="Secure"?"ok":o.level==="Developing"?"mid":o.level==="Beginning"?"low":"";
    return '<div class="lv '+b+'"><span class="t">'+esc(o.label)+'</span><span class="p">'+(o.current===null?"–":o.current+"%")+'</span>'+
-    '<span class="bar" role="img" aria-label="'+cur+' percent now"><i style="width:'+Math.max(2,cur)+'%"></i></span><span class="s">'+esc(o.level)+'. '+o.answers+' answers'+(o.start!==null&&o.answers>=4?'; started at '+o.start+'%, now '+o.current+'%':'')+'.</span></div>'}).join("")+
+    '<span class="bar" role="img" aria-label="'+cur+' percent now"><i style="width:'+Math.max(2,cur)+'%"></i></span><span class="s">'+esc(o.level)+'. '+o.answers+(o.answers===1?' answer':' answers')+(o.start!==null&&o.answers>=4?'; started at '+o.start+'%, now '+o.current+'%':'')+'.</span></div>'}).join("")+
    '<p class="note">"Now" is your latest answers on that objective; "started" is your first ones. At least '+(r.progress.minimum||3)+' answers are needed before a level is shown.</p>';
  }
  // Questions to revisit, with the slide to look at.
