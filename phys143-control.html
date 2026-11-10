@@ -45,10 +45,11 @@
 .cc .wide,.cc .panel.open{grid-column:1/-1}.cc iframe{width:100%;height:80vh;min-height:30rem;border:1px solid var(--border);border-radius:6px;margin-top:.6rem;background:var(--surface)}
 .cc .go.sm{min-height:40px;padding:.3rem .8rem;font-size:.9rem}
 .cc details.held{margin:.6rem 0 .2rem}.cc details.held summary{cursor:pointer;font-size:.95rem;min-height:36px;display:flex;align-items:center}.cc details.held li{font-size:.88rem;padding:.3rem 0}
-.cc details.fold>summary{cursor:pointer;list-style:none;min-height:36px;display:flex;align-items:center;justify-content:space-between;font-size:1rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
-.cc details.fold small{font-weight:400;text-transform:none;letter-spacing:0;margin-left:.6rem;flex:1;color:var(--muted)}
-.cc details.fold>summary::-webkit-details-marker{display:none}.cc details.fold>summary::after{content:"+";font-size:1.3rem}.cc details.fold[open]>summary::after{content:"\2212"}
-.cc .panel{padding:.5rem 1rem}.cc .panel:has(details[open]){grid-column:1/-1}.cc .grid{grid-template-columns:repeat(auto-fit,minmax(14rem,1fr));gap:.5rem}.cc .note{margin:.3rem 0}
+.cc details.fold>summary{cursor:pointer;list-style:none;display:block;min-height:5.2rem;position:relative;padding-right:2rem}
+.cc details.fold>summary b{display:block;font-size:1rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+.cc details.fold>summary small{display:block;margin:.35rem 0 0;font-size:1.05rem;font-weight:600;color:var(--text)}
+.cc details.fold>summary::-webkit-details-marker{display:none}.cc details.fold>summary::after{content:"\25BE";position:absolute;right:0;top:0;font-size:1.1rem;color:var(--muted)}.cc details.fold[open]>summary::after{content:"\25B4"}.cc details.fold[open]>summary{min-height:0;margin-bottom:.4rem}
+.cc .panel{padding:.7rem 1rem}.cc .panel:has(details[open]){grid-column:1/-1}.cc .grid{grid-template-columns:repeat(auto-fit,minmax(14rem,1fr));gap:.5rem}.cc .note{margin:.3rem 0}
 .cc [hidden]{display:none!important}
 body.focus header.banner,body.focus nav.jump,body.focus .crumb,body.focus .sec-sub,body.focus aside.disclaimer,body.focus footer,body.focus a.skip,body.focus main h2{display:none!important}
 body.focus main{padding-top:0}
@@ -71,7 +72,7 @@ body.focus main{padding-top:0}
    <p class="code" id="t-code">&nbsp;</p>
    <a class="go alt" id="t-hand" href="#" hidden>Open handout</a>
   </section>
-  <section class="panel" id="p-stu"><details class="fold" id="d-stu"><summary>Student Portal <small id="sp-sum"></small></summary>
+  <section class="panel" id="p-stu"><details class="fold" id="d-stu"><summary><b>Student Portal</b><small id="sp-sum"></small></summary>
    <div id="sp-form">
    <p class="note">Public text only. Empty = default. Live in about 15 s.</p>
    <label for="sp-contacts" class="note">Contacts</label>
@@ -92,12 +93,12 @@ body.focus main{padding-top:0}
    <p class="note" id="sp-msg" role="status"></p>
    </div>
   </details></section>
-  <section class="panel"><details class="fold" id="d-pre"><summary>Pre-class check</summary>
+  <section class="panel"><details class="fold" id="d-pre"><summary><b>Pre-class check</b><small id="st-pre">Not run yet</small></summary>
    <ul id="k-list"><li class="note">Not run yet.</li></ul>
    <label class="cb"><input type="checkbox" id="k-proj"> Projector display seen</label>
    <button class="go" type="button" id="k-run">Run checks</button>
   </details></section>
-  <section class="panel" id="p-att"><details class="fold" id="d-att"><summary>Attendance</summary>
+  <section class="panel" id="p-att"><details class="fold" id="d-att"><summary><b>Attendance</b><small id="st-att">Checking</small></summary>
       <button class="go" type="button" data-panel="p-att" data-embed="e-att" data-src="phys143-attendance.html">Show here</button>
    <a class="go alt" href="phys143-attendance.html" target="_blank" rel="noopener">Own window</a>
    <details class="held" id="h-det"><summary id="h-sum">Held sessions: checking</summary>
@@ -107,7 +108,7 @@ body.focus main{padding-top:0}
    <p class="note" id="h-msg" role="status"></p>
    <div id="e-att"></div>
   </details></section>
-  <section class="panel" id="p-ros"><details class="fold"><summary>Class list</summary>
+  <section class="panel" id="p-ros"><details class="fold"><summary><b>Class list</b><small>Add, remove, check an ID</small></summary>
    <p class="note">Add or remove one ID. Past marks are kept.</p>
    <input type="text" id="r-id" inputmode="numeric" autocomplete="off" placeholder="Student ID" aria-label="Student ID">
    <input type="text" id="r-nm" autocomplete="off" placeholder="Name (optional, for Add)" aria-label="Name">
@@ -117,13 +118,13 @@ body.focus main{padding-top:0}
    <button class="go alt sm" type="button" id="r-tidy">Tidy to class list</button>
    <p class="note" id="r-msg" role="status"></p>
   </details></section>
-  <section class="panel" id="p-rst"><details class="fold"><summary>Reset results</summary>
+  <section class="panel" id="p-rst"><details class="fold"><summary><b>Reset results</b><small>New term</small></summary>
    <p class="note">New term: backs up, then empties results. Type RESET to confirm.</p>
    <button class="go alt" type="button" data-panel="p-rst" data-embed="e-rst" data-src="phys143-reset.html">Show here</button>
    <a class="go alt" href="phys143-reset.html" target="_blank" rel="noopener">Own window</a>
    <div id="e-rst"></div>
   </details></section>
-  <section class="panel"><details class="fold" id="d-quiz"><summary>Live quiz</summary>
+  <section class="panel"><details class="fold" id="d-quiz"><summary><b>Live quiz</b><small id="st-quiz">Checking</small></summary>
    <button class="go" type="button" data-embed="e-quiz" data-src="phys143-quiz-host.html">Show here</button>
    <a class="go alt" href="phys143-quiz-host.html" target="_blank" rel="noopener">Own window</a>
    <a class="go alt" href="phys143-quiz-display.html" target="_blank" rel="noopener">Projector display</a>
@@ -134,7 +135,7 @@ body.focus main{padding-top:0}
    <p class="note" id="h-qmsg" role="status"></p>
    <div id="e-quiz"></div>
   </details></section>
-  <section class="panel"><details class="fold"><summary>After class</summary>
+  <section class="panel"><details class="fold"><summary><b>After class</b><small id="st-aft">No session</small></summary>
    <ul id="x-list"><li class="note">Attendance summary appears here.</li></ul>
    <p class="note">Check Attendance, Not_On_List and Flags; export for Sakai; delete test rows.</p>
    <button class="go alt" type="button" id="x-out">Log out</button>
@@ -163,6 +164,12 @@ var lastErr=null;
 function err(m){var t=new Date();lastErr=("0"+t.getHours()).slice(-2)+":"+("0"+t.getMinutes()).slice(-2)+" "+m;$("s-e").textContent=lastErr;dot("s-ed","r")}
 // ---- status strip ----
 var misses=0,attAuto=false,qAuto=false;
+setInterval(function(){
+ $("st-att").textContent=$("s-a").textContent;$("st-quiz").textContent=$("s-q").textContent;
+ var c=$("s-c").textContent;$("st-aft").textContent=c==="None"?"No session":c;
+ var bad=document.querySelectorAll("#k-list li.rd").length,am=document.querySelectorAll("#k-list li.am").length,ok=document.querySelectorAll("#k-list li.ok").length;
+ if(ok+bad+am)$("st-pre").textContent=bad?bad+" problem"+(bad>1?"s":""):(am?am+" to confirm":"All clear");
+},1000);
 function poll(){
  jsonp("action=attend_status&"+hk(),function(d,ms){
   if(!d){misses++;dot("s-bd","r");$("s-b").textContent="No answer";err("Backend did not answer");return}
