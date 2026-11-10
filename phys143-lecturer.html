@@ -70,7 +70,8 @@ var KEY="";try{KEY=sessionStorage.getItem("phys143_hk")||""}catch(x){}
 function saveKey(k){KEY=k;try{sessionStorage.setItem("phys143_hk",k)}catch(x){}}
 function signOut(){KEY="";try{sessionStorage.removeItem("phys143_hk")}catch(x){}location.href="phys143-lecturer.html"}
 
-function ok(){$("m-login").hidden=true;$("m-choice").hidden=false;if(location.search.indexOf("menu")<0&&window===window.top)location.replace("phys143-control.html")} // the Control Centre is the lecturer entry; ?menu keeps the old button page
+function ok(){$("m-login").hidden=true;$("m-choice").hidden=false;if(window!==window.top&&location.search.indexOf("menu")<0){location.replace("phys143-attendance.html");return} // embedded in the Control Centre: go straight to the attendance controls, no menu
+ if(location.search.indexOf("menu")<0&&window===window.top)location.replace("phys143-control.html")} // the Control Centre is the lecturer entry; ?menu keeps the old button page
 function check(k,first){
  jsonp("action=hostcheck&hostkey="+encodeURIComponent(k),function(d){
   if(d&&d.ok){saveKey(k);ok();return}

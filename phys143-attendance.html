@@ -52,7 +52,7 @@ body.focus main{padding-top:1rem}
 .att .toplinks{text-align:left;margin:0 0 .6rem}
 </style>
 <div class="host att">
- <p class="toplinks"><a href="phys143-lecturer.html">&larr; Lecturer menu</a></p>
+ <p class="toplinks" id="a-toplinks"><a href="phys143-lecturer.html">&larr; Lecturer menu</a></p>
  <section class="panel" id="a-login" hidden>
   <h3 style="margin:.1rem 0 .4rem">Lecturer login</h3>
   <form id="a-form" autocomplete="off">
@@ -92,7 +92,9 @@ function jsonp(params,cb){
 }
 var KEY="";try{KEY=sessionStorage.getItem("phys143_hk")||""}catch(x){}
 function saveKey(k){KEY=k;try{sessionStorage.setItem("phys143_hk",k)}catch(x){}}
-function signOut(){KEY="";try{sessionStorage.removeItem("phys143_hk")}catch(x){}location.href="phys143-lecturer.html"}
+var EMBEDDED=window!==window.top; // inside the Control Centre: no lecturer menu, stay on the attendance controls
+if(EMBEDDED){var tl=document.getElementById("a-toplinks");if(tl)tl.hidden=true}
+function signOut(){KEY="";try{sessionStorage.removeItem("phys143_hk")}catch(x){}if(EMBEDDED)location.reload();else location.href="phys143-lecturer.html"}
 
 try{var sr=localStorage.getItem("phys143_rad");if(sr)setTimeout(function(){var e=$("a-rad");if(e&&e.querySelector('option[value="'+sr+'"]'))e.value=sr},0)}catch(x){}
 var timer=null,tk=null,left=0,stamp=0,show=function(id){["a-login","a-idle","a-live"].forEach(function(x){$(x).hidden=(x!==id)})};
