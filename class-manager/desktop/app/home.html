@@ -90,22 +90,64 @@ main{grid-area:main;overflow:auto;padding:1.75rem var(--pad) 2.25rem}
 .link:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 .row{display:flex;flex-wrap:wrap;gap:.75rem;align-items:center}
 
-/* In Class: connection on the left, tools on the right; three columns on wide windows */
-.cols{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:var(--gap);align-items:stretch}
+/* In Class: quick actions, then live activity beside the scan code card and tools; three columns on wide windows */
+.quick{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.75rem;margin:0 0 var(--gap)}
+.qa{min-height:3.6rem;font-size:1.02rem;justify-content:flex-start;padding:.7rem 1.1rem}
+.qa svg{width:1.45rem;height:1.45rem}
+.cols{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);grid-template-areas:"live a" "live b";gap:var(--gap);align-items:start}
+.card-head{display:flex;align-items:baseline;justify-content:space-between;gap:1rem;margin:0 0 1rem}
+.card-head h3{margin:0}
 .tools{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,13rem),1fr));gap:.75rem}
-.tools .btn{width:100%;justify-content:flex-start;min-height:3.3rem;padding:.7rem 1rem;font-size:1rem;text-align:left}
-.tools .btn svg{width:1.4rem;height:1.4rem}
-.tools .btn kbd{margin-left:auto;color:inherit;opacity:.65}
 .tools.list{grid-template-columns:1fr}
-.tool-main{min-height:4.2rem!important;font-size:1.1rem!important}
+.tools .btn{width:100%;justify-content:flex-start;min-height:3.1rem;padding:.65rem 1rem;font-size:1rem;text-align:left}
+.tools .btn svg{width:1.35rem;height:1.35rem}
 .card.sub .tools .btn{border-color:transparent;background:rgba(255,255,255,.035)}
 .card.sub .tools .btn:hover{background:rgba(255,255,255,.07);border-color:var(--line)}
 @media (prefers-color-scheme:light){.card.sub .tools .btn{background:rgba(0,0,0,.03)}}
-@media (min-width:1700px){
- .cols{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) minmax(0,1fr)}
- .cols>.stack{display:contents}
- .cols>.stack>.card{align-self:stretch}
-}
+@media (min-width:1700px){.cols{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) minmax(0,1fr);grid-template-areas:"live a b"}}
+
+/* live activity */
+.act{padding:1.1rem 0 1.25rem;border-top:1px solid var(--line)}
+.act:last-child{padding-bottom:0}
+.act-top{display:flex;align-items:center;gap:.8rem;margin:0 0 .6rem;flex-wrap:wrap}
+.tag{display:inline-flex;align-items:center;gap:.45rem;padding:.2rem .7rem;border-radius:999px;background:var(--card-2);font-size:var(--fs-sm);font-weight:700;color:var(--muted)}
+.tag::before{content:"";width:.55rem;height:.55rem;border-radius:50%;background:var(--off)}
+.tag.on{color:var(--text)}
+.tag.on::before{background:var(--ok);box-shadow:0 0 0 3px rgba(76,195,138,.18)}
+.tag.held::before{background:var(--warn)}
+.count{margin:0;font-size:3rem;font-weight:700;line-height:1.05;color:var(--head);font-variant-numeric:tabular-nums}
+.count .of{font-size:1.4rem;font-weight:600;color:var(--muted);margin-left:.35rem}
+.act-main{margin:0 0 1rem}
+.act-main .note{margin:.3rem 0 0}
+.qrow{display:flex;align-items:baseline;gap:1rem;padding:.55rem 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.qrow:last-child{border-bottom:0}
+.qrow b{font:700 1.05rem ui-monospace,monospace;color:var(--head)}
+.qrow .qn{margin-left:auto;font-weight:700;font-size:1.25rem;color:var(--head);font-variant-numeric:tabular-nums}
+#quiz-list{margin:0 0 1rem}
+
+/* student scan code card */
+.sm-chip{font-size:var(--fs-xs);padding:.25rem .7rem}
+.scan-row{display:grid;grid-template-columns:auto minmax(0,1fr);gap:1.1rem;align-items:center}
+.qr-mini{all:unset;box-sizing:border-box;cursor:zoom-in;width:7.5rem;aspect-ratio:1;background:#fff;padding:.4rem;border-radius:.55rem}
+.qr-mini:focus-visible{outline:2px solid var(--focus);outline-offset:3px}
+.qr-mini svg{width:100%;height:100%;display:block}
+.qr-mini:empty{background:var(--card-2)}
+.addr-mini{font:600 1.05rem/1.35 ui-monospace,monospace;word-break:break-all;margin:0 0 .8rem;color:var(--head)}
+
+/* scan code window: large QR first, everything else below it; full screen for the projector */
+.scan-d{width:min(64rem,94vw);max-width:none;max-height:94vh;padding:1.25rem 1.6rem 1.6rem}
+.scan-bar{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;margin:0 0 1rem}
+.scan-bar h2{margin:0;font-size:1.3rem}
+.scan-bar form{margin:0}
+.scan-d #qr{width:min(100%,calc(94vh - 19rem),44rem)}
+.scan-ctl{gap:1rem}
+.proj{display:none}
+.proj:fullscreen{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.2rem;background:var(--bg);color:var(--text);padding:2rem}
+.proj-qr{width:min(92vw,calc(100vh - 13rem));aspect-ratio:1;background:#fff;padding:1.2rem;border-radius:1rem}
+.proj-qr svg{width:100%;height:100%;display:block}
+.proj-addr{margin:0;font:700 clamp(1.8rem,3.4vw,3.6rem)/1.2 ui-monospace,monospace;color:var(--head);text-align:center;word-break:break-all}
+.proj-live{margin:0;font-size:1.3rem;color:var(--muted)}
+.proj-exit{position:absolute;top:1.2rem;right:1.2rem}
 
 /* banner */
 .banner{display:flex;align-items:center;gap:1.25rem;flex-wrap:wrap;background:linear-gradient(90deg,rgba(201,161,90,.16),rgba(201,161,90,.05));border:1px solid rgba(201,161,90,.25);border-radius:var(--r);padding:.85rem 1.1rem;margin-bottom:1.5rem}
@@ -121,7 +163,7 @@ main{grid-area:main;overflow:auto;padding:1.75rem var(--pad) 2.25rem}
 .x:focus-visible{outline:2px solid var(--focus)}
 
 /* connection card */
-.seg{display:inline-flex;padding:.25rem;border-radius:.65rem;background:var(--bg);gap:.2rem;margin:1.1rem 0 0;border:0}
+.seg{display:inline-flex;padding:.25rem;border-radius:.65rem;background:var(--bg);gap:.2rem;margin:0;border:0}
 .seg label{position:relative;padding:.5rem 1.1rem;border-radius:.5rem;font-weight:600;font-size:.95rem;color:var(--muted);cursor:pointer}
 .seg input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
 .seg label:has(input:checked){background:var(--card-2);color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,.25)}
@@ -130,7 +172,7 @@ main{grid-area:main;overflow:auto;padding:1.75rem var(--pad) 2.25rem}
 .conn{display:flex;flex-direction:column;align-items:center;text-align:center}
 .conn .row{justify-content:center}
 .addr{font:600 clamp(1.2rem,1.7vw,1.8rem)/1.3 ui-monospace,monospace;word-break:break-all;margin:0 0 1rem;color:var(--head)}
-#qr{width:min(100%,clamp(15rem,27vw,34rem),max(15rem,calc(100vh - 36rem)));aspect-ratio:1;background:#fff;padding:.8rem;border-radius:.9rem;margin:0 0 1.1rem}
+#qr{aspect-ratio:1;background:#fff;padding:.9rem;border-radius:.9rem;margin:0 0 1.1rem}
 #qr svg{width:100%;height:100%;display:block}
 #qr:empty{background:var(--card-2)}
 .tstate{font-weight:600;font-size:.95rem;margin:.8rem 0 0}
@@ -172,7 +214,7 @@ dialog table{width:100%;font-size:.95rem}
 dialog td{white-space:normal;padding:.4rem .6rem}
 dialog td:last-child{text-align:right}
 
-@media (max-width:1100px){.cols{grid-template-columns:1fr}}
+@media (max-width:1100px){.cols{grid-template-columns:1fr;grid-template-areas:"live" "a" "b"}.quick{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:1000px){.app{grid-template-columns:4.5rem minmax(0,1fr)}.nav span,.brand span{display:none}.nav{justify-content:center;padding:.55rem}.brand{justify-content:center;padding:.2rem 0 1.2rem}}
 @media (max-width:640px){.keybox>span{display:none}}
 </style>
@@ -192,6 +234,9 @@ dialog td:last-child{text-align:right}
  <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol>
  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></symbol>
  <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M17 6l3 3M14 9l2 2"/></symbol>
+ <symbol id="i-check" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4M8.5 15l2.5 2.5 4.5-5"/></symbol>
+ <symbol id="i-play" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M10 8.5v7l6-3.5z"/></symbol>
+ <symbol id="i-expand" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/><rect x="9" y="9" width="6" height="6" rx="1"/></symbol>
  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></symbol>
 </svg>
 
@@ -227,43 +272,63 @@ dialog td:last-child{text-align:right}
   </ul>
   <button type="button" class="x" id="setup-x" aria-label="Hide this reminder" title="Hide this reminder">&times;</button>
  </div>
- <header><h2 id="h-class">In Class</h2><p>Students scan the code or type the address. Lecturer screens open in their own windows.</p></header>
+ <header><h2 id="h-class">In Class</h2><p>Start an activity, follow it here, and show the scan code when students need it.</p></header>
+
+ <div class="quick" role="group" aria-label="Quick actions">
+  <button class="btn primary qa" data-win="attendance.html" data-key="Shift+A"><svg><use href="#i-check"/></svg>Take attendance</button>
+  <button class="btn qa" data-win="quiz-host.html"><svg><use href="#i-play"/></svg>Run a quiz</button>
+  <button class="btn qa" data-win="quiz-display.html" data-key="P"><svg><use href="#i-screen"/></svg>Projector display</button>
+  <button class="btn qa" data-win="messages.html"><svg><use href="#i-chat"/></svg>Send an announcement</button>
+ </div>
+
  <div class="cols">
-  <div class="card">
-   <h3>Access and connection</h3>
-   <div class="conn">
-    <div id="qr" role="img" aria-label="QR code of the student address"></div>
-    <p class="lbl">Student address</p>
-    <p class="addr" id="addr">…</p>
-    <div class="row">
-     <button class="btn primary" type="button" id="copy-url"><svg><use href="#i-copy"/></svg>Copy link</button>
-     <button class="link" type="button" id="how">How this works</button>
+  <div class="card live-card" style="grid-area:live">
+   <div class="card-head"><h3>Live activity</h3><span class="note" id="lv-upd"></span></div>
+   <div class="act" id="lv-att">
+    <div class="act-top"><span class="tag" id="att-tag">Attendance</span><span class="note" id="att-meta"></span></div>
+    <div class="act-main">
+     <p class="count"><span id="att-n">0</span><span class="of" id="att-of"></span></p>
+     <p class="note" id="att-text">No attendance session is open.</p>
     </div>
-    <fieldset class="seg"><legend class="lbl" style="position:absolute;left:-9999px">How students connect</legend>
-     <label><input type="radio" name="conn" value="lan" checked> Same Wi-Fi or hotspot</label>
-     <label><input type="radio" name="conn" value="net"> Internet</label>
-    </fieldset>
-    <p class="tstate" id="tstate" role="status" aria-live="polite"></p>
-    <p class="note more" id="more-p">Other addresses of this computer: <span id="more">none</span>.</p>
-    <div class="stopbox" id="t-stopbox" hidden><button class="btn danger" id="t-stop" type="button">Stop internet access</button></div>
+    <div class="row"><button class="btn" type="button" data-win="attendance.html" id="att-btn">Take attendance</button></div>
+   </div>
+   <div class="act" id="lv-quiz">
+    <div class="act-top"><span class="tag" id="quiz-tag">Live quiz</span><span class="note" id="quiz-meta"></span></div>
+    <div id="quiz-list"><p class="note">No quiz is running.</p></div>
+    <div class="row"><button class="btn" type="button" data-win="quiz-host.html" id="quiz-btn">Run a quiz</button><button class="btn" type="button" data-win="control.html">Control Centre</button></div>
    </div>
   </div>
-  <div class="stack">
+
+  <div class="stack" style="grid-area:a">
+   <div class="card scan-card">
+    <div class="card-head"><h3>Student scan code</h3><span class="chip sm-chip" id="live-mini"><span class="dot"></span><span id="live-mini-t">Starting</span></span></div>
+    <div class="scan-row">
+     <button type="button" class="qr-mini" id="qr-mini" aria-label="Show the scan code large" title="Show the scan code large"></button>
+     <div class="scan-txt">
+      <p class="addr-mini" id="addr-mini">…</p>
+      <div class="row">
+       <button class="btn primary" type="button" id="scan-open" data-key="Shift+S"><svg><use href="#i-expand"/></svg>Show scan code</button>
+       <button class="btn" type="button" id="copy-mini"><svg><use href="#i-copy"/></svg>Copy link</button>
+      </div>
+     </div>
+    </div>
+   </div>
    <div class="card">
     <h3>Class tools</h3>
     <div class="tools list">
-     <button class="btn primary tool-main" style="grid-column:1/-1" data-win="lecturer.html"><svg><use href="#i-menu"/></svg>Lecturer menu<kbd data-k="L"></kbd></button>
-     <button class="btn" data-win="quiz-display.html" data-key="P"><svg><use href="#i-screen"/></svg>Projector display</button>
+     <button class="btn" data-win="lecturer.html" data-key="L"><svg><use href="#i-menu"/></svg>Lecturer menu</button>
      <button class="btn" data-win="control.html"><svg><use href="#i-sliders"/></svg>Control Centre</button>
      <button class="btn" data-win="insights.html"><svg><use href="#i-bulb"/></svg>Teaching insights</button>
     </div>
    </div>
+  </div>
+
+  <div class="stack" style="grid-area:b">
    <div class="card sub">
     <h3>More tools</h3>
     <div class="tools">
      <button class="btn" data-win="groups.html"><svg><use href="#i-people"/></svg>Student groups</button>
      <button class="btn" data-win="calendar.html"><svg><use href="#i-cal"/></svg>Calendar</button>
-     <button class="btn" data-win="messages.html"><svg><use href="#i-chat"/></svg>Announcements</button>
      <button class="btn" data-win="codes.html"><svg><use href="#i-key"/></svg>Access codes</button>
     </div>
     <p class="note" id="keynote" style="margin-top:1rem">Lecturer pages ask for the host key shown at the top. Keep it private.</p>
@@ -359,6 +424,38 @@ dialog td:last-child{text-align:right}
 <footer class="status"><span id="sb-left">Class Manager</span><button class="link" type="button" id="keys">Keyboard shortcuts</button><span id="sb-right"></span></footer>
 </div>
 
+<dialog id="scan-d" class="scan-d" aria-labelledby="scan-h">
+ <div class="scan-bar">
+  <h2 id="scan-h">Scan to open the course</h2>
+  <span class="note" id="scan-live" role="status" aria-live="polite"></span>
+  <span style="flex:1"></span>
+  <button class="btn" type="button" id="scan-full"><svg><use href="#i-expand"/></svg><span>Project full screen</span></button>
+  <form method="dialog"><button class="btn" id="scan-close" title="Close (Esc). Everything keeps running.">Close</button></form>
+ </div>
+ <div class="conn">
+  <div id="qr" role="img" aria-label="QR code of the student address"></div>
+  <p class="addr" id="addr">…</p>
+  <div class="row scan-ctl">
+   <button class="btn primary" type="button" id="copy-url"><svg><use href="#i-copy"/></svg>Copy link</button>
+   <fieldset class="seg"><legend class="lbl" style="position:absolute;left:-9999px">How students connect</legend>
+    <label><input type="radio" name="conn" value="lan" checked> Same Wi-Fi or hotspot</label>
+    <label><input type="radio" name="conn" value="net"> Internet</label>
+   </fieldset>
+   <button class="link" type="button" id="how">How this works</button>
+  </div>
+  <p class="tstate" id="tstate" role="status" aria-live="polite"></p>
+  <p class="note more" id="more-p">Other addresses of this computer: <span id="more">none</span>.</p>
+  <div class="stopbox" id="t-stopbox" hidden><button class="btn danger" id="t-stop" type="button">Stop internet access</button></div>
+ </div>
+</dialog>
+
+<div id="proj" class="proj" role="region" aria-label="Scan code on the projector">
+ <button class="btn proj-exit" type="button" id="proj-exit">Exit full screen (Esc)</button>
+ <div class="proj-qr" id="proj-qr" role="img" aria-label="QR code of the student address"></div>
+ <p class="proj-addr" id="proj-addr"></p>
+ <p class="proj-live" id="proj-live"></p>
+</div>
+
 <dialog id="how-d" aria-labelledby="how-h">
  <h2 id="how-h">How students connect</h2>
  <div id="how-lan"><p><strong>Same Wi-Fi or hotspot.</strong> Phones join the same Wi-Fi as this computer, or a phone hotspot that this computer is also connected to.</p>
@@ -377,6 +474,8 @@ dialog td:last-child{text-align:right}
   <tr><td>Class Roster</td><td><kbd data-k="3"></kbd></td></tr>
   <tr><td>Grades and Results</td><td><kbd data-k="4"></kbd></td></tr>
   <tr><td>App Settings</td><td><kbd data-k=","></kbd></td></tr>
+  <tr><td>Show the student scan code</td><td><kbd data-k="Shift+S"></kbd></td></tr>
+  <tr><td>Take attendance</td><td><kbd data-k="Shift+A"></kbd></td></tr>
   <tr><td>Open the lecturer menu</td><td><kbd data-k="L"></kbd></td></tr>
   <tr><td>Open the projector display</td><td><kbd data-k="P"></kbd></td></tr>
   <tr><td>Copy the student address</td><td><kbd data-k="Shift+C"></kbd></td></tr>
@@ -407,13 +506,14 @@ function go(v){
  document.querySelectorAll(".nav[data-view]").forEach(function(b){if(b.getAttribute("data-view")===v)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current")});
  store("cm-view",v);$("main").scrollTop=0;
  if(v==="grades")view();
+ if(v==="class"&&typeof livePoll==="function")livePoll();
 }
 document.querySelectorAll(".nav[data-view]").forEach(function(b){b.addEventListener("click",function(){go(b.getAttribute("data-view"))})});
 
 /* ---- connection ---- */
 var cur="",lanBase="",lanCount=0,hostKey="";
-function qr(url){try{var q=qrcode(0,"M");q.addData(url);q.make();$("qr").innerHTML=q.createSvgTag({cellSize:6,margin:1,scalable:true})}catch(e){}}
-function live(cls,txt){$("live").className="chip "+cls;$("live-t").textContent=txt}
+function qr(url){try{var q=qrcode(0,"M");q.addData(url);q.make();var svg=q.createSvgTag({cellSize:6,margin:1,scalable:true});$("qr").innerHTML=svg;$("qr-mini").innerHTML=svg;$("proj-qr").innerHTML=svg}catch(e){}}
+function live(cls,txt){$("live").className="chip "+cls;$("live-t").textContent=txt;$("live-mini").className="chip sm-chip "+cls;$("live-mini-t").textContent=txt}
 function tshow(t){
  t=t||{state:"off"};var net=document.querySelector('input[name=conn][value=net]'),on=t.state==="on";
  if(on||t.state==="starting"||t.state==="downloading")net.checked=true;
@@ -424,14 +524,58 @@ function tshow(t){
  var msg={off:"",downloading:"Downloading the connector program (first time only)…",starting:"Starting internet access…",stopping:"Stopping…",on:"",error:"Internet access is off: "+(t.error||"")}[t.state]||"";
  $("tstate").textContent=wantNet?msg:"";$("tstate").className="tstate"+(t.state==="error"?" err":"");
  var url=on?t.url:(wantNet?"":lanBase);
- $("addr").textContent=url||"…";if(url)qr(url);else $("qr").innerHTML="";
- $("copy-url").disabled=!url;
+ $("addr").textContent=url||"…";$("proj-addr").textContent=url||"…";$("addr-mini").textContent=url||(wantNet?"Starting internet access…":"…");if(url)qr(url);else{$("qr").innerHTML="";$("qr-mini").innerHTML=""}
+ $("copy-url").disabled=!url;$("copy-mini").disabled=!url;
  if(wantNet){if(on)live("live","Live: Internet");else if(t.state==="error")live("","Offline");else live("busy","Connecting")}
  else live(lanCount?"live":"",lanCount?"Live: Same Wi-Fi":"Offline: no network");
 }
 $("copy-url").addEventListener("click",function(){var u=$("addr").textContent;if(u&&u!=="…")copy(u,$("copy-url"))});
 $("key-copy").addEventListener("click",function(){if(hostKey)copy(hostKey,$("key-copy"))});
 $("how").addEventListener("click",function(){$("how-d").showModal()});
+$("copy-mini").addEventListener("click",function(){var u=$("addr").textContent;if(u&&u!=="…")copy(u,$("copy-mini"))});
+
+/* ---- scan code window: on demand, full screen for the projector; closing it stops nothing ---- */
+var scanD=$("scan-d");
+function scanOpen(){if(!scanD.open)scanD.showModal()}
+$("scan-open").addEventListener("click",scanOpen);
+$("qr-mini").addEventListener("click",scanOpen);
+$("scan-full").addEventListener("click",function(){
+ // A dialog cannot itself go full screen, so a plain panel with the same code does; leaving full screen returns to the scan code window.
+ scanD.close();$("proj").requestFullscreen().catch(function(){scanOpen()});
+});
+$("proj-exit").addEventListener("click",function(){if(document.fullscreenElement)document.exitFullscreen()});
+document.addEventListener("fullscreenchange",function(){if(!document.fullscreenElement)scanOpen()});
+
+/* ---- live activity: read from this computer every few seconds while In Class is shown ---- */
+function ago(iso){var t=Date.parse(iso);if(!t)return"";var m=Math.max(0,Math.round((Date.now()-t)/60000));return m<1?"opened just now":m<60?"opened "+m+" min ago":"opened "+Math.floor(m/60)+" h "+(m%60)+" min ago"}
+function plural(n,one,many){return n+" "+(n===1?one:many)}
+function liveShow(d){
+ if(!d)return;
+ var a=d.attendance,tag=$("att-tag"),btn=$("att-btn"),txt=[];
+ if(!a){tag.className="tag";tag.textContent="Attendance";$("att-n").textContent="";$("att-of").textContent="";$("att-meta").textContent="";
+  $("att-text").textContent="No attendance session yet."+(d.roster?" "+plural(d.roster,"student is","students are")+" on the class list.":"");btn.textContent="Take attendance"}
+ else{
+  $("att-n").textContent=a.present;$("att-of").textContent=a.rosterSize?"of "+a.rosterSize+" checked in":"checked in";
+  if(a.status==="Open"){tag.className="tag on";tag.textContent="Attendance open";$("att-meta").textContent=a.label+(a.opened?", "+ago(a.opened):"");btn.textContent="Show the check-in screen"}
+  else if(a.status==="Closed"){tag.className="tag held";tag.textContent="Attendance closed, not yet submitted";$("att-meta").textContent=a.label;btn.textContent="Review and submit"}
+  else{tag.className="tag";tag.textContent="Last attendance";$("att-meta").textContent=a.label;btn.textContent="Take attendance"}
+  if(a.waiting)txt.push(plural(a.waiting,"check-in waits","check-ins wait")+" for your approval.");
+  if(a.notOnList)txt.push(plural(a.notOnList,"ID is","IDs are")+" not on the class list.");
+  if(a.status==="Submitted"&&!txt.length)txt.push("Submitted to the attendance record.");
+  $("att-text").textContent=txt.join(" ");
+ }
+ var q=d.quizzes||[],qt=$("quiz-tag");
+ if(!q.length){qt.className="tag";qt.textContent="Live quiz";$("quiz-list").innerHTML="<p class='note'>No quiz is running.</p>";$("quiz-btn").textContent="Run a quiz";$("quiz-meta").textContent=""}
+ else{qt.className="tag on";qt.textContent=q.length===1?"Quiz in progress":q.length+" quizzes in progress";$("quiz-btn").textContent="Quiz administration";
+  var st={lobby:"Waiting room",running:"Running",paused:"Paused"};
+  $("quiz-list").innerHTML=q.map(function(x){return"<div class='qrow'><b>"+esc(x.code)+"</b><span>"+esc(x.title||"Quiz")+"</span><span class='note'>"+(st[x.state]||esc(x.state))+"</span><span class='qn'>"+x.joined+" <span class='note'>joined</span></span></div>"}).join("")}
+ var parts=[];if(a&&a.status==="Open")parts.push(a.present+(a.rosterSize?" of "+a.rosterSize:"")+" checked in");
+ q.forEach(function(x){parts.push("Quiz "+x.code+": "+x.joined+" joined")});
+ $("scan-live").textContent=parts.join(" · ");$("proj-live").textContent=parts.join(" · ");
+}
+function livePoll(){if(document.visibilityState==="visible"&&!$("v-class").hidden&&cmApp.live)cmApp.live().then(liveShow,function(){})}
+$("lv-upd").textContent="Updates every few seconds";
+setInterval(livePoll,4000);
 
 /* ---- data from the app ---- */
 function show(info){
@@ -493,13 +637,14 @@ document.querySelectorAll("input[name=conn]").forEach(function(r){r.addEventList
 })});
 $("t-stop").addEventListener("click",function(){document.querySelector('input[name=conn][value=lan]').checked=true;cmApp.tunnelStop().then(tshow)});
 go(store("cm-view")||"class");
+livePoll();
 
 /* ---- keyboard shortcuts (zoom is handled by the app itself) ---- */
 var mac=/Mac/i.test(navigator.platform||navigator.userAgent);
 document.querySelectorAll("kbd[data-k]").forEach(function(k){var key=k.getAttribute("data-k");k.textContent=mac?"\u2318"+key.replace("Shift+","\u21e7"):"Ctrl+"+key});
 var mod=mac?"\u2318":"Ctrl+",vk={"class":"1","course":"2","roster":"3","grades":"4","settings":","};
 document.querySelectorAll(".nav[data-view]").forEach(function(b){b.title=b.querySelector("span").textContent+" ("+mod+vk[b.getAttribute("data-view")]+")"});
-document.querySelectorAll("[data-key]").forEach(function(b){b.title=b.textContent.trim()+" ("+mod+b.getAttribute("data-key")+")"});
+document.querySelectorAll("[data-key]").forEach(function(b){b.title=b.textContent.trim()+" ("+mod+b.getAttribute("data-key").replace("Shift+",mac?"\u21e7":"Shift+")+")"});
 document.addEventListener("keydown",function(e){
  if(!(mac?e.metaKey:e.ctrlKey)||e.altKey)return;
  var k=e.key.toLowerCase(),map={"1":"class","2":"course","3":"roster","4":"grades",",":"settings"};
@@ -507,6 +652,8 @@ document.addEventListener("keydown",function(e){
  if(k==="l"&&!e.shiftKey){e.preventDefault();cmApp.openWindow("lecturer.html");return}
  if(k==="p"&&!e.shiftKey){e.preventDefault();cmApp.openWindow("quiz-display.html");return}
  if(k==="c"&&e.shiftKey){e.preventDefault();$("copy-url").click();return}
+ if(k==="s"&&e.shiftKey){e.preventDefault();go("class");scanOpen();return}
+ if(k==="a"&&e.shiftKey){e.preventDefault();cmApp.openWindow("attendance.html");return}
  if(k==="/"||k==="?"){e.preventDefault();$("keys-d").showModal()}
 });
 $("keys").addEventListener("click",function(){$("keys-d").showModal()});

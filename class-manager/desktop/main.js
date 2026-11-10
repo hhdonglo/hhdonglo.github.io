@@ -287,6 +287,31 @@ function parseClassList(text) {
 function csvCell(v) { v = String(v == null ? "" : v); return /[",\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
 
 ipcMain.handle("cm:info", () => info());
+// What is happening in class right now, for the In Class screen: the open (or latest) attendance session and any quiz in progress.
+// Read straight from the local workbook; nothing is estimated.
+ipcMain.handle("cm:live", () => {
+  const out = { attendance: null, quizzes: [], roster: 0 };
+  try {
+    const st = backend.run("attStatus_");
+    const ses = st && st.session;
+    const ctl = backend.tab("Attendance_Control") || [];
+    const open = ctl.slice(1).filter((r) => String(r[2]).trim() === "Open").pop();
+    if (ses) out.attendance = { label: ses.label, status: ses.status, present: ses.present || 0, waiting: ses.waiting || 0, notOnList: ses.notOnList || 0,
+      rosterSize: ses.rosterSize || 0, opened: open ? String(open[3]) : "" };
+  } catch (e) { /* no attendance tabs yet */ }
+  try { const r = backend.tab("Roster"); out.roster = r ? Math.max(0, r.filter((x) => String(x[0]).trim()).length - 1) : 0; } catch (e) {}
+  try {
+    const rows = (backend.tab("Quiz_Control") || []).slice(1), pres = (backend.tab("Presence") || []).slice(1), now = Date.now();
+    for (const r of rows) {
+      const code = String(r[0]).trim().toUpperCase(); let state = String(r[1]).trim().toLowerCase();
+      if (state === "running" && String(r[15]).trim().toLowerCase() === "timed" && now >= Number(r[3])) state = "ended";
+      if (!code || ["lobby", "running", "paused"].indexOf(state) < 0) continue;
+      const ids = new Set(pres.filter((p) => String(p[3]).trim().toUpperCase() === code).map((p) => String(p[1]).trim()));
+      out.quizzes.push({ code, title: String(r[9] || ""), state, joined: ids.size, updated: String(r[10] || "") });
+    }
+  } catch (e) { /* no quiz yet */ }
+  return out;
+});
 ipcMain.handle("cm:tunnelStart", () => startTunnel());
 ipcMain.handle("cm:readme", () => shell.openPath(app.isPackaged ? path.join(process.resourcesPath, "README.txt") : path.join(__dirname, "README.txt")));
 ipcMain.handle("cm:tunnelStop", () => stopTunnel());
