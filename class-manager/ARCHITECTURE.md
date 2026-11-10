@@ -1,356 +1,512 @@
-# Class Manager: architecture
+# Class Manager: system architecture
 
-Written 9 November 2026 from the code on branch `claude/project-thread-h89zsr` (commit 022dca7 and the documentation commit that follows it). It describes the system as it stands, for review. Every statement was checked against the source. Where something is a judgement rather than a fact, it is labelled as such, in the last two sections.
+Version 0.7.0, written 10 November 2026 from `main` at commit 25f153b ("Class Manager 0.7.0: teaching for learning"). Every statement below was checked against the source. Statements of judgement are confined to Sections 14 and 15 and are labelled as such.
+
+## Contents
+
+1. Purpose and scope
+2. System context
+3. Components and deployment modes
+4. The desktop application
+5. Data model
+6. Server interface (API)
+7. Main flows
+8. Statistics, verdicts and progress
+9. Security and privacy model
+10. Configuration
+11. Build, release and distribution
+12. Testing
+13. Repository layout (summary; detail in STRUCTURE.md)
+14. Known limits
+15. Weaknesses and suggested improvements, for review
+16. Future direction: one application for many courses
+
+---
 
 ## 1. Purpose and scope
 
-Class Manager runs one university course, PHYS 143, from one package:
+Class Manager gives a lecturer insight into how a class is learning, and supports student-centred teaching on that evidence. Attendance, live quizzes, practice and group work are the means of collecting the evidence; the purpose is the insight that follows from it: which topics the class has learned, which misconceptions persist, which students need attention, and whether discussion between students changes their answers.
 
-- course and lecture pages;
-- practice quizzes and a mock examination;
-- a live, lecturer-paced quiz and attendance check-in;
-- mark tabs for the lecturer;
-- student progress, teaching insights, groups, a calendar, messages and announcements.
+The system serves one course per installation. It ships with no course content: course details, lectures, files and question banks are loaded by the lecturer, by hand or from a course pack. PHYS 143 is kept as a course pack source in `class-manager/course-packs/phys143/` and is not part of the application.
 
-The desktop app adds a resource library with question authoring.
+## 2. System context
 
-The package lives in `class-manager/` of the site repository. It is separate from the live PHYS 143 pages at the root of the site.
-
-## 2. System overview
-
-The system has three layers:
-
-1. **Pages.** Static HTML and plain JavaScript, with no framework and no build step. Students and the lecturer open them in a browser.
-2. **One server script.** `apps_script/quiz_receiver.gs` (2,577 lines) holds every rule: scoring, attendance, access, the calendar, messages and the rest.
-3. **One workbook.** It holds every record, one tab per kind of record.
-
-The same server script runs in two places: in Google Apps Script, or inside the desktop app. Section 3 gives the three ways the package can be deployed.
-
-```
-             Students' phones and laptops                Lecturer
-             (portal, practice, live quiz,               (lecturer menu, Control Centre,
-              check-in, calendar, messages)               insights, groups, calendar, messages)
-                          \                                   /
-                           \  HTTP GET pages and JSON banks  /
-                            v                               v
-   +---------------------------------------------------------------------+
-   |  Static pages  (index.html, quiz.html, calendar.html, ... assets/*) |
-   |  config.js gives CM.scriptUrl: where the server script answers      |
-   +---------------------------------------------------------------------+
-                            |  JSONP GET  ?action=...   (reads, lecturer actions, chat)
-                            |  form POST  kind=...      (answers, joins, attempts, reports)
-                            v
-   +---------------------------------------------------------------------+
-   |  Server script  apps_script/quiz_receiver.gs                        |
-   |  doGet(e) / doPost(e): host key and access-code checks, rules       |
-   |  reads banks:  SITE + /quizzes/lectureN.json, /apps_script/live_quizzes.json
-   +---------------------------------------------------------------------+
-                            |  SpreadsheetApp (rows), CacheService, PropertiesService, LockService
-                            v
-   +---------------------------------------------------------------------+
-   |  Workbook: Google Sheet, or workbook.json on the lecturer's computer|
-   +---------------------------------------------------------------------+
+```mermaid
+flowchart TB
+  S["Students<br/>phones and laptops"]
+  L["Lecturer"]
+  P["Projector in the lecture room"]
+  CM(["Class Manager"])
+  S -- "portal, practice, live quiz,<br/>check-in, messages, group work" --> CM
+  L -- "desktop app or lecturer pages<br/>(host key)" --> CM
+  CM -- "quiz display, groups display,<br/>rotating QR code" --> P
+  subgraph EXT["External services, all optional in the default desktop mode"]
+    GAS["Google Apps Script<br/>and Google Sheets"]
+    GD["Google Drive<br/>backup copy"]
+    CF["Cloudflare<br/>quick tunnel"]
+    AN["Anthropic API<br/>lecturer's own key"]
+  end
+  CM -. "mode A and C:<br/>records" .-> GAS
+  CM -. "mode B: one-way<br/>copy of every tab" .-> GD
+  CM -. "mode B: https address<br/>off the local network" .-> CF
+  CM -. "lecturer's documents only,<br/>never student data" .-> AN
 ```
 
-## 3. Deployment modes
+Students never need an account. The lecturer needs no account in the default desktop mode; every external service is optional. Installers reach lecturers through GitHub Releases and the download page (Section 11).
+
+## 3. Components and deployment modes
+
+The system has three layers, and the same server script serves all of them.
+
+1. **Pages.** Static HTML and plain JavaScript in `class-manager/`, with no framework and no build step.
+2. **Server script.** `apps_script/quiz_receiver.gs` (3,437 lines, `SCRIPT_VERSION` `2026-11-10-pedagogy-1`) holds every rule: scoring, attendance, access, statistics, groups, assignments, calendar and messages. It answers `doGet` (JSONP reads and lecturer actions) and `doPost` (submissions).
+3. **Workbook.** Every record, one tab per kind of record: a Google Sheet, or `workbook.json` on the lecturer's computer.
 
 | Mode | Pages served from | Server script runs in | Records kept in | Reach |
 |---|---|---|---|---|
-| A. Static site with Google | Any static host; GitHub Pages at `hhdonglo.github.io/class-manager` | Google Apps Script web app bound to a Google Sheet | The Google Sheet | Anywhere with internet |
-| B. Desktop app, local | The app's own HTTP server, `0.0.0.0:8143` by default | Node `vm` inside the Electron main process (`desktop/backend.js`) | `workbook.json` in the app's data folder | Devices on the same network while the app is open |
-| C. Desktop app with an Apps Script address | The app's HTTP server | Google Apps Script (Settings: "Apps Script web app address") | The Google Sheet | Pages on the local network; records online |
+| A. Web | Any static host (GitHub Pages) | Google Apps Script web app bound to a Google Sheet | The Google Sheet | Anywhere with internet |
+| B. Desktop, local (default) | The app's HTTP server, port 8143 | Node `vm` inside the Electron main process (`desktop/backend.js`) | `workbook.json` in the app's data folder | The local network while the app is open; anywhere through the optional tunnel |
+| C. Desktop with an Apps Script address | The app's HTTP server | Google Apps Script (Settings, advanced) | The Google Sheet | Pages on the local network; records online |
 
-In mode B, the optional Google sign-in (`desktop/google.js`) copies every tab one way to a Google Sheet in the lecturer's Drive. The scope is `drive.file`. This copy is a backup and a view. It does not serve students.
-
-```
- Desktop app (Electron)
- +--------------------------------------------------------------------------------+
- | main.js                                                                        |
- |   HTTP server 0.0.0.0:8143 --- /            -> class-manager pages (resources/web)
- |                              --- /config.js  -> generated from Settings         |
- |                              --- /exec       -> backend.doGet / doPost          |
- |                              --- /calendar.ics -> backend.doGet(calendar_ics)   |
- |                              --- /quizzes/lectureN.json, /apps_script/live_quizzes.json
- |                              |                -> authoring.siteFile (merged)    |
- |                              --- /app/*      -> app screens, this computer only |
- |   IPC (preload.js: window.cmApp) <- app/home.html, app/author.html             |
- |                                                                                |
- | backend.js   vm context: quiz_receiver.gs + shims for SpreadsheetApp,          |
- |              CacheService, PropertiesService, LockService, UrlFetchApp,        |
- |              Utilities, ContentService, MailApp (no-op), Session               |
- |              -> userData/data/workbook.json (written 400 ms after a change)     |
- | authoring.js resource library, BM25 search, summaries, generation, import,     |
- |              drafts, bank overlay -> userData/authoring/                       |
- |              -> api.anthropic.com (only with an API key)                       |
- | google.js    OAuth (loopback, PKCE) -> one-way copy of all tabs to a Sheet     |
- | tunnel.js    optional internet address: cloudflared quick tunnel -> second     |
- |              server on 127.0.0.1 (remote requests: no /app/, 240 per minute)    |
- +--------------------------------------------------------------------------------+
+```mermaid
+flowchart TB
+  subgraph Browsers["Students' and lecturer's browsers"]
+    SP["Student pages<br/>index, course, lecture-N, practice,<br/>mock-exam, quiz, attend, calendar,<br/>messages, group-work"]
+    LP["Lecturer pages (host key)<br/>lecturer, control, quiz-host, attendance,<br/>codes, insights, groups, outcomes,<br/>assignments, calendar, messages"]
+    PD["Projector pages<br/>quiz-display, groups display"]
+  end
+  CFG["config.js<br/>CM.scriptUrl, labels, publicBase"]
+  SP --> CFG
+  LP --> CFG
+  PD --> CFG
+  CFG -->|"JSONP GET ?action=...<br/>form POST kind=..."| SRV
+  subgraph SRV["Server script quiz_receiver.gs"]
+    R1["Live quiz and second vote"]
+    R2["Attendance and safeguards"]
+    R3["Access codes and My progress"]
+    R4["Statistics, verdicts, Learning Progress"]
+    R5["Groups and group assignments"]
+    R6["Calendar, messages, announcements"]
+  end
+  SRV -->|"SpreadsheetApp, CacheService,<br/>PropertiesService, LockService"| WB[("Workbook<br/>Google Sheet or workbook.json")]
+  SRV -->|"reads banks and lecture list"| BK["quizzes/lectureN.json<br/>apps_script/live_quizzes.json<br/>data/lectures.json"]
 ```
 
-## 4. Repository layout
+In mode A the script reads the banks over HTTP from `SITE`. In modes B and C the desktop server answers those paths itself, merging the course banks with the lecturer's approved questions.
 
-| Path | Role |
-|---|---|
-| `config.js` | Course code, title, institution and the server address (`window.CM`), plus page helpers. In the desktop app it is generated from Settings, with `desktop: true`. |
-| `index.html` | Student portal: what is open in class, this week, announcements, the next events, My progress (ID plus access code), and an install prompt. |
-| `course.html`, `lecture-N.html`, `lecture-N-practice.html`, `introduction*.html`, `mock-exam.html` | Course pages, practice (`assets/practice.js`) and the mock examination (`assets/mock.js`). |
-| `quiz.html`, `quiz-host.html`, `quiz-display.html` | The live quiz for students, the lecturer's controls, and the projector. |
-| `attend.html`, `attendance.html` | Student check-in and the lecturer's attendance session. |
-| `lecturer.html`, `control.html` | Lecturer menu and Control Centre. Both use the host key. |
-| `insights.html`, `codes.html`, `groups.html` | Teaching insights, access codes, and student groups (host key). |
-| `calendar.html` | Course calendar: public read, lecturer edit. |
-| `messages.html` | Announcements and messages for students and the lecturer. |
-| `quizzes/lectureN.json` | Question banks: 347 questions, lectures 0 to 12, no bank for lecture 6. |
-| `apps_script/live_quizzes.json` | Weeks that have a live quiz, and optional fixed question sets per join code. |
-| `apps_script/quiz_receiver.gs` | The server script. |
-| `assets/` | Shared CSS and JS, the QR code generator, KaTeX, `messages.js` (error texts), `tracking.js` (practice attempts), and icons. |
-| `sw.js`, `manifest.webmanifest` | Installable portal; network first, with the shell cached for offline use. |
-| `data/`, `PHYS143/` | Course data for the portal and the lecture materials. |
-| `tools/` | `validate_quizzes.py`, `check_calcs.py`, `test_practice.mjs`, and the bank build in `quiz_src/`. |
-| `desktop/` | The Electron app: `main.js`, `preload.js`, `backend.js`, `authoring.js`, `google.js`, `app/home.html`, `app/author.html`, `app/question-template.md` and `.docx`, and `package.json` (build). |
-| `README.md`, `STRUCTURE.md`, `desktop/README.md`, `ARCHITECTURE.md` | Documentation. `STRUCTURE.md` and `ARCHITECTURE.md` are left out of the installers. |
+## 4. The desktop application
 
-## 5. Server script: endpoints
+```mermaid
+flowchart LR
+  subgraph Electron["Electron main process (main.js)"]
+    HTTP["HTTP server 0.0.0.0:8143<br/>/ pages, /config.js generated,<br/>/exec server script, /calendar.ics,<br/>/quizzes and live_quizzes merged,<br/>/data/portal.json generated,<br/>/app/* this computer only"]
+    TS["Second server 127.0.0.1:random<br/>for the tunnel: every request remote,<br/>no /app/, rate limit per visitor"]
+    BE["backend.js<br/>vm context: quiz_receiver.gs<br/>plus shims for Google services"]
+    CO["course.js<br/>course folder, templates,<br/>course packs (.zip)"]
+    AU["authoring.js<br/>resource library, BM25 search,<br/>summaries, generation, review queue"]
+    GO["google.js<br/>OAuth (loopback, PKCE),<br/>one-way copy to a Sheet"]
+    TU["tunnel.js<br/>cloudflared 2026.10.7,<br/>SHA-256 pinned"]
+    TB["table.js<br/>class list CSV and xlsx"]
+  end
+  subgraph Renderer["App windows (sandboxed)"]
+    HOME["app/home.html<br/>Class Overview, Students, Learning Progress,<br/>Attendance, Quizzes and Questions, Class Tools,<br/>Course and Content, Class Roster,<br/>Grades and Results, App Settings"]
+    SET["app/setup.html (first launch)"]
+    AUT["app/author.html (questions)"]
+  end
+  Renderer -- "IPC through preload.js (window.cmApp)" --> Electron
+  HTTP --> BE
+  TS --> HTTP
+  TU --> TS
+  BE --> WB[("userData/data/workbook.json<br/>written 400 ms after a change")]
+  CO --> CF[("userData/course/")]
+  AU --> AF[("userData/authoring/")]
+```
 
-All reads and lecturer actions use JSONP GET: `?action=...&callback=...`. Submissions use form POST with `kind=...`. The tables below list every action in `doGet` and `doPost`.
+**Screens.** The home window has ten views. Class Overview, Students, Attendance, and Quizzes and Questions are drawn by `app/insights.js` from `classStats_` and `studentStats_`. Learning Progress and the student lookup (Ctrl or Cmd K) are drawn by `app/progress.js` from `learningProgress_` and the student profile. Class Tools opens the live quiz, attendance, groups and projector pages in the system browser. Course and Content, Class Roster, Grades and Results, and App Settings manage the course folder, the class list, the tabs and the settings.
 
-**Public or student (no host key).**
+**IPC surface** (`preload.js`, a fixed list): `cm:info`, `cm:live`, `cm:stats`, `cm:progress`, `cm:readme`, `cm:save`, `cm:setup`, `cm:lectures`, `cm:tab`, `cm:export`, `cm:run`, `cm:search`, `cm:summarise`, `cm:generate`, `cm:banks`, `cm:drafts`, `cm:approve`, `cm:withdraw`, plus the course, Google and tunnel calls.
+
+**Internet access.** `tunnel.js` downloads `cloudflared` once from Cloudflare's GitHub releases, checks its SHA-256 against a fixed table, and starts a quick tunnel to the second server. While the tunnel is on, `config.js` carries `publicBase`, so QR codes and links point to the `https://*.trycloudflare.com` address. A phone hotspot is the documented alternative when campus Wi-Fi isolates devices.
+
+## 5. Data model
+
+### 5.1 Workbook tabs
+
+Student ID is the key that joins the tabs. Tabs are created by `setup` (mode A) or on first use.
+
+| Area | Tab | One row per | Key fields |
+|---|---|---|---|
+| Settings | Key | Join code | Join code, correct letters, ranking; J2 host key (`sha256:salt:hex` once changed); K2 Totals rule (Best or Latest); L2 Master on or off; live quiz week |
+| Class list | Roster | Student | Student ID, name |
+| Live quiz | Quiz_Control | Lecturer-run quiz | join_code, status (Draft, Ready, Lobby, Running, Paused, Ended, Released), timers, mode, round, review_q, n_questions, question_ids, week, **vote** (1 or 2), **discussed** (questions that had a second vote) |
+| | Presence | Join | ID, first name, code, joined, submitted |
+| | Answers | Answer | ID, code, question, letter, round, confidence |
+| | Staged_Quiz | Student per quiz | Marked results held until release |
+| | Form Responses 1 | Released attempt | Timestamp, first name, ID, join code, Q1 to Q5, score, round, questions, answers, week |
+| | Item_Log | Student per live question | Timestamp, join code, round, week, ID, Q, question ID, answer, correct answer, correct, confidence, **first answer**, **discussed** |
+| | Explanations | Question | Optional explanation overrides |
+| Marks | Master, Scores, Totals | Student | One column per quiz; rebuilt on release |
+| Practice | Attempts | Practice or mock attempt | Timestamp, ID, quiz, attempt, score, total, seconds, wrong question IDs, question IDs asked |
+| | Reports | Reported problem | Lecture, question ID, question, answer shown, comment, page |
+| Attendance | Attendance_Control | Session | Code, label, status, opened, closed, link secret, classroom location |
+| | Attendance_Log | Accepted check-in | Timestamp, session, ID, on roster, salted device hash, location result (distance only) |
+| | Attendance | Student | One column per submitted session: 1 or 0 |
+| | Attendance_Flags | Flag | Session, ID, device hash, reason (wrong code, device reuse, location, or "waiting for approval: ...") |
+| | Attendance_Phones | Student | Student ID, salted device hash, registered |
+| | Not_On_List | Unknown ID | IDs that checked in but are not on the roster |
+| Learning | Access_Codes | Student | Student ID, personal code `XXXX-XXXX` (no 0, O, 1, I or L), issued |
+| | Question_Stats | Question | Proportion correct, discrimination, label |
+| | Question_Outcomes | Question | Question ID, lecture, outcome number, set |
+| Groups | Groups | Student per set | Set, group, ID, name, group mark, out of, locked, created |
+| | Assignments | Assignment | ID, set, groups (`all` or a list), title, brief, due, outcome, out of, status |
+| | Group_Work | Submission event | Time, assignment ID, set, group, ID, kind (`work`, `part`, `peer`), text, link, rating |
+| | Assignment_Marks | Group per assignment | Assignment ID, group, mark, feedback, marked |
+| Communication | Calendar | Event | Event ID, title, kind, start, end (local text), all day, location, agenda, resources, week, linked session, visibility, series |
+| | Messages | Message | Message ID, time, conversation, from, name, text, status, removed by |
+| | Chat_Groups, Chat_Read | Group; reader per conversation | Members and owner; last read time |
+| | Announcements | Announcement | Title, text, audience, pinned, show from, link, event ID, status |
+| Audit | Log | Event | Every submission outcome and lecturer action |
+
+**Script properties.** `draw_salt` (a random value per workbook mixed into the question draw) and the chat settings (`chat_mode`, `chat_dm`, `chat_groups`, `chat_rules`, `chat_muted`).
+
+**Conversation IDs.** `CLASS`; `L:<set>|<group>` (a lecturer-made group); `S:<id>` (a student-made group); `DM:<studentId>`; `P:<idA>:<idB>`.
+
+### 5.2 How the records relate
+
+```mermaid
+flowchart LR
+  R(["Roster<br/>Student ID"])
+  subgraph ATT["Attendance"]
+    AC["Attendance_Control<br/>session"] --> AL["Attendance_Log"]
+    AC --> AF["Attendance_Flags<br/>incl. held check-ins"]
+    AL -->|"on submit"| AG["Attendance grid"]
+  end
+  subgraph LRN["Evidence of learning"]
+    QC["Quiz_Control<br/>round, vote"] --> IL["Item_Log<br/>first and final answer"]
+    AT2["Attempts<br/>practice, mock"]
+    QO["Question_Outcomes"] --> BQ["Bank question ID"]
+    IL --> BQ
+    AT2 --> BQ
+  end
+  subgraph GRP["Groups"]
+    G["Groups<br/>set, group"] --> GW["Group_Work<br/>work, part, peer"]
+    AS["Assignments"] --> GW
+    AS --> AM["Assignment_Marks"]
+  end
+  subgraph ID["Identity"]
+    CO["Access_Codes"]
+    PH["Attendance_Phones"]
+  end
+  R --- CO
+  R --- PH
+  R --- AL
+  R --- IL
+  R --- AT2
+  R --- G
+  R --- MS["Messages"]
+```
+
+### 5.3 Local storage on the lecturer's computer (modes B and C)
+
+The app data folder (`userData`, for example `~/Library/Application Support/Class Manager` on macOS) holds:
+
+- `settings.json`: course labels, lecturer, semester, contact, accent, logo, notice, optional Apps Script address, port, zoom, first-launch state;
+- `data/workbook.json`: every tab and the script properties (dates as `{$d: ISO}`), written 400 ms after a change;
+- `course/`: the course folder (`data/lectures.json`, `data/portal.json`, lecture files, `quizzes/lectureN.json`);
+- `authoring/`: the resource library (`library/<id>.chunks.json`, `index.json`), `drafts.json`, `settings.json` (model), and `banks/lectureN.json` (approved questions);
+- `google.bin` and `anthropic.bin`: OAuth tokens and the API key, encrypted with the system keychain (`safeStorage`) where available;
+- the downloaded `cloudflared` program.
+
+### 5.4 Storage in students' browsers
+
+`localStorage`: practice progress, the remembered Student ID and access code (optional), the device token used for attendance. `sessionStorage`: the host key on lecturer pages. The service worker (`sw.js`) caches the portal shell.
+
+## 6. Server interface (API)
+
+All reads and lecturer actions are JSONP `GET ?action=...&callback=...`. Submissions are form `POST` with `kind=...`. In the desktop app both arrive at `/exec`.
+
+**Public or student actions (no host key).**
 
 | Action | Purpose | Check |
 |---|---|---|
-| `status`, `display`, `questions`, `review`, `ranking`, `result` | Live quiz state, the projector, questions for the current round, review, the first-name ranking, and the student's own result | Join code, and Student ID where relevant |
-| `portal_status` | Whether attendance or a quiz is open and whether My results is on (cached 5 s) | None |
-| `my_results` | A student's attendance, quizzes, practice, mastery, revisit list and groups | Student ID plus access code; six failures lock the ID for 10 min |
-| `attend`, `attend_status` | Check-in, and the session state | Rotating QR token, device token, rate limit |
-| `calendar`, `calendar_ics` | Events visible to students; the iCalendar file or feed | None. With the host key, lecturer-only events are included. |
-| `announcements` | Announcements for everyone; more for a signed-in student | None, or ID plus access code |
-| `chat` | Conversations and messages | ID plus access code, or the host key |
-| `hostcheck`, `version` | Is this key right; the script version (`SCRIPT_VERSION` must equal `EXPECT_VERSION` in `control.html`) | None |
+| `status`, `questions`, `review`, `ranking`, `result`, `display` | Live quiz state (cached 3 s), questions without answers (cached 120 s), review with before and after spreads, first-name ranking, own result, projector | Join code; Student ID where relevant |
+| `portal_status` | What is open now | None |
+| `my_results` | A student's attendance, quizzes, practice, progress by lecture and by outcome, revisit list, groups | Student ID and access code; 6 failures lock the ID for 10 minutes |
+| `attend` | Check in | QR token, access code, device token, phone binding, location (mode A) |
+| `group_work` | The student's group assignments; submit work, own part, peer ratings | Student ID and access code |
+| `calendar`, `calendar_ics` | Student-visible events; iCalendar file or feed | None (host key adds lecturer-only events) |
+| `announcements`, `chat` | Announcements; conversations and messages | None, or ID and access code, or host key |
+| `hostcheck`, `version` | Key check; script version | None |
 
-**Lecturer (host key).**
+**Lecturer actions (host key).**
 
 | Area | Actions |
 |---|---|
-| Quiz | `control` (open, start, pause, next, end, release, reset), `host`, `held_status`, `held_release_quiz`, `held_discard_quiz`, `set_week`, `preclass` |
-| Attendance | `attend_open`, `attend_close`, `attend_submit`, `attend_discard` |
+| Live quiz | `control` (open, start, pause, next, **revote**, end, release, reset), `host`, `held_status`, `held_release_quiz`, `held_discard_quiz`, `set_week`, `preclass` |
+| Attendance | `attend_open`, `attend_close`, `attend_status`, `attend_submit`, `attend_discard`, `attend_review`, `attend_approve`, `attend_remove`, `attend_phone_reset` |
 | Class list | `roster_edit`, `roster_tidy`; POST `roster_sync` |
-| Key | `setkey` (store the host key as a salted SHA-256) |
-| Learning | `insights`, `access_codes` (list, generate, reset), `groups` (make, move, lock, mark, delete, list) |
-| Calendar | `calendar_edit` (save, series, delete, delete_series) |
-| Announcements | `announcements` with `op` (save, delete) |
-| Messages | `chat` with `op` (remove, restore, mute, unmute, settings, group_delete, export) |
+| Learning | `insights`, `class_stats`, `student_stats`, `learning_progress`, `access_codes`, `outcomes` |
+| Groups | `groups` (make, move, lock, mark, delete, list), `groups_display`, `assignments` |
+| Communication | `calendar_edit`, `announcements` with `op`, `chat` with `op` (moderation) |
+| Key | `setkey` (12 to 40 characters, stored as salted SHA-256) |
 
-**POST kinds.** `join`, `joined`, `progress`, `answer` (paced quiz, with an optional confidence), `quiz` (timed quiz), `attempt` (practice, with the question IDs asked), `report` (a problem reported on a question), `inprogress`, `roster_sync`.
+**POST kinds.** `join`, `progress`, `answer` (with confidence), `attempt` (practice and mock, with question IDs), `report`, `roster_sync`.
 
-**Concurrency.** Writes take `LockService.getScriptLock()`. Reading chat and announcements takes no lock. A chat poll returns `{same: true}` at once when the version stamp `chat_ver` in `CacheService` has not changed.
+**Concurrency.** Writes take `LockService.getScriptLock()`. Check-ins use an atomic append and take no lock. Hot reads are cached in `CacheService` (quiz status 3 s, open attendance session 5 s, questions 120 s, chat version stamp).
 
-## 6. Data model: workbook tabs
+## 7. Main flows
 
-| Tab | Content | Written by |
+### 7.1 Attendance with anti-proxy safeguards
+
+```mermaid
+sequenceDiagram
+  autonumber
+  actor L as Lecturer
+  participant A as attendance.html (projector)
+  actor S as Student phone
+  participant SV as Server script
+  participant W as Workbook
+  L->>SV: attend_open (host key, classroom location in mode A)
+  SV->>W: Attendance_Control: new session, fresh code, link secret
+  loop every 30 s
+    A->>A: QR link with token = HMAC(secret, slot)
+  end
+  S->>SV: attend (ID, access code, token, device token, location)
+  SV->>SV: token valid for this slot or the 2 before?
+  SV->>SV: ID on roster and access code matches?
+  SV->>SV: already checked in today? (then nothing is added)
+  SV->>W: Attendance_Phones: is this the student's registered phone?
+  alt borrowed or new phone
+    SV->>W: Attendance_Flags "waiting for approval"
+    SV-->>S: held for the lecturer
+  else device already used for another ID this session
+    SV->>W: Attendance_Flags (refused)
+  else accepted
+    SV->>W: Attendance_Log (salted device hash), first phone is registered
+    SV-->>S: checked in, with the time
+  end
+  L->>SV: attend_close, then attend_review / attend_approve / attend_remove
+  L->>SV: attend_submit
+  SV->>W: Attendance grid column: 1 present, 0 absent
+```
+
+Safeguards, in order of application: the rotating QR token (30-second slots, two slots of grace), six failures per device or ID before a pause, the personal access code, one check-in per ID per day, one phone per student for the term (a borrowed or new phone is held, never counted on its own), one ID per device per session, and the location check (mode A only, 500 m radius, enforced; off in the desktop app because phones give location only to https pages). Nothing reaches the Attendance grid until the lecturer submits.
+
+### 7.2 Live quiz with ask, discuss, revise
+
+```mermaid
+sequenceDiagram
+  autonumber
+  actor L as Lecturer (quiz-host)
+  participant SV as Server script
+  actor S as Students (quiz.html)
+  participant D as Projector (quiz-display)
+  L->>SV: control open (week, N, timing) then start
+  SV->>SV: draw N questions, seeded by join code, round and draw_salt
+  S->>SV: join (first name, ID, code)
+  loop each question
+    S->>SV: answer (letter, optional confidence)
+    opt answers split: ask, discuss, revise
+      L->>SV: control revote
+      SV->>SV: vote = 2, question added to discussed
+      D->>D: "Discuss with your neighbour, then vote again"
+      S->>SV: answer again (the first answer is kept)
+    end
+    L->>SV: control next
+  end
+  L->>SV: control end
+  SV->>SV: mark on the server, Staged_Quiz, Item_Log with first answer and discussed flag
+  L->>SV: control release
+  SV->>SV: Form Responses 1, rebuild Master, Scores, Totals
+  D->>D: review: option shares, before and after spreads for discussed questions
+```
+
+The score uses the final vote. Answer letters never reach the student page before review. The first submission per ID and join code in a round counts; 15 seconds of grace are allowed after a deadline.
+
+### 7.3 Groups and group assignments
+
+```mermaid
+sequenceDiagram
+  autonumber
+  actor L as Lecturer
+  participant SV as Server script
+  actor S as Group member (group-work.html)
+  L->>SV: groups make (random, mixed by results or by attendance, whole list or those present)
+  SV->>SV: avoid earlier pairings, sizes differ by at most one
+  L->>SV: groups_display (projector)
+  L->>SV: assignments save (set, groups or all, brief, due, outcome, out of)
+  S->>SV: group_work (ID and access code)
+  S->>SV: submit shared work (text, link), own part, peer ratings
+  SV->>SV: Group_Work rows: work, part, peer
+  L->>SV: assignments view: latest submission, parts, peer averages (flag under 1 with 2 or more raters)
+  L->>SV: assignments mark (mark and feedback per group)
+  SV->>SV: Assignment_Marks, members see mark and feedback
+```
+
+Peer ratings (Contributed fully, partly, little; scored 2, 1, 0) are shown to the lecturer only.
+
+### 7.4 Practice, the mock examination and My progress
+
+Practice and the mock examination run in the browser from `quizzes/lectureN.json`. If the student enters an ID, `tracking.js` posts each attempt (score, time, question IDs asked and missed) to Attempts. Attempts join Master and Scores at the next release, for IDs on the roster only. My progress (`my_results`) opens only with the ID and the access code and shows the student's own record, progress by lecture and by learning outcome, and the questions to revisit with the slide to look at.
+
+## 8. Statistics, verdicts and progress
+
+All figures are computed in the server script from the tabs above; nothing is estimated or stored by the pages. The lecturer sets the thresholds.
+
+```mermaid
+flowchart LR
+  IL["Item_Log<br/>live answers, first answers"] --> CS
+  AT["Attempts<br/>practice and mock"] --> CS
+  AG["Attendance grid"] --> CS
+  FR["Form Responses 1<br/>released quizzes"] --> CS
+  QO["Question_Outcomes<br/>and bank outcome fields"] --> LP
+  GW["Group_Work, Assignment_Marks"] --> LP
+  CS["classStats_"] --> V["learningVerdict_<br/>Learning, Mixed,<br/>Not yet learning, Not enough data"]
+  CS --> EG["engagementOf_<br/>suggested group per student"]
+  CS --> TG["targets_<br/>ranked areas to target"]
+  CS --> LP["learningProgress_<br/>levels by outcome,<br/>discussion gains, group work"]
+  CS --> SS["studentStats_ and profile<br/>one student, with suggestions"]
+```
+
+**Class verdict.** Signals are scored +1, 0 or -1, each with its sample size. Direct evidence counts twice: (1) the same questions answered again later (pairs of first and latest answers; at least 30 pairs; +1 at a gain of 10 points or more, -1 at a fall of 5 or more), and (2) the trend of class quiz means (at least three quizzes with 10 or more students; slope of 3 points per quiz). Indirect evidence counts once: persistent shared wrong answers, quiz participation, and attendance (recent against earlier). A verdict requires at least one sufficient direct signal; "Learning" requires a total of 2 or more and no negative direct signal. Confidence is "moderate" with two direct signals and no small samples, otherwise "low".
+
+**Engagement groups (lecturer only).** Effort is the mean of attendance rate, share of live quizzes taken and recent practice (100 or 0). Performance is the quiz average, or the practice average. With defaults effort 70 and performance 50: On track; Working hard but struggling; Disengaged; Needs a check-in; Not enough data.
+
+**Areas to target.** Topics judged "Not yet learning" or "Mixed" under 60 per cent, questions with a shared wrong option (a third or more of answers, weighted up when it persists), and questions with low discrimination, each with its evidence, sample size and a suggested action.
+
+**Progress by outcome.** Questions are linked to a lecture's learning objective (lecturer tag first, then the bank's own field). Levels: Secure (70 per cent or more), Developing (50 or more), Beginning, and Not enough evidence (fewer than 3 answers).
+
+**Ask, discuss, revise.** For each discussed question: proportion correct before and after, how answers moved, and normalised gain `(after - before) / (100 - before)`.
+
+## 9. Security and privacy model
+
+| Who | Credential | Where checked | Limits |
+|---|---|---|---|
+| Lecturer | Host key: 16 hexadecimal characters from a UUID at setup; can be replaced (12 to 40 characters) and is then stored as `sha256:salt:hex` | `hostOk_` | 30 failures lock it for 10 minutes |
+| Student, own record, messages, group work, check-in | Student ID on the roster and personal access code (printed slips from `codes.html`) | `portalResults_`, `chatWho_`, `groupWork_`, `attCheckIn_` | 6 failures lock the ID for 10 minutes |
+| Student, live quiz | Join code shown in class, first name and ID | Presence and round rules | First submission counts |
+| App screens `/app/*` | Request from this computer | `isThisComputer` in `main.js`; never through the tunnel | |
+| Visitors through the tunnel | None | Rate limit per visitor; 429 when exceeded | |
+
+**What is kept.** Student IDs, names from the class list, answers, confidence ratings, attempts, attendance, salted device hashes, group work and peer ratings, messages, and the calendar, all in the lecturer's workbook.
+
+**What is never stored or sent.**
+
+- No secret is in the repository or in a page. The host key exists only in the workbook (hashed once changed).
+- Raw device tokens are never stored; only a salted hash.
+- The phone's coordinates are not stored. In mode A only the outcome of the location check (near or far, and the distance in metres) is written to Attendance_Log.
+- Nothing about students is sent to Anthropic. Requests carry only the lecturer's documents, instructions and existing question stems. Student work is never sent to a model.
+- Engagement groups, peer ratings, levels and suggestions are shown to the lecturer only. Students see only their own record.
+- Public rankings show first names and scores only.
+
+**Further measures.** Typed values beginning `=`, `+`, `-` or `@` are prefixed so the sheet does not run them as formulas. Imported and generated question text is escaped, with a small allow-list of tags. App windows run sandboxed (`contextIsolation`, `sandbox`, no `nodeIntegration`); external links open in the system browser. Static paths are confined to the web root. The lecturer reads every conversation, and students are told so.
+
+## 10. Configuration
+
+| Where | Setting | Effect |
 |---|---|---|
-| Key | Join codes and correct letters; J2 is the host key (plain, or `sha256:salt:hex`); the settings columns K, L and N (week) | `setup`, lecturer |
-| Quiz_Control | One row per lecturer-run quiz: status, timers, mode, round, review question, N, question IDs, week | Live quiz |
-| Presence, Answers, Staged_Quiz | Who joined; paced answers with confidence; results held until released | Live quiz |
-| Form Responses 1 | Released results: name, ID, join code, letters, score, round, questions, answers, week | Release |
-| Master, Scores, Totals | One row per student, one column per quiz; the clean grid; totals (Best or Latest) | Rebuilt automatically |
-| Log, Reports, Attempts | Submission outcomes; reported problems (emailed in mode A); practice tries with question IDs | POST |
-| Explanations | Optional explanation overrides per join code | Lecturer |
-| Roster | Student ID and name (the class list) | Class list sync, roster edit |
-| Attendance_Control, Attendance_Log, Attendance, Not_On_List, Attendance_Flags | Sessions; held check-ins; the grid; unknown IDs; flags | Attendance |
-| Item_Log | One row per student per live quiz question (answer, correct, confidence) | Finalising a quiz |
-| Access_Codes | Student ID, personal code (`XXXX-XXXX`, no 0, O, 1, I or L), issued | Lecturer |
-| Question_Stats | Per-question proportion correct, discrimination and label | Teaching insights |
-| Groups | Set, group, ID, name, group mark, out of, locked, created | Groups |
-| Calendar | Event ID, title, kind, start, end (local text `YYYY-MM-DDTHH:MM`), all day, location, agenda, resources, week, linked session, visibility, series, created, updated | Calendar |
-| Messages | Message ID, time (ms), conversation, from, name, text, status, removed by | Chat |
-| Chat_Groups | Group ID, name, owner, members, created | Chat |
-| Chat_Read | Who, conversation, last read (ms); `ANN` holds the last read time of announcements | Chat, announcements |
-| Announcements | ID, title, text, audience, pinned, show from, link, event ID, created, updated, status | Lecturer |
+| `config.js` | `courseCode`, `courseTitle`, `institution`, `scriptUrl` | Labels; server address (mode A). Generated by the app in modes B and C, with `desktop: true` and `publicBase` when the tunnel is on |
+| App Settings | Labels, lecturer, semester, contact, accent, logo, notice, Apps Script address, port | `settings.json` |
+| `quiz_receiver.gs` constants | `SITE`, `NOTIFY_EMAIL`, `GRACE_MS`, `ATT_*` (slot, grace, code, phone binding, location mode and radius), `CHAT_*`, `LEARN_MIN_*`, `PROG_*` | The desktop app sets `ATT_GEO_MODE = 'off'`, `SITE`, and empty `NOTIFY_EMAIL` |
+| Key tab | J2, K2, L2, week | Host key, Totals rule, Master, live quiz week |
+| Request parameters | `effort`, `perf`, `idle`, `misses` | Statistics thresholds, kept per lecturer in the app |
+| `data/lectures.json` | Lectures, titles, outcomes, files | Lecture pages, outcomes for progress |
+| `apps_script/live_quizzes.json` | Weeks | Which banks the live quiz may draw from |
 
-**Script properties.** `draw_salt` (per-workbook question draw), and `chat_mode` (on, announce, off), `chat_dm`, `chat_groups`, `chat_rules` and `chat_muted` (a JSON map).
+## 11. Build, release and distribution
 
-**Conversation IDs.**
+```mermaid
+flowchart TB
+  PR["Pull request to main<br/>(merged on Hope's 'publish')"] --> PUSH["Push touching class-manager/**"]
+  PUSH --> CI["GitHub Actions: class-manager-app.yml<br/>matrix macOS, Windows, Linux<br/>npm ci, npm test, electron-builder (unsigned)"]
+  CI --> ART["Build artifacts:<br/>Class-Manager-macOS.dmg (universal),<br/>Class-Manager-Windows.exe (NSIS x64),<br/>Class-Manager-Linux.AppImage"]
+  DISP["Manual run with inputs<br/>release = class-manager-vX.Y.Z,<br/>publish, notes"] --> CI
+  ART --> REL["GitHub Release<br/>(draft unless publish is ticked)<br/>plus Class-Manager-README.txt"]
+  REL --> DL["class-manager-app.html<br/>links to releases/latest/download/..."]
+  PUSH --> PAGES["GitHub Pages: site and<br/>class-manager/ web version"]
+```
 
-- `CLASS`: the whole class.
-- `L:<set>|<group>`: a lecturer-made group, taken from the Groups tab.
-- `S:<id>`: a group made by students.
-- `DM:<studentId>`: a student and the lecturer.
-- `P:<idA>:<idB>`: two students, IDs sorted.
+- **Pages.** No build step.
+- **Desktop.** Electron 44.9.3, electron-builder 26.18.0, Node 22 in CI. The bundle holds the desktop modules in `app.asar` and the pages in `resources/web` (excluding `desktop/`, `tools/`, `course-packs/`, `README.md`, `STRUCTURE.md`, `ARCHITECTURE.md`). Installers are unsigned; macOS uses an ad hoc signature.
+- **Versioning.** `desktop/package.json` version (0.7.0) and the release tag; `SCRIPT_VERSION` in the server script must match the version expected by `control.html`.
+- **Mode A deployment.** The lecturer pastes `quiz_receiver.gs` into the Sheet's Apps Script project and deploys a new version of the existing web app.
+- **Download page.** `class-manager-app.html` on the main site, under the "Download" menu, with a platform selector; it always serves the latest published release.
 
-**Desktop data folder.** This is `userData`, for example `~/.config/Class Manager` on Linux. It holds:
+## 12. Testing
 
-- `settings.json`;
-- `data/workbook.json` (all tabs and properties; dates stored as `{$d: ISO}`);
-- `google.bin` (OAuth tokens) and `anthropic.bin` (the API key), both encrypted with `safeStorage` where available;
-- `authoring/library/` (copies of documents, `<id>.chunks.json`, `index.json`);
-- `authoring/drafts.json` and `authoring/settings.json` (the model);
-- `authoring/banks/lectureN.json` (approved questions, with a `next` counter).
-
-## 7. Authentication and access
-
-| Who | Credential | Where checked |
+| Suite | Coverage | Where |
 |---|---|---|
-| Lecturer | Host key: 16 random hexadecimal characters made at setup, optionally replaced and stored hashed | `hostOk_`; 30 failures lock it for 10 min (CacheService). Kept in `sessionStorage` (`phys143_hk`) by lecturer pages. |
-| Student, own record and chat | Student ID on the class list plus a personal access code | `portalResults_`, `chatWho_`; 6 failures lock the ID for 10 min. Optionally remembered in `localStorage`. |
-| Student, live quiz | Join code shown in class, plus name and ID | Presence and round rules; first submission counts |
-| Student, attendance | Rotating QR token (30 s slots), device token, one check-in per ID per session | Attendance hardening section |
-| App screens (`/app/*`) | Request from this computer's own addresses | `isThisComputer` in `main.js` |
+| `npm test` (`desktop/test/stats.test.js`, `pedagogy.test.js`, sample classes) | Class statistics, verdicts, engagement groups, outcomes, second vote, group assignments: 24 tests, run against `backend.js` | Repository, run in CI on every build |
+| `tools/validate_quizzes.py`, `check_calcs.py`, `test_practice.mjs` | Bank schema, recomputed calculations, practice engine | Course pack tools |
+| Browser and end-to-end checks (Playwright against the running and the packaged app) | Pages, attendance safeguards, authoring, calendar, messages | Session scratch files; not in the repository |
 
-Access codes reach students on printed slips (`codes.html`). Names from the class list are shown to other students only in two places: group members (groups, chat) and the senders of messages. Student IDs are shown to the lecturer only.
+Not yet tested: the server script on Google Apps Script itself after 0.5.0, the Cloudflare tunnel against real Cloudflare, and generation against the real Anthropic API.
 
-## 8. Main flows
+## 13. Repository layout
 
-**Live quiz (paced).**
+See STRUCTURE.md for the full file map. In brief: pages and `assets/` at the top of `class-manager/`; the server in `apps_script/`; the empty course in `data/` and `templates/`; the desktop app in `desktop/`; PHYS 143 in `course-packs/phys143/`; the workflow in `.github/workflows/class-manager-app.yml`; the download page `class-manager-app.html` at the site root.
 
-1. The lecturer opens a round in `quiz-host.html`. The server draws N questions (5 to 20) from the week's bank. The draw is seeded with the join code, the round and `draw_salt`.
-2. Students join on `quiz.html`. Each answer is POSTed (`kind=answer`) and checked against the open question, its deadline and presence.
-3. At the end, answers are compiled into Staged_Quiz and Item_Log.
-4. **Release** copies them to Form Responses 1 and rebuilds Master, Scores and Totals.
-5. The projector (`quiz-display.html`) shows each option's share during review.
+## 14. Known limits
 
-**Attendance.** Open a session, then students check in (the token is checked). Check-ins wait in Attendance_Log. **Submit** writes the Attendance grid; **Discard** drops the session.
+1. **One course per installation.** Settings, workbook, course folder and banks are single. Section 16 describes the change.
+2. **Desktop reach.** In mode B students reach the app only while it is open; the tunnel address changes at each start, so calendar subscriptions to it do not last.
+3. **One-way Google copy.** The mode B copy to Drive is a backup and a view, not a migration path.
+4. **Polling.** Messages poll every 8 seconds; in mode A each poll is an Apps Script execution.
+5. **Whole-tab reads.** Statistics and chat read whole tabs on each request; cost grows with the term.
+6. **Secrets in URLs.** The host key and access codes travel as GET parameters (JSONP), and mode B on the local network is plain HTTP.
+7. **One large script.** 3,437 lines in one file; tab layouts are positional.
+8. **Week range.** `setWeek_` accepts weeks 0 to 12 only; the join code pattern `2627` plus week is written into the script.
+9. **End of term.** `clearSemesterRecords` clears Attendance_Log, Not_On_List, Reports, Attempts, Staged_Quiz, Item_Log, Question_Stats and Access_Codes; Groups, assignments, messages, calendar and Attendance_Phones (cleared separately by `attPurgeSemester`) are not part of it.
+10. **Unsigned installers.** Windows and macOS warn on first launch.
+11. **Google sign-in.** The OAuth client for the desktop copy is not yet registered.
+12. **Mode A needs a redeploy** for each script version; 0.7.0 is pending redeployment.
+13. **Verdict evidence.** There is no pre-test or concept inventory; learning is judged from repeated questions and quiz results only.
 
-**Practice.** `practice.js` loads `quizzes/lectureN.json` and runs entirely in the browser. When a student types an ID, `tracking.js` POSTs an attempt with the question IDs. Practice tries join Master and Scores at release, and only for IDs on the class list.
+## 15. Weaknesses and suggested improvements, for review
 
-**Store and forward (messages and announcements).**
+These are judgements, ordered by value relative to effort. Each can be accepted, deferred or dropped.
 
-```
- sender page --GET action=chat&op=send--> chat_(): check sign-in, membership, mode, pause, rate (8/min), length (1000)
-                                           append row to Messages; bump chat_ver; mark sender's read time
- recipient page (later) --GET action=chat&v=<last version>--> unchanged? {same:true}
-                                           changed? conversations with unread counts (Chat_Read vs Messages)
-                                           + messages of the open conversation; own messages carry Sent / Read / Read by n
- recipient opens a conversation --op=read--> Chat_Read updated; the sender's next poll shows Read
-```
+| # | Weakness | Suggested improvement | Effort |
+|---|---|---|---|
+| 1 | Browser and end-to-end tests live outside the repository | Commit them under `class-manager/tests/` and run them in the existing workflow | Small |
+| 2 | Secrets in GET URLs (history, logs) | Exchange the host key or access code once for a short-lived session token held in memory; send it in POST bodies | Medium |
+| 3 | One 3,437-line script with positional columns | Split into files per area (Apps Script allows several `.gs` files; `backend.js` loads them in order) and find columns by header name | Medium |
+| 4 | One course per installation | Course registry and course dropdown (Section 16) | Large |
+| 5 | Whole-tab reads grow with the term | Cache computed statistics per release; archive messages per term; read recent rows only | Medium |
+| 6 | End-of-term clearing is incomplete | One "Close the term" action that exports and then clears every term tab, including groups, assignments, messages and phones | Small |
+| 7 | Mode B data on one laptop | Scheduled local backup of `workbook.json`, and mode C offered as the default once signed in to Google | Small to medium |
+| 8 | Polling for messages | Server-sent events on the desktop server; keep polling in mode A | Medium |
+| 9 | Week range and join code fixed in code | Derive both from `live_quizzes.json` and the course settings | Small |
+| 10 | Unsigned installers | Apple Developer ID and a Windows code-signing certificate, signing in CI | Cost, not code |
+| 11 | Verdict rests on repeated questions only | Optional short pre-test and post-test per topic, scored as normalised gain | Medium |
+| 12 | `preview-pedagogy/` screenshots sit inside `class-manager/`, so they are published with the web version and bundled in the installers | Move them to project files or exclude them in the build filter | Small |
+| 13 | Accessibility not audited | Keyboard-only and screen reader pass over student pages and the projector | Small |
 
-Pages poll every 8 seconds while visible, and again when they become visible. Nothing is pushed: there is no WebSocket or server-sent events. Removed messages keep their text for the lecturer, and students see "Message removed by the lecturer".
+## 16. Future direction: one application for many courses
 
-**Calendar.**
+This section describes intended design, not the current system.
 
-- Events are stored as local time text.
-- `calOut_` adds UTC start and end, and fills a missing end (one hour, or zero for a deadline).
-- A series creates up to 30 events every 1, 7 or 14 days, sharing a series ID. When a course week is set, it advances by one per event.
-- The iCalendar output follows RFC 5545: lines folded at 73 characters, UTC times, `VALUE=DATE` for all-day events, a reminder one day before quizzes, examinations and deadlines, and `REFRESH-INTERVAL` of 6 hours.
-- The page builds single-event and whole-calendar `.ics` files in the browser, and makes Google Calendar and Outlook links from the UTC times.
+**Goal.** One installation manages several courses at once. A course dropdown in the app header switches between them. Each course is linked to its own folder (local) or repository (for example a GitHub repository holding its lecture pages, files and banks).
 
-**Announcements.** Each announcement has an audience:
+**What would change.**
 
-- `all`: shown publicly, on the portal;
-- `class`: signed-in students only;
-- a comma list of `L:` or `S:` conversation IDs: members of those groups.
-
-An announcement whose "show from" time is in the future is hidden from students until that time. An announcement can link to a calendar event, which appears only if the event is visible to students.
-
-## 9. Resources, retrieval and the language model (desktop only)
-
-```
- add file --> extract text            --> chunk (~900 chars, per page or slide) --> library/<id>.chunks.json
-              PDF: unpdf (pdf.js), lines rebuilt from text positions
-              DOCX: mammoth raw text; PPTX: jszip, <a:t> runs per slide; MD/TXT: as is
- search   --> BM25 over all passages (k1 = 1.4, b = 0.75), terms = lower-case words, stop words removed, plural s stripped
- summary  --> with key: Claude, whole document (map-reduce above 600,000 characters, parts of 400,000)
-              without key: extractive (sentences scored by tf-idf, 5 to 14 kept in order, plus 14 key terms)
- generate --> passages: whole documents if no focus and under 300,000 characters; else BM25 top passages up to 300,000
-              + plain stems of the lecture's existing questions (to avoid repeats)
-              --> Claude (JSON schema: quizzes[].questions[] with type, difficulty, q, options, answer, exp, ref)
-              --> options shuffled, text sanitised to HTML --> drafts.json (status draft, batch, set, source documents)
- import   --> same extraction --> template parser --> validation --> preview --> drafts
- approve  --> validation (4 distinct options, valid answer, lecture) --> banks/lectureN.json, ID L{n}-U{nn}
-              server merges course bank + overlay for /quizzes/lectureN.json and live_quizzes.json weeks;
-              the script's 5-minute bank cache is cleared
+```mermaid
+flowchart TB
+  APP["Class Manager app"] --> REG["courses.json<br/>id, code, title, term, source (folder or repo), mode"]
+  REG --> C1["Course A<br/>userData/courses/A/<br/>settings.json, workbook.json,<br/>course/, authoring/"]
+  REG --> C2["Course B<br/>userData/courses/B/"]
+  REG --> C3["Course C<br/>linked repository, synced to course/"]
+  APP --> DD["Header: course dropdown"]
+  DD -->|"switch active course"| SRVS["HTTP server routes<br/>/c/<courseId>/... per course"]
+  SRVS --> VM["one backend vm context per course,<br/>loaded on first use"]
 ```
 
-**Model call** (`askJson` in `authoring.js`). The call is made with the official SDK, `@anthropic-ai/sdk` 1.6.0:
+1. **Data folder.** Move today's single `settings.json`, `data/workbook.json`, `course/` and `authoring/` into `userData/courses/<courseId>/`, with a `courses.json` registry. A one-time migration moves the existing course into the first slot.
+2. **Server.** Serve each course under its own path prefix (`/c/<courseId>/`), so several classes can run at once; generate `config.js` per course. Keep one `backend.js` vm context per course, each with its own workbook, cache and properties, created on first use.
+3. **Course source.** Add a "link to folder" (watch a local folder) and a "link to repository" (clone or pull a GitHub repository into `course/`, read-only) alongside course packs.
+4. **Screens.** A course dropdown in the header; every IPC call carries the course ID; the student lookup and statistics act on the active course. An overview across courses can follow later.
+5. **Students.** Access codes, phone registrations and records stay per course. A student in two courses has two codes; nothing is shared across courses unless a later decision says so.
+6. **Mode A.** Unchanged in principle: each course keeps its own Sheet and Apps Script deployment, and the registry stores each address.
+7. **Tunnel.** One tunnel can serve every course through the path prefix.
 
-- `messages.stream(...).finalMessage()`;
-- model from Settings (default `claude-opus-5-5`);
-- `thinking: {type: "adaptive"}` and `output_config: {effort: "high", format: {type: "json_schema", schema}}`;
-- for the models that accept it, the beta `server-side-fallback-2026-07-01` with `fallbacks: "default"`;
-- `max_tokens` of 16,000 for summaries, and up to 64,000 for generation.
-
-Error types (authentication, permission, not found, rate limit, connection) become plain messages. A `refusal` or `max_tokens` stop is reported, and nothing is saved.
-
-**Validation rules** (shared by import, editing and approval):
-
-- the question has text;
-- exactly four options, none empty, no two the same;
-- the answer index is valid;
-- the lecture is set.
-
-Two warnings do not block approval: a missing explanation or difficulty, and a duplicate of a bank question or another draft.
-
-**Text safety.** All imported and generated text is escaped. Only `<sub>`, `<sup>`, `<em>`, `<strong>`, `<b>`, `<i>` and `<br>` are re-allowed, and `^` and `_` notation becomes `<sup>` and `<sub>`.
-
-## 10. Security and privacy model
-
-- **Secrets.** No secrets are in the repository. The host key is in the workbook only. The API key and Google tokens are in the app's data folder, encrypted with the system keychain when `safeStorage` is available.
-- **Student data.** It stays in the workbook. Nothing about students is sent to Anthropic: requests contain only the lecturer's documents, instructions and existing question stems. The end-to-end test checks this.
-- **Pages from the desktop server** run in sandboxed `BrowserWindow`s (`contextIsolation`, `sandbox`, no `nodeIntegration`). External links open in the system browser, and navigation away from the local server is blocked. The `cmApp` bridge exposes a fixed list of IPC calls.
-- **Server paths.** `/app/*` answers only to this computer. Other `/apps_script/*` paths return 404. Static paths are confined to the web root.
-- **Sheet values.** Typed values beginning `=`, `+`, `-` or `@` are prefixed so that the sheet does not run them as formulas.
-- **Rate limits.** Host key: 30 failures per 10 min. Access code: 6 per ID per 10 min. Messages: 8 per minute per student. Attendance: per-device and per-ID rules.
-- **Moderation.** The lecturer reads every conversation. Students are told so on the page.
-
-## 11. Configuration
-
-- **`config.js`.** Course labels and `scriptUrl` (mode A). In the desktop app, Settings (`settings.json`) generates this file: course code, title, institution, an optional Apps Script address, and the port.
-- **Constants at the top of the script sections.** `SITE` (where the script reads banks in mode A), `NOTIFY_EMAIL`, `GRACE_MS`, attendance constants (`ATT_*`), and chat limits (`CHAT_MAX`, `CHAT_PER_MIN`, `CHAT_GROUP_MAX`, `CHAT_OWN_MAX`).
-- **Key tab settings.** Totals rule (Best or Latest), Master on or off, and the live quiz week.
-- **Chat settings.** Set in the moderation panel and stored as script properties.
-- **Resources and questions.** The API key and the model, in the app.
-
-## 12. Build and packaging
-
-- **Pages.** No build step. They are served as files.
-- **Desktop app.** Electron 44.9.3 with electron-builder 26.18.0, from `desktop/package.json`. Run `npm run dist:mac`, `dist:win` or `dist:linux`. The outputs are a universal macOS DMG (ad hoc signature), a Windows NSIS installer (x64) and a Linux AppImage.
-- **What the app bundle contains.**
-  - `app.asar`: `main.js`, `preload.js`, `backend.js`, `google.js`, `authoring.js`, `app/**`, `google-oauth.json` (if present) and the production dependencies (`@anthropic-ai/sdk`, `mammoth`, `unpdf`, `jszip`).
-  - `resources/web`: the class-manager folder, except `desktop/`, `tools/`, `README.md`, `STRUCTURE.md`, `ARCHITECTURE.md` and `.nojekyll`.
-- **Release.** A private draft GitHub release `class-manager-v0.1.0` holds earlier installers. Publishing it needs Hope's approval.
-
-## 13. Testing
-
-| Suite | What it covers | Where |
-|---|---|---|
-| `tools/validate_quizzes.py`, `tools/check_calcs.py`, `tools/test_practice.mjs` | Bank schema and calculations, and the practice engine | Repository |
-| Server checks | 36 (core and learning), 17 (groups), 14 (calendar), 38 (messages and announcements), run against `backend.js` | Session scratch files; not yet in the repository |
-| Browser checks | 17 (learning pages), 11 (groups pages), via Playwright against the running app | Session scratch files |
-| End to end, packaged app | 45 checks, via Playwright's Electron driver against `dist/linux-unpacked`, with a stand-in for the Anthropic API that records requests: library (four formats), search, both summaries, generation request shape, review and approval into served banks, import preview, manual entry, withdrawal, no student data in requests, calendar views and series, `.ics` and feed, portal, messages, moderation, delivery states, store and forward | Session scratch files |
-
-None of the session suites has been run against Google Apps Script itself. Generation and Claude summaries have not been run against the real Anthropic API.
-
-## 14. Known limits and technical debt
-
-1. **Desktop reach.** In mode B, students reach the app on the same network, or from anywhere through the optional internet address (a Cloudflare quick tunnel, `desktop/tunnel.js`), and only while the app is open. The internet address changes at each start, so external calendar subscriptions to it do not last.
-2. **Google copy is one way.** The copy from the desktop app to a Sheet is one way. Moving from mode B to mode A is not a migration path for messages or the calendar.
-3. **Polling.** Chat polls every 8 seconds over JSONP. In mode A, each poll is an Apps Script execution. The version stamp keeps unchanged polls short, but a large class with chat open adds up against Apps Script quotas and concurrency (judgement: worth measuring before heavy use).
-4. **Whole-tab reads.** Every chat sync reads the Messages, Chat_Read and Chat_Groups tabs in full, and the roster and codes. Cost grows with the number of messages; there is no archive or paging.
-5. **Secrets in URLs.** Host key and access codes travel as GET query parameters, so they can appear in browser history and server logs. In mode B, the transport is plain HTTP on the local network.
-6. **Host key strength.** Fixed on 9 November 2026: setup now makes the host key from a random UUID (16 hexadecimal characters). Keys made before that are 8 base-36 characters from `Math.random` and can be replaced with `setkey`.
-7. **Owner email in the script.** Fixed on 9 November 2026: `NOTIFY_EMAIL` is empty in the package, and reports go to the Google account that deployed the script. The desktop app sends no email.
-8. **One large script file.** The server script is a single 2,577-line file with sections, not modules. Tab layouts are positional (column numbers in code).
-9. **Tests outside the repository.** The session test suites are not committed and there is no CI for the package.
-10. **Fixed upper bound on the week.** `setWeek_` accepts weeks 0 to 12 only, although banks may now be added for other lectures.
-11. **Desktop-only authoring.** The web version has no authoring screen; new questions there mean editing `quizzes/lectureN.json`.
-12. **Model output limits.** The schema does not force four options. Approval rejects any other count. Shuffling assumes explanations do not name option letters, and the prompt forbids that.
-13. **Scanned PDFs.** These have no text layer and cannot be read; there is no OCR.
-14. **Dates.** Calendar times follow the script's time zone, which in mode B is the computer's.
-
-## 15. Candidate improvements
-
-These are proposals for review, ordered by the value they would give relative to effort (judgement).
-
-1. **Commit the test suites** under `class-manager/tests/` with a single command, and run the server and end-to-end suites in GitHub Actions on each push.
-2. **Move secrets out of URLs.** Send the host key and access codes in POST bodies, or exchange them once for a short-lived session token held in memory.
-3. **Make the colleague package neutral.** Done for the report email (item 7 above).
-4. **Strengthen the host key.** Done for generation (item 6 above). Hashing it by default remains open.
-5. **Push in the desktop app.** Server-sent events on the local server would deliver messages at once and reduce polling. Mode A would keep polling.
-6. **Messages at scale.** Add an archive tab per term, and read only recent rows (the last N per conversation) on sync.
-7. **Two-way Google storage for mode B.** Use the Google-hosted script as the single record, with the desktop app as a client. Mode C already does this, and could be offered as the default once signed in.
-8. **Split the server script** into files per area (Apps Script allows several `.gs` files in one project, and `backend.js` can load them in order). Add a header map per tab, so that columns are found by name.
-9. **Authoring on the web.** A host-key page that posts approved questions to a Questions tab, merged by `siteJson_`. This would give mode A the review queue without editing files.
-10. **Retrieval quality.** Add embeddings or a reranking step alongside BM25 when the library grows beyond a few hundred passages, and show the passages used for each generated question in the review screen.
-11. **Generation checks.** Run `check_calcs.py`-style numerical checks on generated calculation questions before they reach review, and let the lecturer regenerate a single question.
-12. **Week range.** Derive the allowed range from `live_quizzes.json` instead of the fixed 0 to 12.
-13. **Accessibility pass.** Audit the new pages with a screen reader and keyboard only (the views use buttons and live regions, but this has not been audited).
+**Order of work (suggested).** Registry and per-course data folder with migration; per-course backend contexts and path routing; header dropdown and IPC course ID; folder and repository linking.
