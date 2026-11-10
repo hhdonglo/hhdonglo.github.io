@@ -202,6 +202,11 @@ Internet access does not start
   needs to download the connector program. A firewall that blocks outgoing
   connections to Cloudflare will stop it.
 
+Text is too small or too large
+  Press Cmd and plus or minus (Ctrl on Windows and Linux) to change the size
+  of everything in the app, and Cmd or Ctrl and 0 for the normal size. The
+  app remembers the size. Press Cmd or Ctrl and / for all keyboard shortcuts.
+
 The host key is not shown
   If the host key was changed on the quiz dashboard, the app no longer
   shows it. Use the new key.

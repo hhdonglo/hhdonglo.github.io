@@ -6,7 +6,7 @@
    - Optional: sign in with Google to keep a copy of every tab in a Google Sheet in the lecturer's
      own Drive (google.js). */
 "use strict";
-const { app, BrowserWindow, ipcMain, shell, dialog, safeStorage } = require("electron");
+const { app, BrowserWindow, Menu, ipcMain, shell, dialog, safeStorage } = require("electron");
 const http = require("http");
 const fs = require("fs");
 const os = require("os");
@@ -53,6 +53,7 @@ function saveSettings(s) {
     logo: s.logo == null ? settings.logo || "" : String(s.logo),
     setupSeen: s.setupSeen == null ? !!settings.setupSeen : !!s.setupSeen,
     scriptUrl: /^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(url) ? url : "",
+    zoom: clampZoom(s.zoom == null ? settings.zoom : s.zoom),
     port: Math.min(65535, Math.max(1024, Number(s.port) || DEFAULTS.port))
   };
   fs.mkdirSync(app.getPath("userData"), { recursive: true });
@@ -203,9 +204,49 @@ async function restartServer() {
   port = server.address().port;
 }
 
+// ---------- zoom ----------
+// One text size for every window, kept between 80% and 200% and remembered in the settings.
+// It is set again on every page load, so a zoom left over from an earlier version never shrinks the app.
+const ZOOM_STEPS = [0.8, 0.9, 1, 1.1, 1.25, 1.4, 1.6, 1.8, 2];
+function clampZoom(z) { z = Number(z) || 1; return Math.min(2, Math.max(0.8, Math.round(z * 100) / 100)); }
+function applyZoom(w) { try { w.webContents.setZoomFactor(clampZoom(settings.zoom)); } catch (e) {} }
+function setZoom(dir) {
+  const now = clampZoom(settings.zoom);
+  let next = 1;
+  if (dir > 0) next = ZOOM_STEPS.find((z) => z > now + 0.001) || 2;
+  else if (dir < 0) next = ZOOM_STEPS.slice().reverse().find((z) => z < now - 0.001) || 0.8;
+  saveSettings({ zoom: next, port: settings.port });
+  for (const w of BrowserWindow.getAllWindows()) applyZoom(w);
+}
+function zoomKeys(w) {
+  w.webContents.on("before-input-event", (e, input) => {
+    if (input.type !== "keyDown" || !(input.control || input.meta) || input.alt) return;
+    const k = input.key;
+    if (k === "=" || k === "+" || input.code === "NumpadAdd") { e.preventDefault(); setZoom(1); }
+    else if (k === "-" || k === "_" || input.code === "NumpadSubtract") { e.preventDefault(); setZoom(-1); }
+    else if (k === "0" || input.code === "Numpad0") { e.preventDefault(); setZoom(0); }
+  });
+  w.webContents.on("did-finish-load", () => applyZoom(w));
+  w.webContents.on("zoom-changed", (e, d) => setZoom(d === "in" ? 1 : -1)); // Ctrl or Cmd with the mouse wheel or trackpad
+}
+function appMenu() {
+  const mac = process.platform === "darwin";
+  const zoomItems = [
+    { label: "Actual Size", accelerator: "CmdOrCtrl+0", registerAccelerator: false, click: () => setZoom(0) },
+    { label: "Zoom In", accelerator: "CmdOrCtrl+Plus", registerAccelerator: false, click: () => setZoom(1) },
+    { label: "Zoom Out", accelerator: "CmdOrCtrl+-", registerAccelerator: false, click: () => setZoom(-1) },
+    { type: "separator" }, { role: "togglefullscreen" }
+  ];
+  const tpl = [];
+  if (mac) tpl.push({ role: "appMenu" });
+  tpl.push({ role: "editMenu" }, { label: "View", submenu: zoomItems }, { role: "windowMenu" });
+  Menu.setApplicationMenu(Menu.buildFromTemplate(tpl));
+}
+
 // ---------- windows ----------
 function secureWindow(w) {
   w.removeMenu();
+  zoomKeys(w);
   w.webContents.setWindowOpenHandler(({ url }) => {
     if (url.startsWith(baseUrl()) && !/\.pdf($|[?#])/i.test(url)) return { action: "allow" };
     shell.openExternal(url); return { action: "deny" };
@@ -400,11 +441,12 @@ app.whenReady().then(async () => {
   await restartServer();
   tunnel = createTunnel({ dir: path.join(app.getPath("userData"), "tunnel"),
     onChange: (st) => { for (const w of BrowserWindow.getAllWindows()) { try { w.webContents.send("cm:tunnel", st); } catch (e) {} } } });
-  win = new BrowserWindow({ width: 1200, height: 880, title: "Class Manager", icon: path.join(__dirname, "app", "icon-512.png"),
+  appMenu();
+  win = new BrowserWindow({ width: 1280, height: 860, minWidth: 900, minHeight: 600, title: "Class Manager", icon: path.join(__dirname, "app", "icon-512.png"),
     webPreferences: { preload: path.join(__dirname, "preload.js"), contextIsolation: true, sandbox: true, nodeIntegration: false } });
   secureWindow(win);
   win.loadURL(baseUrl() + (settings.setupSeen ? "app/home.html" : "app/setup.html"));
-  app.on("activate", () => { if (BrowserWindow.getAllWindows().length === 0) newWindow("app/home.html", 1200, 880); });
+  app.on("activate", () => { if (BrowserWindow.getAllWindows().length === 0) newWindow("app/home.html", 1280, 860); });
 });
 app.on("before-quit", () => { try { backend && backend.flush(); } catch (e) {} try { stopTunnel(); } catch (e) {} });
 app.on("window-all-closed", () => { try { backend && backend.flush(); } catch (e) {} try { stopTunnel(); } catch (e) {} if (server) server.close(); app.quit(); });
