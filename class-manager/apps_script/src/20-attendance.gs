@@ -146,7 +146,10 @@ function attCheckIn_(p, code) { // the student side of the check-in: the QR toke
   if (onl && ATT_REQUIRE_CODE) { // a classmate's ID is not enough: the personal access code must match too
     var mine = codesMap_()[aid];
     if (!mine) return { ok: false, why: 'no access code' };
-    if (normCode_(p.code) !== mine.code) { attFailAdd_('d' + dev); attFailAdd_('i' + aid); attFlag_(ses.label, aid, dev, 'wrong access code (refused)'); return { ok: false, why: 'not recognised' }; }
+    var given = String(p.code || '').trim(), st = isSession_(given) ? sessRead_(given) : null;
+    var codeOk = st ? (st.role === 's' && st.subj === aid && sessValid_(st, mine.code)) : (REQ_.post && normCode_(given) === mine.code && !codeExpired_(mine));
+    if (!codeOk) { attFailAdd_('d' + dev); attFailAdd_('i' + aid); attFlag_(ses.label, aid, dev, 'wrong access code (refused)'); return { ok: false, why: st && st.expired ? 'session expired' : 'not recognised' }; }
+    if (!st) REQ_.session = sessMake_('s', aid, mine.code, SESSION_STUDENT_DAYS * 86400000);
   }
   if (attDayHas_(day, aid)) return { ok: true, id: aid, onList: onl, already: true }; // one mark per ID per day: nothing is added
   if (onl && ATT_PHONE_BIND) { // one phone per student for the term

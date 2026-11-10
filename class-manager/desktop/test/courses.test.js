@@ -143,21 +143,21 @@ test("two courses never see each other's records", () => {
 
   // Host keys are separate: A's key does nothing in B.
   assert.notEqual(A.key, B.key);
-  assert.equal(json(B.backend.doGet({ action: "hostcheck", hostkey: A.key })).ok, false);
-  assert.equal(json(B.backend.doGet({ action: "hostcheck", hostkey: B.key })).ok, true);
+  assert.equal(json(B.backend.doPost({ action: "hostcheck", hostkey: A.key })).ok, false);
+  assert.equal(json(B.backend.doPost({ action: "hostcheck", hostkey: B.key })).ok, true);
 
   // Access codes are separate: the same student has a different code in each course, and A's code opens nothing in B.
-  const codeA = json(A.backend.doGet({ action: "access_codes", op: "generate", hostkey: A.key })).rows.find((r) => r.id === shared).code;
-  const codeB = json(B.backend.doGet({ action: "access_codes", op: "generate", hostkey: B.key })).rows.find((r) => r.id === shared).code;
+  const codeA = json(A.backend.doPost({ action: "access_codes", op: "generate", hostkey: A.key })).rows.find((r) => r.id === shared).code;
+  const codeB = json(B.backend.doPost({ action: "access_codes", op: "generate", hostkey: B.key })).rows.find((r) => r.id === shared).code;
   assert.ok(codeA && codeB); assert.notEqual(codeA, codeB);
-  assert.equal(json(A.backend.doGet({ action: "my_results", id: shared, code: codeA })).ok, true);
-  assert.notEqual(json(B.backend.doGet({ action: "my_results", id: shared, code: codeA })).ok, true, "A's code is refused by B");
+  assert.equal(json(A.backend.doPost({ action: "my_results", id: shared, code: codeA })).ok, true);
+  assert.notEqual(json(B.backend.doPost({ action: "my_results", id: shared, code: codeA })).ok, true, "A's code is refused by B");
 
   // Attendance opened in A is not open in B.
-  const opened = json(A.backend.doGet({ action: "attend_open", hostkey: A.key, label: "Week 1" }));
+  const opened = json(A.backend.doPost({ action: "attend_open", hostkey: A.key, label: "Week 1" }));
   assert.equal(opened.ok, true, JSON.stringify(opened));
-  assert.equal(json(A.backend.doGet({ action: "attend_status", hostkey: A.key })).session.status, "Open");
-  const sb = json(B.backend.doGet({ action: "attend_status", hostkey: B.key }));
+  assert.equal(json(A.backend.doPost({ action: "attend_status", hostkey: A.key })).session.status, "Open");
+  const sb = json(B.backend.doPost({ action: "attend_status", hostkey: B.key }));
   assert.ok(!sb.session || sb.session.status !== "Open", "B has no open attendance");
 
   // The student lookup and the class statistics of B know nothing of A's other student.

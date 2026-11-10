@@ -156,12 +156,8 @@ function chatTxt_(s, n) { return String(s == null ? '' : s).replace(/\r/g, '').r
 function chatNames_() { var o = {}; rosterRows_().forEach(function (r) { o[r[0]] = r[1] || ('Student …' + r[0].slice(-4)); }); return o; }
 function chatWho_(p) { // 'LECTURER', a rostered Student ID, or an error text
   if (p.hostkey) return hostOk_(p) ? 'LECTURER' : { why: 'host key not accepted' };
-  var id = normId_(p.id), given = normCode_(p.code);
-  if (id.length < 4 || id.length > 12) return { why: 'bad id' };
-  if (attFails_('c' + id) >= ATT_MAX_FAILS) return { why: 'slow down' };
-  var mine = rosterSet_()[id] ? codesMap_()[id] : null;
-  if (!mine || !given || mine.code !== given) { attFailAdd_('c' + id); return { why: 'not recognised' }; }
-  return id;
+  var who = studentCheck_(p.id, p.code, 'c');
+  return who.id ? who.id : { why: who.why };
 }
 function chatGroups_() {
   return bodyRows_(sheetWith_(CHG_TAB, CHG_HEAD), CHG_HEAD.length).map(function (r) {

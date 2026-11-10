@@ -18,7 +18,7 @@ contextBridge.exposeInMainWorld("cmApp", {
   importPack: call("cm:importPack"), exportPack: call("cm:exportPack"),
   courses: call("cm:courses"), addCourse: call("cm:addCourse"), updateCourse: call("cm:updateCourse"), archiveCourse: call("cm:archiveCourse"),
   switchCourse: call("cm:switchCourse"), linkFolder: call("cm:linkFolder"), pullCourse: call("cm:pullCourse"), openContent: call("cm:openContent"),
-  readme: call("cm:readme"), tunnelStart: call("cm:tunnelStart"), tunnelStop: call("cm:tunnelStop"),
+  readme: call("cm:readme"), tunnelStart: call("cm:tunnelStart"), tunnelStop: call("cm:tunnelStop"), security: call("cm:security"), saveSecurity: call("cm:saveSecurity"),
   onTunnel: (fn) => { ipcRenderer.on("cm:tunnel", (e, st) => fn(st)); },
   googleSignIn: call("cm:googleSignIn"), googleSignOut: call("cm:googleSignOut"), googleSync: call("cm:googleSync")
 });

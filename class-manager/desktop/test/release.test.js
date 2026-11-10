@@ -70,7 +70,11 @@ test("1 to 7: a quiz is set up, joined, answered, discussed, stored, analysed an
   assert.ok(Math.abs(S.quizzes[0].stats.mean - 100 * mean / 5) < 0.051, "class mean from the stored scores");
   // Each student can read their own result, and the stored score is the score they are shown.
   const s0 = c.students[0];
-  const r0 = c.get({ action: "result", code: CODE, id: s0.id });
+  const rc = c.post({ kind: "join", name: s0.name, id: s0.id, code: CODE, want: "receipt" }).receipt; // the receipt the phone keeps
+  assert.ok(rc, "joining gives the phone a receipt");
+  assert.equal(c.call({ action: "result", code: CODE, id: s0.id }).found, false, "without the receipt, no result");
+  assert.equal(c.call({ action: "result", code: CODE, id: s0.id, rc: c.post({ kind: "join", name: "x", id: c.students[1].id, code: CODE, want: "receipt" }).receipt }).found, false, "another student's receipt opens nothing");
+  const r0 = c.call({ action: "result", code: CODE, id: s0.id, rc });
   assert.equal(r0.found, true);
   assert.equal(r0.score, Number(fr.find((r) => r[2] === s0.id)[9]));
   assert.ok(mean >= 0 && mean <= 5);
@@ -81,15 +85,15 @@ test("8: a student reads only their own record, and only with their own access c
   runQuiz(c, 5, () => "A");
   c.host("control", { code: CODE, act: "release" });
   const [a, b] = c.students;
-  const mine = c.get({ action: "my_results", id: a.id, code: c.codes[a.id] });
+  const mine = c.call({ action: "my_results", id: a.id, code: c.codes[a.id] });
   assert.equal(mine.ok, true, JSON.stringify(mine));
   assert.ok(!JSON.stringify(mine).includes(b.id), "nothing about another student");
-  assert.notEqual(c.get({ action: "my_results", id: b.id, code: c.codes[a.id] }).ok, true, "a classmate's code opens nothing");
-  assert.notEqual(c.get({ action: "my_results", id: b.id, code: "" }).ok, true, "an ID alone opens nothing");
-  assert.notEqual(c.get({ action: "chat", id: b.id, code: c.codes[a.id] }).ok, true);
+  assert.notEqual(c.call({ action: "my_results", id: b.id, code: c.codes[a.id] }).ok, true, "a classmate's code opens nothing");
+  assert.notEqual(c.call({ action: "my_results", id: b.id, code: "" }).ok, true, "an ID alone opens nothing");
+  assert.notEqual(c.call({ action: "chat", id: b.id, code: c.codes[a.id] }).ok, true);
   // Lecturer actions need the host key.
-  assert.notEqual(c.get({ action: "class_stats" }).ok, true);
-  assert.notEqual(c.get({ action: "class_stats", hostkey: "wrong" }).ok, true);
+  assert.notEqual(c.call({ action: "class_stats" }).ok, true);
+  assert.notEqual(c.call({ action: "class_stats", hostkey: "wrong" }).ok, true);
 });
 
 test("9: duplicate submissions, invalid codes, late or closed answers", () => {
@@ -137,11 +141,11 @@ test("9: a timed quiz keeps only the first submission per student", () => {
 test("9: wrong host keys lock out after repeated tries; wrong access codes lock the ID", () => {
   const c = classroom({ students: 1 });
   const [a] = c.students;
-  for (let i = 0; i < 30; i++) assert.equal(c.get({ action: "hostcheck", hostkey: "guess" + i }).ok, false);
-  assert.equal(c.get({ action: "hostcheck", hostkey: c.key }).ok, false, "locked even for the right key");
+  for (let i = 0; i < 30; i++) assert.equal(c.call({ action: "hostcheck", hostkey: "guess" + i }).ok, false);
+  assert.equal(c.call({ action: "hostcheck", hostkey: c.key }).ok, false, "locked even for the right key");
   const d = classroom({ students: 1 });
-  for (let i = 0; i < 6; i++) assert.notEqual(d.get({ action: "my_results", id: d.students[0].id, code: "AAAA-AAA" + i }).ok, true);
-  assert.notEqual(d.get({ action: "my_results", id: d.students[0].id, code: d.codes[d.students[0].id] }).ok, true, "locked for ten minutes");
+  for (let i = 0; i < 6; i++) assert.notEqual(d.call({ action: "my_results", id: d.students[0].id, code: "AAAA-AAA" + i }).ok, true);
+  assert.notEqual(d.call({ action: "my_results", id: d.students[0].id, code: d.codes[d.students[0].id] }).ok, true, "locked for ten minutes");
   assert.ok(a);
 });
 
@@ -166,5 +170,5 @@ test("10: records survive a restart of the app, with the same host key", () => {
   c.reopen();
   assert.deepEqual(c.backend.tab("Form Responses 1"), before);
   assert.equal(c.backend.hostKey(), c.key);
-  assert.equal(c.get({ action: "my_results", id: c.students[0].id, code: c.codes[c.students[0].id] }).ok, true);
+  assert.equal(c.call({ action: "my_results", id: c.students[0].id, code: c.codes[c.students[0].id] }).ok, true);
 });

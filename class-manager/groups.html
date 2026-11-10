@@ -96,12 +96,7 @@ body.focus main{padding-top:1rem}
 "use strict";
 var SCRIPT_URL=window.CM.scriptUrl,$=function(i){return document.getElementById(i)},D=null;
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
-function jsonp(params,cb,ms){
- var n="cb"+Date.now()+Math.floor(Math.random()*1e6),sc=document.createElement("script"),done=false,t;
- function end(d){if(done)return;done=true;clearTimeout(t);delete window[n];if(sc.parentNode)sc.parentNode.removeChild(sc);cb(d)}
- window[n]=end;sc.onerror=function(){end(null)};t=setTimeout(function(){end(null)},ms||30000);
- sc.src=SCRIPT_URL+"?"+params+"&callback="+n+"&_="+Date.now();document.head.appendChild(sc);
-}
+function jsonp(params,cb,ms){CM.call(params,cb,ms)} // every request by POST: see CM.call in config.js
 var KEY="";try{KEY=sessionStorage.getItem("cm_hk")||""}catch(x){}
 function err(t){$("g-err").textContent=t;$("g-err").hidden=!t}
 function call(op,extra,after){

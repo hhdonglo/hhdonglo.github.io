@@ -30,6 +30,33 @@ window.CM = {
     if (img.getAttribute("data-qr-url") === url) return; // already drawn
     try { var q = qrcode(0, "M"); q.addData(url); q.make(); img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(q.createSvgTag({ cellSize: 8, margin: 2, scalable: true })); img.setAttribute("data-qr-url", url); } catch (e) { /* the address is shown beside the code */ }
   };
+  // Every request to the class server goes through CM.call: by POST, so that host keys, access codes and sessions never
+  // appear in a web address (browser history, server logs). When a key or code is accepted, the answer carries _session,
+  // a signed session that expires; it then replaces that key or code in this page and wherever the page remembered it,
+  // so the key or code itself is not kept. cb(data or null, milliseconds).
+  var swap = {};
+  function remember(old, tok) {
+    swap[old] = tok;
+    [window.sessionStorage, window.localStorage].forEach(function (st) {
+      try { for (var i = 0; i < st.length; i++) { var k = st.key(i); if (st.getItem(k) === old) st.setItem(k, tok); } } catch (e) { /* storage off */ }
+    });
+  }
+  CM.call = function (params, cb, ms) {
+    var b = new URLSearchParams(params), t0 = Date.now(), done = false, timer;
+    b.delete("callback");
+    ["hostkey", "code", "access"].forEach(function (k) { var v = b.get(k); if (v && swap[v]) b.set(k, swap[v]); });
+    function end(d) { if (done) return; done = true; clearTimeout(timer); cb(d, Date.now() - t0); }
+    if (!CM.scriptUrl) { setTimeout(function () { end(null); }, 0); return; }
+    timer = setTimeout(function () { end(null); }, ms || 30000);
+    fetch(CM.scriptUrl, { method: "POST", body: b, cache: "no-store", credentials: "omit" })
+      .then(function (r) { return r.text(); })
+      .then(function (t) {
+        var d = null; try { d = JSON.parse(t); } catch (e) { d = null; }
+        var tok = d && d._session; if (tok) delete d._session;
+        end(d);
+        if (tok) { var old = tok.split(".")[1] === "h" ? b.get("hostkey") : (b.get("access") || b.get("code")); if (old && old !== tok) remember(old, tok); } // after the page has saved what it typed
+      }, function () { end(null); });
+  };
   var parts = [CM.courseCode, CM.courseTitle, CM.institution].filter(Boolean);
   CM.footer = parts.length ? parts.join(" · ") + " · " : "";
   CM.courseHeading = (CM.courseCode || "Course") + (CM.courseTitle ? ": " + CM.courseTitle : "");

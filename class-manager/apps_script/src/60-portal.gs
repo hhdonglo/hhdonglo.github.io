@@ -4,7 +4,7 @@
 // ---------- Portal and Control Centre support (additive: no existing action changes) ----------
 // SCRIPT_VERSION: change it whenever the script is redeployed; the Control Centre compares it with the version its page expects.
 // Key!M2 = Off hides "My results" from students (default On).
-var SCRIPT_VERSION = '2026-11-10-pedagogy-1';
+var SCRIPT_VERSION = '2026-11-11-security-1';
 
 function resultsOn_() {
   try {
@@ -53,11 +53,9 @@ function portalStatus_() { // public, no secrets: is attendance open, is a live 
 // A student's own attendance and quiz scores, found by ID. Same failure limit as check-in. Returns nothing about any other student.
 function portalResults_(p) {
   if (!resultsOn_()) return { ok: false, why: 'results off' };
-  var id = normId_(p.id), given = normCode_(p.code);
-  if (id.length < 4 || id.length > 12) return { ok: false, why: 'bad id' };
-  if (attFails_('r' + id) >= ATT_MAX_FAILS) return { ok: false, why: 'slow down' };
-  var mine = rosterSet_()[id] ? codesMap_()[id] : null; // the ID and its personal access code, both required
-  if (!mine || !given || mine.code !== given) { attFailAdd_('r' + id); return { ok: false, why: 'not recognised' }; }
+  var who = studentCheck_(p.id, p.code, 'r'); // the ID with its personal access code or a session, both required
+  if (!who.id) return { ok: false, why: who.why };
+  var id = who.id;
   var ss = SpreadsheetApp.getActiveSpreadsheet(), out = { ok: true, attendance: [], quizzes: [] };
   var at = ss.getSheetByName(ATT_TAB);
   if (at && at.getLastRow() > 1 && at.getLastColumn() > 1) {

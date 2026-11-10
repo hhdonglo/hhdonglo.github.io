@@ -109,6 +109,8 @@ The web values of the PHYS 143 deployment (Apps Script address, report form, ran
 4. **Deploy, Manage deployments**, edit the web app, choose **New version**, and **Deploy**. Keep "Execute as: Me" and "Who has access: Anyone". Editing the existing deployment keeps the same address.
 5. Test before class: open the lecturer menu with the host key, run a short quiz, and open and close attendance.
 
+**Pages and script must match from 0.9.0.** From version 0.9.0 the pages send every request by POST and the script refuses host keys and access codes in web addresses. Publish the pages and redeploy the script (step 4) together; the Control Centre shows a warning while the versions differ. After the update, lecturers and students sign in once more; students who chose "Remember" are then remembered by a session that lasts 14 days, not by their code.
+
 The tabs, actions, join codes, attendance rules and privacy rules are unchanged from the original system and are described in sections 8 to 12 of the README of hhdonglo.github.io and in its `QUIZ_SETUP.md`.
 
 The class list is loaded into the Roster tab from the lecturer's computer with `roster_sync.sh`, which stays on that computer and is not part of this package. Single changes can be made in **Control Centre, Class list**.

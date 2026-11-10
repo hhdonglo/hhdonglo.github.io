@@ -19,7 +19,7 @@ createBackend({ webRoot: WEB, dataFile: file, readSite, log: () => {} }).flush()
 const sample = writeSample(file);
 const B = createBackend({ webRoot: WEB, dataFile: file, readSite, log: () => {} });
 const KEY = B.hostKey();
-const get = (p) => { const t = B.doGet(Object.assign({ callback: "cb" }, p)).text; const m = /^cb\(([\s\S]*)\)\s*;?\s*$/.exec(t); return JSON.parse(m ? m[1] : t); };
+const get = (p) => { const t = B.doPost(Object.assign({ callback: "cb" }, p)).text; const m = /^cb\(([\s\S]*)\)\s*;?\s*$/.exec(t); return JSON.parse(m ? m[1] : t); };
 const host = (p) => get(Object.assign({ hostkey: KEY }, p));
 const post = (p) => B.doPost(p).text;
 const ids = sample.ids, names = sample.names;
@@ -51,7 +51,9 @@ test("ask, discuss, revise: a second vote keeps both answers and reports the mov
   for (let q = 2; q <= 5; q++) { host({ action: "control", code, act: "next" }); voters.forEach((id, i) => post({ kind: "answer", code, id, name: names[i].split(" ")[0], q: String(q), answer: keys[q - 1] })); }
   r = host({ action: "control", code, act: "next" }); assert.equal(r.status.state, "ended");
   r = host({ action: "control", code, act: "review" });
-  const rv = get({ action: "review", code, id: ids[13] });
+  const rc = JSON.parse(post({ kind: "join", code, id: ids[13], name: names[13].split(" ")[0], want: "receipt" })).receipt; // the student's own phone
+  assert.equal(get({ action: "review", code, id: ids[13] }).mine, "", "without the phone's receipt, no personal answer");
+  const rv = get({ action: "review", code, id: ids[13], rc });
   assert.equal(rv.q, 1); assert.ok(rv.discussion, "review carries the before and after");
   assert.equal(rv.discussion.wrongToRight, 6); assert.equal(rv.discussion.rightToWrong, 1); assert.equal(rv.discussion.pairs, 20);
   assert.equal(rv.discussion.beforePct, 60); assert.equal(rv.discussion.afterPct, 85);

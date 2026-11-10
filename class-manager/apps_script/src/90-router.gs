@@ -5,6 +5,8 @@
 
 function doPost(e) {
   var p = (e && e.parameter) || {};
+  reqStart_(true);
+  if (p.action && !p.kind) return route_(e); // every page request, sent by POST so that keys and codes stay out of web addresses
   if (p.kind === 'roster_sync') return out_(JSON.stringify(rosterSync_(p)));
   if (p.kind === 'report' || p.kind === 'attempt') {
     var lk = LockService.getScriptLock();
@@ -29,7 +31,12 @@ function doPost(e) {
     }
   }
   var name = clean_(p.name, 40), id = clean_(p.id, 20), code = clean_(p.code, 30).toUpperCase();
-  function fin_(o) { log_(o, name, id, code); return out_(o); }
+  function withReceipt_(o) { // the phone asks for a receipt: the answer is JSON and carries it, so the student alone can see the result later
+    if (p.want !== 'receipt') return out_(o);
+    var r = { ok: o === 'ok', outcome: o }; if (o === 'ok' && id && code) r.receipt = quizReceipt_(code, id);
+    return ContentService.createTextOutput(JSON.stringify(r)).setMimeType(ContentService.MimeType.JSON);
+  }
+  function fin_(o) { log_(o, name, id, code); return withReceipt_(o); }
 
   if (p.kind === 'answer') { // paced quiz: one answer to the question that is open right now
     var qn = Number(p.q), al = String(p.answer || '').trim().toUpperCase();
@@ -46,17 +53,17 @@ function doPost(e) {
     return out_('ok');
   }
   if (p.kind === 'join' || p.kind === 'progress') { // lobby and live participation
-    if (!name || !id || !keyRow_(code)) return out_('ok');
+    if (!name || !id || !keyRow_(code)) return withReceipt_('ok');
     var lj = LockService.getScriptLock();
     lj.waitLock(60000); // a whole class joining at once queues here
     try {
       var cj = ctl_(code), sj = cj ? eff_(cj) : 'running';
-      if (cj && !allowLate_(cj) && (sj === 'running' || sj === 'paused') && !hasPresence_(code, id)) return out_('late');
+      if (cj && !allowLate_(cj) && (sj === 'running' || sj === 'paused') && !hasPresence_(code, id)) return withReceipt_('late');
       presence_(code, id, name, p.kind === 'progress' ? 'inprogress' : 'joined');
     } finally {
       lj.releaseLock();
     }
-    return out_('ok');
+    return withReceipt_('ok');
   }
 
   if (!name || !id || !code) return fin_('missing');
@@ -105,7 +112,12 @@ function doPost(e) {
   }
 }
 
-function doGet(e) {
+function doGet(e) { // reads by GET (JSONP) still work for public data; anything that needs a key or a code must come by POST
+  reqStart_(false);
+  return route_(e);
+}
+
+function route_(e) {
   var p = (e && e.parameter) || {};
   var code = clean_(p.code, 30).toUpperCase();
 
@@ -175,7 +187,11 @@ function doGet(e) {
   if (p.action === 'preclass') return jsonp_(e, hostOk_(p) ? preclass_(p) : { ok: false, why: 'host key not accepted' });
 
   if (p.action === 'attend') return jsonp_(e, attCheckIn_(p, code)); // a student checks in: the Student ID, the QR token, the device token and the phone's rounded location
-  if (p.action === 'hostcheck') return jsonp_(e, { ok: hostOk_(p) }); // the lecturer menu: is this key right?
+  if (p.action === 'hostcheck') return jsonp_(e, { ok: hostOk_(p), post: REQ_.post }); // the lecturer menu: is this key right? (with a session when it is)
+  if (p.action === 'sessions_end') { // host only: every signed-in phone and lecturer page must sign in again
+    if (!hostOk_(p)) return jsonp_(e, { ok: false, why: 'host key not accepted' });
+    REQ_.session = ''; return jsonp_(e, signOutEveryone_());
+  }
   if (p.action === 'held_status') return jsonp_(e, hostOk_(p) ? heldStatus_() : { ok: false, why: 'host key not accepted' }); // host only: what is waiting for release
   if (p.action === 'held_release_quiz' || p.action === 'held_discard_quiz' || p.action === 'attend_submit' || p.action === 'attend_discard') { // host only
     if (!hostOk_(p)) return jsonp_(e, { ok: false, why: 'host key not accepted' });
@@ -215,7 +231,7 @@ function doGet(e) {
     } catch (err) { return jsonp_(e, { questions: [], error: String(err).slice(0, 160) }); }
   }
 
-  if (p.action === 'review') return jsonp_(e, reviewData_(code, clean_(p.id, 20)));
+  if (p.action === 'review') { var rid = clean_(p.id, 20); return jsonp_(e, reviewData_(code, receiptOk_(code, rid, p.rc) ? rid : '')); } // the student's own answer only with their receipt
 
   if (p.action === 'ranking') { // live class ranking for one join code: first names and scores only
     var rk = keyRow_(code), me = clean_(p.id, 20), cr = ctl_(code);
@@ -285,6 +301,7 @@ function doGet(e) {
 
   if (p.action === 'result') {
     var id = clean_(p.id, 20), key = keyRow_(code), cx = ctl_(code);
+    if (id && !receiptOk_(code, id, p.rc)) return jsonp_(e, { found: false, receipt: false, outcome: lastOutcome_(id, code), keyMissing: !key }); // only the phone that took part
     if (key && id) {
       var rnd2 = roundOf_(code), rows = respRows_().map(function (r) { return r.slice(2, 14); }); // ID, Join Code, Q1 to Q5, Score, Round, Questions, Answers, Week
       for (var i = 0; i < rows.length; i++) {
