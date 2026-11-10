@@ -21,7 +21,7 @@ The package lives in `class-manager/` of the site repository. It is separate fro
 The system has three layers:
 
 1. **Pages.** Static HTML and plain JavaScript, with no framework and no build step. Students and the lecturer open them in a browser.
-2. **One server script.** `apps_script/quiz_receiver.gs` (2,577 lines) holds every rule: scoring, attendance, access, the calendar, messages and the rest.
+2. **One server script.** `apps_script/quiz_receiver.gs` holds every rule: scoring, attendance, access, the calendar, messages and the rest. It is built from eight modules in `apps_script/src/` (core, assessment, attendance, analytics, collaboration, communication, portal, router) by `apps_script/build.js`, so that Google Apps Script still receives one file.
 3. **One workbook.** It holds every record, one tab per kind of record.
 
 The same server script runs in two places: in Google Apps Script, or inside the desktop app. Section 3 gives the three ways the package can be deployed.
@@ -103,7 +103,8 @@ In mode B, the optional Google sign-in (`desktop/google.js`) copies every tab on
 | `messages.html` | Announcements and messages for students and the lecturer. |
 | `quizzes/lectureN.json` | Question banks: 347 questions, lectures 0 to 12, no bank for lecture 6. |
 | `apps_script/live_quizzes.json` | Weeks that have a live quiz, and optional fixed question sets per join code. |
-| `apps_script/quiz_receiver.gs` | The server script. |
+| `apps_script/quiz_receiver.gs` | The server script, generated: do not edit it by hand. |
+| `apps_script/src/*.gs`, `apps_script/build.js` | The server script's modules and the build that joins them in file-name order (`node apps_script/build.js`; `--check` in CI). |
 | `assets/` | Shared CSS and JS, the QR code generator, KaTeX, `messages.js` (error texts), `tracking.js` (practice attempts), and icons. |
 | `sw.js`, `manifest.webmanifest` | Installable portal; network first, with the shell cached for offline use. |
 | `data/`, `PHYS143/` | Course data for the portal and the lecture materials. |
@@ -330,8 +331,8 @@ None of the session suites has been run against Google Apps Script itself. Gener
 5. **Secrets in URLs.** Host key and access codes travel as GET query parameters, so they can appear in browser history and server logs. In mode B, the transport is plain HTTP on the local network.
 6. **Host key strength.** Fixed on 9 November 2026: setup now makes the host key from a random UUID (16 hexadecimal characters). Keys made before that are 8 base-36 characters from `Math.random` and can be replaced with `setkey`.
 7. **Owner email in the script.** Fixed on 9 November 2026: `NOTIFY_EMAIL` is empty in the package, and reports go to the Google account that deployed the script. The desktop app sends no email.
-8. **One large script file.** The server script is a single 2,577-line file with sections, not modules. Tab layouts are positional (column numbers in code).
-9. **Tests outside the repository.** The session test suites are not committed and there is no CI for the package.
+8. **Positional columns.** The server script is split into modules (since 0.8.1), but tab layouts are still positional (column numbers in code).
+9. **Tests.** The server release suite (`desktop/test/release.test.js`) and the other suites run with `npm test` and in the workflow `class-manager-tests.yml` on every push and pull request. Browser suites are added separately.
 10. **Fixed upper bound on the week.** `setWeek_` accepts weeks 0 to 12 only, although banks may now be added for other lectures.
 11. **Desktop-only authoring.** The web version has no authoring screen; new questions there mean editing `quizzes/lectureN.json`.
 12. **Model output limits.** The schema does not force four options. Approval rejects any other count. Shuffling assumes explanations do not name option letters, and the prompt forbids that.
@@ -352,7 +353,7 @@ None of the session suites has been run against Google Apps Script itself. Gener
 
 These are proposals for review, ordered by the value they would give relative to effort (judgement).
 
-1. **Commit the test suites** under `class-manager/tests/` with a single command, and run the server and end-to-end suites in GitHub Actions on each push.
+1. **Commit the test suites.** Done for the server suites (`npm test`, workflow `class-manager-tests.yml`).
 2. **Move secrets out of URLs.** Send the host key and access codes in POST bodies, or exchange them once for a short-lived session token held in memory.
 3. **Make the colleague package neutral.** Done for the report email (item 7 above).
 4. **Strengthen the host key.** Done for generation (item 6 above). Hashing it by default remains open.

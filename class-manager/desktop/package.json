@@ -9,7 +9,7 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "test": "node --test test/stats.test.js test/pedagogy.test.js test/courses.test.js",
+    "test": "node --test test/*.test.js",
     "dist": "electron-builder",
     "dist:mac": "electron-builder --mac",
     "dist:win": "electron-builder --win",
@@ -49,6 +49,8 @@
           "!desktop/**",
           "!tools/**",
           "!course-packs/**",
+          "!apps_script/src/**",
+          "!apps_script/build.js",
           "!README.md",
           "!STRUCTURE.md",
           "!ARCHITECTURE.md",

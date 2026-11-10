@@ -11,7 +11,7 @@ Written 9 November 2026. A description of the class management tool as it stands
 The class management tool runs one course from three layers: static pages that students and the lecturer open in a browser, one server script that holds every rule, and a private workbook that stores every record. It serves PHYS 143 (12 lectures plus an introduction, 347 practice questions) and is built so that the course content can be replaced.
 
 - **Pages** (HTML and JavaScript, no framework): the student portal, course and lecture pages, practice quizzes, mock exam, live quiz pages, attendance pages, lecturer menu and Control Centre. They read the question banks and course data as JSON files.
-- **Server script** (`apps_script/quiz_receiver.gs`, about 1,700 lines): every live action goes through it, with `doGet` for reads (JSONP) and `doPost` for submissions. It checks the host key, scores answers, records attendance and rebuilds the mark tabs.
+- **Server script** (`apps_script/quiz_receiver.gs`, built from the modules in `apps_script/src/` by `apps_script/build.js`): every live action goes through it, with `doGet` for reads (JSONP) and `doPost` for submissions. It checks the host key, scores answers, records attendance and rebuilds the mark tabs.
 - **Workbook**: the tabs listed under Data model. In the website version it is the Google Sheet "PHYS 143 Quizzes (Responses)". In the desktop app it is a file on the lecturer's computer.
 
 The same script runs in two places. On the website it is a Google Apps Script web app bound to the Sheet. In the desktop app (`desktop/backend.js`) it runs unchanged inside Node, against a local workbook, with the Google services it uses provided locally. The pages do not know which one they talk to: `config.js` gives them one address (`scriptUrl`).
@@ -120,7 +120,7 @@ class-manager/
   data/                     lectures.json, portal.json, pages/course.json, site.json (empty course)
   templates/                lecture and practice page templates
   course-packs/phys143/     the PHYS 143 course pack source (lecture pages, PDFs, banks, data, bank tools)
-  apps_script/              quiz_receiver.gs, live_quizzes.json
+  apps_script/              quiz_receiver.gs (generated), src/ (its modules), build.js, live_quizzes.json
   assets/                   render.js, styles, QR library, KaTeX, icons
   desktop/                  the desktop app: main.js, backend.js, course.js (course folder and packs), table.js (class list files), google.js, preload.js, app/home.html, app/setup.html, package.json
 ```
