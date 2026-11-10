@@ -68,7 +68,7 @@ jobs:
 
   release:
     # A draft unless "publish" is ticked: nothing is public until the release is published.
-    # The download page links to releases/latest/download/<file>, so publishing a release updates the page.
+    # The download page no longer links to releases: the Beta is sent on request. Keep releases as drafts (not public).
     if: github.event_name == 'workflow_dispatch' && startsWith(inputs.release, 'class-manager-v')
     needs: build
     runs-on: ubuntu-latest
