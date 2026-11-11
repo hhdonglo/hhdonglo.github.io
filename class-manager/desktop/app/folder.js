@@ -58,6 +58,9 @@
   }
 
   function found(r) {
+    try { foundScreen(r); } catch (err) { failed(err); }
+  }
+  function foundScreen(r) {
     if (!r.ok) return welcome(r.why);
     scan = r;
     var good = r.files.filter(function (f) { return f.ok && f.useful; }), rest = r.files.filter(function (f) { return !(f.ok && f.useful); });
@@ -69,7 +72,7 @@
       (good.length ? "<p>Files with usable data. Untick any you do not want:</p><ul id='fld-list' style='list-style:none;padding:0'>" + good.map(fileRow).join("") + "</ul>" : "<p class='msg'>No file in this folder holds a class list, scores, attendance or quiz questions that the app could recognise.</p>") +
       (rest.length ? "<details><summary class='note'>Other files (" + rest.length + ")</summary><ul class='note'>" + rest.map(fileRow).join("") + "</ul></details>" : "") +
       "<p><label><input type='checkbox' id='fld-watch'" + (watching ? " checked" : "") + "> Tell me when files in this folder change</label></p><p id='fld-status' class='note' role='status'></p>" +
-      buttons("<button class='btn' type='button' id='fld-cancel'>Cancel</button><button class='btn' type='button' id='fld-change'>Change folder…</button><button class='btn' type='button' id='fld-rescan'>Rescan</button>" +
+      buttons("<button class='btn' type='button' id='fld-cancel'>Cancel</button><button class='btn' type='button' id='fld-change'>Change folder…</button><button class='btn' type='button' id='fld-files2'>Choose files…</button><button class='btn' type='button' id='fld-rescan'>Rescan</button>" +
         "<button class='btn primary' type='button' id='fld-preview'" + (good.length ? "" : " disabled") + ">Preview</button>");
     body.querySelector("#fld-cancel").onclick = close;
     body.querySelector("#fld-change").onclick = function () { busy("Looking at the folder…"); cmApp.autoPick().then(function (x) { if (!x) return found(r); found(x); }); };
@@ -89,7 +92,16 @@
     cmApp.autoPlan({ ids: chosenIds, addMissing: opts.addMissing }).then(function (r) {
       if (!r.ok) { found(scan); var st = body.querySelector("#fld-status"); if (st) st.textContent = r.why; return; }
       working = r; opts.addMissing = r.addMissing; show(r);
-    });
+    }).catch(function (err) { failed(err); });
+  }
+
+  // Whatever goes wrong while building a preview is shown in the dialog, with a way back to the list.
+  function failed(err) {
+    body.innerHTML = "<p class='msg err' role='alert'>The preview could not be made: " + esc(err && err.message ? err.message : String(err || "unknown error")) + "</p>" +
+      "<p class='note'>Nothing was added to the course. Go back, untick the file that may be the cause, and try again.</p>" +
+      buttons("<button class='btn' type='button' id='fld-cancel'>Close</button><button class='btn primary' type='button' id='fld-back2'>Back to the files</button>");
+    body.querySelector("#fld-cancel").onclick = close;
+    body.querySelector("#fld-back2").onclick = function () { busy("Looking at the folder…"); cmApp.autoScan({}).then(found); };
   }
 
   function tableRow(t) {
