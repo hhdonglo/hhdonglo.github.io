@@ -216,6 +216,9 @@ function createBackend(opts) {
     buildFromRoster: () => { const r = require("./build-from-roster").buildFromRoster({ sheet: (n, c) => spreadsheet.getSheetByName(n) || (c ? spreadsheet.insertSheet(n) : null), rows: (n) => { const t = spreadsheet.getSheetByName(n); return t && t.getLastRow() ? t.getDataRange().getValues() : null; } }); flush(); return r; },
     rebuildMarks: () => asHost(() => { ctx.rebuildMaster(); ctx.refreshTotals(); }),
     tabs: () => book.sheets.map((d) => ({ name: d.name, rows: sheetObj(d).getLastRow() })),
+    // For course synchronisation (sync/records.js): the raw rows of a tab, and replacing a tab's rows.
+    rawRows: (name) => { const d = book.sheets.find((x) => x.name === name); return d ? d.rows.map((r) => (r || []).slice()) : null; },
+    setRows: (name, rows) => { let d = book.sheets.find((x) => x.name === name); if (!d) { d = { name, id: book.sheets.length + 1, rows: [] }; book.sheets.push(d); } d.rows = rows.map((r) => r.slice()); touch(); },
     tab: (name) => { const s = spreadsheet.getSheetByName(name); return s ? s.getDataRange().getDisplayValues() : null; },
     flush
   };

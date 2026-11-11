@@ -123,7 +123,7 @@ class-manager/
   course-packs/phys143/     the PHYS 143 course pack source (lecture pages, PDFs, banks, data, bank tools)
   apps_script/              quiz_receiver.gs (generated), src/ (its modules), build.js, live_quizzes.json
   assets/                   render.js, styles, QR library, KaTeX, icons
-  desktop/                  the desktop app: main.js, backend.js, course.js (course folder and packs), table.js (reads class list files), excel.js (writes Excel workbooks), xlsx-book.js, import-values.js, import-specs.js, import-plan.js, import-apply.js and import-ipc.js (the web import: see desktop/IMPORT.md), autoload-ipc.js and autoload/ (load data from a folder in any layout: see desktop/autoload/README.md), names.js (first and last names: join, split, name columns in exports), google.js, preload.js, app/home.html, app/setup.html, package.json
+  desktop/                  the desktop app: main.js, backend.js, course.js (course folder and packs), table.js (reads class list files), excel.js (writes Excel workbooks), xlsx-book.js, import-values.js, import-specs.js, import-plan.js, import-apply.js and import-ipc.js (the web import: see desktop/IMPORT.md), autoload-ipc.js and autoload/ (load data from a folder in any layout: see desktop/autoload/README.md), names.js (first and last names: join, split, name columns in exports), google.js, linked-folder.js (encrypted copies in a synced folder), storage-providers.js, sync/ (merge.js, records.js, materials.js, course-sync.js), storage/ (WebDAV, GitHub, Dropbox, S3 providers), preload.js, app/linked-folder.js (the Link storage card), app/home.html, app/setup.html, package.json
 ```
 
 **Configuration points**
@@ -241,3 +241,7 @@ The banks as they stand: 347 questions over 12 lectures, every one with four opt
 3. Write the lecture 6 bank.
 4. Add outcome and difficulty fields to the banks.
 5. Close the own-results privacy gap.
+
+## Learning Progress charts (desktop, from 11 November 2026)
+
+The Learning Progress screen draws its graphs from `desktop/app/charts/`, one file per chart type (README.md there). The first two are the mastery distribution (stacked bars by objective) and the objective heat map (students by objectives). They read the figures of `learningProgress_` and do no calculation of their own. Added in the same release: class progress over time (weekly mean, median and quartile band, from `classTimeline_`), learning gain, before and after discussion, and for one student the trajectory against the class mean, student versus class by objective, learning gain and engagement (from `studentProfile_`, which now also returns `classTimeline`, `classByKey` and `engagement`). Not yet built: question difficulty (already on Quizzes and Questions) and the Sunday analytics list (evidence confidence, item analysis, concept and intervention tracking, fairness view), which should reuse `classTimeline_` and `classOutcomes_` rather than recalculate.

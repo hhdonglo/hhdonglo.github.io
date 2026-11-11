@@ -622,6 +622,39 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
     <p class="row" style="margin-top:16px"><button class="btn primary" type="submit">Save settings</button> <span id="saved" class="note" role="status"></span></p>
    </form>
   </div>
+  <div class="card" id="lf">
+   <h3>Link storage (optional)</h3>
+   <p class="note">Keep an encrypted copy of this course's records in your own cloud storage: a folder that Google Drive, OneDrive, Dropbox, MEGA, iCloud Drive or another sync app keeps in the cloud, or your own account on Nextcloud or another WebDAV service, a private GitHub repository, your own Dropbox app, or an S3-compatible bucket. You register with the service; the app holds no keys of its own. Off until you link a folder. Student records leave this computer only as an encrypted file that needs your passphrase.</p>
+   <div id="lf-off">
+    <label class="f" for="lf-kind">Where to keep the copies</label>
+    <select class="f" id="lf-kind" style="max-width:34rem"></select>
+    <p class="row" id="lf-choose-w"><button class="btn primary" type="button" id="lf-choose">Choose a folder…</button></p>
+    <form id="lf-form" hidden>
+     <p id="lf-picked"></p><p class="note" id="lf-advice"></p>
+     <div id="lf-help" class="note"></div>
+     <div id="lf-fields"></div>
+     <label class="f" for="lf-pass">Passphrase for the copies (at least 10 characters)</label><input class="f" id="lf-pass" type="password" autocomplete="new-password" style="max-width:22rem">
+     <label class="f" for="lf-again">Passphrase again</label><input class="f" id="lf-again" type="password" autocomplete="new-password" style="max-width:22rem">
+     <label id="lf-auto-w" style="display:block;margin-top:8px"><input type="checkbox" id="lf-auto" checked> Make a copy by itself every four hours and when the app closes</label>
+     <p class="note">Without the passphrase a copy cannot be opened, and it cannot be recovered. Credentials you enter here are kept only on this computer, encrypted by its keychain.</p>
+     <p class="row"><button class="btn primary" type="submit">Link and make the first copy</button><button class="btn" type="button" id="lf-cancel">Cancel</button></p>
+    </form>
+   </div>
+   <div id="lf-on" hidden>
+    <dl class="kv"><dt>Place</dt><dd id="lf-folder"></dd><dt>Service</dt><dd id="lf-prov"></dd><dt>Latest copy</dt><dd id="lf-last"></dd><dt>Automatic</dt><dd id="lf-autoshow"></dd></dl>
+    <p class="note" id="lf-adv2"></p>
+    <label class="f" for="lf-pass2" id="lf-pass2-l">Passphrase (needed for a copy made now, or a restore)</label><input class="f" id="lf-pass2" type="password" autocomplete="current-password" style="max-width:22rem">
+    <p class="row" style="margin-top:12px"><button class="btn primary" type="button" id="lf-copy">Copy now</button><button class="btn" type="button" id="lf-open">Open the folder</button><button class="link" type="button" id="lf-unlink">Stop linking</button></p>
+    <div id="lf-list"></div>
+    <h4 style="margin:18px 0 6px">What is kept in step with the cloud</h4>
+    <p class="note">Choose for each kind of information. Whatever you keep in step is also kept on this computer, so the app works without a connection and catches up when it returns. "This computer only" is the default. Switching never deletes anything.</p>
+    <div id="sy-items"></div>
+    <p class="note" id="sy-pass-note" hidden>Class list and attendance are encrypted with your passphrase, which this computer has not kept. Enter it above (under "Passphrase") before pressing Sync now.</p>
+    <p class="row" style="margin-top:12px"><button class="btn primary" type="button" id="sy-now">Sync now</button><button class="btn" type="button" id="sy-notes">Open the notes folder</button></p>
+    <p class="note" id="sy-last"></p><div id="sy-devices" class="note"></div>
+   </div>
+   <p class="msg" id="lf-msg" role="status"></p>
+  </div>
   <div class="card" id="g">
    <h3>Google Drive copy (optional)</h3>
    <p id="g-text">…</p>
@@ -765,10 +798,18 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
   <div class="row"><input class="f" id="look-in" list="look-list" style="flex:1"><button class="btn primary" type="submit">Open</button><button class="btn" type="button" id="look-x">Cancel</button></div>
   <datalist id="look-list"></datalist><p class="note" id="look-msg" role="status"></p></form>
 </dialog>
+<link rel="stylesheet" href="charts/charts.css">
+<script src="charts/core.js"></script>
+<script src="charts/mastery-distribution.js"></script>
+<script src="charts/heatmap.js"></script>
+<script src="charts/progress-over-time.js"></script>
+<script src="charts/bars.js"></script>
+<script src="charts/engagement.js"></script>
 <script src="insights.js"></script>
 <script src="progress.js"></script>
 <script src="import.js"></script>
 <script src="folder.js"></script>
+<script src="linked-folder.js"></script>
 <script>
 (function(){
 "use strict";

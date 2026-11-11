@@ -641,6 +641,24 @@ function classOutcomes_(ev, lects) {
     .sort(function (a, b) { return a.key.localeCompare(b.key, undefined, { numeric: true }); });
 }
 
+// The class by calendar week of answers: for each week, the spread of the students' proportion correct (mean, median, quartiles) and how many contributed.
+// Only students on the roster count, and a student's week needs at least one answer; the first/last quartile is not shown below four students.
+function classTimeline_(ev) {
+  var roster = {}; rosterRows_().forEach(function (r) { var id = normId_(r[0]); if (id) roster[id] = true; });
+  var hasRoster = Object.keys(roster).length > 0, weeks = {}, order = [];
+  Object.keys(ev).forEach(function (id) {
+    if (id.charAt(0) === '_' || (hasRoster && !roster[id])) return;
+    var mine = {};
+    ev[id].forEach(function (e) { var d = new Date(e.t), m = new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay() + 6) % 7)).getTime(); var w = mine[m] || (mine[m] = { r: 0, n: 0 }); w.r += e.ok; w.n++; });
+    Object.keys(mine).forEach(function (m) { var w = weeks[m] || (weeks[m] = { pcts: [], answers: 0 }); if (order.indexOf(m) < 0) order.push(m); w.pcts.push(pct_(mine[m].r, mine[m].n)); w.answers += mine[m].n; });
+  });
+  var q = function (xs, f) { var i = (xs.length - 1) * f, lo = Math.floor(i), hi = Math.ceil(i); return Math.round(10 * (xs[lo] + (xs[hi] - xs[lo]) * (i - lo))) / 10; };
+  return order.map(Number).sort(function (a, b) { return a - b; }).map(function (m) {
+    var w = weeks[m], xs = w.pcts.slice().sort(function (a, b) { return a - b; });
+    return { week: fmtDay_(m), students: xs.length, answers: w.answers, mean: Math.round(10 * xs.reduce(function (a, b) { return a + b; }, 0) / xs.length) / 10, median: q(xs, 0.5), q1: xs.length >= 4 ? q(xs, 0.25) : null, q3: xs.length >= 4 ? q(xs, 0.75) : null };
+  });
+}
+
 // Ask, discuss, revise: every question that had a second vote, from Item_Log (both answers kept).
 // Normalised gain = (after - before) / (100 - before), the share of the possible improvement that discussion achieved.
 function discussionStats_() {
@@ -691,7 +709,7 @@ function learningProgress_(p) {
     }) };
   });
   return { ok: true, generated: new Date().toISOString(), minimum: PROG_MIN, levelsNames: PROG_LEVELS, thresholds: { secure: PROG_SECURE, developing: PROG_DEVELOPING },
-    outcomes: classOutcomes_(ev, lects), discussion: { rounds: disc.rounds, pairs: disc.pairs, beforePct: disc.beforePct, afterPct: disc.afterPct, gain: disc.gain, wrongToRight: disc.wrongToRight, rightToWrong: disc.rightToWrong, questions: disc.questions, note: disc.note },
+    outcomes: classOutcomes_(ev, lects), timeline: classTimeline_(ev), discussion: { rounds: disc.rounds, pairs: disc.pairs, beforePct: disc.beforePct, afterPct: disc.afterPct, gain: disc.gain, wrongToRight: disc.wrongToRight, rightToWrong: disc.rightToWrong, questions: disc.questions, note: disc.note },
     assignments: asg.assignments || [], students: students, groupProgress: groupProgress };
 }
 
@@ -728,5 +746,6 @@ function studentProfile_(id, all, me) {
   groupWork.filter(function (g) { return g.submitted && !g.part; }).slice(0, 1).forEach(function (g) { tips.push({ kind: 'Group work', text: 'Has not described their own part in "' + g.title + '". Ask what they contributed.' }); });
   groupWork.filter(function (g) { return g.peerFlag; }).slice(0, 1).forEach(function (g) { tips.push({ kind: 'Group work', text: 'Group-mates rated their contribution to "' + g.title + '" as low (' + g.peerN + ' ratings). Talk to the group before acting on it.' }); });
   if (!tips.length) tips.push({ kind: 'On track', text: 'Nothing calls for action. Keep the challenge up: an extension question or a peer-explainer role.' });
-  return { progress: sp, discussion: disc, groupWork: groupWork, groups: studentGroups_(id), strengths: strengths, weak: weak, partners: partners, suggestions: tips };
+  var classNow = {}; classOutcomes_(ev, ev._lects).forEach(function (o) { classNow[o.key] = { current: o.current, students: o.students }; });
+  return { progress: sp, classTimeline: classTimeline_(ev), classByKey: classNow, engagement: { attendance: me.attendance, quizzesTaken: me.quizzesTaken, practiceAttempts: me.practiceAttempts, missedInARow: me.missedInARow }, discussion: disc, groupWork: groupWork, groups: studentGroups_(id), strengths: strengths, weak: weak, partners: partners, suggestions: tips };
 }
