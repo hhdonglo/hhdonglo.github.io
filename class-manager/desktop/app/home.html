@@ -539,7 +539,13 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
      <button class="btn" data-win="codes.html"><svg><use href="#i-key"/></svg>Access codes</button>
     </div>
     <p class="note" id="keynote" style="margin-top:1rem">Lecturer pages ask for the host key shown at the top. Keep it private.</p>
-    <div class="tools"><button class="btn" data-win="password.html"><svg><use href="#i-key"/></svg>Lecturer password</button><button class="btn" type="button" id="pw-reset"><svg><use href="#i-key"/></svg>Reset password (lost it)</button></div>
+    <form id="pw-form" autocomplete="off" style="margin-top:.6rem">
+     <strong id="pw-title">Lecturer password</strong>
+     <p class="note" id="pw-state" style="margin:.2rem 0 .5rem">Choose a password for the lecturer login. You do not need the old one here, because you are at this computer.</p>
+     <div class="tools"><input type="password" id="pw-new" maxlength="100" placeholder="New password (at least 10 characters)" autocomplete="new-password" style="min-width:16rem"><input type="password" id="pw-new2" maxlength="100" placeholder="Repeat the new password" autocomplete="new-password" style="min-width:16rem"><button class="btn" type="submit"><svg><use href="#i-key"/></svg>Save password</button><button class="btn" type="button" id="pw-reset"><svg><use href="#i-key"/></svg>Reset to a temporary key</button></div>
+     <p class="note" id="pw-msg" role="alert" hidden></p>
+     <div id="pw-code-box" hidden style="margin-top:.6rem;padding:.7rem;border:2px dashed var(--line);border-radius:8px"><strong>Your recovery code. It is shown only once.</strong><br><code id="pw-code" style="font-size:1.3rem;letter-spacing:.06em;user-select:all"></code> <button class="btn sm" type="button" id="pw-code-copy">Copy</button><p class="note">Write it down or keep it in a password manager. If you forget the password, the lecturer login accepts this code instead ("Forgot your password?").</p></div>
+    </form>
    </div>
   </div>
  </div>
@@ -923,8 +929,8 @@ function show(info){
  $("more").textContent=info.addresses.slice(1).join(", ")||"none";
  tshow(info.tunnel);
  hostKey=info.hostKey||"";
- if(hostKey){$("key").textContent=hostKey;$("key-copy").hidden=false}else{$("key").textContent="your password";$("key-copy").hidden=true;$("keynote").textContent="You have chosen your own lecturer password, so it is not shown here. Use it on the lecturer login. Lost it? Use the recovery code, or reset it below."}
- if(s.scriptUrl){$("keynote").textContent="This app is set to use your own Apps Script (App Settings), so the host key is the one in your Google Sheet."}
+ if(hostKey){$("key").textContent=hostKey;$("key-copy").hidden=false}else{$("key").textContent="your password";$("key-copy").hidden=true;$("keynote").textContent="You have chosen your own lecturer password, so it is not shown here. Use it on the lecturer login. To change it, use the form below."}
+ if(s.scriptUrl){$("pw-form").hidden=true;$("keynote").textContent="This app is set to use your own Apps Script (App Settings), so the host key is the one in your Google Sheet."}
  var st=info.setup;$("setup").hidden=st.complete||store("cm-setup-hidden")==="1";
  [["td-course","course"],["td-class","classList"],["td-materials","materials"]].forEach(function(x){var ok=st.steps[x[1]];$(x[0]).className=ok?"done":"";$(x[0]).querySelector(".mk").textContent=ok?"✓":"○"});
  $("cl-big").textContent=st.roster||0;
@@ -1054,7 +1060,20 @@ document.addEventListener("keydown",function(e){
 });
 $("keys").addEventListener("click",function(){$("keys-d").showModal()});
 reload();loadCourses();
-$("pw-reset").addEventListener("click",function(){cmApp.resetPassword().then(function(done){if(done)reload()})});
+$("pw-reset").addEventListener("click",function(){cmApp.resetPassword().then(function(done){if(done){$("pw-code-box").hidden=true;pwShow();reload()}})});
+function pwShow(){cmApp.passwordStatus().then(function(d){if(!d)return;$("pw-title").textContent=d.chosen?"Change the lecturer password":"Choose your lecturer password";$("pw-state").textContent=d.chosen?"Your password is saved (not shown). Type a new one to change it; a new recovery code is made.":"Until you choose one, the lecturer login uses the temporary key shown at the top."})}
+function pwMsg(t,bad){var o=$("pw-msg");o.textContent=t;o.hidden=!t;o.style.color=bad?"#b00020":""}
+$("pw-form").addEventListener("submit",function(e){e.preventDefault();var a=$("pw-new").value,b=$("pw-new2").value;
+ if(a.length<10)return pwMsg("The password needs at least 10 characters. A few words are fine.",true);
+ if(a!==b)return pwMsg("The two passwords do not match.",true);
+ pwMsg("Saving...");
+ cmApp.setPassword(a).then(function(r){
+  if(!r||!r.ok)return pwMsg((r&&r.why)||"Not saved.",true);
+  $("pw-new").value=$("pw-new2").value="";pwMsg("");$("pw-code").textContent=r.recovery;$("pw-code-box").hidden=false;pwShow();reload()
+ })});
+$("pw-code-copy").addEventListener("click",function(){var t=$("pw-code").textContent;copy(t,$("pw-code-copy"))});
+pwShow();
+
 document.querySelectorAll("[data-win]").forEach(function(b){b.addEventListener("click",function(){cmApp.openWindow(b.getAttribute("data-win"))})});
 document.querySelectorAll("[data-go]").forEach(function(b){b.addEventListener("click",function(){location.href=b.getAttribute("data-go")})});
 $("tab").addEventListener("change",function(){$("filter").value="";view()});

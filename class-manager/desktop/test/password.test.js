@@ -120,3 +120,29 @@ test("a key stored by the older sha256 format still signs in", () => {
   assert.equal(d.call({ action: "hostcheck", hostkey: "legacy password 99" }).ok, true);
   assert.equal(d.call({ action: "password_status" }).chosen, true);
 });
+
+test("owner at the computer: chooses the password without the old one, gets a recovery code, ends old sign-ins", () => {
+  const c = classroom();
+  // Case: the key was changed earlier and is unknown (older sha256 form, no recovery code).
+  const old = c.call({ action: "hostcheck", hostkey: c.key })._session;
+  const r = c.backend.setPasswordAsOwner(PW1);
+  assert.equal(r.ok, true);
+  assert.match(r.recovery, /^[A-Z2-9]{5}(-[A-Z2-9]{5}){3}$/);
+  assert.equal(c.call({ action: "hostcheck", hostkey: old }).ok, false);
+  assert.equal(c.call({ action: "hostcheck", hostkey: c.key }).ok, false);
+  assert.equal(c.call({ action: "hostcheck", hostkey: PW1 }).ok, true);
+  assert.equal(c.backend.passwordStatus().chosen, true);
+  assert.equal(c.backend.setPasswordAsOwner("short").ok, false);
+  // the recovery code made here works
+  assert.equal(c.call({ action: "password_recover", recovery: r.recovery, newkey: PW2 }).ok, true);
+  assert.equal(c.reopen().call({ action: "hostcheck", hostkey: PW2 }).ok, true, "survives a restart");
+});
+
+test("owner set is not reachable from a web request", () => {
+  const c = classroom();
+  for (const a of ["owner_set_password", "ownerSetPassword_", "resetHostKey"]) {
+    const r = c.call({ action: a, hostkey: c.key, newkey: PW1 });
+    assert.notEqual(r && r.ok, true);
+  }
+  assert.equal(c.call({ action: "hostcheck", hostkey: c.key }).ok, true);
+});
