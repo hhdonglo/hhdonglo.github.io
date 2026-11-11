@@ -54,7 +54,8 @@ Linux
        colour, a logo and a notice for the course pages.
     2. Class list: choose a CSV or Excel (.xlsx) file, or paste the list. Say
        which column holds the student ID and which holds the name, check the
-       preview and save. "Download a sample class list" saves a template.
+       preview and save. "Download the Excel template" saves a workbook
+       to fill in (a CSV copy can be chosen in the save window).
     3. Course materials: add each lecture (number, title, summary, learning
        objectives) and its files (slides, handout, tutorial sheet and others);
        add teaching material to the library; import existing question files.
@@ -169,7 +170,9 @@ The QR code, attendance and quizzes are under "Class Tools".
 
 - Under "Grades and Results", choose a tab (Attendance, Master, Totals and
   others) to view it.
-- "Export all tabs" saves every tab as a CSV file that opens in Excel.
+- "Download as Excel" saves every tab of the current course in one Excel
+  workbook, one sheet per tab. "Export all tabs as CSV" saves one CSV file
+  per tab instead. The Students screen has its own "Download as Excel".
 - "Attendance with names" shows names next to the attendance marks.
 - "Teaching insights" shows the weakest lectures and questions, and the
   students who may need attention.
