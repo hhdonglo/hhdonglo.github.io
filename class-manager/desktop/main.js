@@ -20,6 +20,7 @@ const { createAuthoring } = require("./authoring");
 const { createTunnel, createLimiter } = require("./tunnel");
 const { createCourse } = require("./course");
 const { readTable } = require("./table");
+const excel = require("./excel");
 const { execFile } = require("child_process");
 const courses = require("./courses");
 
@@ -527,10 +528,13 @@ on("cm:classRows", (c, e, rows, replace) => { // rows already mapped to [ID, nam
   if (!clean.length) return { ok: false, why: "No student IDs found in the chosen column. Student IDs must have 4 to 12 digits." };
   return c.backend.rosterSync(clean, !!replace);
 });
-ipcMain.handle("cm:sampleClassList", async (e) => {
-  const r = await dialog.showSaveDialog(winOf(e), { title: "Save a sample class list", defaultPath: "class-list-template.csv" });
+ipcMain.handle("cm:sampleClassList", async (e) => { // the class list template, as Excel by default or CSV if the lecturer picks .csv
+  const r = await dialog.showSaveDialog(winOf(e), { title: "Save the class list template", defaultPath: "class-list-template.xlsx",
+    filters: [{ name: "Excel workbook", extensions: ["xlsx"] }, { name: "CSV file", extensions: ["csv"] }] });
   if (r.canceled || !r.filePath) return null;
-  fs.writeFileSync(r.filePath, "﻿Student ID,Name\r\n10000001,First Student\r\n10000002,Second Student\r\n10000003,Third Student\r\n");
+  const rows = excel.classListTemplate()[0].rows;
+  if (path.extname(r.filePath).toLowerCase() === ".csv") fs.writeFileSync(r.filePath, "\uFEFF" + rows.map((x) => x.map(csvCell).join(",")).join("\r\n") + "\r\n");
+  else fs.writeFileSync(r.filePath, await excel.writeXlsx(excel.classListTemplate()));
   shell.showItemInFolder(r.filePath); return r.filePath;
 });
 on("cm:lectures", (c) => c.course.lectures());
@@ -577,6 +581,23 @@ on("cm:export", async (c, e) => {
   });
   shell.openPath(dir);
   return dir;
+});
+// Every tab of the current course in one Excel workbook. Only this course's records are read.
+on("cm:exportExcel", async (c, e) => {
+  const label = (c.settings.courseCode || c.id).replace(/[^\w .-]+/g, "_");
+  const r = await dialog.showSaveDialog(winOf(e), { title: "Save the results as Excel", defaultPath: "Class Manager results " + label + " " + new Date().toISOString().slice(0, 10) + ".xlsx", filters: [{ name: "Excel workbook", extensions: ["xlsx"] }] });
+  if (r.canceled || !r.filePath) return null;
+  try { fs.writeFileSync(r.filePath, await excel.writeXlsx(excel.resultsSheets(c.backend.tabs(), (n) => c.backend.tab(n)))); shell.showItemInFolder(r.filePath); return { ok: true, file: r.filePath }; }
+  catch (err) { return { ok: false, why: err.message }; }
+});
+// A table a screen has already drawn (for example the Students list), saved as a one-sheet Excel workbook.
+on("cm:saveExcel", async (c, e, name, rows) => {
+  const file = String(name || "table").replace(/[^\w .-]+/g, "_").slice(0, 80) + ".xlsx";
+  const r = await dialog.showSaveDialog(winOf(e), { title: "Save as Excel", defaultPath: file, filters: [{ name: "Excel workbook", extensions: ["xlsx"] }] });
+  if (r.canceled || !r.filePath) return null;
+  const clean = (Array.isArray(rows) ? rows : []).slice(0, 20000).map((x) => (Array.isArray(x) ? x : []).slice(0, 200).map((v) => (typeof v === "number" ? v : String(v == null ? "" : v).slice(0, 32000))));
+  try { fs.writeFileSync(r.filePath, await excel.writeXlsx([{ name: String(name || "Sheet1"), rows: clean }])); shell.showItemInFolder(r.filePath); return { ok: true, file: r.filePath }; }
+  catch (err) { return { ok: false, why: err.message }; }
 });
 on("cm:openData", (c) => shell.openPath(registry.dirs(c.id).root));
 on("cm:openContent", (c) => { const d = registry.dirs(c.id).course; fs.mkdirSync(d, { recursive: true }); return shell.openPath(d); });

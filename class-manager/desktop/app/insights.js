@@ -198,13 +198,18 @@
     store("cm-th", JSON.stringify(t)); load(true).then(function () { if (data) render(cur); });
   });
   $("th-reset").addEventListener("click", function () { store("cm-th", "{}"); load(true).then(function () { if (data) render(cur); }); });
+  // The Students list as rows, for the CSV and Excel downloads.
+  function studentRows() {
+    return [["Student ID", "Name", "Suggested group", "Reasons", "Attendance %", "Missed in a row", "Arrival median min", "Quizzes taken", "Quiz average %", "Last change", "Percentile", "Practice attempts", "Practice recent", "Practice minutes"]]
+      .concat(data.students.map(function (s) { return [s.id, s.name, s.group, s.why.join("; "), s.attendance, s.missedInARow, s.arrivalMedian, s.quizzesTaken, s.quizAverage, s.change, s.percentile, s.practiceAttempts, s.practiceRecent, s.practiceMinutes].map(function (v) { return v == null ? "" : v; }); }));
+  }
   $("st-csv").addEventListener("click", function () {
     if (!data) return;
     var cell = function (v) { v = String(v == null ? "" : v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
-    var lines = [["Student ID", "Name", "Suggested group", "Reasons", "Attendance %", "Missed in a row", "Arrival median min", "Quizzes taken", "Quiz average %", "Last change", "Percentile", "Practice attempts", "Practice recent", "Practice minutes"].join(",")]
-      .concat(data.students.map(function (s) { return [s.id, s.name, s.group, s.why.join("; "), s.attendance, s.missedInARow, s.arrivalMedian, s.quizzesTaken, s.quizAverage, s.change, s.percentile, s.practiceAttempts, s.practiceRecent, s.practiceMinutes].map(cell).join(","); }));
+    var lines = studentRows().map(function (r) { return r.map(cell).join(","); });
     var a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([lines.join("\n")], { type: "text/csv" })); a.download = "class-students.csv"; document.body.appendChild(a); a.click(); a.remove();
   });
+  $("st-xlsx").addEventListener("click", function () { if (data) cmApp.saveExcel("class-students", studentRows()); });
   // Fresh figures every minute while an Insight screen is open.
   setInterval(function () { if (document.visibilityState === "visible" && ["overview", "students", "attendance", "quizzes"].indexOf(cur) >= 0) load(true).then(function () { if (data && !document.querySelector("dialog[open]")) render(cur); }); }, 60000);
   window.cmInsights = { show: show, reload: function () { return load(true).then(function () { if (data) render(cur); }); }, open: studentOpen,
