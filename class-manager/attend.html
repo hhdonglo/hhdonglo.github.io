@@ -111,22 +111,18 @@ function getPos(cb){
  navigator.geolocation.getCurrentPosition(function(p){POS={lat:p.coords.latitude,lon:p.coords.longitude,acc:p.coords.accuracy};cb(POS)},function(){cb(null)},{enableHighAccuracy:true,timeout:10000,maximumAge:60000});
 }
 getPos(function(){}); // ask early so the phone has a fix by the time the form is filled in
-function jsonp(params,cb){
- var n="cb"+Date.now()+Math.floor(Math.random()*1e6),sc=document.createElement("script"),done=false;
- function end(d){if(done)return;done=true;delete window[n];if(sc.parentNode)sc.parentNode.removeChild(sc);cb(d)}
- window[n]=end;sc.onerror=function(){end(null)};
- sc.src=SCRIPT_URL+"?"+params+"&callback="+n+"&_="+Date.now();document.head.appendChild(sc);
-}
+function jsonp(params,cb){CM.call(params,cb)} // every request by POST: see CM.call in config.js
 function err(m){$("c-err").textContent=m;$("c-err").hidden=false}
 var REMK="cm_att_id",REMC="cm_att_code";
-(function(){var v="",c="";try{v=localStorage.getItem(REMK)||"";c=localStorage.getItem(REMC)||""}catch(x){}if(v){$("c-id").value=v;$("c-rem").checked=true}if(c){$("c-code").value=c}if(v&&c)$("c-saved").hidden=false})();
+var ATTOK=""; // the session this phone remembers instead of the access code
+(function(){var v="",c="";try{v=localStorage.getItem(REMK)||"";c=localStorage.getItem(REMC)||""}catch(x){}if(v){$("c-id").value=v;$("c-rem").checked=true}if(/^s1\./.test(c)){ATTOK=c;$("c-code").placeholder="Remembered on this phone"}else if(c){$("c-code").value=c}if(v&&c)$("c-saved").hidden=false})();
 function normCode(s){var t=String(s||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,8);return t.length===8?t.slice(0,4)+"-"+t.slice(4):t}
 $("c-code").addEventListener("input",function(){$("c-saved").hidden=true});
 $("c-code").addEventListener("blur",function(){$("c-code").value=normCode($("c-code").value)});
 $("c-id").addEventListener("input",function(){$("c-saved").hidden=true;var v=$("c-id").value.replace(/\D/g,"");if(v!==$("c-id").value)$("c-id").value=v});
 $("c-form").addEventListener("submit",function(e){
  e.preventDefault();$("c-err").hidden=true;
- var id=$("c-id").value.trim(),code=normCode($("c-code").value);
+ var id=$("c-id").value.trim(),code=$("c-code").value.trim()?normCode($("c-code").value):ATTOK;
  if(!id){err(PHYSMSG.text("E1"));return}
  if(!TOK){err(PHYSMSG.text("E4"));return}
  $("c-btn").disabled=true;

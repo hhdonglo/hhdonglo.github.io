@@ -1,3 +1,6 @@
+// Lifecycle: the address stops by itself after the number of hours set in App Settings (default 3; 0 = until stopped),
+// and while it is on the app counts what arrives through it (requests, visitors, requests over the limit, lecturer
+// requests refused), shown beside the address so the lecturer can see the exposure.
 // Internet access for students: a Cloudflare quick tunnel (cloudflared) that gives this computer's
 // student pages a temporary https address, with no account and no router setup.
 // cloudflared is downloaded once, on first use, from Cloudflare's GitHub releases, and checked against
@@ -32,10 +35,29 @@ function get(url, hops) {
 
 function createTunnel(opts) {
   const dir = opts.dir; // folder for the program and its empty home folder
-  let child = null, state = { state: "off", url: "", error: "", since: 0 };
+  let child = null, state = { state: "off", url: "", error: "", since: 0, stopsAt: 0 };
+  let hours = 3, stopTimer = null, counts = null, visitors = new Set();
+  const fresh = () => { counts = { requests: 0, visitors: 0, limited: 0, lecturer: 0 }; visitors = new Set(); };
+  fresh();
+  function arm() { // (re)start the automatic stop from the moment the address came on
+    clearTimeout(stopTimer); stopTimer = null;
+    if (state.state !== "on" || !hours) { if (state.stopsAt) set({ stopsAt: 0 }); return; }
+    const at = state.since + hours * 3600000, left = at - Date.now();
+    if (left <= 0) { stop(); return; }
+    stopTimer = setTimeout(() => { set({ note: "Internet access stopped automatically after " + hours + " hour" + (hours === 1 ? "" : "s") + "." }); stop(); }, left);
+    if (stopTimer.unref) stopTimer.unref();
+    set({ stopsAt: at });
+  }
+  function note(kind, who) {
+    if (!counts) return;
+    if (kind === "request") { counts.requests++; if (who && !visitors.has(who) && visitors.size < 100000) { visitors.add(who); counts.visitors = visitors.size; } }
+    else if (kind === "limited") counts.limited++;
+    else if (kind === "lecturer") counts.lecturer++;
+  }
+  function setHours(h) { hours = Math.max(0, Number(h) || 0); arm(); return status(); }
   const emit = () => { try { opts.onChange && opts.onChange(status()); } catch (e) { /* ignore */ } };
   const set = (o) => { state = Object.assign({}, state, o); emit(); };
-  function status() { return Object.assign({ installed: installed() }, state); }
+  function status() { return Object.assign({ installed: installed(), hours, counts: Object.assign({}, counts) }, state); }
   function binPath() {
     if (process.env.CM_CLOUDFLARED) return process.env.CM_CLOUDFLARED; // tests only
     return path.join(dir, VERSION, process.platform === "win32" ? "cloudflared.exe" : "cloudflared");
@@ -57,39 +79,42 @@ function createTunnel(opts) {
     fs.chmodSync(target, 0o755);
   }
 
-  async function start(localPort) {
+  async function start(localPort, o) {
+    if (o && o.hours != null) hours = Math.max(0, Number(o.hours) || 0);
     if (child) return status();
     try { await install(); } catch (e) { set({ state: "error", error: e.message || String(e) }); return status(); }
     // An empty home folder, so that a cloudflared configuration elsewhere on this computer cannot change the tunnel.
     const home = path.join(dir, "home"); fs.mkdirSync(home, { recursive: true });
     const env = Object.assign({}, process.env, { HOME: home, USERPROFILE: home, XDG_CONFIG_HOME: home });
-    set({ state: "starting", url: "", error: "" });
+    fresh();
+    set({ state: "starting", url: "", error: "", note: "", stopsAt: 0 });
     let out = "";
     child = spawn(binPath(), ["tunnel", "--no-autoupdate", "--url", "http://127.0.0.1:" + localPort], { env, windowsHide: true });
     const timer = setTimeout(() => { if (state.state === "starting") { set({ state: "error", error: "No address arrived within 45 seconds. Check the internet connection and try again." }); stop(); } }, 45000);
     const read = (d) => {
       out = (out + d.toString()).slice(-20000);
       const m = out.match(URL_RE);
-      if (m && state.state === "starting") { clearTimeout(timer); set({ state: "on", url: m[0] + "/", since: Date.now() }); }
+      if (m && state.state === "starting") { clearTimeout(timer); set({ state: "on", url: m[0] + "/", since: Date.now() }); arm(); }
     };
     child.stdout.on("data", read); child.stderr.on("data", read);
     child.on("error", (e) => { clearTimeout(timer); child = null; set({ state: "error", error: e.message, url: "" }); });
     child.on("exit", (code) => {
-      clearTimeout(timer); child = null;
-      if (state.state === "stopping" || state.state === "off") set({ state: "off", url: "" });
+      clearTimeout(timer); clearTimeout(stopTimer); child = null;
+      if (state.state === "stopping" || state.state === "off") set({ state: "off", url: "", stopsAt: 0 });
       else if (state.state !== "error") set({ state: "error", url: "", error: "The internet connection closed (code " + code + "). Start it again when ready." });
     });
     return status();
   }
 
   function stop() {
+    clearTimeout(stopTimer); stopTimer = null;
     if (!child) { if (state.state !== "error") set({ state: "off", url: "" }); return status(); }
     set({ state: "stopping" });
     try { child.kill(); } catch (e) { /* already gone */ }
     return status();
   }
 
-  return { start, stop, status, installed };
+  return { start, stop, status, installed, note, setHours };
 }
 
 // A simple per-visitor limit for requests that arrive through the tunnel.

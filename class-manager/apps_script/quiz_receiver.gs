@@ -1,4 +1,4 @@
-// GENERATED FILE: do not edit. Built by apps_script/build.js from apps_script/src/ (00-core.gs, 10-assessment.gs, 20-attendance.gs, 30-analytics.gs, 40-collaboration.gs, 50-communication.gs, 60-portal.gs, 90-router.gs).
+// GENERATED FILE: do not edit. Built by apps_script/build.js from apps_script/src/ (00-core.gs, 05-auth.gs, 10-assessment.gs, 20-attendance.gs, 30-analytics.gs, 40-collaboration.gs, 50-communication.gs, 60-portal.gs, 90-router.gs).
 // To deploy in Google Apps Script, paste this whole file into the script editor.
 
 // ===== 00-core.gs =====
@@ -96,25 +96,6 @@ function lastOutcome_(id, code) {
 
 function state_(key) { return String(key[7]).trim().toLowerCase() || 'started'; }
 
-function hostOk_(p) {
-  var ks = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(KEY_TAB);
-  var hk = ks ? String(ks.getRange(2, 10).getValue()).trim() : '';
-  if (!hk) return false;
-  var cache = CacheService.getScriptCache();
-  var fails = Number(cache.get('hostfails') || 0);
-  if (fails >= 30) return false; // locked for 10 minutes after 30 wrong keys
-  var given = String(p.hostkey || '').trim();
-  var ok;
-  if (hk.indexOf('sha256:') === 0) { // hashed form: sha256:salt:hex
-    var parts = hk.split(':');
-    ok = parts.length === 3 && hashKey_(parts[1], given) === parts[2];
-  } else { // legacy plain key typed in the Sheet
-    ok = given === hk;
-  }
-  if (!ok) cache.put('hostfails', String(fails + 1), 600);
-  return ok;
-}
-
 function hashKey_(salt, key) {
   var d = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, salt + ':' + key, Utilities.Charset.UTF_8);
   return d.map(function (b) { return ('0' + (b & 0xff).toString(16)).slice(-2); }).join('');
@@ -194,6 +175,7 @@ function setup() {
 
 function jsonp_(e, obj) {
   var cb = String((e && e.parameter && e.parameter.callback) || '');
+  if (REQ_.session && obj && typeof obj === 'object' && !Array.isArray(obj) && obj.ok !== false) obj._session = REQ_.session; // a key or code was sent: the session to keep instead
   var body = JSON.stringify(obj);
   if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(cb)) return ContentService.createTextOutput(body).setMimeType(ContentService.MimeType.JSON);
   return ContentService.createTextOutput(cb + '(' + body + ')').setMimeType(ContentService.MimeType.JAVASCRIPT);
@@ -396,6 +378,14 @@ function accessCodes_(p) {
     roster.forEach(function (r) { var id = normId_(r[0]); if (id && !map[id]) { map[id] = { code: newAccessCode_(), issued: now }; add.push([id, map[id].code, now]); made++; } });
     if (add.length) sh.getRange(sh.getLastRow() + 1, 1, add.length, 3).setNumberFormat('@').setValues(add);
     if (made) log_('access codes created', String(made), '', '');
+  } else if (op === 'expiry') { // days a code stays valid after it is issued; 0 = no expiry
+    var dd = Math.max(0, Math.min(3650, Math.round(Number(p.days) || 0)));
+    PropertiesService.getScriptProperties().setProperty('code_days', String(dd));
+    log_('access codes expiry', String(dd) + ' days', '', '');
+  } else if (op === 'renew') { // new codes for every student whose code has expired
+    var keep = [];
+    bodyRows_(sh, 3).forEach(function (r) { var id0 = normId_(r[0]); if (codeExpired_(map[id0])) { map[id0] = { code: newAccessCode_(), issued: now }; made++; keep.push([id0, map[id0].code, now]); } else keep.push(r); });
+    if (made) { rewriteBody_(sh, 3, keep); log_('access codes renewed', String(made), '', ''); }
   } else if (op === 'reset') {
     var rid = normId_(p.id);
     if (!rid || !rosterSet_()[rid]) return { ok: false, why: 'not on list' };
@@ -406,22 +396,114 @@ function accessCodes_(p) {
     log_('access code replaced', '', rid, '');
     made = 1;
   }
-  var list = roster.map(function (r) { var id = normId_(r[0]); return { id: id, name: cleanName_(r[1]), code: map[id] ? map[id].code : '' }; }).filter(function (x) { return x.id; });
-  return { ok: true, made: made, rows: list, missing: list.filter(function (x) { return !x.code; }).length };
+  var list = roster.map(function (r) { var id = normId_(r[0]); return { id: id, name: cleanName_(r[1]), code: map[id] ? map[id].code : '', expired: codeExpired_(map[id]) }; }).filter(function (x) { return x.id; });
+  return { ok: true, made: made, rows: list, missing: list.filter(function (x) { return !x.code; }).length, days: codeDays_(), expired: list.filter(function (x) { return x.expired; }).length };
 }
 
 function fmtDay_(t) { return t ? Utilities.formatDate(new Date(t), Session.getScriptTimeZone(), 'dd/MM/yyyy') : ''; }
 function safeLink_(s) { var t = String(s || '').trim().slice(0, 300); return /^https?:\/\/[^\s<>"']+$/i.test(t) ? t : ''; }
 
 // Students: their groups' assignments, submit the group's work, record their own part, rate their group-mates (seen by the lecturer only).
-function studentAuth_(p) {
-  var id = normId_(p.id), given = normCode_(p.access);
+function studentAuth_(p) { return studentCheck_(p.id, p.access, 'r'); }
+
+// ===== 05-auth.gs =====
+// Module auth. Credentials and sessions.
+// Edit the files in apps_script/src/; apps_script/quiz_receiver.gs is built from them (node apps_script/build.js).
+//
+// - Credentials never travel in a web address. A request that carries the host key, an access code or a session is
+//   accepted only by POST (the pages send every request by POST through CM.call in config.js). A GET that carries one is refused.
+// - The host key or an access code is sent once. When it is right, the answer carries "_session": a signed session that
+//   expires (SESSION_HOST_HOURS for the lecturer, SESSION_STUDENT_DAYS for a student). The pages keep the session, not the key.
+// - A session is an HMAC-SHA256 signature over (role, subject, expiry, binding) with a secret kept in the script properties.
+//   The binding is the stored host key for the lecturer and the student's current access code for a student, so changing
+//   the host key or replacing a student's code ends every session made with the old one. "Sign everyone out" replaces the secret.
+// - Access codes can expire (a number of days set on the Access codes page; 0 = they do not expire), and failed student
+//   sign-ins are limited per ID (ATT_MAX_FAILS in ten minutes) and across the whole class (SIGNIN_GLOBAL_MAX in ten minutes).
+// - A live quiz result is shown only with the receipt the student's phone received when it joined or submitted.
+
+var SESSION_HOST_HOURS = 8, SESSION_STUDENT_DAYS = 14, SIGNIN_GLOBAL_MAX = 200;
+var REQ_ = { post: false, session: '' }; // set by the router for each request
+
+function reqStart_(post) { REQ_ = { post: !!post, session: '' }; }
+
+function hex_(bytes) { return bytes.map(function (b) { return ('0' + (b & 0xff).toString(16)).slice(-2); }).join(''); }
+function sessSecret_() {
+  var pr = PropertiesService.getScriptProperties(), s = pr.getProperty('sess_secret');
+  if (!s) { s = Utilities.getUuid() + Utilities.getUuid(); pr.setProperty('sess_secret', s); }
+  return s;
+}
+function sessSign_(role, subj, exp, bind) { return hex_(Utilities.computeHmacSha256Signature(role + '|' + subj + '|' + exp + '|' + bind, sessSecret_())).slice(0, 40); }
+function sessMake_(role, subj, bind, ms) { var exp = (Date.now() + ms).toString(36); return 's1.' + role + '.' + subj + '.' + exp + '.' + sessSign_(role, subj, exp, bind); }
+function isSession_(s) { return /^s1\./.test(String(s || '')); }
+function sessRead_(tok) { // {role, subj, exp, sig} or {expired: true} or null
+  var m = /^s1\.([hs])\.([0-9A-Za-z]{1,20})\.([0-9a-z]{1,12})\.([0-9a-f]{40})$/.exec(String(tok || '').trim());
+  if (!m) return null;
+  if (parseInt(m[3], 36) < Date.now()) return { expired: true };
+  return { role: m[1], subj: m[2], exp: m[3], sig: m[4] };
+}
+function sessValid_(t, bind) { return !!(t && !t.expired && bind && sessSign_(t.role, t.subj, t.exp, bind) === t.sig); }
+function signOutEveryone_() { PropertiesService.getScriptProperties().setProperty('sess_secret', Utilities.getUuid() + Utilities.getUuid()); log_('sessions ended', 'all', '', ''); return { ok: true }; }
+
+function hostStored_() {
+  var ks = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(KEY_TAB);
+  return ks ? String(ks.getRange(2, 10).getValue()).trim() : '';
+}
+// The lecturer: a session made from the host key, or the host key itself (by POST only, and then a session is returned).
+function hostOk_(p) {
+  var hk = hostStored_();
+  if (!hk || !REQ_.post) return false;
+  var given = String(p.hostkey || '').trim();
+  if (isSession_(given)) { var t = sessRead_(given); return !!(t && t.role === 'h' && t.subj === 'host' && sessValid_(t, hk)); }
+  var cache = CacheService.getScriptCache();
+  var fails = Number(cache.get('hostfails') || 0);
+  if (fails >= 30) return false; // locked for 10 minutes after 30 wrong keys
+  var ok;
+  if (hk.indexOf('sha256:') === 0) { // hashed form: sha256:salt:hex
+    var parts = hk.split(':');
+    ok = parts.length === 3 && hashKey_(parts[1], given) === parts[2];
+  } else { // legacy plain key typed in the Sheet
+    ok = !!given && given === hk;
+  }
+  if (!ok) cache.put('hostfails', String(fails + 1), 600);
+  else REQ_.session = sessMake_('h', 'host', hk, SESSION_HOST_HOURS * 3600000);
+  return ok;
+}
+
+// ---- Access codes: expiry and sign-in limits ----
+function codeDays_() { return Math.max(0, Number(PropertiesService.getScriptProperties().getProperty('code_days')) || 0); }
+function codeExpired_(mine) {
+  var days = codeDays_(); if (!days || !mine || !mine.issued) return false;
+  var t = new Date(mine.issued).getTime();
+  return !isNaN(t) && Date.now() - t > days * 86400000;
+}
+function signinPaused_() { try { return Number(CacheService.getScriptCache().get('signin_fails') || 0) >= SIGNIN_GLOBAL_MAX; } catch (err) { return false; } }
+function signinFail_() { try { var c = CacheService.getScriptCache(); c.put('signin_fails', String(Number(c.get('signin_fails') || 0) + 1), 600); } catch (err) { /* cache only */ } }
+
+// A student: their Student ID with a session or their personal access code. Returns {id} or {why}.
+// tag keeps a separate failure count per page ('r' results and group work, 'c' messages).
+function studentCheck_(rawId, given, tag) {
+  var id = normId_(rawId); given = String(given || '').trim();
   if (id.length < 4 || id.length > 12) return { why: 'bad id' };
-  if (attFails_('r' + id) >= ATT_MAX_FAILS) return { why: 'slow down' };
+  if (!REQ_.post) return { why: 'not recognised' };
+  if (attFails_(tag + id) >= ATT_MAX_FAILS) return { why: 'slow down' };
   var mine = rosterSet_()[id] ? codesMap_()[id] : null;
-  if (!mine || !given || mine.code !== given) { attFailAdd_('r' + id); return { why: 'not recognised' }; }
+  if (isSession_(given)) {
+    var t = sessRead_(given);
+    if (t && t.expired) return { why: 'session expired' };
+    if (t && t.role === 's' && t.subj === id && mine && sessValid_(t, mine.code)) return { id: id };
+    attFailAdd_(tag + id); return { why: 'not recognised' };
+  }
+  if (signinPaused_()) return { why: 'slow down' };
+  var code = normCode_(given);
+  if (!mine || !code || mine.code !== code) { attFailAdd_(tag + id); signinFail_(); return { why: 'not recognised' }; }
+  if (codeExpired_(mine)) return { why: 'code expired' };
+  REQ_.session = sessMake_('s', id, mine.code, SESSION_STUDENT_DAYS * 86400000);
   return { id: id };
 }
+
+// ---- Live quiz receipts: a student sees their own result only from the phone that took part ----
+function quizReceipt_(code, id) { return hex_(Utilities.computeHmacSha256Signature('q|' + String(code).toUpperCase() + '|' + id, sessSecret_())).slice(0, 24); }
+function receiptOk_(code, id, rc) { return !!id && !!rc && quizReceipt_(code, id) === String(rc).trim(); }
 
 // ===== 10-assessment.gs =====
 // Module assessment. Assessment: join codes, the live quiz and its question draw, held results, Master, Scores and Totals, presence, review, ranking and the item log.
@@ -1375,7 +1457,10 @@ function attCheckIn_(p, code) { // the student side of the check-in: the QR toke
   if (onl && ATT_REQUIRE_CODE) { // a classmate's ID is not enough: the personal access code must match too
     var mine = codesMap_()[aid];
     if (!mine) return { ok: false, why: 'no access code' };
-    if (normCode_(p.code) !== mine.code) { attFailAdd_('d' + dev); attFailAdd_('i' + aid); attFlag_(ses.label, aid, dev, 'wrong access code (refused)'); return { ok: false, why: 'not recognised' }; }
+    var given = String(p.code || '').trim(), st = isSession_(given) ? sessRead_(given) : null;
+    var codeOk = st ? (st.role === 's' && st.subj === aid && sessValid_(st, mine.code)) : (REQ_.post && normCode_(given) === mine.code && !codeExpired_(mine));
+    if (!codeOk) { attFailAdd_('d' + dev); attFailAdd_('i' + aid); attFlag_(ses.label, aid, dev, 'wrong access code (refused)'); return { ok: false, why: st && st.expired ? 'session expired' : 'not recognised' }; }
+    if (!st) REQ_.session = sessMake_('s', aid, mine.code, SESSION_STUDENT_DAYS * 86400000);
   }
   if (attDayHas_(day, aid)) return { ok: true, id: aid, onList: onl, already: true }; // one mark per ID per day: nothing is added
   if (onl && ATT_PHONE_BIND) { // one phone per student for the term
@@ -2862,12 +2947,8 @@ function chatTxt_(s, n) { return String(s == null ? '' : s).replace(/\r/g, '').r
 function chatNames_() { var o = {}; rosterRows_().forEach(function (r) { o[r[0]] = r[1] || ('Student …' + r[0].slice(-4)); }); return o; }
 function chatWho_(p) { // 'LECTURER', a rostered Student ID, or an error text
   if (p.hostkey) return hostOk_(p) ? 'LECTURER' : { why: 'host key not accepted' };
-  var id = normId_(p.id), given = normCode_(p.code);
-  if (id.length < 4 || id.length > 12) return { why: 'bad id' };
-  if (attFails_('c' + id) >= ATT_MAX_FAILS) return { why: 'slow down' };
-  var mine = rosterSet_()[id] ? codesMap_()[id] : null;
-  if (!mine || !given || mine.code !== given) { attFailAdd_('c' + id); return { why: 'not recognised' }; }
-  return id;
+  var who = studentCheck_(p.id, p.code, 'c');
+  return who.id ? who.id : { why: who.why };
 }
 function chatGroups_() {
   return bodyRows_(sheetWith_(CHG_TAB, CHG_HEAD), CHG_HEAD.length).map(function (r) {
@@ -3073,7 +3154,7 @@ function announcements_(p) { // public for audience 'all'; signed-in students al
 // ---------- Portal and Control Centre support (additive: no existing action changes) ----------
 // SCRIPT_VERSION: change it whenever the script is redeployed; the Control Centre compares it with the version its page expects.
 // Key!M2 = Off hides "My results" from students (default On).
-var SCRIPT_VERSION = '2026-11-10-pedagogy-1';
+var SCRIPT_VERSION = '2026-11-11-security-1';
 
 function resultsOn_() {
   try {
@@ -3122,11 +3203,9 @@ function portalStatus_() { // public, no secrets: is attendance open, is a live 
 // A student's own attendance and quiz scores, found by ID. Same failure limit as check-in. Returns nothing about any other student.
 function portalResults_(p) {
   if (!resultsOn_()) return { ok: false, why: 'results off' };
-  var id = normId_(p.id), given = normCode_(p.code);
-  if (id.length < 4 || id.length > 12) return { ok: false, why: 'bad id' };
-  if (attFails_('r' + id) >= ATT_MAX_FAILS) return { ok: false, why: 'slow down' };
-  var mine = rosterSet_()[id] ? codesMap_()[id] : null; // the ID and its personal access code, both required
-  if (!mine || !given || mine.code !== given) { attFailAdd_('r' + id); return { ok: false, why: 'not recognised' }; }
+  var who = studentCheck_(p.id, p.code, 'r'); // the ID with its personal access code or a session, both required
+  if (!who.id) return { ok: false, why: who.why };
+  var id = who.id;
   var ss = SpreadsheetApp.getActiveSpreadsheet(), out = { ok: true, attendance: [], quizzes: [] };
   var at = ss.getSheetByName(ATT_TAB);
   if (at && at.getLastRow() > 1 && at.getLastColumn() > 1) {
@@ -3178,6 +3257,8 @@ function preclass_(p) {
 
 function doPost(e) {
   var p = (e && e.parameter) || {};
+  reqStart_(true);
+  if (p.action && !p.kind) return route_(e); // every page request, sent by POST so that keys and codes stay out of web addresses
   if (p.kind === 'roster_sync') return out_(JSON.stringify(rosterSync_(p)));
   if (p.kind === 'report' || p.kind === 'attempt') {
     var lk = LockService.getScriptLock();
@@ -3202,7 +3283,12 @@ function doPost(e) {
     }
   }
   var name = clean_(p.name, 40), id = clean_(p.id, 20), code = clean_(p.code, 30).toUpperCase();
-  function fin_(o) { log_(o, name, id, code); return out_(o); }
+  function withReceipt_(o) { // the phone asks for a receipt: the answer is JSON and carries it, so the student alone can see the result later
+    if (p.want !== 'receipt') return out_(o);
+    var r = { ok: o === 'ok', outcome: o }; if (o === 'ok' && id && code) r.receipt = quizReceipt_(code, id);
+    return ContentService.createTextOutput(JSON.stringify(r)).setMimeType(ContentService.MimeType.JSON);
+  }
+  function fin_(o) { log_(o, name, id, code); return withReceipt_(o); }
 
   if (p.kind === 'answer') { // paced quiz: one answer to the question that is open right now
     var qn = Number(p.q), al = String(p.answer || '').trim().toUpperCase();
@@ -3219,17 +3305,17 @@ function doPost(e) {
     return out_('ok');
   }
   if (p.kind === 'join' || p.kind === 'progress') { // lobby and live participation
-    if (!name || !id || !keyRow_(code)) return out_('ok');
+    if (!name || !id || !keyRow_(code)) return withReceipt_('ok');
     var lj = LockService.getScriptLock();
     lj.waitLock(60000); // a whole class joining at once queues here
     try {
       var cj = ctl_(code), sj = cj ? eff_(cj) : 'running';
-      if (cj && !allowLate_(cj) && (sj === 'running' || sj === 'paused') && !hasPresence_(code, id)) return out_('late');
+      if (cj && !allowLate_(cj) && (sj === 'running' || sj === 'paused') && !hasPresence_(code, id)) return withReceipt_('late');
       presence_(code, id, name, p.kind === 'progress' ? 'inprogress' : 'joined');
     } finally {
       lj.releaseLock();
     }
-    return out_('ok');
+    return withReceipt_('ok');
   }
 
   if (!name || !id || !code) return fin_('missing');
@@ -3278,7 +3364,12 @@ function doPost(e) {
   }
 }
 
-function doGet(e) {
+function doGet(e) { // reads by GET (JSONP) still work for public data; anything that needs a key or a code must come by POST
+  reqStart_(false);
+  return route_(e);
+}
+
+function route_(e) {
   var p = (e && e.parameter) || {};
   var code = clean_(p.code, 30).toUpperCase();
 
@@ -3348,7 +3439,11 @@ function doGet(e) {
   if (p.action === 'preclass') return jsonp_(e, hostOk_(p) ? preclass_(p) : { ok: false, why: 'host key not accepted' });
 
   if (p.action === 'attend') return jsonp_(e, attCheckIn_(p, code)); // a student checks in: the Student ID, the QR token, the device token and the phone's rounded location
-  if (p.action === 'hostcheck') return jsonp_(e, { ok: hostOk_(p) }); // the lecturer menu: is this key right?
+  if (p.action === 'hostcheck') return jsonp_(e, { ok: hostOk_(p), post: REQ_.post }); // the lecturer menu: is this key right? (with a session when it is)
+  if (p.action === 'sessions_end') { // host only: every signed-in phone and lecturer page must sign in again
+    if (!hostOk_(p)) return jsonp_(e, { ok: false, why: 'host key not accepted' });
+    REQ_.session = ''; return jsonp_(e, signOutEveryone_());
+  }
   if (p.action === 'held_status') return jsonp_(e, hostOk_(p) ? heldStatus_() : { ok: false, why: 'host key not accepted' }); // host only: what is waiting for release
   if (p.action === 'held_release_quiz' || p.action === 'held_discard_quiz' || p.action === 'attend_submit' || p.action === 'attend_discard') { // host only
     if (!hostOk_(p)) return jsonp_(e, { ok: false, why: 'host key not accepted' });
@@ -3388,7 +3483,7 @@ function doGet(e) {
     } catch (err) { return jsonp_(e, { questions: [], error: String(err).slice(0, 160) }); }
   }
 
-  if (p.action === 'review') return jsonp_(e, reviewData_(code, clean_(p.id, 20)));
+  if (p.action === 'review') { var rid = clean_(p.id, 20); return jsonp_(e, reviewData_(code, receiptOk_(code, rid, p.rc) ? rid : '')); } // the student's own answer only with their receipt
 
   if (p.action === 'ranking') { // live class ranking for one join code: first names and scores only
     var rk = keyRow_(code), me = clean_(p.id, 20), cr = ctl_(code);
@@ -3458,6 +3553,7 @@ function doGet(e) {
 
   if (p.action === 'result') {
     var id = clean_(p.id, 20), key = keyRow_(code), cx = ctl_(code);
+    if (id && !receiptOk_(code, id, p.rc)) return jsonp_(e, { found: false, receipt: false, outcome: lastOutcome_(id, code), keyMissing: !key }); // only the phone that took part
     if (key && id) {
       var rnd2 = roundOf_(code), rows = respRows_().map(function (r) { return r.slice(2, 14); }); // ID, Join Code, Q1 to Q5, Score, Round, Questions, Answers, Week
       for (var i = 0; i < rows.length; i++) {

@@ -1,5 +1,5 @@
 /* Shared error and recovery messages for the student pages.
-   One place to change wording. Each message has a short reference code (E1 to E18)
+   One place to change wording. Each message has a short reference code (E1 to E20)
    that a student can quote to the lecturer. No internals, tokens or IDs appear here.
    Catalogue: design/PORTAL_CONTROL_CENTRE_DESIGN.md, section 4. */
 (function(w){
@@ -23,12 +23,14 @@ var M={
  E16:["The service is busy. Wait a few seconds and try again. Tell your lecturer.","retry"],
  E17:["This student ID and access code do not match. Check both. Your access code is on the slip from your lecturer; ask your lecturer if you do not have one.","edit"],
  E18:["You do not have an access code yet. Ask your lecturer for your access code slip, then check in again.","help"],
+ E19:["Your access code has expired. Ask your lecturer for a new access code slip.","help"],
+ E20:["You were signed out on this phone after a while, for safety. Enter your access code again.","edit"],
  E0:["Something went wrong. Try again. If it continues, tell your lecturer.","retry"]
 };
 // Server reason strings (the "why" field of the attend and quiz replies) to catalogue codes.
 var WHY={
  "bad id":"E1","old link":"E3","no token":"E4","no location":"E5","too far":"E6","device used":"E10",
- "not on list":"E2","results off":"E11","closed":"E11","slow down":"E14","update page":"E15","not joined":"E13","quiz closed":"E11","bad code":"E12","not recognised":"E17","no access code":"E18"
+ "not on list":"E2","results off":"E11","closed":"E11","slow down":"E14","update page":"E15","not joined":"E13","quiz closed":"E11","bad code":"E12","not recognised":"E17","no access code":"E18","code expired":"E19","session expired":"E20"
 };
 function code(why){return WHY[why]||"E0"}
 // text(code) returns the message with its reference, e.g. "... (Ref E3)".

@@ -104,12 +104,7 @@ var SCRIPT_URL=window.CM.scriptUrl;
 var $=function(i){return document.getElementById(i)};
 var cfg={code:"",c:null,at:0,t:null};
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
-function jsonp(params,cb){
- var n="cb"+Date.now()+Math.floor(Math.random()*1e6),sc=document.createElement("script"),done=false;
- function end(d){if(done)return;done=true;delete window[n];if(sc.parentNode)sc.parentNode.removeChild(sc);cb(d)}
- window[n]=end;sc.onerror=function(){end(null)};
- sc.src=SCRIPT_URL+"?"+params+"&callback="+n+"&_="+Date.now();document.head.appendChild(sc);
-}
+function jsonp(params,cb){CM.call(params,cb)} // every request by POST: see CM.call in config.js
 function refresh(){
  jsonp("action=display&code="+encodeURIComponent(cfg.code),function(d){
   if(!d||!d.ok)return;

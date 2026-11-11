@@ -114,7 +114,7 @@ In mode B, the optional Google sign-in (`desktop/google.js`) copies every tab on
 
 ## 5. Server script: endpoints
 
-All reads and lecturer actions use JSONP GET: `?action=...&callback=...`. Submissions use form POST with `kind=...`. The tables below list every action in `doGet` and `doPost`.
+Since 0.9.0 the pages send every request by form POST through `CM.call` (in `config.js`): `action=...` for reads and lecturer actions, `kind=...` for submissions. A GET (JSONP) request is still answered for public data, but any request that carries the host key, an access code or a session is refused by GET, so credentials never appear in a web address. The tables below list every action.
 
 **Public or student (no host key).**
 
@@ -192,9 +192,9 @@ All reads and lecturer actions use JSONP GET: `?action=...&callback=...`. Submis
 
 | Who | Credential | Where checked |
 |---|---|---|
-| Lecturer | Host key: 16 random hexadecimal characters made at setup, optionally replaced and stored hashed | `hostOk_`; 30 failures lock it for 10 min (CacheService). Kept in `sessionStorage` (`phys143_hk`) by lecturer pages. |
-| Student, own record and chat | Student ID on the class list plus a personal access code | `portalResults_`, `chatWho_`; 6 failures lock the ID for 10 min. Optionally remembered in `localStorage`. |
-| Student, live quiz | Join code shown in class, plus name and ID | Presence and round rules; first submission counts |
+| Lecturer | Host key: 16 random hexadecimal characters made at setup, optionally replaced and stored hashed. Sent once by POST and exchanged for a lecturer session (8 hours) | `hostOk_` in `05-auth.gs`; 30 failures lock it for 10 min (CacheService). Pages keep the session in `sessionStorage` (`cm_hk`), not the key. |
+| Student, own record, chat, group work, check-in | Student ID on the class list plus a personal access code, exchanged for a student session (14 days) | `studentCheck_`; 6 failures lock the ID for 10 min; 200 failures across the class in 10 min pause new sign-ins. Codes can expire after a set number of days. A remembered phone keeps the session in `localStorage`, not the code. |
+| Student, live quiz | Join code shown in class, plus name and ID; the phone receives a receipt when it joins or submits | Presence and round rules; first submission counts. The student's result and own answer in review are shown only with the receipt. |
 | Student, attendance | Rotating QR token (30 s slots), device token, one check-in per ID per session | Attendance hardening section |
 | App screens (`/app/*`) | Request from this computer's own addresses | `isThisComputer` in `main.js` |
 
@@ -290,6 +290,8 @@ Two warnings do not block approval: a missing explanation or difficulty, and a d
 - **Pages from the desktop server** run in sandboxed `BrowserWindow`s (`contextIsolation`, `sandbox`, no `nodeIntegration`). External links open in the system browser, and navigation away from the local server is blocked. The `cmApp` bridge exposes a fixed list of IPC calls.
 - **Server paths.** `/app/*` answers only to this computer. Other `/apps_script/*` paths return 404. Static paths are confined to the web root.
 - **Sheet values.** Typed values beginning `=`, `+`, `-` or `@` are prefixed so that the sheet does not run them as formulas.
+- **Sessions.** A session is `s1.<role>.<subject>.<expiry>.<HMAC-SHA256>` signed with a secret in the script properties, bound to the stored host key or to the student's current code. Changing the host key, replacing a code or "Sign everyone out" (Access codes page) ends them. The answer that accepts a key or code carries `_session`; `CM.call` swaps it in for the key or code in the page and in browser storage.
+- **Desktop access rules.** Requests with lecturer credentials are refused through the internet address unless allowed in App Settings, and can be limited to this computer only (`desktop/access.js`). The internet address stops by itself after a set time (default 3 hours) and shows the number of visitors, requests, requests over the limit and refused lecturer requests.
 - **Rate limits.** Host key: 30 failures per 10 min. Access code: 6 per ID per 10 min. Messages: 8 per minute per student. Attendance: per-device and per-ID rules.
 - **Moderation.** The lecturer reads every conversation. Students are told so on the page.
 
@@ -328,7 +330,7 @@ None of the session suites has been run against Google Apps Script itself. Gener
 2. **Google copy is one way.** The copy from the desktop app to a Sheet is one way. Moving from mode B to mode A is not a migration path for messages or the calendar.
 3. **Polling.** Chat polls every 8 seconds over JSONP. In mode A, each poll is an Apps Script execution. The version stamp keeps unchanged polls short, but a large class with chat open adds up against Apps Script quotas and concurrency (judgement: worth measuring before heavy use).
 4. **Whole-tab reads.** Every chat sync reads the Messages, Chat_Read and Chat_Groups tabs in full, and the roster and codes. Cost grows with the number of messages; there is no archive or paging.
-5. **Secrets in URLs.** Host key and access codes travel as GET query parameters, so they can appear in browser history and server logs. In mode B, the transport is plain HTTP on the local network.
+5. **Plain HTTP in mode B.** Since 0.9.0 keys, codes and sessions travel only in POST bodies, never in addresses. On the local network in mode B the transport is still plain HTTP: someone on the same network could read a request. Sessions limit the time a captured credential is useful, and lecturer pages can be limited to this computer. The internet address (mode B with a tunnel) and mode A use https.
 6. **Host key strength.** Fixed on 9 November 2026: setup now makes the host key from a random UUID (16 hexadecimal characters). Keys made before that are 8 base-36 characters from `Math.random` and can be replaced with `setkey`.
 7. **Owner email in the script.** Fixed on 9 November 2026: `NOTIFY_EMAIL` is empty in the package, and reports go to the Google account that deployed the script. The desktop app sends no email.
 8. **Positional columns.** The server script is split into modules (since 0.8.1), but tab layouts are still positional (column numbers in code).
@@ -354,7 +356,7 @@ None of the session suites has been run against Google Apps Script itself. Gener
 These are proposals for review, ordered by the value they would give relative to effort (judgement).
 
 1. **Commit the test suites.** Done for the server suites (`npm test`, workflow `class-manager-tests.yml`).
-2. **Move secrets out of URLs.** Send the host key and access codes in POST bodies, or exchange them once for a short-lived session token held in memory.
+2. **Move secrets out of URLs.** Done in 0.9.0: POST for every request, sessions that expire, receipts for live quiz results.
 3. **Make the colleague package neutral.** Done for the report email (item 7 above).
 4. **Strengthen the host key.** Done for generation (item 6 above). Hashing it by default remains open.
 5. **Push in the desktop app.** Server-sent events on the local server would deliver messages at once and reduce polling. Mode A would keep polling.

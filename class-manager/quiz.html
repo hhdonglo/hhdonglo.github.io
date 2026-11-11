@@ -169,7 +169,8 @@ var D=function(s){return s};
 var QS=window.QUIZ_L1||[];
 var L="ABCDE";
 var $=function(i){return document.getElementById(i)};
-var st={name:"",id:"",code:"",ans:[],i:0,t:SECONDS,timer:null,sent:false};
+var st={name:"",id:"",code:"",ans:[],i:0,t:SECONDS,timer:null,sent:false,rc:""}; // rc: the receipt the server gives this phone; only it can show this student's result
+function keepReceipt(r){r.text().then(function(t){try{var d=JSON.parse(t);if(d&&d.receipt)st.rc=d.receipt}catch(x){}}).catch(function(){})}
 // A reset or new round by the lecturer: the round number changes (and the quiz goes back to the lobby), so every phone starts over,
 // including phones that are on a question, waiting for the next one, or looking at their result.
 function wasReset(d){return !!d&&((d.round!==undefined&&st.round!==undefined&&d.round!==st.round)||d.state==="lobby"||d.state==="ready"||d.state==="draft")}
@@ -251,8 +252,8 @@ function roomShow(m,n,closed){
  $("wr-dots").hidden=!!closed;
 }
 function join(kind){
- var b=new URLSearchParams();b.set("kind",kind||"join");b.set("name",st.name);b.set("id",st.id);b.set("code",st.code);
- var send=function(){try{fetch(SCRIPT_URL,{method:"POST",mode:"no-cors",body:b}).catch(function(){})}catch(x){}};
+ var b=new URLSearchParams();b.set("kind",kind||"join");b.set("name",st.name);b.set("id",st.id);b.set("code",st.code);b.set("want","receipt");
+ var send=function(){try{fetch(SCRIPT_URL,{method:"POST",body:b}).then(keepReceipt,function(){return fetch(SCRIPT_URL,{method:"POST",mode:"no-cors",body:b})}).catch(function(){})}catch(x){}};
  if((kind||"join")==="join")setTimeout(send,Math.floor(Math.random()*4000));else send(); // a whole class joins at once, so spread the joins over a few seconds
 }
 // ---- lecturer-paced mode: the lecturer moves the whole class from question to question ----
@@ -356,7 +357,7 @@ function reviewDraw(d){
  box.innerHTML=h;box.hidden=false;end.classList.add("reviewing");
 }
 function pollReview(){
- jsonp("action=review&code="+encodeURIComponent(st.code)+"&id="+encodeURIComponent(st.id),reviewDraw);
+ jsonp("action=review&code="+encodeURIComponent(st.code)+"&id="+encodeURIComponent(st.id)+"&rc="+encodeURIComponent(st.rc),reviewDraw);
 }
 function endPaced(){
  if(st.ended)return;st.ended=true;
@@ -461,12 +462,7 @@ function finish(){
  $("board").hidden=true;
  deliver();
 }
-function jsonp(params,cb){
- var n="cb"+Date.now()+Math.floor(Math.random()*1e6),sc=document.createElement("script"),done=false;
- function end(d){if(done)return;done=true;delete window[n];if(sc.parentNode)sc.parentNode.removeChild(sc);cb(d)}
- window[n]=end;sc.onerror=function(){end(null)};
- sc.src=SCRIPT_URL+"?"+params+"&callback="+n+"&_="+Date.now();document.head.appendChild(sc);
-}
+function jsonp(params,cb){CM.call(params,cb)} // every request by POST: see CM.call in config.js
 function deliver(){
  $("retry").hidden=true;
  $("t-end").textContent="Sending your answers";
@@ -474,16 +470,17 @@ function deliver(){
  var body=new URLSearchParams();
  body.set("name",st.name);body.set("id",st.id);body.set("code",st.code);
  st.ans.forEach(function(a,j){body.set("q"+(j+1),a)});
- fetch(SCRIPT_URL,{method:"POST",mode:"no-cors",body:body}).then(function(){setTimeout(function(){poll(0)},2500)}).catch(function(){problem("Your answers could not be sent. Check your connection and press Send again.")});
+ body.set("want","receipt");fetch(SCRIPT_URL,{method:"POST",body:body}).then(function(r){keepReceipt(r);setTimeout(function(){poll(0)},2500)},function(){return fetch(SCRIPT_URL,{method:"POST",mode:"no-cors",body:body}).then(function(){setTimeout(function(){poll(0)},2500)})}).catch(function(){problem("Your answers could not be sent. Check your connection and press Send again.")});
 }
 function problem(m){$("end-msg").hidden=false;$("t-end").textContent="Not recorded yet";$("end-msg").textContent=m;$("retry").hidden=false}
 function poll(n){
- jsonp("action=result&id="+encodeURIComponent(st.id)+"&code="+encodeURIComponent(st.code),function(d){
+ jsonp("action=result&id="+encodeURIComponent(st.id)+"&code="+encodeURIComponent(st.code)+"&rc="+encodeURIComponent(st.rc),function(d){
   if(d&&d.found){showMine(d);return}
   if(d&&(d.keyMissing||d.outcome==="bad code")){problem("The class sheet did not recognise this join code, so your answers were not recorded. Tell your lecturer.");return}
   if(d&&d.outcome==="paused"){problem("The quiz was paused when your answers arrived, so they were not recorded. Press Send again once your lecturer resumes.");return}
   if(d&&d.outcome==="not joined"){problem("You joined after the quiz started and late joining is closed, so your answers were not recorded. Tell your lecturer.");return}
   if(d&&d.outcome==="quiz closed"){problem(PHYSMSG.text("E13"));return}
+  if(d&&d.receipt===false&&(d.outcome==="ok"||d.outcome==="duplicate")){$("t-end").textContent="Thank you, "+st.name;$("end-msg").textContent="Your answers are recorded. Your score is shown only on the phone that sent them.";return}
   if(d&&d.outcome&&d.outcome!=="ok"&&d.outcome!=="duplicate"){problem("The class sheet could not record your answers ("+d.outcome+"). Tell your lecturer.");return}
   if(st.paced&&n>=4){$("t-end").textContent="The quiz has ended";$("end-msg").textContent="No answers from you were recorded for this quiz. If that is wrong, tell your lecturer.";return}
   if(n<14){setTimeout(function(){poll(n+1)},3000);return}

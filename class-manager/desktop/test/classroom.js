@@ -27,9 +27,10 @@ function classroom(opts) {
     get backend() { return backend; },
     key: backend.hostKey(),
     reopen() { backend.flush(); backend = make(); return c; }, // as after a restart of the app
-    get: (params) => parse(backend.doGet(Object.assign({}, params))),
+    get: (params) => parse(backend.doGet(Object.assign({}, params))), // a GET (JSONP) request, as older pages sent
     post: (params) => parse(backend.doPost(Object.assign({}, params), new URLSearchParams(params).toString())),
-    host: (action, params) => c.get(Object.assign({ action, hostkey: c.key }, params || {})),
+    call: (params) => c.post(params), // what the pages send now: every request by POST (CM.call)
+    host: (action, params) => c.call(Object.assign({ action, hostkey: c.key }, params || {})),
     students: [],
     codes: {}
   };

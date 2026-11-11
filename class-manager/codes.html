@@ -66,6 +66,11 @@ body.focus main{padding-top:1rem}
   <p class="err" id="a-err" role="alert" hidden></p>
  </section>
  <section class="panel">
+  <h3>Expiry and sign-in</h3>
+  <p class="note">A code can expire a set number of days after it is issued, for example at the end of term; 0 means codes do not expire. When a student signs in with a code, their phone keeps a session for 14 days instead of the code. Replacing a student's code signs that student out; "Sign everyone out" ends every session, including lecturer pages on other devices.</p>
+  <p><label for="a-days"><b>Codes expire after</b></label> <input type="number" id="a-days" min="0" max="3650" step="1" style="width:6em" aria-describedby="a-dnote"> <span id="a-dnote">days (0 = never)</span> <button class="go alt" type="button" id="a-setdays">Save</button> <button class="go alt" type="button" id="a-renew">New codes for expired ones</button> <button class="go alt" type="button" id="a-signout">Sign everyone out</button></p>
+ </section>
+ <section class="panel">
   <p><label for="a-find"><b>Find</b></label> <input type="search" id="a-find" placeholder="ID or name"></p>
   <div id="a-list"></div>
  </section>
@@ -77,12 +82,7 @@ body.focus main{padding-top:1rem}
 "use strict";
 var SCRIPT_URL=window.CM.scriptUrl,$=function(i){return document.getElementById(i)},ROWS=[];
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
-function jsonp(params,cb,ms){
- var n="cb"+Date.now()+Math.floor(Math.random()*1e6),sc=document.createElement("script"),done=false,t;
- function end(d){if(done)return;done=true;clearTimeout(t);delete window[n];if(sc.parentNode)sc.parentNode.removeChild(sc);cb(d)}
- window[n]=end;sc.onerror=function(){end(null)};t=setTimeout(function(){end(null)},ms||20000);
- sc.src=SCRIPT_URL+"?"+params+"&callback="+n+"&_="+Date.now();document.head.appendChild(sc);
-}
+function jsonp(params,cb,ms){CM.call(params,cb,ms)} // every request by POST: see CM.call in config.js
 var KEY="";try{KEY=sessionStorage.getItem("cm_hk")||""}catch(x){}
 var PORTAL=CM.pageUrl("index.html");
 function call(op,extra){
@@ -91,7 +91,8 @@ function call(op,extra){
   if(!d){$("a-err").textContent="The class server could not be reached, or it does not support access codes yet (update the Apps Script).";$("a-err").hidden=false;return}
   if(!d.ok){if(/host key/.test(d.why||"")){KEY="";try{sessionStorage.removeItem("cm_hk")}catch(x){}login();return}$("a-err").textContent=d.why==="not on list"?"That ID is not on the class list.":"Not done: "+(d.why||"unknown");$("a-err").hidden=false;return}
   ROWS=d.rows||[];
-  $("a-state").textContent=ROWS.length+" students on the class list; "+(ROWS.length-d.missing)+" with a code"+(d.missing?", "+d.missing+" without":"")+"."+(op==="generate"?" Created "+d.made+".":op==="reset"&&d.made?" Code replaced.":"");
+  if(d.days!=null&&document.activeElement!==$("a-days"))$("a-days").value=d.days;
+  $("a-state").textContent=ROWS.length+" students on the class list; "+(ROWS.length-d.missing)+" with a code"+(d.missing?", "+d.missing+" without":"")+"."+(d.expired?" "+d.expired+" expired.":"")+(op==="generate"?" Created "+d.made+".":op==="reset"&&d.made?" Code replaced.":op==="renew"?" Renewed "+d.made+".":op==="expiry"?" Expiry saved.":"");
   draw();
  });
 }
@@ -99,7 +100,7 @@ function draw(){
  var f=$("a-find").value.trim().toLowerCase(),rows=ROWS.filter(function(r){return!f||r.id.indexOf(f)>=0||String(r.name).toLowerCase().indexOf(f)>=0});
  if(!ROWS.length){$("a-list").innerHTML='<p class="note">The class list is empty. Load it first (Control Centre, Class list, or the app\'s Class list).</p>';return}
  $("a-list").innerHTML='<table><thead><tr><th scope="col">Student ID</th><th scope="col">Name</th><th scope="col">Access code</th><th scope="col"></th></tr></thead><tbody>'+rows.map(function(r){
-  return'<tr><td>'+esc(r.id)+'</td><td>'+esc(r.name)+'</td><td class="c">'+(r.code?esc(r.code):'<span class="note">None</span>')+'</td><td><button class="go alt sm" type="button" data-id="'+esc(r.id)+'">'+(r.code?"Replace":"Create")+'</button></td></tr>'}).join("")+'</tbody></table>';
+  return'<tr><td>'+esc(r.id)+'</td><td>'+esc(r.name)+'</td><td class="c">'+(r.code?esc(r.code)+(r.expired?' <span class="note">(expired)</span>':''):'<span class="note">None</span>')+'</td><td><button class="go alt sm" type="button" data-id="'+esc(r.id)+'">'+(r.code?"Replace":"Create")+'</button></td></tr>'}).join("")+'</tbody></table>';
  var cc=(window.CM&&window.CM.courseCode)||"";
  $("a-slips").innerHTML=ROWS.filter(function(r){return r.code}).map(function(r){
   return'<div class="slip"><div class="h">'+esc(cc)+' · Personal access code</div><div class="n">'+esc(r.name||"")+' '+esc(r.id)+'</div><div class="code">'+esc(r.code)+'</div><div class="i">Open the Portal ('+(window.CM&&window.CM.desktop?'the address shown in class':esc(PORTAL))+'), choose My progress, and enter your student ID and this code. Keep the code to yourself.</div></div>'}).join("");
@@ -108,6 +109,10 @@ $("a-list").addEventListener("click",function(e){var b=e.target.closest("button[
  if(has&&!confirm("Replace the access code for "+id+"? The old code stops working at once."))return;
  call("reset","&id="+encodeURIComponent(id))});
 $("a-gen").addEventListener("click",function(){call("generate")});
+$("a-setdays").addEventListener("click",function(){call("expiry","&days="+encodeURIComponent($("a-days").value||"0"))});
+$("a-renew").addEventListener("click",function(){if(confirm("Make new codes for every student whose code has expired? Print and hand out the new slips."))call("renew")});
+$("a-signout").addEventListener("click",function(){if(!confirm("Sign everyone out? Students sign in again with their access codes, and you sign in again with the host key."))return;
+ jsonp("action=sessions_end&hostkey="+encodeURIComponent(KEY),function(d){if(d&&d.ok){KEY="";try{sessionStorage.removeItem("cm_hk")}catch(x){}login()}else{$("a-err").textContent="Not done.";$("a-err").hidden=false}})});
 $("a-print").addEventListener("click",function(){if(!ROWS.some(function(r){return r.code})){$("a-err").textContent="No codes yet. Create them first.";$("a-err").hidden=false;return}window.print()});
 $("a-find").addEventListener("input",draw);
 function login(){$("a-main").hidden=true;$("a-login").hidden=false;$("a-key").focus()}

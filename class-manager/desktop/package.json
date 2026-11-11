@@ -1,7 +1,7 @@
 {
   "name": "class-manager",
   "productName": "Class Manager",
-  "version": "0.8.1",
+  "version": "0.9.0",
   "description": "Course pages, practice quizzes, mock exam, live quiz and attendance for each of the lecturer's courses, run from the lecturer's computer.",
   "author": "Hope Donglo",
   "license": "UNLICENSED",
@@ -33,10 +33,11 @@
       "google.js",
       "authoring.js",
       "tunnel.js",
+      "access.js",
+      "excel.js",
       "course.js",
       "courses.js",
       "table.js",
-      "excel.js",
       "app/**/*",
       "google-oauth.json",
       "package.json"

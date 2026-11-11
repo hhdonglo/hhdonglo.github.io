@@ -92,25 +92,6 @@ function lastOutcome_(id, code) {
 
 function state_(key) { return String(key[7]).trim().toLowerCase() || 'started'; }
 
-function hostOk_(p) {
-  var ks = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(KEY_TAB);
-  var hk = ks ? String(ks.getRange(2, 10).getValue()).trim() : '';
-  if (!hk) return false;
-  var cache = CacheService.getScriptCache();
-  var fails = Number(cache.get('hostfails') || 0);
-  if (fails >= 30) return false; // locked for 10 minutes after 30 wrong keys
-  var given = String(p.hostkey || '').trim();
-  var ok;
-  if (hk.indexOf('sha256:') === 0) { // hashed form: sha256:salt:hex
-    var parts = hk.split(':');
-    ok = parts.length === 3 && hashKey_(parts[1], given) === parts[2];
-  } else { // legacy plain key typed in the Sheet
-    ok = given === hk;
-  }
-  if (!ok) cache.put('hostfails', String(fails + 1), 600);
-  return ok;
-}
-
 function hashKey_(salt, key) {
   var d = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, salt + ':' + key, Utilities.Charset.UTF_8);
   return d.map(function (b) { return ('0' + (b & 0xff).toString(16)).slice(-2); }).join('');
@@ -190,6 +171,7 @@ function setup() {
 
 function jsonp_(e, obj) {
   var cb = String((e && e.parameter && e.parameter.callback) || '');
+  if (REQ_.session && obj && typeof obj === 'object' && !Array.isArray(obj) && obj.ok !== false) obj._session = REQ_.session; // a key or code was sent: the session to keep instead
   var body = JSON.stringify(obj);
   if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(cb)) return ContentService.createTextOutput(body).setMimeType(ContentService.MimeType.JSON);
   return ContentService.createTextOutput(cb + '(' + body + ')').setMimeType(ContentService.MimeType.JAVASCRIPT);
@@ -392,6 +374,14 @@ function accessCodes_(p) {
     roster.forEach(function (r) { var id = normId_(r[0]); if (id && !map[id]) { map[id] = { code: newAccessCode_(), issued: now }; add.push([id, map[id].code, now]); made++; } });
     if (add.length) sh.getRange(sh.getLastRow() + 1, 1, add.length, 3).setNumberFormat('@').setValues(add);
     if (made) log_('access codes created', String(made), '', '');
+  } else if (op === 'expiry') { // days a code stays valid after it is issued; 0 = no expiry
+    var dd = Math.max(0, Math.min(3650, Math.round(Number(p.days) || 0)));
+    PropertiesService.getScriptProperties().setProperty('code_days', String(dd));
+    log_('access codes expiry', String(dd) + ' days', '', '');
+  } else if (op === 'renew') { // new codes for every student whose code has expired
+    var keep = [];
+    bodyRows_(sh, 3).forEach(function (r) { var id0 = normId_(r[0]); if (codeExpired_(map[id0])) { map[id0] = { code: newAccessCode_(), issued: now }; made++; keep.push([id0, map[id0].code, now]); } else keep.push(r); });
+    if (made) { rewriteBody_(sh, 3, keep); log_('access codes renewed', String(made), '', ''); }
   } else if (op === 'reset') {
     var rid = normId_(p.id);
     if (!rid || !rosterSet_()[rid]) return { ok: false, why: 'not on list' };
@@ -402,19 +392,12 @@ function accessCodes_(p) {
     log_('access code replaced', '', rid, '');
     made = 1;
   }
-  var list = roster.map(function (r) { var id = normId_(r[0]); return { id: id, name: cleanName_(r[1]), code: map[id] ? map[id].code : '' }; }).filter(function (x) { return x.id; });
-  return { ok: true, made: made, rows: list, missing: list.filter(function (x) { return !x.code; }).length };
+  var list = roster.map(function (r) { var id = normId_(r[0]); return { id: id, name: cleanName_(r[1]), code: map[id] ? map[id].code : '', expired: codeExpired_(map[id]) }; }).filter(function (x) { return x.id; });
+  return { ok: true, made: made, rows: list, missing: list.filter(function (x) { return !x.code; }).length, days: codeDays_(), expired: list.filter(function (x) { return x.expired; }).length };
 }
 
 function fmtDay_(t) { return t ? Utilities.formatDate(new Date(t), Session.getScriptTimeZone(), 'dd/MM/yyyy') : ''; }
 function safeLink_(s) { var t = String(s || '').trim().slice(0, 300); return /^https?:\/\/[^\s<>"']+$/i.test(t) ? t : ''; }
 
 // Students: their groups' assignments, submit the group's work, record their own part, rate their group-mates (seen by the lecturer only).
-function studentAuth_(p) {
-  var id = normId_(p.id), given = normCode_(p.access);
-  if (id.length < 4 || id.length > 12) return { why: 'bad id' };
-  if (attFails_('r' + id) >= ATT_MAX_FAILS) return { why: 'slow down' };
-  var mine = rosterSet_()[id] ? codesMap_()[id] : null;
-  if (!mine || !given || mine.code !== given) { attFailAdd_('r' + id); return { why: 'not recognised' }; }
-  return { id: id };
-}
+function studentAuth_(p) { return studentCheck_(p.id, p.access, 'r'); }

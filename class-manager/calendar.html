@@ -130,12 +130,7 @@ var MONTHS=["January","February","March","April","May","June","July","August","S
 var KEY="";try{KEY=sessionStorage.getItem("cm_hk")||""}catch(x){}
 try{VIEW=localStorage.getItem("cm_cal_view")||(innerWidth<720?"list":"month")}catch(x){}
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
-function jsonp(params,cb,ms){
- var n="cb"+Date.now()+Math.floor(Math.random()*1e6),sc=document.createElement("script"),done=false,t;
- function end(d){if(done)return;done=true;clearTimeout(t);delete window[n];if(sc.parentNode)sc.parentNode.removeChild(sc);cb(d)}
- window[n]=end;sc.onerror=function(){end(null)};t=setTimeout(function(){end(null)},ms||30000);
- sc.src=SCRIPT_URL+"?"+params+"&callback="+n+"&_="+Date.now();document.head.appendChild(sc);
-}
+function jsonp(params,cb,ms){CM.call(params,cb,ms)} // every request by POST: see CM.call in config.js
 function q(k,v){return"&"+k+"="+encodeURIComponent(v==null?"":v)}
 function err(t){$("c-err").textContent=t||"";$("c-err").hidden=!t}
 function ymd(d){return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2)}

@@ -104,12 +104,7 @@ body.focus main{padding-top:1rem}
 "use strict";
 var SCRIPT_URL=window.CM.scriptUrl;
 var $=function(i){return document.getElementById(i)};
-function jsonp(params,cb){
- var n="cb"+Date.now()+Math.floor(Math.random()*1e6),sc=document.createElement("script"),done=false;
- function end(d){if(done)return;done=true;delete window[n];if(sc.parentNode)sc.parentNode.removeChild(sc);cb(d)}
- window[n]=end;sc.onerror=function(){end(null)};
- sc.src=SCRIPT_URL+"?"+params+"&callback="+n+"&_="+Date.now();document.head.appendChild(sc);
-}
+function jsonp(params,cb){CM.call(params,cb)} // every request by POST: see CM.call in config.js
 var KEY="";try{KEY=sessionStorage.getItem("cm_hk")||""}catch(x){}
 function saveKey(k){KEY=k;try{sessionStorage.setItem("cm_hk",k)}catch(x){}}
 function signOut(){KEY="";try{sessionStorage.removeItem("cm_hk")}catch(x){}location.href="lecturer.html"}

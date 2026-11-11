@@ -625,6 +625,20 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
    <p class="row" style="margin-top:14px"><button class="btn primary" type="button" id="g-in" hidden>Sign in with Google</button><button class="btn" type="button" id="g-sync" hidden>Copy now</button><button class="btn" type="button" id="g-open" hidden>Open the Google Sheet</button><button class="link" type="button" id="g-out" hidden>Sign out</button></p>
    <p class="msg" id="g-msg" role="status"></p>
   </div>
+  <div class="card">
+   <h3>Access and safety</h3>
+   <form id="sec">
+    <label class="f" for="sec-hours">Internet access stops by itself after</label>
+    <select class="f" id="sec-hours" style="max-width:14rem"><option value="1">1 hour</option><option value="2">2 hours</option><option value="3">3 hours</option><option value="4">4 hours</option><option value="6">6 hours</option><option value="8">8 hours</option><option value="12">12 hours</option><option value="0">Only when I stop it</option></select>
+    <fieldset style="border:0;padding:0;margin:12px 0 0"><legend class="f">Lecturer pages (Control Centre, live quiz controls, attendance, statistics)</legend>
+     <label><input type="radio" name="sec-from" value="network"> On this computer and on the local network</label><br>
+     <label><input type="radio" name="sec-from" value="computer"> On this computer only</label>
+    </fieldset>
+    <label style="display:block;margin-top:8px"><input type="checkbox" id="sec-online"> Also allow lecturer pages through the internet address (not recommended)</label>
+    <p class="note">Student pages are not affected. Lecturer pages always need the host key; these settings decide where they can be used at all.</p>
+    <p class="row" style="margin-top:12px"><button class="btn primary" type="submit">Save</button> <span id="sec-saved" class="note" role="status"></span></p>
+   </form>
+  </div>
   <div class="card sub">
    <h3>Data</h3>
    <dl class="kv"><dt>This course's data</dt><dd id="d-folder">…</dd><dt>Version</dt><dd id="d-ver">…</dd></dl>
@@ -675,7 +689,7 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
  <p>If phones cannot open the address, the network keeps devices apart, which is common on university Wi-Fi. Use a hotspot, or choose Internet.</p></div>
  <div id="how-net"><p><strong>Internet.</strong> Students open the https address from any network, including mobile data, while this app is open. The address changes each time it starts, so show the new QR code.</p>
  <p>Traffic passes through Cloudflare's free quick tunnel service, which offers no uptime guarantee; for a class it is usually enough. The first time, the app downloads Cloudflare's connector program and checks it.</p>
- <p>The app's own screens are never reachable from the internet, and the lecturer pages still need the host key.</p></div>
+ <p>The app's own screens are never reachable from the internet. Lecturer pages are refused through the internet address unless you allow them in App Settings, and the address stops by itself after the time set there (3 hours unless you change it).</p></div>
  <form method="dialog" class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn primary">Close</button></form>
 </dialog>
 
@@ -768,8 +782,10 @@ function tshow(t){
  $("t-stopbox").hidden=!(wantNet&&t.state!=="off"&&t.state!=="error");
  $("more-p").hidden=wantNet;
  $("how-lan").hidden=wantNet;$("how-net").hidden=!wantNet;
- var msg={off:"",downloading:"Downloading the connector program (first time only)…",starting:"Starting internet access…",stopping:"Stopping…",on:"",error:"Internet access is off: "+(t.error||"")}[t.state]||"";
- $("tstate").textContent=wantNet?msg:"";$("tstate").className="tstate"+(t.state==="error"?" err":"");
+ var hm=function(ms){var d=new Date(ms);return("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2)},k=t.counts||{};
+ var onMsg=(t.stopsAt?"Stops by itself at "+hm(t.stopsAt)+". ":"Stays on until you stop it. ")+(k.requests?k.visitors+" visitor"+(k.visitors===1?"":"s")+", "+k.requests+" request"+(k.requests===1?"":"s")+(k.limited?", "+k.limited+" over the limit":"")+(k.lecturer?", "+k.lecturer+" lecturer request"+(k.lecturer===1?"":"s")+" refused":"")+".":"");
+ var msg={off:t.note||"",downloading:"Downloading the connector program (first time only)…",starting:"Starting internet access…",stopping:"Stopping…",on:onMsg,error:"Internet access is off: "+(t.error||"")}[t.state]||"";
+ $("tstate").textContent=wantNet||t.note?msg:"";$("tstate").className="tstate"+(t.state==="error"?" err":"");
  var url=on?t.url:(wantNet?"":lanBase);
  $("addr").textContent=url||"…";$("proj-addr").textContent=url||"…";$("addr-mini").textContent=url||(wantNet?"Starting internet access…":"…");if(url)qr(url);else{$("qr").innerHTML="";$("qr-mini").innerHTML=""}
  $("copy-url").disabled=!url;$("copy-mini").disabled=!url;
@@ -992,7 +1008,11 @@ $("f").addEventListener("submit",function(e){
  if(url&&!/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(url)){$("saved").textContent="The address must look like https://script.google.com/macros/s/…/exec";return}
  cmApp.save({scriptUrl:url,port:$("s-port").value}).then(function(){location.reload()});
 });
-setInterval(function(){if(document.visibilityState==="visible")cmApp.info().then(function(i){gshow(i.google)})},30000);
+setInterval(function(){if(document.visibilityState==="visible")cmApp.info().then(function(i){gshow(i.google);tshow(i.tunnel)})},30000);
+function secShow(s){$("sec-hours").value=String(s.tunnelHours);document.querySelectorAll("input[name=sec-from]").forEach(function(r){r.checked=r.value===s.lecturerFrom});$("sec-online").checked=!!s.lecturerOnline}
+cmApp.security().then(secShow);
+$("sec").addEventListener("submit",function(e){e.preventDefault();var f=document.querySelector("input[name=sec-from]:checked");
+ cmApp.saveSecurity({tunnelHours:Number($("sec-hours").value),lecturerFrom:f?f.value:"network",lecturerOnline:$("sec-online").checked}).then(function(s){secShow(s);$("sec-saved").textContent="Saved."})});
 })();
 </script>
 </body>

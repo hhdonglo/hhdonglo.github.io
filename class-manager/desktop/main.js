@@ -23,6 +23,7 @@ const { readTable } = require("./table");
 const excel = require("./excel");
 const { execFile } = require("child_process");
 const courses = require("./courses");
+const { SECURITY_DEFAULTS, cleanSecurity, lecturerRefusal } = require("./access");
 
 const WEB = app.isPackaged ? path.join(process.resourcesPath, "web") : path.join(__dirname, "..");
 const ROOT = () => app.getPath("userData");
@@ -30,7 +31,7 @@ const SETTINGS_FILE = () => path.join(ROOT(), "settings.json"); // the app's own
 const TEMPLATES = app.isPackaged ? path.join(process.resourcesPath, "web", "templates") : path.join(__dirname, "..", "templates");
 const DEFAULTS = { courseCode: "", courseTitle: "", institution: "", lecturer: "", semester: "", startDate: "", endDate: "", contact: "", accent: "", logo: "", notice: "", noticeLinkLabel: "", noticeLinkUrl: "",
   scriptUrl: "", setupSeen: false }; // one course's settings
-const APP_DEFAULTS = { port: 8143, zoom: 1 };
+const APP_DEFAULTS = Object.assign({ port: 8143, zoom: 1 }, SECURITY_DEFAULTS);
 const TYPES = {
   ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8",
   ".json": "application/json; charset=utf-8", ".svg": "image/svg+xml", ".png": "image/png", ".webp": "image/webp",
@@ -46,10 +47,10 @@ const allowRemote = createLimiter(240); // requests per minute per visitor throu
 // ---------- settings ----------
 function loadAppSettings() {
   const s = Object.assign({}, APP_DEFAULTS, readJson(SETTINGS_FILE(), {}));
-  return { port: Math.min(65535, Math.max(1024, Number(s.port) || APP_DEFAULTS.port)), zoom: clampZoom(s.zoom) };
+  return Object.assign({ port: Math.min(65535, Math.max(1024, Number(s.port) || APP_DEFAULTS.port)), zoom: clampZoom(s.zoom) }, cleanSecurity(s));
 }
 function saveAppSettings(o) {
-  appSettings = { port: o.port == null ? appSettings.port : Math.min(65535, Math.max(1024, Number(o.port) || APP_DEFAULTS.port)), zoom: clampZoom(o.zoom == null ? appSettings.zoom : o.zoom) };
+  appSettings = Object.assign({ port: o.port == null ? appSettings.port : Math.min(65535, Math.max(1024, Number(o.port) || APP_DEFAULTS.port)), zoom: clampZoom(o.zoom == null ? appSettings.zoom : o.zoom) }, cleanSecurity(o, appSettings));
   fs.mkdirSync(ROOT(), { recursive: true });
   fs.writeFileSync(SETTINGS_FILE(), JSON.stringify(appSettings, null, 1));
 }
@@ -150,7 +151,8 @@ function readBody(req, max) {
 async function handle(req, res, remote) {
   if (remote) { // came through the internet address: never the app's own screens, and a limit per visitor
     const who = String(req.headers["cf-connecting-ip"] || req.headers["x-forwarded-for"] || "?").split(",")[0].trim();
-    if (!allowRemote(who)) { res.writeHead(429, { "Content-Type": "text/plain", "Retry-After": "60" }); return res.end("Too many requests. Wait a minute and try again."); }
+    if (tunnel) tunnel.note("request", who);
+    if (!allowRemote(who)) { if (tunnel) tunnel.note("limited"); res.writeHead(429, { "Content-Type": "text/plain", "Retry-After": "60" }); return res.end("Too many requests. Wait a minute and try again."); }
   }
   let u;
   try { u = new URL(req.url, "http://x"); } catch (e) { res.writeHead(400); return res.end(); }
@@ -173,6 +175,8 @@ async function handle(req, res, remote) {
       if (req.method === "POST") {
         const body = await readBody(req, 200000);
         Object.assign(params, Object.fromEntries(new URLSearchParams(body)));
+        const refused = lecturerRefusal(params, { remote, thisComputer: !remote && isThisComputer(req) }, appSettings);
+        if (refused) { if (tunnel && remote) tunnel.note("lecturer"); res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" }); return res.end(JSON.stringify(refused)); }
         out = c.backend.doPost(params, body);
       } else out = c.backend.doGet(params);
       res.writeHead(200, { "Content-Type": out.mime + "; charset=utf-8", "Cache-Control": "no-store", "Access-Control-Allow-Origin": "*" });
@@ -228,7 +232,7 @@ function listen(p, host, remote) {
 // The internet address reaches only this second server, which listens on this computer alone and marks every request as remote.
 async function startTunnel() {
   if (!tunnelServer) { tunnelServer = await listen(0, "127.0.0.1", true); tunnelPort = tunnelServer.address().port; }
-  return tunnel.start(tunnelPort);
+  return tunnel.start(tunnelPort, { hours: appSettings.tunnelHours });
 }
 function stopTunnel() { return tunnel ? tunnel.stop() : { state: "off" }; }
 async function restartServer() {
@@ -421,6 +425,8 @@ on("cm:progress", (c) => { try { return c.backend.progress({}); } catch (err) { 
 on("cm:tunnelStart", async (c) => { await startTunnel(); return tunnelFor(c); });
 ipcMain.handle("cm:readme", () => shell.openPath(app.isPackaged ? path.join(process.resourcesPath, "README.txt") : path.join(__dirname, "README.txt")));
 on("cm:tunnelStop", (c) => { stopTunnel(); return tunnelFor(c); });
+on("cm:security", () => cleanSecurity({}, appSettings));
+on("cm:saveSecurity", (c, e, s) => { saveAppSettings(cleanSecurity(s || {}, appSettings)); if (tunnel) tunnel.setHours(appSettings.tunnelHours); return cleanSecurity({}, appSettings); });
 on("cm:save", async (c, e, s) => {
   s = s || {};
   const before = appSettings.port;

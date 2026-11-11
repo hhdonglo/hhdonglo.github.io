@@ -105,7 +105,7 @@ body.focus main{padding-top:1.2rem}
 "use strict";
 var U=window.CM.scriptUrl,$=function(i){return document.getElementById(i)};
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
-function jp(p,cb){var n="pn"+Date.now()+Math.floor(Math.random()*1e6),sc=document.createElement("script"),done=false;function end(d){if(done)return;done=true;delete window[n];if(sc.parentNode)sc.parentNode.removeChild(sc);cb(d)}window[n]=end;sc.onerror=function(){end(null)};setTimeout(function(){end(null)},20000);sc.src=U+"?"+p+"&callback="+n+"&_="+Date.now();document.head.appendChild(sc)}
+function jp(p,cb){CM.call(p,cb)} // every request by POST: see CM.call in config.js
 var id="",code="";try{id=localStorage.getItem("cm_portal_id")||"";code=localStorage.getItem("cm_portal_code")||""}catch(x){}
 var who=id&&code?"&id="+encodeURIComponent(id)+"&code="+encodeURIComponent(code):"";
 jp("action=announcements"+who,function annCb(d){
@@ -128,17 +128,12 @@ if(who)jp("action=chat"+who,function(d){if(d&&d.ok&&d.unread)$("p-msgs").textCon
 "use strict";
 var SCRIPT_URL=window.CM.scriptUrl;
 var $=function(i){return document.getElementById(i)};
-var CFG=null,LIVE=null,KEYID="cm_portal_id",KEYCODE="cm_portal_code";
+var CFG=null,LIVE=null,KEYID="cm_portal_id",KEYCODE="cm_portal_code",SAVEDTOK=""; // SAVEDTOK: the session this phone remembers instead of the code
 function lecPage(n){return Number(n)===0?"introduction.html":"lecture-"+Number(n)+".html"}
 function pracPage(n){return Number(n)===0?"introduction-practice.html":"lecture-"+Number(n)+"-practice.html"}
 function lecName(n){return Number(n)===0?"the Introduction":"Lecture "+Number(n)}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
-function jsonp(params,cb,ms){
- var n="cb"+Date.now()+Math.floor(Math.random()*1e6),sc=document.createElement("script"),done=false,t;
- function end(d){if(done)return;done=true;clearTimeout(t);delete window[n];if(sc.parentNode)sc.parentNode.removeChild(sc);cb(d)}
- window[n]=end;sc.onerror=function(){end(null)};t=setTimeout(function(){end(null)},ms||8000);
- sc.src=SCRIPT_URL+"?"+params+"&callback="+n+"&_="+Date.now();document.head.appendChild(sc);
-}
+function jsonp(params,cb,ms){CM.call(params,cb,ms)} // every request by POST: see CM.call in config.js
 function render(){
  var w=String((LIVE&&LIVE.portal===1&&LIVE.week>=1)?LIVE.week:CFG.currentWeek),title=CFG.lectures[w]||"",L=LIVE&&LIVE.portal===1?LIVE:null;
  $("p-contacts").textContent=CFG.contacts?"Classes: "+CFG.contacts+".":"";
@@ -166,7 +161,7 @@ function render(){
  $("p-res").hidden=!res;
  var rem=CFG.settings.allowRememberId;$("p-remlab").hidden=!rem;
  var saved="",savedCode="";try{saved=localStorage.getItem(KEYID)||"";savedCode=localStorage.getItem(KEYCODE)||""}catch(x){}
- if(rem&&saved){$("p-rem").checked=true;$("p-remnote").hidden=false;$("p-id").value=saved;$("p-code").value=savedCode}
+ if(rem&&saved){$("p-rem").checked=true;$("p-remnote").hidden=false;$("p-id").value=saved;if(/^s1\./.test(savedCode)){SAVEDTOK=savedCode;$("p-code").value="";$("p-code").placeholder="Remembered on this phone"}else $("p-code").value=savedCode}
 }
 function loadStatus(){jsonp("action=portal_status",function(d){LIVE=d;render()},6000)}
 function load(){
@@ -247,12 +242,13 @@ $("p-form").addEventListener("submit",function(e){
  e.preventDefault();var er=$("p-err");er.hidden=true;$("p-out").hidden=true;
  var id=$("p-id").value.trim(),code=$("p-code").value.trim().toUpperCase();
  if(!/^[0-9]{4,12}$/.test(id)){er.textContent=PHYSMSG.text("E1");er.hidden=false;return}
- if(!/^[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(code)){er.textContent=PHYSMSG.text("E17");er.hidden=false;return}
+ if(!code&&SAVEDTOK)code=SAVEDTOK;
+ else if(!/^[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(code)){er.textContent=PHYSMSG.text("E17");er.hidden=false;return}
  $("p-show").disabled=true;
  jsonp("action=my_results&id="+encodeURIComponent(id)+"&code="+encodeURIComponent(code),function(r){
   $("p-show").disabled=false;
   if(!r){er.textContent=PHYSMSG.text("E8");er.hidden=false;return}
-  if(!r.ok){er.textContent=PHYSMSG.fromWhy(r.why);er.hidden=false;return}
+  if(!r.ok){if(code===SAVEDTOK){SAVEDTOK="";$("p-code").placeholder="";try{localStorage.removeItem(KEYCODE)}catch(x){}}er.textContent=PHYSMSG.fromWhy(r.why);er.hidden=false;return}
   if($("p-rem").checked){try{localStorage.setItem(KEYID,id);localStorage.setItem(KEYCODE,code)}catch(x){}}
   showResults(r);
  },12000);
