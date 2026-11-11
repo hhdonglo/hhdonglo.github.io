@@ -24,6 +24,7 @@ const excel = require("./excel");
 const { execFile } = require("child_process");
 const courses = require("./courses");
 const { SECURITY_DEFAULTS, cleanSecurity, lecturerRefusal } = require("./access");
+const { createVault, createBackups, exportFile, importFile } = require("./vault");
 
 const WEB = app.isPackaged ? path.join(process.resourcesPath, "web") : path.join(__dirname, "..");
 const ROOT = () => app.getPath("userData");
@@ -42,6 +43,14 @@ const TYPES = {
 let appSettings, server = null, port = 0, win = null, registry = null;
 const ctxs = new Map(); // course id -> { id, settings, course, authoring, backend, google }, made on first use
 let tunnel = null, tunnelServer = null, tunnelPort = 0;
+let vault = null; // encrypts each course's workbook on disk (vault.js), made when the app is ready
+const BACKUP_EVERY_MS = 4 * 3600000;
+function makeVault() {
+  const kc = safeStorage.isEncryptionAvailable();
+  return createVault({ keyFile: path.join(ROOT(), "data.key"), protected: kc,
+    protect: (b) => (kc ? safeStorage.encryptString(b.toString("base64")) : Buffer.from(b.toString("base64"), "utf8")),
+    unprotect: (b) => Buffer.from(kc ? safeStorage.decryptString(b) : b.toString("utf8"), "base64") });
+}
 const allowRemote = createLimiter(240); // requests per minute per visitor through the internet address
 
 // ---------- settings ----------
@@ -312,8 +321,10 @@ function makeCtx(id) {
     openBrowser: (u) => shell.openExternal(u), log: (m) => console.log("[google " + id + "]", m),
     tabs: () => c.backend.tabs(), tab: (n) => c.backend.tab(n), title: () => "Class Manager: " + (c.settings.courseCode || "class") + " results"
   });
-  c.backend = createBackend({ readSite: (rel) => c.authoring.siteFile(rel), webRoot: WEB, resolve: c.course.resolve, dataFile: d.workbook,
+  c.backend = createBackend({ readSite: (rel) => c.authoring.siteFile(rel), webRoot: WEB, resolve: c.course.resolve, dataFile: d.workbook, vault,
     log: (m) => console.log("[backend " + id + "]", m), onChange: () => c.google && c.google.changed() });
+  c.backups = createBackups({ dir: path.join(d.root, "backups"), workbook: d.workbook, vault });
+  try { c.lastBackup = c.backups.make(""); } catch (e) { c.lastBackup = { ok: false, why: e.message }; } // a backup each time the course is opened, checked at once
   return c;
 }
 function ctx(id) {
@@ -606,6 +617,49 @@ on("cm:saveExcel", async (c, e, name, rows) => {
   catch (err) { return { ok: false, why: err.message }; }
 });
 on("cm:openData", (c) => shell.openPath(registry.dirs(c.id).root));
+// ---- protection at rest and backups (vault.js) ----
+function backupInfo(c) {
+  return { protected: vault.protected, list: c.backups.list().slice(0, 30), last: c.lastBackup || null, loadProblem: c.backend.loadProblem(), keep: require("./vault").KEEP_AUTO };
+}
+function reopenCourse(c) { // after a restore: the course is made again from the restored workbook, and its windows reload
+  closeCtx(c.id); const n = ctx(c.id);
+  for (const w of BrowserWindow.getAllWindows()) { try { if ((registry.idFromUrl(w.webContents.getURL()) || registry.active()) === c.id) w.webContents.reload(); } catch (e) {} }
+  return n;
+}
+on("cm:backups", (c) => backupInfo(c));
+on("cm:backupNow", (c) => { c.backend.flush(); c.lastBackup = c.backups.make("manual"); return backupInfo(c); });
+on("cm:backupCheck", (c, e, name) => c.backups.verify(String(name || "")));
+on("cm:backupRestore", (c, e, name) => {
+  try { const v = c.backups.verify(String(name || "")); if (!v.ok) return { ok: false, why: v.why };
+    const text = c.backups.read(String(name)); closeCtx(c.id); const r = c.backups.restoreText(text); reopenCourse(c); return Object.assign(r, backupInfo(ctx(c.id))); }
+  catch (err) { return { ok: false, why: err.message }; }
+});
+on("cm:backupExport", async (c, e, pass) => {
+  try {
+    c.backend.flush();
+    const d = registry.dirs(c.id);
+    const content = { kind: "class-manager-backup", version: app.getVersion(), course: c.id, made: new Date().toISOString(), settings: c.settings, workbook: vault.decode(fs.readFileSync(d.workbook)) };
+    const buf = exportFile(content, pass);
+    const label = (c.settings.courseCode || c.id).replace(/[^\w .-]+/g, "_");
+    const r = await dialog.showSaveDialog(winOf(e), { title: "Save a backup of this course", defaultPath: "Class Manager backup " + label + " " + new Date().toISOString().slice(0, 10) + ".cmbackup", filters: [{ name: "Class Manager backup", extensions: ["cmbackup"] }] });
+    if (r.canceled || !r.filePath) return null;
+    fs.writeFileSync(r.filePath, buf, { mode: 0o600 });
+    importFile(fs.readFileSync(r.filePath), pass); // read back with the passphrase before saying it is done
+    return { ok: true, file: r.filePath };
+  } catch (err) { return { ok: false, why: err.message }; }
+});
+on("cm:backupImport", async (c, e, pass) => {
+  try {
+    const r = await dialog.showOpenDialog(winOf(e), { title: "Restore this course from a backup file", properties: ["openFile"], filters: [{ name: "Class Manager backup", extensions: ["cmbackup"] }] });
+    if (r.canceled || !r.filePaths[0]) return null;
+    const content = importFile(fs.readFileSync(r.filePaths[0]), pass); // checks the passphrase and the content before anything changes
+    closeCtx(c.id);
+    const out = c.backups.restoreText(content.workbook);
+    if (content.settings && typeof content.settings === "object") saveSettings(c, Object.assign({}, content.settings, { scriptUrl: c.settings.scriptUrl })); // the course details travel with the records; the server address stays this computer's
+    reopenCourse(c);
+    return Object.assign(out, { from: content.course, made: content.made }, backupInfo(ctx(c.id)));
+  } catch (err) { return { ok: false, why: err.message }; }
+});
 on("cm:openContent", (c) => { const d = registry.dirs(c.id).course; fs.mkdirSync(d, { recursive: true }); return shell.openPath(d); });
 on("cm:run", (c, e, name) => { if (["refreshTotals", "rebuildMaster", "buildNamedAttendance"].includes(name)) { c.backend.run(name); c.backend.flush(); return true; } return false; });
 on("cm:googleSignIn", async (c) => { try { return await c.google.signIn().then(() => c.google.syncNow()); } catch (e) { return Object.assign(c.google.status(), { lastError: e.message }); } });
@@ -651,12 +705,16 @@ on("cm:googleSync", (c) => c.google.syncNow());
 
 // ---------- start ----------
 function flushAll() { for (const c of ctxs.values()) { try { c.backend.flush(); } catch (e) {} } }
+function backupAll(reason) { for (const c of ctxs.values()) { try { c.backend.flush(); c.lastBackup = c.backups.make(reason); } catch (e) { c.lastBackup = { ok: false, why: e.message }; } } }
+let closingBackupDone = false;
 app.whenReady().then(async () => {
   // Before 0.8.0 the app held one course; it becomes the first course here, with all of its records.
   const mig = courses.migrateLegacy(ROOT(), (m) => console.log("[courses]", m));
   if (mig.migrated) { try { const t = loadTokens(); if (t.sheetId) saveTokens(courses.migrateTokens(t, mig.migrated)); } catch (e) {} }
   registry = courses.createRegistry(ROOT());
   registry.ensureOne();
+  vault = makeVault();
+  setInterval(() => backupAll(""), BACKUP_EVERY_MS).unref();
   appSettings = loadAppSettings();
   await restartServer();
   tunnel = createTunnel({ dir: path.join(ROOT(), "tunnel"),
@@ -668,5 +726,5 @@ app.whenReady().then(async () => {
   win.loadURL(baseUrl() + startPage(ctx(registry.active())));
   app.on("activate", () => { if (BrowserWindow.getAllWindows().length === 0) newWindow(startPage(ctx(registry.active())), 1280, 860); });
 });
-app.on("before-quit", () => { flushAll(); try { stopTunnel(); } catch (e) {} });
+app.on("before-quit", () => { if (!closingBackupDone) { closingBackupDone = true; backupAll("close"); } else flushAll(); try { stopTunnel(); } catch (e) {} });
 app.on("window-all-closed", () => { flushAll(); try { stopTunnel(); } catch (e) {} if (server) server.close(); app.quit(); });

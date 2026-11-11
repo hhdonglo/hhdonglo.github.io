@@ -15,14 +15,26 @@ function createBackend(opts) {
   const WEB = opts.webRoot;              // where quizzes/ and apps_script/ live
   const FILE = opts.dataFile;            // workbook.json
   const log = opts.log || (() => {});
+  const vault = opts.vault || null;      // vault.js: the workbook is encrypted on disk when a vault is given
 
   // ---------- workbook on disk ----------
-  let book = { sheets: [], props: {} };
+  let book = { sheets: [], props: {} }, loadProblem = null, legacyPlain = false;
   try {
-    book = JSON.parse(fs.readFileSync(FILE, "utf8"), (k, v) => (v && typeof v === "object" && v.$d ? new Date(v.$d) : v));
+    const raw = fs.readFileSync(FILE);
+    book = JSON.parse(vault ? vault.decode(raw) : raw.toString("utf8"), (k, v) => (v && typeof v === "object" && v.$d ? new Date(v.$d) : v));
     if (!Array.isArray(book.sheets)) book.sheets = [];
     if (!book.props) book.props = {};
-  } catch (e) { /* first run: empty workbook */ }
+    if (vault && !vault.isSealed(raw)) legacyPlain = true; // written by an earlier version: encrypted at the first save, below
+  } catch (e) {
+    // No file: the first run. A file that cannot be read (another computer's key, damage) is never overwritten:
+    // it is moved aside, kept, and reported, and the course starts from an empty workbook until it is restored.
+    if (e.code !== "ENOENT" && fs.existsSync(FILE)) {
+      const aside = FILE.replace(/\.json$/, "") + ".unreadable-" + Date.now() + ".json";
+      try { fs.renameSync(FILE, aside); } catch (e2) { throw e; }
+      loadProblem = { file: aside, why: String(e.message || e) };
+      log("workbook could not be read; kept as " + aside);
+    }
+  }
 
   let dirty = false, timer = null;
   function touch() { dirty = true; if (!timer) timer = setTimeout(flush, 400); if (opts.onChange) opts.onChange(); }
@@ -31,7 +43,7 @@ function createBackend(opts) {
     const json = JSON.stringify(book, function (k, v) { const raw = this[k]; return isDate(raw) ? { $d: raw.toISOString() } : v; });
     fs.mkdirSync(path.dirname(FILE), { recursive: true });
     const tmp = FILE + ".tmp";
-    fs.writeFileSync(tmp, json);
+    fs.writeFileSync(tmp, vault ? vault.encode(json) : json, { mode: 0o600 });
     fs.renameSync(tmp, FILE);
   }
 
@@ -169,6 +181,7 @@ function createBackend(opts) {
 
   // First run: create the tabs, the settings and a host key.
   if (!spreadsheet.getSheetByName("Key")) { ctx.setup(); log("local workbook created"); }
+  if (legacyPlain) dirty = true;
   flush();
 
   function asHost(f) { const k = ctx.hostOk_; ctx.hostOk_ = () => true; try { return f(); } finally { ctx.hostOk_ = k; flush(); } }
@@ -195,6 +208,7 @@ function createBackend(opts) {
     rosterSync: (rows, replace) => asHost(() => ctx.rosterSync_({ rows: JSON.stringify(rows), mode: "apply", replace: replace ? "yes" : "" })),
     // After questions are approved: the script must read the banks again rather than its five-minute copy.
     dropSiteCache: () => { for (const k of [...store.keys()]) if (k.indexOf("site:") === 0) store.delete(k); },
+    loadProblem: () => loadProblem,
     tabs: () => book.sheets.map((d) => ({ name: d.name, rows: sheetObj(d).getLastRow() })),
     tab: (name) => { const s = spreadsheet.getSheetByName(name); return s ? s.getDataRange().getDisplayValues() : null; },
     flush

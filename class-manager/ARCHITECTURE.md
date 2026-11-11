@@ -182,7 +182,8 @@ Since 0.9.0 the pages send every request by form POST through `CM.call` (in `con
 **Desktop data folder.** This is `userData`, for example `~/.config/Class Manager` on Linux. It holds:
 
 - `settings.json`;
-- `data/workbook.json` (all tabs and properties; dates stored as `{$d: ISO}`);
+- `data/workbook.json` (all tabs and properties; dates stored as `{$d: ISO}`), encrypted since 0.9.0 (AES-256-GCM, magic `CMV1`) with the data key `data.key`, which is itself encrypted with the system keychain (`safeStorage`) where available (`desktop/vault.js`);
+- `courses/<id>/backups/` (automatic encrypted backups of the workbook: on opening the course, every four hours and on closing; each read back and checked; the newest 14 kept, plus copies made before a restore);
 - `google.bin` (OAuth tokens) and `anthropic.bin` (the API key), both encrypted with `safeStorage` where available;
 - `authoring/library/` (copies of documents, `<id>.chunks.json`, `index.json`);
 - `authoring/drafts.json` and `authoring/settings.json` (the model);
@@ -285,6 +286,7 @@ Two warnings do not block approval: a missing explanation or difficulty, and a d
 
 ## 10. Security and privacy model
 
+- **Records at rest (desktop).** Each course's workbook is encrypted on disk; the key is protected by the system keychain, so a copied data folder cannot be read on another computer. A workbook that cannot be read is moved aside and kept, never overwritten. Backups to a file are encrypted with a passphrase (scrypt, AES-256-GCM) and checked before a restore replaces anything; the current records are kept as a backup first.
 - **Secrets.** No secrets are in the repository. The host key is in the workbook only. The API key and Google tokens are in the app's data folder, encrypted with the system keychain when `safeStorage` is available.
 - **Student data.** It stays in the workbook. Nothing about students is sent to Anthropic: requests contain only the lecturer's documents, instructions and existing question stems. The end-to-end test checks this.
 - **Pages from the desktop server** run in sandboxed `BrowserWindow`s (`contextIsolation`, `sandbox`, no `nodeIntegration`). External links open in the system browser, and navigation away from the local server is blocked. The `cmApp` bridge exposes a fixed list of IPC calls.

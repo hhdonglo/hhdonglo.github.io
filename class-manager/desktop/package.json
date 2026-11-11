@@ -34,6 +34,7 @@
       "authoring.js",
       "tunnel.js",
       "access.js",
+      "vault.js",
       "excel.js",
       "course.js",
       "courses.js",

@@ -42,9 +42,16 @@ All data stays on the laptop, in the data folder shown at the bottom of the home
 
 Choosing **Internet** starts a Cloudflare quick tunnel: a free service that needs no account and no router settings. The first time, the app downloads Cloudflare's connector program (`cloudflared` version 2026.10.7, about 20 to 55 MB) from Cloudflare's GitHub releases into the app's data folder, and runs it only if its SHA-256 checksum matches the value in `tunnel.js`.
 
-- The tunnel reaches a second server inside the app that listens on this computer only. Every request through it is treated as coming from outside: the app's own screens (`/app/`) are refused, and each visitor is limited to 240 requests a minute. The host key, access codes and their lockouts work as on the local network.
+- The tunnel reaches a second server inside the app that listens on this computer only. Every request through it is treated as coming from outside: the app's own screens (`/app/`) are refused, and each visitor is limited to 240 requests a minute. Lecturer requests are refused through the internet address unless allowed in App Settings. Access codes and their lockouts work as on the local network. The address stops by itself after the time set in App Settings (3 hours unless changed), and the app shows how many visitors and requests came through it.
 - Pages and QR codes that the lecturer opens (attendance, codes, calendar feed) use the https address while it is on.
 - Limits: the address lasts only while the app is open and changes at each start. Cloudflare describes quick tunnels as a service for testing, with no uptime guarantee and a limit of about 200 requests in flight at once; this is usually enough for one class. Traffic passes through Cloudflare's network and is subject to Cloudflare's terms. For a permanent address, use the Google Apps Script set-up instead (Settings).
+
+## Records, backups and restore
+
+- Each course's records (`data/workbook.json`) are encrypted on this computer; the key is held by the system keychain where the computer has one (App Settings, Records protection and backups, says which).
+- A backup is made when a course opens, every four hours and when the app closes, and is checked at once. The newest 14 are kept in the course's `backups/` folder. **Restore** next to a backup brings the records back; the records as they were are kept as a backup first.
+- **Save a backup to a file** makes one file, encrypted with a passphrase, to keep elsewhere or to move a course to another computer. **Restore from a file** asks for the passphrase. A lost passphrase cannot be recovered.
+- Settings, Access and safety: when internet access stops by itself, and where lecturer pages may be used.
 
 ## What runs where
 
