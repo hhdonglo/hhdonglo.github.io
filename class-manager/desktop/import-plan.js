@@ -1,0 +1,214 @@
+// The web import, step one: read what a Class Manager workbook from the web (or a CSV of one tab) holds, compare it with this course's workbook,
+// and say exactly what applying it would change. Nothing is written here; import-apply.js does the writing from the plan made here.
+// Pure functions: the workbook is passed in as rows, so this is tested in plain Node (test/import.test.js).
+//
+//   plan(book, local, options) -> { report, ops }
+//     book    [{ name, rows }]     sheets of the file (xlsx-book.js)
+//     local   { read(name) }       rows of a tab of this course's workbook, or null
+//     options { onlyClassList, addMissing }
+//     report  what the lecturer sees: counts per tab, students, warnings (no student data beyond counts and a few IDs)
+//     ops     what import-apply.js writes
+"use strict";
+const V = require("./import-values");
+const S = require("./import-specs");
+
+const norm = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+const rowBlank = (r) => !Array.isArray(r) || r.every(V.blank);
+const body = (rows) => (rows || []).slice(1).filter((r) => !rowBlank(r));
+
+// ---------- which tab is a sheet? ----------
+
+function matchesHeader(spec, head) {
+  const names = head.map(V.headOf);
+  const found = spec.header.map((h) => names.indexOf(V.headOf(h)));
+  return found.slice(0, spec.need).every((i) => i >= 0);
+}
+function looksLikeAttendance(head) {
+  return V.headOf(head[0]) === "studentid" && head.slice(1).some((h) => /^\d{1,2}[\/.-]\d{1,2}[\/.-]\d{2,4}/.test(V.sessionOf(h)));
+}
+// The known tab a sheet stands for: by its name; for a file of one sheet (a CSV) also by its columns.
+function identify(sheet, onlySheet) {
+  const n = norm(sheet.name);
+  const named = S.LOG_TABS.find((t) => norm(t.name) === n);
+  if (named) return { kind: "log", spec: named };
+  if (n === norm(S.ATTENDANCE_TAB)) return { kind: "attendance" };
+  const skipped = Object.keys(S.SKIPPED).find((k) => norm(k) === n);
+  if (skipped) return { kind: "skipped", name: skipped, why: S.SKIPPED[skipped] };
+  if (n === "roster") return { kind: "names" };
+  if (onlySheet && sheet.rows.length) {
+    const head = sheet.rows[0];
+    if (looksLikeAttendance(head)) return { kind: "attendance" };
+    const spec = S.LOG_TABS.find((t) => matchesHeader(t, head));
+    if (spec) return { kind: "log", spec };
+  }
+  return { kind: "unknown" };
+}
+
+// ---------- columns ----------
+
+// Where each column of the tab's target layout comes from in the file: { target: [heading], pick: [file column or -1] }.
+// The target is this course's own heading row when it has one (the script reads by position), else the script's. Extra columns of the file follow.
+function layout(spec, head, localHead) {
+  const names = head.map(V.headOf);
+  const byName = (h) => names.indexOf(V.headOf(h));
+  const target = (localHead && localHead.some((h) => !V.blank(h)) ? localHead.slice() : []);
+  while (target.length && V.blank(target[target.length - 1])) target.pop();
+  spec.header.forEach((h, i) => { if (V.blank(target[i])) target[i] = h; });
+  const named = spec.header.map(byName);
+  const byNames = named.slice(0, spec.need).every((i) => i >= 0);
+  if (!byNames && !(spec.positional && head.length >= spec.need)) return null;
+  const pick = target.map((t, k) => (k < spec.header.length && !byNames ? (k < head.length ? k : -1) : byName(t)));
+  head.forEach((h, j) => { // columns of the file that the layout does not have yet
+    if (V.blank(h) || pick.indexOf(j) >= 0 || target.some((t) => V.headOf(t) === V.headOf(h))) return;
+    target.push(String(h).trim()); pick.push(j);
+  });
+  return { target, pick };
+}
+
+function cellOf(spec, k, v) {
+  if (V.blank(v)) return "";
+  if (k === spec.id) return V.idOf(v);
+  if (spec.text.indexOf(k) >= 0) return typeof v === "number" ? V.numOf(v) : String(v).trim();
+  return v;
+}
+
+// ---------- the log tabs: add what is new ----------
+
+function planLog(spec, rows, localRows, ctx) {
+  const rep = { tab: spec.name, label: spec.label, total: 0, add: 0, duplicates: 0, offList: 0, noId: 0, note: "" };
+  const lay = layout(spec, rows[0] || [], localRows && localRows[0]);
+  if (!lay) {
+    rep.status = "skipped"; rep.note = "the columns are not the ones this tab needs (" + spec.header.slice(0, spec.need).join(", ") + ")";
+    return { rep, op: null };
+  }
+  const have = new Set(body(localRows).map(spec.key));
+  const codes = {}; body(localRows).forEach((r) => { if (spec.session) codes[V.codeOf(r[0])] = V.sessionOf(r[1]); });
+  const add = [];
+  body(rows).forEach((r) => {
+    rep.total++;
+    const out = lay.pick.map((j, k) => (j >= 0 ? cellOf(spec, k, r[j]) : ""));
+    if (spec.session && !prepareSession(out, codes, rep)) return;
+    if (spec.id >= 0) {
+      const id = V.idOf(out[spec.id]);
+      if (!id) { rep.noId++; return; }
+      if (spec.onList !== false) ctx.activity.add(id);
+      if (spec.onList !== false && ctx.onlyClassList && !ctx.classIds.has(id)) { rep.offList++; return; }
+    }
+    const key = spec.key(out);
+    if (have.has(key)) { rep.duplicates++; return; }
+    have.add(key); add.push(out);
+  });
+  rep.add = add.length; rep.status = add.length ? "new" : "nothing";
+  return { rep, op: add.length || lay.target.length > (localRows && localRows[0] ? localRows[0].length : 0) ? { tab: spec.name, header: lay.target, rows: add } : null };
+}
+
+// Attendance_Control: only finished sessions (Submitted, Discarded) are copied, never the link secret, and never a code another session here uses.
+function prepareSession(out, codes, rep) {
+  const status = String(out[2] || "").trim().toLowerCase();
+  if (status !== "submitted" && status !== "discarded") { rep.open = (rep.open || 0) + 1; rep.note = "sessions still open or waiting to be submitted on the web are not copied"; return false; }
+  out[5] = "";
+  const code = V.codeOf(out[0]), label = V.sessionOf(out[1]);
+  if (code && codes[code] !== undefined && codes[code] !== label) { rep.conflicts = (rep.conflicts || 0) + 1; return false; }
+  if (code) codes[code] = label;
+  return true;
+}
+
+// ---------- attendance: one column per session, 1 present, 0 absent ----------
+
+function planAttendance(rows, localRows, ctx) {
+  const rep = { tab: S.ATTENDANCE_TAB, label: "Attendance record (one column per session)", total: 0, add: 0, duplicates: 0, offList: 0, newSessions: [], filled: 0, upgraded: 0, rowsAdded: 0, note: "" };
+  const head = rows[0] || [];
+  let idCol = head.findIndex((h) => V.headOf(h) === "studentid"); if (idCol < 0) idCol = 0;
+  const sessions = []; head.forEach((h, j) => { const s = V.sessionOf(h); if (j !== idCol && s && V.headOf(s) !== "name" && V.headOf(s) !== "note") sessions.push({ j, label: s }); });
+  const lh = localRows && localRows[0] ? localRows[0].map(V.sessionOf) : ["Student ID"];
+  const grid = (localRows && localRows.length ? localRows : [lh]).map((r) => r.slice());
+  grid[0] = lh.slice();
+  const rowOf = {}; grid.forEach((r, i) => { if (i && V.idOf(r[0])) rowOf[V.idOf(r[0])] = i; });
+  const colOf = {}; lh.forEach((h, i) => { if (i) colOf[h] = i; });
+  let changed = 0;
+  body(rows).forEach((r) => {
+    const id = V.idOf(r[idCol]); if (!id) return;
+    rep.total++;
+    if (sessions.some((s) => V.markOf(r[s.j]) === 1)) ctx.activity.add(id);
+    if (ctx.onlyClassList && !ctx.classIds.has(id)) { rep.offList++; return; }
+    sessions.forEach((s) => {
+      const v = V.markOf(r[s.j]); if (v === "") return;
+      if (colOf[s.label] === undefined) { colOf[s.label] = grid[0].length; grid[0].push(s.label); rep.newSessions.push(s.label); }
+      let ri = rowOf[id]; if (!ri) { ri = grid.length; rowOf[id] = ri; grid.push([id]); rep.rowsAdded++; changed++; }
+      const c = colOf[s.label], cur = V.markOf(grid[ri][c]);
+      if (cur === "") { grid[ri][c] = v; rep.filled++; changed++; } else if (v === 1 && cur === 0) { grid[ri][c] = 1; rep.upgraded++; changed++; }
+      else rep.duplicates++;
+    });
+  });
+  const width = grid[0].length;
+  grid.forEach((r, i) => { for (let k = 0; k < width; k++) if (r[k] === undefined) r[k] = ""; if (i) r[0] = V.idOf(r[0]); });
+  rep.add = rep.filled + rep.upgraded;
+  rep.status = changed ? "new" : "nothing";
+  if (rep.newSessions.length) rep.note = "new sessions: " + rep.newSessions.join(", ");
+  return { rep, op: changed ? { tab: S.ATTENDANCE_TAB, grid } : null };
+}
+
+// ---------- students ----------
+
+function nameMap(book) { // ID -> name, from the file's own Roster, Master and Totals tabs
+  const out = {};
+  S.NAME_TABS.forEach((tab) => {
+    const sh = book.find((s) => norm(s.name) === norm(tab)); if (!sh || !sh.rows.length) return;
+    const head = sh.rows[0].map(V.headOf);
+    const at = (...names) => head.findIndex((h) => names.indexOf(h) >= 0);
+    const idc = Math.max(0, at("studentid", "id")), nc = at("name", "studentname"), fc = at("firstname"), lc = at("lastname");
+    body(sh.rows).forEach((r) => {
+      const id = V.idOf(r[idc]); if (!id || out[id]) return;
+      const name = nc >= 0 ? String(r[nc] || "").trim() : fc >= 0 ? (String(r[fc] || "").trim() + " " + (lc >= 0 ? String(r[lc] || "").trim() : "")).trim() : "";
+      if (name) out[id] = name;
+    });
+  });
+  return out;
+}
+
+function classIdsOf(rows) { // IDs on this course's class list
+  const set = new Set(); (rows || []).forEach((r) => { const id = V.idOf(r[0]); if (id.length >= 4 && id.length <= 12) set.add(id); });
+  return set;
+}
+
+// ---------- the whole plan ----------
+
+function plan(book, local, options) {
+  const opt = Object.assign({ onlyClassList: true, addMissing: false }, options);
+  const localList = classIdsOf(local.read("Roster"));
+  const ctx = { onlyClassList: opt.onlyClassList, classIds: new Set(localList), activity: new Set() };
+  const names = nameMap(book);
+  const reports = [], ops = [], ignored = [], warnings = [];
+  const only = book.length === 1;
+  const found = book.map((sh) => ({ sh, what: identify(sh, only) }));
+
+  // Pass 1 finds every ID with activity so that "add the missing students" knows them before the tabs are filtered.
+  if (opt.addMissing) {
+    const probe = { onlyClassList: false, classIds: new Set(), activity: new Set() };
+    found.forEach(({ sh, what }) => {
+      if (what.kind === "log") planLog(what.spec, sh.rows, null, probe); else if (what.kind === "attendance") planAttendance(sh.rows, null, probe);
+    });
+    probe.activity.forEach((id) => ctx.classIds.add(id));
+  }
+
+  found.forEach(({ sh, what }) => {
+    if (what.kind === "log") { const r = planLog(what.spec, sh.rows, local.read(what.spec.name), ctx); reports.push(r.rep); if (r.op) ops.push(r.op); }
+    else if (what.kind === "attendance") { const r = planAttendance(sh.rows, local.read(S.ATTENDANCE_TAB), ctx); reports.push(r.rep); if (r.op) ops.push(r.op); }
+    else if (what.kind === "skipped" && sh.rows.length > 1) ignored.push({ tab: what.name, why: what.why });
+    else if (what.kind === "unknown" && sh.rows.length > 1) ignored.push({ tab: sh.name, why: "not a tab this import knows" });
+  });
+  if (!reports.length) warnings.push("This file holds none of the tabs the import knows (live quiz results, practice attempts, attendance). Choose a workbook downloaded from the web version's Google Sheet, or a CSV of one of its tabs.");
+
+  const addIds = opt.addMissing ? [...ctx.activity].filter((id) => !localList.has(id)) : [];
+  const offIds = opt.addMissing ? [] : [...ctx.activity].filter((id) => !localList.has(id));
+  const offList = reports.reduce((n, r) => n + (r.offList || 0), 0);
+  if (!localList.size && !opt.addMissing) warnings.push("This course has no class list yet, so no student can be matched. Add the class list first, or tick \"Add the students in the file to the class list\".");
+  else if (offList && !opt.addMissing) warnings.push(offList + " row(s) belong to IDs that are not on this course's class list and are left out.");
+  const students = { classList: localList.size, withData: [...ctx.activity].filter((id) => localList.has(id)).length, notOnList: offIds.length, notOnListSample: offIds.slice(0, 5), toAdd: addIds.length };
+  const roster = addIds.map((id) => [id, names[id] || ""]);
+  const blocked = !localList.size && !opt.addMissing; // with nobody to match, nothing is written
+  const changes = blocked ? 0 : reports.reduce((n, r) => n + (r.add || 0), 0) + roster.length;
+  return { report: { tabs: reports, ignored, students, warnings, changes, blocked }, ops: blocked ? { tabs: [], roster: [] } : { tabs: ops, roster } };
+}
+
+module.exports = { plan, identify, layout, classIdsOf };

@@ -96,6 +96,19 @@ Google requires every app that signs users in to be registered once. This is don
 
 For a desktop app Google does not treat the client secret as secret, and the sign-in uses PKCE, so shipping the file inside the app is the normal practice. It gives no access to the publisher's own Google account or files: each colleague signs in to their own account, and the app can open only the Sheet it created for them.
 
+## Import results from the web version
+
+If the course was run on the web (the Google Sheet version), its scores, attendance and practice attempts can be brought into the app. In the web version's Google Sheet choose File, Download, Microsoft Excel (.xlsx); then in the app open Grades and Results, press "Import from the web…", choose the file and read the preview. A CSV of a single tab also works.
+
+- Students are matched to the class list by student ID. IDs that are not on the list are left out, unless "Add the students in the file to the class list" is ticked (names come from the file's Roster, Master or Totals tab).
+- The preview shows, for each kind of record, how many are in the file, how many are new, how many are already here and how many are not on the class list. Nothing is written until "Import" is pressed, and a backup is made first (Settings, Backups).
+- Records already in the app are never changed. Importing the same file twice adds nothing. Attendance gains new sessions and marks of 1; a 1 is never turned into a 0.
+- Imported: live quiz results, practice and mock attempts, per-question answers (Item_Log), attendance check-ins, flags and finished sessions, the attendance record, and question reports. Master, Scores and Totals are worked out again from them, so Students, Attendance, Learning Progress and Teaching insights include the new records.
+- Not imported: the web version's settings, host key, personal access codes, live session logs, and sessions still open on the web (submit or close them there first).
+- Item-level evidence for Learning Progress comes from the Item_Log tab. Workbooks from older versions of the web script do not have it; practice attempts still count.
+
+How it works, and how to add another tab: `IMPORT.md`.
+
 ## Resources and questions
 
 Open it from the home screen ("Open resources and questions").

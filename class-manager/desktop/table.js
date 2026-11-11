@@ -70,4 +70,4 @@ async function readTable(file) {
   return splitText(fs.readFileSync(file, "utf8"));
 }
 
-module.exports = { readTable, splitText, readXlsx };
+module.exports = { readTable, splitText, readXlsx, xmlText, colIndex };
