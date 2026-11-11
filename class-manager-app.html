@@ -61,11 +61,11 @@
 <option value="mac" data-req="macOS 11 or later, Intel and Apple silicon.">macOS</option>
 <option value="linux" data-req="AppImage for 64-bit Linux.">Linux</option>
 </select>
-<a class="btn primary" id="cm-get" href="mailto:hdonglo@ug.edu.gh?subject=Request%20for%20the%20Class%20Manager%20Beta">Request the Beta by email</a>
+<a class="btn primary" id="cm-get" href="mailto:hkdonglo@gmail.com?subject=Request%20for%20the%20Class%20Manager%20Beta">Request the Beta by email</a>
 </div>
 <p id="cm-req">Windows 10 or 11, 64-bit.</p>
 <p class="sec-sub" id="cm-os" role="status"></p>
-<p>Requests go to <a href="mailto:hdonglo@ug.edu.gh">hdonglo@ug.edu.gh</a>. Please give your name, institution, the course you would use it for and your computer.</p>
+<p>Requests go to <a href="mailto:hkdonglo@gmail.com">hkdonglo@gmail.com</a>. Please give your name, institution, the course you would use it for and your computer.</p>
 </div>
 </section>
 </div></main>
@@ -79,7 +79,7 @@ var mobile=/Android|iPhone|iPad/i.test(ua);
 var os=mobile?"":/Win/i.test(pf+ua)?"win":/Mac/i.test(pf+ua)?"mac":/Linux|X11/i.test(pf+ua)?"linux":"";
 function show(){var o=sel.options[sel.selectedIndex];
 var body="Dear Dr Donglo,\r\n\r\nI would like to request access to the Class Manager Beta for "+o.textContent+".\r\n\r\nName:\r\nInstitution:\r\nCourse it will be used for:\r\n\r\nKind regards,\r\n";
-get.href="mailto:hdonglo@ug.edu.gh?subject="+encodeURIComponent("Request for the Class Manager Beta ("+o.textContent+")")+"&body="+encodeURIComponent(body);
+get.href="mailto:hkdonglo@gmail.com?subject="+encodeURIComponent("Request for the Class Manager Beta ("+o.textContent+")")+"&body="+encodeURIComponent(body);
 get.textContent="Request the Beta for "+o.textContent;req.textContent=o.getAttribute("data-req")}
 if(os){sel.value=os;note.textContent="Preselected for this computer. Choose another version from the list if needed."}
 else if(mobile)note.textContent="Class Manager runs on a laptop or desktop computer. Choose the version for that computer.";
