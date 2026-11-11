@@ -210,6 +210,9 @@ function createBackend(opts) {
     dropSiteCache: () => { for (const k of [...store.keys()]) if (k.indexOf("site:") === 0) store.delete(k); },
     loadProblem: () => loadProblem,
     tabs: () => book.sheets.map((d) => ({ name: d.name, rows: sheetObj(d).getLastRow() })),
+    // For course synchronisation (sync/records.js): the raw rows of a tab, and replacing a tab's rows.
+    rawRows: (name) => { const d = book.sheets.find((x) => x.name === name); return d ? d.rows.map((r) => (r || []).slice()) : null; },
+    setRows: (name, rows) => { let d = book.sheets.find((x) => x.name === name); if (!d) { d = { name, id: book.sheets.length + 1, rows: [] }; book.sheets.push(d); } d.rows = rows.map((r) => r.slice()); touch(); },
     tab: (name) => { const s = spreadsheet.getSheetByName(name); return s ? s.getDataRange().getDisplayValues() : null; },
     flush
   };
