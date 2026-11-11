@@ -23,6 +23,7 @@ const { readTable } = require("./table");
 const names = require("./names");
 const excel = require("./excel");
 const webImport = require("./import-ipc");
+const folderImport = require("./autoload-ipc");
 const { execFile } = require("child_process");
 const courses = require("./courses");
 const { SECURITY_DEFAULTS, cleanSecurity, lecturerRefusal } = require("./access");
@@ -537,6 +538,7 @@ on("cm:chooseLogo", async (c, e, clear) => {
   } catch (err) { return { ok: false, why: err.message }; }
 });
 webImport.register({ on, dialog, winOf, shell }); // cm:import*: bring results exported from the web version into this course
+folderImport.register({ on, dialog, winOf, shell, dirOf: (c) => registry.dirs(c.id).root }); // cm:auto*: point at a folder; the app finds and extracts what it needs
 ipcMain.handle("cm:tableFile", async (e) => { // a class list as rows, from CSV, a text file or Excel (.xlsx)
   const r = await dialog.showOpenDialog(winOf(e), { title: "Choose the class list", filters: [{ name: "Class list", extensions: ["csv", "xlsx", "txt", "tsv"] }], properties: ["openFile"] });
   if (r.canceled || !r.filePaths[0]) return null;

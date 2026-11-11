@@ -46,3 +46,7 @@ Add an entry to `LOG_TABS` in `import-specs.js` (columns, `need`, `id`, `text`, 
 ## Tests
 
 `npm test` in this folder. `test/import.test.js` builds a made-up web workbook (`test/sample-class.js` written by `test/web-export.js` as Google Sheets writes one) and checks the preview, the apply, a second import, attendance merging, open sessions, students not on the list, an empty class list, column names and the screen's calls. `test/packaging.test.js` checks that every module the app loads is listed in `package.json` (`build.files`).
+
+## Files in any layout
+
+The import above expects the web version's tabs or the template. `autoload/` accepts any file: it finds the columns, keeps only the useful fields, and either passes a web export's own tabs through this import unchanged or turns the clean data into the template's tables (Roster, Quiz scores, Attendance) and previews them here. See `autoload/README.md`. An ID that is not 4 to 12 digits long (a typo in a log) is never added to the class list.

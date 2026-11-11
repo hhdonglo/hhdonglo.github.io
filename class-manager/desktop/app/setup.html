@@ -68,6 +68,7 @@ html{font-size:clamp(15px,calc(9.5px + .42vw),19px)}
  <div class="choice">
   <div class="card"><h3>Start from scratch</h3><p class="why">Enter the course details, then paste or load just student ID and name. The app builds everything else: the class list, Master, Scores, Totals and the attendance sheet, ready for the first session.</p><button type="button" class="p" id="start-new">Start from scratch</button></div>
   <div class="card"><h3>Use a template</h3><p class="why">Download a workbook with the right headings, fill in the class list (and scores or attendance if you have them), then load it.</p><button type="button" id="tpl-get">Download the template</button> <button type="button" class="p" id="tpl-load" data-import-web="template">Load the filled template…</button><p class="msg" id="tpl-msg" role="status"></p></div>
+  <div class="card"><h3>Load from a folder</h3><p class="why">Point the app at the folder that holds your files (class list, scores, attendance, quiz bank, in any layout). It finds what it needs, ignores the rest and builds a clean working file of its own. Your files are never changed.</p><button type="button" class="p" id="start-folder" data-folder-import="setup">Choose a folder…</button></div>
   <div class="card"><h3>Continue from existing data</h3><p class="why">Load the results exported from the web version (the Google Sheet downloaded as Excel). You read a preview first; the class list, scores, attendance and practice attempts are loaded and you carry on from there.</p><button type="button" class="p" id="start-continue" data-import-web="continue">Continue from existing data…</button></div>
  </div>
 </section>
@@ -280,5 +281,6 @@ load().then(function(){var h=(location.hash||"").slice(1);
 })();
 </script>
 <script src="import.js"></script>
+<script src="folder.js"></script>
 </body>
 </html>

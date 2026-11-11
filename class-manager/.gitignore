@@ -1,0 +1,4 @@
+# Student data made by the desktop app must never be committed.
+working/
+autoload.json
+*.working.csv
