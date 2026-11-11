@@ -1,0 +1,33 @@
+# Tests for Class Manager on every push and pull request that changes it. Builds nothing and publishes nothing.
+name: Class Manager tests
+
+on:
+  push:
+    paths:
+      - "class-manager/**"
+      - ".github/workflows/class-manager-tests.yml"
+  pull_request:
+    paths:
+      - "class-manager/**"
+      - ".github/workflows/class-manager-tests.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: class-manager/desktop
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install (without the Electron download)
+        run: npm ci --ignore-scripts
+      - name: The server script is built from its modules
+        run: node ../apps_script/build.js --check
+      - name: Server, statistics and course tests
+        run: npm test

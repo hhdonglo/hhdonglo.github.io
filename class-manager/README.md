@@ -36,7 +36,7 @@ class-manager/
     site.json                small file read by the page renderer
   quizzes/lectureN.json      question banks of the course (none are shipped)
   apps_script/
-    quiz_receiver.gs         the Apps Script server (paste into the Google Sheet)
+    quiz_receiver.gs         the Apps Script server (paste into the Google Sheet); built from src/ by build.js
     live_quizzes.json        weeks available to the live quiz (empty until banks are added)
   assets/                    styles, page scripts, QR code library, KaTeX, icons
   course-packs/phys143/      the PHYS 143 course as a course pack source: course.json, files/ (lecture pages,

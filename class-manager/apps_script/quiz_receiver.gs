@@ -1,3 +1,10 @@
+// GENERATED FILE: do not edit. Built by apps_script/build.js from apps_script/src/ (00-core.gs, 10-assessment.gs, 20-attendance.gs, 30-analytics.gs, 40-collaboration.gs, 50-communication.gs, 60-portal.gs, 90-router.gs).
+// To deploy in Google Apps Script, paste this whole file into the script editor.
+
+// ===== 00-core.gs =====
+// Module core. Core: configuration, shared helpers, the host key, personal access codes, the class list, setup and the sheet menu.
+// Edit the files in apps_script/src/; apps_script/quiz_receiver.gs is built from them (node apps_script/build.js).
+
 // Class Manager quiz receiver. Bound to the course's results Sheet.
 //
 // Tabs: Form Responses 1 (Timestamp, First Name, ID, Join Code, Q1 to Q5, Score), Key (private), Quiz_Control (private),
@@ -154,6 +161,271 @@ function rowFor_(ts, name, id, code, ans, score, rnd, n, week) {
   var f = []; for (var i = 0; i < 5; i++) f.push(ans[i] || '');
   return [ts, name, id, code].concat(f, [score, rnd, n, ans.map(function (a) { return a || '-'; }).join(''), week || '']);
 }
+
+// Run once from the editor: makes sure the Key, Quiz_Control, responses and Log tabs exist and tells you what it found.
+function setup() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ks = ss.getSheetByName(KEY_TAB) || ss.insertSheet(KEY_TAB);
+  if (ks.getLastRow() === 0) ks.appendRow(['Join Code', 'Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Ranking']);
+  ks.getRange(1, 8).setValue('State');
+  ks.getRange(1, 10).setValue('Host key');
+  if (!String(ks.getRange(2, 10).getValue()).trim()) ks.getRange(2, 10).setValue(Utilities.getUuid().replace(/-/g, '').slice(0, 16)); // 16 hex characters from a random UUID
+  if (ks.getLastRow() < 2) ks.appendRow(['2627', '', '', '', '', '', 'Open']);
+  ks.getRange(1, 11).setValue('Totals count (Best or Latest)');
+  if (!String(ks.getRange(2, 11).getValue()).trim()) ks.getRange(2, 11).setValue('Best');
+  ks.getRange(1, 12).setValue('Master sheet (On or Off)');
+  if (!String(ks.getRange(2, 12).getValue()).trim()) ks.getRange(2, 12).setValue('On');
+  var rost = ss.getSheetByName(ROSTER_TAB) || ss.insertSheet(ROSTER_TAB); // private: paste Student ID and Name here for attendance
+  if (rost.getLastRow() === 0) rost.getRange(1, 1).setValue('Student ID'); // IDs only: attendance_tools/roster_sync.sh fills it
+  attSheet_();
+  controlSheet_();
+  var xs = ss.getSheetByName(EXPL_TAB) || ss.insertSheet(EXPL_TAB);
+  if (xs.getLastRow() === 0) xs.appendRow(['Join Code', 'Question', 'Explanation']);
+  var rs = responses_();
+  if (!rs.getRange(1, 10).getValue()) rs.getRange(1, 10).setValue('Score');
+  rs.getRange(1, 11, 1, 4).setValues([['Round', 'Questions', 'Answers', 'Week']]);
+  refreshTotals();
+  var names = ss.getSheets().map(function (x) { return x.getName(); });
+  var msg = 'Setup finished. Host key (also in Key!J2): ' + ks.getRange(2, 10).getValue() + '. Responses tab: ' + rs.getName() + '. Tabs in this file: ' + names.join(', ') + '.';
+  log_('setup', msg.replace(/Host key[^.]*\./, 'Host key shown in Key!J2.'), '', '');
+  try { SpreadsheetApp.getUi().alert(msg); } catch (err) { /* not run from the sheet */ }
+  return msg;
+}
+
+function jsonp_(e, obj) {
+  var cb = String((e && e.parameter && e.parameter.callback) || '');
+  var body = JSON.stringify(obj);
+  if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(cb)) return ContentService.createTextOutput(body).setMimeType(ContentService.MimeType.JSON);
+  return ContentService.createTextOutput(cb + '(' + body + ')').setMimeType(ContentService.MimeType.JAVASCRIPT);
+}
+
+function out_(t) { return ContentService.createTextOutput(t); }
+
+function onOpen() { // a Class Manager menu in the sheet
+  try { SpreadsheetApp.getUi().createMenu('Class Manager').addItem('Refresh totals', 'refreshTotals').addItem('Release held quiz results', 'releaseHeldQuiz').addItem('Discard held quiz results', 'discardHeldQuiz').addItem('Submit attendance', 'submitAttendance').addItem('Named attendance view', 'buildNamedAttendance').addItem('Tidy to class list', 'tidyToClassList').addItem('Discard unsubmitted attendance', 'discardAttendance').addToUi(); } catch (err) { /* not opened from the sheet */ }
+}
+
+function totalsSafe_() { try { refreshTotals(); } catch (err) { log_('totals failed', String(err).slice(0, 150), '', ''); } }
+
+function normId_(s) { return String(s == null ? '' : s).replace(/\D/g, ''); }
+
+function cleanName_(s) { // a name for the lecturer's private view: trimmed, at most 80 characters, no control characters
+  return ' ' + String(s == null ? '' : s).replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80);
+}
+
+function rosterRows_() { // [[id, name], ...] straight from the Roster tab
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ROSTER_TAB);
+  if (!sh || sh.getLastRow() < 1) return [];
+  var v = sh.getRange(1, 1, sh.getLastRow(), 2).getValues(), out = [];
+  v.forEach(function (r) { var id = normId_(r[0]); if (id.length >= 4) out.push([id, String(r[1] || '').trim()]); }); // the header row has no digits and is skipped
+  return out;
+}
+
+function rosterSet_() { // {id: 1}, cached for five minutes
+  var cache = null; try { cache = CacheService.getScriptCache(); var h = cache.get('roster'); if (h) return JSON.parse(h); } catch (err) { cache = null; }
+  var set = {}; rosterRows_().forEach(function (r) { set[r[0]] = 1; });
+  if (cache) { try { cache.put('roster', JSON.stringify(set), 300); } catch (err) { /* roster larger than the cache limit: read the sheet each time */ } }
+  return set;
+}
+
+// Roster sync (used by attendance_tools/roster_sync.sh): adds the uploaded Student IDs (and names, when sent) to the Roster tab: ID in column A, name in
+// column B. Students need only their ID to check in; names are for the lecturer's private view only and are never returned to any page, reply or email.
+// Nothing from the Roster is ever returned. By default nothing is deleted (IDs missing from the upload are only counted).
+// Class section: the Roster must hold only the lecturer's own section. Upload the section's own export (for example COURSE_GROUP_E.csv) with
+// replace=yes and mode=apply: the Roster then becomes exactly that list (other IDs are removed from the Roster only; Attendance, Scores and Master rows are left alone).
+// kind=roster_sync, hostkey, mode=dry|apply, replace=yes (optional), rows = JSON list of [Student ID, name] pairs (or plain IDs).
+function rosterSync_(p) {
+  if (!hostOk_(p)) return { ok: false, why: 'key not accepted' };
+  var rows;
+  try { rows = JSON.parse(String(p.rows || '[]')); } catch (err) { return { ok: false, why: 'could not read the list' }; }
+  if (!Array.isArray(rows) || !rows.length) return { ok: false, why: 'the list is empty' };
+  if (rows.length > 5000) return { ok: false, why: 'the list is too long (more than 5000 rows)' };
+  var up = {}, order = [], bad = 0;
+  rows.forEach(function (r) {
+    var id = normId_(Array.isArray(r) ? r[0] : r);
+    if (id.length < 4 || id.length > 12) { bad++; return; }
+    if (!up[id]) { up[id] = Array.isArray(r) ? cleanName_(r[1]) : ' '; order.push(id); } // ' ' = no name sent
+  });
+  if (!order.length) return { ok: false, why: 'no valid student IDs in the list' };
+  var apply = String(p.mode || '') === 'apply', lk = LockService.getScriptLock();
+  lk.waitLock(30000);
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(ROSTER_TAB) || ss.insertSheet(ROSTER_TAB);
+    if (sh.getLastRow() === 0) sh.getRange(1, 1, 1, 2).setValues([['Student ID', 'Name']]);
+    var have = {}, nameAt = {};
+    sh.getRange(1, 1, sh.getLastRow(), 2).getValues().forEach(function (r, i) { var id = normId_(r[0]); if (id.length >= 4) { have[id] = 1; if (!String(r[1] || '').trim()) nameAt[id] = i + 1; } });
+    var added = order.filter(function (id) { return !have[id]; }).map(function (id) { return [id, up[id].trim()]; });
+    var named = 0; Object.keys(nameAt).forEach(function (id) { if (up[id] && up[id].trim()) named++; }); // existing rows with no name that the upload can fill
+    var missing = Object.keys(have).filter(function (id) { return !up[id]; }).length;
+    var replace = String(p.replace || '') === 'yes', removed = 0;
+    if (replace && apply && missing) { // keep the header and the rows whose ID is in the upload (names in column B, if any, stay with their row)
+      var all = sh.getRange(1, 1, sh.getLastRow(), Math.max(2, sh.getLastColumn())).getValues(), keep = [];
+      all.forEach(function (r, i) { var id = normId_(r[0]); if (i === 0 && id.length < 4) keep.push(r); else if (id.length >= 4 && up[id]) keep.push(r); else removed++; });
+      sh.getRange(1, 1, all.length, all[0].length).clearContent();
+      if (keep.length) { sh.getRange(1, 1, keep.length, 1).setNumberFormat('@'); sh.getRange(1, 1, keep.length, keep[0].length).setValues(keep); }
+    }
+    if (apply && added.length) {
+      var r0 = sh.getLastRow() + 1;
+      sh.getRange(r0, 1, added.length, 2).setNumberFormat('@');
+      sh.getRange(r0, 1, added.length, 2).setValues(added);
+    }
+    if (apply && named) { // fill blank names of IDs already on the Roster; a name that is already there is never overwritten
+      if (!String(sh.getRange(1, 2).getValue()).trim()) sh.getRange(1, 2).setValue('Name');
+      Object.keys(nameAt).forEach(function (id) { if (up[id] && up[id].trim()) sh.getRange(nameAt[id], 2).setNumberFormat('@').setValue(up[id].trim()); });
+    }
+    if (apply) { try { CacheService.getScriptCache().remove('roster'); } catch (err) { /* cache only */ } log_('roster:sync', added.length + ' added', '', ''); }
+    return { ok: true, mode: apply ? 'apply' : 'dry', replace: replace, added: added.length, namesFilled: named, unchanged: order.length - added.length, missing: missing, removed: replace ? (apply ? removed : missing) : 0, skipped: bad, total: order.length };
+  } finally { lk.releaseLock(); }
+}
+
+// Tidy to class list (host action roster_tidy, or Class Manager > Tidy to class list): after the Roster was replaced with one section, the Attendance, Scores and Master
+// tabs still list every earlier ID. This removes the rows of IDs that are NOT on the Roster, but only rows with no marks at all: Attendance rows with no 1,
+// Scores and Master rows with every quiz cell blank. A row with any real mark stays. mode=dry only counts. Nothing is returned except counts.
+function tidyTab_(sh, firstRow, markFrom, isMark, onRoster, apply) {
+  var out = { rows: 0, kept: 0 };
+  if (!sh || sh.getLastRow() < firstRow) return out;
+  var n = sh.getLastRow() - firstRow + 1, w = Math.max(markFrom + 1, sh.getLastColumn());
+  var vals = sh.getRange(firstRow, 1, n, w).getValues(), del = [];
+  vals.forEach(function (r, i) {
+    var id = normId_(r[0]);
+    if (id.length < 4 || onRoster[id]) return;
+    var marked = false; for (var j = markFrom; j < r.length; j++) if (isMark(r[j])) { marked = true; break; }
+    if (marked) out.kept++; else del.push(firstRow + i);
+  });
+  out.rows = del.length;
+  if (apply && del.length) { // delete runs of rows from the bottom up, so formatting of the other rows is untouched
+    var runs = [], start = del[0], prev = del[0];
+    for (var k = 1; k < del.length; k++) { if (del[k] === prev + 1) { prev = del[k]; continue; } runs.push([start, prev]); start = prev = del[k]; }
+    runs.push([start, prev]);
+    for (var m = runs.length - 1; m >= 0; m--) sh.deleteRows(runs[m][0], runs[m][1] - runs[m][0] + 1);
+  }
+  return out;
+}
+
+function rosterTidy_(p) {
+  var apply = String(p.mode || '') === 'apply', roster = rosterSet_();
+  if (!Object.keys(roster).length) return { ok: false, why: 'the Roster is empty, so nothing is tidied' };
+  var lk = LockService.getScriptLock(); lk.waitLock(30000);
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var nonZero = function (v) { return v !== '' && v !== 0 && String(v).trim() !== '0'; }, nonBlank = function (v) { return String(v).trim() !== ''; };
+    var a = tidyTab_(ss.getSheetByName(ATT_TAB), 2, 1, nonZero, roster, apply);
+    var s = tidyTab_(ss.getSheetByName(SCORES_TAB), 4, 4, nonBlank, roster, apply);
+    var m = tidyTab_(ss.getSheetByName(MASTER_TAB), 2, 3, nonBlank, roster, apply);
+    if (apply) log_('roster:tidy', (a.rows + s.rows + m.rows) + ' rows', '', '');
+    return { ok: true, mode: apply ? 'apply' : 'dry', attendance: a.rows, scores: s.rows, master: m.rows, keptWithMarks: a.kept + s.kept + m.kept, rosterSize: Object.keys(roster).length };
+  } finally { lk.releaseLock(); }
+}
+
+function tidyToClassList() { // sheet menu: shows the counts first and asks
+  var ui = SpreadsheetApp.getUi(), d = rosterTidy_({ mode: 'dry' });
+  if (!d.ok) { ui.alert(d.why); return; }
+  if (ui.alert('Remove rows of IDs not on the class list?', 'Attendance ' + d.attendance + ', Scores ' + d.scores + ', Master ' + d.master + ' row(s) with no marks will be deleted. ' + d.keptWithMarks + ' row(s) with marks stay. This cannot be undone.', ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
+  var r = rosterTidy_({ mode: 'apply' });
+  ui.alert(r.ok ? 'Done. Removed Attendance ' + r.attendance + ', Scores ' + r.scores + ', Master ' + r.master + ' row(s).' : r.why);
+}
+
+// Roster edit (host only, from the Control Centre): add, remove or check ONE Student ID without the Mac. Only a yes/no and the roster size come back, never an ID list.
+// Removing an ID takes it off the Roster only (a leaver): the Attendance, Scores and Master rows it already has are kept, and future sessions no longer count it.
+function rosterEdit_(p) {
+  var id = normId_(p.id), op = String(p.op || '');
+  if (id.length < 4 || id.length > 12) return { ok: false, why: 'a Student ID has 4 to 12 digits' };
+  if (op !== 'add' && op !== 'remove' && op !== 'check') return { ok: false, why: 'unknown operation' };
+  var lk = LockService.getScriptLock(); lk.waitLock(30000);
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(ROSTER_TAB) || ss.insertSheet(ROSTER_TAB);
+    if (sh.getLastRow() === 0) sh.getRange(1, 1).setValue('Student ID');
+    var col = sh.getRange(1, 1, sh.getLastRow(), 1).getValues(), at = -1, n = 0;
+    col.forEach(function (r, i) { var x = normId_(r[0]); if (x.length >= 4) { n++; if (x === id && at < 0) at = i + 1; } });
+    if (op === 'check') return { ok: true, onRoster: at > 0, rosterSize: n };
+    if (op === 'add') {
+      if (at > 0) return { ok: true, changed: false, rosterSize: n };
+      var r0 = sh.getLastRow() + 1; sh.getRange(r0, 1, 1, 2).setNumberFormat('@').setValues([[id, cleanName_(p.name).trim()]]);
+      n++;
+    } else {
+      if (at < 0) return { ok: true, changed: false, rosterSize: n };
+      sh.deleteRow(at); n--;
+    }
+    try { CacheService.getScriptCache().remove('roster'); } catch (err) { /* cache only */ }
+    log_('roster:' + op, '1', '', '');
+    return { ok: true, changed: true, rosterSize: n };
+  } finally { lk.releaseLock(); }
+}
+
+// The explanation for question q of a live quiz: the Explanations tab if it has a row, else the practice bank
+// (quizzes/lecture1.json, matched through apps_script/live_quizzes.json), so there is one source and nothing to paste.
+function siteJson_(path) {
+  var cache = CacheService.getScriptCache(), raw = cache.get('site:' + path);
+  if (!raw) { raw = UrlFetchApp.fetch(SITE + path + '?t=' + Date.now(), { muteHttpExceptions: true }).getContentText(); if (raw.length < 95000) cache.put('site:' + path, raw, 300); }
+  return JSON.parse(raw);
+}
+
+function plainText_(t) { return String(t || '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim(); }
+
+function sheetWith_(name, header) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(name);
+  if (!sh) { sh = ss.insertSheet(name); sh.appendRow(header); sh.setFrozenRows(1); }
+  else if (sh.getLastRow() === 0) sh.appendRow(header);
+  return sh;
+}
+function bodyRows_(sh, nc) { var n = sh ? sh.getLastRow() : 0; return n > 1 ? sh.getRange(2, 1, n - 1, nc).getValues() : []; }
+function rewriteBody_(sh, nc, rows) {
+  var n = sh.getLastRow();
+  if (n > 1) sh.getRange(2, 1, n - 1, nc).clearContent();
+  if (rows.length) sh.getRange(2, 1, rows.length, nc).setValues(rows);
+}
+function splitIds_(s) { return String(s || '').split(/[\s,]+/).map(function (x) { return x.replace(/^'/, '').trim(); }).filter(String); }
+function pct_(a, b) { return b ? Math.round(1000 * a / b) / 10 : null; }
+
+function newAccessCode_() {
+  var h = (Utilities.getUuid() + Utilities.getUuid()).replace(/[^0-9a-f]/gi, ''), s = '';
+  for (var i = 0; i < 8; i++) s += CODE_ALPHA.charAt(parseInt(h.substr(i * 3, 3), 16) % CODE_ALPHA.length);
+  return s.slice(0, 4) + '-' + s.slice(4);
+}
+function codesMap_() {
+  var out = {}, sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CODES_TAB);
+  bodyRows_(sh, 3).forEach(function (r) { var id = normId_(r[0]), c = normCode_(r[1]); if (id && c) out[id] = { code: c, issued: r[2] }; });
+  return out;
+}
+// Host only. op = list (default), generate (a code for every rostered ID that has none), reset (a new code for one ID).
+function accessCodes_(p) {
+  var op = String(p.op || 'list').toLowerCase(), sh = sheetWith_(CODES_TAB, ['Student ID', 'Access code', 'Issued']);
+  var map = codesMap_(), roster = rosterRows_(), made = 0, now = new Date();
+  if (op === 'generate') {
+    var add = [];
+    roster.forEach(function (r) { var id = normId_(r[0]); if (id && !map[id]) { map[id] = { code: newAccessCode_(), issued: now }; add.push([id, map[id].code, now]); made++; } });
+    if (add.length) sh.getRange(sh.getLastRow() + 1, 1, add.length, 3).setNumberFormat('@').setValues(add);
+    if (made) log_('access codes created', String(made), '', '');
+  } else if (op === 'reset') {
+    var rid = normId_(p.id);
+    if (!rid || !rosterSet_()[rid]) return { ok: false, why: 'not on list' };
+    map[rid] = { code: newAccessCode_(), issued: now };
+    var rows = bodyRows_(sh, 3).filter(function (r) { return normId_(r[0]) !== rid; });
+    rows.push([rid, map[rid].code, now]);
+    rewriteBody_(sh, 3, rows);
+    log_('access code replaced', '', rid, '');
+    made = 1;
+  }
+  var list = roster.map(function (r) { var id = normId_(r[0]); return { id: id, name: cleanName_(r[1]), code: map[id] ? map[id].code : '' }; }).filter(function (x) { return x.id; });
+  return { ok: true, made: made, rows: list, missing: list.filter(function (x) { return !x.code; }).length };
+}
+
+function fmtDay_(t) { return t ? Utilities.formatDate(new Date(t), Session.getScriptTimeZone(), 'dd/MM/yyyy') : ''; }
+function safeLink_(s) { var t = String(s || '').trim().slice(0, 300); return /^https?:\/\/[^\s<>"']+$/i.test(t) ? t : ''; }
+
+// Students: their groups' assignments, submit the group's work, record their own part, rate their group-mates (seen by the lecturer only).
+function studentAuth_(p) {
+  var id = normId_(p.id), given = normCode_(p.access);
+  if (id.length < 4 || id.length > 12) return { why: 'bad id' };
+  if (attFails_('r' + id) >= ATT_MAX_FAILS) return { why: 'slow down' };
+  var mine = rosterSet_()[id] ? codesMap_()[id] : null;
+  if (!mine || !given || mine.code !== given) { attFailAdd_('r' + id); return { why: 'not recognised' }; }
+  return { id: id };
+}
+
+// ===== 10-assessment.gs =====
+// Module assessment. Assessment: join codes, the live quiz and its question draw, held results, Master, Scores and Totals, presence, review, ranking and the item log.
+// Edit the files in apps_script/src/; apps_script/quiz_receiver.gs is built from them (node apps_script/build.js).
 
 // ---------- Master: one sheet for all quizzes, one row per student, one column per quiz ----------
 // Tab "Master": Student ID | Name | Last updated | then one column per quiz, added automatically the first time that quiz is seen:
@@ -345,45 +617,6 @@ function responses_() {
   sh.appendRow(['Timestamp', 'First Name', 'ID', 'Join Code', 'Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Score', 'Round', 'Questions', 'Answers', 'Week']);
   return sh;
 }
-
-// Run once from the editor: makes sure the Key, Quiz_Control, responses and Log tabs exist and tells you what it found.
-function setup() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var ks = ss.getSheetByName(KEY_TAB) || ss.insertSheet(KEY_TAB);
-  if (ks.getLastRow() === 0) ks.appendRow(['Join Code', 'Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Ranking']);
-  ks.getRange(1, 8).setValue('State');
-  ks.getRange(1, 10).setValue('Host key');
-  if (!String(ks.getRange(2, 10).getValue()).trim()) ks.getRange(2, 10).setValue(Utilities.getUuid().replace(/-/g, '').slice(0, 16)); // 16 hex characters from a random UUID
-  if (ks.getLastRow() < 2) ks.appendRow(['2627', '', '', '', '', '', 'Open']);
-  ks.getRange(1, 11).setValue('Totals count (Best or Latest)');
-  if (!String(ks.getRange(2, 11).getValue()).trim()) ks.getRange(2, 11).setValue('Best');
-  ks.getRange(1, 12).setValue('Master sheet (On or Off)');
-  if (!String(ks.getRange(2, 12).getValue()).trim()) ks.getRange(2, 12).setValue('On');
-  var rost = ss.getSheetByName(ROSTER_TAB) || ss.insertSheet(ROSTER_TAB); // private: paste Student ID and Name here for attendance
-  if (rost.getLastRow() === 0) rost.getRange(1, 1).setValue('Student ID'); // IDs only: attendance_tools/roster_sync.sh fills it
-  attSheet_();
-  controlSheet_();
-  var xs = ss.getSheetByName(EXPL_TAB) || ss.insertSheet(EXPL_TAB);
-  if (xs.getLastRow() === 0) xs.appendRow(['Join Code', 'Question', 'Explanation']);
-  var rs = responses_();
-  if (!rs.getRange(1, 10).getValue()) rs.getRange(1, 10).setValue('Score');
-  rs.getRange(1, 11, 1, 4).setValues([['Round', 'Questions', 'Answers', 'Week']]);
-  refreshTotals();
-  var names = ss.getSheets().map(function (x) { return x.getName(); });
-  var msg = 'Setup finished. Host key (also in Key!J2): ' + ks.getRange(2, 10).getValue() + '. Responses tab: ' + rs.getName() + '. Tabs in this file: ' + names.join(', ') + '.';
-  log_('setup', msg.replace(/Host key[^.]*\./, 'Host key shown in Key!J2.'), '', '');
-  try { SpreadsheetApp.getUi().alert(msg); } catch (err) { /* not run from the sheet */ }
-  return msg;
-}
-
-function jsonp_(e, obj) {
-  var cb = String((e && e.parameter && e.parameter.callback) || '');
-  var body = JSON.stringify(obj);
-  if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(cb)) return ContentService.createTextOutput(body).setMimeType(ContentService.MimeType.JSON);
-  return ContentService.createTextOutput(cb + '(' + body + ')').setMimeType(ContentService.MimeType.JAVASCRIPT);
-}
-
-function out_(t) { return ContentService.createTextOutput(t); }
 
 // ---------- Quiz_Control: the server decides what state a quiz is in ----------
 
@@ -851,17 +1084,8 @@ function refreshTotals() {
   return rows.length;
 }
 
-function onOpen() { // a Class Manager menu in the sheet
-  try { SpreadsheetApp.getUi().createMenu('Class Manager').addItem('Refresh totals', 'refreshTotals').addItem('Release held quiz results', 'releaseHeldQuiz').addItem('Discard held quiz results', 'discardHeldQuiz').addItem('Submit attendance', 'submitAttendance').addItem('Named attendance view', 'buildNamedAttendance').addItem('Tidy to class list', 'tidyToClassList').addItem('Discard unsubmitted attendance', 'discardAttendance').addToUi(); } catch (err) { /* not opened from the sheet */ }
-}
-
 function releaseHeldQuiz() { return commitQuiz_('', true); }
 function discardHeldQuiz() { return discardQuiz_('', true); }
-function submitAttendance() { return attSubmit_(); }
-function discardAttendance() { return attDiscard_(); }
-
-function totalsSafe_() { try { refreshTotals(); } catch (err) { log_('totals failed', String(err).slice(0, 150), '', ''); } }
-
 // ---------- Presence: who has joined, who is working, who has submitted ----------
 
 function presence_(code, id, name, status) {
@@ -892,130 +1116,129 @@ function hasPresence_(code, id) {
   return false;
 }
 
+function bankExplanation_(code, q) { // {text, error}
+  try {
+    var c = ctl_(code), e = liveEntry_(code, c);
+    var id = e.inline ? e.ids[q - 1] : (c ? qids_(c)[q - 1] : '');
+    if (!id) return { text: '', error: 'no practice-bank question is listed for this question' };
+    var bank = bankList_(e.bank);
+    for (var i = 0; i < bank.length; i++) {
+      if (bank[i].id === id) return { text: plainText_(bank[i].exp) + (bank[i].ref ? ' Review: ' + plainText_(bank[i].ref) : ''), error: '' };
+    }
+    return { text: '', error: 'bank question ' + id + ' was not found' };
+  } catch (err) { return { text: '', error: String(err).slice(0, 160) }; }
+}
+
+// What the class sees while the lecturer goes over a question: the correct letter, the spread of answers,
+// the viewer's own answer, and the explanation. Nothing here is sent unless review is switched on.
+function reviewData_(code, id) {
+  var c = ctl_(code), key = keyRow_(code);
+  var q = c ? Number(c.v[17]) || 0 : 0, st = c ? eff_(c) : '';
+  if (!c || !key || q < 1 || (st !== 'ended' && st !== 'released')) return { q: 0 };
+  var got = latestAnswers_(code), dist = { A: 0, B: 0, C: 0, D: 0, E: 0 }, n = 0;
+  Object.keys(got).forEach(function (k) { var a = got[k].ans[q - 1]; if (a) { n++; if (dist[a] !== undefined) dist[a]++; } });
+  var expl = '', es = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(EXPL_TAB);
+  if (es && es.getLastRow() > 1) {
+    var rows = es.getRange(2, 1, es.getLastRow() - 1, 3).getValues();
+    for (var i = 0; i < rows.length; i++) if (String(rows[i][0]).trim().toUpperCase() === code && Number(rows[i][1]) === q) expl = String(rows[i][2]);
+  }
+  var err = '';
+  if (!expl) { var bx = bankExplanation_(code, q); expl = bx.text; err = bx.error; }
+  var key = lettersFor_(code, c)[q - 1] || '', o = { q: q, correct: key, dist: dist, answered: n, mine: id && got[id] ? got[id].ans[q - 1] : '', explanation: expl, explanationError: err };
+  if (discussedOf_(c).indexOf(q) >= 0) { o.discussion = discussionMoves_(got, q, key); if (id && got[id]) o.mineFirst = got[id].first[q - 1]; }
+  return o;
+}
+
+// ---------- GET (JSONP): status, own result, ranking, host and display data ----------
+
+function ranking_(code, me) {
+  var list = [];
+  {
+    var rnd = roundOf_(code), data = respRows_(); // held and released rows. Timestamp, First Name, ID, Join Code, Q1 to Q5, Score, Round, Questions, Answers, Week
+    for (var r = 0; r < data.length; r++) {
+      if (String(data[r][3]).trim().toUpperCase() === code && data[r][9] !== '' && (Number(data[r][10]) || 0) === rnd) {
+        list.push({ name: String(data[r][1]), score: Number(data[r][9]), n: Number(data[r][11]) || 5, me: !!me && String(data[r][2]).trim() === me });
+      }
+    }
+  }
+  list.sort(function (x, y) { return y.score - x.score || x.name.localeCompare(y.name); });
+  return list.slice(0, 300);
+}
+
+function counts_(code) {
+  var out = { joined: 0, inprogress: 0, submitted: 0, notYet: [] };
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(PRESENCE_TAB);
+  if (sh && sh.getLastRow() > 1) {
+    var rows = sh.getRange(2, 1, sh.getLastRow() - 1, 5).getValues();
+    for (var i = 0; i < rows.length; i++) {
+      if (String(rows[i][3]).trim().toUpperCase() !== code) continue;
+      out.joined++;
+      var st = String(rows[i][4]);
+      if (st === 'submitted') out.submitted++;
+      else { if (st === 'inprogress') out.inprogress++; out.notYet.push(String(rows[i][2]) + (st === 'inprogress' ? ' (working)' : ' (joined)')); }
+    }
+  }
+  return out;
+}
+
+// ---------- Learning support: item log, access codes, the student dashboard and teaching insights ----------
+// Item_Log (private): one row per student per live quiz question, written when a quiz ends and removed again if it is discarded.
+//   It is what the question statistics and each student's "questions to revisit" are computed from.
+// Access_Codes (private): one personal code per Student ID. "My results" needs the ID and this code, so knowing a classmate's ID is not enough.
+//   The lecturer creates the codes and prints a slip per student from the Access codes page (codes.html).
+// Question_Stats (private): rewritten each time the lecturer opens Teaching insights (insights.html), so it can be exported or copied.
+var ITEMS_TAB = 'Item_Log', CODES_TAB = 'Access_Codes', QSTATS_TAB = 'Question_Stats';
+var ITEMS_HEADER = ['Timestamp', 'Join Code', 'Round', 'Week', 'Student ID', 'Q', 'Question ID', 'Answer', 'Correct answer', 'Correct', 'Confidence', 'First answer', 'Discussed'];
+var ITEMS_W = ITEMS_HEADER.length; // First answer and Discussed: the answer before a second vote, and 1 when the question had one
+var CODE_ALPHA = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; // no 0, O, 1, I or L: easy to read from a printed slip
+var CONF_WORD = { H: 'High', M: 'Medium', L: 'Low' };
+
+function lectureOfQid_(qid) { var m = /^L(\d+)-/i.exec(String(qid || '')); return m ? Number(m[1]) : -1; }
+// ---- Item_Log ----
+function logItems_(code, rnd, wk, ids, letters, got, discussed) {
+  var sh = sheetWith_(ITEMS_TAB, ITEMS_HEADER), now = new Date(), add = [], disc = {};
+  (discussed || []).forEach(function (q) { disc[q] = true; });
+  if (!String(sh.getRange(1, 12).getValue()).trim()) sh.getRange(1, 12, 1, 2).setValues([['First answer', 'Discussed']]);
+  Object.keys(got).forEach(function (id) {
+    var a = got[id];
+    for (var q = 0; q < letters.length; q++) {
+      var ans = String(a.ans[q] || '');
+      add.push([now, code, rnd, wk || '', id, q + 1, ids[q] || '', ans, letters[q] || '', letters[q] && ans === letters[q] ? 1 : 0, (a.conf && a.conf[q]) || '',
+        disc[q + 1] ? String((a.first && a.first[q]) || '') : '', disc[q + 1] ? 1 : '']);
+    }
+  });
+  var rows = bodyRows_(sh, ITEMS_W), clash = rows.some(function (r) { return String(r[1]).trim().toUpperCase() === code && (Number(r[2]) || 0) === rnd; });
+  if (clash) rewriteBody_(sh, ITEMS_W, rows.filter(function (r) { return !(String(r[1]).trim().toUpperCase() === code && (Number(r[2]) || 0) === rnd); }).concat(add)); // a reopened quiz is compiled again
+  else if (add.length) sh.getRange(sh.getLastRow() + 1, 1, add.length, ITEMS_W).setValues(add);
+}
+function dropItems_(pairs) { // pairs: {'CODE|round': true}, from a discard
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ITEMS_TAB);
+  if (!sh || !Object.keys(pairs).length) return;
+  var rows = bodyRows_(sh, ITEMS_W), keep = rows.filter(function (r) { return !pairs[String(r[1]).trim().toUpperCase() + '|' + (Number(r[2]) || 0)]; });
+  if (keep.length !== rows.length) rewriteBody_(sh, ITEMS_W, keep);
+}
+function releasedSet_() { // 'ID|CODE|round' of every released live result (Form Responses 1, not the held rows)
+  var rs = responses_(), n = rs.getLastRow(), out = {};
+  if (n > 1) rs.getRange(2, 3, n - 1, 9).getValues().forEach(function (r) { out[String(r[0]).trim() + '|' + String(r[1]).trim().toUpperCase() + '|' + (Number(r[8]) || 0)] = true; });
+  return out;
+}
+
+// ---- Access codes ----
+function normCode_(s) { var t = String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8); return t.length === 8 ? t.slice(0, 4) + '-' + t.slice(4) : ''; }
+
+// ===== 20-attendance.gs =====
+// Module attendance. Attendance: sessions, the rotating QR check-in, device and location checks, review after class and the attendance grid.
+// Edit the files in apps_script/src/; apps_script/quiz_receiver.gs is built from them (node apps_script/build.js).
+
+function submitAttendance() { return attSubmit_(); }
+function discardAttendance() { return attDiscard_(); }
+
 // ---------- Attendance: a check-in code, the student enters an ID, 1 if present, 0 when the session is closed ----------
 // Tabs (all private): Roster (Student IDs only, filled by attendance_tools/roster_sync.sh), Attendance_Control (one row per session:
 // Code | Label | Status | Opened | Closed), Attendance_Log (every check-in), Attendance (one row per rostered student, one column per session,
 // "Attendance Wk N [1]" = 1 present, 0 absent, the format a learning platform gradebook imports), Not_On_List (IDs that checked in but are not on the roster).
 // The lecturer opens a session from the host page with a code to announce in class; students enter that code and their ID on the quiz page.
 var ROSTER_TAB = 'Roster', ATT_CTL_TAB = 'Attendance_Control', ATT_LOG_TAB = 'Attendance_Log', ATT_TAB = 'Attendance', NOTLIST_TAB = 'Not_On_List';
-
-function normId_(s) { return String(s == null ? '' : s).replace(/\D/g, ''); }
-
-function cleanName_(s) { // a name for the lecturer's private view: trimmed, at most 80 characters, no control characters
-  return ' ' + String(s == null ? '' : s).replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80);
-}
-
-function rosterRows_() { // [[id, name], ...] straight from the Roster tab
-  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ROSTER_TAB);
-  if (!sh || sh.getLastRow() < 1) return [];
-  var v = sh.getRange(1, 1, sh.getLastRow(), 2).getValues(), out = [];
-  v.forEach(function (r) { var id = normId_(r[0]); if (id.length >= 4) out.push([id, String(r[1] || '').trim()]); }); // the header row has no digits and is skipped
-  return out;
-}
-
-function rosterSet_() { // {id: 1}, cached for five minutes
-  var cache = null; try { cache = CacheService.getScriptCache(); var h = cache.get('roster'); if (h) return JSON.parse(h); } catch (err) { cache = null; }
-  var set = {}; rosterRows_().forEach(function (r) { set[r[0]] = 1; });
-  if (cache) { try { cache.put('roster', JSON.stringify(set), 300); } catch (err) { /* roster larger than the cache limit: read the sheet each time */ } }
-  return set;
-}
-
-// Roster sync (used by attendance_tools/roster_sync.sh): adds the uploaded Student IDs (and names, when sent) to the Roster tab: ID in column A, name in
-// column B. Students need only their ID to check in; names are for the lecturer's private view only and are never returned to any page, reply or email.
-// Nothing from the Roster is ever returned. By default nothing is deleted (IDs missing from the upload are only counted).
-// Class section: the Roster must hold only the lecturer's own section. Upload the section's own export (for example COURSE_GROUP_E.csv) with
-// replace=yes and mode=apply: the Roster then becomes exactly that list (other IDs are removed from the Roster only; Attendance, Scores and Master rows are left alone).
-// kind=roster_sync, hostkey, mode=dry|apply, replace=yes (optional), rows = JSON list of [Student ID, name] pairs (or plain IDs).
-function rosterSync_(p) {
-  if (!hostOk_(p)) return { ok: false, why: 'key not accepted' };
-  var rows;
-  try { rows = JSON.parse(String(p.rows || '[]')); } catch (err) { return { ok: false, why: 'could not read the list' }; }
-  if (!Array.isArray(rows) || !rows.length) return { ok: false, why: 'the list is empty' };
-  if (rows.length > 5000) return { ok: false, why: 'the list is too long (more than 5000 rows)' };
-  var up = {}, order = [], bad = 0;
-  rows.forEach(function (r) {
-    var id = normId_(Array.isArray(r) ? r[0] : r);
-    if (id.length < 4 || id.length > 12) { bad++; return; }
-    if (!up[id]) { up[id] = Array.isArray(r) ? cleanName_(r[1]) : ' '; order.push(id); } // ' ' = no name sent
-  });
-  if (!order.length) return { ok: false, why: 'no valid student IDs in the list' };
-  var apply = String(p.mode || '') === 'apply', lk = LockService.getScriptLock();
-  lk.waitLock(30000);
-  try {
-    var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(ROSTER_TAB) || ss.insertSheet(ROSTER_TAB);
-    if (sh.getLastRow() === 0) sh.getRange(1, 1, 1, 2).setValues([['Student ID', 'Name']]);
-    var have = {}, nameAt = {};
-    sh.getRange(1, 1, sh.getLastRow(), 2).getValues().forEach(function (r, i) { var id = normId_(r[0]); if (id.length >= 4) { have[id] = 1; if (!String(r[1] || '').trim()) nameAt[id] = i + 1; } });
-    var added = order.filter(function (id) { return !have[id]; }).map(function (id) { return [id, up[id].trim()]; });
-    var named = 0; Object.keys(nameAt).forEach(function (id) { if (up[id] && up[id].trim()) named++; }); // existing rows with no name that the upload can fill
-    var missing = Object.keys(have).filter(function (id) { return !up[id]; }).length;
-    var replace = String(p.replace || '') === 'yes', removed = 0;
-    if (replace && apply && missing) { // keep the header and the rows whose ID is in the upload (names in column B, if any, stay with their row)
-      var all = sh.getRange(1, 1, sh.getLastRow(), Math.max(2, sh.getLastColumn())).getValues(), keep = [];
-      all.forEach(function (r, i) { var id = normId_(r[0]); if (i === 0 && id.length < 4) keep.push(r); else if (id.length >= 4 && up[id]) keep.push(r); else removed++; });
-      sh.getRange(1, 1, all.length, all[0].length).clearContent();
-      if (keep.length) { sh.getRange(1, 1, keep.length, 1).setNumberFormat('@'); sh.getRange(1, 1, keep.length, keep[0].length).setValues(keep); }
-    }
-    if (apply && added.length) {
-      var r0 = sh.getLastRow() + 1;
-      sh.getRange(r0, 1, added.length, 2).setNumberFormat('@');
-      sh.getRange(r0, 1, added.length, 2).setValues(added);
-    }
-    if (apply && named) { // fill blank names of IDs already on the Roster; a name that is already there is never overwritten
-      if (!String(sh.getRange(1, 2).getValue()).trim()) sh.getRange(1, 2).setValue('Name');
-      Object.keys(nameAt).forEach(function (id) { if (up[id] && up[id].trim()) sh.getRange(nameAt[id], 2).setNumberFormat('@').setValue(up[id].trim()); });
-    }
-    if (apply) { try { CacheService.getScriptCache().remove('roster'); } catch (err) { /* cache only */ } log_('roster:sync', added.length + ' added', '', ''); }
-    return { ok: true, mode: apply ? 'apply' : 'dry', replace: replace, added: added.length, namesFilled: named, unchanged: order.length - added.length, missing: missing, removed: replace ? (apply ? removed : missing) : 0, skipped: bad, total: order.length };
-  } finally { lk.releaseLock(); }
-}
-
-// Tidy to class list (host action roster_tidy, or Class Manager > Tidy to class list): after the Roster was replaced with one section, the Attendance, Scores and Master
-// tabs still list every earlier ID. This removes the rows of IDs that are NOT on the Roster, but only rows with no marks at all: Attendance rows with no 1,
-// Scores and Master rows with every quiz cell blank. A row with any real mark stays. mode=dry only counts. Nothing is returned except counts.
-function tidyTab_(sh, firstRow, markFrom, isMark, onRoster, apply) {
-  var out = { rows: 0, kept: 0 };
-  if (!sh || sh.getLastRow() < firstRow) return out;
-  var n = sh.getLastRow() - firstRow + 1, w = Math.max(markFrom + 1, sh.getLastColumn());
-  var vals = sh.getRange(firstRow, 1, n, w).getValues(), del = [];
-  vals.forEach(function (r, i) {
-    var id = normId_(r[0]);
-    if (id.length < 4 || onRoster[id]) return;
-    var marked = false; for (var j = markFrom; j < r.length; j++) if (isMark(r[j])) { marked = true; break; }
-    if (marked) out.kept++; else del.push(firstRow + i);
-  });
-  out.rows = del.length;
-  if (apply && del.length) { // delete runs of rows from the bottom up, so formatting of the other rows is untouched
-    var runs = [], start = del[0], prev = del[0];
-    for (var k = 1; k < del.length; k++) { if (del[k] === prev + 1) { prev = del[k]; continue; } runs.push([start, prev]); start = prev = del[k]; }
-    runs.push([start, prev]);
-    for (var m = runs.length - 1; m >= 0; m--) sh.deleteRows(runs[m][0], runs[m][1] - runs[m][0] + 1);
-  }
-  return out;
-}
-
-function rosterTidy_(p) {
-  var apply = String(p.mode || '') === 'apply', roster = rosterSet_();
-  if (!Object.keys(roster).length) return { ok: false, why: 'the Roster is empty, so nothing is tidied' };
-  var lk = LockService.getScriptLock(); lk.waitLock(30000);
-  try {
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var nonZero = function (v) { return v !== '' && v !== 0 && String(v).trim() !== '0'; }, nonBlank = function (v) { return String(v).trim() !== ''; };
-    var a = tidyTab_(ss.getSheetByName(ATT_TAB), 2, 1, nonZero, roster, apply);
-    var s = tidyTab_(ss.getSheetByName(SCORES_TAB), 4, 4, nonBlank, roster, apply);
-    var m = tidyTab_(ss.getSheetByName(MASTER_TAB), 2, 3, nonBlank, roster, apply);
-    if (apply) log_('roster:tidy', (a.rows + s.rows + m.rows) + ' rows', '', '');
-    return { ok: true, mode: apply ? 'apply' : 'dry', attendance: a.rows, scores: s.rows, master: m.rows, keptWithMarks: a.kept + s.kept + m.kept, rosterSize: Object.keys(roster).length };
-  } finally { lk.releaseLock(); }
-}
-
-function tidyToClassList() { // sheet menu: shows the counts first and asks
-  var ui = SpreadsheetApp.getUi(), d = rosterTidy_({ mode: 'dry' });
-  if (!d.ok) { ui.alert(d.why); return; }
-  if (ui.alert('Remove rows of IDs not on the class list?', 'Attendance ' + d.attendance + ', Scores ' + d.scores + ', Master ' + d.master + ' row(s) with no marks will be deleted. ' + d.keptWithMarks + ' row(s) with marks stay. This cannot be undone.', ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
-  var r = rosterTidy_({ mode: 'apply' });
-  ui.alert(r.ok ? 'Done. Removed Attendance ' + r.attendance + ', Scores ' + r.scores + ', Master ' + r.master + ' row(s).' : r.why);
-}
 
 // Named attendance view (lecturer only, from the sheet's Class Manager menu): writes a private tab Attendance_Named with Name, Student ID and a copy of every
 // Attendance column, so the lecturer can see who was present. The Attendance tab itself stays IDs only (the format a gradebook imports). Run again to refresh.
@@ -1030,33 +1253,6 @@ function buildNamedAttendance() {
   nv.getRange(1, 1, out.length, out[0].length).setNumberFormat('@').setValues(out);
   nv.setFrozenRows(1); nv.setFrozenColumns(2);
   ui.alert('Attendance_Named is up to date (' + (out.length - 1) + ' students). It is private: never publish it.');
-}
-
-// Roster edit (host only, from the Control Centre): add, remove or check ONE Student ID without the Mac. Only a yes/no and the roster size come back, never an ID list.
-// Removing an ID takes it off the Roster only (a leaver): the Attendance, Scores and Master rows it already has are kept, and future sessions no longer count it.
-function rosterEdit_(p) {
-  var id = normId_(p.id), op = String(p.op || '');
-  if (id.length < 4 || id.length > 12) return { ok: false, why: 'a Student ID has 4 to 12 digits' };
-  if (op !== 'add' && op !== 'remove' && op !== 'check') return { ok: false, why: 'unknown operation' };
-  var lk = LockService.getScriptLock(); lk.waitLock(30000);
-  try {
-    var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(ROSTER_TAB) || ss.insertSheet(ROSTER_TAB);
-    if (sh.getLastRow() === 0) sh.getRange(1, 1).setValue('Student ID');
-    var col = sh.getRange(1, 1, sh.getLastRow(), 1).getValues(), at = -1, n = 0;
-    col.forEach(function (r, i) { var x = normId_(r[0]); if (x.length >= 4) { n++; if (x === id && at < 0) at = i + 1; } });
-    if (op === 'check') return { ok: true, onRoster: at > 0, rosterSize: n };
-    if (op === 'add') {
-      if (at > 0) return { ok: true, changed: false, rosterSize: n };
-      var r0 = sh.getLastRow() + 1; sh.getRange(r0, 1, 1, 2).setNumberFormat('@').setValues([[id, cleanName_(p.name).trim()]]);
-      n++;
-    } else {
-      if (at < 0) return { ok: true, changed: false, rosterSize: n };
-      sh.deleteRow(at); n--;
-    }
-    try { CacheService.getScriptCache().remove('roster'); } catch (err) { /* cache only */ }
-    log_('roster:' + op, '1', '', '');
-    return { ok: true, changed: true, rosterSize: n };
-  } finally { lk.releaseLock(); }
 }
 
 function attSheet_() {
@@ -1445,376 +1641,9 @@ function attApprove_(p) { // host only: count a student present in a session tha
   return { ok: true, added: 1 };
 }
 
-// ---------- POST: answers, joins, progress, reports, attempts ----------
-
-function doPost(e) {
-  var p = (e && e.parameter) || {};
-  if (p.kind === 'roster_sync') return out_(JSON.stringify(rosterSync_(p)));
-  if (p.kind === 'report' || p.kind === 'attempt') {
-    var lk = LockService.getScriptLock();
-    lk.waitLock(20000);
-    try {
-      if (p.kind === 'report') {
-        var r = { time: new Date().toString(), page: clean_(p.page, 200), lecture: clean_(p.lecture, 80), qid: clean_(p.qid, 40),
-          question: clean_(p.question, 500), answer: clean_(p.answer, 300), comment: clean_(p.comment, 1000) };
-        var rs = append_('Reports', ['Timestamp', 'Lecture', 'Question id', 'Question', 'Answer shown', 'Comment', 'Page'],
-          [new Date(), r.lecture, r.qid, r.question, r.answer, r.comment, r.page]);
-        mailReport_(rs, r);
-      } else {
-        if (!clean_(p.id, 30)) return out_('missing');
-        var ats = append_('Attempts', ['Timestamp', 'Student ID', 'Quiz', 'Attempt', 'Score', 'Total', 'Seconds', 'Wrong question ids', 'Question ids'],
-          [new Date(), clean_(p.id, 30), clean_(p.quiz, 80), clean_(p.attempt, 10), clean_(p.score, 10), clean_(p.total, 10), clean_(p.seconds, 10), clean_(p.wrong, 1200), clean_(p.asked, 1500)]);
-        if (!String(ats.getRange(1, 9).getValue()).trim()) ats.getRange(1, 9).setValue('Question ids');
-        // held in Attempts until a release: Master and Scores are not touched here
-      }
-      return out_('ok');
-    } finally {
-      lk.releaseLock();
-    }
-  }
-  var name = clean_(p.name, 40), id = clean_(p.id, 20), code = clean_(p.code, 30).toUpperCase();
-  function fin_(o) { log_(o, name, id, code); return out_(o); }
-
-  if (p.kind === 'answer') { // paced quiz: one answer to the question that is open right now
-    var qn = Number(p.q), al = String(p.answer || '').trim().toUpperCase();
-    var ca = ctl_(code);
-    if (!name || !id || !keyRow_(code) || LETTERS.indexOf(al) < 0 || !(qn >= 1 && qn <= (ca ? quizN_(ca) : 5))) return fin_('bad answer');
-    if (!ca || !paced_(ca)) return fin_('not paced');
-    if (eff_(ca) !== 'running') return fin_('not open');
-    if (Number(ca.v[11]) !== qn) return fin_('wrong question');
-    if (Number(ca.v[13]) && Date.now() > Number(ca.v[13]) + GRACE_MS) return fin_('question closed');
-    if (!allowLate_(ca) && !hasPresence_(code, id)) return fin_('not joined');
-    var cfv = String(p.conf || '').trim().toUpperCase().charAt(0); if ('HML'.indexOf(cfv) < 0) cfv = '';
-    var ash = append_(ANSWERS_TAB, ['Timestamp', 'ID', 'First Name', 'Join Code', 'Q', 'Answer', 'Round', 'Confidence', 'Vote'], [new Date(), id, name, code, qn, al, Number(ca.v[16]) || 0, cfv, voteOf_(ca)]);
-    try { var hc = CacheService.getScriptCache(); if (!hc.get('ansHdr2')) { if (!String(ash.getRange(1, 8).getValue()).trim()) ash.getRange(1, 8).setValue('Confidence'); if (!String(ash.getRange(1, 9).getValue()).trim()) ash.getRange(1, 9).setValue('Vote'); hc.put('ansHdr2', '1', 21600); } } catch (err) { /* header only */ }
-    return out_('ok');
-  }
-  if (p.kind === 'join' || p.kind === 'progress') { // lobby and live participation
-    if (!name || !id || !keyRow_(code)) return out_('ok');
-    var lj = LockService.getScriptLock();
-    lj.waitLock(60000); // a whole class joining at once queues here
-    try {
-      var cj = ctl_(code), sj = cj ? eff_(cj) : 'running';
-      if (cj && !allowLate_(cj) && (sj === 'running' || sj === 'paused') && !hasPresence_(code, id)) return out_('late');
-      presence_(code, id, name, p.kind === 'progress' ? 'inprogress' : 'joined');
-    } finally {
-      lj.releaseLock();
-    }
-    return out_('ok');
-  }
-
-  if (!name || !id || !code) return fin_('missing');
-  var lock = LockService.getScriptLock();
-  lock.waitLock(20000);
-  try {
-    var key = keyRow_(code);
-    if (!key) return fin_('bad code');
-    var c = ctl_(code);
-    if (c && paced_(c)) return fin_('use answers');
-    if (c) { // lecturer-controlled: state and deadline are checked here, not in the browser
-      var s = eff_(c), left = Number(c.v[3]) + GRACE_MS - Date.now();
-      if (s === 'draft' || s === 'ready' || s === 'lobby') return fin_('not started');
-      if (s === 'paused') return fin_('paused');
-      if (s === 'released') return fin_('quiz closed');
-      if (s === 'ended' && left < 0) return fin_('quiz closed');
-      if (!allowLate_(c) && !hasPresence_(code, id)) return fin_('not joined');
-    } else {
-      var st = state_(key);
-      if (st === 'waiting') return fin_('not started');
-      if (st === 'stopped') return fin_('quiz closed');
-    }
-
-    var sh = stagedSheet_(); // held until released
-    var rows0 = respRows_(), n = rows0.length + 1;
-    var rnd = roundOf_(code);
-    var ans = [];
-    for (var q = 1; q <= 5; q++) {
-      var a = String(p['q' + q] || '').trim().toUpperCase();
-      ans.push(LETTERS.indexOf(a) >= 0 ? a : '');
-    }
-    var marks = mark_(lettersFor_(code, null), ans), score = marks.reduce(function (x, y) { return x + y; }, 0);
-    if (n > 1) { // first attempt per ID and join code in this round only
-      var seen = rows0.map(function (r) { return r.slice(2, 11); });
-      for (var j = 0; j < seen.length; j++) {
-        if (String(seen[j][0]).trim() === id && String(seen[j][1]).trim().toUpperCase() === code && (Number(seen[j][8]) || 0) === rnd) {
-          return fin_('duplicate');
-        }
-      }
-    }
-    sh.appendRow(rowFor_(new Date(), name, id, code, ans, score, rnd, 5, ''));
-    presence_(code, id, name, 'submitted');
-    return fin_('ok');
-  } finally {
-    lock.releaseLock();
-  }
-}
-
-// The explanation for question q of a live quiz: the Explanations tab if it has a row, else the practice bank
-// (quizzes/lecture1.json, matched through apps_script/live_quizzes.json), so there is one source and nothing to paste.
-function siteJson_(path) {
-  var cache = CacheService.getScriptCache(), raw = cache.get('site:' + path);
-  if (!raw) { raw = UrlFetchApp.fetch(SITE + path + '?t=' + Date.now(), { muteHttpExceptions: true }).getContentText(); if (raw.length < 95000) cache.put('site:' + path, raw, 300); }
-  return JSON.parse(raw);
-}
-
-function plainText_(t) { return String(t || '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim(); }
-
-function bankExplanation_(code, q) { // {text, error}
-  try {
-    var c = ctl_(code), e = liveEntry_(code, c);
-    var id = e.inline ? e.ids[q - 1] : (c ? qids_(c)[q - 1] : '');
-    if (!id) return { text: '', error: 'no practice-bank question is listed for this question' };
-    var bank = bankList_(e.bank);
-    for (var i = 0; i < bank.length; i++) {
-      if (bank[i].id === id) return { text: plainText_(bank[i].exp) + (bank[i].ref ? ' Review: ' + plainText_(bank[i].ref) : ''), error: '' };
-    }
-    return { text: '', error: 'bank question ' + id + ' was not found' };
-  } catch (err) { return { text: '', error: String(err).slice(0, 160) }; }
-}
-
-// What the class sees while the lecturer goes over a question: the correct letter, the spread of answers,
-// the viewer's own answer, and the explanation. Nothing here is sent unless review is switched on.
-function reviewData_(code, id) {
-  var c = ctl_(code), key = keyRow_(code);
-  var q = c ? Number(c.v[17]) || 0 : 0, st = c ? eff_(c) : '';
-  if (!c || !key || q < 1 || (st !== 'ended' && st !== 'released')) return { q: 0 };
-  var got = latestAnswers_(code), dist = { A: 0, B: 0, C: 0, D: 0, E: 0 }, n = 0;
-  Object.keys(got).forEach(function (k) { var a = got[k].ans[q - 1]; if (a) { n++; if (dist[a] !== undefined) dist[a]++; } });
-  var expl = '', es = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(EXPL_TAB);
-  if (es && es.getLastRow() > 1) {
-    var rows = es.getRange(2, 1, es.getLastRow() - 1, 3).getValues();
-    for (var i = 0; i < rows.length; i++) if (String(rows[i][0]).trim().toUpperCase() === code && Number(rows[i][1]) === q) expl = String(rows[i][2]);
-  }
-  var err = '';
-  if (!expl) { var bx = bankExplanation_(code, q); expl = bx.text; err = bx.error; }
-  var key = lettersFor_(code, c)[q - 1] || '', o = { q: q, correct: key, dist: dist, answered: n, mine: id && got[id] ? got[id].ans[q - 1] : '', explanation: expl, explanationError: err };
-  if (discussedOf_(c).indexOf(q) >= 0) { o.discussion = discussionMoves_(got, q, key); if (id && got[id]) o.mineFirst = got[id].first[q - 1]; }
-  return o;
-}
-
-// ---------- GET (JSONP): status, own result, ranking, host and display data ----------
-
-function ranking_(code, me) {
-  var list = [];
-  {
-    var rnd = roundOf_(code), data = respRows_(); // held and released rows. Timestamp, First Name, ID, Join Code, Q1 to Q5, Score, Round, Questions, Answers, Week
-    for (var r = 0; r < data.length; r++) {
-      if (String(data[r][3]).trim().toUpperCase() === code && data[r][9] !== '' && (Number(data[r][10]) || 0) === rnd) {
-        list.push({ name: String(data[r][1]), score: Number(data[r][9]), n: Number(data[r][11]) || 5, me: !!me && String(data[r][2]).trim() === me });
-      }
-    }
-  }
-  list.sort(function (x, y) { return y.score - x.score || x.name.localeCompare(y.name); });
-  return list.slice(0, 300);
-}
-
-function counts_(code) {
-  var out = { joined: 0, inprogress: 0, submitted: 0, notYet: [] };
-  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(PRESENCE_TAB);
-  if (sh && sh.getLastRow() > 1) {
-    var rows = sh.getRange(2, 1, sh.getLastRow() - 1, 5).getValues();
-    for (var i = 0; i < rows.length; i++) {
-      if (String(rows[i][3]).trim().toUpperCase() !== code) continue;
-      out.joined++;
-      var st = String(rows[i][4]);
-      if (st === 'submitted') out.submitted++;
-      else { if (st === 'inprogress') out.inprogress++; out.notYet.push(String(rows[i][2]) + (st === 'inprogress' ? ' (working)' : ' (joined)')); }
-    }
-  }
-  return out;
-}
-
-// ---------- Portal and Control Centre support (additive: no existing action changes) ----------
-// SCRIPT_VERSION: change it whenever the script is redeployed; the Control Centre compares it with the version its page expects.
-// Key!M2 = Off hides "My results" from students (default On).
-var SCRIPT_VERSION = '2026-11-10-pedagogy-1';
-
-function resultsOn_() {
-  try {
-    var ks = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(KEY_TAB);
-    return !ks || String(ks.getRange(2, 13).getValue()).trim().toLowerCase() !== 'off';
-  } catch (err) { return true; }
-}
-
-// Key!N2 holds the week the lecturer chose in the Control Centre (1 to 12). Empty means: use data/portal.json.
-function weekChoice_() {
-  try {
-    var v = Number(SpreadsheetApp.getActiveSpreadsheet().getSheetByName(KEY_TAB).getRange(2, 14).getValue());
-    return v >= 1 && v <= 12 ? v : 0;
-  } catch (err) { return 0; }
-}
-
-function setWeek_(p) { // host only; w=0 clears the choice
-  var w = Number(String(p.w || '').replace(/\D/g, '').slice(0, 2));
-  if (isNaN(w) || w < 0 || w > 12) return { ok: false, why: 'week must be 0 to 12' };
-  var ks = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(KEY_TAB);
-  if (!ks) return { ok: false, why: 'no Key tab' };
-  ks.getRange(2, 14).setValue(w || '');
-  try { CacheService.getScriptCache().remove('portal'); } catch (err) { /* cache only */ }
-  return { ok: true, week: w };
-}
-
-function portalStatus_() { // public, no secrets: is attendance open, is a live quiz open, is "My results" on. Cached 5 s.
-  var cache = null; try { cache = CacheService.getScriptCache(); var h = cache.get('portal'); if (h) return JSON.parse(h); } catch (err) { cache = null; }
-  var att = 'closed';
-  try { attRows_().forEach(function (r) { if (r.status === 'Open') att = 'open'; }); } catch (err) { /* leave closed */ }
-  var quiz = 'none';
-  try {
-    var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONTROL_TAB);
-    if (sh && sh.getLastRow() > 1) {
-      sh.getRange(2, 1, sh.getLastRow() - 1, CTL_HEADER.length).getValues().forEach(function (v) {
-        var st = eff_({ v: v }); // lobby, running or paused counts as open; the join code is never returned
-        if (st === 'lobby' || st === 'running' || st === 'paused') quiz = st;
-      });
-    }
-  } catch (err) { /* leave none */ }
-  var o = { portal: 1, attendance: att, quiz: quiz, results: resultsOn_(), version: SCRIPT_VERSION, week: weekChoice_() };
-  if (cache) { try { cache.put('portal', JSON.stringify(o), 5); } catch (err) { /* cache only */ } }
-  return o;
-}
-
-// A student's own attendance and quiz scores, found by ID. Same failure limit as check-in. Returns nothing about any other student.
-function portalResults_(p) {
-  if (!resultsOn_()) return { ok: false, why: 'results off' };
-  var id = normId_(p.id), given = normCode_(p.code);
-  if (id.length < 4 || id.length > 12) return { ok: false, why: 'bad id' };
-  if (attFails_('r' + id) >= ATT_MAX_FAILS) return { ok: false, why: 'slow down' };
-  var mine = rosterSet_()[id] ? codesMap_()[id] : null; // the ID and its personal access code, both required
-  if (!mine || !given || mine.code !== given) { attFailAdd_('r' + id); return { ok: false, why: 'not recognised' }; }
-  var ss = SpreadsheetApp.getActiveSpreadsheet(), out = { ok: true, attendance: [], quizzes: [] };
-  var at = ss.getSheetByName(ATT_TAB);
-  if (at && at.getLastRow() > 1 && at.getLastColumn() > 1) {
-    var g = at.getRange(1, 1, at.getLastRow(), at.getLastColumn()).getValues();
-    for (var i = 1; i < g.length; i++) if (normId_(g[i][0]) === id) {
-      for (var c = 1; c < g[0].length; c++) if (g[i][c] !== '' && String(g[0][c]).trim()) out.attendance.push([String(g[0][c]).trim(), Number(g[i][c]) ? 1 : 0]);
-      break;
-    }
-  }
-  var sc = ss.getSheetByName(SCORES_TAB);
-  if (sc && sc.getLastRow() > 3 && sc.getLastColumn() > 4) {
-    var s = sc.getRange(1, 1, sc.getLastRow(), sc.getLastColumn()).getValues();
-    for (var r = 3; r < s.length; r++) if (normId_(s[r][0]) === id) {
-      for (var k = 4; k < s[0].length; k++) if (s[r][k] !== '' && String(s[0][k]).trim()) out.quizzes.push([String(s[0][k]).trim(), s[r][k] + (s[2][k] !== '' ? ' / ' + s[2][k] : '')]);
-      break;
-    }
-  }
-  try { out.groups = studentGroups_(id); } catch (err) { out.groups = []; }
-  try { var ln = studentLearning_(id); out.mastery = ln.mastery; out.revisit = ln.revisit; out.practice = ln.practice; } catch (err) { out.learningError = true; }
-  try { var sp = studentProgress_(id); out.progress = { outcomes: sp.outcomes.map(function (o) { return { label: o.label, answers: o.answers, start: o.start, current: o.current, gain: o.gain, level: o.level }; }), timeline: sp.timeline, overall: { answers: sp.overall.answers, start: sp.overall.start, current: sp.overall.current, gain: sp.overall.gain }, minimum: sp.minimum }; } catch (err) { out.progressError = true; }
-  try { out.groupWork = asgRows_().filter(function (a) { return (out.groups || []).some(function (g) { return g.set === a.set && asgFor_(a, g.group); }); }).length; } catch (err) { out.groupWork = 0; }
-  return out;
-}
-
-// Host only: the checks behind the Control Centre's "Run checks" button. Reads only; nothing is changed.
-function preclass_(p) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet(), o = { ok: true, version: SCRIPT_VERSION, serverNow: Date.now() };
-  try { o.rosterCount = rosterRows_().length; } catch (err) { o.rosterCount = -1; }
-  o.masterOn = masterOn_(); o.resultsOn = resultsOn_();
-  try { o.totalsMode = String(ss.getSheetByName(KEY_TAB).getRange(2, 11).getValue()).trim() || 'Best'; } catch (err) { o.totalsMode = 'Best'; }
-  var w = String(p.week || '').replace(/\D/g, '').slice(0, 2);
-  if (w) {
-    o.week = Number(w); o.weekListed = false; o.bankQuestions = 0;
-    try {
-      var weeks = siteJson_('/apps_script/live_quizzes.json').weeks || {};
-      o.weekListed = !!weeks[w];
-      if (o.weekListed) { var b = siteJson_('/quizzes/lecture' + w + '.json'); o.bankQuestions = (b.questions || []).length; }
-    } catch (err) { o.bankError = true; }
-  }
-  var ps = portalStatus_(); o.attendance = ps.attendance; o.quiz = ps.quiz;
-  return o;
-}
-
-// ---------- Learning support: item log, access codes, the student dashboard and teaching insights ----------
-// Item_Log (private): one row per student per live quiz question, written when a quiz ends and removed again if it is discarded.
-//   It is what the question statistics and each student's "questions to revisit" are computed from.
-// Access_Codes (private): one personal code per Student ID. "My results" needs the ID and this code, so knowing a classmate's ID is not enough.
-//   The lecturer creates the codes and prints a slip per student from the Access codes page (codes.html).
-// Question_Stats (private): rewritten each time the lecturer opens Teaching insights (insights.html), so it can be exported or copied.
-var ITEMS_TAB = 'Item_Log', CODES_TAB = 'Access_Codes', QSTATS_TAB = 'Question_Stats';
-var ITEMS_HEADER = ['Timestamp', 'Join Code', 'Round', 'Week', 'Student ID', 'Q', 'Question ID', 'Answer', 'Correct answer', 'Correct', 'Confidence', 'First answer', 'Discussed'];
-var ITEMS_W = ITEMS_HEADER.length; // First answer and Discussed: the answer before a second vote, and 1 when the question had one
-var CODE_ALPHA = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; // no 0, O, 1, I or L: easy to read from a printed slip
-var CONF_WORD = { H: 'High', M: 'Medium', L: 'Low' };
-
-function sheetWith_(name, header) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(name);
-  if (!sh) { sh = ss.insertSheet(name); sh.appendRow(header); sh.setFrozenRows(1); }
-  else if (sh.getLastRow() === 0) sh.appendRow(header);
-  return sh;
-}
-function bodyRows_(sh, nc) { var n = sh ? sh.getLastRow() : 0; return n > 1 ? sh.getRange(2, 1, n - 1, nc).getValues() : []; }
-function rewriteBody_(sh, nc, rows) {
-  var n = sh.getLastRow();
-  if (n > 1) sh.getRange(2, 1, n - 1, nc).clearContent();
-  if (rows.length) sh.getRange(2, 1, rows.length, nc).setValues(rows);
-}
-function lectureOfQid_(qid) { var m = /^L(\d+)-/i.exec(String(qid || '')); return m ? Number(m[1]) : -1; }
-function splitIds_(s) { return String(s || '').split(/[\s,]+/).map(function (x) { return x.replace(/^'/, '').trim(); }).filter(String); }
-function pct_(a, b) { return b ? Math.round(1000 * a / b) / 10 : null; }
-
-// ---- Item_Log ----
-function logItems_(code, rnd, wk, ids, letters, got, discussed) {
-  var sh = sheetWith_(ITEMS_TAB, ITEMS_HEADER), now = new Date(), add = [], disc = {};
-  (discussed || []).forEach(function (q) { disc[q] = true; });
-  if (!String(sh.getRange(1, 12).getValue()).trim()) sh.getRange(1, 12, 1, 2).setValues([['First answer', 'Discussed']]);
-  Object.keys(got).forEach(function (id) {
-    var a = got[id];
-    for (var q = 0; q < letters.length; q++) {
-      var ans = String(a.ans[q] || '');
-      add.push([now, code, rnd, wk || '', id, q + 1, ids[q] || '', ans, letters[q] || '', letters[q] && ans === letters[q] ? 1 : 0, (a.conf && a.conf[q]) || '',
-        disc[q + 1] ? String((a.first && a.first[q]) || '') : '', disc[q + 1] ? 1 : '']);
-    }
-  });
-  var rows = bodyRows_(sh, ITEMS_W), clash = rows.some(function (r) { return String(r[1]).trim().toUpperCase() === code && (Number(r[2]) || 0) === rnd; });
-  if (clash) rewriteBody_(sh, ITEMS_W, rows.filter(function (r) { return !(String(r[1]).trim().toUpperCase() === code && (Number(r[2]) || 0) === rnd); }).concat(add)); // a reopened quiz is compiled again
-  else if (add.length) sh.getRange(sh.getLastRow() + 1, 1, add.length, ITEMS_W).setValues(add);
-}
-function dropItems_(pairs) { // pairs: {'CODE|round': true}, from a discard
-  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ITEMS_TAB);
-  if (!sh || !Object.keys(pairs).length) return;
-  var rows = bodyRows_(sh, ITEMS_W), keep = rows.filter(function (r) { return !pairs[String(r[1]).trim().toUpperCase() + '|' + (Number(r[2]) || 0)]; });
-  if (keep.length !== rows.length) rewriteBody_(sh, ITEMS_W, keep);
-}
-function releasedSet_() { // 'ID|CODE|round' of every released live result (Form Responses 1, not the held rows)
-  var rs = responses_(), n = rs.getLastRow(), out = {};
-  if (n > 1) rs.getRange(2, 3, n - 1, 9).getValues().forEach(function (r) { out[String(r[0]).trim() + '|' + String(r[1]).trim().toUpperCase() + '|' + (Number(r[8]) || 0)] = true; });
-  return out;
-}
-
-// ---- Access codes ----
-function newAccessCode_() {
-  var h = (Utilities.getUuid() + Utilities.getUuid()).replace(/[^0-9a-f]/gi, ''), s = '';
-  for (var i = 0; i < 8; i++) s += CODE_ALPHA.charAt(parseInt(h.substr(i * 3, 3), 16) % CODE_ALPHA.length);
-  return s.slice(0, 4) + '-' + s.slice(4);
-}
-function normCode_(s) { var t = String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8); return t.length === 8 ? t.slice(0, 4) + '-' + t.slice(4) : ''; }
-function codesMap_() {
-  var out = {}, sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CODES_TAB);
-  bodyRows_(sh, 3).forEach(function (r) { var id = normId_(r[0]), c = normCode_(r[1]); if (id && c) out[id] = { code: c, issued: r[2] }; });
-  return out;
-}
-// Host only. op = list (default), generate (a code for every rostered ID that has none), reset (a new code for one ID).
-function accessCodes_(p) {
-  var op = String(p.op || 'list').toLowerCase(), sh = sheetWith_(CODES_TAB, ['Student ID', 'Access code', 'Issued']);
-  var map = codesMap_(), roster = rosterRows_(), made = 0, now = new Date();
-  if (op === 'generate') {
-    var add = [];
-    roster.forEach(function (r) { var id = normId_(r[0]); if (id && !map[id]) { map[id] = { code: newAccessCode_(), issued: now }; add.push([id, map[id].code, now]); made++; } });
-    if (add.length) sh.getRange(sh.getLastRow() + 1, 1, add.length, 3).setNumberFormat('@').setValues(add);
-    if (made) log_('access codes created', String(made), '', '');
-  } else if (op === 'reset') {
-    var rid = normId_(p.id);
-    if (!rid || !rosterSet_()[rid]) return { ok: false, why: 'not on list' };
-    map[rid] = { code: newAccessCode_(), issued: now };
-    var rows = bodyRows_(sh, 3).filter(function (r) { return normId_(r[0]) !== rid; });
-    rows.push([rid, map[rid].code, now]);
-    rewriteBody_(sh, 3, rows);
-    log_('access code replaced', '', rid, '');
-    made = 1;
-  }
-  var list = roster.map(function (r) { var id = normId_(r[0]); return { id: id, name: cleanName_(r[1]), code: map[id] ? map[id].code : '' }; }).filter(function (x) { return x.id; });
-  return { ok: true, made: made, rows: list, missing: list.filter(function (x) { return !x.code; }).length };
-}
+// ===== 30-analytics.gs =====
+// Module analytics. Analytics: a student's own record, teaching insights, class statistics, the learning verdict, areas to target, objectives and learning progress.
+// Edit the files in apps_script/src/; apps_script/quiz_receiver.gs is built from them (node apps_script/build.js).
 
 // ---- The student's own record ----
 function practiceLecture_(quiz) { // 'Lecture 5 ...' -> 5, 'Introduction ...' -> 0, mock -> null
@@ -2323,6 +2152,233 @@ function studentStats_(p) {
   return { ok: true, student: me, sessions: all.attendance.bySession.map(function (s) { return s.label; }), mastery: ln.mastery, revisit: ln.revisit.slice(0, 15), practice: ln.practice, thresholds: all.thresholds, profile: prof };
 }
 
+// ---------- Teaching for learning: outcomes, progress by outcome, ask-discuss-revise evidence, group assignments ----------
+// Each question can be linked to one of its lecture's learning objectives (Question_Outcomes tab, set by the lecturer; a question's own
+// "outcome" field in the bank is used when the tab has no entry). Answers are then read as evidence for that outcome, in time order:
+// released live quiz answers (Item_Log) and practice and mock exam questions (Attempts). Untagged questions count for their lecture.
+// Levels need at least PROG_MIN answers; with fewer the outcome reads "Not enough evidence". Nothing here is shown to students
+// except their own progress, behind their ID and access code.
+var QOUT_TAB = 'Question_Outcomes', QOUT_HEAD = ['Question ID', 'Lecture', 'Outcome', 'Set'];
+var PROG_MIN = 3, PROG_SECURE = 70, PROG_DEVELOPING = 50; // the same bands as the student's Progress by lecture
+var PROG_LEVELS = ['Secure', 'Developing', 'Beginning', 'Not enough evidence'];
+
+function lecturesInfo_() { // {number: {title, outcomes: [text]}} from data/lectures.json
+  var out = {};
+  try {
+    var d = siteJson_('/data/lectures.json');
+    (d.groups || []).forEach(function (g) { (g.lectures || []).forEach(function (l) { var n = Number(l.number); if (!isNaN(n)) out[n] = { title: String(l.title || ''), outcomes: (l.outcomes || []).map(function (x) { return plainText_(x); }) }; }); });
+  } catch (err) { /* no lecture list */ }
+  return out;
+}
+function bankFor_(n) { try { return bankList_('lecture' + n) || []; } catch (err) { return []; } }
+function outcomeTagRows_() { return bodyRows_(SpreadsheetApp.getActiveSpreadsheet().getSheetByName(QOUT_TAB), 4); }
+// {qid: {lec, n}}: the lecturer's tags first, then the bank's own field.
+function outcomeMap_(lects) {
+  var map = {};
+  Object.keys(lects).forEach(function (k) {
+    bankFor_(k).forEach(function (q) { var n = Number(q.outcome); if (q.id && n >= 1 && n <= lects[k].outcomes.length) map[q.id] = { lec: Number(k), n: n, from: 'bank' }; });
+  });
+  outcomeTagRows_().forEach(function (r) { var id = String(r[0]).trim(), n = Number(r[2]); if (!id) return; if (n > 0) map[id] = { lec: Number(r[1]), n: n, from: 'lecturer' }; else delete map[id]; });
+  return map;
+}
+function outcomeKey_(qid, map) { var t = map[qid]; if (t) return 'L' + t.lec + '.' + t.n; var l = lectureOfQid_(qid); return l >= 0 ? 'L' + l : ''; }
+function outcomeLabel_(key, lects) {
+  var m = /^L(\d+)(?:\.(\d+))?$/.exec(key); if (!m) return key;
+  var l = lects[Number(m[1])], lname = Number(m[1]) === 0 ? 'Introduction' : 'Lecture ' + m[1];
+  if (!m[2]) return lname + ' (not linked to an objective)';
+  var t = l && l.outcomes[Number(m[2]) - 1];
+  return lname + ', objective ' + m[2] + (t ? ': ' + t : '');
+}
+var STOP_ = { the: 1, and: 1, for: 1, are: 1, how: 1, its: 1, has: 1, was: 1, why: 1, who: 1, use: 1, one: 1, two: 1, with: 1, that: 1, this: 1, from: 1, into: 1, which: 1, what: 1, when: 1, their: 1, there: 1, these: 1, those: 1, will: 1, able: 1, students: 1, student: 1, should: 1, using: 1, between: 1, given: 1, value: 1, following: 1, correct: 1, answer: 1 };
+function stems_(t) { return plainText_(t).toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').split(/\s+/).filter(function (w) { return w.length > 2 && !STOP_[w]; }).map(function (w) { return w.replace(/ies$/, 'y').replace(/(ing|ed|es|s)$/, ''); }).filter(function (w) { return w.length > 2; }); }
+function suggestOutcome_(q, outcomes) { // the objective whose words the question shares most, or 0
+  var qs = {}; stems_(q.q + ' ' + (q.exp || '') + ' ' + (q.options || []).join(' ')).forEach(function (w) { qs[w] = 1; });
+  var best = 0, bestScore = 0;
+  outcomes.forEach(function (o, i) { var sc = 0, seen = {}; stems_(o).forEach(function (w) { if (qs[w] && !seen[w]) { seen[w] = 1; sc++; } }); if (sc > bestScore) { bestScore = sc; best = i + 1; } });
+  return best;
+}
+
+// Host only: list the lectures, their objectives and every question with its link; save links; accept suggestions.
+function outcomesAct_(p) {
+  var op = String(p.op || 'list').toLowerCase(), lects = lecturesInfo_();
+  if (op === 'save' || op === 'accept') {
+    var sh = sheetWith_(QOUT_TAB, QOUT_HEAD), rows = outcomeTagRows_(), byId = {}, now = new Date(), changes = [];
+    rows.forEach(function (r, i) { byId[String(r[0]).trim()] = i; });
+    if (op === 'save') { try { changes = JSON.parse(String(p.tags || '[]')); } catch (err) { return { ok: false, why: 'the links could not be read' }; } }
+    else {
+      var ln = Number(p.lecture), lo = lects[ln]; if (!lo) return { ok: false, why: 'no such lecture' };
+      var cur = outcomeMap_(lects);
+      bankFor_(ln).forEach(function (q) { if (q.id && !cur[q.id]) { var sg = suggestOutcome_(q, lo.outcomes); if (sg) changes.push({ id: q.id, lecture: ln, outcome: sg }); } });
+    }
+    changes.slice(0, 2000).forEach(function (c) {
+      var id = clean_(c.id, 40).replace(/^'/, ''), l = Number(c.lecture), n = Math.max(0, Math.min(20, Number(c.outcome) || 0)); if (!id) return;
+      if (isNaN(l) || l < 0) l = lectureOfQid_(id);
+      var row = [id, l, n, now];
+      if (byId[id] !== undefined) rows[byId[id]] = row; else { byId[id] = rows.length; rows.push(row); }
+    });
+    rewriteBody_(sh, 4, rows);
+    log_('outcome links', op + ': ' + changes.length, '', '');
+    var res = outcomesAct_({ op: 'list' }); res.saved = changes.length; return res;
+  }
+  // list
+  var map = outcomeMap_(lects), ev = evidence_(), cls = classOutcomes_(ev, lects), byKey = {};
+  cls.forEach(function (o) { byKey[o.key] = o; });
+  var lectures = Object.keys(lects).map(Number).sort(function (a, b) { return a - b; }).map(function (n) {
+    var l = lects[n], bank = bankFor_(n), count = {};
+    var qs = bank.map(function (q) {
+      var t = map[q.id], sg = l.outcomes.length ? suggestOutcome_(q, l.outcomes) : 0;
+      if (t) count[t.n] = (count[t.n] || 0) + 1;
+      return { id: q.id, text: plainText_(q.q).slice(0, 220), type: q.type || '', outcome: t ? t.n : 0, from: t ? t.from : '', suggested: sg };
+    });
+    return { number: n, title: l.title, questions: qs, untagged: qs.filter(function (q) { return !q.outcome; }).length,
+      outcomes: l.outcomes.map(function (text, i) { var k = 'L' + n + '.' + (i + 1), c = byKey[k]; return { n: i + 1, text: text, questions: count[i + 1] || 0, answers: c ? c.answers : 0, pct: c ? c.pct : null, students: c ? c.students : 0, levels: c ? c.levels : null }; }) };
+  });
+  return { ok: true, lectures: lectures, levels: PROG_LEVELS, minimum: PROG_MIN };
+}
+
+// Every answer as evidence, by student, in time order: {id: [{t, qid, ok, src, key}]}
+function evidence_() {
+  var lects = lecturesInfo_(), map = outcomeMap_(lects), out = {}, rel = releasedSet_();
+  function add(id, t, qid, ok, src) { if (!id || !qid) return; var k = outcomeKey_(qid, map); if (!k) return; (out[id] = out[id] || []).push({ t: t, qid: qid, ok: ok, src: src, key: k }); }
+  bodyRows_(SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ITEMS_TAB), ITEMS_W).forEach(function (r) {
+    var id = normId_(r[4]), code = String(r[1]).trim().toUpperCase(), rnd = Number(r[2]) || 0;
+    if (!rel[String(r[4]).trim() + '|' + code + '|' + rnd] || !String(r[7]).trim()) return; // released and answered
+    add(id, new Date(r[0]).getTime() || 0, String(r[6]).trim(), Number(r[9]) ? 1 : 0, 'live');
+  });
+  attemptRows_().forEach(function (a) { a.asked.forEach(function (q) { add(a.id, a.ts, q, a.wrong.indexOf(q) < 0 ? 1 : 0, a.mock ? 'mock' : 'practice'); }); });
+  Object.keys(out).forEach(function (id) { out[id].sort(function (a, b) { return a.t - b.t; }); });
+  out._lects = lects; out._map = map;
+  return out;
+}
+function levelOf_(n, cur) { return n < PROG_MIN || cur === null ? 'Not enough evidence' : cur >= PROG_SECURE ? 'Secure' : cur >= PROG_DEVELOPING ? 'Developing' : 'Beginning'; }
+// Starting level: the first answers; current level: the latest answers (three each once there are six, otherwise half each).
+function progressOf_(evs) {
+  var n = evs.length, k = n >= 6 ? 3 : Math.floor(n / 2), ok = evs.reduce(function (a, e) { return a + e.ok; }, 0);
+  var start = k ? pct_(evs.slice(0, k).reduce(function (a, e) { return a + e.ok; }, 0), k) : null;
+  var cur = k ? pct_(evs.slice(n - k).reduce(function (a, e) { return a + e.ok; }, 0), k) : (n ? pct_(ok, n) : null);
+  return { answers: n, right: ok, pct: pct_(ok, n), start: start, current: cur, gain: start !== null && cur !== null ? Math.round(10 * (cur - start)) / 10 : null, level: levelOf_(n, cur),
+    first: n ? evs[0].t : 0, last: n ? evs[n - 1].t : 0 };
+}
+// One student's progress: by outcome, and over time (proportion correct per calendar week of answers).
+function studentProgress_(id, ev) {
+  ev = ev || evidence_(); var mine = ev[id] || [], lects = ev._lects, by = {};
+  mine.forEach(function (e) { (by[e.key] = by[e.key] || []).push(e); });
+  var outcomes = Object.keys(by).map(function (k) { var p = progressOf_(by[k]); p.key = k; p.label = outcomeLabel_(k, lects); p.linked = /\./.test(k); return p; })
+    .sort(function (a, b) { return a.key.localeCompare(b.key, undefined, { numeric: true }); });
+  var weeks = {}, order = [];
+  mine.forEach(function (e) { var d = new Date(e.t), monday = new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay() + 6) % 7)).getTime(); if (!weeks[monday]) { weeks[monday] = { right: 0, n: 0 }; order.push(monday); } weeks[monday].right += e.ok; weeks[monday].n++; });
+  var timeline = order.sort(function (a, b) { return a - b; }).map(function (w) { return { week: fmtDay_(w), n: weeks[w].n, pct: pct_(weeks[w].right, weeks[w].n) }; });
+  var all = progressOf_(mine), lv = {}; PROG_LEVELS.forEach(function (l) { lv[l] = 0; }); outcomes.forEach(function (o) { lv[o.level]++; });
+  return { overall: all, outcomes: outcomes, timeline: timeline, levels: lv, minimum: PROG_MIN };
+}
+// The class, outcome by outcome: who has evidence, the mean current level, the mean gain and how many students are at each level.
+function classOutcomes_(ev, lects) {
+  var roster = {}; rosterRows_().forEach(function (r) { var id = normId_(r[0]); if (id) roster[id] = true; });
+  var keys = {};
+  Object.keys(ev).forEach(function (id) {
+    if (id.charAt(0) === '_' || (Object.keys(roster).length && !roster[id])) return;
+    var by = {}; ev[id].forEach(function (e) { (by[e.key] = by[e.key] || []).push(e); });
+    Object.keys(by).forEach(function (k) { var p = progressOf_(by[k]), o = keys[k] || (keys[k] = { key: k, students: 0, answers: 0, right: 0, cur: [], gain: [], levels: {} }); o.students++; o.answers += p.answers; o.right += p.right; if (p.answers >= PROG_MIN) o.cur.push(p.current); if (p.gain !== null && p.answers >= 4) o.gain.push(p.gain); o.levels[p.level] = (o.levels[p.level] || 0) + 1; });
+  });
+  var mean = function (xs) { return xs.length ? Math.round(10 * xs.reduce(function (a, b) { return a + b; }, 0) / xs.length) / 10 : null; };
+  return Object.keys(keys).map(function (k) { var o = keys[k]; PROG_LEVELS.forEach(function (l) { o.levels[l] = o.levels[l] || 0; }); return { key: k, label: outcomeLabel_(k, lects), linked: /\./.test(k), students: o.students, answers: o.answers, pct: pct_(o.right, o.answers), current: mean(o.cur), gain: mean(o.gain), gainN: o.gain.length, levels: o.levels }; })
+    .sort(function (a, b) { return a.key.localeCompare(b.key, undefined, { numeric: true }); });
+}
+
+// Ask, discuss, revise: every question that had a second vote, from Item_Log (both answers kept).
+// Normalised gain = (after - before) / (100 - before), the share of the possible improvement that discussion achieved.
+function discussionStats_() {
+  var rows = bodyRows_(SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ITEMS_TAB), ITEMS_W), qs = {}, order = [], byStudent = {};
+  rows.forEach(function (r) {
+    if (Number(r[12]) !== 1) return;
+    var k = String(r[1]).trim().toUpperCase() + '|' + (Number(r[2]) || 0) + '|' + r[5], key = String(r[8]).trim(), f = String(r[11]).trim(), a = String(r[7]).trim(), id = normId_(r[4]);
+    var q = qs[k] || (qs[k] = { code: String(r[1]).trim().toUpperCase(), round: Number(r[2]) || 0, q: Number(r[5]), qid: String(r[6]).trim(), week: r[3], date: fmtDay_(new Date(r[0]).getTime()), before: 0, beforeN: 0, after: 0, afterN: 0, wrongToRight: 0, rightToWrong: 0, pairs: 0 });
+    if (order.indexOf(k) < 0) order.push(k);
+    if (f) { q.beforeN++; if (f === key) q.before++; }
+    if (a) { q.afterN++; if (a === key) q.after++; }
+    if (f && a) { q.pairs++; var s = byStudent[id] || (byStudent[id] = { pairs: 0, wrongToRight: 0, rightToWrong: 0, stayedRight: 0, stayedWrong: 0 }); s.pairs++;
+      if (f !== key && a === key) { q.wrongToRight++; s.wrongToRight++; } else if (f === key && a !== key) { q.rightToWrong++; s.rightToWrong++; } else if (f === key) s.stayedRight++; else s.stayedWrong++; }
+  });
+  var gainOf = function (b, a) { return b === null || a === null || b >= 100 ? null : Math.round(100 * (a - b) / (100 - b)) / 100; };
+  var list = order.map(function (k) { var q = qs[k]; q.beforePct = pct_(q.before, q.beforeN); q.afterPct = pct_(q.after, q.afterN); q.gain = gainOf(q.beforePct, q.afterPct); return q; });
+  var B = 0, BN = 0, A = 0, AN = 0, w2r = 0, r2w = 0, pairs = 0;
+  list.forEach(function (q) { B += q.before; BN += q.beforeN; A += q.after; AN += q.afterN; w2r += q.wrongToRight; r2w += q.rightToWrong; pairs += q.pairs; });
+  var bp = pct_(B, BN), ap = pct_(A, AN);
+  return { questions: list, rounds: list.length, pairs: pairs, beforePct: bp, afterPct: ap, gain: gainOf(bp, ap), wrongToRight: w2r, rightToWrong: r2w, byStudent: byStudent,
+    note: 'Normalised gain is the share of the possible improvement reached after discussion (0 none, 1 all). A question where most were right at first has little room to gain.' };
+}
+
+// Members' outcome evidence before the task was set and after it, for an assignment linked to an outcome.
+function asgBeforeAfter_(a, ids, ev) {
+  if (!a.outcome) return null;
+  var b = { r: 0, n: 0 }, f = { r: 0, n: 0 };
+  ids.forEach(function (id) { (ev[id] || []).forEach(function (e) { if (e.key !== a.outcome) return; var x = e.t < a.created ? b : f; x.n++; x.r += e.ok; }); });
+  return { outcome: a.outcome, label: outcomeLabel_(a.outcome, ev._lects), before: pct_(b.r, b.n), beforeN: b.n, after: pct_(f.r, f.n), afterN: f.n, small: b.n < 10 || f.n < 10 };
+}
+// Host only: the Learning Progress screen: outcomes for the class, ask-discuss-revise evidence, group work, and each student's overall progress.
+function learningProgress_(p) {
+  var ev = evidence_(), lects = ev._lects, roster = rosterRows_().map(function (r) { return { id: normId_(r[0]), name: cleanName_(r[1]).trim() }; }).filter(function (r) { return r.id; });
+  var disc = discussionStats_(), asg = assignmentsAct_({ op: 'list' });
+  var students = roster.map(function (r) {
+    var sp = studentProgress_(r.id, ev), d = disc.byStudent[r.id] || null;
+    return { id: r.id, name: r.name, answers: sp.overall.answers, start: sp.overall.start, current: sp.overall.current, gain: sp.overall.gain, level: sp.overall.level, levels: sp.levels,
+      outcomes: sp.outcomes.map(function (o) { return { key: o.key, current: o.current, level: o.level, answers: o.answers, gain: o.gain }; }), discussion: d };
+  });
+  var groups = groupRows_(), sets = {};
+  groups.forEach(function (g) { var s = sets[g.set] || (sets[g.set] = {}); (s[g.group] = s[g.group] || []).push(g.id); });
+  var byId = {}; students.forEach(function (s) { byId[s.id] = s; });
+  var groupProgress = Object.keys(sets).map(function (name) {
+    return { set: name, groups: Object.keys(sets[name]).map(Number).sort(function (a, b) { return a - b; }).map(function (g) {
+      var m = sets[name][g].map(function (id) { return byId[id]; }).filter(Boolean), cur = m.filter(function (s) { return s.current !== null && s.answers >= PROG_MIN; }), gn = m.filter(function (s) { return s.gain !== null && s.answers >= 4; });
+      var avg = function (xs, k) { return xs.length ? Math.round(10 * xs.reduce(function (a, s) { return a + s[k]; }, 0) / xs.length) / 10 : null; };
+      return { group: g, members: m.length, current: avg(cur, 'current'), gain: avg(gn, 'gain'), withEvidence: cur.length };
+    }) };
+  });
+  return { ok: true, generated: new Date().toISOString(), minimum: PROG_MIN, levelsNames: PROG_LEVELS, thresholds: { secure: PROG_SECURE, developing: PROG_DEVELOPING },
+    outcomes: classOutcomes_(ev, lects), discussion: { rounds: disc.rounds, pairs: disc.pairs, beforePct: disc.beforePct, afterPct: disc.afterPct, gain: disc.gain, wrongToRight: disc.wrongToRight, rightToWrong: disc.rightToWrong, questions: disc.questions, note: disc.note },
+    assignments: asg.assignments || [], students: students, groupProgress: groupProgress };
+}
+
+// The student profile for the lookup: the statistics record, progress by outcome, group work, and suggestions for the lecturer.
+function studentProfile_(id, all, me) {
+  var ev = evidence_(), sp = studentProgress_(id, ev), disc = discussionStats_().byStudent[id] || null, th = all.thresholds;
+  var rows = groupRows_(), list = asgRows_(), work = gwRows_(), marks = amkRows_(), names = {};
+  rosterRows_().forEach(function (r) { var x = normId_(r[0]); if (x) names[x] = cleanName_(r[1]); });
+  var groupWork = [];
+  list.forEach(function (a) {
+    var g = rows.filter(function (r) { return r.id === id && r.set === a.set && asgFor_(a, r.group); })[0]; if (!g) return;
+    var members = rows.filter(function (r) { return r.set === a.set && r.group === g.group; }).map(function (r) { return r.id; });
+    var s = groupWorkOf_(a, g.group, members, work, marks, names), m = s.members.filter(function (x) { return x.id === id; })[0];
+    groupWork.push({ title: a.title, set: a.set, group: g.group, due: a.due, submitted: s.submitted, late: s.late, mark: s.mark, outOf: a.outOf, part: m ? m.part : '', peerAvg: m ? m.peerAvg : null, peerN: m ? m.peerN : 0, peerFlag: m ? m.peerFlag : false });
+  });
+  var known = sp.outcomes.filter(function (o) { return o.answers >= PROG_MIN; });
+  var strengths = known.filter(function (o) { return o.level === 'Secure'; }).sort(function (a, b) { return b.current - a.current || b.answers - a.answers; }).slice(0, 3);
+  var weak = known.filter(function (o) { return o.level === 'Beginning' || (o.level === 'Developing' && o.current < 60); }).sort(function (a, b) { return a.current - b.current || b.answers - a.answers; }).slice(0, 3);
+  // Classmates who are secure where this student is weakest: a possible partner for the next pair or group task.
+  var partners = [];
+  if (weak.length) {
+    var k = weak[0].key;
+    Object.keys(ev).forEach(function (x) { if (x === id || x.charAt(0) === '_' || !names[x]) return; var es = ev[x].filter(function (e) { return e.key === k; }); if (es.length < PROG_MIN) return; var pr = progressOf_(es); if (pr.level === 'Secure') partners.push({ id: x, name: names[x], current: pr.current }); });
+    partners.sort(function (a, b) { return b.current - a.current; }); partners = partners.slice(0, 3);
+  }
+  var tips = [];
+  if (sp.overall.answers < 2 * PROG_MIN && (me.quizzesTaken || 0) < 2) tips.push({ kind: 'Evidence', text: 'Too little evidence for a judgement: ' + sp.overall.answers + ' answers so far. Look again after the next quiz.' });
+  if (me.missedInARow >= th.misses) tips.push({ kind: 'Check-in', text: 'Missed the last ' + me.missedInARow + ' sessions. A short, private check-in on how things are going.' });
+  if (weak.length) tips.push({ kind: 'Revision', text: 'Revise ' + weak[0].label + ' (' + weak[0].current + '% in the latest answers, ' + weak[0].answers + ' answers). Point to the practice for that lecture and the questions to revisit.' });
+  if (partners.length) tips.push({ kind: 'Pairing', text: 'For the next pair task, a partner secure on that objective: ' + partners.map(function (x) { return x.name; }).join(', ') + '.' });
+  if (me.group === 'Working hard but struggling') tips.push({ kind: 'Support', text: 'Effort is high but results are low. Worked examples and a short feedback conversation are likely to help more than extra practice alone.' });
+  if (!me.practiceRecent && me.practiceAttempts >= 0 && all.students.some(function (s) { return s.practiceAttempts; })) tips.push({ kind: 'Practice', text: 'No practice in the last ' + th.idle + ' days. Encourage short retrieval practice spread over the week.' });
+  if (disc && disc.pairs >= 3 && disc.rightToWrong > disc.wrongToRight) tips.push({ kind: 'Discussion', text: 'After discussion this student changed from right to wrong more often (' + disc.rightToWrong + ') than from wrong to right (' + disc.wrongToRight + '). Ask them to explain their reasoning before they change.' });
+  groupWork.filter(function (g) { return g.submitted && !g.part; }).slice(0, 1).forEach(function (g) { tips.push({ kind: 'Group work', text: 'Has not described their own part in "' + g.title + '". Ask what they contributed.' }); });
+  groupWork.filter(function (g) { return g.peerFlag; }).slice(0, 1).forEach(function (g) { tips.push({ kind: 'Group work', text: 'Group-mates rated their contribution to "' + g.title + '" as low (' + g.peerN + ' ratings). Talk to the group before acting on it.' }); });
+  if (!tips.length) tips.push({ kind: 'On track', text: 'Nothing calls for action. Keep the challenge up: an extension question or a peer-explainer role.' });
+  return { progress: sp, discussion: disc, groupWork: groupWork, groups: studentGroups_(id), strengths: strengths, weak: weak, partners: partners, suggestions: tips };
+}
+
+// ===== 40-collaboration.gs =====
+// Module collaboration. Collaboration: student groups, group assignments, group work and peer ratings.
+// Edit the files in apps_script/src/; apps_script/quiz_receiver.gs is built from them (node apps_script/build.js).
+
 // ---------- Student groups: made automatically, adjusted by hand, marked per group ----------
 // Groups (private): one row per student per group set. Set | Group | Student ID | Name | Group mark | Out of | Locked | Created.
 //   A "set" is one grouping for one activity (for example "Lab 1"). The group mark is copied to every member, and to Master and Scores
@@ -2507,163 +2563,6 @@ function studentGroups_(id) {
   });
 }
 
-// ---------- Teaching for learning: outcomes, progress by outcome, ask-discuss-revise evidence, group assignments ----------
-// Each question can be linked to one of its lecture's learning objectives (Question_Outcomes tab, set by the lecturer; a question's own
-// "outcome" field in the bank is used when the tab has no entry). Answers are then read as evidence for that outcome, in time order:
-// released live quiz answers (Item_Log) and practice and mock exam questions (Attempts). Untagged questions count for their lecture.
-// Levels need at least PROG_MIN answers; with fewer the outcome reads "Not enough evidence". Nothing here is shown to students
-// except their own progress, behind their ID and access code.
-var QOUT_TAB = 'Question_Outcomes', QOUT_HEAD = ['Question ID', 'Lecture', 'Outcome', 'Set'];
-var PROG_MIN = 3, PROG_SECURE = 70, PROG_DEVELOPING = 50; // the same bands as the student's Progress by lecture
-var PROG_LEVELS = ['Secure', 'Developing', 'Beginning', 'Not enough evidence'];
-
-function lecturesInfo_() { // {number: {title, outcomes: [text]}} from data/lectures.json
-  var out = {};
-  try {
-    var d = siteJson_('/data/lectures.json');
-    (d.groups || []).forEach(function (g) { (g.lectures || []).forEach(function (l) { var n = Number(l.number); if (!isNaN(n)) out[n] = { title: String(l.title || ''), outcomes: (l.outcomes || []).map(function (x) { return plainText_(x); }) }; }); });
-  } catch (err) { /* no lecture list */ }
-  return out;
-}
-function bankFor_(n) { try { return bankList_('lecture' + n) || []; } catch (err) { return []; } }
-function outcomeTagRows_() { return bodyRows_(SpreadsheetApp.getActiveSpreadsheet().getSheetByName(QOUT_TAB), 4); }
-// {qid: {lec, n}}: the lecturer's tags first, then the bank's own field.
-function outcomeMap_(lects) {
-  var map = {};
-  Object.keys(lects).forEach(function (k) {
-    bankFor_(k).forEach(function (q) { var n = Number(q.outcome); if (q.id && n >= 1 && n <= lects[k].outcomes.length) map[q.id] = { lec: Number(k), n: n, from: 'bank' }; });
-  });
-  outcomeTagRows_().forEach(function (r) { var id = String(r[0]).trim(), n = Number(r[2]); if (!id) return; if (n > 0) map[id] = { lec: Number(r[1]), n: n, from: 'lecturer' }; else delete map[id]; });
-  return map;
-}
-function outcomeKey_(qid, map) { var t = map[qid]; if (t) return 'L' + t.lec + '.' + t.n; var l = lectureOfQid_(qid); return l >= 0 ? 'L' + l : ''; }
-function outcomeLabel_(key, lects) {
-  var m = /^L(\d+)(?:\.(\d+))?$/.exec(key); if (!m) return key;
-  var l = lects[Number(m[1])], lname = Number(m[1]) === 0 ? 'Introduction' : 'Lecture ' + m[1];
-  if (!m[2]) return lname + ' (not linked to an objective)';
-  var t = l && l.outcomes[Number(m[2]) - 1];
-  return lname + ', objective ' + m[2] + (t ? ': ' + t : '');
-}
-var STOP_ = { the: 1, and: 1, for: 1, are: 1, how: 1, its: 1, has: 1, was: 1, why: 1, who: 1, use: 1, one: 1, two: 1, with: 1, that: 1, this: 1, from: 1, into: 1, which: 1, what: 1, when: 1, their: 1, there: 1, these: 1, those: 1, will: 1, able: 1, students: 1, student: 1, should: 1, using: 1, between: 1, given: 1, value: 1, following: 1, correct: 1, answer: 1 };
-function stems_(t) { return plainText_(t).toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').split(/\s+/).filter(function (w) { return w.length > 2 && !STOP_[w]; }).map(function (w) { return w.replace(/ies$/, 'y').replace(/(ing|ed|es|s)$/, ''); }).filter(function (w) { return w.length > 2; }); }
-function suggestOutcome_(q, outcomes) { // the objective whose words the question shares most, or 0
-  var qs = {}; stems_(q.q + ' ' + (q.exp || '') + ' ' + (q.options || []).join(' ')).forEach(function (w) { qs[w] = 1; });
-  var best = 0, bestScore = 0;
-  outcomes.forEach(function (o, i) { var sc = 0, seen = {}; stems_(o).forEach(function (w) { if (qs[w] && !seen[w]) { seen[w] = 1; sc++; } }); if (sc > bestScore) { bestScore = sc; best = i + 1; } });
-  return best;
-}
-
-// Host only: list the lectures, their objectives and every question with its link; save links; accept suggestions.
-function outcomesAct_(p) {
-  var op = String(p.op || 'list').toLowerCase(), lects = lecturesInfo_();
-  if (op === 'save' || op === 'accept') {
-    var sh = sheetWith_(QOUT_TAB, QOUT_HEAD), rows = outcomeTagRows_(), byId = {}, now = new Date(), changes = [];
-    rows.forEach(function (r, i) { byId[String(r[0]).trim()] = i; });
-    if (op === 'save') { try { changes = JSON.parse(String(p.tags || '[]')); } catch (err) { return { ok: false, why: 'the links could not be read' }; } }
-    else {
-      var ln = Number(p.lecture), lo = lects[ln]; if (!lo) return { ok: false, why: 'no such lecture' };
-      var cur = outcomeMap_(lects);
-      bankFor_(ln).forEach(function (q) { if (q.id && !cur[q.id]) { var sg = suggestOutcome_(q, lo.outcomes); if (sg) changes.push({ id: q.id, lecture: ln, outcome: sg }); } });
-    }
-    changes.slice(0, 2000).forEach(function (c) {
-      var id = clean_(c.id, 40).replace(/^'/, ''), l = Number(c.lecture), n = Math.max(0, Math.min(20, Number(c.outcome) || 0)); if (!id) return;
-      if (isNaN(l) || l < 0) l = lectureOfQid_(id);
-      var row = [id, l, n, now];
-      if (byId[id] !== undefined) rows[byId[id]] = row; else { byId[id] = rows.length; rows.push(row); }
-    });
-    rewriteBody_(sh, 4, rows);
-    log_('outcome links', op + ': ' + changes.length, '', '');
-    var res = outcomesAct_({ op: 'list' }); res.saved = changes.length; return res;
-  }
-  // list
-  var map = outcomeMap_(lects), ev = evidence_(), cls = classOutcomes_(ev, lects), byKey = {};
-  cls.forEach(function (o) { byKey[o.key] = o; });
-  var lectures = Object.keys(lects).map(Number).sort(function (a, b) { return a - b; }).map(function (n) {
-    var l = lects[n], bank = bankFor_(n), count = {};
-    var qs = bank.map(function (q) {
-      var t = map[q.id], sg = l.outcomes.length ? suggestOutcome_(q, l.outcomes) : 0;
-      if (t) count[t.n] = (count[t.n] || 0) + 1;
-      return { id: q.id, text: plainText_(q.q).slice(0, 220), type: q.type || '', outcome: t ? t.n : 0, from: t ? t.from : '', suggested: sg };
-    });
-    return { number: n, title: l.title, questions: qs, untagged: qs.filter(function (q) { return !q.outcome; }).length,
-      outcomes: l.outcomes.map(function (text, i) { var k = 'L' + n + '.' + (i + 1), c = byKey[k]; return { n: i + 1, text: text, questions: count[i + 1] || 0, answers: c ? c.answers : 0, pct: c ? c.pct : null, students: c ? c.students : 0, levels: c ? c.levels : null }; }) };
-  });
-  return { ok: true, lectures: lectures, levels: PROG_LEVELS, minimum: PROG_MIN };
-}
-
-// Every answer as evidence, by student, in time order: {id: [{t, qid, ok, src, key}]}
-function evidence_() {
-  var lects = lecturesInfo_(), map = outcomeMap_(lects), out = {}, rel = releasedSet_();
-  function add(id, t, qid, ok, src) { if (!id || !qid) return; var k = outcomeKey_(qid, map); if (!k) return; (out[id] = out[id] || []).push({ t: t, qid: qid, ok: ok, src: src, key: k }); }
-  bodyRows_(SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ITEMS_TAB), ITEMS_W).forEach(function (r) {
-    var id = normId_(r[4]), code = String(r[1]).trim().toUpperCase(), rnd = Number(r[2]) || 0;
-    if (!rel[String(r[4]).trim() + '|' + code + '|' + rnd] || !String(r[7]).trim()) return; // released and answered
-    add(id, new Date(r[0]).getTime() || 0, String(r[6]).trim(), Number(r[9]) ? 1 : 0, 'live');
-  });
-  attemptRows_().forEach(function (a) { a.asked.forEach(function (q) { add(a.id, a.ts, q, a.wrong.indexOf(q) < 0 ? 1 : 0, a.mock ? 'mock' : 'practice'); }); });
-  Object.keys(out).forEach(function (id) { out[id].sort(function (a, b) { return a.t - b.t; }); });
-  out._lects = lects; out._map = map;
-  return out;
-}
-function levelOf_(n, cur) { return n < PROG_MIN || cur === null ? 'Not enough evidence' : cur >= PROG_SECURE ? 'Secure' : cur >= PROG_DEVELOPING ? 'Developing' : 'Beginning'; }
-// Starting level: the first answers; current level: the latest answers (three each once there are six, otherwise half each).
-function progressOf_(evs) {
-  var n = evs.length, k = n >= 6 ? 3 : Math.floor(n / 2), ok = evs.reduce(function (a, e) { return a + e.ok; }, 0);
-  var start = k ? pct_(evs.slice(0, k).reduce(function (a, e) { return a + e.ok; }, 0), k) : null;
-  var cur = k ? pct_(evs.slice(n - k).reduce(function (a, e) { return a + e.ok; }, 0), k) : (n ? pct_(ok, n) : null);
-  return { answers: n, right: ok, pct: pct_(ok, n), start: start, current: cur, gain: start !== null && cur !== null ? Math.round(10 * (cur - start)) / 10 : null, level: levelOf_(n, cur),
-    first: n ? evs[0].t : 0, last: n ? evs[n - 1].t : 0 };
-}
-function fmtDay_(t) { return t ? Utilities.formatDate(new Date(t), Session.getScriptTimeZone(), 'dd/MM/yyyy') : ''; }
-// One student's progress: by outcome, and over time (proportion correct per calendar week of answers).
-function studentProgress_(id, ev) {
-  ev = ev || evidence_(); var mine = ev[id] || [], lects = ev._lects, by = {};
-  mine.forEach(function (e) { (by[e.key] = by[e.key] || []).push(e); });
-  var outcomes = Object.keys(by).map(function (k) { var p = progressOf_(by[k]); p.key = k; p.label = outcomeLabel_(k, lects); p.linked = /\./.test(k); return p; })
-    .sort(function (a, b) { return a.key.localeCompare(b.key, undefined, { numeric: true }); });
-  var weeks = {}, order = [];
-  mine.forEach(function (e) { var d = new Date(e.t), monday = new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay() + 6) % 7)).getTime(); if (!weeks[monday]) { weeks[monday] = { right: 0, n: 0 }; order.push(monday); } weeks[monday].right += e.ok; weeks[monday].n++; });
-  var timeline = order.sort(function (a, b) { return a - b; }).map(function (w) { return { week: fmtDay_(w), n: weeks[w].n, pct: pct_(weeks[w].right, weeks[w].n) }; });
-  var all = progressOf_(mine), lv = {}; PROG_LEVELS.forEach(function (l) { lv[l] = 0; }); outcomes.forEach(function (o) { lv[o.level]++; });
-  return { overall: all, outcomes: outcomes, timeline: timeline, levels: lv, minimum: PROG_MIN };
-}
-// The class, outcome by outcome: who has evidence, the mean current level, the mean gain and how many students are at each level.
-function classOutcomes_(ev, lects) {
-  var roster = {}; rosterRows_().forEach(function (r) { var id = normId_(r[0]); if (id) roster[id] = true; });
-  var keys = {};
-  Object.keys(ev).forEach(function (id) {
-    if (id.charAt(0) === '_' || (Object.keys(roster).length && !roster[id])) return;
-    var by = {}; ev[id].forEach(function (e) { (by[e.key] = by[e.key] || []).push(e); });
-    Object.keys(by).forEach(function (k) { var p = progressOf_(by[k]), o = keys[k] || (keys[k] = { key: k, students: 0, answers: 0, right: 0, cur: [], gain: [], levels: {} }); o.students++; o.answers += p.answers; o.right += p.right; if (p.answers >= PROG_MIN) o.cur.push(p.current); if (p.gain !== null && p.answers >= 4) o.gain.push(p.gain); o.levels[p.level] = (o.levels[p.level] || 0) + 1; });
-  });
-  var mean = function (xs) { return xs.length ? Math.round(10 * xs.reduce(function (a, b) { return a + b; }, 0) / xs.length) / 10 : null; };
-  return Object.keys(keys).map(function (k) { var o = keys[k]; PROG_LEVELS.forEach(function (l) { o.levels[l] = o.levels[l] || 0; }); return { key: k, label: outcomeLabel_(k, lects), linked: /\./.test(k), students: o.students, answers: o.answers, pct: pct_(o.right, o.answers), current: mean(o.cur), gain: mean(o.gain), gainN: o.gain.length, levels: o.levels }; })
-    .sort(function (a, b) { return a.key.localeCompare(b.key, undefined, { numeric: true }); });
-}
-
-// Ask, discuss, revise: every question that had a second vote, from Item_Log (both answers kept).
-// Normalised gain = (after - before) / (100 - before), the share of the possible improvement that discussion achieved.
-function discussionStats_() {
-  var rows = bodyRows_(SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ITEMS_TAB), ITEMS_W), qs = {}, order = [], byStudent = {};
-  rows.forEach(function (r) {
-    if (Number(r[12]) !== 1) return;
-    var k = String(r[1]).trim().toUpperCase() + '|' + (Number(r[2]) || 0) + '|' + r[5], key = String(r[8]).trim(), f = String(r[11]).trim(), a = String(r[7]).trim(), id = normId_(r[4]);
-    var q = qs[k] || (qs[k] = { code: String(r[1]).trim().toUpperCase(), round: Number(r[2]) || 0, q: Number(r[5]), qid: String(r[6]).trim(), week: r[3], date: fmtDay_(new Date(r[0]).getTime()), before: 0, beforeN: 0, after: 0, afterN: 0, wrongToRight: 0, rightToWrong: 0, pairs: 0 });
-    if (order.indexOf(k) < 0) order.push(k);
-    if (f) { q.beforeN++; if (f === key) q.before++; }
-    if (a) { q.afterN++; if (a === key) q.after++; }
-    if (f && a) { q.pairs++; var s = byStudent[id] || (byStudent[id] = { pairs: 0, wrongToRight: 0, rightToWrong: 0, stayedRight: 0, stayedWrong: 0 }); s.pairs++;
-      if (f !== key && a === key) { q.wrongToRight++; s.wrongToRight++; } else if (f === key && a !== key) { q.rightToWrong++; s.rightToWrong++; } else if (f === key) s.stayedRight++; else s.stayedWrong++; }
-  });
-  var gainOf = function (b, a) { return b === null || a === null || b >= 100 ? null : Math.round(100 * (a - b) / (100 - b)) / 100; };
-  var list = order.map(function (k) { var q = qs[k]; q.beforePct = pct_(q.before, q.beforeN); q.afterPct = pct_(q.after, q.afterN); q.gain = gainOf(q.beforePct, q.afterPct); return q; });
-  var B = 0, BN = 0, A = 0, AN = 0, w2r = 0, r2w = 0, pairs = 0;
-  list.forEach(function (q) { B += q.before; BN += q.beforeN; A += q.after; AN += q.afterN; w2r += q.wrongToRight; r2w += q.rightToWrong; pairs += q.pairs; });
-  var bp = pct_(B, BN), ap = pct_(A, AN);
-  return { questions: list, rounds: list.length, pairs: pairs, beforePct: bp, afterPct: ap, gain: gainOf(bp, ap), wrongToRight: w2r, rightToWrong: r2w, byStudent: byStudent,
-    note: 'Normalised gain is the share of the possible improvement reached after discussion (0 none, 1 all). A question where most were right at first has little room to gain.' };
-}
-
 // ---- Group assignments: allocated to some or all groups of a set; one shared submission per group, each member's own part, and private peer ratings ----
 var ASG_TAB = 'Assignments', ASG_HEAD = ['ID', 'Set', 'Groups', 'Title', 'Brief', 'Due', 'Outcome', 'Out of', 'Status', 'Created', 'Updated'];
 var GW_TAB = 'Group_Work', GW_HEAD = ['Time', 'Assignment ID', 'Set', 'Group', 'Student ID', 'Kind', 'Text', 'Link', 'Rating'];
@@ -2685,8 +2584,6 @@ function gwRows_() {
 }
 function amkRows_() { var o = {}; bodyRows_(SpreadsheetApp.getActiveSpreadsheet().getSheetByName(AMK_TAB), 5).forEach(function (r) { o[String(r[0]).trim() + '|' + Number(r[1])] = { mark: r[2] === '' ? null : Number(r[2]), feedback: String(r[3] || ''), marked: r[4] }; }); return o; }
 function dueMs_(due) { var d = calDate_(due); if (!d) return 0; if (!/T/.test(due)) d.setHours(23, 59, 0, 0); return d.getTime(); }
-function safeLink_(s) { var t = String(s || '').trim().slice(0, 300); return /^https?:\/\/[^\s<>"']+$/i.test(t) ? t : ''; }
-
 // How one group did on one assignment: the latest shared submission, each member's part, the peer ratings (lecturer only) and the mark.
 function groupWorkOf_(a, g, members, work, marks, names) {
   var mine = work.filter(function (w) { return w.aid === a.id && w.group === g; }), due = dueMs_(a.due);
@@ -2703,13 +2600,6 @@ function groupWorkOf_(a, g, members, work, marks, names) {
   return { group: g, members: mem, submitted: !!last, text: last ? last.text : '', link: last ? last.link : '', by: last ? (names[last.id] || last.id) : '', time: last ? fmtDay_(last.t) : '', versions: subs.length,
     onTime: last ? (!due || last.t <= due) : null, late: !!(last && due && last.t > due), mark: mk ? mk.mark : null, feedback: mk ? mk.feedback : '',
     parts: mem.filter(function (m) { return m.part; }).length, ratedBy: mem.filter(function (m) { return m.rated; }).length };
-}
-// Members' outcome evidence before the task was set and after it, for an assignment linked to an outcome.
-function asgBeforeAfter_(a, ids, ev) {
-  if (!a.outcome) return null;
-  var b = { r: 0, n: 0 }, f = { r: 0, n: 0 };
-  ids.forEach(function (id) { (ev[id] || []).forEach(function (e) { if (e.key !== a.outcome) return; var x = e.t < a.created ? b : f; x.n++; x.r += e.ok; }); });
-  return { outcome: a.outcome, label: outcomeLabel_(a.outcome, ev._lects), before: pct_(b.r, b.n), beforeN: b.n, after: pct_(f.r, f.n), afterN: f.n, small: b.n < 10 || f.n < 10 };
 }
 function asgSummary_(a, rows, work, marks, names, ev) {
   var groups = {}; rows.filter(function (r) { return r.set === a.set && asgFor_(a, r.group); }).forEach(function (r) { (groups[r.group] = groups[r.group] || []).push(r.id); });
@@ -2767,15 +2657,6 @@ function assignmentsAct_(p) {
     outcomes: Object.keys(ev._lects).map(Number).sort(function (x, y) { return x - y; }).reduce(function (acc, n) { ev._lects[n].outcomes.forEach(function (t, i) { acc.push({ key: 'L' + n + '.' + (i + 1), label: outcomeLabel_('L' + n + '.' + (i + 1), ev._lects) }); }); return acc; }, []) };
 }
 
-// Students: their groups' assignments, submit the group's work, record their own part, rate their group-mates (seen by the lecturer only).
-function studentAuth_(p) {
-  var id = normId_(p.id), given = normCode_(p.access);
-  if (id.length < 4 || id.length > 12) return { why: 'bad id' };
-  if (attFails_('r' + id) >= ATT_MAX_FAILS) return { why: 'slow down' };
-  var mine = rosterSet_()[id] ? codesMap_()[id] : null;
-  if (!mine || !given || mine.code !== given) { attFailAdd_('r' + id); return { why: 'not recognised' }; }
-  return { id: id };
-}
 function groupWork_(p) {
   var au = studentAuth_(p); if (!au.id) return { ok: false, why: au.why };
   var id = au.id, op = String(p.op || 'list').toLowerCase(), rows = groupRows_(), list = asgRows_();
@@ -2822,65 +2703,9 @@ function groupsDisplay_(p) {
   return { ok: true, set: r.set, sets: r.sets, groups: r.groups.map(function (g) { return { group: g.group, members: g.members.map(function (m) { return short(m.name); }), tasks: asg.filter(function (a) { return asgFor_(a, g.group); }).map(function (a) { return a.title; }) }; }) };
 }
 
-// Host only: the Learning Progress screen: outcomes for the class, ask-discuss-revise evidence, group work, and each student's overall progress.
-function learningProgress_(p) {
-  var ev = evidence_(), lects = ev._lects, roster = rosterRows_().map(function (r) { return { id: normId_(r[0]), name: cleanName_(r[1]).trim() }; }).filter(function (r) { return r.id; });
-  var disc = discussionStats_(), asg = assignmentsAct_({ op: 'list' });
-  var students = roster.map(function (r) {
-    var sp = studentProgress_(r.id, ev), d = disc.byStudent[r.id] || null;
-    return { id: r.id, name: r.name, answers: sp.overall.answers, start: sp.overall.start, current: sp.overall.current, gain: sp.overall.gain, level: sp.overall.level, levels: sp.levels,
-      outcomes: sp.outcomes.map(function (o) { return { key: o.key, current: o.current, level: o.level, answers: o.answers, gain: o.gain }; }), discussion: d };
-  });
-  var groups = groupRows_(), sets = {};
-  groups.forEach(function (g) { var s = sets[g.set] || (sets[g.set] = {}); (s[g.group] = s[g.group] || []).push(g.id); });
-  var byId = {}; students.forEach(function (s) { byId[s.id] = s; });
-  var groupProgress = Object.keys(sets).map(function (name) {
-    return { set: name, groups: Object.keys(sets[name]).map(Number).sort(function (a, b) { return a - b; }).map(function (g) {
-      var m = sets[name][g].map(function (id) { return byId[id]; }).filter(Boolean), cur = m.filter(function (s) { return s.current !== null && s.answers >= PROG_MIN; }), gn = m.filter(function (s) { return s.gain !== null && s.answers >= 4; });
-      var avg = function (xs, k) { return xs.length ? Math.round(10 * xs.reduce(function (a, s) { return a + s[k]; }, 0) / xs.length) / 10 : null; };
-      return { group: g, members: m.length, current: avg(cur, 'current'), gain: avg(gn, 'gain'), withEvidence: cur.length };
-    }) };
-  });
-  return { ok: true, generated: new Date().toISOString(), minimum: PROG_MIN, levelsNames: PROG_LEVELS, thresholds: { secure: PROG_SECURE, developing: PROG_DEVELOPING },
-    outcomes: classOutcomes_(ev, lects), discussion: { rounds: disc.rounds, pairs: disc.pairs, beforePct: disc.beforePct, afterPct: disc.afterPct, gain: disc.gain, wrongToRight: disc.wrongToRight, rightToWrong: disc.rightToWrong, questions: disc.questions, note: disc.note },
-    assignments: asg.assignments || [], students: students, groupProgress: groupProgress };
-}
-
-// The student profile for the lookup: the statistics record, progress by outcome, group work, and suggestions for the lecturer.
-function studentProfile_(id, all, me) {
-  var ev = evidence_(), sp = studentProgress_(id, ev), disc = discussionStats_().byStudent[id] || null, th = all.thresholds;
-  var rows = groupRows_(), list = asgRows_(), work = gwRows_(), marks = amkRows_(), names = {};
-  rosterRows_().forEach(function (r) { var x = normId_(r[0]); if (x) names[x] = cleanName_(r[1]); });
-  var groupWork = [];
-  list.forEach(function (a) {
-    var g = rows.filter(function (r) { return r.id === id && r.set === a.set && asgFor_(a, r.group); })[0]; if (!g) return;
-    var members = rows.filter(function (r) { return r.set === a.set && r.group === g.group; }).map(function (r) { return r.id; });
-    var s = groupWorkOf_(a, g.group, members, work, marks, names), m = s.members.filter(function (x) { return x.id === id; })[0];
-    groupWork.push({ title: a.title, set: a.set, group: g.group, due: a.due, submitted: s.submitted, late: s.late, mark: s.mark, outOf: a.outOf, part: m ? m.part : '', peerAvg: m ? m.peerAvg : null, peerN: m ? m.peerN : 0, peerFlag: m ? m.peerFlag : false });
-  });
-  var known = sp.outcomes.filter(function (o) { return o.answers >= PROG_MIN; });
-  var strengths = known.filter(function (o) { return o.level === 'Secure'; }).sort(function (a, b) { return b.current - a.current || b.answers - a.answers; }).slice(0, 3);
-  var weak = known.filter(function (o) { return o.level === 'Beginning' || (o.level === 'Developing' && o.current < 60); }).sort(function (a, b) { return a.current - b.current || b.answers - a.answers; }).slice(0, 3);
-  // Classmates who are secure where this student is weakest: a possible partner for the next pair or group task.
-  var partners = [];
-  if (weak.length) {
-    var k = weak[0].key;
-    Object.keys(ev).forEach(function (x) { if (x === id || x.charAt(0) === '_' || !names[x]) return; var es = ev[x].filter(function (e) { return e.key === k; }); if (es.length < PROG_MIN) return; var pr = progressOf_(es); if (pr.level === 'Secure') partners.push({ id: x, name: names[x], current: pr.current }); });
-    partners.sort(function (a, b) { return b.current - a.current; }); partners = partners.slice(0, 3);
-  }
-  var tips = [];
-  if (sp.overall.answers < 2 * PROG_MIN && (me.quizzesTaken || 0) < 2) tips.push({ kind: 'Evidence', text: 'Too little evidence for a judgement: ' + sp.overall.answers + ' answers so far. Look again after the next quiz.' });
-  if (me.missedInARow >= th.misses) tips.push({ kind: 'Check-in', text: 'Missed the last ' + me.missedInARow + ' sessions. A short, private check-in on how things are going.' });
-  if (weak.length) tips.push({ kind: 'Revision', text: 'Revise ' + weak[0].label + ' (' + weak[0].current + '% in the latest answers, ' + weak[0].answers + ' answers). Point to the practice for that lecture and the questions to revisit.' });
-  if (partners.length) tips.push({ kind: 'Pairing', text: 'For the next pair task, a partner secure on that objective: ' + partners.map(function (x) { return x.name; }).join(', ') + '.' });
-  if (me.group === 'Working hard but struggling') tips.push({ kind: 'Support', text: 'Effort is high but results are low. Worked examples and a short feedback conversation are likely to help more than extra practice alone.' });
-  if (!me.practiceRecent && me.practiceAttempts >= 0 && all.students.some(function (s) { return s.practiceAttempts; })) tips.push({ kind: 'Practice', text: 'No practice in the last ' + th.idle + ' days. Encourage short retrieval practice spread over the week.' });
-  if (disc && disc.pairs >= 3 && disc.rightToWrong > disc.wrongToRight) tips.push({ kind: 'Discussion', text: 'After discussion this student changed from right to wrong more often (' + disc.rightToWrong + ') than from wrong to right (' + disc.wrongToRight + '). Ask them to explain their reasoning before they change.' });
-  groupWork.filter(function (g) { return g.submitted && !g.part; }).slice(0, 1).forEach(function (g) { tips.push({ kind: 'Group work', text: 'Has not described their own part in "' + g.title + '". Ask what they contributed.' }); });
-  groupWork.filter(function (g) { return g.peerFlag; }).slice(0, 1).forEach(function (g) { tips.push({ kind: 'Group work', text: 'Group-mates rated their contribution to "' + g.title + '" as low (' + g.peerN + ' ratings). Talk to the group before acting on it.' }); });
-  if (!tips.length) tips.push({ kind: 'On track', text: 'Nothing calls for action. Keep the challenge up: an extension question or a peer-explainer role.' });
-  return { progress: sp, discussion: disc, groupWork: groupWork, groups: studentGroups_(id), strengths: strengths, weak: weak, partners: partners, suggestions: tips };
-}
+// ===== 50-communication.gs =====
+// Module communication. Communication: the course calendar, messages and announcements.
+// Edit the files in apps_script/src/; apps_script/quiz_receiver.gs is built from them (node apps_script/build.js).
 
 // ---------- Course calendar: lectures, tutorials, quizzes, examinations, deadlines and office hours, each with an agenda ----------
 // One row per event in the Calendar tab. Times are local to the script's time zone and stored as text (YYYY-MM-DDTHH:MM)
@@ -3239,6 +3064,218 @@ function announcements_(p) { // public for audience 'all'; signed-in students al
   }).sort(function (x, y) { return (y.pinned - x.pinned) || (x.at < y.at ? 1 : x.at > y.at ? -1 : 0); });
   if (who && !host && p.read === 'yes') chatMarkRead_(who, 'ANN', Date.now());
   return { ok: true, host: host, announcements: visible.slice(0, host ? 200 : 50), unread: visible.filter(function (a4) { return a4.unread; }).length };
+}
+
+// ===== 60-portal.gs =====
+// Module portal. Student portal and Control Centre: portal status, My results, the live quiz week and the pre-class check.
+// Edit the files in apps_script/src/; apps_script/quiz_receiver.gs is built from them (node apps_script/build.js).
+
+// ---------- Portal and Control Centre support (additive: no existing action changes) ----------
+// SCRIPT_VERSION: change it whenever the script is redeployed; the Control Centre compares it with the version its page expects.
+// Key!M2 = Off hides "My results" from students (default On).
+var SCRIPT_VERSION = '2026-11-10-pedagogy-1';
+
+function resultsOn_() {
+  try {
+    var ks = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(KEY_TAB);
+    return !ks || String(ks.getRange(2, 13).getValue()).trim().toLowerCase() !== 'off';
+  } catch (err) { return true; }
+}
+
+// Key!N2 holds the week the lecturer chose in the Control Centre (1 to 12). Empty means: use data/portal.json.
+function weekChoice_() {
+  try {
+    var v = Number(SpreadsheetApp.getActiveSpreadsheet().getSheetByName(KEY_TAB).getRange(2, 14).getValue());
+    return v >= 1 && v <= 12 ? v : 0;
+  } catch (err) { return 0; }
+}
+
+function setWeek_(p) { // host only; w=0 clears the choice
+  var w = Number(String(p.w || '').replace(/\D/g, '').slice(0, 2));
+  if (isNaN(w) || w < 0 || w > 12) return { ok: false, why: 'week must be 0 to 12' };
+  var ks = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(KEY_TAB);
+  if (!ks) return { ok: false, why: 'no Key tab' };
+  ks.getRange(2, 14).setValue(w || '');
+  try { CacheService.getScriptCache().remove('portal'); } catch (err) { /* cache only */ }
+  return { ok: true, week: w };
+}
+
+function portalStatus_() { // public, no secrets: is attendance open, is a live quiz open, is "My results" on. Cached 5 s.
+  var cache = null; try { cache = CacheService.getScriptCache(); var h = cache.get('portal'); if (h) return JSON.parse(h); } catch (err) { cache = null; }
+  var att = 'closed';
+  try { attRows_().forEach(function (r) { if (r.status === 'Open') att = 'open'; }); } catch (err) { /* leave closed */ }
+  var quiz = 'none';
+  try {
+    var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONTROL_TAB);
+    if (sh && sh.getLastRow() > 1) {
+      sh.getRange(2, 1, sh.getLastRow() - 1, CTL_HEADER.length).getValues().forEach(function (v) {
+        var st = eff_({ v: v }); // lobby, running or paused counts as open; the join code is never returned
+        if (st === 'lobby' || st === 'running' || st === 'paused') quiz = st;
+      });
+    }
+  } catch (err) { /* leave none */ }
+  var o = { portal: 1, attendance: att, quiz: quiz, results: resultsOn_(), version: SCRIPT_VERSION, week: weekChoice_() };
+  if (cache) { try { cache.put('portal', JSON.stringify(o), 5); } catch (err) { /* cache only */ } }
+  return o;
+}
+
+// A student's own attendance and quiz scores, found by ID. Same failure limit as check-in. Returns nothing about any other student.
+function portalResults_(p) {
+  if (!resultsOn_()) return { ok: false, why: 'results off' };
+  var id = normId_(p.id), given = normCode_(p.code);
+  if (id.length < 4 || id.length > 12) return { ok: false, why: 'bad id' };
+  if (attFails_('r' + id) >= ATT_MAX_FAILS) return { ok: false, why: 'slow down' };
+  var mine = rosterSet_()[id] ? codesMap_()[id] : null; // the ID and its personal access code, both required
+  if (!mine || !given || mine.code !== given) { attFailAdd_('r' + id); return { ok: false, why: 'not recognised' }; }
+  var ss = SpreadsheetApp.getActiveSpreadsheet(), out = { ok: true, attendance: [], quizzes: [] };
+  var at = ss.getSheetByName(ATT_TAB);
+  if (at && at.getLastRow() > 1 && at.getLastColumn() > 1) {
+    var g = at.getRange(1, 1, at.getLastRow(), at.getLastColumn()).getValues();
+    for (var i = 1; i < g.length; i++) if (normId_(g[i][0]) === id) {
+      for (var c = 1; c < g[0].length; c++) if (g[i][c] !== '' && String(g[0][c]).trim()) out.attendance.push([String(g[0][c]).trim(), Number(g[i][c]) ? 1 : 0]);
+      break;
+    }
+  }
+  var sc = ss.getSheetByName(SCORES_TAB);
+  if (sc && sc.getLastRow() > 3 && sc.getLastColumn() > 4) {
+    var s = sc.getRange(1, 1, sc.getLastRow(), sc.getLastColumn()).getValues();
+    for (var r = 3; r < s.length; r++) if (normId_(s[r][0]) === id) {
+      for (var k = 4; k < s[0].length; k++) if (s[r][k] !== '' && String(s[0][k]).trim()) out.quizzes.push([String(s[0][k]).trim(), s[r][k] + (s[2][k] !== '' ? ' / ' + s[2][k] : '')]);
+      break;
+    }
+  }
+  try { out.groups = studentGroups_(id); } catch (err) { out.groups = []; }
+  try { var ln = studentLearning_(id); out.mastery = ln.mastery; out.revisit = ln.revisit; out.practice = ln.practice; } catch (err) { out.learningError = true; }
+  try { var sp = studentProgress_(id); out.progress = { outcomes: sp.outcomes.map(function (o) { return { label: o.label, answers: o.answers, start: o.start, current: o.current, gain: o.gain, level: o.level }; }), timeline: sp.timeline, overall: { answers: sp.overall.answers, start: sp.overall.start, current: sp.overall.current, gain: sp.overall.gain }, minimum: sp.minimum }; } catch (err) { out.progressError = true; }
+  try { out.groupWork = asgRows_().filter(function (a) { return (out.groups || []).some(function (g) { return g.set === a.set && asgFor_(a, g.group); }); }).length; } catch (err) { out.groupWork = 0; }
+  return out;
+}
+
+// Host only: the checks behind the Control Centre's "Run checks" button. Reads only; nothing is changed.
+function preclass_(p) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet(), o = { ok: true, version: SCRIPT_VERSION, serverNow: Date.now() };
+  try { o.rosterCount = rosterRows_().length; } catch (err) { o.rosterCount = -1; }
+  o.masterOn = masterOn_(); o.resultsOn = resultsOn_();
+  try { o.totalsMode = String(ss.getSheetByName(KEY_TAB).getRange(2, 11).getValue()).trim() || 'Best'; } catch (err) { o.totalsMode = 'Best'; }
+  var w = String(p.week || '').replace(/\D/g, '').slice(0, 2);
+  if (w) {
+    o.week = Number(w); o.weekListed = false; o.bankQuestions = 0;
+    try {
+      var weeks = siteJson_('/apps_script/live_quizzes.json').weeks || {};
+      o.weekListed = !!weeks[w];
+      if (o.weekListed) { var b = siteJson_('/quizzes/lecture' + w + '.json'); o.bankQuestions = (b.questions || []).length; }
+    } catch (err) { o.bankError = true; }
+  }
+  var ps = portalStatus_(); o.attendance = ps.attendance; o.quiz = ps.quiz;
+  return o;
+}
+
+// ===== 90-router.gs =====
+// Module router. Router: doPost and doGet, the only entry points. Each action checks its credentials here and then calls one module.
+// Edit the files in apps_script/src/; apps_script/quiz_receiver.gs is built from them (node apps_script/build.js).
+
+// ---------- POST: answers, joins, progress, reports, attempts ----------
+
+function doPost(e) {
+  var p = (e && e.parameter) || {};
+  if (p.kind === 'roster_sync') return out_(JSON.stringify(rosterSync_(p)));
+  if (p.kind === 'report' || p.kind === 'attempt') {
+    var lk = LockService.getScriptLock();
+    lk.waitLock(20000);
+    try {
+      if (p.kind === 'report') {
+        var r = { time: new Date().toString(), page: clean_(p.page, 200), lecture: clean_(p.lecture, 80), qid: clean_(p.qid, 40),
+          question: clean_(p.question, 500), answer: clean_(p.answer, 300), comment: clean_(p.comment, 1000) };
+        var rs = append_('Reports', ['Timestamp', 'Lecture', 'Question id', 'Question', 'Answer shown', 'Comment', 'Page'],
+          [new Date(), r.lecture, r.qid, r.question, r.answer, r.comment, r.page]);
+        mailReport_(rs, r);
+      } else {
+        if (!clean_(p.id, 30)) return out_('missing');
+        var ats = append_('Attempts', ['Timestamp', 'Student ID', 'Quiz', 'Attempt', 'Score', 'Total', 'Seconds', 'Wrong question ids', 'Question ids'],
+          [new Date(), clean_(p.id, 30), clean_(p.quiz, 80), clean_(p.attempt, 10), clean_(p.score, 10), clean_(p.total, 10), clean_(p.seconds, 10), clean_(p.wrong, 1200), clean_(p.asked, 1500)]);
+        if (!String(ats.getRange(1, 9).getValue()).trim()) ats.getRange(1, 9).setValue('Question ids');
+        // held in Attempts until a release: Master and Scores are not touched here
+      }
+      return out_('ok');
+    } finally {
+      lk.releaseLock();
+    }
+  }
+  var name = clean_(p.name, 40), id = clean_(p.id, 20), code = clean_(p.code, 30).toUpperCase();
+  function fin_(o) { log_(o, name, id, code); return out_(o); }
+
+  if (p.kind === 'answer') { // paced quiz: one answer to the question that is open right now
+    var qn = Number(p.q), al = String(p.answer || '').trim().toUpperCase();
+    var ca = ctl_(code);
+    if (!name || !id || !keyRow_(code) || LETTERS.indexOf(al) < 0 || !(qn >= 1 && qn <= (ca ? quizN_(ca) : 5))) return fin_('bad answer');
+    if (!ca || !paced_(ca)) return fin_('not paced');
+    if (eff_(ca) !== 'running') return fin_('not open');
+    if (Number(ca.v[11]) !== qn) return fin_('wrong question');
+    if (Number(ca.v[13]) && Date.now() > Number(ca.v[13]) + GRACE_MS) return fin_('question closed');
+    if (!allowLate_(ca) && !hasPresence_(code, id)) return fin_('not joined');
+    var cfv = String(p.conf || '').trim().toUpperCase().charAt(0); if ('HML'.indexOf(cfv) < 0) cfv = '';
+    var ash = append_(ANSWERS_TAB, ['Timestamp', 'ID', 'First Name', 'Join Code', 'Q', 'Answer', 'Round', 'Confidence', 'Vote'], [new Date(), id, name, code, qn, al, Number(ca.v[16]) || 0, cfv, voteOf_(ca)]);
+    try { var hc = CacheService.getScriptCache(); if (!hc.get('ansHdr2')) { if (!String(ash.getRange(1, 8).getValue()).trim()) ash.getRange(1, 8).setValue('Confidence'); if (!String(ash.getRange(1, 9).getValue()).trim()) ash.getRange(1, 9).setValue('Vote'); hc.put('ansHdr2', '1', 21600); } } catch (err) { /* header only */ }
+    return out_('ok');
+  }
+  if (p.kind === 'join' || p.kind === 'progress') { // lobby and live participation
+    if (!name || !id || !keyRow_(code)) return out_('ok');
+    var lj = LockService.getScriptLock();
+    lj.waitLock(60000); // a whole class joining at once queues here
+    try {
+      var cj = ctl_(code), sj = cj ? eff_(cj) : 'running';
+      if (cj && !allowLate_(cj) && (sj === 'running' || sj === 'paused') && !hasPresence_(code, id)) return out_('late');
+      presence_(code, id, name, p.kind === 'progress' ? 'inprogress' : 'joined');
+    } finally {
+      lj.releaseLock();
+    }
+    return out_('ok');
+  }
+
+  if (!name || !id || !code) return fin_('missing');
+  var lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    var key = keyRow_(code);
+    if (!key) return fin_('bad code');
+    var c = ctl_(code);
+    if (c && paced_(c)) return fin_('use answers');
+    if (c) { // lecturer-controlled: state and deadline are checked here, not in the browser
+      var s = eff_(c), left = Number(c.v[3]) + GRACE_MS - Date.now();
+      if (s === 'draft' || s === 'ready' || s === 'lobby') return fin_('not started');
+      if (s === 'paused') return fin_('paused');
+      if (s === 'released') return fin_('quiz closed');
+      if (s === 'ended' && left < 0) return fin_('quiz closed');
+      if (!allowLate_(c) && !hasPresence_(code, id)) return fin_('not joined');
+    } else {
+      var st = state_(key);
+      if (st === 'waiting') return fin_('not started');
+      if (st === 'stopped') return fin_('quiz closed');
+    }
+
+    var sh = stagedSheet_(); // held until released
+    var rows0 = respRows_(), n = rows0.length + 1;
+    var rnd = roundOf_(code);
+    var ans = [];
+    for (var q = 1; q <= 5; q++) {
+      var a = String(p['q' + q] || '').trim().toUpperCase();
+      ans.push(LETTERS.indexOf(a) >= 0 ? a : '');
+    }
+    var marks = mark_(lettersFor_(code, null), ans), score = marks.reduce(function (x, y) { return x + y; }, 0);
+    if (n > 1) { // first attempt per ID and join code in this round only
+      var seen = rows0.map(function (r) { return r.slice(2, 11); });
+      for (var j = 0; j < seen.length; j++) {
+        if (String(seen[j][0]).trim() === id && String(seen[j][1]).trim().toUpperCase() === code && (Number(seen[j][8]) || 0) === rnd) {
+          return fin_('duplicate');
+        }
+      }
+    }
+    sh.appendRow(rowFor_(new Date(), name, id, code, ans, score, rnd, 5, ''));
+    presence_(code, id, name, 'submitted');
+    return fin_('ok');
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 function doGet(e) {
