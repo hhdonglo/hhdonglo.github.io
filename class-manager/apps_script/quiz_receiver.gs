@@ -607,6 +607,18 @@ function resetHostKey() {
   return msg;
 }
 
+// Desktop app only (never in the router): the person at this computer chooses the password without the old one.
+// The app's own screens are reachable from this computer only, so physical access is the proof, as for resetHostKey().
+function ownerSetPassword_(pw) {
+  pw = String(pw || '');
+  var why = pwProblem_(pw, '');
+  if (why) return { ok: false, why: why };
+  var code = pwStore_(pw);
+  signOutEveryone_();
+  log_('host password set by the owner', '', '', '');
+  return { ok: true, recovery: code };
+}
+
 // ===== 10-assessment.gs =====
 // Module assessment. Assessment: join codes, the live quiz and its question draw, held results, Master, Scores and Totals, presence, review, ranking and the item log.
 // Edit the files in apps_script/src/; apps_script/quiz_receiver.gs is built from them (node apps_script/build.js).

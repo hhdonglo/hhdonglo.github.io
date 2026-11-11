@@ -17,10 +17,11 @@ No student data, class list or host key is stored in this folder.
 
 The lecturer signs in with a password that the lecturer chooses (the host key of earlier versions). A new Sheet or desktop course starts with a temporary key; the first time, sign in on `lecturer.html` with it and follow "choose your own password" (`password.html`).
 
-- **Set.** Open `password.html`, enter the temporary key, then your new password twice (10 to 100 characters; a few words are fine). The page then shows a **recovery code** once. Write it down or keep it in a password manager.
+- **Set in the desktop app (simplest).** On the home screen, under the lecturer tools, type the new password twice and choose "Save password". You do not need the old password or the temporary key, because you are at the computer. The recovery code appears once.
+- **Set from any page.** Open `password.html`, enter the temporary key, then your new password twice (10 to 100 characters; a few words are fine). The page then shows a **recovery code** once. Write it down or keep it in a password manager.
 - **Change.** Open `password.html` (also "Change password" on the lecturer menu). It needs the current password. A new recovery code is shown and the old one stops working. All lecturer sign-ins end.
 - **Forgot it.** On the login page choose "Forgot your password?", enter the recovery code and a new password. The code works once; a new one is shown. Five wrong codes block recovery for an hour.
-- **Lost both.** Google Sheet version: the Sheet's owner opens Extensions, Apps Script, chooses `resetHostKey` and Run; the temporary key appears in the execution log. Desktop app: on the home screen choose "Reset password (lost it)" and confirm; the temporary key appears at the top. Either way, choose a new password straight away.
+- **Lost both.** Google Sheet version: the Sheet's owner opens Extensions, Apps Script, chooses `resetHostKey` and Run; the temporary key appears in the execution log. Desktop app: just set a new password on the home screen as above (or "Reset to a temporary key"). Either way, choose a new password straight away.
 - **Safety.** Only a slow salted hash is stored. Ten wrong passwords in ten minutes lock sign-in for the rest of that time. Code: `apps_script/src/06-password.gs`; tests: `desktop/test/password.test.js`.
 
 ## Layout

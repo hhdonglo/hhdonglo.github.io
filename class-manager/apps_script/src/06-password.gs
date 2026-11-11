@@ -117,3 +117,15 @@ function resetHostKey() {
   try { Logger.log(msg); } catch (err) { /* no log */ }
   return msg;
 }
+
+// Desktop app only (never in the router): the person at this computer chooses the password without the old one.
+// The app's own screens are reachable from this computer only, so physical access is the proof, as for resetHostKey().
+function ownerSetPassword_(pw) {
+  pw = String(pw || '');
+  var why = pwProblem_(pw, '');
+  if (why) return { ok: false, why: why };
+  var code = pwStore_(pw);
+  signOutEveryone_();
+  log_('host password set by the owner', '', '', '');
+  return { ok: true, recovery: code };
+}

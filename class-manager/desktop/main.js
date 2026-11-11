@@ -693,6 +693,8 @@ on("cm:openNotes", (c) => { const d = path.join(registry.dirs(c.id).root, "notes
 on("cm:linkedRestore", async (c, e, name, pass) => { try { return restoreContent(c, await c.linked.open(String(name || ""), pass)); } catch (err) { return { ok: false, why: err.message }; } });
 on("cm:openContent", (c) => { const d = registry.dirs(c.id).course; fs.mkdirSync(d, { recursive: true }); return shell.openPath(d); });
 on("cm:run", (c, e, name) => { if (["refreshTotals", "rebuildMaster", "buildNamedAttendance"].includes(name)) { c.backend.run(name); c.backend.flush(); return true; } return false; });
+on("cm:passwordStatus", (c) => c.backend.passwordStatus());
+on("cm:setPassword", (c, e, pw) => c.backend.setPasswordAsOwner(pw));
 // Lost both the lecturer password and the recovery code: the person at this computer may reset it (password-reset path, see README "Lecturer password").
 on("cm:resetPassword", async (c, e) => {
   const r = await dialog.showMessageBox(winOf(e), { type: "warning", buttons: ["Reset password", "Cancel"], defaultId: 1, cancelId: 1, title: "Reset the lecturer password",
