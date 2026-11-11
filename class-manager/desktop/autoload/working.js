@@ -1,4 +1,4 @@
-// The working file: the useful data of the chosen source files, merged and written clean to the app's own folder.
+// The working file: the useful data of the chosen source files, merged and written clean to CM's own folder.
 // Class list (ID, first name, last name), quiz results, practice attempts, attendance and quiz questions. Written as one
 // Excel workbook (the file that can be exported) and as one CSV per table. The originals are never opened for writing.
 "use strict";

@@ -261,6 +261,12 @@ function plan(book, local, options) {
   });
   if (!reports.length) warnings.push("This file holds none of the tabs the import knows (live quiz results, practice attempts, attendance). Choose a workbook downloaded from the web version's Google Sheet, or a CSV of one of its tabs.");
 
+  // Every ID in the files that does not conform to the class list is flagged for the lecturer, whether or not it is added: not on the list, or not in the list's format.
+  const seenIds = new Set([...ctx.activity]);
+  if (!opt.addMissing) { const probe2 = { onlyClassList: false, classIds: new Set(), activity: new Set() }; found.forEach(({ sh, what }) => { if (what.kind === "log") planLog(what.spec, sh.rows, null, probe2); else if (what.kind === "attendance") planAttendance(sh.rows, null, probe2); }); probe2.activity.forEach((id) => seenIds.add(id)); }
+  const badFormat = (id) => !/^\d{4,12}$/.test(id);
+  const flaggedAll = [...seenIds].filter((id) => localList.size && !localList.has(id)).map((id) => ({ id, why: badFormat(id) ? "not a valid student ID (4 to 12 digits)" : "not on the class list" }));
+  const noIdRows = reports.reduce((n, r) => n + (r.noId || 0), 0);
   const validId = (id) => id.length >= 4 && id.length <= 12; // the class list only holds IDs of this length, so an ID of another length (a typo in a log) is never added
   const addIds = opt.addMissing ? [...ctx.activity].filter((id) => !localList.has(id) && validId(id)) : [];
   const offIds = opt.addMissing ? [] : [...ctx.activity].filter((id) => !localList.has(id));
@@ -270,11 +276,12 @@ function plan(book, local, options) {
   // The student ID is the key. The same ID never gets a second name: a name that differs from the one already on the class list is flagged, never written;
   // a student on the list with no name yet is given the name the file has.
   const { fills, conflicts } = nameChecks(local.read("Roster"), nameMap(book));
-  const students = { classList: localList.size, withData: [...ctx.activity].filter((id) => localList.has(id)).length, notOnList: offIds.length, notOnListSample: offIds.slice(0, 5), toAdd: addIds.length,
+  const students = { classList: localList.size, withData: [...ctx.activity].filter((id) => localList.has(id)).length, notOnList: offIds.length, notOnListSample: offIds.slice(0, 5), toAdd: addIds.length, flagged: flaggedAll.slice(0, 50), flaggedCount: flaggedAll.length, noIdRows,
     namesFilled: fills.length, nameConflicts: conflicts.length, conflicts: conflicts.slice(0, 50) };
   const roster = addIds.map((id) => [id, names[id] || ""]).concat(fills);
   const blocked = !localList.size && !opt.addMissing; // with nobody to match, nothing is written
   const changes = blocked ? 0 : reports.reduce((n, r) => n + (r.add || 0), 0) + roster.length;
+  if (flaggedAll.length) warnings.push(flaggedAll.length + " ID(s) in the files do not conform to the class list. They are flagged below" + (opt.addMissing ? ", and only valid IDs are added." : " and are not added."));
   if (conflicts.length) warnings.push(conflicts.length + " student ID(s) have a different name in the file than on the class list. The class list name is kept. Review them below.");
   return { report: { tabs: reports, ignored, students, warnings, changes, blocked }, ops: blocked ? { tabs: [], roster: [] } : { tabs: ops, roster } };
 }

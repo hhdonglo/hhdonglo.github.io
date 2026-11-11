@@ -4,7 +4,7 @@
 "use strict";
 const V = require("./import-values");
 
-// header: the columns the app's script reads, by position. need: how many leading columns a file must have.
+// header: the columns CM's script reads, by position. need: how many leading columns a file must have.
 // text: columns written as text (IDs, codes). id: the column with the student ID (-1: none). key: the same record gives the same key.
 // onList: false when the tab is a record of people who are NOT on the class list, so the class list filter does not apply.
 const LOG_TABS = [

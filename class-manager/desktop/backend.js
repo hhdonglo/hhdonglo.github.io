@@ -208,7 +208,7 @@ function createBackend(opts) {
     studentStats: (p) => asHost(() => ctx.studentStats_(Object.assign({}, p || {}))),
     // Learning Progress: objectives, ask-discuss-revise evidence, group work and each student's progress (learningProgress_).
     progress: (p) => asHost(() => ctx.learningProgress_(Object.assign({}, p || {}))),
-    // The app itself is trusted: it calls the script's own class list sync without the host key.
+    // CM itself is trusted: it calls the script's own class list sync without the host key.
     rosterSync: (rows, replace) => asHost(() => ctx.rosterSync_({ rows: JSON.stringify(rows), mode: "apply", replace: replace ? "yes" : "" })),
     // After questions are approved: the script must read the banks again rather than its five-minute copy.
     dropSiteCache: () => { for (const k of [...store.keys()]) if (k.indexOf("site:") === 0) store.delete(k); },

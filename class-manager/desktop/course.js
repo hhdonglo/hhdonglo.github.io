@@ -1,6 +1,6 @@
-// The lecturer's own course: lectures, files and question banks, kept in the app's data folder (course/).
-// The app ships with no course content. Pages ask for data/lectures.json, quizzes/lectureN.json and the
-// lecture files; this module finds them in the course folder first and then in the app's own pages.
+// The lecturer's own course: lectures, files and question banks, kept in CM's data folder (course/).
+// CM ships with no course content. Pages ask for data/lectures.json, quizzes/lectureN.json and the
+// lecture files; this module finds them in the course folder first and then in CM's own pages.
 // A course pack (.zip) holds course.json (the course settings) and files/ (the course folder). It moves a
 // course between computers, and it is how a prepared course is loaded.
 "use strict";
@@ -15,11 +15,11 @@ function writeJson(f, o) { fs.mkdirSync(path.dirname(f), { recursive: true }); c
 function inside(root, full) { const r = path.normalize(root + path.sep); return path.normalize(full).startsWith(r); }
 
 function createCourse(opts) {
-  const DIR = opts.dir;          // the course folder in the app's data folder
-  const WEB = opts.web;          // the app's own pages
+  const DIR = opts.dir;          // the course folder in CM's data folder
+  const WEB = opts.web;          // CM's own pages
   const TPL = opts.templates;    // lecture page templates
 
-  // A path below the site root ("/data/lectures.json"), as a file on disk: the course folder first, then the app's pages.
+  // A path below the site root ("/data/lectures.json"), as a file on disk: the course folder first, then CM's pages.
   function resolve(rel) {
     rel = String(rel || "").replace(/^\/+/, "");
     for (const root of [DIR, WEB]) {

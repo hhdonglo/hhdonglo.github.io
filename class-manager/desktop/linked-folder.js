@@ -1,8 +1,8 @@
 /* Linked storage: an optional, encrypted copy of a course's records somewhere the lecturer chooses.
    Where: a folder that a sync app (Google Drive, OneDrive, Dropbox, MEGA, iCloud and others) keeps in the cloud
-   (storage-providers.js), a private git repository folder, or a service the app talks to itself with the
+   (storage-providers.js), a private git repository folder, or a service CM talks to itself with the
    lecturer's own credentials: WebDAV, GitHub, Dropbox, S3-compatible (storage/). The lecturer registers with those
-   services; the app holds no developer keys.
+   services; CM holds no developer keys.
    - Off until the lecturer links a place and chooses a passphrase of at least 10 characters.
    - Each copy is a .cmbackup file (vault.exportFile): AES-256-GCM with a key made from the passphrase. The
      provider sees only encrypted files.
@@ -147,7 +147,7 @@ function createLinkedFolder(opts) {
     for (const f of [passFile, credFile, cfgFile]) { try { fs.unlinkSync(f); } catch (e) { /* none */ } }
     return state();
   }
-  // Called after the app's own backups: a copy only if linked, automatic and remembered.
+  // Called after CM's own backups: a copy only if linked, automatic and remembered.
   async function auto() { const cfg = read(); return (cfg.folder || isService(cfg)) && cfg.auto && fs.existsSync(passFile) ? copyNow("") : null; }
   // The content of one copy, for restore. name must be a copy of this course in the linked place.
   async function open(name, pass) {

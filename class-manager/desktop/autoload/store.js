@@ -1,5 +1,5 @@
-// The app's own memory of the files it has looked at: one small file per source, kept in the course's working folder
-// (inside the app's data, never in the project's repository). A file whose size and date are unchanged is not read again.
+// CM's own memory of the files it has looked at: one small file per source, kept in the course's working folder
+// (inside CM's data, never in the project's repository). A file whose size and date are unchanged is not read again.
 "use strict";
 const fs = require("fs");
 const path = require("path");

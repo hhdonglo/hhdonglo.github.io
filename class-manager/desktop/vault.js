@@ -1,12 +1,12 @@
 /* Protection of student records at rest, and backups that can be restored.
 
    - The workbook of each course (data/workbook.json) is written encrypted: AES-256-GCM with a random 256-bit data key.
-     The data key is kept in the app's data folder (data.key), itself encrypted with the system keychain (Electron
+     The data key is kept in CM's data folder (data.key), itself encrypted with the system keychain (Electron
      safeStorage) where the computer offers one. Copying the data folder to another computer does not copy the keychain,
      so the copy cannot be read there. Where no keychain is available the key is stored with owner-only permissions and
-     the app says that the records are not protected by the keychain.
+     CM says that the records are not protected by the keychain.
    - A workbook written by an earlier version (plain JSON) is read as it is and written encrypted at the next save.
-   - Automatic backups: a copy of the encrypted workbook in the course's backups/ folder when the app starts, every
+   - Automatic backups: a copy of the encrypted workbook in the course's backups/ folder when CM starts, every
      few hours while it runs and when it closes; the newest KEEP_AUTO are kept. Each new backup is read back and
      checked (decrypted and parsed) at once, so a backup that could not be restored is reported, not discovered later.
    - Backup to a file: the workbook and the course settings in one file, encrypted with a key made from a passphrase

@@ -1,13 +1,13 @@
 /* Dropbox, with the lecturer's own Dropbox app. The lecturer creates an app (scoped to "App folder") in the
-   Dropbox App Console and pastes either a generated access token, or the app key, app secret and a refresh token.
-   Files go into the app's own folder, so the app cannot see anything else in the Dropbox. */
+   Dropbox App Console and pastes either a generated access token, or CM key, app secret and a refresh token.
+   Files go into CM's own folder, so CM cannot see anything else in the Dropbox. */
 "use strict";
 const { send, baseOf } = require("./http");
 
 const help = [
   "Go to dropbox.com/developers/apps and choose Create app: Scoped access, App folder, any name.",
   "On the Permissions tab tick files.content.write and files.content.read, then Submit.",
-  "On the Settings tab, under OAuth 2, press Generate access token and copy it. (Dropbox tokens made this way expire after some hours; for copies that run by themselves use the app key, app secret and a refresh token instead, which Dropbox's documentation explains.)"
+  "On the Settings tab, under OAuth 2, press Generate access token and copy it. (Dropbox tokens made this way expire after some hours; for copies that run by themselves use CM key, app secret and a refresh token instead, which Dropbox's documentation explains.)"
 ];
 const fields = [
   { key: "token", label: "Access token (or leave empty and use the three boxes below)", secret: true },
@@ -19,7 +19,7 @@ const fields = [
 function create(creds, ctx) {
   let access = String(creds.token || "");
   const refreshable = creds.appKey && creds.appSecret && creds.refreshToken;
-  if (!access && !refreshable) throw new Error("Enter an access token, or the app key, app secret and refresh token.");
+  if (!access && !refreshable) throw new Error("Enter an access token, or CM key, app secret and refresh token.");
   async function token(force) {
     if (access && !force) return access;
     if (!refreshable) throw new Error("The Dropbox token has expired. Generate a new one, or use a refresh token.");

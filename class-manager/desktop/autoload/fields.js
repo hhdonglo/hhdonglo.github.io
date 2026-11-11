@@ -1,4 +1,4 @@
-// The fields the app can use from a file, and the headings that mean each one. One list to edit: add a heading here
+// The fields CM can use from a file, and the headings that mean each one. One list to edit: add a heading here
 // and every kind of file (class list, scores, attendance, quiz bank) understands it. Pure; no disk, no Electron.
 "use strict";
 

@@ -1,5 +1,5 @@
 // Scans a folder: lists the files (scan.js), reads only the new or changed ones (analyze.js), and returns what each holds.
-// A rescan of an unchanged folder opens no file. Files are read one at a time so the app stays responsive.
+// A rescan of an unchanged folder opens no file. Files are read one at a time so CM stays responsive.
 "use strict";
 const { listFiles } = require("./scan");
 const { analyzeFile } = require("./analyze");

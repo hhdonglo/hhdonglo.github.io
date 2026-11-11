@@ -1,6 +1,6 @@
 /* Class Manager: the screen for importing results from the web version (Grades and Results, "Import from the web").
    Choose the Excel file downloaded from the web version's Google Sheet (or a CSV of one tab), read the preview, then import.
-   Everything is worked out by the app (import-plan.js); this file only lays the preview out and asks for confirmation. */
+   Everything is worked out by CM (import-plan.js); this file only lays the preview out and asks for confirmation. */
 (function () {
   "use strict";
   var btns = document.querySelectorAll("[data-import-web]");
@@ -17,7 +17,7 @@
   if (cmApp.onImportProgress) cmApp.onImportProgress(function (p) { // the file is read in chunks; show where it is
     if (!d.open) return;
     var m = body.querySelector("#imp-pick"); if (m) m.disabled = true;
-    body.innerHTML = "<p role='status' aria-live='polite'>Reading the file… " + esc(p.sheet) + (p.rows ? " (" + n(p.rows) + " rows)" : "") + "</p><p class='note'>Large files take a little while. You can keep using the app.</p>";
+    body.innerHTML = "<p role='status' aria-live='polite'>Reading the file… " + esc(p.sheet) + (p.rows ? " (" + n(p.rows) + " rows)" : "") + "</p><p class='note'>Large files take a little while. You can keep using CM.</p>";
   });
 
   function close() { d.close(); cmApp.importForget(); }

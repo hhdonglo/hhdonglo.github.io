@@ -1,10 +1,10 @@
-// Lifecycle: the address stops by itself after the number of hours set in App Settings (default 3; 0 = until stopped),
-// and while it is on the app counts what arrives through it (requests, visitors, requests over the limit, lecturer
+// Lifecycle: the address stops by itself after the number of hours set in CM Settings (default 3; 0 = until stopped),
+// and while it is on CM counts what arrives through it (requests, visitors, requests over the limit, lecturer
 // requests refused), shown beside the address so the lecturer can see the exposure.
 // Internet access for students: a Cloudflare quick tunnel (cloudflared) that gives this computer's
 // student pages a temporary https address, with no account and no router setup.
 // cloudflared is downloaded once, on first use, from Cloudflare's GitHub releases, and checked against
-// the SHA-256 values below before it is run. It is kept in the app's data folder.
+// the SHA-256 values below before it is run. It is kept in CM's data folder.
 "use strict";
 const fs = require("fs");
 const path = require("path");

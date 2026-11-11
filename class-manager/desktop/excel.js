@@ -118,7 +118,7 @@ async function writeXlsx(sheets) {
   return zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" });
 }
 
-// ---------- the two workbooks the app offers ----------
+// ---------- the two workbooks CM offers ----------
 
 // The class list template. The list is the first sheet, because import reads the first sheet.
 function classListTemplate() {

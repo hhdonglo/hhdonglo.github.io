@@ -36,7 +36,7 @@ const { createVault, createBackups, exportFile, importFile } = require("./vault"
 
 const WEB = app.isPackaged ? path.join(process.resourcesPath, "web") : path.join(__dirname, "..");
 const ROOT = () => app.getPath("userData");
-const SETTINGS_FILE = () => path.join(ROOT(), "settings.json"); // the app's own settings: port and text size
+const SETTINGS_FILE = () => path.join(ROOT(), "settings.json"); // CM's own settings: port and text size
 const TEMPLATES = app.isPackaged ? path.join(process.resourcesPath, "web", "templates") : path.join(__dirname, "..", "templates");
 const DEFAULTS = { courseCode: "", courseTitle: "", institution: "", lecturer: "", semester: "", startDate: "", endDate: "", contact: "", accent: "", logo: "", notice: "", noticeLinkLabel: "", noticeLinkUrl: "",
   scriptUrl: "", setupSeen: false }; // one course's settings
@@ -51,7 +51,7 @@ const TYPES = {
 let appSettings, server = null, port = 0, win = null, registry = null;
 const ctxs = new Map(); // course id -> { id, settings, course, authoring, backend, google }, made on first use
 let tunnel = null, tunnelServer = null, tunnelPort = 0;
-let vault = null; // encrypts each course's workbook on disk (vault.js), made when the app is ready
+let vault = null; // encrypts each course's workbook on disk (vault.js), made when CM is ready
 const BACKUP_EVERY_MS = 4 * 3600000;
 function makeVault() {
   const kc = safeStorage.isEncryptionAvailable();
@@ -95,7 +95,7 @@ function saveSettings(c, s) {
   c.settings = Object.assign({}, DEFAULTS, clean);
   registry.update(c.id, { code: clean.courseCode, title: clean.courseTitle, term: clean.semester }); // the course list shows the same names
 }
-// What the app's screens see as "settings": the course's settings with the app's port.
+// What CM's screens see as "settings": the course's settings with CM's port.
 const shownSettings = (c) => Object.assign({}, c.settings, { port: appSettings.port });
 
 // Google OAuth client of this build (registered once by the publisher; see desktop/README.md).
@@ -106,7 +106,7 @@ function oauthClient() {
   return {};
 }
 // Google sign-in tokens, encrypted with the system keychain where it is available.
-// One sign-in for the app; each course keeps the address of its own Google Sheet in the same file (courses.js).
+// One sign-in for CM; each course keeps the address of its own Google Sheet in the same file (courses.js).
 const TOKENS = () => path.join(ROOT(), "google.bin");
 function loadTokens() {
   try { const b = fs.readFileSync(TOKENS()); return JSON.parse(safeStorage.isEncryptionAvailable() ? safeStorage.decryptString(b) : b.toString("utf8")); } catch (e) { return {}; }
@@ -152,7 +152,7 @@ function configJs(c, req, remote, r) {
     contact: s.contact, accent: s.accent, logo: s.logo, notice: s.notice ? { text: s.notice, linkLabel: s.noticeLinkLabel, linkUrl: s.noticeLinkUrl } : null,
     scriptUrl: s.scriptUrl || (remote ? "https://" : "http://") + host + (r.prefixed ? r.prefix : "/") + "exec", desktop: true };
   if (publicUrl()) cm.publicBase = publicUrl() + r.prefix.slice(1); // QR codes and links for students use the internet address while it is on
-  // Every course but the default one keeps its own browser storage on students' phones and in the app's windows.
+  // Every course but the default one keeps its own browser storage on students' phones and in CM's windows.
   return courses.configScript(src, cm, c.id === registry.defaultId() ? "" : "cm@" + c.id + ":");
 }
 
@@ -166,7 +166,7 @@ function readBody(req, max) {
 }
 
 async function handle(req, res, remote) {
-  if (remote) { // came through the internet address: never the app's own screens, and a limit per visitor
+  if (remote) { // came through the internet address: never CM's own screens, and a limit per visitor
     const who = String(req.headers["cf-connecting-ip"] || req.headers["x-forwarded-for"] || "?").split(",")[0].trim();
     if (tunnel) tunnel.note("request", who);
     if (!allowRemote(who)) { if (tunnel) tunnel.note("limited"); res.writeHead(429, { "Content-Type": "text/plain", "Retry-After": "60" }); return res.end("Too many requests. Wait a minute and try again."); }
@@ -175,7 +175,7 @@ async function handle(req, res, remote) {
   try { u = new URL(req.url, "http://x"); } catch (e) { res.writeHead(400); return res.end(); }
   let raw;
   try { raw = decodeURIComponent(u.pathname); } catch (e) { res.writeHead(400); return res.end(); }
-  if (raw.startsWith("/app/") && !remote && isThisComputer(req)) { // the app's screens always belong to a course
+  if (raw.startsWith("/app/") && !remote && isThisComputer(req)) { // CM's screens always belong to a course
     res.writeHead(302, { Location: "/c/" + registry.active() + raw + u.search }); return res.end();
   }
   // Which course: /c/<id>/... or, without the prefix, the default course. Archived and unknown courses are not served.
@@ -197,7 +197,7 @@ async function handle(req, res, remote) {
         const g = guardFor({ remote, tunnelOn: !!publicUrl(), action: params.action, remoteAddress: req.socket.remoteAddress }, appSettings);
         if (g.refuse) { res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" }); return res.end(JSON.stringify(g.refuse)); }
         c.backend.setGeoMode(g.geo); // location is checked for the internet address, not for plain Wi-Fi
-        try { out = c.backend.doPost(params, body); } finally { c.backend.setGeoMode("off"); } // the app's own calls never see a leftover setting
+        try { out = c.backend.doPost(params, body); } finally { c.backend.setGeoMode("off"); } // CM's own calls never see a leftover setting
       } else { c.backend.setGeoMode(guardFor({ remote, tunnelOn: !!publicUrl() }, appSettings).geo); try { out = c.backend.doGet(params); } finally { c.backend.setGeoMode("off"); } }
       res.writeHead(200, { "Content-Type": out.mime + "; charset=utf-8", "Cache-Control": "no-store", "Access-Control-Allow-Origin": "*" });
       return res.end(out.text);
@@ -221,7 +221,7 @@ async function handle(req, res, remote) {
     res.writeHead(200, { "Content-Type": TYPES[".json"], "Cache-Control": "no-cache" }); return res.end(JSON.stringify(c.course.portal(extra)));
   }
   if (p === "/config.js") { res.writeHead(200, { "Content-Type": TYPES[".js"], "Cache-Control": "no-store" }); return res.end(configJs(c, req, remote, r)); }
-  if (p.startsWith("/app/")) { // the app's own screens are for this computer only
+  if (p.startsWith("/app/")) { // CM's own screens are for this computer only
     if (remote || !isThisComputer(req)) { res.writeHead(403); return res.end("Not available"); }
     return sendFile(res, path.join(__dirname, "app", p.slice(5)), path.join(__dirname, "app"));
   }
@@ -263,7 +263,7 @@ async function restartServer() {
 
 // ---------- zoom ----------
 // One text size for every window, kept between 80% and 200% and remembered in the settings.
-// It is set again on every page load, so a zoom left over from an earlier version never shrinks the app.
+// It is set again on every page load, so a zoom left over from an earlier version never shrinks CM.
 const ZOOM_STEPS = [0.8, 0.9, 1, 1.1, 1.25, 1.4, 1.6, 1.8, 2];
 function clampZoom(z) { z = Number(z) || 1; return Math.min(2, Math.max(0.8, Math.round(z * 100) / 100)); }
 function applyZoom(w) { try { w.webContents.setZoomFactor(clampZoom(appSettings.zoom)); } catch (e) {} }
@@ -317,7 +317,7 @@ function newWindow(page, w, h) {
 }
 
 // ---------- courses ----------
-// One context per course, made on first use and kept while the app runs, so a class can go on in one course
+// One context per course, made on first use and kept while CM runs, so a class can go on in one course
 // (students checking in, a quiz running) while the lecturer looks at another.
 function makeCtx(id) {
   const d = registry.dirs(id);
@@ -414,7 +414,7 @@ function repoInfo(dir) {
 // The screen a course opens on: its setup until that has been seen once, then the home screen.
 const startPage = (c) => coursePrefix(c) + (c.settings.setupSeen ? "app/home.html" : "app/setup.html");
 
-// ---------- the app's own screens ----------
+// ---------- CM's own screens ----------
 function info(c) {
   return {
     settings: shownSettings(c), base: studentHome(c), version: app.getVersion(), courseId: c.id,
@@ -581,7 +581,7 @@ on("cm:chooseLogo", async (c, e, clear) => {
   } catch (err) { return { ok: false, why: err.message }; }
 });
 webImport.register({ on, dialog, winOf, shell }); // cm:import*: bring results exported from the web version into this course
-folderImport.register({ on, dialog, winOf, shell, dirOf: (c) => registry.dirs(c.id).root }); // cm:auto*: point at a folder; the app finds and extracts what it needs
+folderImport.register({ on, dialog, winOf, shell, saveSettings, dirOf: (c) => registry.dirs(c.id).root }); // cm:auto*: point at a folder; CM finds and extracts what it needs
 ipcMain.handle("cm:tableFile", async (e) => { // a class list as rows, from CSV, a text file or Excel (.xlsx)
   const r = await dialog.showOpenDialog(winOf(e), { title: "Choose the class list", filters: [{ name: "Class list", extensions: ["csv", "xlsx", "txt", "tsv"] }], properties: ["openFile"] });
   if (r.canceled || !r.filePaths[0]) return null;
@@ -787,7 +787,7 @@ function flushAll() { for (const c of ctxs.values()) { try { c.backend.flush(); 
 function backupAll(reason) { for (const c of ctxs.values()) { try { c.backend.flush(); c.lastBackup = c.backups.make(reason); Promise.resolve(c.linked.auto()).catch((e) => console.log("[linked " + c.id + "]", e.message)); } catch (e) { c.lastBackup = { ok: false, why: e.message }; } } }
 let closingBackupDone = false;
 app.whenReady().then(async () => {
-  // Before 0.8.0 the app held one course; it becomes the first course here, with all of its records.
+  // Before 0.8.0 CM held one course; it becomes the first course here, with all of its records.
   const mig = courses.migrateLegacy(ROOT(), (m) => console.log("[courses]", m));
   if (mig.migrated) { try { const t = loadTokens(); if (t.sheetId) saveTokens(courses.migrateTokens(t, mig.migrated)); } catch (e) {} }
   registry = courses.createRegistry(ROOT());

@@ -1,6 +1,6 @@
 /* Class Manager charts: shared helpers (no chart is drawn here).
    Every chart module returns an HTML string from plain data and does no calculation of its own: the figures come from the server
-   script (learningProgress_). The same file runs in the app window (window.cmCharts) and in Node (the tests). */
+   script (learningProgress_). The same file runs in CM window (window.cmCharts) and in Node (the tests). */
 (function (root) {
   "use strict";
   var LEVELS = ["Secure", "Developing", "Beginning", "Not enough evidence"];

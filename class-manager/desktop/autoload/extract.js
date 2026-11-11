@@ -1,5 +1,5 @@
 // Takes everything useful out of a file's sheets and puts it in one clean shape, whatever the file looked like.
-// Only the fields the app needs are kept (ID, names, scores, attendance marks, quiz questions); every other column is left behind.
+// Only the fields CM needs are kept (ID, names, scores, attendance marks, quiz questions); every other column is left behind.
 // The result is the "clean" tables (written to the working file by working.js) and `planBook`, the sheets that the
 // existing import (import-plan.js) previews and applies. Pure: reads nothing from disk and writes nothing.
 "use strict";

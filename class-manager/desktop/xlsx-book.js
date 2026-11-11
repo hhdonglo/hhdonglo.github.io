@@ -40,7 +40,7 @@ function dateStyles(stylesXml) { // the set of cell style numbers (the s="" of a
   return set;
 }
 
-const tick = () => new Promise((r) => setImmediate(r)); // lets the app draw and answer clicks between chunks of a large sheet
+const tick = () => new Promise((r) => setImmediate(r)); // lets CM draw and answer clicks between chunks of a large sheet
 const CHUNK = 3000;
 
 // One cell: its value, with dates as Date.
