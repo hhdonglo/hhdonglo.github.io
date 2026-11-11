@@ -55,8 +55,9 @@ kbd{font:600 .78rem ui-monospace,monospace;color:var(--faint);letter-spacing:.02
 .chip.live .dot{background:var(--ok);box-shadow:0 0 0 3px rgba(76,195,138,.18)}
 .chip.busy .dot{background:var(--warn)}
 .keybox{display:inline-flex;align-items:center;gap:.6rem;font-size:var(--fs-sm);color:var(--muted);white-space:nowrap}
-.keybox.closed code,.keybox.closed #key-copy{display:none}
-.conn-top{display:inline-flex;gap:2px}.conn-top .btn[aria-pressed=true]{background:var(--accent,#2b5db8);color:#fff}
+.livewrap{position:relative}.livemenu{position:absolute;top:calc(100% + 6px);left:0;z-index:30;min-width:15rem;padding:.5rem;border:1px solid var(--line);border-radius:10px;background:var(--card);box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.livemenu .lbl{margin:.2rem .5rem .4rem;font-size:var(--fs-sm);color:var(--muted)}.livemenu button{display:block;width:100%;text-align:left;padding:.5rem .7rem;border:0;border-radius:6px;background:none;color:var(--text);cursor:pointer}.livemenu button:hover,.livemenu button:focus-visible{background:var(--hover,rgba(255,255,255,.08))}.livemenu button[aria-checked=true]::before{content:"✓ "}
+#live{cursor:pointer;border:0;color:inherit}
 .keybox code{font:700 1.02rem ui-monospace,monospace;color:var(--text);letter-spacing:.04em}
 /* course dropdown: the course every screen of this window shows */
 .sr{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
@@ -413,10 +414,12 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
  <div class="course-pick"><label class="sr" for="course-sel">Course</label>
   <select id="course-sel" title="Choose the course. Every screen in this window shows the chosen course only."></select>
   <span class="others" id="course-others" role="status" aria-live="polite"></span></div>
- <span class="chip" id="live" role="status" aria-live="polite"><span class="dot"></span><span id="live-t">Starting</span></span>
+ <span class="livewrap"><button class="chip" type="button" id="live" aria-haspopup="menu" aria-expanded="false" title="How students connect"><span class="dot"></span><span id="live-t">Starting</span><span aria-hidden="true">▾</span></button>
+  <div class="livemenu" id="live-menu" role="menu" aria-label="Connection mode" hidden><p class="lbl">Connection mode</p>
+   <button type="button" role="menuitemradio" aria-checked="true" data-mode="lan">Same Wi-Fi / Hotspot</button>
+   <button type="button" role="menuitemradio" aria-checked="false" data-mode="net">Internet</button></div></span>
  <button class="btn sm" type="button" id="look-top" title="Find a student by ID or name">Find a student</button>
- <span class="seg conn-top" role="group" aria-label="How students connect"><button class="btn sm" type="button" id="ct-lan" aria-pressed="true" title="Students join the same Wi-Fi or hotspot as this computer">Wi-Fi</button><button class="btn sm" type="button" id="ct-net" aria-pressed="false" title="Students open an internet address from any network">Internet</button></span>
- <span class="keybox closed"><button class="btn sm" type="button" id="key-show" aria-expanded="false" title="Show the host key. Keep it private."><svg><use href="#i-key"/></svg>Host key</button><code id="key">…</code> <button class="btn sm" type="button" id="key-copy"><svg><use href="#i-copy"/></svg>Copy</button></span>
+ <span class="keybox"><button class="btn sm" type="button" id="key-copy" title="Copy the host key. It is never shown on screen. Keep it private."><svg><use href="#i-key"/></svg>Host key</button><code id="key" hidden></code></span>
 </header>
 
 <main id="main">
@@ -541,14 +544,7 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
      <button class="btn" data-win="calendar.html"><svg><use href="#i-cal"/></svg>Calendar</button>
      <button class="btn" data-win="codes.html"><svg><use href="#i-key"/></svg>Access codes</button>
     </div>
-    <p class="note" id="keynote" style="margin-top:1rem">Lecturer pages ask for the host key shown at the top. Keep it private.</p>
-    <form id="pw-form" autocomplete="off" style="margin-top:.6rem">
-     <strong id="pw-title">Lecturer password</strong>
-     <p class="note" id="pw-state" style="margin:.2rem 0 .5rem">Choose a password for the lecturer login. You do not need the old one here, because you are at this computer.</p>
-     <div class="tools"><input type="password" id="pw-new" maxlength="100" placeholder="New password (at least 10 characters)" autocomplete="new-password" style="min-width:16rem"><input type="password" id="pw-new2" maxlength="100" placeholder="Repeat the new password" autocomplete="new-password" style="min-width:16rem"><button class="btn" type="submit"><svg><use href="#i-key"/></svg>Save password</button><button class="btn" type="button" id="pw-reset"><svg><use href="#i-key"/></svg>Reset to a temporary key</button></div>
-     <p class="note" id="pw-msg" role="alert" hidden></p>
-     <div id="pw-code-box" hidden style="margin-top:.6rem;padding:.7rem;border:2px dashed var(--line);border-radius:8px"><strong>Your recovery code. It is shown only once.</strong><br><code id="pw-code" style="font-size:1.3rem;letter-spacing:.06em;user-select:all"></code> <button class="btn sm" type="button" id="pw-code-copy">Copy</button><p class="note">Write it down or keep it in a password manager. If you forget the password, the lecturer login accepts this code instead ("Forgot your password?").</p></div>
-    </form>
+    <p class="tools" style="margin-top:.8rem"><button class="btn sm" type="button" id="pw-open"><svg><use href="#i-key"/></svg>Change password…</button></p>
    </div>
   </div>
  </div>
@@ -680,6 +676,8 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
      <label><input type="radio" name="sec-from" value="computer"> On this computer only</label>
     </fieldset>
     <label style="display:block;margin-top:8px"><input type="checkbox" id="sec-online"> Also allow lecturer pages through the internet address (not recommended)</label>
+    <label style="display:block;margin-top:8px"><input type="checkbox" id="sec-geo"> Refuse students who are far from the classroom when they check in through the internet address (uses their phone's location; the radius is chosen when you start a session)</label>
+    <p class="note">On the same Wi-Fi, check-ins are accepted only from the local network. Phones cannot share their location there.</p>
     <p class="note">Student pages are not affected. Lecturer pages always need the host key; these settings decide where they can be used at all.</p>
     <p class="row" style="margin-top:12px"><button class="btn primary" type="submit">Save</button> <span id="sec-saved" class="note" role="status"></span></p>
    </form>
@@ -758,6 +756,16 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
  <form method="dialog" class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn primary">Close</button></form>
 </dialog>
 
+<dialog id="pw-d" aria-labelledby="pw-dh" style="width:min(36rem,94vw)"><h2 id="pw-dh">Lecturer password</h2>
+    <p class="note" id="keynote">Lecturer pages ask for the host key. Press <strong>Host key</strong> at the top to copy it, then paste it where it is asked. It is never shown. Keep it private.</p>
+    <form id="pw-form" autocomplete="off" style="margin-top:.6rem">
+     <strong id="pw-title">Lecturer password</strong>
+     <p class="note" id="pw-state" style="margin:.2rem 0 .5rem">Choose a password for the lecturer login. You do not need the old one here, because you are at this computer.</p>
+     <div class="tools"><input type="password" id="pw-new" maxlength="100" placeholder="New password (at least 10 characters)" autocomplete="new-password" style="min-width:16rem"><input type="password" id="pw-new2" maxlength="100" placeholder="Repeat the new password" autocomplete="new-password" style="min-width:16rem"><button class="btn" type="submit"><svg><use href="#i-key"/></svg>Save password</button><button class="btn" type="button" id="pw-reset"><svg><use href="#i-key"/></svg>Reset to a temporary key</button></div>
+     <p class="note" id="pw-msg" role="alert" hidden></p>
+     <div id="pw-code-box" hidden style="margin-top:.6rem;padding:.7rem;border:2px dashed var(--line);border-radius:8px"><strong>Your recovery code. It is shown only once.</strong><br><code id="pw-code" style="font-size:1.3rem;letter-spacing:.06em;user-select:all"></code> <button class="btn sm" type="button" id="pw-code-copy">Copy</button><p class="note">Write it down or keep it in a password manager. If you forget the password, the lecturer login accepts this code instead ("Forgot your password?").</p></div>
+    </form>
+ <p class="row" style="justify-content:flex-end;margin-top:12px"><button class="btn" type="button" id="pw-close">Close</button></p></dialog>
 <dialog id="courses-d" class="cd" aria-labelledby="courses-h">
  <h2 id="courses-h">Courses</h2>
  <p class="note">Each course has its own class list, attendance, quizzes, groups, assignments, learning objectives, messages, host key and Google Sheet. Nothing is shared between courses. A course's lectures and files are kept in the app, or in a folder you link, such as a copy of a GitHub repository. Student records are never written to a linked folder.</p>
@@ -867,12 +875,17 @@ function tshow(t){
  $("copy-url").disabled=!url;$("copy-mini").disabled=!url;
  if(wantNet){if(on)live("live","Live: Internet");else if(t.state==="error")live("","Offline");else live("busy","Connecting")}
  else live(lanCount?"live":"",lanCount?"Live: Same Wi-Fi":"Offline: no network");
- $("ct-lan").setAttribute("aria-pressed",String(!wantNet));$("ct-net").setAttribute("aria-pressed",String(wantNet));
+ Array.prototype.forEach.call(document.querySelectorAll("#live-menu [data-mode]"),function(it){it.setAttribute("aria-checked",String((it.getAttribute("data-mode")==="net")===wantNet))});
 }
 $("copy-url").addEventListener("click",function(){var u=$("addr").textContent;if(u&&u!=="…")copy(u,$("copy-url"))});
-$("key-copy").addEventListener("click",function(){if(hostKey)copy(hostKey,$("key-copy"))});
-var keyTimer=0;$("key-show").addEventListener("click",function(){var box=$("key-show").parentNode,open=box.classList.contains("closed");box.classList.toggle("closed",!open);$("key-show").setAttribute("aria-expanded",String(open));clearTimeout(keyTimer);if(open)keyTimer=setTimeout(function(){box.classList.add("closed");$("key-show").setAttribute("aria-expanded","false")},20000)}); // the host key is hidden until asked for, and hides itself again after 20 seconds
-["lan","net"].forEach(function(m){$("ct-"+m).addEventListener("click",function(){var r=document.querySelector("input[name=conn][value="+m+"]");if(r&&!r.checked)r.click()})}); // the top-bar switch drives the same radio buttons as Class Overview
+$("key-copy").addEventListener("click",function(){if(hostKey)copy(hostKey,$("key-copy"))}); // the host key is never shown: one click copies it
+(function(){var menu=$("live-menu"),btn=$("live");
+ function shut(){menu.hidden=true;btn.setAttribute("aria-expanded","false")}
+ btn.addEventListener("click",function(e){e.stopPropagation();var open=menu.hidden;menu.hidden=!open;btn.setAttribute("aria-expanded",String(open))});
+ document.addEventListener("click",function(e){if(!menu.contains(e.target))shut()});
+ document.addEventListener("keydown",function(e){if(e.key==="Escape"&&!menu.hidden){shut();btn.focus()}});
+ Array.prototype.forEach.call(menu.querySelectorAll("[data-mode]"),function(it){it.addEventListener("click",function(){var r=document.querySelector("input[name=conn][value="+it.getAttribute("data-mode")+"]");shut();if(r&&!r.checked)r.click()})}); // drives the same radio buttons as Class Overview
+})();
 $("how").addEventListener("click",function(){$("how-d").showModal()});
 $("copy-mini").addEventListener("click",function(){var u=$("addr").textContent;if(u&&u!=="…")copy(u,$("copy-mini"))});
 
@@ -1078,6 +1091,7 @@ $("pw-form").addEventListener("submit",function(e){e.preventDefault();var a=$("p
   if(!r||!r.ok)return pwMsg((r&&r.why)||"Not saved.",true);
   $("pw-new").value=$("pw-new2").value="";pwMsg("");$("pw-code").textContent=r.recovery;$("pw-code-box").hidden=false;pwShow();reload()
  })});
+$("pw-open").addEventListener("click",function(){$("pw-d").showModal()});$("pw-close").addEventListener("click",function(){$("pw-d").close();$("pw-code-box").hidden=true});
 $("pw-code-copy").addEventListener("click",function(){var t=$("pw-code").textContent;copy(t,$("pw-code-copy"))});
 pwShow();
 
@@ -1132,10 +1146,10 @@ $("bk-form").addEventListener("submit",function(e){e.preventDefault();var p=$("b
  (BKMODE==="export"?cmApp.backupExport(p):cmApp.backupImport(p)).then(function(r){if(!r){$("bk-msg").textContent="";return}
   if(!r.ok){$("bk-msg").textContent="Not done: "+r.why;return}
   if(BKMODE==="export")$("bk-msg").textContent="Saved and read back: "+r.file;else{bkShow(r);$("bk-msg").textContent="Restored from the backup made "+(r.made||"").slice(0,10)+"."}})});
-function secShow(s){$("sec-hours").value=String(s.tunnelHours);document.querySelectorAll("input[name=sec-from]").forEach(function(r){r.checked=r.value===s.lecturerFrom});$("sec-online").checked=!!s.lecturerOnline}
+function secShow(s){$("sec-hours").value=String(s.tunnelHours);document.querySelectorAll("input[name=sec-from]").forEach(function(r){r.checked=r.value===s.lecturerFrom});$("sec-online").checked=!!s.lecturerOnline;$("sec-geo").checked=s.geoInternet!==false}
 cmApp.security().then(secShow);
 $("sec").addEventListener("submit",function(e){e.preventDefault();var f=document.querySelector("input[name=sec-from]:checked");
- cmApp.saveSecurity({tunnelHours:Number($("sec-hours").value),lecturerFrom:f?f.value:"network",lecturerOnline:$("sec-online").checked}).then(function(s){secShow(s);$("sec-saved").textContent="Saved."})});
+ cmApp.saveSecurity({tunnelHours:Number($("sec-hours").value),lecturerFrom:f?f.value:"network",lecturerOnline:$("sec-online").checked,geoInternet:$("sec-geo").checked}).then(function(s){secShow(s);$("sec-saved").textContent="Saved."})});
 })();
 </script>
 </body>

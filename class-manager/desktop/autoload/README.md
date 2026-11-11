@@ -41,3 +41,5 @@ PDF tables are not read (a PDF is used for quiz questions only). Old `.xls` file
 ## Tests
 
 `npm test` in `desktop/`; `test/autoload.test.js`.
+
+`oversize.js` marks a file that lists many times more students than the other chosen files (probably a whole-course list). The screen leaves it unticked with a warning.

@@ -53,7 +53,7 @@
     var left = f.sheets.filter(function (s) { return s.status !== "used" && s.note; }).slice(0, 12).map(function (s) { return "<li>" + esc(s.name) + ": " + esc(s.note) + "</li>"; }).join("");
     if (!f.ok) return "<li class='note'>" + esc(f.rel) + ": cannot be read. " + esc(f.error) + "</li>";
     if (!f.useful) return "<li class='note'>" + esc(f.rel) + ": " + esc(f.why) + "</li>";
-    return "<li style='margin:.5rem 0'><label><input type='checkbox' class='fld-pick' data-i='" + f.id + "' checked> <strong>" + esc(f.rel) + "</strong></label><br><span class='note'>Found: " + esc(kindsOf(f)) + ". " + esc(countsOf(f.summary)) + "</span>" +
+    return "<li style='margin:.5rem 0'><label><input type='checkbox' class='fld-pick' data-i='" + f.id + "'" + (f.big ? "" : " checked") + "> <strong>" + esc(f.rel) + "</strong></label><br>" + (f.big ? "<span class='msg'>This file lists " + n(f.big.students) + " students, far more than the " + n(f.big.others) + " in your other files. It may be a whole-course list, so it is not ticked. Tick it only if it is your class.</span><br>" : "") + "<span class='note'>Found: " + esc(kindsOf(f)) + ". " + esc(countsOf(f.summary)) + "</span>" +
       "<details><summary class='note'>What was taken from it</summary><ul class='note'>" + cols + "</ul>" + (left ? "<p class='note'>Left out:</p><ul class='note'>" + left + "</ul>" : "") + "</details></li>";
   }
 

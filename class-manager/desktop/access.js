@@ -5,7 +5,7 @@
    Students' requests are not affected. */
 "use strict";
 
-const SECURITY_DEFAULTS = { tunnelHours: 3, lecturerFrom: "network", lecturerOnline: false };
+const SECURITY_DEFAULTS = { tunnelHours: 3, lecturerFrom: "network", lecturerOnline: false, geoInternet: true };
 
 function cleanSecurity(s, cur) {
   s = s || {}; cur = Object.assign({}, SECURITY_DEFAULTS, cur || {});
@@ -13,7 +13,8 @@ function cleanSecurity(s, cur) {
   return {
     tunnelHours: [0, 1, 2, 3, 4, 6, 8, 12].includes(h) ? h : SECURITY_DEFAULTS.tunnelHours, // 0: stays on until stopped
     lecturerFrom: (s.lecturerFrom == null ? cur.lecturerFrom : s.lecturerFrom) === "computer" ? "computer" : "network",
-    lecturerOnline: s.lecturerOnline == null ? !!cur.lecturerOnline : s.lecturerOnline === true
+    lecturerOnline: s.lecturerOnline == null ? !!cur.lecturerOnline : s.lecturerOnline === true,
+    geoInternet: s.geoInternet == null ? cur.geoInternet !== false : s.geoInternet === true // check students' location when they check in through the internet address
   };
 }
 

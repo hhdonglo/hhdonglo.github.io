@@ -22,8 +22,8 @@ test("lecturer requests through the internet address are refused unless the lect
 test("security settings keep only known values", () => {
   assert.deepEqual(cleanSecurity({}), SECURITY_DEFAULTS);
   assert.deepEqual(cleanSecurity({ tunnelHours: 7, lecturerFrom: "anywhere", lecturerOnline: "yes" }), SECURITY_DEFAULTS);
-  assert.deepEqual(cleanSecurity({ tunnelHours: 0, lecturerFrom: "computer", lecturerOnline: true }), { tunnelHours: 0, lecturerFrom: "computer", lecturerOnline: true });
-  assert.deepEqual(cleanSecurity({ tunnelHours: 2 }, { lecturerFrom: "computer" }), { tunnelHours: 2, lecturerFrom: "computer", lecturerOnline: false }, "fields left out keep their value");
+  assert.deepEqual(cleanSecurity({ tunnelHours: 0, lecturerFrom: "computer", lecturerOnline: true }), { tunnelHours: 0, lecturerFrom: "computer", lecturerOnline: true, geoInternet: true });
+  assert.deepEqual(cleanSecurity({ tunnelHours: 2 }, { lecturerFrom: "computer" }), { tunnelHours: 2, lecturerFrom: "computer", lecturerOnline: false, geoInternet: true }, "fields left out keep their value");
 });
 
 test("the internet address stops by itself after the set time, and counts what arrives", { skip: process.platform === "win32" }, async () => {
