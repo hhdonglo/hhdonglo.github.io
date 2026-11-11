@@ -3,7 +3,7 @@
    this file only lays the results out. Levels and suggestions are for the lecturer; students see only their own progress, on My results. */
 (function () {
   "use strict";
-  if (!window.cmApp || !cmApp.progress) return;
+  if (!window.cmApp || !cmApp.progress || !window.cmCharts) return;
   var $ = function (i) { return document.getElementById(i); };
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
   var num = function (v, u) { return v === null || v === undefined || v === "" ? "–" : v + (u || ""); };
@@ -42,6 +42,9 @@
         D.questions.map(function (q) { return "<tr><td>" + esc(q.date) + "</td><td>" + esc(q.week ? "Week " + q.week : q.code) + "</td><td>" + esc(q.qid || "Q" + q.q) + "</td><td>" + num(q.beforePct, "%") + "</td><td>" + num(q.afterPct, "%") + "</td><td>" + num(q.gain) + "</td><td>" + q.wrongToRight + "</td><td" + (q.rightToWrong > q.wrongToRight ? " class='flag'" : "") + ">" + q.rightToWrong + "</td></tr>"; }).join("") + "</tbody></table></div><p class='note'>" + esc(D.note) + " Discussion works best on questions that 30 to 70 per cent answer correctly at first.</p>";
     }
     h += "</section>";
+    // Class overview charts (charts/): who is secure where, and the objective-by-student map
+    h += "<section class='card'><div class='card-head'><h3>Mastery by objective</h3><span class='note'>Students at each level on every objective or lecture</span></div>" + cmCharts.masteryDistribution(d.outcomes) + "</section>";
+    h += "<section class='card'><div class='card-head'><h3>Objective map</h3><span class='note'>Weakest students first. Click a row to open the student.</span></div>" + cmCharts.heatmap(d.students, d.outcomes) + "</section>";
     // Objectives
     var linked = d.outcomes.filter(function (o) { return o.linked; }), unl = d.outcomes.filter(function (o) { return !o.linked; });
     h += "<section class='card'><div class='card-head'><h3>Learning objectives</h3><button class='btn sm' type='button' data-win='outcomes.html'>Link questions to objectives</button></div>" +

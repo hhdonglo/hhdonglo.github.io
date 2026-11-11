@@ -1,0 +1,23 @@
+/* Class Manager charts: styles shared by the chart modules. Colours come from the app's own tokens (home.html), so both themes work. */
+.ch-empty{margin:.4rem 0}
+.ch-table{margin-top:.8rem}.ch-table summary{cursor:pointer;color:var(--muted);font-size:var(--fs-sm)}
+/* mastery distribution */
+.md{display:grid;gap:.5rem}
+.md-row{display:grid;grid-template-columns:minmax(8rem,16rem) minmax(0,1fr) 6.5rem;gap:.8rem;align-items:center}
+.md-label{font-weight:600;overflow-wrap:anywhere}
+.md-bar{display:flex;gap:2px;height:1.6rem;border-radius:5px;overflow:hidden;background:var(--card-2)}
+.md-bar span{display:grid;place-items:center;min-width:0;font-size:.8rem;font-weight:700;color:#10151F}
+.md-n{text-align:right;white-space:nowrap}
+/* heat map */
+.hm-wrap{overflow:auto;max-height:32rem;border:1px solid var(--line);border-radius:var(--r)}
+.hm{border-collapse:separate;border-spacing:2px;font-size:var(--fs-sm)}
+.hm th,.hm td{padding:.35rem .5rem;text-align:center;cursor:default}
+.hm thead th{position:sticky;top:0;background:var(--card-2);vertical-align:bottom;z-index:1}
+.hm thead th span{display:block;max-width:7rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0 auto}
+.hm tbody th{position:sticky;left:0;background:var(--card);text-align:left;white-space:nowrap;font-weight:600;z-index:1}
+.hm .hm-corner{left:0;z-index:2;text-align:left}
+.hm td{min-width:2.6rem;font-weight:700;color:#10151F;border-radius:3px}
+.hm td.hm-na{background:var(--card-2);color:var(--faint);font-weight:400}
+.hm tbody tr{cursor:pointer}.hm tbody tr:hover th,.hm tbody tr:focus-visible th{outline:2px solid var(--accent);outline-offset:-2px}
+.hm tbody tr:focus-visible{outline:none}
+@media (prefers-color-scheme:light){.md-bar span,.hm td:not(.hm-na){color:#fff}}
