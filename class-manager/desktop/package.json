@@ -1,7 +1,7 @@
 {
   "name": "class-manager",
   "productName": "Class Manager",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "Course pages, practice quizzes, mock exam, live quiz and attendance for each of the lecturer's courses, run from the lecturer's computer.",
   "author": "Hope Donglo",
   "license": "UNLICENSED",
