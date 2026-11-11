@@ -672,11 +672,11 @@ on("cm:linkedChoose", async (c, e) => {
   const r = await dialog.showOpenDialog(winOf(e), { title: "Choose the folder to keep copies in", properties: ["openDirectory", "createDirectory"] });
   return r.canceled || !r.filePaths[0] ? null : { folder: r.filePaths[0], provider: require("./storage-providers").detect(r.filePaths[0]) };
 });
-on("cm:linkedLink", (c, e, folder, pass, auto) => { try { return c.linked.link(folder, pass, auto); } catch (err) { return { ok: false, why: err.message }; } });
-on("cm:linkedCopy", (c, e, pass) => { try { c.backend.flush(); const r = c.linked.copyNow(pass); return Object.assign({}, c.linked.state(), { result: r }); } catch (err) { return { ok: false, why: err.message }; } });
+on("cm:linkedLink", async (c, e, spec, pass, auto) => { try { return await c.linked.link(spec, pass, auto); } catch (err) { return { ok: false, why: err.message }; } });
+on("cm:linkedCopy", async (c, e, pass) => { try { c.backend.flush(); const r = await c.linked.copyNow(pass); return Object.assign({}, await c.linked.state(), { result: r }); } catch (err) { return { ok: false, why: err.message }; } });
 on("cm:linkedUnlink", (c) => c.linked.unlink());
-on("cm:linkedOpen", (c) => { const s = c.linked.state(); return s.linked ? shell.openPath(s.folder) : ""; });
-on("cm:linkedRestore", (c, e, name, pass) => { try { return restoreContent(c, c.linked.open(String(name || ""), pass)); } catch (err) { return { ok: false, why: err.message }; } });
+on("cm:linkedOpen", async (c) => { const s = await c.linked.state(); return s.linked && s.folder ? shell.openPath(s.folder) : ""; });
+on("cm:linkedRestore", async (c, e, name, pass) => { try { return restoreContent(c, await c.linked.open(String(name || ""), pass)); } catch (err) { return { ok: false, why: err.message }; } });
 on("cm:openContent", (c) => { const d = registry.dirs(c.id).course; fs.mkdirSync(d, { recursive: true }); return shell.openPath(d); });
 on("cm:run", (c, e, name) => { if (["refreshTotals", "rebuildMaster", "buildNamedAttendance"].includes(name)) { c.backend.run(name); c.backend.flush(); return true; } return false; });
 // Lost both the lecturer password and the recovery code: the person at this computer may reset it (password-reset path, see README "Lecturer password").
@@ -729,7 +729,7 @@ on("cm:googleSync", (c) => c.google.syncNow());
 
 // ---------- start ----------
 function flushAll() { for (const c of ctxs.values()) { try { c.backend.flush(); } catch (e) {} } }
-function backupAll(reason) { for (const c of ctxs.values()) { try { c.backend.flush(); c.lastBackup = c.backups.make(reason); c.linked.auto(); } catch (e) { c.lastBackup = { ok: false, why: e.message }; } } }
+function backupAll(reason) { for (const c of ctxs.values()) { try { c.backend.flush(); c.lastBackup = c.backups.make(reason); Promise.resolve(c.linked.auto()).catch((e) => console.log("[linked " + c.id + "]", e.message)); } catch (e) { c.lastBackup = { ok: false, why: e.message }; } } }
 let closingBackupDone = false;
 app.whenReady().then(async () => {
   // Before 0.8.0 the app held one course; it becomes the first course here, with all of its records.

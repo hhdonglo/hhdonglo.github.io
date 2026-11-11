@@ -37,6 +37,7 @@
       "vault.js",
       "linked-folder.js",
       "storage-providers.js",
+      "storage/*.js",
       "excel.js",
       "course.js",
       "courses.js",

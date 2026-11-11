@@ -622,20 +622,24 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
   </div>
   <div class="card" id="lf">
    <h3>Link storage (optional)</h3>
-   <p class="note">Keep an encrypted copy of this course's records in a folder that Google Drive, OneDrive, Dropbox, MEGA, iCloud Drive or another sync app keeps in the cloud, or in a private git repository. Off until you link a folder. Student records leave this computer only as an encrypted file that needs your passphrase.</p>
+   <p class="note">Keep an encrypted copy of this course's records in your own cloud storage: a folder that Google Drive, OneDrive, Dropbox, MEGA, iCloud Drive or another sync app keeps in the cloud, or your own account on Nextcloud or another WebDAV service, a private GitHub repository, your own Dropbox app, or an S3-compatible bucket. You register with the service; the app holds no keys of its own. Off until you link a folder. Student records leave this computer only as an encrypted file that needs your passphrase.</p>
    <div id="lf-off">
-    <p class="row"><button class="btn primary" type="button" id="lf-choose">Choose a folder…</button></p>
+    <label class="f" for="lf-kind">Where to keep the copies</label>
+    <select class="f" id="lf-kind" style="max-width:34rem"></select>
+    <p class="row" id="lf-choose-w"><button class="btn primary" type="button" id="lf-choose">Choose a folder…</button></p>
     <form id="lf-form" hidden>
      <p id="lf-picked"></p><p class="note" id="lf-advice"></p>
+     <div id="lf-help" class="note"></div>
+     <div id="lf-fields"></div>
      <label class="f" for="lf-pass">Passphrase for the copies (at least 10 characters)</label><input class="f" id="lf-pass" type="password" autocomplete="new-password" style="max-width:22rem">
      <label class="f" for="lf-again">Passphrase again</label><input class="f" id="lf-again" type="password" autocomplete="new-password" style="max-width:22rem">
      <label id="lf-auto-w" style="display:block;margin-top:8px"><input type="checkbox" id="lf-auto" checked> Make a copy by itself every four hours and when the app closes</label>
-     <p class="note">Without the passphrase a copy cannot be opened, and it cannot be recovered.</p>
+     <p class="note">Without the passphrase a copy cannot be opened, and it cannot be recovered. Credentials you enter here are kept only on this computer, encrypted by its keychain.</p>
      <p class="row"><button class="btn primary" type="submit">Link and make the first copy</button><button class="btn" type="button" id="lf-cancel">Cancel</button></p>
     </form>
    </div>
    <div id="lf-on" hidden>
-    <dl class="kv"><dt>Folder</dt><dd id="lf-folder"></dd><dt>Service</dt><dd id="lf-prov"></dd><dt>Latest copy</dt><dd id="lf-last"></dd><dt>Automatic</dt><dd id="lf-autoshow"></dd></dl>
+    <dl class="kv"><dt>Place</dt><dd id="lf-folder"></dd><dt>Service</dt><dd id="lf-prov"></dd><dt>Latest copy</dt><dd id="lf-last"></dd><dt>Automatic</dt><dd id="lf-autoshow"></dd></dl>
     <p class="note" id="lf-adv2"></p>
     <label class="f" for="lf-pass2" id="lf-pass2-l">Passphrase (needed for a copy made now, or a restore)</label><input class="f" id="lf-pass2" type="password" autocomplete="current-password" style="max-width:22rem">
     <p class="row" style="margin-top:12px"><button class="btn primary" type="button" id="lf-copy">Copy now</button><button class="btn" type="button" id="lf-open">Open the folder</button><button class="link" type="button" id="lf-unlink">Stop linking</button></p>
