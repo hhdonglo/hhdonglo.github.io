@@ -6,15 +6,16 @@ const fs = require("fs");
 const path = require("path");
 const { emptyClean, summaryOf } = require("./extract");
 const { writeXlsx } = require("../excel");
+const { nameKey } = require("../import-plan");
 
 // ---------- merge ----------
 
 // Merges the clean data of several files. A name is taken from the first file that has one; marks of 1 win over 0; duplicate rows are dropped.
 function mergeCleans(cleans) {
-  const out = emptyClean(), people = new Map(), marks = new Map(), sessions = [], ids = new Set(), seen = new Set(), seenA = new Set();
+  const out = emptyClean(); out.conflicts = []; const people = new Map(), marks = new Map(), sessions = [], ids = new Set(), seen = new Set(), seenA = new Set();
   cleans.forEach((c) => {
     if (!c) return;
-    c.classList.forEach(([id, first, last]) => { const cur = people.get(id); if (!cur || (!cur[0] && !cur[1] && (first || last))) people.set(id, [first, last]); });
+    c.classList.forEach(([id, first, last]) => { const cur = people.get(id); if (!cur || (!cur[0] && !cur[1] && (first || last))) people.set(id, [first, last]); else if ((first || last) && nameKey(cur.join(" ")) !== nameKey(first + " " + last)) out.conflicts.push({ id, existing: cur.join(" ").trim(), incoming: (first + " " + last).trim() }); }); // one ID, two names: the first is kept and the difference is reported
     c.results.forEach((r) => { const k = r.join("|"); if (!seen.has(k)) { seen.add(k); out.results.push(r); } });
     c.attempts.forEach((r) => { const k = r.join("|"); if (!seenA.has(k)) { seenA.add(k); out.attempts.push(r); } });
     c.attendance.sessions.forEach((s) => { if (sessions.indexOf(s) < 0) sessions.push(s); });

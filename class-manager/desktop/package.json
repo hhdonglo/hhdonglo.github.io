@@ -51,6 +51,7 @@
       "import-apply.js",
       "import-ipc.js",
       "autoload-ipc.js",
+      "course-reset.js",
       "autoload/**/*",
       "build-from-roster.js",
       "import-template.js",

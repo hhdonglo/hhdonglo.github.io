@@ -26,6 +26,8 @@ const names = require("./names");
 const excel = require("./excel");
 const webImport = require("./import-ipc");
 const folderImport = require("./autoload-ipc");
+const { nameChecks } = require("./import-plan");
+const courseReset = require("./course-reset");
 const { execFile } = require("child_process");
 const courses = require("./courses");
 const { SECURITY_DEFAULTS, cleanSecurity, lecturerRefusal } = require("./access");
@@ -428,6 +430,11 @@ function setupState(c) {
   };
   return { steps, roster: Math.max(0, roster), complete: steps.course && steps.classList && steps.materials, seen: !!c.settings.setupSeen };
 }
+// Rows [ID, name] whose name differs from the one already on the class list for the same ID (the existing name is kept; see import-plan.js, nameChecks).
+function nameConflictsOf(c, rows) {
+  const incoming = {}; rows.forEach((r) => { const id = String(r[0] || "").replace(/\D/g, ""), n = String(r[1] || "").trim(); if (id && n && !incoming[id]) incoming[id] = n; });
+  return nameChecks(c.backend.rows("Roster"), incoming).conflicts.slice(0, 50);
+}
 function parseClassList(text) {
   // One student per line: ID, then an optional name (or first name and last name), separated by a comma, semicolon or tab. A header line is skipped.
   return String(text || "").split(/\r?\n/).map((l) => l.split(/[,;\t]/).map((x) => x.replace(/^"|"$/g, "").trim()))
@@ -460,7 +467,8 @@ ipcMain.handle("cm:openExternal", (e, url) => { if (/^https:\/\//.test(String(ur
 on("cm:classList", (c, e, text, replace) => {
   const rows = parseClassList(text);
   if (!rows.length) return { ok: false, why: "No student IDs found. Put one student per line: ID, then name if you wish." };
-  return c.backend.rosterSync(rows, !!replace);
+  const flagged = nameConflictsOf(c, rows);
+  return Object.assign({}, c.backend.rosterSync(rows, !!replace), { nameConflicts: flagged }); // the ID is the key: an existing name is kept and a different one is flagged
 });
 on("cm:classListFile", async (c, e) => {
   const r = await dialog.showOpenDialog(winOf(e), { title: "Choose the class list", filters: [{ name: "Class list", extensions: ["csv", "txt", "tsv"] }], properties: ["openFile"] });
@@ -489,6 +497,31 @@ on("cm:updateCourse", (c, e, id, o) => {
   if (o.code != null && !String(o.code).trim()) return { ok: false, why: "The course code cannot be empty." };
   saveSettings(ctx(id), { courseCode: o.code, courseTitle: o.title, semester: o.term });
   return { ok: true, list: courseList(c.id) };
+});
+// ---- reset a course's configuration (course-reset.js): backup first, typed confirmation, moved aside not deleted, restorable ----
+const resetBase = (id) => path.dirname(registry.dirs(id).settings);
+on("cm:resetList", (c, e, id) => (registry.get(String(id || "")) ? { ok: true, list: courseReset.listResets(resetBase(String(id))) } : { ok: false, why: "No such course." }));
+on("cm:resetCourse", (c, e, id, o) => {
+  id = String(id || ""); o = o || {};
+  const meta = registry.get(id); if (!meta) return { ok: false, why: "No such course." };
+  const want = String(meta.code || "").trim() || "RESET";
+  if (String(o.confirm || "").trim().toUpperCase() !== want.toUpperCase()) return { ok: false, why: "Type " + want + " to confirm." };
+  try {
+    const x = ctx(id); x.backend.flush();
+    const b = x.backups.make("reset"); // the records as they are now, checked, before anything moves
+    if (b && b.ok === false) return { ok: false, why: "A backup could not be made first, so nothing was reset: " + b.why };
+    closeCtx(id);
+    const r = courseReset.resetCourse(resetBase(id), o.scope, { linked: registry.dirs(id).linked });
+    if (!r.ok) return r;
+    const n = ctx(id);
+    return { ok: true, moved: r.moved, name: r.name, url: id === c.id ? baseUrl() + startPage(n) : "", list: courseReset.listResets(resetBase(id)) };
+  } catch (err) { return { ok: false, why: err.message }; }
+});
+on("cm:resetRestore", (c, e, id, name) => {
+  id = String(id || "");
+  if (!registry.get(id)) return { ok: false, why: "No such course." };
+  try { closeCtx(id); const r = courseReset.restoreReset(resetBase(id), String(name || "")); const n = ctx(id); return Object.assign(r, { url: id === c.id ? baseUrl() + startPage(n) : "", list: courseReset.listResets(resetBase(id)) }); }
+  catch (err) { return { ok: false, why: err.message }; }
 });
 on("cm:archiveCourse", (c, e, id, archived) => {
   id = String(id || "");
@@ -554,7 +587,9 @@ ipcMain.handle("cm:tableText", (e, text) => ({ ok: true, rows: require("./table"
 on("cm:classRows", (c, e, rows, replace) => { // rows already mapped to [ID, name] or [ID, first name, last name]
   const clean = (rows || []).map((r) => [String(r[0] || "").replace(/\D/g, ""), names.rowName(r).slice(0, 120)]).filter((r) => /^\d{4,12}$/.test(r[0]));
   if (!clean.length) return { ok: false, why: "No student IDs found in the chosen column. Student IDs must have 4 to 12 digits." };
+  const flagged = nameConflictsOf(c, clean);
   const r = c.backend.rosterSync(clean, !!replace);
+  if (r) r.nameConflicts = flagged;
   if (r && r.ok) r.built = c.backend.buildFromRoster(); // a row for every student in Attendance, Master and Scores, ready for the first session
   return r;
 });

@@ -15,6 +15,10 @@
   document.body.appendChild(d);
   var body = d.querySelector("#fld-body"), scan = null, watching = false, working = null, opts = { addMissing: null };
 
+  function conflictsHtml(st){
+    if(!st||!st.nameConflicts)return "";
+    return "<details open style='margin:.6rem 0'><summary class='msg'><strong>"+n(st.nameConflicts)+"</strong> student ID(s) have a different name in the files. The ID is the key, so the name already on the class list is kept. Check these:</summary><ul class='note'>"+(st.conflicts||[]).map(function(x){return "<li>"+esc(x.id)+": class list “"+esc(x.existing)+"”, file “"+esc(x.incoming)+"”</li>"}).join("")+"</ul></details>";
+  }
   function buttons(html) { return "<p class='row' style='justify-content:flex-end;margin-top:14px'>" + html + "</p>"; }
   function close() { cmApp.autoWatch(false); cmApp.importForget(); d.close(); }
 
@@ -69,6 +73,7 @@
         "<button class='btn primary' type='button' id='fld-preview'" + (good.length ? "" : " disabled") + ">Preview</button>");
     body.querySelector("#fld-cancel").onclick = close;
     body.querySelector("#fld-change").onclick = function () { busy("Looking at the folder…"); cmApp.autoPick().then(function (x) { if (!x) return found(r); found(x); }); };
+    body.querySelector("#fld-files2").onclick = function () { busy("Reading the files…"); cmApp.autoPickFiles().then(function (x) { if (!x) return found(r); found(x); }); };
     body.querySelector("#fld-rescan").onclick = function () { busy("Looking at the folder…"); cmApp.autoScan({}).then(found); };
     body.querySelector("#fld-watch").onchange = function (e) { watching = e.target.checked; cmApp.autoWatch(watching); };
     body.querySelector("#fld-preview").onclick = function () { preview(); };
@@ -101,7 +106,7 @@
       "<p class='row'><button class='btn' type='button' id='fld-export'>Export the working file…</button><button class='btn' type='button' id='fld-open'>Open the working folder</button></p>" +
       "<p>Class list: <strong>" + n(st.classList) + "</strong> students in this course. <strong>" + n(st.withData) + "</strong> have records in the files." + (st.notOnList ? " <strong>" + n(st.notOnList) + "</strong> other IDs are not on the class list and are left out unless you add them." : "") + "</p>" +
       ((st.notOnList || st.toAdd || !st.classList) ? "<label style='display:block;margin:.6rem 0'><input type='checkbox' id='fld-add'" + (opts.addMissing ? " checked" : "") + "> Add the students in the files to the class list" + (st.toAdd ? " (" + n(st.toAdd) + " would be added)" : "") + "</label>" : "") +
-      table + (rep.warnings || []).map(function (x) { return "<p class='msg'>" + esc(x) + "</p>"; }).join("") +
+      (st.namesFilled ? "<p class='note'>" + n(st.namesFilled) + " student(s) on the class list had no name; the files give it.</p>" : "") + conflictsHtml(st) + table + (rep.warnings || []).map(function (x) { return "<p class='msg'>" + esc(x) + "</p>"; }).join("") +
       (qn ? "<p>The files also hold <strong>" + n(qn) + "</strong> quiz question set(s). <button class='btn' type='button' id='fld-q'>Send them to the review queue</button> <span class='note' id='fld-qmsg' role='status'>You approve each question before students see it.</span></p>" : "") +
       (rep.changes ? "<p class='note'>A backup is made first. Records already here are never changed, and loading the same files again adds nothing.</p>" : "<p class='msg'>Nothing in these files is new to this course.</p>") +
       buttons("<button class='btn' type='button' id='fld-back'>Back</button><button class='btn' type='button' id='fld-cancel'>Close</button><button class='btn primary' type='button' id='fld-go'" + (rep.changes ? "" : " disabled") + ">Add " + (rep.changes ? n(rep.changes) + " records" : "") + " to the course</button>");
@@ -119,7 +124,12 @@
 
   function done(r) {
     if (!r || !r.ok) { body.innerHTML = "<p class='msg err' role='alert'>Nothing was added: " + esc(r && r.why) + "</p>" + buttons("<button class='btn primary' type='button' id='fld-x'>Close</button>"); body.querySelector("#fld-x").onclick = close; return; }
-    body.innerHTML = "<p><strong>" + (r.nothing ? "Nothing to add." : "Added " + n(r.done.rows) + " records" + (r.done.students ? " and " + n(r.done.students) + " students" : "") + ".") + "</strong></p>" +
+    var st = (r.report && r.report.students) || {}, tabs = (r.report && r.report.tabs || []).filter(function (t) { return t.add; });
+    body.innerHTML = "<p><strong>" + (r.nothing ? "Nothing to add: everything in these files is already here." : "Added " + n(r.done.rows) + " records" + (r.done.students ? " and " + n(r.done.students) + " new students" : "") + ".") + "</strong></p>" +
+      (tabs.length ? "<ul class='note'>" + tabs.map(function (t) { return "<li>" + esc(t.label) + ": " + n(t.add) + " new, " + n(t.duplicates) + " already here</li>"; }).join("") + "</ul>" : "") +
+      (st.namesFilled ? "<p class='note'>" + n(st.namesFilled) + " existing student(s) were given the name the file has.</p>" : "") +
+      (st.nameConflicts ? "<p class='msg'>" + n(st.nameConflicts) + " ID(s) had a different name in the files; the class list name was kept.</p>" : "") +
+      "<p class='note'>Load more files whenever you like. Each load matches students by ID, adds the new ones and fills gaps, and never duplicates or overwrites.</p>" +
       (r.backup ? "<p class='note'>A backup of the records as they were is in Settings, under Backups (" + esc(r.backup) + "). Restoring it undoes this.</p>" : "") +
       buttons("<button class='btn primary' type='button' id='fld-ok'>Done</button>");
     body.querySelector("#fld-ok").onclick = function () { d.close(); location.reload(); };

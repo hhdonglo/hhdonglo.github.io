@@ -185,6 +185,21 @@ function rosterIdsOf(book) { // IDs on the file's own Roster tab: the class list
   return sh ? [...classIdsOf(body(sh.rows).map((r) => r.slice()))] : [];
 }
 
+// Names are compared without case, commas or order, so "Mensah, Ama" and "ama mensah" are the same name.
+const nameKey = (s) => String(s || "").toLowerCase().replace(/[^\p{L}\p{N}\s]/gu, " ").split(/\s+/).filter(Boolean).sort().join(" ");
+
+// Against the class list on this computer: names to fill in where there is none, and names that disagree (existing name kept).
+function nameChecks(localRows, incoming) {
+  const have = {}; (localRows || []).forEach((r) => { const id = V.idOf(r[0]); if (id && !(id in have)) have[id] = String(r[1] || "").trim(); });
+  const fills = [], conflicts = [];
+  Object.keys(incoming).forEach((id) => {
+    if (!(id in have)) return;
+    if (!have[id]) fills.push([id, incoming[id]]);
+    else if (nameKey(have[id]) !== nameKey(incoming[id])) conflicts.push({ id, existing: have[id], incoming: incoming[id] });
+  });
+  return { fills, conflicts };
+}
+
 function classIdsOf(rows) { // IDs on this course's class list
   const set = new Set(); (rows || []).forEach((r) => { const id = V.idOf(r[0]); if (id.length >= 4 && id.length <= 12) set.add(id); });
   return set;
@@ -252,11 +267,16 @@ function plan(book, local, options) {
   const offList = reports.reduce((n, r) => n + (r.offList || 0), 0);
   if (!localList.size && !opt.addMissing) warnings.push("This course has no class list yet, so no student can be matched. Add the class list first, or tick \"Add the students in the file to the class list\".");
   else if (offList && !opt.addMissing) warnings.push(offList + " row(s) belong to IDs that are not on this course's class list and are left out.");
-  const students = { classList: localList.size, withData: [...ctx.activity].filter((id) => localList.has(id)).length, notOnList: offIds.length, notOnListSample: offIds.slice(0, 5), toAdd: addIds.length };
-  const roster = addIds.map((id) => [id, names[id] || ""]);
+  // The student ID is the key. The same ID never gets a second name: a name that differs from the one already on the class list is flagged, never written;
+  // a student on the list with no name yet is given the name the file has.
+  const { fills, conflicts } = nameChecks(local.read("Roster"), nameMap(book));
+  const students = { classList: localList.size, withData: [...ctx.activity].filter((id) => localList.has(id)).length, notOnList: offIds.length, notOnListSample: offIds.slice(0, 5), toAdd: addIds.length,
+    namesFilled: fills.length, nameConflicts: conflicts.length, conflicts: conflicts.slice(0, 50) };
+  const roster = addIds.map((id) => [id, names[id] || ""]).concat(fills);
   const blocked = !localList.size && !opt.addMissing; // with nobody to match, nothing is written
   const changes = blocked ? 0 : reports.reduce((n, r) => n + (r.add || 0), 0) + roster.length;
+  if (conflicts.length) warnings.push(conflicts.length + " student ID(s) have a different name in the file than on the class list. The class list name is kept. Review them below.");
   return { report: { tabs: reports, ignored, students, warnings, changes, blocked }, ops: blocked ? { tabs: [], roster: [] } : { tabs: ops, roster } };
 }
 
-module.exports = { plan, identify, layout, classIdsOf };
+module.exports = { plan, identify, layout, classIdsOf, nameChecks, nameKey };

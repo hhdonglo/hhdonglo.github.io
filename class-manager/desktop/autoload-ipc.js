@@ -11,6 +11,7 @@ const { mergeCleans, writeWorking } = require("./autoload/working");
 const { planBookOf } = require("./autoload/extract");
 const { mergeBooks } = require("./autoload/book");
 const { readAny } = require("./autoload/read-file");
+const { analyzeFile } = require("./autoload/analyze");
 const { plan } = require("./import-plan");
 const { pending } = require("./import-ipc");
 
@@ -47,6 +48,15 @@ function register({ on, dialog, winOf, shell, dirOf }) {
     return scan(c, e, true);
   });
 
+  on("cm:autoPickFiles", async (c, e) => { // one or more files instead of a folder: the same reading, the same preview and the same import
+    const r = await dialog.showOpenDialog(winOf(e), { title: "Choose the files", properties: ["openFile", "multiSelections"],
+      filters: [{ name: "Class files", extensions: ["xlsx", "csv", "tsv", "txt", "md", "docx", "pdf"] }] });
+    if (r.canceled || !r.filePaths.length) return null;
+    const s = get(c), root = path.dirname(r.filePaths[0]); s.analyses = [];
+    for (const f of r.filePaths.slice(0, 50)) s.analyses.push(await analyzeFile(f, root));
+    return { ok: true, folder: root, files: s.analyses.map((a, i) => shown(a, i)), skipped: { other: 0, tooBig: 0, hidden: 0 }, capped: false, reread: s.analyses.length, watching: false };
+  });
+
   on("cm:autoScan", (c, e, o) => scan(c, e, !!(o && o.force)));
 
   on("cm:autoWatch", (c, e, yes) => {
@@ -61,7 +71,8 @@ function register({ on, dialog, winOf, shell, dirOf }) {
     const s = get(c), chosen = ((o && o.ids) || []).map((i) => s.analyses[i]).filter((a) => a && a.ok && a.useful);
     if (!chosen.length) return { ok: false, why: "Choose at least one file that holds usable data." };
     try {
-      const working = await writeWorking(wdir(c), mergeCleans(chosen.map((a) => a.clean)), chosen.map((a) => a.rel));
+      const merged = mergeCleans(chosen.map((a) => a.clean));
+      const working = await writeWorking(wdir(c), merged, chosen.map((a) => a.rel));
       const webBooks = [];
       for (const a of chosen.filter((x) => x.web)) webBooks.push((await readAny(a.path)).sheets); // the web export's own tabs, read again from the original (read only)
       const plain = mergeCleans(chosen.filter((x) => !x.web).map((a) => a.clean));
@@ -71,7 +82,10 @@ function register({ on, dialog, winOf, shell, dirOf }) {
       const hasList = book.some((sh) => /^roster$/i.test(sh.name));
       const opts = { onlyClassList: true, addMissing: o && o.addMissing != null ? !!o.addMissing : hasList };
       pending.get(c.id).addMissing = opts.addMissing;
-      return { ok: true, name, working, addMissing: opts.addMissing, report: plan(book, localOf(c.backend), opts).report };
+      const report = plan(book, localOf(c.backend), opts).report;
+      const seen = new Set(report.students.conflicts.map((x) => x.id)); // names that differ between the chosen files themselves are flagged too
+      merged.conflicts.filter((x) => !seen.has(x.id)).slice(0, 50).forEach((x) => { report.students.conflicts.push(x); report.students.nameConflicts++; });
+      return { ok: true, name, working, addMissing: opts.addMissing, report };
     } catch (err) { return { ok: false, why: err.message }; }
   });
 
