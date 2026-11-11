@@ -12,6 +12,7 @@ const { planBookOf } = require("./autoload/extract");
 const { mergeBooks } = require("./autoload/book");
 const { readAny } = require("./autoload/read-file");
 const { analyzeFile } = require("./autoload/analyze");
+const { oversized } = require("./autoload/oversize");
 const { plan } = require("./import-plan");
 const { pending } = require("./import-ipc");
 
@@ -21,6 +22,8 @@ const readJson = (f, d) => { try { return JSON.parse(fs.readFileSync(f, "utf8"))
 // What the screen needs to know about one analysed file.
 const shown = (a, id) => ({ id, rel: a.rel, name: a.name, ok: a.ok, error: a.error, useful: a.useful, kinds: a.kinds, why: a.why, summary: a.summary, web: a.web, size: a.size,
   sheets: (a.sheets || []).map((s) => ({ name: s.name, role: s.role, status: s.status, note: s.note, columns: s.columns, rowsIn: s.rowsIn, rowsKept: s.rowsKept })) });
+
+const flagBig = (files) => { const big = oversized(files); files.forEach((f) => { if (big[f.id]) f.big = big[f.id]; }); return files; }; // a file far bigger than the others is not ticked by default
 
 function register({ on, dialog, winOf, shell, dirOf }) {
   const state = new Map(); // course id -> { folder, analyses, watcher }
@@ -34,7 +37,7 @@ function register({ on, dialog, winOf, shell, dirOf }) {
     const store = createStore(wdir(c));
     const r = await scanFolder(s.folder, store, { force, exclude: [wdir(c)], onProgress: (p) => { try { e.sender.send("cm:autoProgress", p); } catch (x) { /* the window closed */ } } });
     s.analyses = r.analyses;
-    return { ok: true, folder: s.folder, files: r.analyses.map((a, i) => shown(a, i)), skipped: r.skipped, capped: r.capped, reread: r.reread, watching: !!s.watcher };
+    return { ok: true, folder: s.folder, files: flagBig(r.analyses.map((a, i) => shown(a, i))), skipped: r.skipped, capped: r.capped, reread: r.reread, watching: !!s.watcher };
   }
 
   on("cm:autoState", (c) => { const s = get(c); return { folder: s.folder, watching: !!s.watcher, workingFolder: wdir(c) }; });
@@ -54,7 +57,7 @@ function register({ on, dialog, winOf, shell, dirOf }) {
     if (r.canceled || !r.filePaths.length) return null;
     const s = get(c), root = path.dirname(r.filePaths[0]); s.analyses = [];
     for (const f of r.filePaths.slice(0, 50)) s.analyses.push(await analyzeFile(f, root));
-    return { ok: true, folder: root, files: s.analyses.map((a, i) => shown(a, i)), skipped: { other: 0, tooBig: 0, hidden: 0 }, capped: false, reread: s.analyses.length, watching: false };
+    return { ok: true, folder: root, files: flagBig(s.analyses.map((a, i) => shown(a, i))), skipped: { other: 0, tooBig: 0, hidden: 0 }, capped: false, reread: s.analyses.length, watching: false };
   });
 
   on("cm:autoScan", (c, e, o) => scan(c, e, !!(o && o.force)));

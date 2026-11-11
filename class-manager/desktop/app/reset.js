@@ -14,15 +14,15 @@
   function when(s) { try { return new Date(s).toLocaleString(); } catch (e) { return s; } }
   function drawList(list) {
     return list && list.length ? "<h3 style='margin-top:1rem'>Earlier resets</h3><ul class='note' style='line-height:2'>" + list.map(function (r) {
-      return "<li>" + esc(when(r.made)) + " · " + (r.scope === "all" ? "setup and records" : "setup only") + " <button class='btn sm' type='button' data-restore='" + esc(r.name) + "'>Restore</button></li>"; }).join("") + "</ul>" : "";
+      return "<li>" + esc(when(r.made)) + " · " + (r.scope === "all" ? "everything" : "setup only") + " <button class='btn sm' type='button' data-restore='" + esc(r.name) + "'>Restore</button></li>"; }).join("") + "</ul>" : "";
   }
   function show(list, msg) {
     var want = code || "RESET";
     body.innerHTML =
       "<p>Not happy with how this course was set up? Start it again. <strong>Nothing is deleted:</strong> a backup is made first, and the parts you choose are moved into a folder inside the course's data folder. You can restore them below.</p>" +
       "<fieldset style='border:0;padding:0;margin:.6rem 0'><legend class='lbl'>What to reset</legend>" +
-      "<label style='display:block;margin:.4rem 0'><input type='radio' name='rst-scope' value='setup' checked> <strong>Setup only.</strong> Course details, lectures and materials, approved questions and the library, files made by Load from a folder. The class list, scores and attendance stay.</label>" +
-      "<label style='display:block;margin:.4rem 0'><input type='radio' name='rst-scope' value='all'> <strong>Setup and records.</strong> As above, and the class list, scores, attendance and access codes. The course starts empty.</label></fieldset>" +
+      "<label style='display:block;margin:.4rem 0'><input type='radio' name='rst-scope' value='all' checked> <strong>Everything for this course.</strong> Course details, lectures and materials, approved questions and the library, the class list, scores, attendance, analytics and access codes. The course starts empty. It is moved aside, so you can restore it.</label>" +
+      "<label style='display:block;margin:.4rem 0'><input type='radio' name='rst-scope' value='setup'> <strong>Setup only.</strong> As above, but the class list, scores and attendance stay.</label></fieldset>" +
       "<label class='lbl' for='rst-confirm'>Type <strong>" + esc(want) + "</strong> to confirm</label><input class='f' id='rst-confirm' autocomplete='off' style='max-width:14rem'>" +
       "<p class='msg' id='rst-msg' role='status'>" + esc(msg || "") + "</p>" + drawList(list) +
       "<p class='row' style='justify-content:flex-end;margin-top:14px'><button class='btn' type='button' id='rst-close'>Close</button><button class='btn danger' type='button' id='rst-go'>Reset</button></p>";

@@ -176,7 +176,7 @@ function createBackend(opts) {
   vm.createContext(ctx);
   vm.runInContext(fs.readFileSync(path.join(WEB, "apps_script", "quiz_receiver.gs"), "utf8"), ctx, { filename: "quiz_receiver.gs" });
   // Phones on a local http address cannot share their location, so the location check is off here.
-  vm.runInContext("ATT_GEO_MODE = 'off'; SITE = 'http://local';", ctx);
+  vm.runInContext("ATT_GEO_MODE = 'off'; SITE = 'http://local'; ATT_LINK_GRACE_SLOTS = 1;", ctx); // a link is good for 30 to 60 s, so a forwarded link or a photo of the screen soon goes stale
   vm.runInContext("NOTIFY_EMAIL = '';", ctx);
 
   // First run: create the tabs, the settings and a host key.
@@ -199,6 +199,7 @@ function createBackend(opts) {
     // Host key is held as a salted hash once it is changed from the dashboard; it cannot be shown then.
     hostKeyIsPlain: () => String(spreadsheet.getSheetByName("Key").getRange(2, 10).getValue()).indexOf("sha256:") !== 0,
     run: (name) => ctx[name](),
+    setGeoMode: (mode) => { ctx.ATT_GEO_MODE = mode === "enforce" ? "enforce" : "off"; }, // per request: see attendance-guard.js
     // The person at this computer chooses the lecturer password without the old one (app screens only; apps_script/src/06-password.gs).
     setPasswordAsOwner: (pw) => { const r = ctx.ownerSetPassword_(pw); flush(); return r; },
     passwordStatus: () => ctx.passwordStatus_(),

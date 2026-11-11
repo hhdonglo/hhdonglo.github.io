@@ -25,12 +25,13 @@ var M={
  E18:["You do not have an access code yet. Ask your lecturer for your access code slip, then check in again.","help"],
  E19:["Your access code has expired. Ask your lecturer for a new access code slip.","help"],
  E20:["You were signed out on this phone after a while, for safety. Enter your access code again.","edit"],
+ E21:["You are not on the class network. Join the same Wi-Fi as your lecturer, or open the Internet link your lecturer shows, then check in again.","help"],
  E0:["Something went wrong. Try again. If it continues, tell your lecturer.","retry"]
 };
 // Server reason strings (the "why" field of the attend and quiz replies) to catalogue codes.
 var WHY={
  "bad id":"E1","old link":"E3","no token":"E4","no location":"E5","too far":"E6","device used":"E10",
- "not on list":"E2","results off":"E11","closed":"E11","slow down":"E14","update page":"E15","not joined":"E13","quiz closed":"E11","bad code":"E12","not recognised":"E17","no access code":"E18","code expired":"E19","session expired":"E20"
+ "not on list":"E2","results off":"E11","closed":"E11","slow down":"E14","update page":"E15","not joined":"E13","quiz closed":"E11","bad code":"E12","not recognised":"E17","no access code":"E18","code expired":"E19","session expired":"E20","not on network":"E21"
 };
 function code(why){return WHY[why]||"E0"}
 // text(code) returns the message with its reference, e.g. "... (Ref E3)".

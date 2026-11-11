@@ -28,6 +28,7 @@ const webImport = require("./import-ipc");
 const folderImport = require("./autoload-ipc");
 const { nameChecks } = require("./import-plan");
 const courseReset = require("./course-reset");
+const { guardFor } = require("./attendance-guard");
 const { execFile } = require("child_process");
 const courses = require("./courses");
 const { SECURITY_DEFAULTS, cleanSecurity, lecturerRefusal } = require("./access");
@@ -193,8 +194,11 @@ async function handle(req, res, remote) {
         Object.assign(params, Object.fromEntries(new URLSearchParams(body)));
         const refused = lecturerRefusal(params, { remote, thisComputer: !remote && isThisComputer(req) }, appSettings);
         if (refused) { if (tunnel && remote) tunnel.note("lecturer"); res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" }); return res.end(JSON.stringify(refused)); }
-        out = c.backend.doPost(params, body);
-      } else out = c.backend.doGet(params);
+        const g = guardFor({ remote, tunnelOn: !!publicUrl(), action: params.action, remoteAddress: req.socket.remoteAddress }, appSettings);
+        if (g.refuse) { res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" }); return res.end(JSON.stringify(g.refuse)); }
+        c.backend.setGeoMode(g.geo); // location is checked for the internet address, not for plain Wi-Fi
+        try { out = c.backend.doPost(params, body); } finally { c.backend.setGeoMode("off"); } // the app's own calls never see a leftover setting
+      } else { c.backend.setGeoMode(guardFor({ remote, tunnelOn: !!publicUrl() }, appSettings).geo); try { out = c.backend.doGet(params); } finally { c.backend.setGeoMode("off"); } }
       res.writeHead(200, { "Content-Type": out.mime + "; charset=utf-8", "Cache-Control": "no-store", "Access-Control-Allow-Origin": "*" });
       return res.end(out.text);
     } catch (e) {
