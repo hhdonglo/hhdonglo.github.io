@@ -96,6 +96,16 @@ Google requires every app that signs users in to be registered once. This is don
 
 For a desktop app Google does not treat the client secret as secret, and the sign-in uses PKCE, so shipping the file inside the app is the normal practice. It gives no access to the publisher's own Google account or files: each colleague signs in to their own account, and the app can open only the Sheet it created for them.
 
+## Starting a course: three ways
+
+The first screen of a new course asks how to begin.
+
+- **Start from scratch.** Enter the course details, then paste or load just student ID and name. The app builds the rest: the class list, Master, Scores, Totals and the attendance sheet, ready for the first session.
+- **Use a template.** Download the template workbook, fill in the class list (and quiz scores or attendance if you have them), and load it. You see a preview first.
+- **Continue from existing data.** Load the Excel file downloaded from the web version's Google Sheet. The class list, scores, attendance and practice attempts come in and you carry on from there.
+
+The import finds the important columns (student ID, names, scores, dates) by their headings, tells you plainly if a required one is missing, and reads large files in chunks with progress shown.
+
 ## Import results from the web version
 
 If the course was run on the web (the Google Sheet version), its scores, attendance and practice attempts can be brought into the app. In the web version's Google Sheet choose File, Download, Microsoft Excel (.xlsx); then in the app open Grades and Results, press "Import from the web…", choose the file and read the preview. A CSV of a single tab also works.

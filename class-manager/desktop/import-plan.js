@@ -11,6 +11,8 @@
 "use strict";
 const V = require("./import-values");
 const S = require("./import-specs");
+const { MAX_ROWS } = require("./xlsx-book");
+const T = require("./import-template");
 
 const norm = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
 const rowBlank = (r) => !Array.isArray(r) || r.every(V.blank);
@@ -35,6 +37,7 @@ function identify(sheet, onlySheet) {
   const skipped = Object.keys(S.SKIPPED).find((k) => norm(k) === n);
   if (skipped) return { kind: "skipped", name: skipped, why: S.SKIPPED[skipped] };
   if (n === "roster") return { kind: "names" };
+  if (n === norm(T.SCORE_TAB)) return { kind: "scores" };
   if (onlySheet && sheet.rows.length) {
     const head = sheet.rows[0];
     if (looksLikeAttendance(head)) return { kind: "attendance" };
@@ -49,21 +52,29 @@ function identify(sheet, onlySheet) {
 // Where each column of the tab's target layout comes from in the file: { target: [heading], pick: [file column or -1] }.
 // The target is this course's own heading row when it has one (the script reads by position), else the script's. Extra columns of the file follow.
 function layout(spec, head, localHead) {
-  const names = head.map(V.headOf);
-  const byName = (h) => names.indexOf(V.headOf(h));
+  const names = head.map(V.headOf), taken = new Set();
+  const byName = (h) => { // the column with this heading, or with a heading that means the same
+    const key = V.headOf(h);
+    let i = names.indexOf(key);
+    if (i < 0) i = names.findIndex((n, j) => !taken.has(j) && (S.ALIASES[key] || []).indexOf(n) >= 0);
+    if (i >= 0) taken.add(i);
+    return i;
+  };
   const target = (localHead && localHead.some((h) => !V.blank(h)) ? localHead.slice() : []);
   while (target.length && V.blank(target[target.length - 1])) target.pop();
   spec.header.forEach((h, i) => { if (V.blank(target[i])) target[i] = h; });
   const named = spec.header.map(byName);
   const byNames = named.slice(0, spec.need).every((i) => i >= 0);
-  if (!byNames && !(spec.positional && head.length >= spec.need)) return null;
-  const pick = target.map((t, k) => (k < spec.header.length && !byNames ? (k < head.length ? k : -1) : byName(t)));
+  if (!byNames && !(spec.positional && head.length >= spec.need)) return { missing: spec.header.slice(0, spec.need).filter((h, i) => named[i] < 0) };
+  const pick = target.map((t, k) => (k < spec.header.length ? (byNames ? named[k] : (k < head.length ? k : -1)) : byName(t)));
   head.forEach((h, j) => { // columns of the file that the layout does not have yet
     if (V.blank(h) || pick.indexOf(j) >= 0 || target.some((t) => V.headOf(t) === V.headOf(h))) return;
     target.push(String(h).trim()); pick.push(j);
   });
-  return { target, pick };
+  return { target, pick, named: spec.header.slice(0, spec.need).map((h, i) => ({ need: h, found: byNames ? String(head[named[i]]) : String(head[i] == null ? "" : head[i]) })) };
 }
+
+const letters = (head) => head.map((h, i) => (V.blank(h) ? "" : String(h))).filter(Boolean).slice(0, 14).join(", ");
 
 function cellOf(spec, k, v) {
   if (V.blank(v)) return "";
@@ -77,10 +88,12 @@ function cellOf(spec, k, v) {
 function planLog(spec, rows, localRows, ctx) {
   const rep = { tab: spec.name, label: spec.label, total: 0, add: 0, duplicates: 0, offList: 0, noId: 0, note: "" };
   const lay = layout(spec, rows[0] || [], localRows && localRows[0]);
-  if (!lay) {
-    rep.status = "skipped"; rep.note = "the columns are not the ones this tab needs (" + spec.header.slice(0, spec.need).join(", ") + ")";
+  if (!lay.target) {
+    rep.status = "skipped"; rep.missing = lay.missing;
+    rep.note = "cannot be imported: no column found for " + lay.missing.join(", ") + ". The file's columns are: " + (letters(rows[0] || []) || "none") + ".";
     return { rep, op: null };
   }
+  rep.columns = lay.named;
   const have = new Set(body(localRows).map(spec.key));
   const codes = {}; body(localRows).forEach((r) => { if (spec.session) codes[V.codeOf(r[0])] = V.sessionOf(r[1]); });
   const add = [];
@@ -99,6 +112,7 @@ function planLog(spec, rows, localRows, ctx) {
     have.add(key); add.push(out);
   });
   rep.add = add.length; rep.status = add.length ? "new" : "nothing";
+  if (spec.id >= 0 && rep.total && rep.noId === rep.total) rep.note = "no valid student IDs (4 to 12 digits) were found in the ID column, so nothing was imported";
   return { rep, op: add.length || lay.target.length > (localRows && localRows[0] ? localRows[0].length : 0) ? { tab: spec.name, header: lay.target, rows: add } : null };
 }
 
@@ -166,9 +180,33 @@ function nameMap(book) { // ID -> name, from the file's own Roster, Master and T
   return out;
 }
 
+function rosterIdsOf(book) { // IDs on the file's own Roster tab: the class list the web version was run with
+  const sh = book.find((x) => norm(x.name) === "roster");
+  return sh ? [...classIdsOf(body(sh.rows).map((r) => r.slice()))] : [];
+}
+
 function classIdsOf(rows) { // IDs on this course's class list
   const set = new Set(); (rows || []).forEach((r) => { const id = V.idOf(r[0]); if (id.length >= 4 && id.length <= 12) set.add(id); });
   return set;
+}
+
+// ---------- a simple table of quiz scores (one row per student per quiz) ----------
+
+// Turned into the rows of Form Responses 1, so the same key, filter and marks apply. Returns { rows } or { missing }.
+function scoresAsResponses(rows, names) {
+  const head = (rows[0] || []).map(V.headOf), find = (...w) => head.findIndex((h) => w.indexOf(h) >= 0);
+  const c = { id: find("studentid", "id", "studentnumber", "indexnumber"), quiz: find("quiz", "quizname", "assessment", "test", "title"), score: find("score", "marks", "mark", "points"),
+    out: find("outof", "total", "maximum", "max"), date: find("date", "timestamp", "time") };
+  const missing = [["id", "Student ID"], ["quiz", "Quiz"], ["score", "Score"]].filter((x) => c[x[0]] < 0).map((x) => x[1]);
+  if (missing.length) return { missing };
+  const out = [["Timestamp", "First Name", "ID", "Join Code", "Q1", "Q2", "Q3", "Q4", "Q5", "Score", "Round", "Questions", "Answers", "Week"]];
+  body(rows).forEach((r) => {
+    const id = V.idOf(r[c.id]), quiz = String(r[c.quiz] == null ? "" : r[c.quiz]).trim();
+    if (!id || !quiz || V.blank(r[c.score])) return;
+    const when = c.date >= 0 && !V.blank(r[c.date]) ? r[c.date] : "";
+    out.push([when, (names[id] || "").split(" ")[0], id, quiz, "", "", "", "", "", Number(r[c.score]), 0, c.out >= 0 && !V.blank(r[c.out]) ? Number(r[c.out]) : 5, "", ""]);
+  });
+  return { rows: out };
 }
 
 // ---------- the whole plan ----------
@@ -177,10 +215,17 @@ function plan(book, local, options) {
   const opt = Object.assign({ onlyClassList: true, addMissing: false }, options);
   const localList = classIdsOf(local.read("Roster"));
   const ctx = { onlyClassList: opt.onlyClassList, classIds: new Set(localList), activity: new Set() };
-  const names = nameMap(book);
+  const names = Object.assign({}, ...(local.read("Roster") || []).map((r) => ({ [V.idOf(r[0])]: String(r[1] || "").trim() })), nameMap(book));
   const reports = [], ops = [], ignored = [], warnings = [];
   const only = book.length === 1;
-  const found = book.map((sh) => ({ sh, what: identify(sh, only) }));
+  const found = [];
+  book.forEach((sh) => {
+    const what = identify(sh, only);
+    if (what.kind !== "scores") return found.push({ sh, what });
+    const conv = scoresAsResponses(sh.rows, names); // the simple table of quiz scores becomes live quiz results
+    if (conv.missing) reports.push({ tab: sh.name, label: "Quiz scores", total: 0, add: 0, duplicates: 0, offList: 0, status: "skipped", note: "cannot be imported: no column found for " + conv.missing.join(", ") + ". The file's columns are: " + (letters(sh.rows[0] || []) || "none") + "." });
+    else found.push({ sh: { name: sh.name, rows: conv.rows, truncated: sh.truncated }, what: { kind: "log", spec: S.LOG_TABS[0], label: "Quiz scores" } });
+  });
 
   // Pass 1 finds every ID with activity so that "add the missing students" knows them before the tabs are filtered.
   if (opt.addMissing) {
@@ -189,13 +234,15 @@ function plan(book, local, options) {
       if (what.kind === "log") planLog(what.spec, sh.rows, null, probe); else if (what.kind === "attendance") planAttendance(sh.rows, null, probe);
     });
     probe.activity.forEach((id) => ctx.classIds.add(id));
+    rosterIdsOf(book).forEach((id) => { ctx.classIds.add(id); ctx.activity.add(id); }); // the file's own class list comes too
   }
 
   found.forEach(({ sh, what }) => {
-    if (what.kind === "log") { const r = planLog(what.spec, sh.rows, local.read(what.spec.name), ctx); reports.push(r.rep); if (r.op) ops.push(r.op); }
+    if (what.kind === "log") { const r = planLog(what.spec, sh.rows, local.read(what.spec.name), ctx); if (what.label) r.rep.label = what.label; reports.push(r.rep); if (r.op) ops.push(r.op); }
     else if (what.kind === "attendance") { const r = planAttendance(sh.rows, local.read(S.ATTENDANCE_TAB), ctx); reports.push(r.rep); if (r.op) ops.push(r.op); }
     else if (what.kind === "skipped" && sh.rows.length > 1) ignored.push({ tab: what.name, why: what.why });
-    else if (what.kind === "unknown" && sh.rows.length > 1) ignored.push({ tab: sh.name, why: "not a tab this import knows" });
+    else if (what.kind === "unknown" && sh.rows.length > 1) ignored.push({ tab: sh.name, why: "not recognised. Its columns are: " + (letters(sh.rows[0]) || "none") });
+    if (sh.truncated) warnings.push("Only the first " + MAX_ROWS.toLocaleString() + " rows of \"" + sh.name + "\" were read. Split the file and import it in parts.");
   });
   if (!reports.length) warnings.push("This file holds none of the tabs the import knows (live quiz results, practice attempts, attendance). Choose a workbook downloaded from the web version's Google Sheet, or a CSV of one of its tabs.");
 

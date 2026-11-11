@@ -11,7 +11,7 @@ const LOG_TABS = [
   { name: "Form Responses 1", label: "Live quiz results", positional: true, need: 10, id: 2, text: [2, 3],
     header: ["Timestamp", "First Name", "ID", "Join Code", "Q1", "Q2", "Q3", "Q4", "Q5", "Score", "Round", "Questions", "Answers", "Week"],
     key: (r) => [V.idOf(r[2]), V.codeOf(r[3]), V.numOf(r[10]) || "0"].join("|") }, // the script counts one result per student, code and round
-  { name: "Attempts", label: "Practice and mock exam attempts", need: 7, id: 1, text: [1],
+  { name: "Attempts", label: "Practice and mock exam attempts", need: 6, id: 1, text: [1],
     header: ["Timestamp", "Student ID", "Quiz", "Attempt", "Score", "Total", "Seconds", "Wrong question ids", "Question ids"],
     key: (r) => [V.timeOf(r[0]), V.idOf(r[1]), V.codeOf(r[2]), V.numOf(r[3])].join("|") },
   { name: "Item_Log", label: "Answers to each live quiz question", need: 10, id: 4, text: [1, 4],
@@ -35,6 +35,14 @@ const LOG_TABS = [
     key: (r) => V.sessionOf(r[1]) }
 ];
 
+// Other headings that mean the same column (compared without case, spaces or punctuation), so a file need not use the script's exact words.
+const ALIASES = {
+  studentid: ["id", "studentnumber", "studentno", "idnumber", "indexnumber", "studentidnumber", "matricnumber"], id: ["studentid", "studentnumber", "studentno", "indexnumber", "idnumber"],
+  timestamp: ["time", "datetime", "date", "submitted", "when"], firstname: ["name", "studentname", "first", "givenname"], score: ["marks", "mark", "points", "result"],
+  joincode: ["code", "quizcode", "quiz"], session: ["date", "sessiondate", "label"], quiz: ["quizname", "assessment", "title", "test"], total: ["outof", "maximum", "max", "questions"],
+  device: ["devicehash"], lecture: ["lecturename"], comment: ["comments", "note", "notes"]
+};
+
 // The tab of marks per session (1 present, 0 absent), merged by its own rule (import-plan.js, planAttendance).
 const ATTENDANCE_TAB = "Attendance";
 // Where names can come from for students who are added to the class list.
@@ -46,8 +54,8 @@ const SKIPPED = {
   Answers: "raw answers of live sessions, kept only while a quiz runs", Presence: "who joined a live quiz, kept only while a quiz runs",
   Staged_Quiz: "results held on the web and not yet released", Archive: "discarded quiz rounds", Quiz_Control: "state of live quizzes",
   Key: "the web version's own settings and host key", Portal: "the web version's own settings", Explanations: "the web version's own settings",
-  Log: "the web version's own audit log", Auto_Added: "a note of IDs added automatically on the web",
+  Log: "the web version's own audit log", "Read me": "instructions in the template", Auto_Added: "a note of IDs added automatically on the web",
   Access_Codes: "personal access codes belong to one installation", Attendance_Phones: "phones registered on the web", Question_Stats: "worked out again", Groups: "not imported by this version"
 };
 
-module.exports = { LOG_TABS, ATTENDANCE_TAB, NAME_TABS, SKIPPED };
+module.exports = { ALIASES, LOG_TABS, ATTENDANCE_TAB, NAME_TABS, SKIPPED };

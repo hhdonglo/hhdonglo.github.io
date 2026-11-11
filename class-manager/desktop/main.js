@@ -536,7 +536,7 @@ on("cm:chooseLogo", async (c, e, clear) => {
     const logo = c.course.setLogo(r.filePaths[0]); saveSettings(c, { logo }); return { ok: true, logo };
   } catch (err) { return { ok: false, why: err.message }; }
 });
-webImport.register({ on, dialog, winOf }); // cm:import*: bring results exported from the web version into this course
+webImport.register({ on, dialog, winOf, shell }); // cm:import*: bring results exported from the web version into this course
 ipcMain.handle("cm:tableFile", async (e) => { // a class list as rows, from CSV, a text file or Excel (.xlsx)
   const r = await dialog.showOpenDialog(winOf(e), { title: "Choose the class list", filters: [{ name: "Class list", extensions: ["csv", "xlsx", "txt", "tsv"] }], properties: ["openFile"] });
   if (r.canceled || !r.filePaths[0]) return null;
@@ -546,7 +546,9 @@ ipcMain.handle("cm:tableText", (e, text) => ({ ok: true, rows: require("./table"
 on("cm:classRows", (c, e, rows, replace) => { // rows already mapped to [ID, name] or [ID, first name, last name]
   const clean = (rows || []).map((r) => [String(r[0] || "").replace(/\D/g, ""), names.rowName(r).slice(0, 120)]).filter((r) => /^\d{4,12}$/.test(r[0]));
   if (!clean.length) return { ok: false, why: "No student IDs found in the chosen column. Student IDs must have 4 to 12 digits." };
-  return c.backend.rosterSync(clean, !!replace);
+  const r = c.backend.rosterSync(clean, !!replace);
+  if (r && r.ok) r.built = c.backend.buildFromRoster(); // a row for every student in Attendance, Master and Scores, ready for the first session
+  return r;
 });
 ipcMain.handle("cm:sampleClassList", async (e) => { // the class list template, as Excel by default or CSV if the lecturer picks .csv
   const r = await dialog.showSaveDialog(winOf(e), { title: "Save the class list template", defaultPath: "class-list-template.xlsx",

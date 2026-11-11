@@ -244,3 +244,99 @@ test("the screen's calls: pick, change the option, apply, and a failed backup st
   assert.ok(ok.ok && ok.done.rows > 0 && ok.backup === "workbook-test.cmv");
   assert.equal(handlers["cm:importPlan"]({}).ok, false, "the file is forgotten after an import");
 });
+
+test("continuing from existing data: an empty course takes the class list from the file, including students with no records yet", async () => {
+  const { file, s } = await webFile((tabs) => { tabs.Roster = tabs.Roster.concat([["29990001", "Quiet Student"]]); });
+  const c = classroom(); // a new course: no class list
+  const book = await readBook(file);
+  const r = plan(book, local(c), { addMissing: true });
+  assert.equal(r.report.students.toAdd, s.ids.length + 1);
+  assert.ok(r.ops.roster.some((x) => x[0] === "29990001" && x[1] === "Quiet Student"));
+  apply(r.ops, c.backend, hooks(c));
+  assert.equal(c.backend.rows("Roster").filter((x) => V.idOf(x[0]).length >= 4).length, s.ids.length + 1);
+  assert.ok((c.backend.rows("Form Responses 1") || []).length > 1);
+  assert.equal(plan(book, local(c), { addMissing: true }).report.changes, 0, "continuing twice adds nothing");
+});
+
+test("from scratch: only student IDs and names are needed, and every tab gets a row per student", () => {
+  const { buildFromRoster } = require("../build-from-roster");
+  const c = classroom();
+  c.backend.rosterSync([["20000001", "Ama Mensah"], ["20000002", "Kofi Boateng"], ["20000003", ""]], false);
+  const r = c.backend.buildFromRoster();
+  assert.equal(r.students, 3);
+  const ids = (name, from) => c.backend.rows(name).slice(from).map((x) => String(x[0]));
+  assert.deepEqual(ids("Attendance", 1), ["20000001", "20000002", "20000003"]);
+  assert.deepEqual(ids("Master", 1), ["20000001", "20000002", "20000003"]);
+  assert.deepEqual(ids("Scores", 3), ["20000001", "20000002", "20000003"]);
+  assert.equal(c.backend.rows("Master")[1][1], "Ama Mensah");
+  assert.deepEqual(c.backend.buildFromRoster(), { students: 3, attendance: 0, master: 0, scores: 0 }, "building again adds nothing");
+  c.backend.rosterSync([["20000004", "Esi Ofori"]], false);
+  assert.equal(c.backend.buildFromRoster().attendance, 1, "a new student gets a row");
+  assert.equal(buildFromRoster({ sheet: () => null, rows: () => null }).students, 0);
+  // The script carries on from here: a quiz result for a student lands in the row that was built.
+  const rows = [["Student ID", "Quiz", "Score", "Out of"], ["20000001", "Week 1", 4, 5]];
+  const l = { read: (n) => c.backend.rows(n) };
+  apply(plan([{ name: "Quiz scores", rows }], l).ops, c.backend, hooks(c));
+  assert.equal(c.backend.rows("Scores").filter((x) => String(x[0]) === "20000001").length, 1);
+});
+
+test("the template loads: roster, quiz scores and attendance, and an unfilled template adds nothing", async () => {
+  const tpl = require("../import-template"), excel = require("../excel");
+  const file = path.join(tmp("cm-tpl-"), "t.xlsx");
+  fs.writeFileSync(file, await excel.writeXlsx(tpl.templateSheets()));
+  const empty = classroom();
+  assert.equal(plan(await readBook(file), { read: (n) => empty.backend.rows(n) }, { addMissing: true }).report.changes, 0, "headings only");
+  const filled = tpl.templateSheets();
+  filled[1].rows.push(["20000001", "Ama", "Mensah"], ["20000002", "Kofi", "Boateng"]);
+  filled[2].rows.push(["20000001", "Week 1", 4, 5, "2026-11-10"], ["20000002", "Week 1", 3, 5, ""]);
+  filled[3].rows[0].push("10/11/2026"); filled[3].rows.push(["20000001", 1], ["20000002", 0]);
+  fs.writeFileSync(file, await excel.writeXlsx(filled));
+  const c = classroom();
+  const r = plan(await readBook(file), { read: (n) => c.backend.rows(n) }, { addMissing: true });
+  assert.equal(r.report.students.toAdd, 2);
+  apply(r.ops, c.backend, hooks(c));
+  assert.equal(c.backend.rows("Roster")[1][1], "Ama Mensah");
+  assert.equal((c.backend.rows("Totals") || []).length, 3);
+  assert.equal(String(c.backend.rows("Attendance")[1][1]), "1");
+  assert.equal(plan(await readBook(file), { read: (n) => c.backend.rows(n) }, { addMissing: true }).report.changes, 0);
+});
+
+test("a missing required column is named plainly, with the columns that were found", () => {
+  const c = classroom(); c.backend.rosterSync([["20000001", "Ama"]], false);
+  const book = [{ name: "Attempts", rows: [["Timestamp", "Student ID", "Quiz", "Attempt", "Total"], [new Date(), "20000001", "Lecture 1 practice", 1, 5]] }];
+  const r = plan(book, { read: (n) => c.backend.rows(n) });
+  const t = r.report.tabs[0];
+  assert.equal(t.status, "skipped");
+  assert.deepEqual(t.missing, ["Score"]);
+  assert.match(t.note, /no column found for Score.*Timestamp, Student ID, Quiz, Attempt, Total/);
+  const scores = plan([{ name: "Quiz scores", rows: [["Student ID", "Quiz"], ["20000001", "W1"]] }], { read: (n) => c.backend.rows(n) });
+  assert.match(scores.report.tabs[0].note, /no column found for Score/);
+});
+
+test("other headings that mean the same are recognised", () => {
+  const c = classroom(); c.backend.rosterSync([["20000001", "Ama"]], false);
+  const book = [{ name: "Attempts", rows: [["Date", "Student Number", "Quiz", "Attempt", "Marks", "Out of"], [new Date(2026, 10, 5, 9), "20000001", "Lecture 1 practice", 1, 4, 5]] }];
+  const r = plan(book, { read: (n) => c.backend.rows(n) });
+  assert.equal(r.report.tabs[0].add, 1);
+  assert.ok(r.report.tabs[0].columns.some((x) => x.need === "Student ID" && x.found === "Student Number"));
+});
+
+test("a large file is read in chunks and planned quickly", async () => {
+  const N = 40000, ids = Array.from({ length: 1200 }, (_, i) => String(30000001 + i));
+  const rows = [["Timestamp", "Student ID", "Quiz", "Attempt", "Score", "Total", "Seconds", "Wrong question ids"]];
+  for (let i = 0; i < N; i++) rows.push([new Date(2026, 9, 1 + (i % 28), 9, i % 60, i % 59), ids[i % ids.length], "Lecture " + (1 + (i % 12)) + " practice", 1 + Math.floor(i / 1200), i % 6, 5, 300, ""]);
+  const file = path.join(tmp("cm-big-"), "big.xlsx");
+  fs.writeFileSync(file, await makeXlsx([{ name: "Attempts", rows }]));
+  const t0 = Date.now(), progress = [];
+  const book = await readBook(file, (p) => progress.push(p.rows));
+  const tRead = Date.now() - t0;
+  assert.equal(book[0].rows.length, N + 1);
+  assert.ok(progress.length >= N / 3000 - 1, "progress is reported as the sheet is read");
+  const c = classroom(); c.backend.rosterSync(ids.map((id) => [id, ""]), false);
+  const t1 = Date.now();
+  const r = plan(book, { read: (n) => c.backend.rows(n) });
+  assert.equal(r.report.tabs[0].add, N);
+  const tPlan = Date.now() - t1;
+  assert.ok(tRead < 15000 && tPlan < 5000, "read " + tRead + " ms, plan " + tPlan + " ms");
+  console.log("# 40,000 rows: read " + tRead + " ms, plan " + tPlan + " ms");
+});

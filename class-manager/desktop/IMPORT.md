@@ -19,6 +19,17 @@ A lecturer who ran the course on the web has a Google Sheet with the tabs the se
 
 `backend.js` offers the three small calls the writer needs: `sheet(name, create)`, `rows(name)` and `rebuildMarks()`.
 
+## First-run paths (app/setup.html)
+
+- **Start from scratch:** course details, then paste or load only student ID and name (the existing class list step). `build-from-roster.js` then gives every student a row in Attendance, Master and Scores, so the first session can start at once. Add only; run again after each class list change.
+- **Use a template:** `import-template.js` is a workbook with the headings the import knows (Roster, Quiz scores, Attendance). Unfilled, it adds nothing. A filled one loads through the same preview and import. "Quiz scores" (Student ID, Quiz, Score, Out of, Date) is turned into live quiz results by `scoresAsResponses` in `import-plan.js`.
+- **Continue from existing data:** the web export is loaded with the class list taken from the file (its Roster tab, or every ID that has records).
+
+## Columns and large files
+
+- Columns are found by heading, with other headings that mean the same (`ALIASES` in `import-specs.js`, for example Student Number for Student ID, Marks for Score). A required column that cannot be found is named in the preview together with the columns the file does have; the tab is then not imported. The preview also lists which file column was used for each required one.
+- A sheet is read in chunks of 3,000 rows with a pause between chunks, and progress is sent to the screen, so a large file does not freeze the app. Up to 50,000 rows per sheet are read; beyond that the preview says so. In the tests, 40,000 rows read in about 0.3 s and plan in about 0.1 s.
+
 ## Rules
 
 - **Add only.** A row that is already there is never changed or removed. A 1 in Attendance is never turned into a 0.

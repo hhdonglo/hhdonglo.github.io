@@ -46,6 +46,8 @@
       "import-plan.js",
       "import-apply.js",
       "import-ipc.js",
+      "build-from-roster.js",
+      "import-template.js",
       "app/**/*",
       "google-oauth.json",
       "package.json"

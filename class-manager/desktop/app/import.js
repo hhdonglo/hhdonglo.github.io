@@ -3,8 +3,8 @@
    Everything is worked out by the app (import-plan.js); this file only lays the preview out and asks for confirmation. */
 (function () {
   "use strict";
-  var btn = document.getElementById("import-web");
-  if (!btn || !window.cmApp || !cmApp.importPick) return;
+  var btns = document.querySelectorAll("[data-import-web]");
+  if (!btns.length || !window.cmApp || !cmApp.importPick) return;
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
   var n = function (v) { return Number(v || 0).toLocaleString(); };
 
@@ -14,15 +14,21 @@
   document.body.appendChild(d);
   var body = d.querySelector("#imp-body"), opts = { addMissing: false }, file = "";
 
+  if (cmApp.onImportProgress) cmApp.onImportProgress(function (p) { // the file is read in chunks; show where it is
+    if (!d.open) return;
+    var m = body.querySelector("#imp-pick"); if (m) m.disabled = true;
+    body.innerHTML = "<p role='status' aria-live='polite'>Reading the file… " + esc(p.sheet) + (p.rows ? " (" + n(p.rows) + " rows)" : "") + "</p><p class='note'>Large files take a little while. You can keep using the app.</p>";
+  });
+
   function close() { d.close(); cmApp.importForget(); }
   function buttons(html) { return "<p class='row' style='justify-content:flex-end;margin-top:14px'>" + html + "</p>"; }
 
   function start(msg) {
     body.innerHTML =
       "<p>Bring the scores, attendance and practice attempts collected on the web into this course.</p>" +
-      "<ol class='note' style='line-height:1.7'><li>In the web version's Google Sheet choose File, Download, Microsoft Excel (.xlsx). A CSV of a single tab also works.</li>" +
+      "<ol class='note' style='line-height:1.7'><li>In the web version's Google Sheet choose File, Download, Microsoft Excel (.xlsx). A CSV of a single tab also works. (Or choose a filled-in template.)</li>" +
       "<li>Choose that file here and read the preview. <strong>Nothing changes until you press Import.</strong></li></ol>" +
-      "<p class='note'>Students are matched to this course's class list by student ID. Records already here are never changed, and importing the same file again adds nothing. A backup is made before anything is written.</p>" +
+      "<p class='note'>Students are matched to this course's class list by student ID (when you continue from existing data, the class list is taken from the file). Records already here are never changed, and importing the same file again adds nothing. A backup is made before anything is written.</p>" +
       (msg ? "<p class='msg err' role='alert'>" + esc(msg) + "</p>" : "") +
       buttons("<button class='btn' type='button' id='imp-cancel'>Cancel</button><button class='btn primary' type='button' id='imp-pick'>Choose the file…</button>");
     body.querySelector("#imp-cancel").onclick = close;
@@ -44,8 +50,10 @@
       (s.notOnList ? " <strong>" + n(s.notOnList) + "</strong> other IDs in the file are not on the class list and are left out." : "") + "</p>";
     var add = (s.notOnList || s.toAdd || !s.classList) ?
       "<label style='display:block;margin:.6rem 0'><input type='checkbox' id='imp-add'" + (opts.addMissing ? " checked" : "") + "> Add the students in the file to the class list" + (s.toAdd ? " (" + n(s.toAdd) + " would be added)" : "") + "</label>" : "";
+    var cols = rep.tabs.filter(function (t) { return t.columns && t.columns.length; });
+    var colsHtml = cols.length ? "<details style='margin:.6rem 0'><summary class='note'>Columns the import found</summary><ul class='note'>" + cols.map(function (t) { return "<li>" + esc(t.label) + ": " + t.columns.map(function (c) { return esc(c.need) + (c.found && c.found !== c.need ? " (from “" + esc(c.found) + "”)" : ""); }).join(", ") + "</li>"; }).join("") + "</ul></details>" : "";
     var ign = (rep.ignored || []).length ? "<details style='margin:.6rem 0'><summary class='note'>Tabs in the file that are not imported (" + rep.ignored.length + ")</summary><ul class='note'>" + rep.ignored.map(function (x) { return "<li>" + esc(x.tab) + ": " + esc(x.why) + "</li>"; }).join("") + "</ul></details>" : "";
-    body.innerHTML = "<p class='note'>File: " + esc(file) + "</p>" + people + add + table + w.map(function (x) { return "<p class='msg'>" + esc(x) + "</p>"; }).join("") + ign +
+    body.innerHTML = "<p class='note'>File: " + esc(file) + "</p>" + people + add + table + w.map(function (x) { return "<p class='msg'>" + esc(x) + "</p>"; }).join("") + colsHtml + ign +
       (rep.changes ? "<p class='note'>Marks (Master, Scores and Totals) are worked out again after the import. Learning Progress, Students and Attendance then include the new records.</p>" : "<p class='msg'>Nothing in the file is new to this course.</p>") +
       buttons("<button class='btn' type='button' id='imp-cancel'>Cancel</button><button class='btn' type='button' id='imp-other'>Choose another file…</button><button class='btn primary' type='button' id='imp-go'" + (rep.changes ? "" : " disabled") + ">Import " + (rep.changes ? n(rep.changes) + " records" : "") + "</button>");
     body.querySelector("#imp-cancel").onclick = close;
@@ -66,5 +74,13 @@
     body.querySelector("#imp-ok").onclick = function () { d.close(); location.reload(); };
   }
 
-  btn.addEventListener("click", function () { opts = { addMissing: false }; start(); d.showModal(); });
+  // data-import-web="continue": the first-run choice "Continue from existing data". The class list is taken from the file, and the course carries on from there.
+  Array.prototype.forEach.call(btns, function (b) {
+    b.addEventListener("click", function () {
+      var mode = b.getAttribute("data-import-web"), cont = mode === "continue" || mode === "template";
+      opts = { addMissing: cont };
+      d.querySelector("#imp-h").textContent = mode === "template" ? "Load the filled template" : cont ? "Continue from existing data" : "Import results from the web version";
+      start(); d.showModal();
+    });
+  });
 })();

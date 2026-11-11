@@ -40,42 +40,49 @@ function dateStyles(stylesXml) { // the set of cell style numbers (the s="" of a
   return set;
 }
 
-async function readSheet(zip, file, shared, dates) {
-  const entry = zip.file(file);
-  if (!entry) return [];
-  const rows = [];
-  (await entry.async("string")).replace(/<row[^>]*>([\s\S]*?)<\/row>/g, (m, inner) => {
-    if (rows.length >= MAX_ROWS) return "";
+const tick = () => new Promise((r) => setImmediate(r)); // lets the app draw and answer clicks between chunks of a large sheet
+const CHUNK = 3000;
+
+// One cell: its value, with dates as Date.
+function cellValue(attrs, body, shared, dates) {
+  const t = (attrs.match(/t="(\w+)"/) || [])[1];
+  const style = Number((attrs.match(/\ss="(\d+)"/) || attrs.match(/^s="(\d+)"/) || [])[1]);
+  if (!body) return "";
+  if (t === "inlineStr") return xmlText((body.match(/<t[^>]*>[\s\S]*?<\/t>/g) || []).join(""));
+  const raw = (body.match(/<v>([\s\S]*?)<\/v>/) || [])[1] || "";
+  if (t === "s") return shared[Number(raw)] || "";
+  if (t === "str" || t === "e") return xmlText(raw);
+  if (t === "b") return raw === "1";
+  if (raw !== "" && Number.isFinite(Number(raw))) return dates.has(style) ? serialToDate(raw) : Number(raw);
+  return xmlText(raw);
+}
+
+// The rows of one sheet. Reads in chunks and gives way between them; onRows(n) reports progress. Sets .truncated when the row limit is reached.
+async function readSheet(zip, file, shared, dates, onRows) {
+  const entry = zip.file(file), rows = [];
+  if (!entry) return rows;
+  const xml = await entry.async("string"), re = /<row[^>]*>([\s\S]*?)<\/row>/g, cre = /<c ([^>]*?)(\/>|>([\s\S]*?)<\/c>)/g;
+  let m;
+  while ((m = re.exec(xml))) {
+    if (rows.length >= MAX_ROWS) { rows.truncated = true; break; }
     const row = [];
-    inner.replace(/<c ([^>]*?)(\/>|>([\s\S]*?)<\/c>)/g, (m2, attrs, end, body) => {
-      const ref = (attrs.match(/r="([A-Z]+\d+)"/) || [])[1], t = (attrs.match(/t="(\w+)"/) || [])[1];
-      const style = Number((attrs.match(/\ss="(\d+)"/) || attrs.match(/^s="(\d+)"/) || [])[1]);
-      let v = "";
-      if (body) {
-        if (t === "inlineStr") v = xmlText((body.match(/<t[^>]*>[\s\S]*?<\/t>/g) || []).join(""));
-        else {
-          const raw = (body.match(/<v>([\s\S]*?)<\/v>/) || [])[1] || "";
-          if (t === "s") v = shared[Number(raw)] || "";
-          else if (t === "str" || t === "e") v = xmlText(raw);
-          else if (t === "b") v = raw === "1";
-          else if (raw !== "" && Number.isFinite(Number(raw))) v = dates.has(style) ? serialToDate(raw) : Number(raw);
-          else v = xmlText(raw);
-        }
-      }
-      const i = ref ? colIndex(ref) : row.length;
+    cre.lastIndex = 0;
+    let c;
+    while ((c = cre.exec(m[1]))) {
+      const ref = (c[1].match(/r="([A-Z]+\d+)"/) || [])[1];
+      const v = cellValue(c[1], c[3], shared, dates), i = ref ? colIndex(ref) : row.length;
       while (row.length < i) row.push("");
       row[i] = typeof v === "string" ? v.trim() : v;
-      return "";
-    });
+    }
     rows.push(row);
-    return "";
-  });
+    if (rows.length % CHUNK === 0) { if (onRows) onRows(rows.length); await tick(); }
+  }
   while (rows.length && rows[rows.length - 1].every((x) => x === "")) rows.pop();
   return rows;
 }
 
 // [{ name, rows }] for every visible sheet, in the workbook's order.
-async function readXlsxBook(file) {
+async function readXlsxBook(file, onProgress) {
   const zip = await JSZip.loadAsync(fs.readFileSync(file));
   const shared = [];
   const ss = zip.file("xl/sharedStrings.xml");
@@ -91,7 +98,9 @@ async function readXlsxBook(file) {
     const rel = (rels.match(new RegExp("<Relationship [^>]*Id=\"" + rid + "\"[^>]*>")) || [])[0] || "";
     const target = (rel.match(/Target="([^"]+)"/) || [])[1];
     if (!name || !target) continue;
-    out.push({ name, rows: await readSheet(zip, "xl/" + target.replace(/^\/?xl\//, ""), shared, dates) });
+    if (onProgress) onProgress({ sheet: name, rows: 0 });
+    const rows = await readSheet(zip, "xl/" + target.replace(/^\/?xl\//, ""), shared, dates, (n) => onProgress && onProgress({ sheet: name, rows: n }));
+    out.push({ name, rows, truncated: !!rows.truncated });
   }
   return out;
 }
@@ -101,11 +110,11 @@ function readCsvBook(file) {
   return [{ name: path.basename(file).replace(/\.[^.]+$/, ""), rows: splitText(fs.readFileSync(file, "utf8")) }];
 }
 
-async function readBook(file) {
+async function readBook(file, onProgress) {
   const ext = path.extname(file).toLowerCase();
   if (ext === ".xls") throw new Error("Old Excel files (.xls) cannot be read. Save the file as .xlsx or CSV and choose it again.");
   if (fs.statSync(file).size > MAX_BYTES) throw new Error("The file is too large to import.");
-  return ext === ".xlsx" ? readXlsxBook(file) : readCsvBook(file);
+  return ext === ".xlsx" ? readXlsxBook(file, onProgress) : readCsvBook(file);
 }
 
-module.exports = { readBook, readXlsxBook, readCsvBook, serialToDate, isDateFormat };
+module.exports = { MAX_ROWS, readBook, readXlsxBook, readCsvBook, serialToDate, isDateFormat };
