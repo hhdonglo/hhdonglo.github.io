@@ -3,7 +3,7 @@
    this file only lays the results out. Levels and suggestions are for the lecturer; students see only their own progress, on My results. */
 (function () {
   "use strict";
-  if (!window.cmApp || !cmApp.progress) return;
+  if (!window.cmApp || !cmApp.progress || !window.cmCharts) return;
   var $ = function (i) { return document.getElementById(i); };
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
   var num = function (v, u) { return v === null || v === undefined || v === "" ? "–" : v + (u || ""); };
@@ -15,17 +15,6 @@
     return "<div class='stackbar' role='img' aria-label='" + LV.map(function (k) { return (lv[k] || 0) + " " + k; }).join(", ") + "'>" + LV.map(function (k) { var n = lv[k] || 0; return n ? "<span class='" + LC[k] + "' style='flex:" + n + "' title='" + esc(k) + ": " + n + "'></span>" : ""; }).join("") + "</div>";
   }
   function legend() { return "<p class='note lv-legend'>" + LV.map(function (k) { return "<span><i class='" + LC[k] + "'></i>" + esc(k) + "</span>"; }).join("") + "</p>"; }
-  function line(vals, labels, o) { // a small line chart of percentages over time
-    o = o || {}; var W = o.w || 520, H = o.h || 120, pad = 28, base = H - 20, n = vals.length;
-    if (!n) return "";
-    var x = function (i) { return pad + (n === 1 ? (W - pad) / 2 : i * (W - pad - 10) / (n - 1)); }, y = function (v) { return base - (base - 8) * v / 100; };
-    var s = "<svg class='bars' viewBox='0 0 " + W + " " + H + "' role='img' aria-label='" + esc(o.title || "") + "'>";
-    [0, 50, 100].forEach(function (g) { s += "<line class='grid' x1='" + pad + "' x2='" + W + "' y1='" + y(g) + "' y2='" + y(g) + "'/><text class='ax' x='" + (pad - 4) + "' y='" + (y(g) + 4) + "' text-anchor='end'>" + g + "%</text>"; });
-    s += "<polyline fill='none' stroke='var(--bar)' stroke-width='2.5' points='" + vals.map(function (v, i) { return x(i) + "," + y(v); }).join(" ") + "'/>";
-    vals.forEach(function (v, i) { s += "<g><title>" + esc(labels[i]) + ": " + v + "%" + (o.extra ? " " + esc(o.extra[i]) : "") + "</title><circle cx='" + x(i) + "' cy='" + y(v) + "' r='4' fill='var(--bar)'/></g>"; if (n <= 8 || i % Math.ceil(n / 8) === 0) s += "<text class='ax' x='" + x(i) + "' y='" + (H - 4) + "' text-anchor='middle'>" + esc(String(labels[i]).slice(0, 5)) + "</text>"; });
-    return s + "</svg>";
-  }
-
   var data = null;
   function load() { return cmApp.progress().then(function (d) { data = d && d.ok ? d : null; if (!data) $("lp").innerHTML = "<p class='msg'>Learning progress could not be worked out" + (d && d.why ? ": " + esc(d.why) : "") + ".</p>"; return data; }); }
   function show(v) { if (v === "progress") load().then(function () { if (data) render(); }); }
@@ -40,8 +29,14 @@
         "<div><p class='lbl'>Normalised gain</p><p class='tbig'>" + num(D.gain) + "</p><p class='note'>share of the possible improvement</p></div><div><p class='lbl'>Moved</p><p class='tbig'>" + D.wrongToRight + " <span class='note'>to right</span></p><p class='note'>" + D.rightToWrong + " from right to wrong, " + D.pairs + " paired answers</p></div></div>";
       h += "<div class='tbl ins-tbl short'><table><thead><tr><th>Date</th><th>Quiz</th><th>Question</th><th>Before</th><th>After</th><th>Gain</th><th>Wrong to right</th><th>Right to wrong</th></tr></thead><tbody>" +
         D.questions.map(function (q) { return "<tr><td>" + esc(q.date) + "</td><td>" + esc(q.week ? "Week " + q.week : q.code) + "</td><td>" + esc(q.qid || "Q" + q.q) + "</td><td>" + num(q.beforePct, "%") + "</td><td>" + num(q.afterPct, "%") + "</td><td>" + num(q.gain) + "</td><td>" + q.wrongToRight + "</td><td" + (q.rightToWrong > q.wrongToRight ? " class='flag'" : "") + ">" + q.rightToWrong + "</td></tr>"; }).join("") + "</tbody></table></div><p class='note'>" + esc(D.note) + " Discussion works best on questions that 30 to 70 per cent answer correctly at first.</p>";
+      h += cmCharts.discussionPairs(D.questions);
     }
     h += "</section>";
+    // Class overview charts (charts/): who is secure where, and the objective-by-student map
+    h += "<section class='card'><div class='card-head'><h3>Mastery by objective</h3><span class='note'>Students at each level on every objective or lecture</span></div>" + cmCharts.masteryDistribution(d.outcomes) + "</section>";
+    h += "<section class='card'><div class='card-head'><h3>Objective map</h3><span class='note'>Weakest students first. Click a row to open the student.</span></div>" + cmCharts.heatmap(d.students, d.outcomes) + "</section>";
+    h += "<section class='card'><div class='card-head'><h3>Class progress over time</h3><span class='note'>By calendar week of answers</span></div>" + cmCharts.classProgress(d.timeline) + "</section>";
+    h += "<section class='card'><div class='card-head'><h3>Learning gain</h3><span class='note'>Latest minus first, per objective</span></div>" + cmCharts.learningGain(d.outcomes.map(function (o) { return { label: o.label, gain: o.gain, n: o.gainN }; }), { note: "Mean over students with at least four answers; the number of students is in brackets." }) + "</section>";
     // Objectives
     var linked = d.outcomes.filter(function (o) { return o.linked; }), unl = d.outcomes.filter(function (o) { return !o.linked; });
     h += "<section class='card'><div class='card-head'><h3>Learning objectives</h3><button class='btn sm' type='button' data-win='outcomes.html'>Link questions to objectives</button></div>" +
@@ -76,7 +71,10 @@
     h += "<div class='g2'><div><p class='lbl'>Strengths</p>" + (p.strengths.length ? "<ul class='plain'>" + p.strengths.map(function (o) { return "<li>" + esc(o.label) + " <span class='note'>" + o.current + "%, " + o.answers + " answers</span></li>"; }).join("") + "</ul>" : "<p class='note'>None secure yet with enough answers.</p>") + "</div>" +
       "<div><p class='lbl'>Areas to work on</p>" + (p.weak.length ? "<ul class='plain'>" + p.weak.map(function (o) { return "<li>" + esc(o.label) + " <span class='note'>" + o.current + "%, " + o.answers + " answers</span></li>"; }).join("") + "</ul>" : "<p class='note'>None stands out.</p>") + "</div></div>";
     h += "<h3 class='sec'>Progress by objective</h3><p class='note'>Started: the first answers on the objective. Now: the latest. " + P.overall.answers + " answers in all; overall " + num(P.overall.start, "%") + " at the start and " + num(P.overall.current, "%") + " now.</p>";
-    if (P.timeline.length > 1) h += "<p class='lbl'>Proportion correct by week</p>" + line(P.timeline.map(function (t) { return t.pct; }), P.timeline.map(function (t) { return t.week; }), { title: "Proportion correct by week", extra: P.timeline.map(function (t) { return "(" + t.n + " answers)"; }) });
+    h += "<p class='lbl'>Trajectory by week, with the class mean</p>" + cmCharts.studentProgress(P.timeline, p.classTimeline);
+    h += "<p class='lbl' style='margin-top:1rem'>Student and class, by objective</p>" + cmCharts.studentVsClass(P.outcomes, p.classByKey, P.minimum);
+    h += "<p class='lbl' style='margin-top:1rem'>Learning gain</p>" + cmCharts.learningGain(P.outcomes.map(function (o) { return { label: o.label, gain: o.gain, n: o.answers }; }), { unit: "answers", note: "Brackets: answers on the objective." });
+    h += "<p class='lbl' style='margin-top:1rem'>Engagement</p>" + cmCharts.engagement(p.engagement);
     h += P.outcomes.length ? "<div class='tbl ins-tbl short'><table><thead><tr><th>Objective</th><th>Answers</th><th>Started</th><th>Now</th><th>Gain</th><th>Level</th></tr></thead><tbody>" + P.outcomes.map(function (o) { return "<tr><td class='obj'>" + esc(o.label) + "</td><td>" + o.answers + "</td><td>" + num(o.start, "%") + "</td><td>" + num(o.current, "%") + "</td><td>" + signed(o.gain, " pts") + "</td><td>" + lchip(o.level) + "</td></tr>"; }).join("") + "</tbody></table></div>" : "<p class='note'>No answers yet.</p>";
     if (p.discussion) h += "<p class='note'>Ask, discuss, revise: " + p.discussion.pairs + (p.discussion.pairs === 1 ? " question" : " questions") + " answered twice; " + p.discussion.wrongToRight + " changed from wrong to right, " + p.discussion.rightToWrong + " from right to wrong.</p>";
     h += "<h3 class='sec'>Groups and group work</h3>";

@@ -241,3 +241,7 @@ The banks as they stand: 347 questions over 12 lectures, every one with four opt
 3. Write the lecture 6 bank.
 4. Add outcome and difficulty fields to the banks.
 5. Close the own-results privacy gap.
+
+## Learning Progress charts (desktop, from 11 November 2026)
+
+The Learning Progress screen draws its graphs from `desktop/app/charts/`, one file per chart type (README.md there). The first two are the mastery distribution (stacked bars by objective) and the objective heat map (students by objectives). They read the figures of `learningProgress_` and do no calculation of their own. Added in the same release: class progress over time (weekly mean, median and quartile band, from `classTimeline_`), learning gain, before and after discussion, and for one student the trajectory against the class mean, student versus class by objective, learning gain and engagement (from `studentProfile_`, which now also returns `classTimeline`, `classByKey` and `engagement`). Not yet built: question difficulty (already on Quizzes and Questions) and the Sunday analytics list (evidence confidence, item analysis, concept and intervention tracking, fairness view), which should reuse `classTimeline_` and `classOutcomes_` rather than recalculate.
