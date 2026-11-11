@@ -246,7 +246,8 @@ function plan(book, local, options) {
   });
   if (!reports.length) warnings.push("This file holds none of the tabs the import knows (live quiz results, practice attempts, attendance). Choose a workbook downloaded from the web version's Google Sheet, or a CSV of one of its tabs.");
 
-  const addIds = opt.addMissing ? [...ctx.activity].filter((id) => !localList.has(id)) : [];
+  const validId = (id) => id.length >= 4 && id.length <= 12; // the class list only holds IDs of this length, so an ID of another length (a typo in a log) is never added
+  const addIds = opt.addMissing ? [...ctx.activity].filter((id) => !localList.has(id) && validId(id)) : [];
   const offIds = opt.addMissing ? [] : [...ctx.activity].filter((id) => !localList.has(id));
   const offList = reports.reduce((n, r) => n + (r.offList || 0), 0);
   if (!localList.size && !opt.addMissing) warnings.push("This course has no class list yet, so no student can be matched. Add the class list first, or tick \"Add the students in the file to the class list\".");

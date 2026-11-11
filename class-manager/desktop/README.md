@@ -121,6 +121,20 @@ If the course was run on the web (the Google Sheet version), its scores, attenda
 
 How it works, and how to add another tab: `IMPORT.md`.
 
+## Load data from a folder
+
+On the first-run screen ("Load from a folder") or on Home ("Load from a folder…"), choose the folder that holds your class files. The app lists what it finds: a class list, quiz results, practice attempts, attendance and quiz questions, from Excel, CSV, Word, text and PDF files, in any layout.
+
+- No fixed template. Columns are found by their heading (Student ID, Matric No, Index Number, Surname, Marks and many more) and, if the heading says nothing, by what the cells hold. Title rows above the headings, extra columns and different orders do not matter.
+- Only the useful fields are kept (ID, names, scores, attendance marks, quiz questions). Everything else in the file is left behind.
+- The app writes a clean working file of its own (class list, quiz results, practice attempts, attendance) and shows it to you. "Export the working file…" saves a copy as Excel. Your original files are only read and are never changed.
+- You see a preview of what would be added to the course, and what is missing or not recognised, before anything is written. A backup is made first; loading the same files again adds nothing.
+- Quiz questions go to the review queue (Author, Drafts), where you approve each one.
+- "Rescan" looks again; only new or changed files are read. "Tell me when files in this folder change" shows a notice when something changes; it never imports by itself.
+- The working files contain student data. They are kept in the app's data folder (open it with "Open the working folder"), not in the project. Do not copy them into a repository.
+
+How it works: `autoload/README.md`.
+
 ## Resources and questions
 
 Open it from the home screen ("Open resources and questions").

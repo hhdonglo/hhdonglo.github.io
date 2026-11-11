@@ -50,6 +50,8 @@
       "import-plan.js",
       "import-apply.js",
       "import-ipc.js",
+      "autoload-ipc.js",
+      "autoload/**/*",
       "build-from-roster.js",
       "import-template.js",
       "app/**/*",

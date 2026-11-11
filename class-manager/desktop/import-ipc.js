@@ -9,8 +9,9 @@ const { apply } = require("./import-apply");
 const options = (o) => ({ onlyClassList: true, addMissing: !!(o && o.addMissing) });
 const localOf = (backend) => ({ read: (name) => backend.rows(name) });
 
+const pending = new Map(); // course id -> { name, book }: the file chosen, kept in memory only and never copied. Shared with autoload-ipc.js, which fills it from a folder.
+
 function register({ on, dialog, winOf, shell }) {
-  const pending = new Map(); // course id -> { name, book }: the file chosen, kept in memory only and never copied
 
   on("cm:importPick", async (c, e) => {
     const r = await dialog.showOpenDialog(winOf(e), { title: "Choose the results exported from the web version", properties: ["openFile"],
@@ -54,4 +55,4 @@ function register({ on, dialog, winOf, shell }) {
   on("cm:importForget", (c) => { pending.delete(c.id); return true; });
 }
 
-module.exports = { register };
+module.exports = { register, pending };
