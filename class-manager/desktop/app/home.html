@@ -55,6 +55,8 @@ kbd{font:600 .78rem ui-monospace,monospace;color:var(--faint);letter-spacing:.02
 .chip.live .dot{background:var(--ok);box-shadow:0 0 0 3px rgba(76,195,138,.18)}
 .chip.busy .dot{background:var(--warn)}
 .keybox{display:inline-flex;align-items:center;gap:.6rem;font-size:var(--fs-sm);color:var(--muted);white-space:nowrap}
+.keybox.closed code,.keybox.closed #key-copy{display:none}
+.conn-top{display:inline-flex;gap:2px}.conn-top .btn[aria-pressed=true]{background:var(--accent,#2b5db8);color:#fff}
 .keybox code{font:700 1.02rem ui-monospace,monospace;color:var(--text);letter-spacing:.04em}
 /* course dropdown: the course every screen of this window shows */
 .sr{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
@@ -413,7 +415,8 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
   <span class="others" id="course-others" role="status" aria-live="polite"></span></div>
  <span class="chip" id="live" role="status" aria-live="polite"><span class="dot"></span><span id="live-t">Starting</span></span>
  <button class="btn sm" type="button" id="look-top" title="Find a student by ID or name">Find a student</button>
- <span class="keybox" title="Type this key when the lecturer pages ask for it. Keep it private.">Host key <code id="key">…</code> <button class="btn sm" type="button" id="key-copy"><svg><use href="#i-copy"/></svg>Copy</button></span>
+ <span class="seg conn-top" role="group" aria-label="How students connect"><button class="btn sm" type="button" id="ct-lan" aria-pressed="true" title="Students join the same Wi-Fi or hotspot as this computer">Wi-Fi</button><button class="btn sm" type="button" id="ct-net" aria-pressed="false" title="Students open an internet address from any network">Internet</button></span>
+ <span class="keybox closed"><button class="btn sm" type="button" id="key-show" aria-expanded="false" title="Show the host key. Keep it private."><svg><use href="#i-key"/></svg>Host key</button><code id="key">…</code> <button class="btn sm" type="button" id="key-copy"><svg><use href="#i-copy"/></svg>Copy</button></span>
 </header>
 
 <main id="main">
@@ -815,6 +818,7 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
 <script src="progress.js"></script>
 <script src="import.js"></script>
 <script src="folder.js"></script>
+<script src="reset.js"></script>
 <script src="linked-folder.js"></script>
 <script>
 (function(){
@@ -863,9 +867,12 @@ function tshow(t){
  $("copy-url").disabled=!url;$("copy-mini").disabled=!url;
  if(wantNet){if(on)live("live","Live: Internet");else if(t.state==="error")live("","Offline");else live("busy","Connecting")}
  else live(lanCount?"live":"",lanCount?"Live: Same Wi-Fi":"Offline: no network");
+ $("ct-lan").setAttribute("aria-pressed",String(!wantNet));$("ct-net").setAttribute("aria-pressed",String(wantNet));
 }
 $("copy-url").addEventListener("click",function(){var u=$("addr").textContent;if(u&&u!=="…")copy(u,$("copy-url"))});
 $("key-copy").addEventListener("click",function(){if(hostKey)copy(hostKey,$("key-copy"))});
+var keyTimer=0;$("key-show").addEventListener("click",function(){var box=$("key-show").parentNode,open=box.classList.contains("closed");box.classList.toggle("closed",!open);$("key-show").setAttribute("aria-expanded",String(open));clearTimeout(keyTimer);if(open)keyTimer=setTimeout(function(){box.classList.add("closed");$("key-show").setAttribute("aria-expanded","false")},20000)}); // the host key is hidden until asked for, and hides itself again after 20 seconds
+["lan","net"].forEach(function(m){$("ct-"+m).addEventListener("click",function(){var r=document.querySelector("input[name=conn][value="+m+"]");if(r&&!r.checked)r.click()})}); // the top-bar switch drives the same radio buttons as Class Overview
 $("how").addEventListener("click",function(){$("how-d").showModal()});
 $("copy-mini").addEventListener("click",function(){var u=$("addr").textContent;if(u&&u!=="…")copy(u,$("copy-mini"))});
 
@@ -1001,7 +1008,7 @@ function drawCourseTable(){
    (c.current?"<span class='tag on'>Shown</span> ":"<button class='btn sm' data-cact='open' data-id='"+esc(c.id)+"'>Open</button> ")+
    "<button class='btn sm' data-cact='save' data-id='"+esc(c.id)+"'>Save</button> "+
    (src.kind==="folder"?"<button class='btn sm' data-cact='unlink' data-id='"+esc(c.id)+"'>Unlink folder</button> "+(c.repo?"<button class='btn sm' data-cact='pull' data-id='"+esc(c.id)+"'>Update from repository</button> ":""):"<button class='btn sm' data-cact='link' data-id='"+esc(c.id)+"'>Link a folder</button> ")+
-   "<button class='btn sm' data-cact='archive' data-id='"+esc(c.id)+"'>Archive</button>";
+   "<button class='btn sm' data-cact='archive' data-id='"+esc(c.id)+"'>Archive</button> <button class='btn sm' data-cact='reset' data-id='"+esc(c.id)+"' title='Start the setup of this course again. Nothing is deleted.'>Reset…</button>";
   return"<tr class='"+(c.archived?"arch":"")+"'><td class='c-code'><input class='f' maxlength='40' data-cf='code' data-id='"+esc(c.id)+"' value='"+esc(c.code)+"' aria-label='Code of "+esc(c.code||c.id)+"'"+(c.archived?" disabled":"")+"></td>"+
    "<td class='c-title'><input class='f' maxlength='120' data-cf='title' data-id='"+esc(c.id)+"' value='"+esc(c.title)+"' aria-label='Title'"+(c.archived?" disabled":"")+"></td>"+
    "<td class='c-term'><input class='f' maxlength='80' data-cf='term' data-id='"+esc(c.id)+"' value='"+esc(c.term)+"' aria-label='Term'"+(c.archived?" disabled":"")+"></td>"+

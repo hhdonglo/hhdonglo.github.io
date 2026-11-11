@@ -21,6 +21,10 @@
   });
 
   function close() { d.close(); cmApp.importForget(); }
+  function conflictsHtml(st){
+    if(!st||!st.nameConflicts)return "";
+    return "<details open style='margin:.6rem 0'><summary class='msg'><strong>"+n(st.nameConflicts)+"</strong> student ID(s) have a different name in the files. The ID is the key, so the name already on the class list is kept. Check these:</summary><ul class='note'>"+(st.conflicts||[]).map(function(x){return "<li>"+esc(x.id)+": class list “"+esc(x.existing)+"”, file “"+esc(x.incoming)+"”</li>"}).join("")+"</ul></details>";
+  }
   function buttons(html) { return "<p class='row' style='justify-content:flex-end;margin-top:14px'>" + html + "</p>"; }
 
   function start(msg) {
@@ -53,7 +57,7 @@
     var cols = rep.tabs.filter(function (t) { return t.columns && t.columns.length; });
     var colsHtml = cols.length ? "<details style='margin:.6rem 0'><summary class='note'>Columns the import found</summary><ul class='note'>" + cols.map(function (t) { return "<li>" + esc(t.label) + ": " + t.columns.map(function (c) { return esc(c.need) + (c.found && c.found !== c.need ? " (from “" + esc(c.found) + "”)" : ""); }).join(", ") + "</li>"; }).join("") + "</ul></details>" : "";
     var ign = (rep.ignored || []).length ? "<details style='margin:.6rem 0'><summary class='note'>Tabs in the file that are not imported (" + rep.ignored.length + ")</summary><ul class='note'>" + rep.ignored.map(function (x) { return "<li>" + esc(x.tab) + ": " + esc(x.why) + "</li>"; }).join("") + "</ul></details>" : "";
-    body.innerHTML = "<p class='note'>File: " + esc(file) + "</p>" + people + add + table + w.map(function (x) { return "<p class='msg'>" + esc(x) + "</p>"; }).join("") + colsHtml + ign +
+    body.innerHTML = "<p class='note'>File: " + esc(file) + "</p>" + people + add + (s.namesFilled ? "<p class='note'>" + n(s.namesFilled) + " student(s) on the class list had no name; the file gives it.</p>" : "") + conflictsHtml(s) + table + w.map(function (x) { return "<p class='msg'>" + esc(x) + "</p>"; }).join("") + colsHtml + ign +
       (rep.changes ? "<p class='note'>Marks (Master, Scores and Totals) are worked out again after the import. Learning Progress, Students and Attendance then include the new records.</p>" : "<p class='msg'>Nothing in the file is new to this course.</p>") +
       buttons("<button class='btn' type='button' id='imp-cancel'>Cancel</button><button class='btn' type='button' id='imp-other'>Choose another file…</button><button class='btn primary' type='button' id='imp-go'" + (rep.changes ? "" : " disabled") + ">Import " + (rep.changes ? n(rep.changes) + " records" : "") + "</button>");
     body.querySelector("#imp-cancel").onclick = close;
