@@ -19,7 +19,7 @@
 
   CM.call("action=password_status", function (s) {
     var chosen = !!(s && s.chosen);
-    $("first").hidden = chosen; $("change-cur").hidden = false;
+    $("first").hidden = chosen;
     $("cur-label").textContent = chosen ? "Current password" : "Temporary key (shown in the app, or in the Key tab of the Sheet)";
     $("set-title").textContent = chosen ? "Change the password" : "Choose your password";
     if (location.hash === "#recover" && s && s.recovery) { $("p-set").hidden = true; $("p-recover").hidden = false; }
