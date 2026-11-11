@@ -1,0 +1,18 @@
+/* Class Manager dashboard styles. Lights use the app's colour tokens; gold is kept for actions. Every light also has a word. */
+:root{--lt-good:var(--g-on);--lt-watch:var(--g-hard);--lt-bad:var(--g-need);--lt-none:var(--g-none)}
+.dstats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--gap);margin:var(--gap) 0}
+.dstat{border-top:4px solid var(--lt-none)}
+.dstat.lt-good{border-top-color:var(--lt-good)}.dstat.lt-watch{border-top-color:var(--lt-watch)}.dstat.lt-bad{border-top-color:var(--lt-bad)}
+.lt{display:inline-flex;align-items:center;gap:.4rem;margin:.4rem 0 0;font-size:.85rem;font-weight:600}
+.lt i{width:.7rem;height:.7rem;border-radius:50%;background:var(--lt-none)}
+.lt-good .lt i,.lt.lt-good i{background:var(--lt-good)}.lt-watch .lt i{background:var(--lt-watch)}.lt-bad .lt i{background:var(--lt-bad)}
+.dhealth.lt-good .lt i{background:var(--lt-good)}.dhealth.lt-watch .lt i{background:var(--lt-watch)}.dhealth.lt-bad .lt i{background:var(--lt-bad)}
+.dtoday,.dsetup{margin-bottom:var(--gap)}
+.dacts{list-style:none;margin:0;padding:0}.dacts li{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:.55rem 0;border-top:1px solid var(--grid)}.dacts li:first-child{border-top:0}
+.pbar{height:.55rem;border-radius:99px;background:var(--grid);overflow:hidden;margin:.4rem 0 .8rem}.pbar span{display:block;height:100%;background:var(--lt-good)}
+.dgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--gap);margin-bottom:var(--gap)}
+.dq{margin:0;padding-left:1.2rem}.dq li{margin:.35rem 0}
+.dtr{list-style:none;margin:0;padding:0}.dtr li{display:grid;grid-template-columns:8.5rem 1fr auto;align-items:center;gap:.8rem;padding:.35rem 0}
+.spark{width:100%;max-width:7rem;height:1.7rem}.spark polyline{fill:none;stroke:var(--bar);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+@media (max-width:1000px){.dstats,.dgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:640px){.dstats,.dgrid{grid-template-columns:minmax(0,1fr)}}
