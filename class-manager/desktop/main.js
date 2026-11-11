@@ -20,6 +20,7 @@ const { createAuthoring } = require("./authoring");
 const { createTunnel, createLimiter } = require("./tunnel");
 const { createCourse } = require("./course");
 const { readTable } = require("./table");
+const names = require("./names");
 const excel = require("./excel");
 const { execFile } = require("child_process");
 const courses = require("./courses");
@@ -420,9 +421,9 @@ function setupState(c) {
   return { steps, roster: Math.max(0, roster), complete: steps.course && steps.classList && steps.materials, seen: !!c.settings.setupSeen };
 }
 function parseClassList(text) {
-  // One student per line: ID, then an optional name, separated by a comma, semicolon or tab. A header line is skipped.
+  // One student per line: ID, then an optional name (or first name and last name), separated by a comma, semicolon or tab. A header line is skipped.
   return String(text || "").split(/\r?\n/).map((l) => l.split(/[,;\t]/).map((x) => x.replace(/^"|"$/g, "").trim()))
-    .filter((r) => r[0] && /\d{4,12}/.test(r[0].replace(/\D/g, ""))).map((r) => [r[0].replace(/\D/g, ""), r[1] || ""]);
+    .filter((r) => r[0] && /\d{4,12}/.test(r[0].replace(/\D/g, ""))).map((r) => [r[0].replace(/\D/g, ""), names.rowName(r)]);
 }
 function csvCell(v) { v = String(v == null ? "" : v); return /[",\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
 
@@ -540,8 +541,8 @@ ipcMain.handle("cm:tableFile", async (e) => { // a class list as rows, from CSV,
   try { return { ok: true, name: path.basename(r.filePaths[0]), rows: await readTable(r.filePaths[0]) }; } catch (err) { return { ok: false, why: err.message }; }
 });
 ipcMain.handle("cm:tableText", (e, text) => ({ ok: true, rows: require("./table").splitText(String(text || "").slice(0, 2000000)) }));
-on("cm:classRows", (c, e, rows, replace) => { // rows already mapped to [ID, name]
-  const clean = (rows || []).map((r) => [String(r[0] || "").replace(/\D/g, ""), String(r[1] || "").trim().slice(0, 120)]).filter((r) => /^\d{4,12}$/.test(r[0]));
+on("cm:classRows", (c, e, rows, replace) => { // rows already mapped to [ID, name] or [ID, first name, last name]
+  const clean = (rows || []).map((r) => [String(r[0] || "").replace(/\D/g, ""), names.rowName(r).slice(0, 120)]).filter((r) => /^\d{4,12}$/.test(r[0]));
   if (!clean.length) return { ok: false, why: "No student IDs found in the chosen column. Student IDs must have 4 to 12 digits." };
   return c.backend.rosterSync(clean, !!replace);
 });
@@ -593,7 +594,7 @@ on("cm:export", async (c, e) => {
   const dir = path.join(r.filePaths[0], "Class Manager results " + label + " " + new Date().toISOString().slice(0, 10));
   fs.mkdirSync(dir, { recursive: true });
   c.backend.tabs().forEach((t) => {
-    const rows = c.backend.tab(t.name) || [];
+    const rows = names.withNameColumns(c.backend.tab(t.name) || []);
     fs.writeFileSync(path.join(dir, t.name.replace(/[^\w .-]/g, "_") + ".csv"), "﻿" + rows.map((r) => r.map(csvCell).join(",")).join("\r\n"));
   });
   shell.openPath(dir);
@@ -604,7 +605,7 @@ on("cm:exportExcel", async (c, e) => {
   const label = (c.settings.courseCode || c.id).replace(/[^\w .-]+/g, "_");
   const r = await dialog.showSaveDialog(winOf(e), { title: "Save the results as Excel", defaultPath: "Class Manager results " + label + " " + new Date().toISOString().slice(0, 10) + ".xlsx", filters: [{ name: "Excel workbook", extensions: ["xlsx"] }] });
   if (r.canceled || !r.filePath) return null;
-  try { fs.writeFileSync(r.filePath, await excel.writeXlsx(excel.resultsSheets(c.backend.tabs(), (n) => c.backend.tab(n)))); shell.showItemInFolder(r.filePath); return { ok: true, file: r.filePath }; }
+  try { fs.writeFileSync(r.filePath, await excel.writeXlsx(excel.resultsSheets(c.backend.tabs(), (n) => names.withNameColumns(c.backend.tab(n))))); shell.showItemInFolder(r.filePath); return { ok: true, file: r.filePath }; }
   catch (err) { return { ok: false, why: err.message }; }
 });
 // A table a screen has already drawn (for example the Students list), saved as a one-sheet Excel workbook.
@@ -612,7 +613,7 @@ on("cm:saveExcel", async (c, e, name, rows) => {
   const file = String(name || "table").replace(/[^\w .-]+/g, "_").slice(0, 80) + ".xlsx";
   const r = await dialog.showSaveDialog(winOf(e), { title: "Save as Excel", defaultPath: file, filters: [{ name: "Excel workbook", extensions: ["xlsx"] }] });
   if (r.canceled || !r.filePath) return null;
-  const clean = (Array.isArray(rows) ? rows : []).slice(0, 20000).map((x) => (Array.isArray(x) ? x : []).slice(0, 200).map((v) => (typeof v === "number" ? v : String(v == null ? "" : v).slice(0, 32000))));
+  const clean = names.withNameColumns(Array.isArray(rows) ? rows : []).slice(0, 20000).map((x) => (Array.isArray(x) ? x : []).slice(0, 200).map((v) => (typeof v === "number" ? v : String(v == null ? "" : v).slice(0, 32000))));
   try { fs.writeFileSync(r.filePath, await excel.writeXlsx([{ name: String(name || "Sheet1"), rows: clean }])); shell.showItemInFolder(r.filePath); return { ok: true, file: r.filePath }; }
   catch (err) { return { ok: false, why: err.message }; }
 });

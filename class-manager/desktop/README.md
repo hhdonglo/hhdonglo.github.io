@@ -15,7 +15,7 @@ The first time it runs, Windows and macOS ask whether the app may accept connect
 **Before class**
 
 1. Open Class Manager. The home screen shows the address students open, a QR code for it, and your host key.
-2. Under **Class list**, paste your class list (student ID, then name if you wish, one student per line) or choose a CSV file, and press **Save class list**.
+2. Under **Class list**, paste your class list (student ID, then first name and last name if you wish, one student per line) or choose a CSV or Excel file and say which columns hold the ID, the first name and the last name (a single Name column also works), and press **Save class list**.
 
 **In class**
 
@@ -28,7 +28,7 @@ The first time it runs, Windows and macOS ask whether the app may accept connect
 
 **After class**
 
-Under **Results and marks**, choose a tab (Attendance, Master, Totals and others) to see it, or press **Download as Excel** to save every tab of the current course in one workbook (one sheet per tab); **Export all tabs as CSV** saves one CSV file per tab instead. The Students screen has its own **Download as Excel**. Under Setup, **Download the Excel template** saves a class list to fill in: fill in the first sheet, save it, then choose it with **Choose a file** and check the preview before saving. **Attendance with names** shows names next to the attendance marks.
+Under **Results and marks**, choose a tab (Attendance, Master, Totals and others) to see it, or press **Download as Excel** (names are written as separate First name and Last name columns, ready for Sakai) to save every tab of the current course in one workbook (one sheet per tab); **Export all tabs as CSV** saves one CSV file per tab instead. The Students screen has its own **Download as Excel**. Under Setup, **Download the Excel template** saves a class list to fill in: fill in the first sheet, save it, then choose it with **Choose a file** and check the preview before saving. **Attendance with names** shows names next to the attendance marks.
 
 **Access codes and Teaching insights.** Before students first look at their progress, open **Access codes for students**, log in with the host key, press **Create codes for students without one**, then **Print slips** and hand each student their slip. **Student groups** makes groups for an activity and holds a mark for each group. **Teaching insights** shows the weakest lectures and questions and the students who may need attention.
 
