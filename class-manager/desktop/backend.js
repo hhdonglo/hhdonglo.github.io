@@ -209,6 +209,12 @@ function createBackend(opts) {
     // After questions are approved: the script must read the banks again rather than its five-minute copy.
     dropSiteCache: () => { for (const k of [...store.keys()]) if (k.indexOf("site:") === 0) store.delete(k); },
     loadProblem: () => loadProblem,
+    // The workbook as the web import writes to it (import-apply.js): a tab by name, created when asked, and a tab's values with their types.
+    sheet: (name, create) => spreadsheet.getSheetByName(name) || (create ? spreadsheet.insertSheet(name) : null),
+    rows: (name) => { const s = spreadsheet.getSheetByName(name); return s && s.getLastRow() ? s.getDataRange().getValues() : null; },
+    // After an import: Master, Scores and Totals are worked out again from the records, as the script itself does.
+    buildFromRoster: () => { const r = require("./build-from-roster").buildFromRoster({ sheet: (n, c) => spreadsheet.getSheetByName(n) || (c ? spreadsheet.insertSheet(n) : null), rows: (n) => { const t = spreadsheet.getSheetByName(n); return t && t.getLastRow() ? t.getDataRange().getValues() : null; } }); flush(); return r; },
+    rebuildMarks: () => asHost(() => { ctx.rebuildMaster(); ctx.refreshTotals(); }),
     tabs: () => book.sheets.map((d) => ({ name: d.name, rows: sheetObj(d).getLastRow() })),
     // For course synchronisation (sync/records.js): the raw rows of a tab, and replacing a tab's rows.
     rawRows: (name) => { const d = book.sheets.find((x) => x.name === name); return d ? d.rows.map((r) => (r || []).slice()) : null; },

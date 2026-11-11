@@ -123,7 +123,7 @@ class-manager/
   course-packs/phys143/     the PHYS 143 course pack source (lecture pages, PDFs, banks, data, bank tools)
   apps_script/              quiz_receiver.gs (generated), src/ (its modules), build.js, live_quizzes.json
   assets/                   render.js, styles, QR library, KaTeX, icons
-  desktop/                  the desktop app: main.js, backend.js, course.js (course folder and packs), table.js (reads class list files), excel.js (writes Excel workbooks), names.js (first and last names: join, split, name columns in exports), google.js, linked-folder.js (encrypted copies in a synced folder), storage-providers.js (names the cloud service from a folder path), sync/ (merge.js, records.js, materials.js, course-sync.js: keeping notes, materials, class list and attendance in step with the linked place), storage/ (providers for WebDAV, GitHub, Dropbox and S3 with the lecturer's own credentials), preload.js, app/home.html, app/linked-folder.js (the Link storage card), app/setup.html, package.json
+  desktop/                  the desktop app: main.js, backend.js, course.js (course folder and packs), table.js (reads class list files), excel.js (writes Excel workbooks), xlsx-book.js, import-values.js, import-specs.js, import-plan.js, import-apply.js and import-ipc.js (the web import: see desktop/IMPORT.md), names.js (first and last names: join, split, name columns in exports), google.js, linked-folder.js (encrypted copies in a synced folder), storage-providers.js, sync/ (merge.js, records.js, materials.js, course-sync.js), storage/ (WebDAV, GitHub, Dropbox, S3 providers), preload.js, app/linked-folder.js (the Link storage card), app/home.html, app/setup.html, package.json
 ```
 
 **Configuration points**
