@@ -109,7 +109,7 @@ In mode B, the optional Google sign-in (`desktop/google.js`) copies every tab on
 | `sw.js`, `manifest.webmanifest` | Installable portal; network first, with the shell cached for offline use. |
 | `data/`, `PHYS143/` | Course data for the portal and the lecture materials. |
 | `tools/` | `validate_quizzes.py`, `check_calcs.py`, `test_practice.mjs`, and the bank build in `quiz_src/`. |
-| `desktop/` | The Electron app: `main.js`, `preload.js`, `backend.js`, `authoring.js`, `google.js`, `app/home.html`, `app/author.html`, `app/question-template.md` and `.docx`, and `package.json` (build). |
+| `desktop/` | The Electron app: `main.js`, `preload.js`, `backend.js`, `authoring.js`, `google.js`, `table.js` (reads CSV and Excel class lists), `excel.js` (writes Excel workbooks: the class list template and the results of one course), `app/home.html`, `app/author.html`, `app/question-template.md` and `.docx`, and `package.json` (build). |
 | `README.md`, `STRUCTURE.md`, `desktop/README.md`, `ARCHITECTURE.md` | Documentation. `STRUCTURE.md` and `ARCHITECTURE.md` are left out of the installers. |
 
 ## 5. Server script: endpoints
@@ -317,7 +317,7 @@ Two warnings do not block approval: a missing explanation or difficulty, and a d
 | Suite | What it covers | Where |
 |---|---|---|
 | `tools/validate_quizzes.py`, `tools/check_calcs.py`, `tools/test_practice.mjs` | Bank schema and calculations, and the practice engine | Repository |
-| `desktop/test/` (`npm test`) | Class statistics, learning progress, and many courses: migration of a 0.7.0 data folder, the registry and routing, and two courses that share no records (class list, host key, access codes, attendance, lookup, statistics, content, Google Sheet, browser storage) | Repository |
+| `desktop/test/` (`npm test`) | Class statistics, learning progress, and many courses: migration of a 0.7.0 data folder, the registry and routing, and two courses that share no records (class list, host key, access codes, attendance, lookup, statistics, content, Google Sheet, browser storage); Excel files (written workbooks read back cell for cell, the template imports as a class list, IDs stay text, sheet names, one course per results workbook) | Repository |
 | Server checks | 36 (core and learning), 17 (groups), 14 (calendar), 38 (messages and announcements), run against `backend.js` | Session scratch files; not yet in the repository |
 | Browser checks | 17 (learning pages), 11 (groups pages), via Playwright against the running app | Session scratch files |
 | End to end, packaged app | 45 checks, via Playwright's Electron driver against `dist/linux-unpacked`, with a stand-in for the Anthropic API that records requests: library (four formats), search, both summaries, generation request shape, review and approval into served banks, import preview, manual entry, withdrawal, no student data in requests, calendar views and series, `.ics` and feed, portal, messages, moderation, delivery states, store and forward | Session scratch files |
