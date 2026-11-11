@@ -123,14 +123,14 @@ async function writeXlsx(sheets) {
 // The class list template. The list is the first sheet, because import reads the first sheet.
 function classListTemplate() {
   return [
-    { name: "Class list", rows: [["Student ID", "Name"], ["10000001", "First Student"], ["10000002", "Second Student"], ["10000003", "Third Student"]] },
+    { name: "Class list", rows: [["Student ID", "First name", "Last name"], ["10000001", "Ama", "Mensah"], ["10000002", "Kofi", "Boateng"], ["10000003", "Efua", "Owusu"]] },
     { name: "How to fill in", rows: [
       ["How to fill in the class list"],
       ["1. On the Class list sheet, replace the three sample rows with your students: one student per row."],
-      ["2. Column A holds the student ID (4 to 12 digits). Column B holds the name, which may be left empty."],
-      ["3. Keep the heading row. Further columns, such as email or programme, may stay; they are not imported."],
+      ["2. Column A holds the student ID (4 to 12 digits). Column B holds the first name and column C the last name; both may be left empty."],
+      ["3. Keep the heading row. Sakai and most records systems export first and last names as separate columns, as here. A single Name column also works. Further columns, such as email or programme, may stay; they are not imported."],
       ["4. Save the file as Excel (.xlsx), then in Class Manager choose Setup, Class list, Choose a file."],
-      ["5. Check the preview: say which column holds the ID and which holds the name, then save."],
+      ["5. Check the preview: say which columns hold the ID, the first name and the last name, then save."],
       ["Each course has its own class list. Import the file while the right course is selected."]
     ] }
   ];

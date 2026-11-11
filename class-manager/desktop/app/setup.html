@@ -80,17 +80,18 @@ html{font-size:clamp(15px,calc(9.5px + .42vw),19px)}
 
 <section data-step="class" aria-labelledby="h-class" hidden>
  <h2 id="h-class">Class list</h2>
- <p class="why">Attendance, quiz marks and access codes count only the students on the class list. Choose a file exported from your student records (CSV or Excel), or paste the list. Then say which column holds the student ID and which holds the name, and check the preview before saving.</p>
+ <p class="why">Attendance, quiz marks and access codes count only the students on the class list. Choose a file exported from your student records (CSV or Excel), or paste the list. Then say which columns hold the student ID, the first name and the last name, and check the preview before saving.</p>
  <div class="card">
   <p><button type="button" id="cl-file">Choose a file (CSV or Excel)</button><button type="button" id="cl-sample">Download the Excel template</button></p>
   <label for="cl-text">Or paste the list <span class="opt">(one student per line, columns separated by commas or tabs)</span></label>
-  <textarea id="cl-text" placeholder="Student ID, Name"></textarea>
+  <textarea id="cl-text" placeholder="Student ID, First name, Last name"></textarea>
   <p><button type="button" id="cl-read">Read the pasted list</button></p>
   <div id="cl-map" hidden>
    <p class="note" id="cl-src"></p>
    <div class="two">
     <div><label for="cl-id">Column with the student ID</label><select id="cl-id"></select></div>
-    <div><label for="cl-name">Column with the name <span class="opt">(optional)</span></label><select id="cl-name"></select></div>
+    <div><label for="cl-name">Column with the first name, or the whole name <span class="opt">(optional)</span></label><select id="cl-name"></select></div>
+    <div><label for="cl-last">Column with the last name <span class="opt">(optional)</span></label><select id="cl-last"></select></div>
    </div>
    <p><label style="display:inline;font-weight:400"><input type="checkbox" id="cl-head"> The first row holds column headings</label></p>
    <p><label style="display:inline;font-weight:400"><input type="checkbox" id="cl-replace"> Replace the whole list (otherwise new students are added)</label></p>
@@ -185,20 +186,24 @@ function setRows(rows,src){
  var w=ROWS.reduce(function(m,r){return Math.max(m,r.length)},0),head=ROWS[0];
  var looksHead=!/\d{4,}/.test(head.join(" "));$("cl-head").checked=looksHead;
  var opts=function(none){var h="";if(none)h+='<option value="-1">No name</option>';for(var i=0;i<w;i++)h+='<option value="'+i+'">'+esc(colName(i)+(looksHead&&head[i]?": "+head[i]:""))+'</option>';return h};
- $("cl-id").innerHTML=opts(false);$("cl-name").innerHTML=opts(true);
+ $("cl-id").innerHTML=opts(false);$("cl-name").innerHTML=opts(true);$("cl-last").innerHTML=opts(true);
  // Guess: the column with most 4 to 12 digit numbers is the ID; a heading with "name" is the name.
  var best=0,bestN=-1;for(var i=0;i<w;i++){var n=ROWS.filter(function(r){return /^\D*\d{4,12}\D*$/.test(r[i]||"")}).length;if(n>bestN){bestN=n;best=i}}
- $("cl-id").value=best;var nm=-1;head.forEach(function(h,i){if(nm<0&&i!==best&&/name/i.test(h))nm=i});if(nm<0&&w>1)nm=best===0?1:0;$("cl-name").value=nm;
+ $("cl-id").value=best;var nm=-1,ln=-1;
+ // Headings decide first: first/given name, then last/surname/family name, then any "name" column.
+ head.forEach(function(h,i){if(i===best)return;if(nm<0&&/first|given|forename/i.test(h))nm=i;else if(ln<0&&/last|sur|family/i.test(h))ln=i});
+ if(nm<0)head.forEach(function(h,i){if(nm<0&&i!==best&&i!==ln&&/name/i.test(h))nm=i});
+ if(nm<0&&w>1)nm=best===0?1:0;$("cl-name").value=nm;$("cl-last").value=ln;
  preview();
 }
-function mapped(){var id=+$("cl-id").value,nm=+$("cl-name").value,rows=$("cl-head").checked?ROWS.slice(1):ROWS;
- var first=nm>=0?[]:null;
- return rows.map(function(r){return[String(r[id]||"").replace(/\D/g,""),nm>=0?String(r[nm]||""):""]})}
+function mapped(){var id=+$("cl-id").value,nm=+$("cl-name").value,ln=+$("cl-last").value,rows=$("cl-head").checked?ROWS.slice(1):ROWS;
+ // [ID, first name (or whole name), last name]; the app joins them into one name when it saves.
+ return rows.map(function(r){return[String(r[id]||"").replace(/\D/g,""),nm>=0?String(r[nm]||""):"",ln>=0?String(r[ln]||""):""]})}
 function preview(){var m=mapped(),ok=m.filter(function(r){return /^\d{4,12}$/.test(r[0])}),bad=m.length-ok.length;
  $("cl-count").textContent=ok.length+" students will be saved"+(bad?"; "+bad+" rows without a valid student ID (4 to 12 digits) will be skipped":"")+".";
- $("cl-prev").innerHTML="<table><thead><tr><th>Student ID</th><th>Name</th></tr></thead><tbody>"+m.slice(0,10).map(function(r){var v=/^\d{4,12}$/.test(r[0]);return"<tr><td>"+(v?esc(r[0]):"<em>not valid</em>")+"</td><td>"+esc(r[1])+"</td></tr>"}).join("")+"</tbody></table>"+(m.length>10?"<p class='note' style='padding:.3rem .55rem'>First 10 rows shown.</p>":"");
+ $("cl-prev").innerHTML="<table><thead><tr><th>Student ID</th><th>First name</th><th>Last name</th></tr></thead><tbody>"+m.slice(0,10).map(function(r){var v=/^\d{4,12}$/.test(r[0]);return"<tr><td>"+(v?esc(r[0]):"<em>not valid</em>")+"</td><td>"+esc(r[1])+"</td><td>"+esc(r[2])+"</td></tr>"}).join("")+"</tbody></table>"+(m.length>10?"<p class='note' style='padding:.3rem .55rem'>First 10 rows shown.</p>":"");
 }
-["cl-id","cl-name","cl-head"].forEach(function(i){$(i).addEventListener("change",preview)});
+["cl-id","cl-name","cl-last","cl-head"].forEach(function(i){$(i).addEventListener("change",preview)});
 $("cl-file").addEventListener("click",function(){cmApp.tableFile().then(function(r){if(!r)return;if(!r.ok){$("cl-msg").textContent=r.why;return}setRows(r.rows,"From "+r.name+": "+r.rows.length+" rows.")})});
 $("cl-read").addEventListener("click",function(){cmApp.tableText($("cl-text").value).then(function(r){setRows(r.rows,"From the pasted list: "+r.rows.length+" rows.")})});
 $("cl-sample").addEventListener("click",function(){cmApp.sampleClassList().then(function(p){if(p)$("cl-msg").textContent="Saved the template to "+p+". Fill in the Class list sheet, save it, then choose it above."})});

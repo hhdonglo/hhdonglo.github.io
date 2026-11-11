@@ -35,7 +35,7 @@ test("a written workbook reads back cell for cell", async () => {
 
 test("the class list template imports as a class list", async () => {
   const { rows } = await saveAndRead(excel.classListTemplate());
-  assert.deepEqual(rows[0], ["Student ID", "Name"]);
+  assert.deepEqual(rows[0], ["Student ID", "First name", "Last name"]);
   assert.equal(rows.length, 4);
   rows.slice(1).forEach((r) => assert.match(r[0], /^\d{4,12}$/));
 });

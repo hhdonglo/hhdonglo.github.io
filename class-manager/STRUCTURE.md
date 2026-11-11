@@ -123,7 +123,7 @@ class-manager/
   course-packs/phys143/     the PHYS 143 course pack source (lecture pages, PDFs, banks, data, bank tools)
   apps_script/              quiz_receiver.gs (generated), src/ (its modules), build.js, live_quizzes.json
   assets/                   render.js, styles, QR library, KaTeX, icons
-  desktop/                  the desktop app: main.js, backend.js, course.js (course folder and packs), table.js (reads class list files), excel.js (writes Excel workbooks), google.js, preload.js, app/home.html, app/setup.html, package.json
+  desktop/                  the desktop app: main.js, backend.js, course.js (course folder and packs), table.js (reads class list files), excel.js (writes Excel workbooks), names.js (first and last names: join, split, name columns in exports), google.js, preload.js, app/home.html, app/setup.html, package.json
 ```
 
 **Configuration points**
