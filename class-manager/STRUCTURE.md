@@ -35,7 +35,7 @@ Eleven components make up the tool. The ones students use need no key; the lectu
 | Question banks | `quizzes/lectureN.json`, written by `tools/quiz_src/lectureN.py` | Lecturer | One bank per lecture, read by practice, mock exam and live quiz alike. |
 | Server and workbook | `apps_script/quiz_receiver.gs`; Google Sheet or `desktop/` local workbook | Both, indirectly | Holds the rules and the records (Data model). |
 
-The desktop app (`desktop/`) adds a home screen for the lecturer: the student address and its QR code, the host key, class list import, a viewer for every tab, CSV export, and optional Google sign-in that copies the tabs to a Sheet in the lecturer's own Drive.
+The desktop app (`desktop/`) adds a home screen for the lecturer: the student address and its QR code, the host key, class list import, a viewer for every tab, Excel and CSV export, an Excel class list template, and optional Google sign-in that copies the tabs to a Sheet in the lecturer's own Drive.
 
 ## Data flow in a class session
 
@@ -123,7 +123,7 @@ class-manager/
   course-packs/phys143/     the PHYS 143 course pack source (lecture pages, PDFs, banks, data, bank tools)
   apps_script/              quiz_receiver.gs (generated), src/ (its modules), build.js, live_quizzes.json
   assets/                   render.js, styles, QR library, KaTeX, icons
-  desktop/                  the desktop app: main.js, backend.js, course.js (course folder and packs), table.js (class list files), google.js, preload.js, app/home.html, app/setup.html, package.json
+  desktop/                  the desktop app: main.js, backend.js, course.js (course folder and packs), table.js (reads class list files), excel.js (writes Excel workbooks), google.js, preload.js, app/home.html, app/setup.html, package.json
 ```
 
 **Configuration points**

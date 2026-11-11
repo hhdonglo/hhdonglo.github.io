@@ -82,7 +82,7 @@ html{font-size:clamp(15px,calc(9.5px + .42vw),19px)}
  <h2 id="h-class">Class list</h2>
  <p class="why">Attendance, quiz marks and access codes count only the students on the class list. Choose a file exported from your student records (CSV or Excel), or paste the list. Then say which column holds the student ID and which holds the name, and check the preview before saving.</p>
  <div class="card">
-  <p><button type="button" id="cl-file">Choose a file (CSV or Excel)</button><button type="button" id="cl-sample">Download a sample class list</button></p>
+  <p><button type="button" id="cl-file">Choose a file (CSV or Excel)</button><button type="button" id="cl-sample">Download the Excel template</button></p>
   <label for="cl-text">Or paste the list <span class="opt">(one student per line, columns separated by commas or tabs)</span></label>
   <textarea id="cl-text" placeholder="Student ID, Name"></textarea>
   <p><button type="button" id="cl-read">Read the pasted list</button></p>
@@ -201,7 +201,7 @@ function preview(){var m=mapped(),ok=m.filter(function(r){return /^\d{4,12}$/.te
 ["cl-id","cl-name","cl-head"].forEach(function(i){$(i).addEventListener("change",preview)});
 $("cl-file").addEventListener("click",function(){cmApp.tableFile().then(function(r){if(!r)return;if(!r.ok){$("cl-msg").textContent=r.why;return}setRows(r.rows,"From "+r.name+": "+r.rows.length+" rows.")})});
 $("cl-read").addEventListener("click",function(){cmApp.tableText($("cl-text").value).then(function(r){setRows(r.rows,"From the pasted list: "+r.rows.length+" rows.")})});
-$("cl-sample").addEventListener("click",function(){cmApp.sampleClassList().then(function(p){if(p)$("cl-msg").textContent="Saved the sample to "+p+". Fill it in, save it, then choose it above."})});
+$("cl-sample").addEventListener("click",function(){cmApp.sampleClassList().then(function(p){if(p)$("cl-msg").textContent="Saved the template to "+p+". Fill in the Class list sheet, save it, then choose it above."})});
 $("cl-save").addEventListener("click",function(){
  var rep=$("cl-replace").checked;
  if(rep&&!confirm("Replace the whole class list? Students not in the new list are removed from the list. Their past marks stay."))return;

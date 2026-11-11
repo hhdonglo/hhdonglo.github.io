@@ -442,7 +442,7 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
 <!-- Students -->
 <section class="view" id="v-students" aria-labelledby="h-students" hidden>
  <header class="vh"><div><h2 id="h-students">Students</h2><p>Each student's attendance, quiz results and practice, with a suggested engagement group for your review.</p></div>
-  <div class="row"><button class="btn sm" type="button" id="st-csv">Download as CSV</button></div></header>
+  <div class="row"><button class="btn sm" type="button" id="st-xlsx">Download as Excel</button><button class="btn sm" type="button" id="st-csv">Download as CSV</button></div></header>
  <details class="card sub th" id="th-box"><summary>Engagement rules and thresholds</summary>
   <div class="th-grid">
    <label class="f" for="th-effort">High effort from (effort score)</label><input class="f" id="th-effort" type="number" min="0" max="100" step="5">
@@ -598,7 +598,8 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
   <span style="flex:1"></span>
   <button class="btn" type="button" id="refresh">Refresh totals</button>
   <button class="btn" type="button" id="named">Attendance with names</button>
-  <button class="btn primary" type="button" id="export">Export all tabs</button>
+  <button class="btn primary" type="button" id="export-xlsx">Download as Excel</button>
+  <button class="btn" type="button" id="export">Export all tabs as CSV</button>
  </div>
  <p class="msg" id="r-msg" role="status"></p>
  <div class="tbl" id="tbl"></div>
@@ -1016,6 +1017,7 @@ document.querySelectorAll("[data-setup]").forEach(function(b){b.addEventListener
 $("setup-x").addEventListener("click",function(){store("cm-setup-hidden","1");$("setup").hidden=true});
 $("refresh").addEventListener("click",function(){cmApp.run("refreshTotals").then(function(){$("r-msg").textContent="Totals refreshed.";reload().then(view)})});
 $("named").addEventListener("click",function(){cmApp.run("buildNamedAttendance").then(function(){cur="Attendance_Named";$("r-msg").textContent="Attendance with names is in the tab Attendance_Named.";reload().then(view)})});
+$("export-xlsx").addEventListener("click",function(){cmApp.exportExcel().then(function(r){if(!r)return;$("r-msg").textContent=r.ok?"Saved every tab of this course to "+r.file:"Not saved: "+r.why})});
 $("export").addEventListener("click",function(){cmApp.exportResults().then(function(d){if(d)$("r-msg").textContent="Exported to "+d})});
 $("data").addEventListener("click",function(){cmApp.openData()});
 $("readme").addEventListener("click",function(){cmApp.readme()});
