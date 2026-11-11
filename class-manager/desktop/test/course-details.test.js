@@ -43,3 +43,24 @@ test("IDs that do not conform to the class list are flagged and never added sile
   const withAdd = plan(book, local, { onlyClassList: true, addMissing: true }).report.students;
   assert.strictEqual(withAdd.flaggedCount, 2); assert.strictEqual(withAdd.toAdd, 1, "only the valid ID is added, and only when ticked");
 });
+
+test("a course outline in plain text gives the details and the weekly topics", () => {
+  const text = ["PHYS 143: Mechanics and Waves", "Course code: PHYS 143", "Lecturer: Dr Test Person", "Institution: Example University", "Semester: First semester 2026/27",
+    "Start date: 2 November 2026", "Class times: Tuesday 09:30 to 11:20", "Week 1: Units and measurement", "Week 2 - Motion in one dimension", "Week 3. Vectors", "Week 3: Duplicate that is ignored"].join("\n");
+  const f = findDetails([{ file: "PHYS 143 outline.docx", rows: [], text }], new Date(Date.UTC(2026, 10, 18)));
+  assert.strictEqual(f.code.value, "PHYS 143"); assert.strictEqual(f.lecturer.value, "Dr Test Person"); assert.strictEqual(f.institution.value, "Example University");
+  assert.strictEqual(f.start.value, "2026-11-02"); assert.strictEqual(f.times.value, "Tuesday 09:30 to 11:20");
+  assert.deepStrictEqual(f.topics.map((t) => [t.week, t.title]), [[1, "Units and measurement"], [2, "Motion in one dimension"], [3, "Vectors"]]);
+  assert.strictEqual(f.title, undefined, "a title that is not labelled is left blank, not guessed");
+});
+
+test("saving the found details keeps existing lectures and fills only new weeks", async () => {
+  const { classroom } = require("./classroom");
+  const handlers = new Map(), c = classroom(), saved = {};
+  const lectures = [{ number: 1, title: "Already here" }];
+  c.settings = {}; c.course = { lectures: () => lectures.slice(), saveLecture: (o) => { lectures.push(o); return { ok: true }; }, setCourseInfo: (o) => { saved.info = o; }, portal: () => ({}) };
+  require("../autoload-ipc").register({ on: (ch, fn) => handlers.set(ch, fn), dialog: {}, winOf: () => null, shell: null, dirOf: () => "/tmp", saveSettings: (cc, k) => Object.assign(saved, k) });
+  const r = handlers.get("cm:autoCourseSave")(c, {}, { values: { courseCode: "PHYS 143", lecturer: "" }, topics: [{ week: 1, title: "X" }, { week: 2, title: "Motion" }] });
+  assert.ok(r.ok); assert.strictEqual(r.topicsAdded, 1); assert.strictEqual(saved.courseCode, "PHYS 143"); assert.strictEqual(saved.lecturer, undefined);
+  assert.deepStrictEqual(lectures.map((l) => l.number), [1, 2]);
+});

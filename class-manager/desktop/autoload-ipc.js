@@ -101,18 +101,23 @@ function registerOn(opts, { on, dialog, winOf, shell, dirOf }) {
   // Course details found in the chosen files, beside what the course has now. The lecturer corrects them before they are saved.
   on("cm:autoCourse", (c, e, o) => {
     const s = get(c), chosen = ((o && o.ids) || []).map((i) => s.analyses[i]).filter((a) => a && a.ok && a.hints);
-    const found = findDetails(chosen.map((a) => ({ file: a.rel, rows: a.hints.rows, text: a.hints.text })), new Date());
+    const outlines = s.analyses.filter((a) => a && a.ok && a.hints && a.hints.text && !chosen.includes(a)); // a course outline (Word, PDF, text) in the folder is read even though it holds no records
+    const found = findDetails(chosen.concat(outlines).map((a) => ({ file: a.rel, rows: a.hints.rows, text: a.hints.text })), new Date());
     const now = c.settings || {}, portal = c.course.portal ? c.course.portal() : {};
     const current = { courseCode: now.courseCode, courseTitle: now.courseTitle, lecturer: now.lecturer, institution: now.institution, semester: now.semester, startDate: now.startDate, endDate: now.endDate, contacts: portal.contacts, currentWeek: portal.currentWeek };
-    return { ok: true, fields: FIELDS.filter((f) => found[f[0]]).map((f) => ({ key: f[0], label: f[1], setting: f[2], value: found[f[0]].value, from: found[f[0]].from, worked: !!found[f[0]].worked, current: current[f[2]] || "" })) };
+    return { ok: true, topics: found.topics || [], existing: c.course.lectures().map((l) => l.number), fields: FIELDS.filter((f) => found[f[0]]).map((f) => ({ key: f[0], label: f[1], setting: f[2], value: found[f[0]].value, from: found[f[0]].from, worked: !!found[f[0]].worked, current: current[f[2]] || "" })) };
   });
   on("cm:autoCourseSave", (c, e, o) => { // only the fields the lecturer left ticked; everything else about the course is kept
     const v = (o && o.values) || {}, keep = {};
     ["courseCode", "courseTitle", "lecturer", "institution", "semester", "startDate", "endDate"].forEach((k) => { if (v[k] != null && String(v[k]).trim()) keep[k] = String(v[k]).trim().slice(0, 160); });
-    if (!Object.keys(keep).length && v.contacts == null && v.currentWeek == null) return { ok: false, why: "Nothing was ticked." };
+    const topics = Array.isArray(o && o.topics) ? o.topics : [];
+    if (!Object.keys(keep).length && v.contacts == null && v.currentWeek == null && !topics.length) return { ok: false, why: "Nothing was ticked." };
+    let added = 0; // weekly topics become lecture titles only for lectures that do not exist yet; none is changed
+    const have = new Set(c.course.lectures().map((l) => l.number));
+    topics.slice(0, 52).forEach((t) => { if (t && !have.has(Number(t.week)) && c.course.saveLecture({ number: t.week, title: t.title }).ok) added++; });
     if (Object.keys(keep).length) opts.saveSettings(c, keep);
     if (v.contacts != null || v.currentWeek != null || keep.courseCode) c.course.setCourseInfo({ courseCode: (c.settings || {}).courseCode, contacts: v.contacts != null ? String(v.contacts).slice(0, 200) : undefined, currentWeek: v.currentWeek != null ? v.currentWeek : undefined });
-    return { ok: true };
+    return { ok: true, topicsAdded: added };
   });
 
   // Quiz questions found in the chosen files go to the review queue (Author, Drafts), where each is approved before students see it.

@@ -21,7 +21,7 @@ function questionsInText(txt) {
 function hintsOf(r) {
   const rows = [];
   (r.sheets || []).slice(0, 6).forEach((sh) => (sh.rows || []).slice(0, 30).forEach((row) => rows.push(row.slice(0, 12).map((v) => (v instanceof Date ? v : String(v == null ? "" : v).slice(0, 160))))));
-  return { rows: rows.slice(0, 120), text: String(r.text || "").slice(0, 4000) };
+  return { rows: rows.slice(0, 120), text: String(r.text || "").slice(0, 60000) }; // a course outline can be long; only its text, kept for finding course details
 }
 
 async function analyzeFile(file, root, onProgress) {

@@ -43,7 +43,7 @@ function codesIn(text, count) {
 // sources: [{ file, rows: [[cell, ...], ...], text }]. Returns { code: { value, from }, title, ... } with only the fields that were found.
 function findDetails(sources, today) {
   const found = {}, set = (k, value, from) => { if (value && !found[k]) found[k] = { value: String(value), from }; };
-  const codeCount = {}, codeFrom = {};
+  const codeCount = {}, codeFrom = {}, topics = [];
   (sources || []).forEach((src) => {
     const file = src.file || "", base = file.replace(/^.*[\\/]/, "");
     const before = Object.assign({}, codeCount); codesIn(base, codeCount);
@@ -65,7 +65,24 @@ function findDetails(sources, today) {
         if (c.length < 200) lines.push(c);
       });
     });
-    const text = lines.join("\n") + "\n" + String(src.text || "").slice(0, 4000);
+    // A document (a course outline as Word, PDF or text): each line is read like a row, and "Week 3: Topic" lines give the weekly topics.
+    const docLines = String(src.text || "").split(/\r?\n/).map((x) => x.trim()).filter((x) => x && x.length < 200).slice(0, 1500);
+    docLines.forEach((ln) => {
+      const pair = /^([A-Za-z ]{3,30}?)\s*[:\-–]\s*(.+)$/.exec(ln);
+      if (pair) {
+        const label = pair[1].trim(), value = pair[2].trim();
+        Object.keys(LABELS).forEach((k) => {
+          if (!LABELS[k].test(label)) return;
+          if (k === "start" || k === "end") set(k, isoDate(value), file);
+          else if (k === "code") { const cc = {}; codesIn(value, cc); const first = Object.keys(cc)[0]; if (first) set("code", first, file); }
+          else if (k === "week") { const w = parseInt(value, 10); if (w >= 1 && w <= 52) set("week", w, file); }
+          else if (value.length <= 160 && !isoDate(value)) set(k, value, file);
+        });
+      }
+      const tp = /^(?:week|lecture)\s+(\d{1,2})\s*[:.\-–]\s*(.{3,120})$/i.exec(ln);
+      if (tp && !topics.some((t) => t.week === +tp[1])) topics.push({ week: +tp[1], title: tp[2].trim().replace(/\s+/g, " "), from: file });
+    });
+    const text = lines.join("\n") + "\n" + docLines.slice(0, 200).join("\n");
     const sem = SEMESTER.exec(text); if (sem) set("semester", sem[1][0].toUpperCase() + sem[1].slice(1).toLowerCase() + " semester " + sem[2], file);
     const tm = TIMES.exec(text); if (tm) set("times", tm[1][0].toUpperCase() + tm[1].slice(1).toLowerCase() + " " + pad(+tm[2]) + ":" + tm[3] + " to " + pad(+tm[4]) + ":" + tm[5], file);
     const cc = {}; codesIn(lines.slice(0, 12).join("\n"), cc); Object.keys(cc).forEach((k) => { codeCount[k] = (codeCount[k] || 0) + cc[k]; if (!codeFrom[k]) codeFrom[k] = file; });
@@ -76,6 +93,8 @@ function findDetails(sources, today) {
     const w = Math.floor((now - s) / (7 * 864e5)) + 1, e = found.end ? Date.parse(found.end.value + "T00:00:00Z") : null;
     if (w >= 1 && w <= 52 && (!e || now <= e + 7 * 864e5)) found.week = { value: String(w), from: found.start.from, worked: true };
   }
+  topics.sort((a, b) => a.week - b.week);
+  Object.defineProperty(found, "topics", { value: topics, enumerable: false });
   return found;
 }
 

@@ -89,7 +89,7 @@
   }
 
   function ids() { return Array.prototype.map.call(body.querySelectorAll(".fld-pick:checked"), function (x) { return Number(x.getAttribute("data-i")); }); }
-  var chosenIds = [], courseFields = [];
+  var chosenIds = [], courseFields = [], courseTopics = [], courseExisting = [];
 
   function preview() {
     chosenIds = ids();
@@ -98,7 +98,7 @@
     cmApp.autoPlan({ ids: chosenIds, addMissing: opts.addMissing }).then(function (r) {
       if (!r.ok) { found(scan); var st = body.querySelector("#fld-status"); if (st) st.textContent = r.why; return; }
       working = r; opts.addMissing = r.addMissing;
-      return cmApp.autoCourse({ ids: chosenIds }).then(function (c) { courseFields = c && c.ok ? c.fields : []; }, function () { courseFields = []; }).then(function () { show(r); });
+      return cmApp.autoCourse({ ids: chosenIds }).then(function (c) { courseFields = c && c.ok ? c.fields : []; courseTopics = c && c.ok ? c.topics : []; courseExisting = c && c.ok ? c.existing : []; }, function () { courseFields = []; courseTopics = []; }).then(function () { show(r); });
     }).catch(function (err) { failed(err); });
   }
 
@@ -125,7 +125,7 @@
       "<p class='row'><button class='btn' type='button' id='fld-export'>Export the working file…</button><button class='btn' type='button' id='fld-open'>Open the working folder</button></p>" +
       "<p>Class list: <strong>" + n(st.classList) + "</strong> students in this course. <strong>" + n(st.withData) + "</strong> have records in the files." + (st.notOnList ? " <strong>" + n(st.notOnList) + "</strong> other IDs are not on the class list and are left out unless you add them." : "") + "</p>" +
       ((st.notOnList || st.toAdd || !st.classList) ? "<label style='display:block;margin:.6rem 0'><input type='checkbox' id='fld-add'" + (opts.addMissing ? " checked" : "") + "> Add the students in the files to the class list" + (st.toAdd ? " (" + n(st.toAdd) + " would be added)" : "") + "</label>" : "") +
-      (window.cmFolderCourse ? cmFolderCourse.html(courseFields) : "") +
+      (window.cmFolderCourse ? cmFolderCourse.html(courseFields, courseTopics, courseExisting) : "") +
       (st.namesFilled ? "<p class='note'>" + n(st.namesFilled) + " student(s) on the class list had no name; the files give it.</p>" : "") + flaggedHtml(st) + conflictsHtml(st) + table + (rep.warnings || []).map(function (x) { return "<p class='msg'>" + esc(x) + "</p>"; }).join("") +
       (qn ? "<p>The files also hold <strong>" + n(qn) + "</strong> quiz question set(s). <button class='btn' type='button' id='fld-q'>Send them to the review queue</button> <span class='note' id='fld-qmsg' role='status'>You approve each question before students see it.</span></p>" : "") +
       (rep.changes ? "<p class='note'>A backup is made first. Records already here are never changed, and loading the same files again adds nothing.</p>" : "<p class='msg'>Nothing in these files is new to this course.</p>") +
