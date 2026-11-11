@@ -65,7 +65,7 @@
     var d = data, s = d.summary, L = d.learning, a = d.attendance;
     $("ov-sub").textContent = "How the class is doing, from attendance, live quizzes and practice. " + plural(d.rosterSize, "student", "students") + " on the class list. Updated " + new Date(d.generated).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) + ".";
     if (!d.rosterSize) { $("ov").innerHTML = "<div class='card empty'><h3>No class yet</h3><p>Add the class list under Class Roster. The overview fills in as you take attendance and run quizzes.</p></div>"; return; }
-    var h = "";
+    var h = window.cmDashView ? cmDashView.top(d, window.cmSetup, window.cmLive) : ""; // Today, setup, stat cards, queue, health, trends, insights (app/dashboard/)
     // Is the class learning?
     h += "<section class='card verdict " + (VCLASS[L.verdict] || "") + "' aria-labelledby='vh'><div class='v-main'><p class='lbl' id='vh'>Is the class learning?</p>" +
       "<p class='v-word'>" + vchip(L.verdict) + (L.confidence ? "<span class='note'>Confidence: " + esc(L.confidence) + "</span>" : "") + "</p>" +
@@ -186,6 +186,8 @@
     var g = t.closest("[data-group]"); if (g && data) { filt = g.getAttribute("data-group"); if (window.cmGo) cmGo("students"); else students(); if (cur === "students") students(); return; }
     var q = t.closest("[data-q]"); if (q) { qsel = +q.getAttribute("data-q"); quizzes(); return; }
     var th0 = t.closest("#st th[data-k]"); if (th0) { var k = th0.getAttribute("data-k"); sortD = k === sortK ? -sortD : 1; sortK = k; students(); return; }
+    var ds = t.closest("[data-student]"); if (ds) { studentOpen(ds.getAttribute("data-student")); return; }
+    var dg = t.closest("[data-dgo]"); if (dg) { var to = dg.getAttribute("data-dgo").split(":"); if (to[0] === "setup") location.href = "setup.html#" + to[1]; else if (window.cmGo) cmGo(to[1]); return; }
     var tr = t.closest("tr[data-id]"); if (tr) studentOpen(tr.getAttribute("data-id"));
   });
   document.addEventListener("keydown", function (e) {

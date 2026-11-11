@@ -391,17 +391,18 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
 <div class="app">
 <nav class="side" aria-label="Class Manager">
  <div class="brand"><img src="icon.svg" alt=""><span>Class Manager</span></div>
- <p class="side-h">Insight</p>
- <button class="nav" data-view="overview" aria-current="page"><svg><use href="#i-pulse"/></svg><span>Class Overview</span></button>
- <button class="nav" data-view="students"><svg><use href="#i-people"/></svg><span>Students</span></button>
- <button class="nav" data-view="progress"><svg><use href="#i-chart"/></svg><span>Learning Progress</span></button>
+ <p class="side-h">Dashboard</p>
+ <button class="nav" aria-current="page" data-view="overview"><svg><use href="#i-pulse"/></svg><span>Class Overview</span></button>
+ <p class="side-h">Teach</p>
+ <button class="nav" data-view="class"><svg><use href="#i-live"/></svg><span>Class Tools</span></button>
  <button class="nav" data-view="attendance"><svg><use href="#i-check"/></svg><span>Attendance</span></button>
  <button class="nav" data-view="quizzes"><svg><use href="#i-chart"/></svg><span>Quizzes and Questions</span></button>
- <p class="side-h">Run the class</p>
- <button class="nav" data-view="class"><svg><use href="#i-live"/></svg><span>Class Tools</span></button>
- <p class="side-h">Manage</p>
- <button class="nav" data-view="course"><svg><use href="#i-book"/></svg><span>Course and Content</span></button>
+ <p class="side-h">Students</p>
+ <button class="nav" data-view="students"><svg><use href="#i-people"/></svg><span>Students</span></button>
+ <button class="nav" data-view="progress"><svg><use href="#i-chart"/></svg><span>Learning Progress</span></button>
  <button class="nav" data-view="roster"><svg><use href="#i-list"/></svg><span>Class Roster</span></button>
+ <p class="side-h">Course</p>
+ <button class="nav" data-view="course"><svg><use href="#i-book"/></svg><span>Course and Content</span></button>
  <button class="nav" data-view="grades"><svg><use href="#i-table"/></svg><span>Grades and Results</span></button>
  <div class="grow"></div>
  <div class="sep"></div>
@@ -822,6 +823,9 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
 <script src="charts/progress-over-time.js"></script>
 <script src="charts/bars.js"></script>
 <script src="charts/engagement.js"></script>
+<link rel="stylesheet" href="dashboard/dashboard.css">
+<script src="dashboard/rules.js"></script>
+<script src="dashboard/render.js"></script>
 <script src="insights.js"></script>
 <script src="progress.js"></script>
 <script src="import.js"></script>
@@ -910,6 +914,7 @@ function plural(n,one,many){return n+" "+(n===1?one:many)}
 var st0={lobby:"waiting room",running:"running",paused:"paused"};
 function liveShow(d){
  if(!d)return;
+ window.cmLive=d;
  var a=d.attendance,tag=$("att-tag"),btn=$("att-btn"),txt=[];
  if(!a){tag.className="tag";tag.textContent="Attendance";$("att-n").textContent="";$("att-of").textContent="";$("att-meta").textContent="";
   $("att-text").textContent="No attendance session yet."+(d.roster?" "+plural(d.roster,"student is","students are")+" on the class list.":"");btn.textContent="Take attendance"}
@@ -951,7 +956,7 @@ function show(info){
  hostKey=info.hostKey||"";
  if(hostKey){$("key").textContent=hostKey;$("key-copy").hidden=false}else{$("key").textContent="your password";$("key-copy").hidden=true;$("keynote").textContent="You have chosen your own lecturer password, so it is not shown here. Use it on the lecturer login. To change it, use the form below."}
  if(s.scriptUrl){$("pw-form").hidden=true;$("keynote").textContent="This app is set to use your own Apps Script (App Settings), so the host key is the one in your Google Sheet."}
- var st=info.setup;$("setup").hidden=st.complete||store("cm-setup-hidden")==="1";
+ var st=info.setup;window.cmSetup=st;$("setup").hidden=true; /* the setup tracker is now part of the dashboard (dashboard/render.js) */
  [["td-course","course"],["td-class","classList"],["td-materials","materials"]].forEach(function(x){var ok=st.steps[x[1]];$(x[0]).className=ok?"done":"";$(x[0]).querySelector(".mk").textContent=ok?"✓":"○"});
  $("cl-big").textContent=st.roster||0;
  $("cl-n").textContent=st.roster?(st.roster===1?"student is":"students are")+" on the list.":"No students on the list yet.";
