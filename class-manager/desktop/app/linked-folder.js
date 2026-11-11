@@ -76,5 +76,23 @@
     $("lf-msg").textContent = "Restoring…";
     cmApp.linkedRestore(t.getAttribute("data-lf"), $("lf-pass2").value).then(function (r) { $("lf-msg").textContent = r.ok ? "Restored. The records as they were are kept as a backup." : "Not restored: " + r.why; if (r.ok) load(); });
   });
+  /* ---- what is kept in step (sync/course-sync.js) ---- */
+  var ITEMS = [["notes", "Lecturer notes", "Files you keep in the notes folder; readable in your cloud storage."], ["materials", "Course materials", "Lectures, slides and question banks; readable in your cloud storage."],
+    ["classList", "Class list", "Encrypted with your passphrase."], ["attendance", "Attendance", "Encrypted with your passphrase."]];
+  function syShow(s) {
+    if (!s || !s.items) return;
+    $("sy-items").innerHTML = ITEMS.map(function (it) { var v = s.items[it[0]]; return '<p class="row"><label for="sy-' + it[0] + '" style="min-width:11rem"><b>' + it[1] + '</b></label><select class="f" id="sy-' + it[0] + '" data-item="' + it[0] + '" style="max-width:26rem"><option value="local"' + (v === "local" ? " selected" : "") + '>This computer only</option><option value="sync"' + (v === "sync" ? " selected" : "") + '>Kept here and in the cloud, in step</option></select> <span class="note">' + esc(it[2]) + "</span></p>"; }).join("");
+    var l = s.last; $("sy-last").textContent = !l ? "Not synchronised yet in this session." : l.skipped ? "" : l.ok ? "Last synchronised " + when(l.at) + (l.records ? ". " + (l.records.conflicts ? l.records.conflicts + " conflicting change(s) were settled (class list: this computer kept; attendance: present kept)." : "No conflicts.") : "") : l.why;
+    $("sy-devices").innerHTML = s.devices && s.devices.length ? "Other computers in step: " + s.devices.map(function (d) { return esc(d.name) + " (" + when(d.at) + ")"; }).join(", ") : "";
+    $("sy-pass-note").hidden = !!(s.last && s.last.ok !== false) || !(s.items.classList === "sync" || s.items.attendance === "sync") || !(s.last && /passphrase/.test(s.last.why || ""));
+  }
+  $("sy-items").addEventListener("change", function (e) {
+    var t = e.target.closest("select[data-item]"); if (!t) return; var o = {}; o[t.getAttribute("data-item")] = t.value;
+    cmApp.syncItems(o).then(function (s) { if (s.ok === false) { $("lf-msg").textContent = s.why; return; } syShow(s); $("lf-msg").textContent = t.value === "sync" ? "Kept in step. Both copies stay." : "Now this computer only. The copy in the cloud stays where it is."; });
+  });
+  $("sy-now").addEventListener("click", function () { $("lf-msg").textContent = "Synchronising…"; cmApp.syncNow($("lf-pass2").value).then(function (s) { syShow(s); $("lf-msg").textContent = s.result && s.result.ok ? "Done." : (s.result && s.result.why) || "Not done."; }); });
+  $("sy-notes").addEventListener("click", function () { cmApp.openNotes(); });
+  function syLoad() { cmApp.syncState().then(syShow); }
+  syLoad(); setInterval(function () { if (document.visibilityState === "visible" && !$("lf-on").hidden) syLoad(); }, 30000);
   load();
 })();

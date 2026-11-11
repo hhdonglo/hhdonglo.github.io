@@ -45,11 +45,13 @@ function create(creds, ctx) {
       if (r.status === 404) return [];
       if (r.status !== 207) throw new Error("WebDAV: could not list the folder (" + r.status + ").");
       const xml = await r.text(), out = [];
+      let first = true;
       for (const m of xml.matchAll(/<(?:\w+:)?response>([\s\S]*?)<\/(?:\w+:)?response>/g)) {
+        if (first) { first = false; continue; } // the first answer is the folder itself
         const href = (/<(?:\w+:)?href>([^<]*)</.exec(m[1]) || [])[1]; if (!href) continue;
         const name = decodeURIComponent(href.replace(/\/+$/, "").split("/").pop());
         const size = Number((/<(?:\w+:)?getcontentlength>(\d+)</.exec(m[1]) || [])[1] || 0);
-        if (name && !/<(?:\w+:)?collection\s*\/>/.test(m[1])) out.push({ name, bytes: size });
+        if (name) out.push(/<(?:\w+:)?collection\s*\/>/.test(m[1]) ? { name, dir: true } : { name, bytes: size });
       }
       return out;
     },

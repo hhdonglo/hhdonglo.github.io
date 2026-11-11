@@ -38,6 +38,7 @@
       "linked-folder.js",
       "storage-providers.js",
       "storage/*.js",
+      "sync/*.js",
       "excel.js",
       "course.js",
       "courses.js",

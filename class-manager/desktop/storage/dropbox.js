@@ -46,7 +46,7 @@ function create(creds, ctx) {
       const r = await rpc("files/list_folder", { path: path(dir) });
       if (r.status === 409) return [];
       if (r.status !== 200) throw new Error("Dropbox: could not list the folder (" + r.status + ").");
-      return (await r.json()).entries.filter((e) => e[".tag"] === "file").map((e) => ({ name: e.name, bytes: e.size }));
+      return (await r.json()).entries.map((e) => (e[".tag"] === "folder" ? { name: e.name, dir: true } : { name: e.name, bytes: e.size }));
     },
     async get(p) {
       const r = await call("POST", "https://content.dropboxapi.com/2/files/download", { headers: { "Dropbox-API-Arg": JSON.stringify({ path: path(p) }) } });

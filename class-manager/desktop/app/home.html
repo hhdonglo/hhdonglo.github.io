@@ -644,6 +644,12 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
     <label class="f" for="lf-pass2" id="lf-pass2-l">Passphrase (needed for a copy made now, or a restore)</label><input class="f" id="lf-pass2" type="password" autocomplete="current-password" style="max-width:22rem">
     <p class="row" style="margin-top:12px"><button class="btn primary" type="button" id="lf-copy">Copy now</button><button class="btn" type="button" id="lf-open">Open the folder</button><button class="link" type="button" id="lf-unlink">Stop linking</button></p>
     <div id="lf-list"></div>
+    <h4 style="margin:18px 0 6px">What is kept in step with the cloud</h4>
+    <p class="note">Choose for each kind of information. Whatever you keep in step is also kept on this computer, so the app works without a connection and catches up when it returns. "This computer only" is the default. Switching never deletes anything.</p>
+    <div id="sy-items"></div>
+    <p class="note" id="sy-pass-note" hidden>Class list and attendance are encrypted with your passphrase, which this computer has not kept. Enter it above (under "Passphrase") before pressing Sync now.</p>
+    <p class="row" style="margin-top:12px"><button class="btn primary" type="button" id="sy-now">Sync now</button><button class="btn" type="button" id="sy-notes">Open the notes folder</button></p>
+    <p class="note" id="sy-last"></p><div id="sy-devices" class="note"></div>
    </div>
    <p class="msg" id="lf-msg" role="status"></p>
   </div>

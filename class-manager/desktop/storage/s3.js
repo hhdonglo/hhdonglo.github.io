@@ -61,10 +61,10 @@ function create(creds, ctx) {
     },
     async put(p, buf) { const r = await call("PUT", p, null, buf); if (r.status !== 200) throw new Error("Upload failed (" + r.status + ")."); },
     async list(dir) {
-      const r = await call("GET", "", { "list-type": "2", prefix: dir + "/" });
+      const r = await call("GET", "", { "list-type": "2", prefix: dir ? dir + "/" : "", delimiter: "/" });
       if (r.status !== 200) throw new Error("Could not list the bucket (" + r.status + ").");
       const t = await r.text(), keys = xml(t, "Key"), sizes = xml(t, "Size");
-      return keys.map((k, i) => ({ name: baseOf(k), bytes: Number(sizes[i] || 0) }));
+      return keys.map((k, i) => ({ name: baseOf(k), bytes: Number(sizes[i] || 0) })).concat(xml(t, "Prefix").filter((x) => x !== (dir ? dir + "/" : "")).map((x) => ({ name: baseOf(x.replace(/\/$/, "")), dir: true })));
     },
     async get(p) { const r = await call("GET", p); if (r.status !== 200) throw new Error("Download failed (" + r.status + ")."); return Buffer.from(await r.arrayBuffer()); },
     async remove(p) { await call("DELETE", p); }

@@ -36,12 +36,20 @@ function folderPlace(folder, label) {
     async put(name, buf) { fs.mkdirSync(dir, { recursive: true }); const t = path.join(dir, name + ".part"); fs.writeFileSync(t, buf, { mode: 0o600 }); fs.renameSync(t, path.join(dir, name)); }, // a sync app never sees a half-written file under its final name
     async list() { try { return fs.readdirSync(dir).filter((f) => NAME_RE.test(f)).map((f) => ({ name: f, bytes: fs.statSync(path.join(dir, f)).size })); } catch (e) { return []; } },
     async get(name) { return fs.readFileSync(path.join(dir, name)); },
-    async remove(name) { try { fs.unlinkSync(path.join(dir, name)); } catch (e) { /* in use */ } }
+    async remove(name) { try { fs.unlinkSync(path.join(dir, name)); } catch (e) { /* in use */ } },
+    // Any file under Class Manager/<course>/ (course synchronisation): paths use "/" and stay inside that folder.
+    async rawList(rel) { try { return fs.readdirSync(path.join(dir, ...String(rel).split("/").filter(Boolean)), { withFileTypes: true }).map((d) => (d.isDirectory() ? { name: d.name, dir: true } : { name: d.name, bytes: fs.statSync(path.join(dir, ...String(rel).split("/").filter(Boolean), d.name)).size })); } catch (e) { return []; } },
+    async rawGet(rel) { return fs.readFileSync(path.join(dir, ...safeRel(rel))); },
+    async rawPut(rel, buf) { const f = path.join(dir, ...safeRel(rel)); fs.mkdirSync(path.dirname(f), { recursive: true }); fs.writeFileSync(f + ".part", buf, { mode: 0o600 }); fs.renameSync(f + ".part", f); }
   };
 }
+function safeRel(rel) { const p = String(rel).split("/").filter(Boolean); if (!p.length || p.some((x) => x === ".." || x === "." || /[\\\0]/.test(x))) throw new Error("unsafe path"); return p; }
 function servicePlace(client, label) {
   const dir = "Class Manager/" + label;
   return {
+    rawList: async (rel) => { try { return await client.list(dir + (rel ? "/" + rel : "")); } catch (e) { return []; } },
+    rawGet: (rel) => client.get(dir + "/" + safeRel(rel).join("/")),
+    rawPut: (rel, buf) => client.put(dir + "/" + safeRel(rel).join("/"), buf),
     check: () => client.check(),
     put: (name, buf) => client.put(dir + "/" + name, buf),
     list: async () => (await client.list(dir)).filter((f) => NAME_RE.test(f.name)),
@@ -147,7 +155,12 @@ function createLinkedFolder(opts) {
     if ((!cfg.folder && !isService(cfg)) || !NAME_RE.test(String(name))) throw new Error("not a copy in the linked storage");
     return importFile(await place(cfg).get(name), String(pass || "") || storedPass());
   }
-  return { state, link, unlink, copyNow, auto, list: () => list(), open };
+  // For course synchronisation (sync/course-sync.js): the linked place's file calls, which items are kept in step, the passphrase.
+  const raw = () => { const cfg = read(); if (!cfg.folder && !isService(cfg)) throw new Error("Nothing is linked."); return place(cfg); };
+  const items = () => Object.assign({ notes: "local", materials: "local", classList: "local", attendance: "local" }, read().items || {});
+  function setItems(o) { const cfg = read(); if (!cfg.folder && !isService(cfg)) throw new Error("Nothing is linked."); const cur = items(); for (const k of Object.keys(cur)) if (o && (o[k] === "local" || o[k] === "sync")) cur[k] = o[k]; write(Object.assign({}, cfg, { items: cur })); return cur; }
+  const passphrase = (pass) => String(pass || "") || storedPass();
+  return { state, link, unlink, copyNow, auto, list: () => list(), open, raw, items, setItems, passphrase, linked: () => { const c = read(); return !!(c.folder || isService(c)); } };
 }
 
 module.exports = { createLinkedFolder, KEEP, MIN_PASS };

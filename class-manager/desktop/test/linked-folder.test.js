@@ -133,7 +133,7 @@ function fakeDav() {
       if (p === "") return res(207, "<d:multistatus/>");
       const kids = [...files.keys()].filter((k) => k.startsWith(p + "/") && !k.endsWith("/") && !k.slice(p.length + 1).includes("/"));
       if (!files.has(p + "/")) return res(404);
-      return res(207, "<d:multistatus>" + kids.map((k) => "<d:response><d:href>/dav/" + k + "</d:href><d:propstat><d:prop><d:getcontentlength>" + files.get(k).length + "</d:getcontentlength></d:prop></d:propstat></d:response>").join("") + "</d:multistatus>");
+      return res(207, "<d:multistatus><d:response><d:href>/dav/" + p + "/</d:href></d:response>" + kids.map((k) => "<d:response><d:href>/dav/" + k + "</d:href><d:propstat><d:prop><d:getcontentlength>" + files.get(k).length + "</d:getcontentlength></d:prop></d:propstat></d:response>").join("") + "</d:multistatus>");
     }
     return res(400);
   };

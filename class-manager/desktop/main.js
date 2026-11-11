@@ -17,6 +17,7 @@ const path = require("path");
 const { createBackend } = require("./backend");
 const { createGoogle } = require("./google");
 const { createLinkedFolder } = require("./linked-folder");
+const { createCourseSync } = require("./sync/course-sync");
 const { createAuthoring } = require("./authoring");
 const { createTunnel, createLimiter } = require("./tunnel");
 const { createCourse } = require("./course");
@@ -324,9 +325,11 @@ function makeCtx(id) {
     tabs: () => c.backend.tabs(), tab: (n) => c.backend.tab(n), title: () => "Class Manager: " + (c.settings.courseCode || "class") + " results"
   });
   c.backend = createBackend({ readSite: (rel) => c.authoring.siteFile(rel), webRoot: WEB, resolve: c.course.resolve, dataFile: d.workbook, vault,
-    log: (m) => console.log("[backend " + id + "]", m), onChange: () => c.google && c.google.changed() });
+    log: (m) => console.log("[backend " + id + "]", m), onChange: () => { if (c.google) c.google.changed(); if (c.sync) c.sync.changed(); } });
   c.backups = createBackups({ dir: path.join(d.root, "backups"), workbook: d.workbook, vault });
   c.linked = createLinkedFolder({ dir: d.root, label: () => c.settings.courseCode || id, content: () => backupContent(c), protect: vault.protectBytes, unprotect: vault.unprotectBytes, protected: vault.protected });
+  c.sync = createCourseSync({ dir: d.root, contentDir: d.course, notesDir: path.join(d.root, "notes"), linked: c.linked, backend: c.backend, vault, deviceName: require("os").hostname(), log: (m) => console.log("[sync " + id + "]", m) });
+  c.sync.start(); // local and online at the same time: a round now, then every two minutes, and a few seconds after each change
   try { c.lastBackup = c.backups.make(""); } catch (e) { c.lastBackup = { ok: false, why: e.message }; } // a backup each time the course is opened, checked at once
   return c;
 }
@@ -336,6 +339,7 @@ function ctx(id) {
 }
 function closeCtx(id) { // after the course's folder changes: saved now, made again on next use
   const c = ctxs.get(id); if (!c) return;
+  try { c.sync.stop(); } catch (e) {}
   try { c.backend.flush(); } catch (e) {}
   ctxs.delete(id);
 }
@@ -676,6 +680,10 @@ on("cm:linkedLink", async (c, e, spec, pass, auto) => { try { return await c.lin
 on("cm:linkedCopy", async (c, e, pass) => { try { c.backend.flush(); const r = await c.linked.copyNow(pass); return Object.assign({}, await c.linked.state(), { result: r }); } catch (err) { return { ok: false, why: err.message }; } });
 on("cm:linkedUnlink", (c) => c.linked.unlink());
 on("cm:linkedOpen", async (c) => { const s = await c.linked.state(); return s.linked && s.folder ? shell.openPath(s.folder) : ""; });
+on("cm:syncState", (c) => c.sync.state());
+on("cm:syncItems", async (c, e, o) => { try { c.sync.setItems(o); return await c.sync.state(); } catch (err) { return { ok: false, why: err.message }; } });
+on("cm:syncNow", async (c, e, pass) => { c.backend.flush(); const r = await c.sync.syncNow(pass); return Object.assign({}, await c.sync.state(), { result: r }); });
+on("cm:openNotes", (c) => { const d = path.join(registry.dirs(c.id).root, "notes"); fs.mkdirSync(d, { recursive: true }); return shell.openPath(d); });
 on("cm:linkedRestore", async (c, e, name, pass) => { try { return restoreContent(c, await c.linked.open(String(name || ""), pass)); } catch (err) { return { ok: false, why: err.message }; } });
 on("cm:openContent", (c) => { const d = registry.dirs(c.id).course; fs.mkdirSync(d, { recursive: true }); return shell.openPath(d); });
 on("cm:run", (c, e, name) => { if (["refreshTotals", "rebuildMaster", "buildNamedAttendance"].includes(name)) { c.backend.run(name); c.backend.flush(); return true; } return false; });

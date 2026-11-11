@@ -45,7 +45,7 @@ function create(creds, ctx) {
       if (r.status === 404) return [];
       if (r.status !== 200) throw new Error("GitHub: could not list the folder (" + r.status + ").");
       const j = await r.json();
-      return (Array.isArray(j) ? j : []).filter((f) => f.type === "file").map((f) => ({ name: f.name, bytes: f.size }));
+      return (Array.isArray(j) ? j : []).filter((f) => f.type === "file" || f.type === "dir").map((f) => (f.type === "dir" ? { name: f.name, dir: true } : { name: f.name, bytes: f.size }));
     },
     async get(p) { const r = await call("GET", url(p), null, { Accept: "application/vnd.github.raw+json" }); if (r.status !== 200) throw new Error("GitHub: download failed (" + r.status + ")."); return Buffer.from(await r.arrayBuffer()); },
     async remove(p) { const sha = await shaOf(p); if (sha) await call("DELETE", api + "/repos/" + repo + "/contents/" + p.split("/").map(enc).join("/"), { message: "Remove old Class Manager copy", sha, branch }); }
