@@ -1,6 +1,6 @@
 /* Class Manager dashboard: the rules. Plain data in, plain data out. No page, no server, no AI.
    Input is the class statistics the Insight screens already use (classStats_ in the server script) and the setup steps.
-   The same file runs in the app window (window.cmDash) and in Node (the tests). Small samples are always amber with the reason. */
+   The same file runs in CM window (window.cmDash) and in Node (the tests). Small samples are always amber with the reason. */
 (function (root) {
   "use strict";
   var MIN_STUDENTS = 10; // fewer answers than this is a small sample

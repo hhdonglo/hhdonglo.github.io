@@ -17,6 +17,13 @@ function questionsInText(txt) {
   return items.filter((q) => q.q && q.options.length >= 2).length ? [txt] : [];
 }
 
+// The first rows of each sheet and the start of the text, kept small. Only the text of cells, never a whole file.
+function hintsOf(r) {
+  const rows = [];
+  (r.sheets || []).slice(0, 6).forEach((sh) => (sh.rows || []).slice(0, 30).forEach((row) => rows.push(row.slice(0, 12).map((v) => (v instanceof Date ? v : String(v == null ? "" : v).slice(0, 160))))));
+  return { rows: rows.slice(0, 120), text: String(r.text || "").slice(0, 4000) };
+}
+
 async function analyzeFile(file, root, onProgress) {
   const st = fs.statSync(file);
   const out = { path: file, rel: path.relative(root || path.dirname(file), file), name: path.basename(file), ext: path.extname(file).toLowerCase(), size: st.size, mtimeMs: st.mtimeMs,
@@ -27,6 +34,7 @@ async function analyzeFile(file, root, onProgress) {
     const fromText = questionsInText(r.text);
     ex.clean.questions = ex.clean.questions.concat(fromText);
     if (fromText.length) ex.sheets.push({ name: "(text)", role: "Quiz questions", status: "used", note: "", columns: [], rowsIn: 0, rowsKept: 1 });
+    out.hints = hintsOf(r); // the top of each sheet and the start of a document, for finding course details (course-details.js)
     out.web = ex.web; out.sheets = ex.sheets; out.clean = ex.clean; out.summary = summaryOf(ex.clean);
     out.kinds = KIND_WORDS(out.summary);
     out.truncated = !!r.truncated;

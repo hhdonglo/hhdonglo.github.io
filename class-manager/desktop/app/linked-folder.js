@@ -1,5 +1,5 @@
-/* App Settings > "Link storage": choose a synced folder, link it with a passphrase, copy now, restore a copy.
-   Talks to the app only through cmApp.linked* (preload.js); the rules are in ../linked-folder.js. */
+/* CM Settings > "Link storage": choose a synced folder, link it with a passphrase, copy now, restore a copy.
+   Talks to CM only through cmApp.linked* (preload.js); the rules are in ../linked-folder.js. */
 (function () {
   "use strict";
   var $ = function (id) { return document.getElementById(id); };
@@ -14,7 +14,7 @@
     $("lf-folder").textContent = (s.folder || s.provider.name) + (s.reachable ? "" : " (not found: is the drive connected?)");
     $("lf-prov").textContent = s.provider.name; $("lf-adv2").textContent = s.advice;
     $("lf-last").textContent = !s.last ? "none yet" : s.last.ok ? when(Date.parse(s.last.at)) : "failed: " + s.last.why;
-    $("lf-autoshow").textContent = s.auto ? "Yes, every four hours and when the app closes" : (s.keychain ? "No" : "No: this computer has no keychain to keep the passphrase");
+    $("lf-autoshow").textContent = s.auto ? "Yes, every four hours and when CM closes" : (s.keychain ? "No" : "No: this computer has no keychain to keep the passphrase");
     $("lf-list").innerHTML = s.copies.length ? '<table><thead><tr><th scope="col">Copy</th><th scope="col">Size</th><th scope="col"></th></tr></thead><tbody>' +
       s.copies.map(function (c) { return "<tr><td>" + esc(when(c.at)) + "</td><td>" + Math.max(1, Math.round(c.bytes / 1024)) + ' KB</td><td><button class="btn" type="button" data-lf="' + esc(c.name) + '">Restore</button></td></tr>'; }).join("") +
       '</tbody></table><p class="note">The newest ' + s.keep + " copies are kept.</p>" : '<p class="note">No copies yet.</p>';

@@ -56,7 +56,7 @@ html{font-size:clamp(15px,calc(9.5px + .42vw),19px)}
 <body>
 <header class="banner slim"><div class="wrap"><h1><a class="home-link" href="home.html">Class Manager</a></h1><p class="course"><span data-cm="courseCode">New course</span> · Course setup</p></div></header>
 <main id="main"><div class="wrap su">
-<p class="why" id="intro">Three short steps set the app up for your course. Each step can be skipped and finished later from the home screen, and everything stays editable.</p>
+<p class="why" id="intro">Three short steps set CM up for your course. Each step can be skipped and finished later from the home screen, and everything stays editable.</p>
 <ol class="steps" id="steps">
  <li><button type="button" data-go="course" id="st-course">1. Course details</button></li>
  <li><button type="button" data-go="class" id="st-class">2. Class list</button></li>
@@ -66,9 +66,9 @@ html{font-size:clamp(15px,calc(9.5px + .42vw),19px)}
 <section data-step="start" aria-labelledby="h-start" hidden>
  <h2 id="h-start">How do you want to begin?</h2>
  <div class="choice">
-  <div class="card"><h3>Start from scratch</h3><p class="why">Enter the course details, then paste or load just student ID and name. The app builds everything else: the class list, Master, Scores, Totals and the attendance sheet, ready for the first session.</p><button type="button" class="p" id="start-new">Start from scratch</button></div>
+  <div class="card"><h3>Start from scratch</h3><p class="why">Enter the course details, then paste or load just student ID and name. CM builds everything else: the class list, Master, Scores, Totals and the attendance sheet, ready for the first session.</p><button type="button" class="p" id="start-new">Start from scratch</button></div>
   <div class="card"><h3>Use a template</h3><p class="why">Download a workbook with the right headings, fill in the class list (and scores or attendance if you have them), then load it.</p><button type="button" id="tpl-get">Download the template</button> <button type="button" class="p" id="tpl-load" data-import-web="template">Load the filled template…</button><p class="msg" id="tpl-msg" role="status"></p></div>
-  <div class="card"><h3>Load from a folder</h3><p class="why">Point the app at the folder that holds your files (class list, scores, attendance, quiz bank, in any layout). It finds what it needs, ignores the rest and builds a clean working file of its own. Your files are never changed.</p><button type="button" class="p" id="start-folder" data-folder-import="setup">Choose a folder…</button></div>
+  <div class="card"><h3>Load from a folder</h3><p class="why">Point CM at the folder that holds your files (class list, scores, attendance, quiz bank, in any layout). It finds what it needs, ignores the rest and builds a clean working file of its own. Your files are never changed.</p><button type="button" class="p" id="start-folder" data-folder-import="setup">Choose a folder…</button></div>
   <div class="card"><h3>Continue from existing data</h3><p class="why">Load the results exported from the web version (the Google Sheet downloaded as Excel). You read a preview first; the class list, scores, attendance and practice attempts are loaded and you carry on from there.</p><button type="button" class="p" id="start-continue" data-import-web="continue">Continue from existing data…</button></div>
  </div>
 </section>
@@ -131,7 +131,7 @@ html{font-size:clamp(15px,calc(9.5px + .42vw),19px)}
  <p class="why">Add your lectures one by one, with their slides, handouts and tutorial sheets. Students then find them on the portal. If a colleague or an earlier year prepared a course pack, import it instead and everything comes in at once.</p>
  <div class="card">
   <h3 style="margin-top:0">Course pack <span class="opt">(optional)</span></h3>
-  <p class="why">A course pack (.zip) holds a whole course: details, lectures, files and question banks. Importing one replaces the course content in this app; class records are not touched.</p>
+  <p class="why">A course pack (.zip) holds a whole course: details, lectures, files and question banks. Importing one replaces the course content in CM; class records are not touched.</p>
   <p><button type="button" id="pk-import">Import a course pack</button><button type="button" id="pk-export">Export this course as a pack</button></p>
   <p class="msg" id="pk-msg" role="status"></p>
  </div>
@@ -219,7 +219,7 @@ function setRows(rows,src){
  preview();
 }
 function mapped(){var id=+$("cl-id").value,nm=+$("cl-name").value,ln=+$("cl-last").value,rows=$("cl-head").checked?ROWS.slice(1):ROWS;
- // [ID, first name (or whole name), last name]; the app joins them into one name when it saves.
+ // [ID, first name (or whole name), last name]; CM joins them into one name when it saves.
  return rows.map(function(r){return[String(r[id]||"").replace(/\D/g,""),nm>=0?String(r[nm]||""):"",ln>=0?String(r[ln]||""):""]})}
 function preview(){var m=mapped(),ok=m.filter(function(r){return /^\d{4,12}$/.test(r[0])}),bad=m.length-ok.length;
  $("cl-count").textContent=ok.length+" students will be saved"+(bad?"; "+bad+" rows without a valid student ID (4 to 12 digits) will be skipped":"")+".";
@@ -281,6 +281,7 @@ load().then(function(){var h=(location.hash||"").slice(1);
 })();
 </script>
 <script src="import.js"></script>
+<script src="folder-course.js"></script>
 <script src="folder.js"></script>
 </body>
 </html>

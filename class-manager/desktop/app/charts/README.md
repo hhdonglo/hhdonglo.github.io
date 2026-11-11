@@ -10,7 +10,7 @@ Charts for the Learning Progress screen of the desktop app. Each file draws one 
 | `progress-over-time.js` | Is the class, or one student, doing better week by week? | Weekly line: class mean, median and quartile band with student counts; or a student's line over the class mean |
 | `bars.js` | Where did learning move? How does a student compare with the class? Did discussion help? | Learning gain bars (latest minus first), student versus class paired bars, before and after discussion paired bars |
 | `engagement.js` | Has this student been present and active? | Attendance, quizzes taken, practice attempts, with a note that these are context only |
-| `charts.css` | (styles) | Uses the app's colour tokens, so dark and light themes both work |
+| `charts.css` | (styles) | Uses CM's colour tokens, so dark and light themes both work |
 
 ## Rules for every chart
 

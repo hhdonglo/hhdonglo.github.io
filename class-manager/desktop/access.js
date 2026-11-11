@@ -1,4 +1,4 @@
-/* Who may use the lecturer pages of the desktop server, and the app settings that decide it.
+/* Who may use the lecturer pages of the desktop server, and CM settings that decide it.
    - Through the internet address (the tunnel): never, unless the lecturer turns it on ("lecturerOnline").
    - From the local network: allowed by default; "lecturerFrom: computer" limits it to this computer.
    A request carries lecturer credentials when it has the hostkey field (the host key or a lecturer session).
@@ -22,8 +22,8 @@ function cleanSecurity(s, cur) {
 function lecturerRefusal(params, where, settings) {
   if (!params || !params.hostkey) return null;
   const s = cleanSecurity({}, settings);
-  if (where.remote && !s.lecturerOnline) return { ok: false, why: "host key not accepted", detail: "Lecturer pages are not available through the internet address. Open them on this computer or on the local network, or allow them in App Settings." };
-  if (!where.remote && !where.thisComputer && s.lecturerFrom === "computer") return { ok: false, why: "host key not accepted", detail: "Lecturer pages are available on this computer only. Change this in App Settings." };
+  if (where.remote && !s.lecturerOnline) return { ok: false, why: "host key not accepted", detail: "Lecturer pages are not available through the internet address. Open them on this computer or on the local network, or allow them in CM Settings." };
+  if (!where.remote && !where.thisComputer && s.lecturerFrom === "computer") return { ok: false, why: "host key not accepted", detail: "Lecturer pages are available on this computer only. Change this in CM Settings." };
   return null;
 }
 

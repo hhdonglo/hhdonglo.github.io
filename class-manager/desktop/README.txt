@@ -1,7 +1,7 @@
 CLASS MANAGER (BETA): INSTALLATION AND INSTRUCTIONS
 ===================================================
 
-Class Manager is a desktop app for lecturers, for any course. It shows how
+Class Manager is a desktop program for lecturers, for any course. It shows how
 your class is doing, and it collects what is needed to show that: attendance,
 live quizzes and practice questions. Every record stays on your computer.
 
@@ -9,10 +9,10 @@ This is a Beta version. Keep a copy of your class records elsewhere (Part 9
 shows how) and report problems through the Contact page of
 https://hhdonglo.github.io/contact.html
 
-These instructions are also in the app: press "Instructions" in the sidebar.
+These instructions are also in CM: press "Instructions" in the sidebar.
 
 CONTENTS
-  1. Install the app
+  1. Install CM
   2. Set up your course (once)
   3. Before the first class
   4. Run a class
@@ -35,11 +35,11 @@ Words used in this guide
                   phones.
 
 
-1. INSTALL THE APP
+1. INSTALL CM
 ------------------
 
 The installers are not yet signed, so your computer asks for confirmation
-the first time you open the app. This is expected.
+the first time you open CM. This is expected.
 
 Windows
   1. Double-click Class-Manager-Windows.exe.
@@ -58,15 +58,15 @@ Linux
      Permissions, or the command chmod +x).
   2. Double-click it.
 
-The first time the app starts, Windows and macOS ask whether it may accept
+The first time CM starts, Windows and macOS ask whether it may accept
 network connections. Choose Allow (at least on private networks). Students'
-phones reach the app through this connection.
+phones reach CM through this connection.
 
 
 2. SET UP YOUR COURSE (ONCE)
 ----------------------------
 
-The app opens with a short setup. You can skip any step and come back later:
+CM opens with a short setup. You can skip any step and come back later:
 a reminder list stays on "Class Overview" until the steps are done.
 
 Step 1. Course details
@@ -166,7 +166,7 @@ Step 3. Run a live quiz
      until you release it.
 
 Practice questions and the mock examination need nothing from you.
-Students open them from their portal whenever the app is open.
+Students open them from their portal whenever CM is open.
 
 
 5. AFTER CLASS: RESULTS, GROUPS AND LEARNING PROGRESS
@@ -230,14 +230,14 @@ Teaching insights, Calendar and Messages
   Under "Class Tools". Teaching insights shows the weakest lectures and
   questions. Calendar and Messages hold the course calendar,
   announcements to the class and moderated class messages. Messages are
-  delivered when each person next opens their page while the app is open.
+  delivered when each person next opens their page while CM is open.
 
 
 6. YOUR PASSWORD, THE HOST KEY AND ACCESS CODES
 -----------------------------------------------
 
 Host key
-  The app makes a host key the first time it runs. It is shown at the top
+  CM makes a host key the first time it runs. It is shown at the top
   of the window with a Copy button. Lecturer pages (attendance, quiz
   controls, groups, codes) ask for it. Keep it private. Students never
   need it.
@@ -282,17 +282,17 @@ room.
      way students connect.
   2. Wait for the new address and QR code. Show them. The address changes
      each time you start.
-  3. At the end of class, press "Stop internet access". Closing the app
-     also stops it, and it stops by itself after the time set in App
+  3. At the end of class, press "Stop internet access". Closing CM
+     also stops it, and it stops by itself after the time set in CM
      Settings.
 
-How it works: the app uses Cloudflare's free quick tunnel. It needs no
-account and no router settings. The first time, the app downloads
+How it works: CM uses Cloudflare's free quick tunnel. It needs no
+account and no router settings. The first time, CM downloads
 Cloudflare's connector (cloudflared) and checks it before running it, so
 an internet connection is needed. Class traffic passes through
 Cloudflare's network under Cloudflare's terms, and the service has no
-uptime guarantee. The app's own screens are never reachable from the
-internet. Lecturer pages are refused there unless you allow them under App
+uptime guarantee. CM's own screens are never reachable from the
+internet. Lecturer pages are refused there unless you allow them under CM
 Settings, "Access and safety".
 
 This option has not been tested in many real classes. Try it once before
@@ -302,17 +302,17 @@ you rely on it.
 8. KEEP NOTES AND RECORDS IN YOUR OWN CLOUD STORAGE (OPTIONAL)
 --------------------------------------------------------------
 
-This is off until you switch it on. The app keeps no keys of its own: you
+This is off until you switch it on. CM keeps no keys of its own: you
 use your own account.
 
 Link a place
-  1. Open "App Settings", then "Link storage (optional)".
+  1. Open "CM Settings", then "Link storage (optional)".
   2. Under "Where to keep the copies", choose one:
      - A folder that Google Drive, OneDrive, Dropbox, MEGA, iCloud Drive
        or similar keeps in the cloud. Press "Choose a folder" and choose a
        folder inside it. This is the simplest choice.
      - Your own WebDAV (for example Nextcloud), a private GitHub
-       repository, your own Dropbox app, or S3-compatible storage. The
+       repository, your own Dropbox application, or S3-compatible storage. The
        screen explains how to get the details for each.
   3. Choose a passphrase of at least 10 characters, and type it twice.
      Copies are encrypted with it. Without it a copy cannot be opened and
@@ -329,7 +329,7 @@ Choose what is kept in step
   Choose either "This computer only" (the default) or "Kept here and in the
   cloud, in step". Items kept in step are saved on your computer at once,
   sent to the cloud a few seconds later, and brought in from your other
-  computers regularly. If you have no connection, the app carries on and
+  computers regularly. If you have no connection, CM carries on and
   catches up later. Switching an item never deletes anything.
   - Class list and attendance are encrypted. Notes and materials are
     ordinary readable files, with no student data.
@@ -346,12 +346,12 @@ and "Stop linking" to stop. Nothing is deleted when you stop.
 ----------
 
 Automatic
-  The app makes a backup when a course opens, every four hours and when the
-  app closes. Each is read back at once to check it. The newest 14 are kept
+  CM makes a backup when a course opens, every four hours and when
+  CM closes. Each is read back at once to check it. The newest 14 are kept
   in the course's data folder.
 
 Restore a backup
-  1. Open "App Settings", then "Records protection and backups".
+  1. Open "CM Settings", then "Records protection and backups".
   2. Find the backup in the list and press "Restore".
   3. Confirm. The records as they are now are kept as a backup first.
 
@@ -364,7 +364,7 @@ Back up now, or to a file
     recovered.
 
 The records are encrypted on your computer. The key is kept in the
-computer's keychain where it has one. App Settings says whether it does.
+computer's keychain where it has one. CM Settings says whether it does.
 
 
 10. QUESTIONS, MATERIALS AND THE ANTHROPIC KEY (OPTIONAL)
@@ -413,20 +413,20 @@ One installation runs all your courses.
   - You can keep a course's lectures in a folder you choose, such as a
     local copy of a GitHub repository ("Manage courses"). Student records
     are never written to it.
-  - Do not go back to an older version of the app after using this one.
+  - Do not go back to an older version of CM after using this one.
 
 
 12. WHERE YOUR DATA IS
 ----------------------
 
 All records stay on this computer, in the data folder shown at the bottom
-of the window and under "App Settings", then "Data" ("Open data folder"):
+of the window and under "CM Settings", then "Data" ("Open data folder"):
   Windows: %APPDATA%\Class Manager
   macOS:   ~/Library/Application Support/Class Manager
   Linux:   ~/.config/Class Manager
 Each course has its own folder inside it, under "courses".
 
-If this build offers "Sign in with Google" (App Settings), the app keeps a
+If this build offers "Sign in with Google" (CM Settings), CM keeps a
 copy of every tab in a Google Sheet in your own Drive. It can see only the
 file it makes.
 
@@ -436,7 +436,7 @@ file it makes.
 
 Phones cannot open the address
   - Check the phones and the computer are on the same Wi-Fi.
-  - Allow the app through the firewall on private networks.
+  - Allow CM through the firewall on private networks.
   - If the network keeps devices apart, use a phone hotspot or Internet.
 
 Internet access does not start
@@ -458,14 +458,14 @@ I forgot my password
   See Part 6.
 
 The records file could not be read
-  App Settings, "Records protection and backups", shows the problem. The
+  CM Settings, "Records protection and backups", shows the problem. The
   damaged file is kept, not overwritten. Restore a backup (Part 9).
 
 Text is too small or too large
   Press Cmd and plus or minus (Ctrl on Windows and Linux). Cmd or Ctrl and 0
   returns to normal. Cmd or Ctrl and / shows all keyboard shortcuts.
 
-The app says a port is in use
-  Another program uses port 8143. The app picks a free one. The address
-  shown under "Class Tools" is always right. The port can be set under App
+CM says a port is in use
+  Another program uses port 8143. CM picks a free one. The address
+  shown under "Class Tools" is always right. The port can be set under CM
   Settings.

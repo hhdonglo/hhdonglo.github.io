@@ -1,6 +1,6 @@
 /* Courses: one Class Manager installation runs many courses at once.
-   - courses.json in the app's data folder is the registry: one entry per course (id, code, title, term,
-     where its content lives, archived or not), the course the app last showed, and the default course.
+   - courses.json in CM's data folder is the registry: one entry per course (id, code, title, term,
+     where its content lives, archived or not), the course CM last showed, and the default course.
    - Every course has its own folder, courses/<id>/, holding its settings (course details, Apps Script address),
      its workbook (class list, attendance, quizzes, groups, assignments, objectives, messages), its authoring
      library and its course content. Nothing is shared between courses: a student in two courses has two
@@ -15,7 +15,7 @@ const fs = require("fs");
 const path = require("path");
 
 const ID_RE = /^[a-z0-9][a-z0-9-]{0,39}$/;
-const APP_KEYS = ["port", "zoom"]; // settings that belong to the app, not to a course
+const APP_KEYS = ["port", "zoom"]; // settings that belong to CM, not to a course
 const LEGACY_DIRS = ["data", "course", "authoring", "course.previous"]; // the single-course layout before 0.8.0
 
 function readJson(f, d) { try { return JSON.parse(fs.readFileSync(f, "utf8")); } catch (e) { return d; } }
@@ -25,7 +25,7 @@ function slug(s) { return String(s || "").toLowerCase().normalize("NFKD").replac
 const clip = (v, n) => String(v == null ? "" : v).trim().slice(0, n);
 
 // ---------- migration from the single-course layout ----------
-// Before 0.8.0 the app kept one course directly in its data folder: settings.json (app and course settings
+// Before 0.8.0 CM kept one course directly in its data folder: settings.json (app and course settings
 // together), data/workbook.json, course/ and authoring/. On the first start of 0.8.0 they move into the first
 // course's folder. Every step is a rename inside the same folder, and the registry is written last, so a
 // migration that is interrupted simply continues at the next start. Nothing is copied and nothing is deleted.
@@ -127,13 +127,13 @@ function createRegistry(root) {
   function active() { const c = find(doc.active); return c && !c.archived ? c.id : (open()[0] || {}).id || ""; }
   function defaultId() { return doc.defaultId && find(doc.defaultId) ? doc.defaultId : (doc.courses[0] || {}).id || ""; }
 
-  // Where a course's content lives: the app's own folder (default) or a folder the lecturer linked.
+  // Where a course's content lives: CM's own folder (default) or a folder the lecturer linked.
   function setSource(id, src) {
     const c = find(id); if (!c) return null;
     if (src && src.kind === "folder") {
       const p = path.resolve(String(src.path || ""));
       const mine = path.join(root, "courses") + path.sep;
-      if (!src.path || p.startsWith(mine)) throw new Error("Choose a folder outside the app's data folder.");
+      if (!src.path || p.startsWith(mine)) throw new Error("Choose a folder outside CM's data folder.");
       c.source = { kind: "folder", path: p };
     } else c.source = { kind: "app" };
     save(); return get(id);

@@ -407,7 +407,7 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
  <div class="grow"></div>
  <div class="sep"></div>
  <button class="nav" id="readme"><svg><use href="#i-help"/></svg><span>Instructions</span></button>
- <button class="nav" data-view="settings"><svg><use href="#i-gear"/></svg><span>App Settings</span></button>
+ <button class="nav" data-view="settings"><svg><use href="#i-gear"/></svg><span>CM Settings</span></button>
 </nav>
 
 <header class="top">
@@ -602,7 +602,7 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
   <label for="tab" class="lbl" style="margin:0">Tab</label><select id="tab" class="f"></select>
   <input id="filter" class="f" type="search" placeholder="Filter rows" aria-label="Filter rows" style="width:11rem">
   <span style="flex:1"></span>
-  <button class="btn" type="button" id="load-folder" data-folder-import="home" title="Point the app at a folder; it finds the class list, quiz results, attendance and quiz questions in your files and builds a clean working file">Load from a folder…</button>
+  <button class="btn" type="button" id="load-folder" data-folder-import="home" title="Point CM at a folder; it finds the class list, quiz results, attendance and quiz questions in your files and builds a clean working file">Load from a folder…</button>
   <button class="btn" type="button" id="import-web" data-import-web title="Bring scores, attendance and practice attempts collected on the web into this course">Import from the web…</button>
   <button class="btn" type="button" id="refresh">Refresh totals</button>
   <button class="btn" type="button" id="named">Attendance with names</button>
@@ -613,9 +613,9 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
  <div class="tbl" id="tbl"></div>
 </section>
 
-<!-- App Settings -->
+<!-- CM Settings -->
 <section class="view" id="v-settings" aria-labelledby="h-settings" hidden>
- <header><h2 id="h-settings">App Settings</h2><p>Course details are under Course and Content.</p></header>
+ <header><h2 id="h-settings">CM Settings</h2><p>Course details are under Course and Content.</p></header>
  <div class="grid2">
   <div class="card">
    <h3>Server</h3>
@@ -630,7 +630,7 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
   </div>
   <div class="card" id="lf">
    <h3>Link storage (optional)</h3>
-   <p class="note">Keep an encrypted copy of this course's records in your own cloud storage: a folder that Google Drive, OneDrive, Dropbox, MEGA, iCloud Drive or another sync app keeps in the cloud, or your own account on Nextcloud or another WebDAV service, a private GitHub repository, your own Dropbox app, or an S3-compatible bucket. You register with the service; the app holds no keys of its own. Off until you link a folder. Student records leave this computer only as an encrypted file that needs your passphrase.</p>
+   <p class="note">Keep an encrypted copy of this course's records in your own cloud storage: a folder that Google Drive, OneDrive, Dropbox, MEGA, iCloud Drive or another sync app keeps in the cloud, or your own account on Nextcloud or another WebDAV service, a private GitHub repository, your own Dropbox app, or an S3-compatible bucket. You register with the service; CM holds no keys of its own. Off until you link a folder. Student records leave this computer only as an encrypted file that needs your passphrase.</p>
    <div id="lf-off">
     <label class="f" for="lf-kind">Where to keep the copies</label>
     <select class="f" id="lf-kind" style="max-width:34rem"></select>
@@ -641,7 +641,7 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
      <div id="lf-fields"></div>
      <label class="f" for="lf-pass">Passphrase for the copies (at least 10 characters)</label><input class="f" id="lf-pass" type="password" autocomplete="new-password" style="max-width:22rem">
      <label class="f" for="lf-again">Passphrase again</label><input class="f" id="lf-again" type="password" autocomplete="new-password" style="max-width:22rem">
-     <label id="lf-auto-w" style="display:block;margin-top:8px"><input type="checkbox" id="lf-auto" checked> Make a copy by itself every four hours and when the app closes</label>
+     <label id="lf-auto-w" style="display:block;margin-top:8px"><input type="checkbox" id="lf-auto" checked> Make a copy by itself every four hours and when CM closes</label>
      <p class="note">Without the passphrase a copy cannot be opened, and it cannot be recovered. Credentials you enter here are kept only on this computer, encrypted by its keychain.</p>
      <p class="row"><button class="btn primary" type="submit">Link and make the first copy</button><button class="btn" type="button" id="lf-cancel">Cancel</button></p>
     </form>
@@ -653,7 +653,7 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
     <p class="row" style="margin-top:12px"><button class="btn primary" type="button" id="lf-copy">Copy now</button><button class="btn" type="button" id="lf-open">Open the folder</button><button class="link" type="button" id="lf-unlink">Stop linking</button></p>
     <div id="lf-list"></div>
     <h4 style="margin:18px 0 6px">What is kept in step with the cloud</h4>
-    <p class="note">Choose for each kind of information. Whatever you keep in step is also kept on this computer, so the app works without a connection and catches up when it returns. "This computer only" is the default. Switching never deletes anything.</p>
+    <p class="note">Choose for each kind of information. Whatever you keep in step is also kept on this computer, so CM works without a connection and catches up when it returns. "This computer only" is the default. Switching never deletes anything.</p>
     <div id="sy-items"></div>
     <p class="note" id="sy-pass-note" hidden>Class list and attendance are encrypted with your passphrase, which this computer has not kept. Enter it above (under "Passphrase") before pressing Sync now.</p>
     <p class="row" style="margin-top:12px"><button class="btn primary" type="button" id="sy-now">Sync now</button><button class="btn" type="button" id="sy-notes">Open the notes folder</button></p>
@@ -692,7 +692,7 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
    <h3>Records protection and backups</h3>
    <p id="bk-prot" class="note"></p>
    <p class="msg err" id="bk-problem" role="alert" hidden></p>
-   <p class="note">A backup of this course's records is made when the course opens, every four hours and when the app closes, and is read back at once to check that it can be restored. The newest <span id="bk-keep">14</span> are kept in the course's data folder.</p>
+   <p class="note">A backup of this course's records is made when the course opens, every four hours and when CM closes, and is read back at once to check that it can be restored. The newest <span id="bk-keep">14</span> are kept in the course's data folder.</p>
    <p class="row"><button class="btn" type="button" id="bk-now">Back up now</button><button class="btn" type="button" id="bk-export">Save a backup to a file…</button><button class="btn" type="button" id="bk-import">Restore from a file…</button></p>
    <p class="msg" id="bk-msg" role="status"></p>
    <div id="bk-list"></div>
@@ -751,9 +751,9 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
  <h2 id="how-h">How students connect</h2>
  <div id="how-lan"><p><strong>Same Wi-Fi or hotspot.</strong> Phones join the same Wi-Fi as this computer, or a phone hotspot that this computer is also connected to.</p>
  <p>If phones cannot open the address, the network keeps devices apart, which is common on university Wi-Fi. Use a hotspot, or choose Internet.</p></div>
- <div id="how-net"><p><strong>Internet.</strong> Students open the https address from any network, including mobile data, while this app is open. The address changes each time it starts, so show the new QR code.</p>
- <p>Traffic passes through Cloudflare's free quick tunnel service, which offers no uptime guarantee; for a class it is usually enough. The first time, the app downloads Cloudflare's connector program and checks it.</p>
- <p>The app's own screens are never reachable from the internet. Lecturer pages are refused through the internet address unless you allow them in App Settings, and the address stops by itself after the time set there (3 hours unless you change it).</p></div>
+ <div id="how-net"><p><strong>Internet.</strong> Students open the https address from any network, including mobile data, while CM is open. The address changes each time it starts, so show the new QR code.</p>
+ <p>Traffic passes through Cloudflare's free quick tunnel service, which offers no uptime guarantee; for a class it is usually enough. The first time, CM downloads Cloudflare's connector program and checks it.</p>
+ <p>CM's own screens are never reachable from the internet. Lecturer pages are refused through the internet address unless you allow them in CM Settings, and the address stops by itself after the time set there (3 hours unless you change it).</p></div>
  <form method="dialog" class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn primary">Close</button></form>
 </dialog>
 
@@ -769,7 +769,7 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
  <p class="row" style="justify-content:flex-end;margin-top:12px"><button class="btn" type="button" id="pw-close">Close</button></p></dialog>
 <dialog id="courses-d" class="cd" aria-labelledby="courses-h">
  <h2 id="courses-h">Courses</h2>
- <p class="note">Each course has its own class list, attendance, quizzes, groups, assignments, learning objectives, messages, host key and Google Sheet. Nothing is shared between courses. A course's lectures and files are kept in the app, or in a folder you link, such as a copy of a GitHub repository. Student records are never written to a linked folder.</p>
+ <p class="note">Each course has its own class list, attendance, quizzes, groups, assignments, learning objectives, messages, host key and Google Sheet. Nothing is shared between courses. A course's lectures and files are kept in CM, or in a folder you link, such as a copy of a GitHub repository. Student records are never written to a linked folder.</p>
  <div id="cd-list"></div>
  <h3 style="margin:1.2rem 0 .2rem">Add a course</h3>
  <form id="cd-add" class="add">
@@ -794,7 +794,7 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
   <tr><td>Course and Content</td><td><kbd data-k="6"></kbd></td></tr>
   <tr><td>Class Roster</td><td><kbd data-k="7"></kbd></td></tr>
   <tr><td>Grades and Results</td><td><kbd data-k="8"></kbd></td></tr>
-  <tr><td>App Settings</td><td><kbd data-k=","></kbd></td></tr>
+  <tr><td>CM Settings</td><td><kbd data-k=","></kbd></td></tr>
   <tr><td>Show the student scan code</td><td><kbd data-k="Shift+S"></kbd></td></tr>
   <tr><td>Take attendance</td><td><kbd data-k="Shift+A"></kbd></td></tr>
   <tr><td>Find a student by ID or name</td><td><kbd data-k="K"></kbd></td></tr>
@@ -829,6 +829,7 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
 <script src="insights.js"></script>
 <script src="progress.js"></script>
 <script src="import.js"></script>
+<script src="folder-course.js"></script>
 <script src="folder.js"></script>
 <script src="reset.js"></script>
 <script src="linked-folder.js"></script>
@@ -947,7 +948,7 @@ function livePoll(){if(document.visibilityState==="visible"&&cmApp.live)cmApp.li
 $("lv-upd").textContent="Updates every few seconds";
 setInterval(livePoll,4000);
 
-/* ---- data from the app ---- */
+/* ---- data from CM ---- */
 function show(info){
  var s=info.settings;
  lanBase=info.base;lanCount=info.addresses.length;
@@ -955,7 +956,7 @@ function show(info){
  tshow(info.tunnel);
  hostKey=info.hostKey||"";
  if(hostKey){$("key").textContent=hostKey;$("key-copy").hidden=false}else{$("key").textContent="your password";$("key-copy").hidden=true;$("keynote").textContent="You have chosen your own lecturer password, so it is not shown here. Use it on the lecturer login. To change it, use the form below."}
- if(s.scriptUrl){$("pw-form").hidden=true;$("keynote").textContent="This app is set to use your own Apps Script (App Settings), so the host key is the one in your Google Sheet."}
+ if(s.scriptUrl){$("pw-form").hidden=true;$("keynote").textContent="CM is set to use your own Apps Script (CM Settings), so the host key is the one in your Google Sheet."}
  var st=info.setup;window.cmSetup=st;$("setup").hidden=true; /* the setup tracker is now part of the dashboard (dashboard/render.js) */
  [["td-course","course"],["td-class","classList"],["td-materials","materials"]].forEach(function(x){var ok=st.steps[x[1]];$(x[0]).className=ok?"done":"";$(x[0]).querySelector(".mk").textContent=ok?"✓":"○"});
  $("cl-big").textContent=st.roster||0;
@@ -993,8 +994,8 @@ $("roster-view").addEventListener("click",function(){cur="Roster";go("grades")})
 function gshow(g){
  var t=$("g-text");
  ["g-in","g-sync","g-open","g-out"].forEach(function(i){$(i).hidden=true});
- if(!g.configured){t.textContent="Results are kept on this computer. A copy in Google Drive is not available in this build of the app.";return}
- if(!g.signedIn){t.textContent="Sign in to keep a copy of every tab in a Google Sheet in your own Drive. The app can see only the file it creates.";$("g-in").hidden=false;return}
+ if(!g.configured){t.textContent="Results are kept on this computer. A copy in Google Drive is not available in this build of CM.";return}
+ if(!g.signedIn){t.textContent="Sign in to keep a copy of every tab in a Google Sheet in your own Drive. CM can see only the file it creates.";$("g-in").hidden=false;return}
  t.textContent="Signed in as "+(g.email||"your Google account")+". A copy of the results is kept in your Google Sheet and updated within a minute of each change."+(g.lastSync?" Last copied "+new Date(g.lastSync).toLocaleTimeString()+".":"");
  $("g-sync").hidden=false;$("g-out").hidden=false;$("g-open").hidden=!g.sheetUrl;$("g-open").onclick=function(){cmApp.openExternal(g.sheetUrl)};
  $("g-msg").textContent=g.lastError?"Last copy failed: "+g.lastError:"";
@@ -1015,13 +1016,13 @@ function drawCourses(d){
  var me=COURSES.find(function(c){return c.current})||{};
  var src=me.source||{};
  $("cc-where").innerHTML=src.kind==="folder"?"Lectures, files and question banks are read from and saved to the linked folder <span class='path' style='display:block;margin-top:.3rem'>"+esc(src.path)+"</span>"+(me.repo&&me.repo.url?"It is a copy of the repository "+esc(me.repo.url)+(me.repo.branch?" (branch "+esc(me.repo.branch)+")":"")+".":""):
-  "Lectures, files and question banks are kept in the app's data folder. To work from your own folder or a copy of a repository, link it under Manage courses.";
+  "Lectures, files and question banks are kept in CM's data folder. To work from your own folder or a copy of a repository, link it under Manage courses.";
  $("cd-copy").innerHTML='<option value="">Nothing</option>'+COURSES.map(function(c){return'<option value="'+esc(c.id)+'"'+(c.current?" selected":"")+'>'+esc(c.code||c.id)+'</option>'}).join("");
  drawCourseTable();
 }
 function drawCourseTable(){
  $("cd-list").innerHTML="<table><thead><tr><th>Code</th><th>Title</th><th>Term</th><th>Content</th><th></th></tr></thead><tbody>"+COURSES.map(function(c){
-  var src=c.source||{},where=src.kind==="folder"?"<span class='path'>"+esc(src.path)+"</span>"+(c.repo&&c.repo.url?"<br><span class='note'>Repository "+esc(c.repo.url.replace(/^https:\/\//,""))+(c.repo.branch?", "+esc(c.repo.branch):"")+"</span>":""):"<span class='note'>In the app</span>";
+  var src=c.source||{},where=src.kind==="folder"?"<span class='path'>"+esc(src.path)+"</span>"+(c.repo&&c.repo.url?"<br><span class='note'>Repository "+esc(c.repo.url.replace(/^https:\/\//,""))+(c.repo.branch?", "+esc(c.repo.branch):"")+"</span>":""):"<span class='note'>In CM</span>";
   var acts=c.archived?"<button class='btn sm' data-cact='restore' data-id='"+esc(c.id)+"'>Restore</button>":
    (c.current?"<span class='tag on'>Shown</span> ":"<button class='btn sm' data-cact='open' data-id='"+esc(c.id)+"'>Open</button> ")+
    "<button class='btn sm' data-cact='save' data-id='"+esc(c.id)+"'>Save</button> "+
@@ -1053,7 +1054,7 @@ $("cd-list").addEventListener("click",function(e){
  if(a==="archive"){if(confirm("Archive this course? Its pages stop being served to students. Its records stay on this computer and you can restore it at any time."))cmApp.archiveCourse(id,true).then(done)}
  if(a==="restore")cmApp.archiveCourse(id,false).then(done);
  if(a==="link")cmApp.linkFolder(id).then(function(r){if(r){done(r);if(r.ok&&id===CUR)reload()}});
- if(a==="unlink"){if(confirm("Unlink the folder? The folder and its files stay as they are; the course goes back to the content kept in the app."))cmApp.linkFolder(id,true).then(done)}
+ if(a==="unlink"){if(confirm("Unlink the folder? The folder and its files stay as they are; the course goes back to the content kept in CM."))cmApp.linkFolder(id,true).then(done)}
  if(a==="pull"){cmsg("Updating from the repository…");cmApp.pullCourse(id).then(done)}
 });
 setInterval(function(){if(document.visibilityState==="visible"&&!$("courses-d").open)loadCourses()},15000);
@@ -1066,7 +1067,7 @@ $("t-stop").addEventListener("click",function(){document.querySelector('input[na
 go(store("cm-view")||"overview");
 livePoll();
 
-/* ---- keyboard shortcuts (zoom is handled by the app itself) ---- */
+/* ---- keyboard shortcuts (zoom is handled by CM itself) ---- */
 var mac=/Mac/i.test(navigator.platform||navigator.userAgent);
 document.querySelectorAll("kbd[data-k]").forEach(function(k){var key=k.getAttribute("data-k");k.textContent=mac?"\u2318"+key.replace("Shift+","\u21e7"):"Ctrl+"+key});
 var mod=mac?"\u2318":"Ctrl+",vk={"overview":"1","students":"2","progress":"9","attendance":"3","quizzes":"4","class":"5","course":"6","roster":"7","grades":"8","settings":","};
@@ -1123,7 +1124,7 @@ $("f").addEventListener("submit",function(e){
 setInterval(function(){if(document.visibilityState==="visible")cmApp.info().then(function(i){gshow(i.google);tshow(i.tunnel)})},30000);
 /* ---- records protection and backups ---- */
 function bkWhen(ms){var d=new Date(ms);return d.toLocaleDateString(undefined,{day:"numeric",month:"short"})+" "+("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2)}
-var BKWHY={auto:"automatic",close:"when the app closed",manual:"made by you",restore:"before a restore"};
+var BKWHY={auto:"automatic",close:"when CM closed",manual:"made by you",restore:"before a restore"};
 function bkShow(b){if(!b)return;
  $("bk-prot").textContent=b.protected?"The records of this course are encrypted on this computer, with a key kept in the system keychain.":"The records are encrypted, but this computer offers no keychain for the key, so anyone who can open your user account's files can read them. Keep this computer's account protected by a password.";
  $("bk-problem").hidden=!b.loadProblem;if(b.loadProblem)$("bk-problem").textContent="The records file could not be read when the course opened ("+b.loadProblem.why+"). It was kept, not overwritten, as "+b.loadProblem.file+". Restore a backup below.";

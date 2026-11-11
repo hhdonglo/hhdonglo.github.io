@@ -1,4 +1,4 @@
-// The web import as the app's screens call it (cm:import*): choose a file, preview what it would add, apply it.
+// The web import as CM's screens call it (cm:import*): choose a file, preview what it would add, apply it.
 // The preview and the apply use the same plan (import-plan.js); the apply plans again from the stored file, so it matches the workbook as it is then.
 "use strict";
 const path = require("path");
@@ -18,7 +18,7 @@ function register({ on, dialog, winOf, shell }) {
       filters: [{ name: "Excel workbook or CSV", extensions: ["xlsx", "csv"] }] });
     if (r.canceled || !r.filePaths[0]) return null;
     try {
-      const book = await readBook(r.filePaths[0], (p) => { try { e.sender.send("cm:importProgress", p); } catch (x) { /* the window closed */ } }); // progress for the screen; the reader gives way between chunks, so the app stays responsive
+      const book = await readBook(r.filePaths[0], (p) => { try { e.sender.send("cm:importProgress", p); } catch (x) { /* the window closed */ } }); // progress for the screen; the reader gives way between chunks, so CM stays responsive
       pending.set(c.id, { name: path.basename(r.filePaths[0]), book });
       return { ok: true, name: pending.get(c.id).name, report: plan(book, localOf(c.backend), options()).report };
     } catch (err) { return { ok: false, why: err.message }; }

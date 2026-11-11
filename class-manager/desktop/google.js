@@ -1,9 +1,9 @@
 /* Optional Google sign-in for the Class Manager app.
-   After sign-in, the app creates one Google Sheet in the lecturer's own Drive and keeps a copy
+   After sign-in, CM creates one Google Sheet in the lecturer's own Drive and keeps a copy
    of every tab of the local workbook there (attendance, scores, master, roster, logs).
    The local workbook stays the working copy, so class runs the same with or without a connection.
 
-   Scope: drive.file only. The app can see and change only the files it creates, nothing else
+   Scope: drive.file only. CM can see and change only the files it creates, nothing else
    in the lecturer's Drive. Sign-in uses the system browser with a loopback address and PKCE,
    the method Google recommends for desktop apps. */
 "use strict";
@@ -23,7 +23,7 @@ function createGoogle(opts) {
   const configured = () => !!opts.clientId;
 
   function signIn() {
-    if (!configured()) return Promise.reject(new Error("Google sign-in is not set up in this build of the app."));
+    if (!configured()) return Promise.reject(new Error("Google sign-in is not set up in this build of CM."));
     const verifier = b64url(crypto.randomBytes(32));
     const challenge = b64url(crypto.createHash("sha256").update(verifier).digest());
     const nonce = b64url(crypto.randomBytes(16));

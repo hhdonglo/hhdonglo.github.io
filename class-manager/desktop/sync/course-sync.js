@@ -2,7 +2,7 @@
    Per item the lecturer chooses "This computer only" (the default) or "Keep in step with the cloud". An item kept in
    step is always stored here too: every change is saved on this computer at once and sent to the linked place a few
    seconds later, and what other computers saved there is merged in every two minutes and when the course opens.
-   Without a connection the app carries on from the local copy and catches up when the connection returns.
+   Without a connection CM carries on from the local copy and catches up when the connection returns.
    Items, each chosen on its own (for example notes in the cloud, attendance on this computer only): notes (lecturer
    notes) and materials (course files), both ways, readable files; classList and attendance (encrypted
    records, merged three-way; sync/records.js). Switching an item off or on loses nothing: the local copy and the

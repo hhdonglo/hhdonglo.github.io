@@ -2,7 +2,7 @@
    Google Drive, OneDrive, Dropbox, MEGA, iCloud Drive, Box, pCloud and similar services each install a desktop
    client that keeps one folder in step with the cloud. Class Manager only writes files into such a folder; the
    client does the upload. So no sign-in, key or developer registration is needed inside Class Manager.
-   A folder that holds a git repository (GitHub or another host) is recognised too, so the app can say that the
+   A folder that holds a git repository (GitHub or another host) is recognised too, so CM can say that the
    files are not sent anywhere until the lecturer commits them, and that the repository must be private.
    No Electron and no disk access except looking for .git, so it is tested with plain Node (test/linked-folder.test.js). */
 "use strict";
