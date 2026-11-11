@@ -9,7 +9,7 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "test": "node --test test/stats.test.js test/pedagogy.test.js test/courses.test.js",
+    "test": "node --test test/stats.test.js test/pedagogy.test.js test/courses.test.js test/excel.test.js",
     "dist": "electron-builder",
     "dist:mac": "electron-builder --mac",
     "dist:win": "electron-builder --win",
@@ -36,6 +36,7 @@
       "course.js",
       "courses.js",
       "table.js",
+      "excel.js",
       "app/**/*",
       "google-oauth.json",
       "package.json"
