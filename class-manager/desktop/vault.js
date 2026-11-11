@@ -51,6 +51,8 @@ function createVault(opts) {
   const isSealed = (buf) => buf.length > 32 && buf.subarray(0, 4).equals(MAGIC);
   return {
     protected: !!opts.protected,
+    protectBytes: (b) => opts.protect(b), // the keychain, for small secrets kept beside the records (linked-folder.js)
+    unprotectBytes: (b) => opts.unprotect(b),
     isSealed,
     encode: (text) => Buffer.concat([MAGIC, seal(dataKey(), Buffer.from(text, "utf8"))]),
     decode: (buf) => (isSealed(buf) ? open(dataKey(), buf.subarray(4)).toString("utf8") : buf.toString("utf8")) // plain JSON from an earlier version
@@ -124,4 +126,18 @@ function importFile(buf, passphrase) {
   return content;
 }
 
-module.exports = { createVault, createBackups, exportFile, importFile, checkBook, KEEP_AUTO };
+// ---------- any JSON object, encrypted with a passphrase (course synchronisation) ----------
+const SYNC_MAGIC = Buffer.from("CMS1");
+function packJson(obj, passphrase) {
+  if (String(passphrase || "").length < 10) throw new Error("Choose a passphrase of at least 10 characters.");
+  const salt = crypto.randomBytes(16);
+  const key = crypto.scryptSync(String(passphrase), salt, 32, { N: 32768, r: 8, p: 1, maxmem: 64 * 1024 * 1024 });
+  return Buffer.concat([SYNC_MAGIC, salt, seal(key, Buffer.from(JSON.stringify(obj), "utf8"))]);
+}
+function unpackJson(buf, passphrase) {
+  if (!buf.subarray(0, 4).equals(SYNC_MAGIC)) throw new Error("This is not a Class Manager synchronisation file.");
+  const key = crypto.scryptSync(String(passphrase || ""), buf.subarray(4, 20), 32, { N: 32768, r: 8, p: 1, maxmem: 64 * 1024 * 1024 });
+  try { return JSON.parse(open(key, buf.subarray(20)).toString("utf8")); } catch (e) { throw new Error("The passphrase is not right, or the file was changed."); }
+}
+
+module.exports = { packJson, unpackJson, createVault, createBackups, exportFile, importFile, checkBook, KEEP_AUTO };
