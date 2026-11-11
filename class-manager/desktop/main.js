@@ -16,6 +16,7 @@ const os = require("os");
 const path = require("path");
 const { createBackend } = require("./backend");
 const { createGoogle } = require("./google");
+const { createLinkedFolder } = require("./linked-folder");
 const { createAuthoring } = require("./authoring");
 const { createTunnel, createLimiter } = require("./tunnel");
 const { createCourse } = require("./course");
@@ -325,6 +326,7 @@ function makeCtx(id) {
   c.backend = createBackend({ readSite: (rel) => c.authoring.siteFile(rel), webRoot: WEB, resolve: c.course.resolve, dataFile: d.workbook, vault,
     log: (m) => console.log("[backend " + id + "]", m), onChange: () => c.google && c.google.changed() });
   c.backups = createBackups({ dir: path.join(d.root, "backups"), workbook: d.workbook, vault });
+  c.linked = createLinkedFolder({ dir: d.root, label: () => c.settings.courseCode || id, content: () => backupContent(c), protect: vault.protectBytes, unprotect: vault.unprotectBytes, protected: vault.protected });
   try { c.lastBackup = c.backups.make(""); } catch (e) { c.lastBackup = { ok: false, why: e.message }; } // a backup each time the course is opened, checked at once
   return c;
 }
@@ -635,12 +637,20 @@ on("cm:backupRestore", (c, e, name) => {
     const text = c.backups.read(String(name)); closeCtx(c.id); const r = c.backups.restoreText(text); reopenCourse(c); return Object.assign(r, backupInfo(ctx(c.id))); }
   catch (err) { return { ok: false, why: err.message }; }
 });
+function backupContent(c) { // the course's records and settings as one object, for a backup file or a linked-folder copy
+  c.backend.flush();
+  return { kind: "class-manager-backup", version: app.getVersion(), course: c.id, made: new Date().toISOString(), settings: c.settings, workbook: vault.decode(fs.readFileSync(registry.dirs(c.id).workbook)) };
+}
+function restoreContent(c, content) { // after the passphrase and the content have been checked
+  closeCtx(c.id);
+  const out = c.backups.restoreText(content.workbook);
+  if (content.settings && typeof content.settings === "object") saveSettings(c, Object.assign({}, content.settings, { scriptUrl: c.settings.scriptUrl })); // the course details travel with the records; the server address stays this computer's
+  reopenCourse(c);
+  return Object.assign(out, { from: content.course, made: content.made }, backupInfo(ctx(c.id)));
+}
 on("cm:backupExport", async (c, e, pass) => {
   try {
-    c.backend.flush();
-    const d = registry.dirs(c.id);
-    const content = { kind: "class-manager-backup", version: app.getVersion(), course: c.id, made: new Date().toISOString(), settings: c.settings, workbook: vault.decode(fs.readFileSync(d.workbook)) };
-    const buf = exportFile(content, pass);
+    const buf = exportFile(backupContent(c), pass);
     const label = (c.settings.courseCode || c.id).replace(/[^\w .-]+/g, "_");
     const r = await dialog.showSaveDialog(winOf(e), { title: "Save a backup of this course", defaultPath: "Class Manager backup " + label + " " + new Date().toISOString().slice(0, 10) + ".cmbackup", filters: [{ name: "Class Manager backup", extensions: ["cmbackup"] }] });
     if (r.canceled || !r.filePath) return null;
@@ -653,14 +663,20 @@ on("cm:backupImport", async (c, e, pass) => {
   try {
     const r = await dialog.showOpenDialog(winOf(e), { title: "Restore this course from a backup file", properties: ["openFile"], filters: [{ name: "Class Manager backup", extensions: ["cmbackup"] }] });
     if (r.canceled || !r.filePaths[0]) return null;
-    const content = importFile(fs.readFileSync(r.filePaths[0]), pass); // checks the passphrase and the content before anything changes
-    closeCtx(c.id);
-    const out = c.backups.restoreText(content.workbook);
-    if (content.settings && typeof content.settings === "object") saveSettings(c, Object.assign({}, content.settings, { scriptUrl: c.settings.scriptUrl })); // the course details travel with the records; the server address stays this computer's
-    reopenCourse(c);
-    return Object.assign(out, { from: content.course, made: content.made }, backupInfo(ctx(c.id)));
+    return restoreContent(c, importFile(fs.readFileSync(r.filePaths[0]), pass)); // checks the passphrase and the content before anything changes
   } catch (err) { return { ok: false, why: err.message }; }
 });
+// ---------- linked folder (linked-folder.js) ----------
+on("cm:linkedState", (c) => c.linked.state());
+on("cm:linkedChoose", async (c, e) => {
+  const r = await dialog.showOpenDialog(winOf(e), { title: "Choose the folder to keep copies in", properties: ["openDirectory", "createDirectory"] });
+  return r.canceled || !r.filePaths[0] ? null : { folder: r.filePaths[0], provider: require("./storage-providers").detect(r.filePaths[0]) };
+});
+on("cm:linkedLink", (c, e, folder, pass, auto) => { try { return c.linked.link(folder, pass, auto); } catch (err) { return { ok: false, why: err.message }; } });
+on("cm:linkedCopy", (c, e, pass) => { try { c.backend.flush(); const r = c.linked.copyNow(pass); return Object.assign({}, c.linked.state(), { result: r }); } catch (err) { return { ok: false, why: err.message }; } });
+on("cm:linkedUnlink", (c) => c.linked.unlink());
+on("cm:linkedOpen", (c) => { const s = c.linked.state(); return s.linked ? shell.openPath(s.folder) : ""; });
+on("cm:linkedRestore", (c, e, name, pass) => { try { return restoreContent(c, c.linked.open(String(name || ""), pass)); } catch (err) { return { ok: false, why: err.message }; } });
 on("cm:openContent", (c) => { const d = registry.dirs(c.id).course; fs.mkdirSync(d, { recursive: true }); return shell.openPath(d); });
 on("cm:run", (c, e, name) => { if (["refreshTotals", "rebuildMaster", "buildNamedAttendance"].includes(name)) { c.backend.run(name); c.backend.flush(); return true; } return false; });
 // Lost both the lecturer password and the recovery code: the person at this computer may reset it (password-reset path, see README "Lecturer password").
@@ -713,7 +729,7 @@ on("cm:googleSync", (c) => c.google.syncNow());
 
 // ---------- start ----------
 function flushAll() { for (const c of ctxs.values()) { try { c.backend.flush(); } catch (e) {} } }
-function backupAll(reason) { for (const c of ctxs.values()) { try { c.backend.flush(); c.lastBackup = c.backups.make(reason); } catch (e) { c.lastBackup = { ok: false, why: e.message }; } } }
+function backupAll(reason) { for (const c of ctxs.values()) { try { c.backend.flush(); c.lastBackup = c.backups.make(reason); c.linked.auto(); } catch (e) { c.lastBackup = { ok: false, why: e.message }; } } }
 let closingBackupDone = false;
 app.whenReady().then(async () => {
   // Before 0.8.0 the app held one course; it becomes the first course here, with all of its records.

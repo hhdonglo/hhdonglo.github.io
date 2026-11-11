@@ -51,6 +51,8 @@ function createVault(opts) {
   const isSealed = (buf) => buf.length > 32 && buf.subarray(0, 4).equals(MAGIC);
   return {
     protected: !!opts.protected,
+    protectBytes: (b) => opts.protect(b), // the keychain, for small secrets kept beside the records (linked-folder.js)
+    unprotectBytes: (b) => opts.unprotect(b),
     isSealed,
     encode: (text) => Buffer.concat([MAGIC, seal(dataKey(), Buffer.from(text, "utf8"))]),
     decode: (buf) => (isSealed(buf) ? open(dataKey(), buf.subarray(4)).toString("utf8") : buf.toString("utf8")) // plain JSON from an earlier version

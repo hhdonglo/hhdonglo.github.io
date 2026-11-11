@@ -35,6 +35,8 @@
       "tunnel.js",
       "access.js",
       "vault.js",
+      "linked-folder.js",
+      "storage-providers.js",
       "excel.js",
       "course.js",
       "courses.js",
