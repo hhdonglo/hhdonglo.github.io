@@ -136,7 +136,7 @@ Since 0.9.0 the pages send every request by form POST through `CM.call` (in `con
 | Quiz | `control` (open, start, pause, next, end, release, reset), `host`, `held_status`, `held_release_quiz`, `held_discard_quiz`, `set_week`, `preclass` |
 | Attendance | `attend_open`, `attend_close`, `attend_submit`, `attend_discard` |
 | Class list | `roster_edit`, `roster_tidy`; POST `roster_sync` |
-| Key | `setkey` (store the host key as a salted SHA-256) |
+| Key | `setkey` (choose or change the lecturer password: salted slow hash, new recovery code), `password_status` (public), `password_recover` (public, rate limited: recovery code instead of the old password) |
 | Learning | `insights`, `access_codes` (list, generate, reset), `groups` (make, move, lock, mark, delete, list) |
 | Calendar | `calendar_edit` (save, series, delete, delete_series) |
 | Announcements | `announcements` with `op` (save, delete) |
@@ -150,7 +150,7 @@ Since 0.9.0 the pages send every request by form POST through `CM.call` (in `con
 
 | Tab | Content | Written by |
 |---|---|---|
-| Key | Join codes and correct letters; J2 is the host key (plain, or `sha256:salt:hex`); the settings columns K, L and N (week) | `setup`, lecturer |
+| Key | Join codes and correct letters; J2 is the lecturer password (a temporary plain key on a new workbook, then `pw1:rounds:salt:hash`; older `sha256:salt:hex` still accepted); the recovery code is a hash in the script property `pw_recovery`; the settings columns K, L and N (week) | `setup`, lecturer |
 | Quiz_Control | One row per lecturer-run quiz: status, timers, mode, round, review question, N, question IDs, week | Live quiz |
 | Presence, Answers, Staged_Quiz | Who joined; paced answers with confidence; results held until released | Live quiz |
 | Form Responses 1 | Released results: name, ID, join code, letters, score, round, questions, answers, week | Release |
@@ -193,7 +193,7 @@ Since 0.9.0 the pages send every request by form POST through `CM.call` (in `con
 
 | Who | Credential | Where checked |
 |---|---|---|
-| Lecturer | Host key: 16 random hexadecimal characters made at setup, optionally replaced and stored hashed. Sent once by POST and exchanged for a lecturer session (8 hours) | `hostOk_` in `05-auth.gs`; 30 failures lock it for 10 min (CacheService). Pages keep the session in `sessionStorage` (`cm_hk`), not the key. |
+| Lecturer | Host key: 16 random hexadecimal characters made at setup, optionally replaced and stored hashed. Sent once by POST and exchanged for a lecturer session (8 hours) | `hostOk_` in `05-auth.gs`, hashing in `06-password.gs`; 10 failures lock it for 10 min (CacheService); recovery code: 5 failures per hour. Pages keep the session in `sessionStorage` (`cm_hk`), not the key. |
 | Student, own record, chat, group work, check-in | Student ID on the class list plus a personal access code, exchanged for a student session (14 days) | `studentCheck_`; 6 failures lock the ID for 10 min; 200 failures across the class in 10 min pause new sign-ins. Codes can expire after a set number of days. A remembered phone keeps the session in `localStorage`, not the code. |
 | Student, live quiz | Join code shown in class, plus name and ID; the phone receives a receipt when it joins or submits | Presence and round rules; first submission counts. The student's result and own answer in review are shown only with the receipt. |
 | Student, attendance | Rotating QR token (30 s slots), device token, one check-in per ID per session | Attendance hardening section |
@@ -294,7 +294,8 @@ Two warnings do not block approval: a missing explanation or difficulty, and a d
 - **Sheet values.** Typed values beginning `=`, `+`, `-` or `@` are prefixed so that the sheet does not run them as formulas.
 - **Sessions.** A session is `s1.<role>.<subject>.<expiry>.<HMAC-SHA256>` signed with a secret in the script properties, bound to the stored host key or to the student's current code. Changing the host key, replacing a code or "Sign everyone out" (Access codes page) ends them. The answer that accepts a key or code carries `_session`; `CM.call` swaps it in for the key or code in the page and in browser storage.
 - **Desktop access rules.** Requests with lecturer credentials are refused through the internet address unless allowed in App Settings, and can be limited to this computer only (`desktop/access.js`). The internet address stops by itself after a set time (default 3 hours) and shows the number of visitors, requests, requests over the limit and refused lecturer requests.
-- **Rate limits.** Host key: 30 failures per 10 min. Access code: 6 per ID per 10 min. Messages: 8 per minute per student. Attendance: per-device and per-ID rules.
+- **Lecturer password.** Chosen by the lecturer (10 to 100 characters), kept only as a slow salted hash (4000 chained HMAC-SHA256 rounds, stored with the hash so it can be raised). A one-time recovery code (20 characters, about 100 bits) is shown when a password is set, kept as a hash, and replaced at every change or recovery. If both are lost, the Sheet owner runs `resetHostKey()` in the script editor, or the desktop app's "Reset password" button on the home screen. Module: `apps_script/src/06-password.gs`; page: `password.html` with `assets/password.js`.
+- **Rate limits.** Host password: 10 failures per 10 min. Access code: 6 per ID per 10 min. Messages: 8 per minute per student. Attendance: per-device and per-ID rules.
 - **Moderation.** The lecturer reads every conversation. Students are told so on the page.
 
 ## 11. Configuration

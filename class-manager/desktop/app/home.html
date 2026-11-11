@@ -539,6 +539,7 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
      <button class="btn" data-win="codes.html"><svg><use href="#i-key"/></svg>Access codes</button>
     </div>
     <p class="note" id="keynote" style="margin-top:1rem">Lecturer pages ask for the host key shown at the top. Keep it private.</p>
+    <div class="tools"><button class="btn" data-win="password.html"><svg><use href="#i-key"/></svg>Lecturer password</button><button class="btn" type="button" id="pw-reset"><svg><use href="#i-key"/></svg>Reset password (lost it)</button></div>
    </div>
   </div>
  </div>
@@ -876,7 +877,7 @@ function show(info){
  $("more").textContent=info.addresses.slice(1).join(", ")||"none";
  tshow(info.tunnel);
  hostKey=info.hostKey||"";
- if(hostKey){$("key").textContent=hostKey;$("key-copy").hidden=false}else{$("key").textContent="changed";$("key-copy").hidden=true;$("keynote").textContent="You changed the host key on the quiz dashboard, so it is no longer shown here. Use your new key."}
+ if(hostKey){$("key").textContent=hostKey;$("key-copy").hidden=false}else{$("key").textContent="your password";$("key-copy").hidden=true;$("keynote").textContent="You have chosen your own lecturer password, so it is not shown here. Use it on the lecturer login. Lost it? Use the recovery code, or reset it below."}
  if(s.scriptUrl){$("keynote").textContent="This app is set to use your own Apps Script (App Settings), so the host key is the one in your Google Sheet."}
  var st=info.setup;$("setup").hidden=st.complete||store("cm-setup-hidden")==="1";
  [["td-course","course"],["td-class","classList"],["td-materials","materials"]].forEach(function(x){var ok=st.steps[x[1]];$(x[0]).className=ok?"done":"";$(x[0]).querySelector(".mk").textContent=ok?"✓":"○"});
@@ -1007,6 +1008,7 @@ document.addEventListener("keydown",function(e){
 });
 $("keys").addEventListener("click",function(){$("keys-d").showModal()});
 reload();loadCourses();
+$("pw-reset").addEventListener("click",function(){cmApp.resetPassword().then(function(done){if(done)reload()})});
 document.querySelectorAll("[data-win]").forEach(function(b){b.addEventListener("click",function(){cmApp.openWindow(b.getAttribute("data-win"))})});
 document.querySelectorAll("[data-go]").forEach(function(b){b.addEventListener("click",function(){location.href=b.getAttribute("data-go")})});
 $("tab").addEventListener("change",function(){$("filter").value="";view()});

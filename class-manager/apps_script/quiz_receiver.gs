@@ -1,4 +1,4 @@
-// GENERATED FILE: do not edit. Built by apps_script/build.js from apps_script/src/ (00-core.gs, 05-auth.gs, 10-assessment.gs, 20-attendance.gs, 30-analytics.gs, 40-collaboration.gs, 50-communication.gs, 60-portal.gs, 90-router.gs).
+// GENERATED FILE: do not edit. Built by apps_script/build.js from apps_script/src/ (00-core.gs, 05-auth.gs, 06-password.gs, 10-assessment.gs, 20-attendance.gs, 30-analytics.gs, 40-collaboration.gs, 50-communication.gs, 60-portal.gs, 90-router.gs).
 // To deploy in Google Apps Script, paste this whole file into the script editor.
 
 // ===== 00-core.gs =====
@@ -99,19 +99,6 @@ function state_(key) { return String(key[7]).trim().toLowerCase() || 'started'; 
 function hashKey_(salt, key) {
   var d = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, salt + ':' + key, Utilities.Charset.UTF_8);
   return d.map(function (b) { return ('0' + (b & 0xff).toString(16)).slice(-2); }).join('');
-}
-
-// Host only: change the host key. Needs the current key; stores salt and hash in Key!J2, never the plain key.
-function setHostKey_(p) {
-  var nk = String(p.newkey || '').trim();
-  if (nk.length < 12 || nk.length > 40) return { ok: false, why: 'new key must be 12 to 40 characters' };
-  if (nk === String(p.hostkey || '').trim()) return { ok: false, why: 'new key must differ from the current key' };
-  var ks = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(KEY_TAB);
-  var salt = Utilities.getUuid();
-  ks.getRange(2, 10).setNumberFormat('@').setValue('sha256:' + salt + ':' + hashKey_(salt, nk));
-  CacheService.getScriptCache().remove('hostfails');
-  log_('host key changed', '', '', '');
-  return { ok: true };
 }
 
 // A join code of the form 2627 + week number (26271 = Week 1, 26272 = Week 2, ..., 262710 = Week 10) is valid
@@ -456,14 +443,8 @@ function hostOk_(p) {
   if (isSession_(given)) { var t = sessRead_(given); return !!(t && t.role === 'h' && t.subj === 'host' && sessValid_(t, hk)); }
   var cache = CacheService.getScriptCache();
   var fails = Number(cache.get('hostfails') || 0);
-  if (fails >= 30) return false; // locked for 10 minutes after 30 wrong keys
-  var ok;
-  if (hk.indexOf('sha256:') === 0) { // hashed form: sha256:salt:hex
-    var parts = hk.split(':');
-    ok = parts.length === 3 && hashKey_(parts[1], given) === parts[2];
-  } else { // legacy plain key typed in the Sheet
-    ok = !!given && given === hk;
-  }
+  if (fails >= HOST_MAX_FAILS) return false; // locked for 10 minutes after HOST_MAX_FAILS wrong passwords (06-password.gs)
+  var ok = pwCheck_(hk, given); // 06-password.gs: slow hash, or the temporary key of a new Sheet
   if (!ok) cache.put('hostfails', String(fails + 1), 600);
   else REQ_.session = sessMake_('h', 'host', hk, SESSION_HOST_HOURS * 3600000);
   return ok;
@@ -504,6 +485,127 @@ function studentCheck_(rawId, given, tag) {
 // ---- Live quiz receipts: a student sees their own result only from the phone that took part ----
 function quizReceipt_(code, id) { return hex_(Utilities.computeHmacSha256Signature('q|' + String(code).toUpperCase() + '|' + id, sessSecret_())).slice(0, 24); }
 function receiptOk_(code, id, rc) { return !!id && !!rc && quizReceipt_(code, id) === String(rc).trim(); }
+
+// ===== 06-password.gs =====
+// Module password. The lecturer's own password: choose it, change it, recover it.
+// Edit the files in apps_script/src/; apps_script/quiz_receiver.gs is built from them (node apps_script/build.js).
+//
+// - The password is kept in Key!J2 only as a salted, deliberately slow hash: "pw1:<rounds>:<salt>:<hash>". Never as text.
+//   (A new Sheet or app starts with a temporary key in plain text; it counts as "not yet chosen" until the lecturer sets a password.)
+// - A recovery code is made whenever a password is set or changed. It is shown once and kept only as a hash in the script
+//   property "pw_recovery". With the code, the lecturer chooses a new password without the old one.
+// - If both are lost, the Sheet owner runs resetHostKey() from the script editor (or the desktop app's "Reset" button).
+// - Wrong passwords: HOST_MAX_FAILS in ten minutes locks sign-in for the rest of that time. Wrong recovery codes:
+//   RECOVERY_MAX_FAILS in an hour.
+
+var PW_ROUNDS = 4000, HOST_MAX_FAILS = 10, RECOVERY_MAX_FAILS = 5, PW_MIN = 10, PW_MAX = 100;
+
+// Slow hash: a chain of HMAC-SHA256 rounds, each keyed by the password, XOR-folded (the PBKDF2 pattern, on text so it runs
+// both in Google Apps Script and in the desktop app). The number of rounds is stored with the hash and can be raised later.
+function pwHash_(secret, salt, rounds) {
+  var u = salt + '|1', acc = null;
+  for (var i = 0; i < rounds; i++) {
+    var sig = Utilities.computeHmacSha256Signature(u, secret);
+    acc = acc ? acc.map(function (b, j) { return (b ^ sig[j]) & 0xff; }) : sig.map(function (b) { return b & 0xff; });
+    u = hex_(sig);
+  }
+  return hex_(acc);
+}
+function pwMake_(secret) {
+  var salt = Utilities.getUuid();
+  return 'pw1:' + PW_ROUNDS + ':' + salt + ':' + pwHash_(secret, salt, PW_ROUNDS);
+}
+function sameText_(a, b) { // no early exit, so timing does not reveal how much matched
+  a = String(a); b = String(b);
+  var d = a.length ^ b.length;
+  for (var i = 0; i < Math.min(a.length, b.length); i++) d |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return d === 0;
+}
+function pwCheck_(stored, given) { // stored is a pw1 hash, a legacy "sha256:salt:hash", or (new Sheet) the temporary plain key
+  stored = String(stored || ''); given = String(given || '');
+  if (!stored || !given) return false;
+  var parts = stored.split(':');
+  if (parts[0] === 'pw1' && parts.length === 4) return sameText_(pwHash_(given, parts[2], Number(parts[1])), parts[3]);
+  if (parts[0] === 'sha256' && parts.length === 3) return sameText_(hashKey_(parts[1], given), parts[2]);
+  return sameText_(stored, given);
+}
+function pwChosen_(stored) { return /^(pw1|sha256):/.test(String(stored || '')); }
+
+function pwProblem_(pw, current) { // why this password is refused, or ''
+  if (pw !== pw.trim()) return 'The password must not start or end with a space.';
+  if (pw.length < PW_MIN || pw.length > PW_MAX) return 'The password must be ' + PW_MIN + ' to ' + PW_MAX + ' characters. A few words make a good one.';
+  if (/^(.)\1+$/.test(pw)) return 'The password must not be one repeated character.';
+  if (current && pw === current) return 'The new password must differ from the current one.';
+  return '';
+}
+
+// Recovery code: 20 characters from an alphabet without look-alikes (about 100 bits), shown as XXXXX-XXXXX-XXXXX-XXXXX.
+function recoveryNew_() {
+  var A = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789', h = (Utilities.getUuid() + Utilities.getUuid()).replace(/-/g, ''), s = '';
+  for (var i = 0; i < 20; i++) s += A.charAt(parseInt(h.substr(i * 2, 2), 16) % 32);
+  return s;
+}
+function recoveryShow_(c) { return c.replace(/(.{5})(?=.)/g, '$1-'); }
+function recoveryNorm_(t) { return String(t || '').toUpperCase().replace(/[^A-Z0-9]/g, ''); }
+function recoveryStore_() { return PropertiesService.getScriptProperties().getProperty('pw_recovery') || ''; }
+
+function pwStore_(newPw) { // saves the password and a fresh recovery code; ends every sign-in made with the old password
+  var ks = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(KEY_TAB);
+  ks.getRange(2, 10).setNumberFormat('@').setValue(pwMake_(newPw));
+  var code = recoveryNew_();
+  PropertiesService.getScriptProperties().setProperty('pw_recovery', pwMake_(code));
+  var c = CacheService.getScriptCache(); c.remove('hostfails'); c.remove('recfails');
+  return recoveryShow_(code);
+}
+
+// Public: is a password chosen, and is there a recovery code? (Nothing secret.)
+function passwordStatus_() {
+  return { ok: true, chosen: pwChosen_(hostStored_()), recovery: !!recoveryStore_(), minLength: PW_MIN, maxLength: PW_MAX };
+}
+
+// Host only (current password or session needed, checked by the router): choose or change the password.
+function setHostKey_(p) {
+  var nk = String(p.newkey || ''), cur = String(p.hostkey || '').trim();
+  var why = pwProblem_(nk, isSession_(cur) ? '' : cur);
+  if (!why && pwCheck_(hostStored_(), nk)) why = 'The new password must differ from the current one.';
+  if (why) return { ok: false, why: why };
+  var code = pwStore_(nk);
+  REQ_.session = '';
+  log_('host password changed', '', '', '');
+  return { ok: true, recovery: code };
+}
+
+// Public, rate limited: a new password with the recovery code instead of the old password.
+function recoverHostKey_(p) {
+  var cache = CacheService.getScriptCache(), fails = Number(cache.get('recfails') || 0);
+  if (fails >= RECOVERY_MAX_FAILS) return { ok: false, why: 'Too many wrong recovery codes. Try again in an hour, or use the reset in the script editor.' };
+  var stored = recoveryStore_(), given = recoveryNorm_(p.recovery), nk = String(p.newkey || '');
+  if (!stored || !given || !pwCheck_(stored, given)) {
+    cache.put('recfails', String(fails + 1), 3600);
+    log_('recovery code refused', '', '', '');
+    return { ok: false, why: 'That recovery code was not accepted.' };
+  }
+  var why = pwProblem_(nk, '');
+  if (why) return { ok: false, why: why };
+  var code = pwStore_(nk);
+  log_('host password recovered', '', '', '');
+  return { ok: true, recovery: code };
+}
+
+// Run by hand in the script editor by the Sheet's owner (or by the desktop app's Reset button): both password and
+// recovery code lost. Makes a temporary key, removes the recovery code and ends every sign-in.
+function resetHostKey() {
+  var ks = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(KEY_TAB);
+  var tmp = Utilities.getUuid().replace(/-/g, '').slice(0, 16);
+  ks.getRange(2, 10).setNumberFormat('@').setValue(tmp);
+  PropertiesService.getScriptProperties().deleteProperty('pw_recovery');
+  signOutEveryone_();
+  var c = CacheService.getScriptCache(); c.remove('hostfails'); c.remove('recfails');
+  log_('host password reset', 'by the owner', '', '');
+  var msg = 'Temporary key: ' + tmp + ' . Sign in with it, then choose your own password at once.';
+  try { Logger.log(msg); } catch (err) { /* no log */ }
+  return msg;
+}
 
 // ===== 10-assessment.gs =====
 // Module assessment. Assessment: join codes, the live quiz and its question draw, held results, Master, Scores and Totals, presence, review, ranking and the item log.
@@ -3439,6 +3541,12 @@ function route_(e) {
   if (p.action === 'preclass') return jsonp_(e, hostOk_(p) ? preclass_(p) : { ok: false, why: 'host key not accepted' });
 
   if (p.action === 'attend') return jsonp_(e, attCheckIn_(p, code)); // a student checks in: the Student ID, the QR token, the device token and the phone's rounded location
+  if (p.action === 'password_status') return jsonp_(e, passwordStatus_()); // public: whether a password is chosen and a recovery code exists
+  if (p.action === 'password_recover') { // public, rate limited: new password with the recovery code
+    if (!REQ_.post) return jsonp_(e, { ok: false, why: 'not accepted' });
+    var lk3 = LockService.getScriptLock(); lk3.waitLock(20000);
+    try { return jsonp_(e, recoverHostKey_(p)); } finally { lk3.releaseLock(); }
+  }
   if (p.action === 'hostcheck') return jsonp_(e, { ok: hostOk_(p), post: REQ_.post }); // the lecturer menu: is this key right? (with a session when it is)
   if (p.action === 'sessions_end') { // host only: every signed-in phone and lecturer page must sign in again
     if (!hostOk_(p)) return jsonp_(e, { ok: false, why: 'host key not accepted' });
@@ -3497,7 +3605,7 @@ function route_(e) {
   }
 
   if (p.action === 'setkey') { // host only; current key required
-    if (!hostOk_(p)) return jsonp_(e, { ok: false, why: 'current key not accepted' });
+    if (!hostOk_(p)) return jsonp_(e, { ok: false, why: 'current password not accepted' });
     var lk2 = LockService.getScriptLock();
     lk2.waitLock(20000);
     try { return jsonp_(e, setHostKey_(p)); } finally { lk2.releaseLock(); }

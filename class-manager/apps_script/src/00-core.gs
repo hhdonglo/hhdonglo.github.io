@@ -97,19 +97,6 @@ function hashKey_(salt, key) {
   return d.map(function (b) { return ('0' + (b & 0xff).toString(16)).slice(-2); }).join('');
 }
 
-// Host only: change the host key. Needs the current key; stores salt and hash in Key!J2, never the plain key.
-function setHostKey_(p) {
-  var nk = String(p.newkey || '').trim();
-  if (nk.length < 12 || nk.length > 40) return { ok: false, why: 'new key must be 12 to 40 characters' };
-  if (nk === String(p.hostkey || '').trim()) return { ok: false, why: 'new key must differ from the current key' };
-  var ks = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(KEY_TAB);
-  var salt = Utilities.getUuid();
-  ks.getRange(2, 10).setNumberFormat('@').setValue('sha256:' + salt + ':' + hashKey_(salt, nk));
-  CacheService.getScriptCache().remove('hostfails');
-  log_('host key changed', '', '', '');
-  return { ok: true };
-}
-
 // A join code of the form 2627 + week number (26271 = Week 1, 26272 = Week 2, ..., 262710 = Week 10) is valid
 // for any week that has a practice bank, with no Key row to add. The week comes from the code.
 function weekFromCode_(code) {

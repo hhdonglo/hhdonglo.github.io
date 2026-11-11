@@ -187,6 +187,12 @@ function route_(e) {
   if (p.action === 'preclass') return jsonp_(e, hostOk_(p) ? preclass_(p) : { ok: false, why: 'host key not accepted' });
 
   if (p.action === 'attend') return jsonp_(e, attCheckIn_(p, code)); // a student checks in: the Student ID, the QR token, the device token and the phone's rounded location
+  if (p.action === 'password_status') return jsonp_(e, passwordStatus_()); // public: whether a password is chosen and a recovery code exists
+  if (p.action === 'password_recover') { // public, rate limited: new password with the recovery code
+    if (!REQ_.post) return jsonp_(e, { ok: false, why: 'not accepted' });
+    var lk3 = LockService.getScriptLock(); lk3.waitLock(20000);
+    try { return jsonp_(e, recoverHostKey_(p)); } finally { lk3.releaseLock(); }
+  }
   if (p.action === 'hostcheck') return jsonp_(e, { ok: hostOk_(p), post: REQ_.post }); // the lecturer menu: is this key right? (with a session when it is)
   if (p.action === 'sessions_end') { // host only: every signed-in phone and lecturer page must sign in again
     if (!hostOk_(p)) return jsonp_(e, { ok: false, why: 'host key not accepted' });
@@ -245,7 +251,7 @@ function route_(e) {
   }
 
   if (p.action === 'setkey') { // host only; current key required
-    if (!hostOk_(p)) return jsonp_(e, { ok: false, why: 'current key not accepted' });
+    if (!hostOk_(p)) return jsonp_(e, { ok: false, why: 'current password not accepted' });
     var lk2 = LockService.getScriptLock();
     lk2.waitLock(20000);
     try { return jsonp_(e, setHostKey_(p)); } finally { lk2.releaseLock(); }
