@@ -47,14 +47,8 @@ function hostOk_(p) {
   if (isSession_(given)) { var t = sessRead_(given); return !!(t && t.role === 'h' && t.subj === 'host' && sessValid_(t, hk)); }
   var cache = CacheService.getScriptCache();
   var fails = Number(cache.get('hostfails') || 0);
-  if (fails >= 30) return false; // locked for 10 minutes after 30 wrong keys
-  var ok;
-  if (hk.indexOf('sha256:') === 0) { // hashed form: sha256:salt:hex
-    var parts = hk.split(':');
-    ok = parts.length === 3 && hashKey_(parts[1], given) === parts[2];
-  } else { // legacy plain key typed in the Sheet
-    ok = !!given && given === hk;
-  }
+  if (fails >= HOST_MAX_FAILS) return false; // locked for 10 minutes after HOST_MAX_FAILS wrong passwords (06-password.gs)
+  var ok = pwCheck_(hk, given); // 06-password.gs: slow hash, or the temporary key of a new Sheet
   if (!ok) cache.put('hostfails', String(fails + 1), 600);
   else REQ_.session = sessMake_('h', 'host', hk, SESSION_HOST_HOURS * 3600000);
   return ok;

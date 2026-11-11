@@ -42,15 +42,16 @@ body.focus main{padding-top:1rem}
  <section class="panel" id="m-login">
   <h3 style="margin:.1rem 0 .4rem">Lecturer login</h3>
   <form id="m-form" autocomplete="off">
-   <label for="m-key">Key</label><input type="password" id="m-key" maxlength="40" autocomplete="new-password" autocapitalize="none" spellcheck="false">
+   <label for="m-key">Password</label><input type="password" id="m-key" maxlength="100" autocomplete="current-password" autocapitalize="none" spellcheck="false">
    <p><button class="go" type="submit">Log in</button></p>
    <p class="note" id="m-err" role="alert" hidden></p>
+   <p class="note"><a href="password.html#recover" id="m-forgot">Forgot your password?</a> <span id="m-first" hidden>First time: log in with the temporary key, then <a href="password.html">choose your own password</a>.</span></p>
   </form>
  </section>
  <section class="panel" id="m-choice" hidden>
   <h3 style="margin:.1rem 0 .8rem">What would you like to do?</h3>
   <div class="choices"><a class="go" href="quiz-host.html">Run quiz</a><a class="go" href="attendance.html">Take attendance</a><a class="go alt" href="control.html">Control Centre</a><a class="go alt" href="insights.html">Teaching insights</a><a class="go alt" href="codes.html">Access codes</a><a class="go alt" href="groups.html">Student groups</a><a class="go alt" href="assignments.html">Group assignments</a><a class="go alt" href="outcomes.html">Learning objectives</a><a class="go alt" href="calendar.html">Calendar</a><a class="go alt" href="messages.html">Messages</a></div>
-  <p><button class="go alt" type="button" id="m-out">Log out</button></p>
+  <p><a class="go alt" href="password.html">Change password</a> <button class="go alt" type="button" id="m-out">Log out</button></p>
  </section>
 </div>
 <script>
@@ -67,12 +68,13 @@ function ok(){$("m-login").hidden=true;$("m-choice").hidden=false;if(location.se
 function check(k,first){
  jsonp("action=hostcheck&hostkey="+encodeURIComponent(k),function(d){
   if(d&&d.ok){saveKey(k);ok();return}
-  if(first){$("m-err").textContent=d?"That key was not accepted.":"Could not reach the class sheet. Check the connection.";$("m-err").hidden=false}
+  if(first){$("m-err").textContent=d?"That password was not accepted.":"Could not reach the class sheet. Check the connection.";$("m-err").hidden=false}
   else{try{sessionStorage.removeItem("cm_hk")}catch(x){}}
  });
 }
-$("m-form").addEventListener("submit",function(e){e.preventDefault();var k=$("m-key").value.trim();if(!k){$("m-err").textContent="Enter the key.";$("m-err").hidden=false;return}$("m-err").hidden=true;check(k,true)});
+$("m-form").addEventListener("submit",function(e){e.preventDefault();var k=$("m-key").value.trim();if(!k){$("m-err").textContent="Enter the password.";$("m-err").hidden=false;return}$("m-err").hidden=true;check(k,true)});
 $("m-out").addEventListener("click",signOut);
+CM.call("action=password_status",function(d){if(d&&d.ok&&!d.chosen)$("m-first").hidden=false});
 if(KEY)check(KEY,false);
 })();
 </script>

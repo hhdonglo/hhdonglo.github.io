@@ -11,6 +11,7 @@ Written 9 November 2026. A description of the class management tool as it stands
 The class management tool runs one course from three layers: static pages that students and the lecturer open in a browser, one server script that holds every rule, and a private workbook that stores every record. It serves PHYS 143 (12 lectures plus an introduction, 347 practice questions) and is built so that the course content can be replaced.
 
 - **Pages** (HTML and JavaScript, no framework): the student portal, course and lecture pages, practice quizzes, mock exam, live quiz pages, attendance pages, lecturer menu and Control Centre. They read the question banks and course data as JSON files.
+- **Lecturer password** (`password.html`, `assets/password.js`, `apps_script/src/06-password.gs`): choose, change and recover the lecturer password. See README.md, "Lecturer password".
 - **Server script** (`apps_script/quiz_receiver.gs`, built from the modules in `apps_script/src/` by `apps_script/build.js`): every live action goes through it, with `doGet` for reads (JSONP) and `doPost` for submissions. It checks the host key, scores answers, records attendance and rebuilds the mark tabs.
 - **Workbook**: the tabs listed under Data model. In the website version it is the Google Sheet "PHYS 143 Quizzes (Responses)". In the desktop app it is a file on the lecturer's computer.
 

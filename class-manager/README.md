@@ -13,6 +13,16 @@ No student data, class list or host key is stored in this folder.
 
 **Desktop app.** `desktop/` turns this folder into an installable app for colleagues (Windows, macOS, Linux). It runs everything from the lecturer's laptop with no Google account, keeps results on that laptop, and on first launch asks for the course details, the class list and the course materials. See [`desktop/README.md`](desktop/README.md).
 
+## Lecturer password
+
+The lecturer signs in with a password that the lecturer chooses (the host key of earlier versions). A new Sheet or desktop course starts with a temporary key; the first time, sign in on `lecturer.html` with it and follow "choose your own password" (`password.html`).
+
+- **Set.** Open `password.html`, enter the temporary key, then your new password twice (10 to 100 characters; a few words are fine). The page then shows a **recovery code** once. Write it down or keep it in a password manager.
+- **Change.** Open `password.html` (also "Change password" on the lecturer menu). It needs the current password. A new recovery code is shown and the old one stops working. All lecturer sign-ins end.
+- **Forgot it.** On the login page choose "Forgot your password?", enter the recovery code and a new password. The code works once; a new one is shown. Five wrong codes block recovery for an hour.
+- **Lost both.** Google Sheet version: the Sheet's owner opens Extensions, Apps Script, chooses `resetHostKey` and Run; the temporary key appears in the execution log. Desktop app: on the home screen choose "Reset password (lost it)" and confirm; the temporary key appears at the top. Either way, choose a new password straight away.
+- **Safety.** Only a slow salted hash is stored. Ten wrong passwords in ten minutes lock sign-in for the rest of that time. Code: `apps_script/src/06-password.gs`; tests: `desktop/test/password.test.js`.
+
 ## Layout
 
 ```
@@ -24,7 +34,8 @@ class-manager/
   mock-exam.html             mock exam: 50 past examination questions, 2 hours 30 minutes
   quiz.html                  live quiz, student page
   attend.html                attendance check-in, student page (opened by the QR code)
-  lecturer.html              lecturer login and menu (needs the host key)
+  lecturer.html              lecturer login and menu (needs the lecturer password)
+  password.html              choose, change or recover the lecturer password
   quiz-host.html             live quiz dashboard
   quiz-display.html          live quiz projector view
   attendance.html            start and close attendance, live count, QR code

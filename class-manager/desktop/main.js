@@ -662,6 +662,13 @@ on("cm:backupImport", async (c, e, pass) => {
 });
 on("cm:openContent", (c) => { const d = registry.dirs(c.id).course; fs.mkdirSync(d, { recursive: true }); return shell.openPath(d); });
 on("cm:run", (c, e, name) => { if (["refreshTotals", "rebuildMaster", "buildNamedAttendance"].includes(name)) { c.backend.run(name); c.backend.flush(); return true; } return false; });
+// Lost both the lecturer password and the recovery code: the person at this computer may reset it (password-reset path, see README "Lecturer password").
+on("cm:resetPassword", async (c, e) => {
+  const r = await dialog.showMessageBox(winOf(e), { type: "warning", buttons: ["Reset password", "Cancel"], defaultId: 1, cancelId: 1, title: "Reset the lecturer password",
+    message: "Reset the lecturer password for this course?", detail: "A temporary key is shown on the home screen, the recovery code is removed and every lecturer sign-in ends. Choose a new password straight afterwards." });
+  if (r.response !== 0) return false;
+  c.backend.run("resetHostKey"); c.backend.flush(); return true;
+});
 on("cm:googleSignIn", async (c) => { try { return await c.google.signIn().then(() => c.google.syncNow()); } catch (e) { return Object.assign(c.google.status(), { lastError: e.message }); } });
 // ---------- resources and question authoring (app/author.html) ----------
 const DOC_TYPES = [{ name: "Teaching material", extensions: ["pdf", "docx", "pptx", "md", "markdown", "txt"] }];
