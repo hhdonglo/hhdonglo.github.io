@@ -640,6 +640,9 @@ on("cm:exportPack", async (c, e) => {
   try { await c.course.exportPack(r.filePath, c.settings); shell.showItemInFolder(r.filePath); return { ok: true, file: r.filePath }; } catch (err) { return { ok: false, why: err.message }; }
 });
 on("cm:tab", (c, e, name) => c.backend.tab(String(name)));
+// Remove a student from the class and put the student back (remove-student.js): nothing is deleted, Restore undoes it.
+on("cm:removeStudent", (c, e, id) => { const r = require("./remove-student").remove(c.backend, id); if (r.ok) c.backend.flush(); return r; });
+on("cm:restoreStudent", (c, e, id) => { const r = require("./remove-student").restore(c.backend, id); if (r.ok) c.backend.flush(); return r; });
 on("cm:export", async (c, e) => {
   const r = await dialog.showOpenDialog(winOf(e), { title: "Choose a folder for the results", properties: ["openDirectory", "createDirectory"] });
   if (r.canceled || !r.filePaths[0]) return null;

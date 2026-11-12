@@ -16,6 +16,7 @@ Charts for the Learning Progress screen of the desktop app. Each file draws one 
 | `scatter.js` | Does coming to class go with doing well? | One dot per student, attendance across and quiz average up; the relationship is stated in words only from 10 students |
 | `days.js` | (day logic) | The class days in order (sessions and quizzes merged by date), today or the latest day first, figures per student "up to" or "on" a day |
 | `panel.js` | (the dashboard panel) | Day selector with previous and next, range, measure and outlier limit; redraws only the graphs when the backend's data stamp changes (`cm:stamp`), keeping the chosen day |
+| `panel.js` regions | Which students are in this part of the graph? | Click a histogram band, a box or a quarter of the scatter (or press Enter on it): the students in it are listed above the graphs, each opening the student, and the list follows the data as they change |
 | `charts.css` | (styles) | Uses CM's colour tokens, so dark and light themes both work |
 
 ## Rules for every chart

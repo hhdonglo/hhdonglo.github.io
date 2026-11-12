@@ -55,6 +55,7 @@ kbd{font:600 .78rem ui-monospace,monospace;color:var(--faint);letter-spacing:.02
 .chip.live .dot{background:var(--ok);box-shadow:0 0 0 3px rgba(76,195,138,.18)}
 .chip.busy .dot{background:var(--warn)}
 .keybox{display:inline-flex;align-items:center;gap:.6rem;font-size:var(--fs-sm);color:var(--muted);white-space:nowrap}
+#tbl tr.off td{background:rgba(224,178,84,.14)}#tbl tr.off td:first-child{box-shadow:inset 4px 0 0 var(--g-hard)}.integrity{margin:0;padding:.7rem 1rem;color:var(--g-hard);border-bottom:1px solid var(--line)}#tbl tr.rm{cursor:pointer}#tbl tr.rm:hover td,#tbl tr.rm:focus-visible td{background:var(--hover,rgba(255,255,255,.07))}#tbl tr.rm:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 .livewrap{position:relative}.livemenu{position:absolute;top:calc(100% + 6px);left:0;z-index:30;min-width:15rem;padding:.5rem;border:1px solid var(--line);border-radius:10px;background:var(--card);box-shadow:0 8px 24px rgba(0,0,0,.35)}
 .livemenu .lbl{margin:.2rem .5rem .4rem;font-size:var(--fs-sm);color:var(--muted)}.livemenu button{display:block;width:100%;text-align:left;padding:.5rem .7rem;border:0;border-radius:6px;background:none;color:var(--text);cursor:pointer}.livemenu button:hover,.livemenu button:focus-visible{background:var(--hover,rgba(255,255,255,.08))}.livemenu button[aria-checked=true]::before{content:"✓ "}
 #live{cursor:pointer;border:0;color:inherit}
@@ -701,6 +702,8 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
 </section>
 </main>
 
+<dialog id="rm-d" aria-labelledby="rm-h" style="width:min(34rem,94vw)"><h2 id="rm-h"></h2><p><b id="rm-t"></b></p><p class="note" id="rm-p"></p><p class="note" id="rm-msg" role="status"></p>
+ <p class="row"><button class="btn" type="button" id="rm-cancel">Cancel</button><button class="btn primary" type="button" id="rm-go"></button></p></dialog>
 <dialog id="bk-d" aria-labelledby="bk-dh">
  <h2 id="bk-dh">Passphrase</h2>
  <p class="note" id="bk-dnote"></p>
@@ -823,6 +826,7 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
 <script src="charts/progress-over-time.js"></script>
 <script src="charts/bars.js"></script>
 <script src="charts/engagement.js"></script>
+<script src="headings.js"></script>
 <script src="charts/stats.js"></script>
 <script src="charts/days.js"></script>
 <script src="charts/distribution.js"></script>
@@ -978,11 +982,30 @@ function show(info){
  $("sb-right").textContent="Data folder: "+info.dataFolder;$("sb-right").title=info.dataFolder;
 }
 
-/* ---- grades table: full width, sortable, filterable ---- */
+/* ---- grades table: full width, sortable, filterable; a student row can be clicked to remove (or restore) the student ---- */
 var rows=[],sortCol=-1,sortDir=1;
+/* Roster integrity: the class list is the source of truth. Rows in record tabs for IDs that are not on it are marked and counted. */
+var ID_COL={"Form Responses 1":2,Attempts:1,Item_Log:4,Attendance_Log:2,Records:1,Student_Notes:1},offList=null;
+function isOff(r){return offList&&ID_COL[cur]!==undefined&&!offList[String(r[ID_COL[cur]]||"").replace(/\D/g,"")]&&String(r[ID_COL[cur]]||"").replace(/\D/g,"")!==""}
+var REMOVABLE={Roster:1,Master:1,Scores:1,Totals:1,Attendance:1,Removed_Students:1};
+function rowKey(r){ /* the student ID and name of a row, or null when the table is not about students */
+ if(!REMOVABLE[cur])return null;var rs=cur==="Removed_Students",id=String(r[rs?1:0]||"").trim();
+ return/^\d{4,12}$/.test(id)?{id:id,name:String(r[rs?2:(cur==="Roster"||cur==="Master"?1:0)]||"").trim()}:null}
+var rmId="",rmRestore=false,openedAt={}; /* Attendance: the time each session was opened, shown beside its date in the column heading */
+function rmOpen(id,name){
+ rmId=id;rmRestore=cur==="Removed_Students";
+ $("rm-h").textContent=rmRestore?"Restore this student?":"Remove this student from the class?";
+ $("rm-t").textContent=(name||"No name")+" ("+id+")";
+ $("rm-p").textContent=rmRestore?"The student goes back on the class list with every row as it was.":"The student leaves the class list, attendance, marks and totals. Nothing is deleted: the records are set aside in Removed_Students, and you can restore the student from there at any time.";
+ $("rm-go").textContent=rmRestore?"Restore":"Remove from the class";$("rm-msg").textContent="";$("rm-d").showModal();$("rm-cancel").focus()}
+document.addEventListener("click",function(e){var tr=e.target.closest&&e.target.closest("#tbl tr[data-rm]");if(tr)rmOpen(tr.getAttribute("data-rm"),tr.getAttribute("data-nm"))});
+document.addEventListener("keydown",function(e){if(e.key!=="Enter")return;var tr=e.target.closest&&e.target.closest("#tbl tr[data-rm]");if(tr){e.preventDefault();rmOpen(tr.getAttribute("data-rm"),tr.getAttribute("data-nm"))}});
 function view(){
  cur=$("tab").value;if(!cur)return;
- cmApp.tab(cur).then(function(r){rows=r||[];sortCol=-1;draw()});
+ cmApp.tab(cur).then(function(r){rows=r||[];sortCol=-1;offList=null;openedAt={};
+  if(cur==="Attendance")return cmApp.tab("Attendance_Control").then(function(c){(c||[]).slice(1).forEach(function(x){var t=/(\d{1,2}:\d{2})/.exec(String(x[3]||""));if(t&&!openedAt[String(x[1]).trim()])openedAt[String(x[1]).trim()]=t[1]});draw()});
+  if(ID_COL[cur]===undefined)return draw();
+  return cmApp.tab("Roster").then(function(ro){var on={};(ro||[]).slice(1).forEach(function(x){on[String(x[0]).replace(/\D/g,"")]=1});offList=on;draw()})})
 }
 function draw(){
  if(!rows.length){$("tbl").innerHTML="<p class='note' style='padding:.8rem 1rem'>Empty.</p>";return}
@@ -991,12 +1014,18 @@ function draw(){
  if(sortCol>=0)body=body.slice().sort(function(a,b){var x=a[sortCol],y=b[sortCol],nx=parseFloat(x),ny=parseFloat(y);
   if(!isNaN(nx)&&!isNaN(ny)&&String(nx)===String(x).trim()&&String(ny)===String(y).trim())return(nx-ny)*sortDir;
   return String(x==null?"":x).localeCompare(String(y==null?"":y),undefined,{numeric:true})*sortDir});
- var n=body.length;
- $("tbl").innerHTML="<table><thead><tr>"+rows[0].map(function(h,i){return"<th scope='col' tabindex='0' data-c='"+i+"'"+(i===sortCol?" aria-sort='"+(sortDir>0?"ascending":"descending")+"'":"")+">"+esc(h)+"</th>"}).join("")+"</tr></thead><tbody>"+body.slice(0,1000).map(function(r){return"<tr>"+r.map(function(v){return"<td>"+esc(v)+"</td>"}).join("")+"</tr>"}).join("")+"</tbody></table>"+(n>1000?"<p class='note' style='padding:.6rem 1rem'>First 1000 of "+n+" rows shown. Export to see all.</p>":"");
+ var n=body.length,offN=offList?rows.slice(1).filter(isOff).length:0;
+ $("tbl").innerHTML=(offN?"<p class='integrity' role='alert'><b>"+offN+(offN===1?" row is":" rows are")+" for IDs that are not on the class list.</b> The class list is the source of truth, so these rows are marked and are not counted in any class figure. Check the IDs. If a student belongs in the class, add the student to the class list first.</p>":"")+"<table><thead><tr>"+rows[0].map(function(h,i){return"<th scope='col' tabindex='0' data-c='"+i+"'"+(i===sortCol?" aria-sort='"+(sortDir>0?"ascending":"descending")+"'":"")+" title='"+esc(h)+"'>"+esc(window.cmHeadings?cmHeadings.readable(h):h)+(cur==="Attendance"&&openedAt[String(h).trim()]?" · "+esc(openedAt[String(h).trim()]):"")+"</th>"}).join("")+"</tr></thead><tbody>"+body.slice(0,1000).map(function(r){var k=rowKey(r);return"<tr"+(isOff(r)?" class='off' title='This ID is not on the class list'":"")+(k?" class='rm' tabindex='0' title='Click to "+(cur==="Removed_Students"?"restore":"remove")+" this student' data-rm='"+esc(k.id)+"' data-nm='"+esc(k.name)+"'":"")+">"+r.map(function(v){return"<td>"+esc(v)+"</td>"}).join("")+"</tr>"}).join("")+"</tbody></table>"+(offN?"":"")+(n>1000?"<p class='note' style='padding:.6rem 1rem'>First 1000 of "+n+" rows shown. Export to see all.</p>":"");
  $("tbl").querySelectorAll("th").forEach(function(th){var f=function(){var c=+th.getAttribute("data-c");sortDir=c===sortCol?-sortDir:1;sortCol=c;draw();var t=$("tbl").querySelector("th[data-c='"+c+"']");if(t)t.focus()};th.addEventListener("click",f);th.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();f()}})});
 }
 $("filter").addEventListener("input",draw);
 $("roster-view").addEventListener("click",function(){cur="Roster";go("grades")});
+
+$("rm-cancel").addEventListener("click",function(){$("rm-d").close()});
+$("rm-go").addEventListener("click",function(){
+ $("rm-msg").textContent="Working…";
+ (rmRestore?cmApp.restoreStudent(rmId):cmApp.removeStudent(rmId)).then(function(r){
+  if(r&&r.ok){$("rm-d").close();cmApp.info().then(show).then(view)}else $("rm-msg").textContent=(r&&r.why)||"Not done."})});
 
 function gshow(g){
  var t=$("g-text");

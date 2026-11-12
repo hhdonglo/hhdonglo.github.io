@@ -15,6 +15,12 @@
     var W = 420, H = 300, pl = 40, pb = 34, pt = 10, pr = 12, x = function (v) { return pl + (W - pl - pr) * v / 100; }, y = function (v) { return pt + (H - pt - pb) * (1 - v / 100); };
     var svg = "<svg class='scat' viewBox='0 0 " + W + " " + H + "' role='img' aria-label='Scatter of attendance against " + C.esc((opt.yLabel || "performance").toLowerCase()) + ", " + rows.length + " students'>";
     [0, 50, 100].forEach(function (g) { svg += "<line class='pt-grid' x1='" + pl + "' x2='" + (W - pr) + "' y1='" + y(g) + "' y2='" + y(g) + "'/><text class='pt-ax' x='" + (pl - 5) + "' y='" + (y(g) + 4) + "' text-anchor='end'>" + g + "</text><text class='pt-ax' x='" + x(g) + "' y='" + (H - 16) + "' text-anchor='middle'>" + g + "</text>"; });
+    var mx = S.mean(rows.map(function (r) { return r.x; })), my = S.mean(rows.map(function (r) { return r.y; }));
+    [[0, 0, "ll", "lower attendance and lower performance"], [1, 0, "lr", "higher attendance and lower performance"], [0, 1, "ul", "lower attendance and higher performance"], [1, 1, "ur", "higher attendance and higher performance"]].forEach(function (q) {
+      var x0 = q[0] ? x(mx) : x(0), x1 = q[0] ? x(100) : x(mx), y0 = q[1] ? y(100) : y(my), y1 = q[1] ? y(my) : y(0);
+      svg += "<rect class='gx-region gx-quad' data-gx='quad:" + q[2] + "' tabindex='0' role='button' aria-label='" + q[3] + ". Show them.' x='" + x0 + "' y='" + y0 + "' width='" + (x1 - x0) + "' height='" + (y1 - y0) + "'/>";
+    });
+    svg += "<line class='dist-sd' x1='" + x(mx) + "' x2='" + x(mx) + "' y1='" + y(100) + "' y2='" + y(0) + "'/><line class='dist-sd' x1='" + x(0) + "' x2='" + x(100) + "' y1='" + y(my) + "' y2='" + y(my) + "'/>";
     rows.forEach(function (r) { svg += "<g class='scat-dot' data-student='" + C.esc(r.id) + "' tabindex='0'><title>" + C.esc((r.name || r.id) + ": attendance " + S.r1(r.x) + "%, " + S.r1(r.y) + "%") + "</title><circle cx='" + x(r.x) + "' cy='" + y(r.y) + "' r='5'/></g>"; });
     svg += "<text class='pt-ax' x='" + (pl + (W - pl - pr) / 2) + "' y='" + (H - 2) + "' text-anchor='middle'>Attendance (%)</text></svg>";
     var small = rows.length < S.MIN, r = small ? null : S.pearson(rows.map(function (p) { return { x: p.x, y: p.y }; }));
