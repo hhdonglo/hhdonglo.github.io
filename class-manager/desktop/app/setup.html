@@ -132,7 +132,7 @@ html{font-size:clamp(15px,calc(9.5px + .42vw),19px)}
  <p class="why">Add your lectures one by one, with their slides, handouts and tutorial sheets. Students then find them on the portal. If a colleague or an earlier year prepared a course pack, import it instead and everything comes in at once.</p>
  <div class="card">
   <h3 style="margin-top:0">Course pack <span class="opt">(optional)</span></h3>
-  <p class="why">A course pack (.zip) holds a whole course: details, lectures, files and question banks. Importing one replaces the course content in CM; class records are not touched.</p>
+  <p class="why">A course pack (a .zip, or the pack folder itself) holds a whole course: details, lectures, files and question banks. Importing one replaces the course content in CM; class records are not touched.</p>
   <p><button type="button" id="pk-import">Import a course pack</button><button type="button" id="pk-export">Export this course as a pack</button></p>
   <p class="msg" id="pk-msg" role="status"></p>
  </div>
@@ -289,7 +289,7 @@ $("f-lec").addEventListener("submit",function(e){e.preventDefault();
 $("pk-import").addEventListener("click",function(){
  if(LECS.length&&!confirm("Importing a course pack replaces the lectures, files and question banks of this course. Class records are kept. Continue?"))return;
  $("pk-msg").textContent="Importing…";
- cmApp.importPack().then(function(r){if(!r){$("pk-msg").textContent="";return}$("pk-msg").textContent=r.ok?"Imported "+(r.name||"the course pack")+" ("+r.files+" files).":"Not imported: "+r.why;if(r.ok)load()})});
+ cmApp.importPack().then(function(r){if(!r){$("pk-msg").textContent="";return}$("pk-msg").textContent=!r.ok?"Not imported: "+r.why:r.files?"Imported "+(r.name||"the course pack")+" ("+r.files+" files).":"This pack holds only the course details and no course files, so the details were filled in and the existing course content was left as it is. Export the pack again from the full course, or choose the course folder with Fill from the course folder.";if(r.ok)load()})});
 $("pk-export").addEventListener("click",function(){cmApp.exportPack().then(function(r){if(r)$("pk-msg").textContent=r.ok?"Exported to "+r.file:"Not exported: "+r.why})});
 $("lib-add").addEventListener("click",function(){$("lib-msg").textContent="Reading the files…";cmApp.libAdd(null).then(function(r){$("lib-msg").textContent=r?"Added to the library. Open “Resources and questions” on the home screen to work with them.":"";cmApp.setup().then(function(d){marks(d.setup)})}).catch(function(e){$("lib-msg").textContent="Not added: "+(e&&e.message||e)})});
 $("q-import").addEventListener("click",function(){location.href="author.html#imp"});

@@ -33,7 +33,7 @@ function ok(y, mo, d) { const t = new Date(Date.UTC(y, mo - 1, d)); return t.get
 
 const cellText = (v) => (v instanceof Date ? isoDate(v) : String(v == null ? "" : v).trim());
 const CODE = /\b([A-Z]{2,5})[\s_-]?(\d{3,4}[A-Z]?)\b/g;
-const SEMESTER = /\b(first|second|third|1st|2nd|3rd)\s+semester\s+(\d{4}(?:\/\d{2,4})?)/i;
+const SEMESTER = /\b(first|second|third|1st|2nd|3rd)\s+semester,?\s+(\d{4}(?:\/\d{2,4})?)/i;
 const TIMES = /\b((?:mon|tues|wednes|thurs|fri|satur|sun)day)\s+(\d{1,2})[:.](\d{2})\s*(?:to|-|–)\s*(\d{1,2})[:.](\d{2})/i;
 
 function codesIn(text, count) {
@@ -92,7 +92,9 @@ function findDetails(sources, today) {
       if (/^(semester|term|trimester)\s*\d[^:]{0,30}$/i.test(ln)) set("semester", ln, file);
     });
     // "Teaching: 2 November 2026 to 20 February 2027": a line about the semester or teaching dates with two dates gives the first and last day.
-    docLines.slice(0, 300).forEach((ln) => {
+    // Long sentences are read too (an outline often gives the dates inside a paragraph), one sentence at a time.
+    const sentences = (String(src.text || "") + "\n" + lines.join("\n")).split(/\r?\n|(?<=[.;:])\s+(?=[A-Z])/).map((x) => x.trim()).filter((x) => x && x.length < 400).slice(0, 600);
+    sentences.forEach((ln) => {
       if (!/(teaching|semester|term|duration|dates|period|runs)/i.test(ln)) return;
       const m2 = /(\d{1,2}(?:st|nd|rd|th)?\s+[A-Za-z]{3,9}\.?,?\s+\d{4}|\d{1,2}[\/.]\d{1,2}[\/.]\d{4}|\d{4}-\d{2}-\d{2})\s*(?:to|until|till|through|[-–—])\s*(\d{1,2}(?:st|nd|rd|th)?\s+[A-Za-z]{3,9}\.?,?\s+\d{4}|\d{1,2}[\/.]\d{1,2}[\/.]\d{4}|\d{4}-\d{2}-\d{2})/.exec(ln);
       if (m2 && isoDate(m2[1]) && isoDate(m2[2])) { set("start", isoDate(m2[1]), file); set("end", isoDate(m2[2]), file); }

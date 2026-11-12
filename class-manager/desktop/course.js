@@ -135,16 +135,34 @@ function createCourse(opts) {
   }
 
   // ---------- course packs ----------
+  // A folder chosen instead of a zip: the pack folder itself or a folder with the pack one or two levels down. Read like a zip, without hidden files.
+  async function zipOfFolder(root) {
+    const zip = new JSZip(); let n = 0;
+    (function walk(dir, rel, depth) {
+      let ents; try { ents = fs.readdirSync(dir, { withFileTypes: true }); } catch (e) { return; }
+      for (const e of ents) {
+        if (e.name.startsWith(".") || e.name.startsWith("~$") || e.isSymbolicLink() || n > 20000) continue;
+        const full = path.join(dir, e.name), r = rel ? rel + "/" + e.name : e.name;
+        if (e.isDirectory()) { if (depth < 12 && e.name !== "node_modules") walk(full, r, depth + 1); }
+        else if (e.isFile()) { zip.file(r, fs.readFileSync(full)); n++; }
+      }
+    })(root, "", 0);
+    return zip;
+  }
   async function importPack(file) {
-    const zip = await JSZip.loadAsync(fs.readFileSync(file));
-    const cj = zip.file("course.json");
-    if (!cj) throw new Error("This is not a Class Manager course pack (course.json is missing).");
-    const meta = JSON.parse(await cj.async("string"));
+    const zip = fs.statSync(file).isDirectory() ? await zipOfFolder(file) : await JSZip.loadAsync(fs.readFileSync(file));
+    // course.json at the top of the zip, or inside one wrapper folder (a zip made by compressing the pack folder itself).
+    const cjName = zip.file("course.json") ? "course.json" : Object.keys(zip.files).filter((n) => /^[^/]+(\/[^/]+)?\/course\.json$/.test(n) && !/^__MACOSX\//.test(n)).sort((a, b) => a.length - b.length)[0];
+    if (!cjName) throw new Error("This is not a Class Manager course pack (course.json is missing).");
+    const base = cjName.slice(0, cjName.length - "course.json".length); // "" or "Folder/"
+    const meta = JSON.parse(await zip.file(cjName).async("string"));
     if (meta.format !== "class-manager-course") throw new Error("This is not a Class Manager course pack.");
+    const names = Object.keys(zip.files).filter((n) => n.startsWith(base + "files/") && !zip.files[n].dir && !/(^|\/)(\.DS_Store|~\$[^/]*)$/.test(n));
+    // A pack with no files (only course.json) gives the course details but must not replace the course content with nothing.
+    if (!names.length) return { settings: meta.settings || {}, name: meta.name || "", files: 0, replaced: false };
     const tmp = DIR + ".import"; fs.rmSync(tmp, { recursive: true, force: true }); fs.mkdirSync(tmp, { recursive: true });
-    const names = Object.keys(zip.files).filter((n) => n.startsWith("files/") && !zip.files[n].dir);
     for (const n of names) {
-      const rel = n.slice(6);
+      const rel = n.slice(base.length + 6);
       if (!rel || /(^|\/)\.\.(\/|$)/.test(rel) || path.isAbsolute(rel)) continue;
       const out = path.join(tmp, rel);
       if (!inside(tmp, out)) continue;
@@ -155,7 +173,7 @@ function createCourse(opts) {
     fs.rmSync(old, { recursive: true, force: true });
     if (fs.existsSync(DIR)) fs.renameSync(DIR, old); // kept until the next import, in case it is needed again
     fs.renameSync(tmp, DIR);
-    return { settings: meta.settings || {}, name: meta.name || "", files: names.length };
+    return { settings: meta.settings || {}, name: meta.name || "", files: names.length, replaced: true };
   }
   async function exportPack(file, settings) {
     const zip = new JSZip();
