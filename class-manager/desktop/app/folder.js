@@ -111,6 +111,18 @@
     body.querySelector("#fld-back2").onclick = function () { busy("Looking at the folder…"); cmApp.autoScan({}).then(found); };
   }
 
+  // What is being imported, in plain terms, before anything is applied.
+  function summaryHtml(sm, rep) {
+    if (!sm) return "";
+    var as = sm.assessments.slice(0, 12).map(function (a) { return "<li>" + esc(a.category) + ": " + esc(a.name) + (a.date ? ", " + esc(a.date) : "") + (a.lecture ? ", lecture/week " + esc(a.lecture) : "") + " <span class='note'>(" + n(a.students) + " students)</span></li>"; }).join("");
+    return "<section class='card' aria-labelledby='fs-h'><h3 id='fs-h'>Import summary</h3>" +
+      "<p><strong>Record types:</strong> " + esc(sm.types.join(", ") || "none") + "</p>" +
+      (as ? "<ul class='note'>" + as + (sm.assessments.length > 12 ? "<li>and " + (sm.assessments.length - 12) + " more</li>" : "") + "</ul>" : "") +
+      (sm.sessions.length ? "<p class='note'>Attendance sessions: " + esc(sm.sessions.join(", ")) + "</p>" : "") +
+      "<p>Matched students: <strong>" + n(sm.matched) + "</strong> · New students: <strong>" + n(sm.added) + "</strong> · Duplicates: <strong>" + n(sm.duplicates) + "</strong> · Unknown IDs: <strong>" + n(sm.unknown) + "</strong></p>" +
+      "<ul class='note'>" + sm.actions.map(function (x) { return "<li>✓ " + esc(x) + "</li>"; }).join("") + "</ul></section>";
+  }
+
   function tableRow(t) {
     var inFile = t.tab === "Attendance" ? n(t.total) + " students" : n(t.total);
     var added = t.tab === "Attendance" ? n(t.add) + " marks" + (t.newSessions && t.newSessions.length ? ", " + t.newSessions.length + " new session" + (t.newSessions.length === 1 ? "" : "s") : "") : n(t.add);
@@ -125,7 +137,7 @@
       "<p class='row'><button class='btn' type='button' id='fld-export'>Export the working file…</button><button class='btn' type='button' id='fld-open'>Open the working folder</button></p>" +
       "<p>Class list: <strong>" + n(st.classList) + "</strong> students in this course. <strong>" + n(st.withData) + "</strong> have records in the files." + (st.notOnList ? " <strong>" + n(st.notOnList) + "</strong> other IDs are not on the class list and are left out unless you add them." : "") + "</p>" +
       ((st.notOnList || st.toAdd || !st.classList) ? "<label style='display:block;margin:.6rem 0'><input type='checkbox' id='fld-add'" + (opts.addMissing ? " checked" : "") + "> Add the students in the files to the class list" + (st.toAdd ? " (" + n(st.toAdd) + " would be added)" : "") + "</label>" : "") +
-      (window.cmFolderCourse ? cmFolderCourse.html(courseFields, courseTopics, courseExisting) : "") +
+      summaryHtml(r.summary, rep) + (window.cmFolderCourse ? cmFolderCourse.html(courseFields, courseTopics, courseExisting) : "") +
       (st.namesFilled ? "<p class='note'>" + n(st.namesFilled) + " student(s) on the class list had no name; the files give it.</p>" : "") + flaggedHtml(st) + conflictsHtml(st) + table + (rep.warnings || []).map(function (x) { return "<p class='msg'>" + esc(x) + "</p>"; }).join("") +
       (qn ? "<p>The files also hold <strong>" + n(qn) + "</strong> quiz question set(s). <button class='btn' type='button' id='fld-q'>Send them to the review queue</button> <span class='note' id='fld-qmsg' role='status'>You approve each question before students see it.</span></p>" : "") +
       (rep.changes ? "<p class='note'>A backup is made first. Records already here are never changed, and loading the same files again adds nothing.</p>" : "<p class='msg'>Nothing in these files is new to this course.</p>") +
@@ -136,7 +148,7 @@
     body.querySelector("#fld-export").onclick = function () { cmApp.autoExport().then(function (x) { if (x && !x.ok) alert(x.why); }); };
     body.querySelector("#fld-open").onclick = function () { cmApp.autoOpenWorking(); };
     var add = body.querySelector("#fld-add");
-    if (add) add.onchange = function () { opts.addMissing = add.checked; cmApp.importPlan({ addMissing: opts.addMissing }).then(function (x) { if (x && x.ok) show({ ok: true, name: r.name, working: r.working, addMissing: opts.addMissing, report: x.report }); }); };
+    if (add) add.onchange = function () { opts.addMissing = add.checked; cmApp.importPlan({ addMissing: opts.addMissing }).then(function (x) { if (x && x.ok) show({ ok: true, name: r.name, working: r.working, addMissing: opts.addMissing, report: x.report, summary: r.summary }); }); };
     var q = body.querySelector("#fld-q");
     if (q) q.onclick = function () { cmApp.autoQuestions({ ids: chosenIds }).then(function (x) { body.querySelector("#fld-qmsg").textContent = x.ok ? n(x.added) + " question(s) are in the review queue (Author, Drafts)." + (x.flagged ? " " + x.flagged + " could not be read as complete questions." : "") : x.why; q.disabled = !!x.ok; }); };
     var go = body.querySelector("#fld-go");

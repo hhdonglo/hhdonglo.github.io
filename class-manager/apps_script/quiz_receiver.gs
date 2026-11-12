@@ -1,4 +1,4 @@
-// GENERATED FILE: do not edit. Built by apps_script/build.js from apps_script/src/ (00-core.gs, 05-auth.gs, 06-password.gs, 10-assessment.gs, 20-attendance.gs, 30-analytics.gs, 40-collaboration.gs, 50-communication.gs, 60-portal.gs, 90-router.gs).
+// GENERATED FILE: do not edit. Built by apps_script/build.js from apps_script/src/ (00-core.gs, 05-auth.gs, 06-password.gs, 10-assessment.gs, 20-attendance.gs, 30-analytics.gs, 35-records.gs, 40-collaboration.gs, 50-communication.gs, 60-portal.gs, 90-router.gs).
 // To deploy in Google Apps Script, paste this whole file into the script editor.
 
 // ===== 00-core.gs =====
@@ -2348,7 +2348,8 @@ function studentStats_(p) {
   if (!me) return { ok: false, why: 'that ID is not on the class list' };
   var ln = { mastery: [], revisit: [], practice: [] }; try { ln = studentLearning_(id); } catch (err) { /* shown without it */ }
   var prof = null; try { prof = studentProfile_(id, all, me); } catch (err) { prof = { error: String(err).slice(0, 160) }; }
-  return { ok: true, student: me, sessions: all.attendance.bySession.map(function (s) { return s.label; }), mastery: ln.mastery, revisit: ln.revisit.slice(0, 15), practice: ln.practice, thresholds: all.thresholds, profile: prof };
+  var rec = { records: [], notes: [] }; try { rec = studentRecords_(id); } catch (err) { /* shown without them */ }
+  return { ok: true, records: rec.records, notes: rec.notes, student: me, sessions: all.attendance.bySession.map(function (s) { return s.label; }), mastery: ln.mastery, revisit: ln.revisit.slice(0, 15), practice: ln.practice, thresholds: all.thresholds, profile: prof };
 }
 
 // ---------- Teaching for learning: outcomes, progress by outcome, ask-discuss-revise evidence, group assignments ----------
@@ -2591,6 +2592,36 @@ function studentProfile_(id, all, me) {
   if (!tips.length) tips.push({ kind: 'On track', text: 'Nothing calls for action. Keep the challenge up: an extension question or a peer-explainer role.' });
   var classNow = {}; classOutcomes_(ev, ev._lects).forEach(function (o) { classNow[o.key] = { current: o.current, students: o.students }; });
   return { progress: sp, classTimeline: classTimeline_(ev), classByKey: classNow, engagement: { attendance: me.attendance, quizzesTaken: me.quizzesTaken, practiceAttempts: me.practiceAttempts, missedInARow: me.missedInARow }, discussion: disc, groupWork: groupWork, groups: studentGroups_(id), strengths: strengths, weak: weak, partners: partners, suggestions: tips };
+}
+
+// ===== 35-records.gs =====
+// Student records beyond attendance and quizzes: laboratory, assignment, practice and group assessment scores (Records tab, filed by
+// category and assessment) and the lecturer's notes about a student (Student_Notes tab). Both are keyed by Student ID and only grow.
+var RECORDS_TAB = 'Records', RECORDS_HEAD = ['Timestamp', 'Student ID', 'Category', 'Assessment', 'Score', 'Out of', 'Lecture'];
+var NOTES_TAB = 'Student_Notes', NOTES_HEAD = ['Timestamp', 'Student ID', 'Note', 'By'];
+
+// One student's records and notes, newest notes first.
+function studentRecords_(id) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet(), out = { records: [], notes: [] };
+  bodyRows_(ss.getSheetByName(RECORDS_TAB), 7).forEach(function (r) {
+    if (normId_(r[1]) !== id) return;
+    out.records.push({ date: r[0] instanceof Date ? Utilities.formatDate(r[0], Session.getScriptTimeZone(), 'yyyy-MM-dd') : String(r[0] || ''), category: String(r[2]), assessment: String(r[3]),
+      score: r[4] === '' ? null : Number(r[4]), outOf: r[5] === '' ? null : Number(r[5]), lecture: String(r[6] || '') });
+  });
+  bodyRows_(ss.getSheetByName(NOTES_TAB), 4).forEach(function (r) {
+    if (normId_(r[1]) === id) out.notes.push({ time: r[0] instanceof Date ? r[0].toISOString() : String(r[0] || ''), text: String(r[2]), by: String(r[3] || '') });
+  });
+  out.notes.reverse();
+  return out;
+}
+
+// A note about a student. The ID must be on the class list; the text is limited and never shown to students.
+function studentNoteAdd_(id, text) {
+  id = normId_(id); text = String(text || '').trim().slice(0, 1000);
+  if (!id || !text) return { ok: false, why: 'a student and a note are needed' };
+  if (!rosterRows_().some(function (r) { return normId_(r[0]) === id; })) return { ok: false, why: 'that ID is not on the class list' };
+  append_(NOTES_TAB, NOTES_HEAD, [new Date(), id, text, 'lecturer']);
+  return { ok: true };
 }
 
 // ===== 40-collaboration.gs =====
@@ -3563,6 +3594,7 @@ function route_(e) {
   if (p.action === 'group_work') return jsonp_(e, groupWork_(p)); // a student: ID and access code; their group's assignments
   if (p.action === 'insights') return jsonp_(e, hostOk_(p) ? insights_(p) : { ok: false, why: 'host key not accepted' }); // host only: Teaching insights
   if (p.action === 'class_stats') return jsonp_(e, hostOk_(p) ? classStats_(p) : { ok: false, why: 'host key not accepted' }); // host only: Class statistics
+  if (p.action === 'student_note') return jsonp_(e, hostOk_(p) ? studentNoteAdd_(p.id, p.text) : { ok: false, why: 'host key not accepted' }); // host only: a note about a student
   if (p.action === 'student_stats') return jsonp_(e, hostOk_(p) ? studentStats_(p) : { ok: false, why: 'host key not accepted' }); // host only: one student in Class statistics
   if (p.action === 'access_codes') { // host only: list, create or replace students' personal codes for My results
     if (!hostOk_(p)) return jsonp_(e, { ok: false, why: 'host key not accepted' });

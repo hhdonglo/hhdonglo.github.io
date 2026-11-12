@@ -4,12 +4,13 @@
 // existing import (import-plan.js) previews and applies. Pure: reads nothing from disk and writes nothing.
 "use strict";
 const { detectSheet, blank, text } = require("./detect");
-const { idOf, validId, markOf, numOrBlank, splitFull } = require("./values");
+const { idOf, validId, markOf, numOrBlank, splitFull, scoreCell } = require("./values");
+const { categoryOf, stampOf } = require("./categories");
 const { identify } = require("../import-plan");
 const IV = require("../import-values");
 const { NAME_TABS } = require("../import-specs"); // the web tabs whose names are the lecturer's own (not typed by students)
 
-const emptyClean = () => ({ classList: [], results: [], attempts: [], attendance: { sessions: [], rows: [] }, questions: [] });
+const emptyClean = () => ({ classList: [], results: [], attempts: [], attendance: { sessions: [], rows: [] }, questions: [], records: [] });
 const colsOf = (d) => Object.keys(d.cols).map((f) => ({ field: f, heading: d.cols[f].heading, by: d.cols[f].by })).concat(d.sessions.length ? [{ field: "sessions", heading: d.sessions.length + " session columns", by: "heading" }] : [], d.quizCols.length ? [{ field: "quizzes", heading: d.quizCols.map((q) => q.label).join(", "), by: "heading" }] : []);
 const cell = (r, d, f) => (d.cols[f] ? r[d.cols[f].col] : undefined);
 const bodyOf = (rows, d) => rows.filter((r) => Array.isArray(r) && r.some((c) => !blank(c) && text(c) !== "")).slice(d.header + 1);
@@ -32,16 +33,24 @@ function names(rows, d, into) { // ID and name pairs, whatever else the sheet ho
   return seen;
 }
 
-function scores(rows, d, quizName, out) {
+// Scores become quiz results, or records of another category (laboratory, assignment, practice, group assessment) when the heading says so.
+// A score may be a number or a fraction such as 1/5; each assessment keeps its name, date, time and lecture or week from its heading.
+function scores(rows, d, quizName, out, clean) {
   let kept = 0;
+  const put = (id, label, sc, when) => {
+    const st = stampOf(label), cat = categoryOf(label), date = st.date ? st.date + (st.time ? " " + st.time : "") : (when || "");
+    if (cat === "Quiz" || !clean) out.push([id, st.name, sc.score, sc.total, date]);
+    else clean.records.push([date, id, cat, st.name, sc.score, sc.total, st.lecture]);
+    kept++;
+  };
   bodyOf(rows, d).forEach((r) => {
     const id = idOf(cell(r, d, "id")); if (!validId(id)) return;
     const when = blank(cell(r, d, "date")) ? "" : cell(r, d, "date");
     if (d.cols.score) {
-      const v = numOrBlank(cell(r, d, "score")); if (v === "") return;
-      const quiz = text(cell(r, d, "quiz")) || quizName;
-      out.push([id, quiz, v, numOrBlank(cell(r, d, "out")), when]); kept++;
-    } else d.quizCols.forEach((q) => { const v = numOrBlank(r[q.col]); if (v !== "") { out.push([id, q.label, v, "", when]); kept++; } });
+      const sc = scoreCell(cell(r, d, "score")); if (!sc) return;
+      if (sc.total === "") sc.total = numOrBlank(cell(r, d, "out")); // an "out of" column beside plain scores
+      put(id, text(cell(r, d, "quiz")) || quizName, sc, when);
+    } else d.quizCols.forEach((q) => { const sc = scoreCell(r[q.col]); if (sc) put(id, q.label, sc, when); });
   });
   return kept;
 }
@@ -119,7 +128,7 @@ function extractBook(book, label) {
       const n = names(sh.rows, d, nameMap); bodyOf(sh.rows, d).forEach((r) => { const id = idOf(cell(r, d, "id")); if (validId(id)) rosterIds.add(id); });
       rec.role = "Class list"; rec.status = "used"; rec.rowsKept = n.ids; if (n.bad) rec.note = n.bad + " rows without a valid ID left out";
     } else if (d.kind === "scores") {
-      rec.role = "Quiz scores"; rec.status = "used"; rec.rowsKept = scores(sh.rows, d, text(sh.name) && book.length > 1 ? text(sh.name) : quizName, clean.results);
+      rec.role = "Quiz scores"; rec.status = "used"; rec.rowsKept = scores(sh.rows, d, text(sh.name) && book.length > 1 ? text(sh.name) : quizName, clean.results, clean);
       if (d.cols.id && (d.cols.full || d.cols.first)) names(sh.rows, d, nameMap);
     } else if (d.kind === "attendance") {
       rec.role = "Attendance"; rec.status = "used"; rec.rowsKept = attendance(sh.rows, d, att);
@@ -144,7 +153,7 @@ function extractBook(book, label) {
 
 function summaryOf(c) {
   return { students: c.classList.length, withNames: c.classList.filter((r) => r[1] || r[2]).length, results: c.results.length, attempts: c.attempts.length,
-    sessions: c.attendance.sessions.length, marks: c.attendance.rows.reduce((n, r) => n + r.slice(1).filter((x) => x !== "").length, 0), questions: c.questions.length };
+    records: (c.records || []).length, sessions: c.attendance.sessions.length, marks: c.attendance.rows.reduce((n, r) => n + r.slice(1).filter((x) => x !== "").length, 0), questions: c.questions.length };
 }
 
 // The sheets the existing import previews and applies: the web export's own tabs as they are, or tables made from the clean data.
@@ -153,6 +162,7 @@ function planBookOf(book, ex) {
   const c = ex.clean, out = [];
   if (c.classList.length) out.push({ name: "Roster", rows: [["Student ID", "First name", "Last name"]].concat(c.classList) });
   if (c.results.length) out.push({ name: "Quiz scores", rows: [["Student ID", "Quiz", "Score", "Out of", "Date"]].concat(c.results) });
+  if ((c.records || []).length) out.push({ name: "Records", rows: [["Timestamp", "Student ID", "Category", "Assessment", "Score", "Out of", "Lecture"]].concat(c.records) });
   if (c.attendance.rows.length) out.push({ name: "Attendance", rows: [["Student ID"].concat(c.attendance.sessions)].concat(c.attendance.rows) });
   return out;
 }

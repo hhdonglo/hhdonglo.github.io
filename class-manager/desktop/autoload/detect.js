@@ -13,6 +13,9 @@ const SAMPLE = 400; // cells looked at per column; enough to judge a column of a
 const idLike = (v) => /^\d{4,12}$/.test(typeof v === "number" ? String(Math.round(v)) : text(v).replace(/\.0+$/, "").replace(/\s+/g, ""));
 const nameLike = (v) => { const s = text(v); return s.length >= 2 && s.length <= 80 && /[A-Za-z]/.test(s) && !/\d/.test(s) && !/@/.test(s); };
 const numberLike = (v) => !blank(v) && !isDate(v) && text(v) !== "" && Number.isFinite(Number(v));
+const fractionOf = (v) => /^\s*\d+(?:\.\d+)?\s*(?:\/|of|out of)\s*[1-9]\d*(?:\.\d+)?\s*$/i.test(text(v)); // 1/5, 1 / 5, 8 of 10 (the same rule as values.js, repeated here to avoid a circular require)
+const scoreLike = (v) => numberLike(v) || !!fractionOf(v); // 7, 7.5 or 1/5
+const fractionLike = (v) => !!fractionOf(v);
 const markLike = (v) => /^(1|0|1\.0|0\.0|p|a|y|n|yes|no|present|absent|true|false|✓|✔)$/i.test(text(v));
 const sessionHeading = (h) => isDate(h) || /^\d{1,2}[\/.\-]\d{1,2}([\/.\-]\d{2,4})?$/.test(text(h)) || /^\d{4}-\d{2}-\d{2}/.test(text(h)) || /^(week|session|lecture|day|class)\s*\d+/i.test(text(h));
 
@@ -61,7 +64,12 @@ function detectSheet(rows) {
   head.forEach((c, i) => { if (used.has(i) || blank(c) || text(c) === "") return; if (sessionHeading(c) && share(body, i, markLike) >= 0.6) out.sessions.push({ col: i, label: c }); });
   // Several quiz columns, each headed with the quiz's name and holding numbers: a wide table of scores.
   if (!out.sessions.length && out.cols.id && !out.cols.score) {
-    head.forEach((c, i) => { if (used.has(i) || typeof c !== "string" || !text(c) || fieldOfHeading(c)) return; if (NOT_AN_ASSESSMENT.test(headOf(c))) return; if (/quiz|test|exam|assign|mid|practice|lab|project|week|ca\b|score|mark/i.test(c) && share(body, i, numberLike) >= 0.6) out.quizCols.push({ col: i, label: text(c) }); });
+    head.forEach((c, i) => {
+      if (used.has(i) || typeof c !== "string" || !text(c) || fieldOfHeading(c)) return;
+      if (NOT_AN_ASSESSMENT.test(headOf(c)) || /^(percent|percentage|percentagescore|pct|mean|average|total|outof|max|maximum)$/.test(headOf(c))) return;
+      const named = /quiz|test|exam|assign|mid|practice|lab|project|week|ca\b|score|mark|q\d/i.test(c);
+      if ((named && share(body, i, scoreLike) >= 0.6) || share(body, i, fractionLike) >= 0.6) out.quizCols.push({ col: i, label: text(c) }); // a column of fractions such as 1/5 is a score column whatever its heading
+    });
   }
 
   const f = out.cols;

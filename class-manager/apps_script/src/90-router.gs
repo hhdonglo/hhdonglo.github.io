@@ -178,6 +178,7 @@ function route_(e) {
   if (p.action === 'group_work') return jsonp_(e, groupWork_(p)); // a student: ID and access code; their group's assignments
   if (p.action === 'insights') return jsonp_(e, hostOk_(p) ? insights_(p) : { ok: false, why: 'host key not accepted' }); // host only: Teaching insights
   if (p.action === 'class_stats') return jsonp_(e, hostOk_(p) ? classStats_(p) : { ok: false, why: 'host key not accepted' }); // host only: Class statistics
+  if (p.action === 'student_note') return jsonp_(e, hostOk_(p) ? studentNoteAdd_(p.id, p.text) : { ok: false, why: 'host key not accepted' }); // host only: a note about a student
   if (p.action === 'student_stats') return jsonp_(e, hostOk_(p) ? studentStats_(p) : { ok: false, why: 'host key not accepted' }); // host only: one student in Class statistics
   if (p.action === 'access_codes') { // host only: list, create or replace students' personal codes for My results
     if (!hostOk_(p)) return jsonp_(e, { ok: false, why: 'host key not accepted' });

@@ -7,7 +7,7 @@ const path = require("path");
 const { readAny } = require("./read-file");
 const { extractBook, summaryOf } = require("./extract");
 
-const KIND_WORDS = (s) => [s.students && "class list", (s.results || s.attempts) && "quiz results", s.marks && "attendance", s.questions && "quiz questions"].filter(Boolean);
+const KIND_WORDS = (s) => [s.students && "class list", (s.results || s.attempts) && "quiz results", s.marks && "attendance", s.records && "laboratory and other records", s.questions && "quiz questions"].filter(Boolean);
 
 // Free text (a Word or text file, a PDF) that holds questions in the question template. Returns the question text blocks.
 function questionsInText(txt) {
