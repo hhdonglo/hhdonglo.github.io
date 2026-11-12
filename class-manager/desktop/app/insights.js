@@ -60,12 +60,23 @@
     if (view === "overview") overview(); else if (view === "students") students(); else if (view === "attendance") attendance(); else quizzes();
   }
 
+  /* ---- Class graphs: the day selector and automatic redraw (app/charts/panel.js) ---- */
+  var gxStop = null;
+  function gxHtml(d) { return window.cmCharts && cmCharts.panel ? cmCharts.panel.render(d) : ""; }
+  function gxDraw() { var el = $("gx"); if (el && data && cur === "overview" && !document.querySelector("dialog[open]")) el.innerHTML = gxHtml(data); }
+  function gxWatch() { // any change to the records (attendance, quizzes, imports, folder loads, resets) redraws the graphs only, keeping the chosen day
+    if (gxStop || !window.cmCharts || !cmCharts.panel || !cmApp.stamp) return;
+    gxStop = cmCharts.panel.watch(function () { return cmApp.stamp(); }, function () { return load(true).then(gxDraw); });
+  }
+  document.addEventListener("change", function (e) { if (e.target && e.target.id === "gx-day" && data) { cmCharts.panel.chosen(e.target.value, data, gxDraw); } });
+
   /* ---- Class Overview ---- */
   function overview() {
     var d = data, s = d.summary, L = d.learning, a = d.attendance;
     $("ov-sub").textContent = "How the class is doing, from attendance, live quizzes and practice. " + plural(d.rosterSize, "student", "students") + " on the class list. Updated " + new Date(d.generated).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) + ".";
     if (!d.rosterSize) { $("ov").innerHTML = "<div class='card empty'><h3>No class yet</h3><p>Add the class list under Class Roster. The overview fills in as you take attendance and run quizzes.</p></div>"; return; }
     var h = window.cmDashView ? cmDashView.top(d, window.cmSetup, window.cmLive) : ""; // Today, setup, stat cards, queue, health, trends, insights (app/dashboard/)
+    h += "<div id='gx'>" + gxHtml(d) + "</div>"; // distribution, box plot and scatter for the chosen day (app/charts/panel.js)
     // Is the class learning?
     h += "<section class='card verdict " + (VCLASS[L.verdict] || "") + "' aria-labelledby='vh'><div class='v-main'><p class='lbl' id='vh'>Is the class learning?</p>" +
       "<p class='v-word'>" + vchip(L.verdict) + (L.confidence ? "<span class='note'>Confidence: " + esc(L.confidence) + "</span>" : "") + "</p>" +
@@ -91,7 +102,7 @@
       "<p class='lbl'>Attendance by session</p>" + (a.sessions ? bars(a.bySession.map(function (x) { return x.rate; }), a.bySession.map(function (x) { return x.label; }), { max: 100, unit: "%", h: 150, short: shortDate, title: "Attendance by session" }) : "<p class='note'>No session submitted yet.</p>") +
       "<p class='lbl' style='margin-top:1rem'>Mean quiz score</p>" + (d.quizzes.length ? bars(d.quizzes.map(function (q) { return q.stats.mean; }), d.quizzes.map(function (q) { return q.quiz; }), { max: 100, unit: "%", h: 150, short: shortDate, title: "Mean score by quiz", extra: d.quizzes.map(function (q) { return "(" + q.students + " students)"; }) }) : "<p class='note'>No quiz released yet.</p>") +
       "</section></div>";
-    $("ov").innerHTML = h;
+    $("ov").innerHTML = h; gxWatch();
   }
   function target(t) {
     return "<li><span class='tk'>" + esc(t.kind) + "</span><div><b>" + esc(t.title) + "</b>" + (t.small ? " <span class='note warnline'>small sample</span>" : "") +
@@ -184,6 +195,7 @@
   /* ---- events ---- */
   document.addEventListener("click", function (e) {
     var t = e.target.closest ? e.target : null; if (!t) return;
+    if (data && window.cmCharts && cmCharts.panel && cmCharts.panel.handle(t, data, gxDraw)) return;
     var g = t.closest("[data-group]"); if (g && data) { filt = g.getAttribute("data-group"); if (window.cmGo) cmGo("students"); else students(); if (cur === "students") students(); return; }
     var q = t.closest("[data-q]"); if (q) { qsel = +q.getAttribute("data-q"); quizzes(); return; }
     var th0 = t.closest("#st th[data-k]"); if (th0) { var k = th0.getAttribute("data-k"); sortD = k === sortK ? -sortD : 1; sortK = k; students(); return; }

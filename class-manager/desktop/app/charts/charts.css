@@ -40,3 +40,24 @@ svg.pt{display:block;width:100%;height:auto}
 .pb-a{background:var(--bar-hi)}.pb-b{background:var(--bar)}.pb-v{font-size:var(--fs-xs);color:var(--muted);white-space:nowrap}
 .pb-key{width:.7rem;height:.7rem;border-radius:2px}
 .md-bar:has(.pb-a){display:block}
+/* distribution, box plot, scatter and the graphs panel (days.js, panel.js) */
+.dist,.box,.scat{width:100%;height:auto;max-width:640px}
+.dist-bar{fill:var(--bar);opacity:.85}.dist-curve{fill:none;stroke:var(--bar-hi);stroke-width:2.5}
+.dist-mean{stroke:var(--text);stroke-width:1.5}.dist-sd{stroke:var(--faint);stroke-dasharray:4 4}
+.dist-out-mark{cursor:pointer}.dist-out-mark path{fill:var(--g-need)}.dist-out-mark.lo path{fill:var(--g-hard)}
+.dist-key{display:inline-block;width:.8rem;height:.8rem;margin-right:.35rem;border-radius:2px;vertical-align:-1px}.dist-key.bar{background:var(--bar)}.dist-key.curve{background:var(--bar-hi);height:3px}.dist-key.tri{background:var(--g-need);clip-path:polygon(50% 0,0 100%,100% 100%)}
+.dist-out{margin:.2rem 0 .6rem;padding-left:1.1rem}
+.box-box{fill:var(--bar);opacity:.45;stroke:var(--bar-hi);stroke-width:1.5}.box-med{stroke:var(--text);stroke-width:2.5}.box-whisk{stroke:var(--bar-hi);stroke-width:2}
+.box-out{cursor:pointer}.box-out circle{fill:var(--g-need);stroke:var(--card);stroke-width:1.5}
+.scat-dot{cursor:pointer}.scat-dot circle{fill:var(--bar-hi);opacity:.8;stroke:var(--card);stroke-width:1}.scat-dot:hover circle,.scat-dot:focus-visible circle{opacity:1;stroke:var(--text)}
+.ch-cap{margin:.1rem 0 .5rem}
+.gx-bar{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem .9rem;margin:.6rem 0 1rem}
+.gx-day{display:flex;align-items:center;gap:.4rem}.gx-day select{max-width:16rem}
+.gx-step,.gx-seg button{padding:.35rem .7rem;border:1px solid var(--line);background:var(--card-2);color:var(--text);cursor:pointer;font:inherit;font-size:var(--fs-sm)}
+.gx-step{border-radius:8px;font-size:1.1rem;line-height:1}.gx-step:disabled{opacity:.4;cursor:default}
+.gx-seg{display:inline-flex}.gx-seg button:first-child{border-radius:8px 0 0 8px}.gx-seg button:last-child{border-radius:0 8px 8px 0}.gx-seg button+button{border-left:0}
+.gx-seg button[aria-pressed=true]{background:var(--accent);color:var(--accent-ink);font-weight:700}
+.gx-step:focus-visible,.gx-seg button:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.gx-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,26rem),1fr));gap:1.4rem}
+.gx-cell h4{margin:0 0 .4rem}
+.gx .lv-legend{display:flex;flex-wrap:wrap;gap:.3rem 1rem}

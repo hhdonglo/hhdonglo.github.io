@@ -10,6 +10,12 @@ Charts for the Learning Progress screen of the desktop app. Each file draws one 
 | `progress-over-time.js` | Is the class, or one student, doing better week by week? | Weekly line: class mean, median and quartile band with student counts; or a student's line over the class mean |
 | `bars.js` | Where did learning move? How does a student compare with the class? Did discussion help? | Learning gain bars (latest minus first), student versus class paired bars, before and after discussion paired bars |
 | `engagement.js` | Has this student been present and active? | Attendance, quizzes taken, practice attempts, with a note that these are context only |
+| `stats.js` | (shared helpers) | Mean, standard deviation, skew, quartiles, outliers, histogram bins, normal curve, correlation. Pure numbers; under 10 values is a small sample |
+| `distribution.js` | How is performance spread across the class, and who stands out? | Histogram with a fitted Gaussian curve, mean and one SD either side, outlier markers; students beyond 1.5, 2 or 3 SD listed high and low, each opening the student |
+| `boxplot.js` | Who is an outlier, on each measure? | One box per measure (quartiles, median, whiskers) with outlier dots that open the student |
+| `scatter.js` | Does coming to class go with doing well? | One dot per student, attendance across and quiz average up; the relationship is stated in words only from 10 students |
+| `days.js` | (day logic) | The class days in order (sessions and quizzes merged by date), today or the latest day first, figures per student "up to" or "on" a day |
+| `panel.js` | (the dashboard panel) | Day selector with previous and next, range, measure and outlier limit; redraws only the graphs when the backend's data stamp changes (`cm:stamp`), keeping the chosen day |
 | `charts.css` | (styles) | Uses CM's colour tokens, so dark and light themes both work |
 
 ## Rules for every chart
