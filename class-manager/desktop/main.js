@@ -448,6 +448,7 @@ function csvCell(v) { v = String(v == null ? "" : v); return /[",\n\r]/.test(v) 
 
 on("cm:info", (c) => info(c));
 on("cm:live", (c) => liveOf(c));
+on("cm:stamp", (c) => ({ ok: true, stamp: c.backend.version() })); // changes whenever any record changes (app/charts/panel.js)
 // Class statistics for the In Class summary and the Class Statistics screen, computed in the backend from the course's workbook.
 const statOpts = (o) => { const p = {}; for (const k of ["effort", "perf", "idle", "misses", "id"]) if (o && o[k] !== undefined && o[k] !== "") p[k] = String(o[k]).slice(0, 20); return p; };
 on("cm:stats", (c, e, o) => { try { return c.backend.stats(statOpts(o)); } catch (err) { return { ok: false, why: err.message }; } });

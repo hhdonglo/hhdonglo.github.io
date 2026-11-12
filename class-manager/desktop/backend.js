@@ -36,8 +36,8 @@ function createBackend(opts) {
     }
   }
 
-  let dirty = false, timer = null;
-  function touch() { dirty = true; if (!timer) timer = setTimeout(flush, 400); if (opts.onChange) opts.onChange(); }
+  let dirty = false, timer = null, version = Math.floor(Math.random() * 1e6) * 1000; // random start, so a new backend (reset, other course) never repeats a stamp; // version counts every change to the workbook: the screens poll it to redraw graphs
+  function touch() { version++; dirty = true; if (!timer) timer = setTimeout(flush, 400); if (opts.onChange) opts.onChange(); }
   function flush() {
     timer = null; if (!dirty) return; dirty = false;
     const json = JSON.stringify(book, function (k, v) { const raw = this[k]; return isDate(raw) ? { $d: raw.toISOString() } : v; });
@@ -195,6 +195,7 @@ function createBackend(opts) {
   return {
     doGet: (params) => call("doGet", params),
     doPost: (params, raw) => call("doPost", params, raw),
+    version: () => version,
     hostKey: () => String(spreadsheet.getSheetByName("Key").getRange(2, 10).getValue()),
     // Host key is held as a salted hash once it is changed from the dashboard; it cannot be shown then.
     hostKeyIsPlain: () => String(spreadsheet.getSheetByName("Key").getRange(2, 10).getValue()).indexOf("sha256:") !== 0,
