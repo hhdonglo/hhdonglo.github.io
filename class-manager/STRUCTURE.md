@@ -259,3 +259,7 @@ The Learning Progress screen draws its graphs from `desktop/app/charts/`, one fi
 
 ## 0.19.0: the whole Course details form from a folder
 `autoload/folder-details.js` now also reads a CM course pack's own `course.json` (settings) and `data/portal.json` (class times, current week, lecture titles), then the outline text for what they lack; it returns every field it found with its file, the weekly topics, and `missing` (the fields the files do not give). `course-details.js` also finds the contact e-mail and the first and last day from a "teaching ... date to date" line. The New course form (`app/setup.html`) has "Fill from the course folder" and fills itself at once when a folder is linked or was loaded. Nothing is invented.
+
+## 0.19.1: launch crash fixed
+
+0.19.0 crashed at launch ("Cannot access 'on' before initialization"): the `cm:folderDetails` handler had been inserted above the line that declares `on` in `desktop/main.js`. It now sits with the other course handlers. `desktop/test/main-loads.test.js` loads `main.js` with a stand-in for Electron and checks that the handlers register, so a launch crash of this kind fails the tests before a release.
