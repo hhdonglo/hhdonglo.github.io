@@ -635,7 +635,7 @@ on("cm:lectureFile", async (c, e, n, kind, remove) => {
 });
 on("cm:importPack", async (c, e) => {
   if (registry.dirs(c.id).linked) return { ok: false, why: "This course reads its content from a linked folder, so a course pack cannot replace it. Add a new course for the pack, or unlink the folder first." };
-  const r = await dialog.showOpenDialog(winOf(e), { title: "Import a course pack", filters: [{ name: "Course pack", extensions: ["zip"] }], properties: ["openFile"] });
+  const r = await dialog.showOpenDialog(winOf(e), { title: "Import a course pack", filters: [{ name: "Course pack", extensions: ["zip"] }], properties: ["openFile", "openDirectory"] });
   if (r.canceled || !r.filePaths[0]) return null;
   try {
     const out = await c.course.importPack(r.filePaths[0]);
@@ -646,7 +646,7 @@ on("cm:importPack", async (c, e) => {
     ps.logo = ["png", "jpg", "jpeg", "svg", "webp"].map((x) => "course-logo." + x).find((f) => c.course.resolve(f)) || "";
     saveSettings(c, Object.assign({}, DEFAULTS, ps, keep));
     c.backend.dropSiteCache();
-    return { ok: true, name: out.name, files: out.files, settings: shownSettings(c) };
+    return { ok: true, name: out.name, files: out.files, replaced: out.replaced, settings: shownSettings(c) };
   } catch (err) { return { ok: false, why: err.message }; }
 });
 on("cm:exportPack", async (c, e) => {

@@ -263,3 +263,7 @@ The Learning Progress screen draws its graphs from `desktop/app/charts/`, one fi
 ## 0.19.1: launch crash fixed
 
 0.19.0 crashed at launch ("Cannot access 'on' before initialization"): the `cm:folderDetails` handler had been inserted above the line that declares `on` in `desktop/main.js`. It now sits with the other course handlers. `desktop/test/main-loads.test.js` loads `main.js` with a stand-in for Electron and checks that the handlers register, so a launch crash of this kind fails the tests before a release.
+
+## 0.19.2: Hope's real PHYS 143 folder
+
+Found by reading the real folder: the pack sits one level down in a wrapper folder with loose student files beside it, and `course-course-pack.zip` there holds only `course.json`. Importing it said "Imported (0 files)" and, worse, replaced the course content with nothing. Now: `course.js importPack` returns `files: 0, replaced: false` and leaves the content alone (the screen explains it), accepts a zip made from the pack folder (one wrapper), and accepts a folder. `autoload/folder-details.js` ranks files by their own name (a folder called "...-course-pack" made every file look like an outline) and skips student records; `autoload/course-details.js` reads "First Semester, 2026/2027" and teaching dates written inside a long sentence. Test: `test/real-pack.test.js`.

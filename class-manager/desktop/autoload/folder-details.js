@@ -9,6 +9,9 @@ const { readAny } = require("./read-file");
 const { findDetails, FIELDS } = require("./course-details");
 
 const LIKELY = /outline|syllabus|course|overview|info|readme|schedule|plan|handbook|module/i;
+const STRONG = /outline|syllabus|course.?design|course.?description|handbook/i; // a document named like this is read before anything else
+const STUDENT_DATA = /grade|mark|score|attendance|response|roster|class.?list|quiz|backup|removed|group_?[a-z]\b/i; // records about students say nothing about the course
+const DOCS = new Set([".docx", ".pdf", ".md", ".markdown", ".txt", ".text"]);
 const MAX_FILES = 12, MAX_BYTES = 8 * 1000 * 1000;
 
 const hintsOf = (r) => {
@@ -44,8 +47,10 @@ function structured(root) {
 // -> { ok, read: [file names], fields: [{ key, label, setting, value, from }], topics, missing: [labels the files do not give] }
 async function detailsOfFolder(root, now) {
   const listed = await listFiles(root);
-  const rank = (f) => (LIKELY.test(f.rel) ? 0 : 1) * 10 + f.rel.split(/[\\/]/).length; // outline-like names first, shallow before deep
-  const pick = listed.files.filter((f) => f.size <= MAX_BYTES).sort((a, b) => rank(a) - rank(b) || a.rel.localeCompare(b.rel)).slice(0, MAX_FILES);
+  // The file name decides, not the folder it sits in (a pack folder called "...-course-pack" would make every file look like an outline).
+  const rank = (f) => { const b = path.basename(f.rel), d = f.rel.split(/[\\/]/).length;
+    return (STRONG.test(b) && DOCS.has(f.ext) ? 0 : LIKELY.test(b) && DOCS.has(f.ext) ? 10 : DOCS.has(f.ext) ? 20 : 30) + d; };
+  const pick = listed.files.filter((f) => f.size <= MAX_BYTES && !STUDENT_DATA.test(path.basename(f.rel))).sort((a, b) => rank(a) - rank(b) || a.rel.localeCompare(b.rel)).slice(0, MAX_FILES);
   const items = [];
   for (const f of pick) { try { const h = hintsOf(await readAny(f.path)); if (h.text || h.rows.length) items.push({ file: f.rel, rows: h.rows, text: h.text }); } catch (e) { /* a file that cannot be read is skipped */ } }
   const found = findDetails(items, now || new Date()), st = structured(root);
