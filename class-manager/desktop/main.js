@@ -452,6 +452,7 @@ on("cm:live", (c) => liveOf(c));
 const statOpts = (o) => { const p = {}; for (const k of ["effort", "perf", "idle", "misses", "id"]) if (o && o[k] !== undefined && o[k] !== "") p[k] = String(o[k]).slice(0, 20); return p; };
 on("cm:stats", (c, e, o) => { try { return c.backend.stats(statOpts(o)); } catch (err) { return { ok: false, why: err.message }; } });
 on("cm:studentStats", (c, e, o) => { try { return c.backend.studentStats(statOpts(o)); } catch (err) { return { ok: false, why: err.message }; } });
+on("cm:studentNote", (c, e, o) => { try { return c.backend.studentNote(o && o.id, o && o.text); } catch (err) { return { ok: false, why: err.message }; } });
 on("cm:progress", (c) => { try { return c.backend.progress({}); } catch (err) { return { ok: false, why: err.message }; } });
 on("cm:tunnelStart", async (c) => { await startTunnel(); return tunnelFor(c); });
 ipcMain.handle("cm:readme", () => shell.openPath(app.isPackaged ? path.join(process.resourcesPath, "README.txt") : path.join(__dirname, "README.txt")));

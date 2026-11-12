@@ -10,6 +10,7 @@
 | `10-assessment.gs` | Quizzes, scoring, releasing results |
 | `20-attendance.gs` | Attendance sessions, check-ins, review |
 | `30-analytics.gs` | Class statistics, learning progress, insights |
+| `35-records.gs` | Laboratory, assignment, practice and group assessment records, and notes about students |
 | `40-collaboration.gs` | Groups and assignments |
 | `50-communication.gs` | Calendar, messages, announcements |
 | `60-portal.gs` | The student portal |

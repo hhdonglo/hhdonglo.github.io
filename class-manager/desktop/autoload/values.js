@@ -20,4 +20,14 @@ function splitFull(s) {
   const i = s.lastIndexOf(" ");
   return i < 0 ? [s, ""] : [s.slice(0, i), s.slice(i + 1)];
 }
-module.exports = { idOf, validId, markOf, numOrBlank, splitFull };
+// A score written as a fraction: "1/5", "1 / 5", "8 of 10". Returns { score, total } or null.
+function fractionOf(v) {
+  const m = /^\s*(\d+(?:\.\d+)?)\s*(?:\/|of|out of)\s*(\d+(?:\.\d+)?)\s*$/i.exec(text(v));
+  return m && Number(m[2]) > 0 ? { score: Number(m[1]), total: Number(m[2]) } : null;
+}
+// A score cell as { score, total }: a fraction gives both, a plain number gives the score and no total, anything else is null.
+function scoreCell(v) {
+  const f = fractionOf(v); if (f) return f;
+  const n = numOrBlank(v); return n === "" ? null : { score: n, total: "" };
+}
+module.exports = { idOf, validId, markOf, numOrBlank, splitFull, fractionOf, scoreCell };

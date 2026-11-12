@@ -13,6 +13,7 @@ const { mergeBooks } = require("./autoload/book");
 const { readAny } = require("./autoload/read-file");
 const { analyzeFile } = require("./autoload/analyze");
 const { findDetails, FIELDS } = require("./autoload/course-details");
+const { importSummary } = require("./autoload/summary");
 const { oversized } = require("./autoload/oversize");
 const { plan, classIdsOf } = require("./import-plan");
 const { pending } = require("./import-ipc");
@@ -94,7 +95,7 @@ function registerOn(opts, { on, dialog, winOf, shell, dirOf }) {
       const report = plan(book, localOf(c.backend), opts).report;
       const seen = new Set(report.students.conflicts.map((x) => x.id)); // names that differ between the chosen files themselves are flagged too
       merged.conflicts.filter((x) => !seen.has(x.id)).slice(0, 50).forEach((x) => { report.students.conflicts.push(x); report.students.nameConflicts++; });
-      return { ok: true, name, working, addMissing: opts.addMissing, report };
+      return { ok: true, name, working, addMissing: opts.addMissing, report, summary: importSummary(merged, report) };
     } catch (err) { return { ok: false, why: err.message }; }
   });
 

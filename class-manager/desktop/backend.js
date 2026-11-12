@@ -205,6 +205,7 @@ function createBackend(opts) {
     passwordStatus: () => ctx.passwordStatus_(),
     // Class statistics: computed by the script itself (classStats_, studentStats_), with the lecturer's thresholds.
     stats: (p) => asHost(() => ctx.classStats_(Object.assign({}, p || {}))),
+    studentNote: (id, text) => { const r = asHost(() => ctx.studentNoteAdd_(id, text)); flush(); return r; },
     studentStats: (p) => asHost(() => ctx.studentStats_(Object.assign({}, p || {}))),
     // Learning Progress: objectives, ask-discuss-revise evidence, group work and each student's progress (learningProgress_).
     progress: (p) => asHost(() => ctx.learningProgress_(Object.assign({}, p || {}))),

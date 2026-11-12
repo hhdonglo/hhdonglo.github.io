@@ -12,12 +12,13 @@ const { nameKey } = require("../import-plan");
 
 // Merges the clean data of several files. A name is taken from the first file that has one; marks of 1 win over 0; duplicate rows are dropped.
 function mergeCleans(cleans) {
-  const out = emptyClean(); out.conflicts = []; const people = new Map(), marks = new Map(), sessions = [], ids = new Set(), seen = new Set(), seenA = new Set();
+  const out = emptyClean(); out.conflicts = []; const people = new Map(), marks = new Map(), sessions = [], ids = new Set(), seen = new Set(), seenA = new Set(), seenR = new Set();
   cleans.forEach((c) => {
     if (!c) return;
     c.classList.forEach(([id, first, last]) => { const cur = people.get(id); if (!cur || (!cur[0] && !cur[1] && (first || last))) people.set(id, [first, last]); else if ((first || last) && nameKey(cur.join(" ")) !== nameKey(first + " " + last)) out.conflicts.push({ id, existing: cur.join(" ").trim(), incoming: (first + " " + last).trim() }); }); // one ID, two names: the first is kept and the difference is reported
     c.results.forEach((r) => { const k = r.join("|"); if (!seen.has(k)) { seen.add(k); out.results.push(r); } });
     c.attempts.forEach((r) => { const k = r.join("|"); if (!seenA.has(k)) { seenA.add(k); out.attempts.push(r); } });
+    (c.records || []).forEach((r) => { const k = r.slice(1, 4).join("|"); if (!seenR.has(k)) { seenR.add(k); out.records.push(r); } }); // one record per student, category and assessment
     c.attendance.sessions.forEach((s) => { if (sessions.indexOf(s) < 0) sessions.push(s); });
     c.attendance.rows.forEach((r) => { ids.add(r[0]); c.attendance.sessions.forEach((s, i) => { const m = r[i + 1]; if (m === "") return; const k = r[0] + "|" + s; if (marks.get(k) === undefined || (m === 1 && marks.get(k) === 0)) marks.set(k, m); }); });
     out.questions = out.questions.concat(c.questions);
@@ -30,7 +31,7 @@ function mergeCleans(cleans) {
 
 // ---------- write ----------
 
-const HEAD = { classList: ["Student ID", "First name", "Last name"], results: ["Student ID", "Quiz", "Score", "Out of", "Date"], attempts: ["Timestamp", "Student ID", "Quiz", "Attempt", "Score", "Total"] };
+const HEAD = { classList: ["Student ID", "First name", "Last name"], results: ["Student ID", "Quiz", "Score", "Out of", "Date"], attempts: ["Timestamp", "Student ID", "Quiz", "Attempt", "Score", "Total"], records: ["Timestamp", "Student ID", "Category", "Assessment", "Score", "Out of", "Lecture"] };
 
 // A text cell that starts with = + - @ would be run as a formula by a spreadsheet; it is written as text.
 const safe = (v) => (typeof v === "string" && /^[=+\-@]/.test(v) ? "'" + v : v);
@@ -44,6 +45,7 @@ function tablesOf(c) {
   const t = [];
   if (c.classList.length) t.push({ name: "Class list", file: "class-list.csv", rows: [HEAD.classList].concat(c.classList) });
   if (c.results.length) t.push({ name: "Quiz results", file: "quiz-results.csv", rows: [HEAD.results].concat(c.results) });
+  if ((c.records || []).length) t.push({ name: "Records", file: "records.csv", rows: [HEAD.records].concat(c.records) });
   if (c.attempts.length) t.push({ name: "Practice attempts", file: "practice-attempts.csv", rows: [HEAD.attempts].concat(c.attempts) });
   if (c.attendance.rows.length) t.push({ name: "Attendance", file: "attendance.csv", rows: [["Student ID"].concat(c.attendance.sessions)].concat(c.attendance.rows) });
   return t;
@@ -58,7 +60,7 @@ async function writeWorking(dir, clean, sources) {
   tables.forEach((t) => atomic(path.join(dir, t.file), csv(t.rows)));
   const qfile = path.join(dir, "quiz-questions.txt");
   if (clean.questions.length) atomic(qfile, clean.questions.join("\n\n")); else try { fs.unlinkSync(qfile); } catch (e) { /* none */ }
-  ["class-list.csv", "quiz-results.csv", "practice-attempts.csv", "attendance.csv"].forEach((n) => { if (!tables.some((t) => t.file === n)) try { fs.unlinkSync(path.join(dir, n)); } catch (e) { /* none */ } });
+  ["class-list.csv", "quiz-results.csv", "practice-attempts.csv", "records.csv", "attendance.csv"].forEach((n) => { if (!tables.some((t) => t.file === n)) try { fs.unlinkSync(path.join(dir, n)); } catch (e) { /* none */ } });
   const about = [["Class Manager working file"], ["Made by Class Manager from the files you chose. Your original files are never changed."],
     ["Only the useful fields are kept: student ID, names, scores, attendance marks and quiz questions. Other columns are left out."], [""], ["Made from"]].concat(sources.map((s) => [s]));
   const xlsx = path.join(dir, "working-file.xlsx");

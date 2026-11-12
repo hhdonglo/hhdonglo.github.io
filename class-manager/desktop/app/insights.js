@@ -133,8 +133,9 @@
       if (s.trajectory.length) h += "<p class='lbl'>Quiz results</p>" + bars(s.trajectory.map(function (x) { return x.pct; }), s.trajectory.map(function (x) { return x.quiz; }), { max: 100, unit: "%", h: 120, short: shortDate, title: "Quiz results" });
       if (r.mastery.length) h += "<p class='lbl'>Proportion correct by lecture</p>" + bars(r.mastery.map(function (x) { return x.pct; }), r.mastery.map(function (x) { return x.lecture === 0 ? "Intro" : "Lecture " + x.lecture; }), { max: 100, unit: "%", h: 110, short: function (l) { return l.replace("Lecture ", "L"); }, title: "Proportion correct by lecture", extra: r.mastery.map(function (x) { return "(" + x.right + " of " + x.asked + ")"; }) });
       if (r.revisit.length) h += "<p class='lbl'>Questions to revisit</p><p class='note'>" + r.revisit.map(function (q) { return esc(q.id) + " (" + esc(q.from) + ")"; }).join(", ") + "</p>";
+      if (window.cmRecords) h += cmRecords.html(r); // laboratory, assignment, practice and group records, and notes (records-view.js)
       if (window.cmProgress) h += cmProgress.profileHtml(r); // progress by objective, group work and suggestions (progress.js)
-      $("stu-body").innerHTML = h; if (!$("stu-d").open) $("stu-d").showModal(); $("stu-d").scrollTop = 0;
+      $("stu-body").innerHTML = h; if (window.cmRecords) cmRecords.wire($("stu-body"), id, function () { studentOpen(id); }); if (!$("stu-d").open) $("stu-d").showModal(); $("stu-d").scrollTop = 0;
     });
   }
 

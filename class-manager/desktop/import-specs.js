@@ -26,6 +26,12 @@ const LOG_TABS = [
   { name: "Not_On_List", label: "Check-ins by IDs not on the class list", need: 3, id: 2, text: [2], onList: false,
     header: ["Timestamp", "Session", "Student ID"],
     key: (r) => [V.sessionOf(r[1]), V.idOf(r[2])].join("|") },
+  { name: "Records", label: "Laboratory, assignment, practice and group assessment records", need: 5, id: 1, text: [1],
+    header: ["Timestamp", "Student ID", "Category", "Assessment", "Score", "Out of", "Lecture"],
+    key: (r) => [V.idOf(r[1]), String(r[2] || "").trim().toLowerCase(), String(r[3] || "").trim().toLowerCase()].join("|") }, // one record per student, category and assessment
+  { name: "Student_Notes", label: "Notes about students", need: 3, id: 1, text: [1],
+    header: ["Timestamp", "Student ID", "Note", "By"],
+    key: (r) => [V.timeOf(r[0]), V.idOf(r[1]), String(r[2] || "").trim()].join("|") },
   { name: "Reports", label: "Question reports from students", need: 6, id: -1, text: [],
     header: ["Timestamp", "Lecture", "Question id", "Question", "Answer shown", "Comment", "Page"],
     key: (r) => [V.timeOf(r[0]), String(r[2] || "").trim(), String(r[5] || "").trim()].join("|") },

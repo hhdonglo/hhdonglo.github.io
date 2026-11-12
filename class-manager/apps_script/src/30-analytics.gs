@@ -505,7 +505,8 @@ function studentStats_(p) {
   if (!me) return { ok: false, why: 'that ID is not on the class list' };
   var ln = { mastery: [], revisit: [], practice: [] }; try { ln = studentLearning_(id); } catch (err) { /* shown without it */ }
   var prof = null; try { prof = studentProfile_(id, all, me); } catch (err) { prof = { error: String(err).slice(0, 160) }; }
-  return { ok: true, student: me, sessions: all.attendance.bySession.map(function (s) { return s.label; }), mastery: ln.mastery, revisit: ln.revisit.slice(0, 15), practice: ln.practice, thresholds: all.thresholds, profile: prof };
+  var rec = { records: [], notes: [] }; try { rec = studentRecords_(id); } catch (err) { /* shown without them */ }
+  return { ok: true, records: rec.records, notes: rec.notes, student: me, sessions: all.attendance.bySession.map(function (s) { return s.label; }), mastery: ln.mastery, revisit: ln.revisit.slice(0, 15), practice: ln.practice, thresholds: all.thresholds, profile: prof };
 }
 
 // ---------- Teaching for learning: outcomes, progress by outcome, ask-discuss-revise evidence, group assignments ----------
