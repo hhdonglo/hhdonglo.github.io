@@ -1,18 +1,3 @@
-on("cm:folderDetails", async (c, e, id, o) => {
-  id = String(id || c.id); o = o || {};
-  let root = "";
-  if (o.pick) { // the lecturer chooses the folder now (New course setup)
-    const r = await dialog.showOpenDialog(winOf(e), { title: "Choose the folder that holds the course files", properties: ["openDirectory"] });
-    if (r.canceled || !r.filePaths[0]) return null;
-    root = r.filePaths[0];
-  } else {
-    const x = registry.get(id);
-    if (x && x.source && x.source.kind === "folder" && x.source.path) root = x.source.path;
-    else { try { root = JSON.parse(fs.readFileSync(path.join(registry.dirs(id).root, "autoload.json"), "utf8")).folder || ""; } catch (err) { root = ""; } } // the folder last used for Load from a folder
-  }
-  if (!root) return { ok: false, none: true, why: "No course folder is linked or loaded yet." };
-  try { const d = await require("./autoload/folder-details").detailsOfFolder(root); d.folder = root; return d; } catch (err) { return { ok: false, why: err.message }; }
-});
 /* Class Manager desktop app.
    - Serves the class-manager pages from this computer on the local network, so students on the
      same Wi-Fi open the quiz and check-in pages on their phones.
@@ -569,10 +554,20 @@ on("cm:linkFolder", async (c, e, id, unlink) => {
   return { ok: true, list: courseList(c.id) };
 });
 // Course details found in the files of a linked folder (autoload/folder-details.js): CM suggests, the lecturer corrects.
-on("cm:folderDetails", async (c, e, id) => {
-  const x = registry.get(String(id || c.id));
-  if (!x || !x.source || x.source.kind !== "folder" || !x.source.path) return { ok: false, why: "This course is not linked to a folder." };
-  try { return await require("./autoload/folder-details").detailsOfFolder(x.source.path); } catch (err) { return { ok: false, why: err.message }; }
+on("cm:folderDetails", async (c, e, id, o) => {
+  id = String(id || c.id); o = o || {};
+  let root = "";
+  if (o.pick) { // the lecturer chooses the folder now (New course setup)
+    const r = await dialog.showOpenDialog(winOf(e), { title: "Choose the folder that holds the course files", properties: ["openDirectory"] });
+    if (r.canceled || !r.filePaths[0]) return null;
+    root = r.filePaths[0];
+  } else {
+    const x = registry.get(id);
+    if (x && x.source && x.source.kind === "folder" && x.source.path) root = x.source.path;
+    else { try { root = JSON.parse(fs.readFileSync(path.join(registry.dirs(id).root, "autoload.json"), "utf8")).folder || ""; } catch (err) { root = ""; } } // the folder last used for Load from a folder
+  }
+  if (!root) return { ok: false, none: true, why: "No course folder is linked or loaded yet." };
+  try { const d = await require("./autoload/folder-details").detailsOfFolder(root); d.folder = root; return d; } catch (err) { return { ok: false, why: err.message }; }
 });
 // A linked folder that is a Git repository: bring it up to date with git pull (fast-forward only, never a merge).
 on("cm:pullCourse", (c, e, id) => new Promise((resolve) => {
