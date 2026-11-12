@@ -110,7 +110,7 @@ function registerOn(opts, { on, dialog, winOf, shell, dirOf }) {
   });
   on("cm:autoCourseSave", (c, e, o) => { // only the fields the lecturer left ticked; everything else about the course is kept
     const v = (o && o.values) || {}, keep = {};
-    ["courseCode", "courseTitle", "lecturer", "institution", "semester", "startDate", "endDate"].forEach((k) => { if (v[k] != null && String(v[k]).trim()) keep[k] = String(v[k]).trim().slice(0, 160); });
+    ["courseCode", "courseTitle", "lecturer", "institution", "semester", "startDate", "endDate", "contact"].forEach((k) => { if (v[k] != null && String(v[k]).trim()) keep[k] = String(v[k]).trim().slice(0, 160); });
     const topics = Array.isArray(o && o.topics) ? o.topics : [];
     if (!Object.keys(keep).length && v.contacts == null && v.currentWeek == null && !topics.length) return { ok: false, why: "Nothing was ticked." };
     let added = 0; // weekly topics become lecture titles only for lectures that do not exist yet; none is changed

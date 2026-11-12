@@ -36,3 +36,25 @@ test("wiring: the Courses dialog reads the folder when it is linked or has a bla
   assert.match(fs.readFileSync(path.join(__dirname, "../main.js"), "utf8"), /on\("cm:folderDetails"/);
   assert.match(fs.readFileSync(path.join(__dirname, "../preload.js"), "utf8"), /folderDetails: call/);
 });
+
+test("a CM course pack gives its settings, class times, current week and lecture titles; what the files lack is listed as missing", async () => {
+  const d = tmp(); fs.mkdirSync(path.join(d, "files", "data"), { recursive: true });
+  fs.writeFileSync(path.join(d, "course.json"), JSON.stringify({ format: "class-manager-course", version: 1, settings: { courseCode: "PHYS 143", courseTitle: "Mechanics and Thermal Physics", institution: "University of Example", lecturer: "Dr A. Test", semester: "", contact: "a.test@example.edu" } }));
+  fs.writeFileSync(path.join(d, "files", "data", "portal.json"), JSON.stringify({ currentWeek: 6, contacts: "Tuesday 09:30 to 11:20", lectures: { 1: "Vectors", 2: "Motion" } }));
+  const r = await detailsOfFolder(d), by = Object.fromEntries(r.fields.map((f) => [f.key, f]));
+  assert.equal(by.contact.value, "a.test@example.edu"); assert.equal(by.times.value, "Tuesday 09:30 to 11:20"); assert.equal(by.week.value, "6"); assert.equal(by.lecturer.value, "Dr A. Test");
+  assert.equal(by.title.from, "course.json"); assert.equal(by.week.from.replace(/\\/g, "/"), "files/data/portal.json");
+  assert.deepEqual(r.topics.map((t) => t.title), ["Vectors", "Motion"]);
+  assert.deepEqual(r.missing, ["Semester", "First day of teaching", "Last day of teaching"]); // nothing invented
+});
+
+test("an outline gives the contact e-mail and the first and last day from a teaching-dates line", () => {
+  const f = findDetails([{ file: "outline.md", rows: [], text: "PHYS 143: Mechanics\nTeaching: 2 November 2026 to 20 February 2027\nContact: a.test@example.edu" }], new Date(Date.UTC(2026, 10, 18)));
+  assert.equal(f.contact.value, "a.test@example.edu"); assert.equal(f.start.value, "2026-11-02"); assert.equal(f.end.value, "2027-02-20");
+});
+
+test("wiring: the New course form fills every field from a folder and says what it could not find", () => {
+  const setup = fs.readFileSync(path.join(__dirname, "../app/setup.html"), "utf8");
+  ["c-code", "c-title", "c-lect", "c-inst", "c-sem", "c-contact", "c-start", "c-end", "c-times", "c-week"].forEach((id) => assert.match(setup, new RegExp("\"" + id + "\"")));
+  assert.match(setup, /Fill from the course folder/); assert.match(setup, /Not in the files, so left for you/); assert.match(setup, /fdAuto\(\)/);
+});
