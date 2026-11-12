@@ -253,3 +253,6 @@ The Learning Progress screen draws its graphs from `desktop/app/charts/`, one fi
 - Roster integrity: in record tabs, rows for IDs not on the class list are marked and counted; the folder import summary says the class list is the source of truth.
 - Attendance column headings show the time the session was opened (from `Attendance_Control`).
 - Clickable graph regions: `panel.js` (see `app/charts/README.md`).
+
+## 0.18.0: course details from a linked folder
+`desktop/autoload/folder-details.js` reads up to 12 small outline and information files of a linked folder (outline-like names first) and `course-details.js` suggests code, title, term, lecturer, institution (labelled lines, or the first lines of an unlabelled outline). The Courses dialog runs it when a folder is linked, when a linked course has a blank title or term, and from "Read the files"; it fills the empty boxes, lists each value with its file, and the lecturer corrects and saves. IPC `cm:folderDetails`. Full folder and cloud ingestion (lectures, slides, material types) is still planned.

@@ -56,6 +56,7 @@ kbd{font:600 .78rem ui-monospace,monospace;color:var(--faint);letter-spacing:.02
 .chip.busy .dot{background:var(--warn)}
 .keybox{display:inline-flex;align-items:center;gap:.6rem;font-size:var(--fs-sm);color:var(--muted);white-space:nowrap}
 #tbl tr.off td{background:rgba(224,178,84,.14)}#tbl tr.off td:first-child{box-shadow:inset 4px 0 0 var(--g-hard)}.integrity{margin:0;padding:.7rem 1rem;color:var(--g-hard);border-bottom:1px solid var(--line)}#tbl tr.rm{cursor:pointer}#tbl tr.rm:hover td,#tbl tr.rm:focus-visible td{background:var(--hover,rgba(255,255,255,.07))}#tbl tr.rm:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
+.found{margin:.8rem 0;padding:.2rem 0}.found:empty{display:none}.found ul{margin:.3rem 0 .6rem;padding-left:1.2rem}
 .livewrap{position:relative}.livemenu{position:absolute;top:calc(100% + 6px);left:0;z-index:30;min-width:15rem;padding:.5rem;border:1px solid var(--line);border-radius:10px;background:var(--card);box-shadow:0 8px 24px rgba(0,0,0,.35)}
 .livemenu .lbl{margin:.2rem .5rem .4rem;font-size:var(--fs-sm);color:var(--muted)}.livemenu button{display:block;width:100%;text-align:left;padding:.5rem .7rem;border:0;border-radius:6px;background:none;color:var(--text);cursor:pointer}.livemenu button:hover,.livemenu button:focus-visible{background:var(--hover,rgba(255,255,255,.08))}.livemenu button[aria-checked=true]::before{content:"✓ "}
 #live{cursor:pointer;border:0;color:inherit}
@@ -774,6 +775,7 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
  <h2 id="courses-h">Courses</h2>
  <p class="note">Each course has its own class list, attendance, quizzes, groups, assignments, learning objectives, messages, host key and Google Sheet. Nothing is shared between courses. A course's lectures and files are kept in CM, or in a folder you link, such as a copy of a GitHub repository. Student records are never written to a linked folder.</p>
  <div id="cd-list"></div>
+ <div id="cd-found" class="found" role="status" aria-live="polite"></div>
  <h3 style="margin:1.2rem 0 .2rem">Add a course</h3>
  <form id="cd-add" class="add">
   <div><label for="cd-code">Course code</label><input class="f" id="cd-code" required maxlength="40" placeholder="PHYS 101"></div>
@@ -1055,6 +1057,8 @@ function drawCourses(d){
   "Lectures, files and question banks are kept in CM's data folder. To work from your own folder or a copy of a repository, link it under Manage courses.";
  $("cd-copy").innerHTML='<option value="">Nothing</option>'+COURSES.map(function(c){return'<option value="'+esc(c.id)+'"'+(c.current?" selected":"")+'>'+esc(c.code||c.id)+'</option>'}).join("");
  drawCourseTable();
+ var cur=COURSES.find(function(c){return c.current});
+ if(cur&&cur.source&&cur.source.kind==="folder"&&!asked[cur.id]&&(!(cur.title||"").trim()||!(cur.term||"").trim()||/^\W*$/.test(cur.term||""))){asked[cur.id]=1;readFolder(cur.id,true)}
 }
 function drawCourseTable(){
  $("cd-list").innerHTML="<table><thead><tr><th>Code</th><th>Title</th><th>Term</th><th>Content</th><th></th></tr></thead><tbody>"+COURSES.map(function(c){
@@ -1062,13 +1066,30 @@ function drawCourseTable(){
   var acts=c.archived?"<button class='btn sm' data-cact='restore' data-id='"+esc(c.id)+"'>Restore</button>":
    (c.current?"<span class='tag on'>Shown</span> ":"<button class='btn sm' data-cact='open' data-id='"+esc(c.id)+"'>Open</button> ")+
    "<button class='btn sm' data-cact='save' data-id='"+esc(c.id)+"'>Save</button> "+
-   (src.kind==="folder"?"<button class='btn sm' data-cact='unlink' data-id='"+esc(c.id)+"'>Unlink folder</button> "+(c.repo?"<button class='btn sm' data-cact='pull' data-id='"+esc(c.id)+"'>Update from repository</button> ":""):"<button class='btn sm' data-cact='link' data-id='"+esc(c.id)+"'>Link a folder</button> ")+
+   (src.kind==="folder"?"<button class='btn sm' data-cact='read' data-id='"+esc(c.id)+"' title='CM reads the outline and information files in the folder and suggests the course details'>Read the files</button> <button class='btn sm' data-cact='unlink' data-id='"+esc(c.id)+"'>Unlink folder</button> "+(c.repo?"<button class='btn sm' data-cact='pull' data-id='"+esc(c.id)+"'>Update from repository</button> ":""):"<button class='btn sm' data-cact='link' data-id='"+esc(c.id)+"'>Link a folder</button> ")+
    "<button class='btn sm' data-cact='archive' data-id='"+esc(c.id)+"'>Archive</button> <button class='btn sm' data-cact='reset' data-id='"+esc(c.id)+"' title='Start the setup of this course again. Nothing is deleted.'>Reset…</button>";
   return"<tr class='"+(c.archived?"arch":"")+"'><td class='c-code'><input class='f' maxlength='40' data-cf='code' data-id='"+esc(c.id)+"' value='"+esc(c.code)+"' aria-label='Code of "+esc(c.code||c.id)+"'"+(c.archived?" disabled":"")+"></td>"+
    "<td class='c-title'><input class='f' maxlength='120' data-cf='title' data-id='"+esc(c.id)+"' value='"+esc(c.title)+"' aria-label='Title'"+(c.archived?" disabled":"")+"></td>"+
    "<td class='c-term'><input class='f' maxlength='80' data-cf='term' data-id='"+esc(c.id)+"' value='"+esc(c.term)+"' aria-label='Term'"+(c.archived?" disabled":"")+"></td>"+
    "<td>"+where+(c.archived?"<br><span class='note'>Archived: its pages are not served, its records are kept.</span>":"")+"</td><td>"+acts+"</td></tr>"}).join("")+"</tbody></table>";
 }
+/* CM reads the outline and information files of a linked folder and fills the blank boxes (code, title, term); the lecturer corrects, then presses Save. */
+var asked={},foundNow={};
+function readFolder(id,auto){
+ var box=$("cd-found");box.textContent="CM is reading the files in the folder…";
+ cmApp.folderDetails(id).then(function(r){
+  if(!r||!r.ok){box.textContent=auto?"":(r&&r.why)||"CM could not read the folder.";return}
+  if(!r.fields.length){box.innerHTML="CM read "+r.read.length+(r.read.length===1?" file":" files")+" in the folder and found no course details. Type them in the boxes above.";return}
+  var inp=function(f){return $("cd-list").querySelector("[data-cf='"+f+"'][data-id='"+id+"']")},filled=[],map={code:"code",title:"title",semester:"term"};
+  r.fields.forEach(function(f){var i=map[f.key]&&inp(map[f.key]);if(i&&!i.value.trim()){i.value=f.value;filled.push(f.label)}});
+  foundNow={id:id,fields:r.fields};
+  var extra=r.fields.filter(function(f){return f.key==="lecturer"||f.key==="institution"});
+  box.innerHTML="<p><b>CM found these in the course files.</b> "+(filled.length?"It has filled the empty boxes above ("+esc(filled.join(", "))+"). ":"")+"Check them, correct anything that is wrong, then press Save.</p><ul>"+
+   r.fields.map(function(f){return"<li>"+esc(f.label)+": <b>"+esc(f.value)+"</b> <span class='note'>from "+esc(f.from)+"</span></li>"}).join("")+"</ul>"+
+   "<p><button class='btn sm' type='button' id='cd-useall'>Use all of these in the boxes above</button></p>"+(extra.length&&id===CUR?"<p><button class='btn sm' type='button' id='cd-extra'>Also save "+extra.map(function(f){return esc(f.label.toLowerCase())}).join(" and ")+"</button></p>":"");
+  $("cd-useall").onclick=function(){r.fields.forEach(function(f){var i=map[f.key]&&inp(map[f.key]);if(i)i.value=f.value})};
+  var b=$("cd-extra");if(b)b.onclick=function(){var v={};extra.forEach(function(f){v[f.setting]=f.value});cmApp.autoCourseSave({values:v}).then(function(x){b.textContent=x&&x.ok?"Saved":(x&&x.why)||"Not saved";b.disabled=true})};
+ })}
 function loadCourses(){return cmApp.courses().then(drawCourses)}
 function cmsg(t){$("cd-msg").textContent=t||""}
 $("course-sel").addEventListener("change",function(){
@@ -1089,7 +1110,8 @@ $("cd-list").addEventListener("click",function(e){
  if(a==="save"){var v=function(f){var i=$("cd-list").querySelector("[data-cf='"+f+"'][data-id='"+id+"']");return i?i.value:""};cmApp.updateCourse(id,{code:v("code"),title:v("title"),term:v("term")}).then(function(r){done(r);if(r&&r.ok){cmsg("Saved.");if(id===CUR)setTimeout(function(){location.reload()},400)}})}
  if(a==="archive"){if(confirm("Archive this course? Its pages stop being served to students. Its records stay on this computer and you can restore it at any time."))cmApp.archiveCourse(id,true).then(done)}
  if(a==="restore")cmApp.archiveCourse(id,false).then(done);
- if(a==="link")cmApp.linkFolder(id).then(function(r){if(r){done(r);if(r.ok&&id===CUR)reload()}});
+ if(a==="link")cmApp.linkFolder(id).then(function(r){if(r){done(r);if(r.ok){asked[id]=1;readFolder(id,false);if(id===CUR)reload()}}});
+ if(a==="read")readFolder(id,false);
  if(a==="unlink"){if(confirm("Unlink the folder? The folder and its files stay as they are; the course goes back to the content kept in CM."))cmApp.linkFolder(id,true).then(done)}
  if(a==="pull"){cmsg("Updating from the repository…");cmApp.pullCourse(id).then(done)}
 });
