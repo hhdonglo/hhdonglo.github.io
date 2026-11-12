@@ -76,6 +76,7 @@ html{font-size:clamp(15px,calc(9.5px + .42vw),19px)}
 <section data-step="course" aria-labelledby="h-course">
  <h2 id="h-course">Course details</h2>
  <p class="why">These details appear on every page students and you see: the portal, the projector display, the access code slips, the calendar and the exported results.</p>
+ <section class="card" id="fd-box"><p class="row"><button type="button" class="btn" id="fd-pick">Fill from the course folder…</button> <span class="note">CM reads the outline and course files in a folder and fills this form. Everything stays editable.</span></p><div id="fd-found" role="status" aria-live="polite"></div></section>
  <form class="card" id="f-course">
   <div class="two">
    <div><label for="c-code">Course code</label><input id="c-code" maxlength="40" placeholder="For example BIO 101" required></div>
@@ -184,11 +185,33 @@ function load(){return cmApp.setup().then(function(d){
  $("c-times").value=d.portal.contacts||"";$("c-week").value=d.portal.currentWeek||1;
  $("c-accent-on").checked=!!S.accent;if(S.accent)$("c-accent").value=S.accent;
  $("c-notice").value=S.notice||"";$("c-nl").value=S.noticeLinkLabel||"";$("c-nu").value=S.noticeLinkUrl||"";
- showLogo(S.logo);drawLecs();
+ showLogo(S.logo);drawLecs();fdAuto();
 })}
 function showLogo(l){$("logo-img").hidden=!l;$("logo-clear").hidden=!l;if(l)$("logo-img").src="../"+l+"?t="+Date.now()}
 document.querySelectorAll("[data-go]").forEach(function(b){b.addEventListener("click",function(){go(b.getAttribute("data-go"))})});
 document.querySelectorAll("[data-skip]").forEach(function(b){b.addEventListener("click",function(){go(b.getAttribute("data-skip"))})});
+// ---------- course details: CM fills the whole form from a folder that holds the information; blanks only where the files lack it ----------
+var FD={code:"c-code",title:"c-title",lecturer:"c-lect",institution:"c-inst",semester:"c-sem",contact:"c-contact",start:"c-start",end:"c-end",times:"c-times",week:"c-week"};
+function fdEsc(t){return String(t==null?"":t).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function fdShow(r,auto){
+ var box=$("fd-found");
+ if(!r){return}
+ if(!r.ok){box.innerHTML=auto&&r.none?"":"<p class='note'>"+fdEsc(r.why||"CM could not read the folder.")+"</p>";return}
+ if(!r.fields.length){box.innerHTML="<p class='note'>CM read "+r.read.length+(r.read.length===1?" file":" files")+" and found no course details. Type them in below.</p>";return}
+ var filled=[];
+ r.fields.forEach(function(f){var i=FD[f.key]&&$(FD[f.key]);if(!i)return;var blank=!i.value.trim()||(f.key==="week"&&i.value==="1");if(blank){i.value=f.value;filled.push(f.label)}});
+ box.innerHTML="<p><b>CM filled this form from "+fdEsc(r.folder||"the folder")+".</b> Check each value and correct what is wrong; nothing is saved until you press Save and continue.</p><ul>"+
+  r.fields.map(function(f){return"<li>"+fdEsc(f.label)+": <b>"+fdEsc(f.value)+"</b> <span class='note'>from "+fdEsc(f.from)+(f.worked?" (worked out from the first day)":"")+"</span></li>"}).join("")+"</ul>"+
+  (r.missing&&r.missing.length?"<p class='note'>Not in the files, so left for you: "+fdEsc(r.missing.join(", "))+".</p>":"")+
+  (r.topics&&r.topics.length?"<p class='note'>"+r.topics.length+" weekly topics were also found; add them under Course materials.</p>":"")+
+  "<p><button type='button' class='btn' id='fd-all'>Use all of these values, replacing what is typed</button></p>";
+ $("fd-all").onclick=function(){r.fields.forEach(function(f){var i=FD[f.key]&&$(FD[f.key]);if(i)i.value=f.value})};
+}
+$("fd-pick").addEventListener("click",function(){$("fd-found").textContent="CM is reading the files…";cmApp.folderDetails("",{pick:true}).then(function(r){if(r===null){$("fd-found").textContent="";return}fdShow(r,false)})});
+var fdAsked=false;
+function fdAuto(){ /* a folder that is linked or was loaded: fill the empty form at once */
+ if(fdAsked||$("c-code").value.trim()&&$("c-title").value.trim()&&$("c-lect").value.trim())return;fdAsked=true;
+ cmApp.folderDetails("").then(function(r){fdShow(r,true)})}
 // ---------- course details ----------
 $("f-course").addEventListener("submit",function(e){e.preventDefault();
  var nu=$("c-nu").value.trim();if(nu&&!/^https:\/\//.test(nu)){$("c-msg").textContent="The notice link must start with https://";return}

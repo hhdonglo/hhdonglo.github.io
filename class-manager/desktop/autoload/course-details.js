@@ -13,7 +13,8 @@ const LABELS = {
   end: /^(last\s+day(\s+of\s+teaching)?|end\s+date|semester\s+end|teaching\s+ends?)$/i,
   times: /^(class\s+times?|lecture\s+times?|schedule|timetable)$/i,
   week: /^(current\s+week)$/i,
-  code: /^(course\s+code|course|code)$/i
+  code: /^(course\s+code|course|code)$/i,
+  contact: /^(contact|contact\s+(email|e-?mail|details)|e-?mail|email\s+address|office\s+hours?)$/i
 };
 const MONTHS = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
 const pad = (n) => String(n).padStart(2, "0");
@@ -90,6 +91,14 @@ function findDetails(sources, today) {
       if (/^((University|College|Institute|School) of [A-Za-z ,'’-]{3,60}|[A-Za-z ,'’-]{3,60} (University|College|Institute))$/.test(ln)) set("institution", ln, file);
       if (/^(semester|term|trimester)\s*\d[^:]{0,30}$/i.test(ln)) set("semester", ln, file);
     });
+    // "Teaching: 2 November 2026 to 20 February 2027": a line about the semester or teaching dates with two dates gives the first and last day.
+    docLines.slice(0, 300).forEach((ln) => {
+      if (!/(teaching|semester|term|duration|dates|period|runs)/i.test(ln)) return;
+      const m2 = /(\d{1,2}(?:st|nd|rd|th)?\s+[A-Za-z]{3,9}\.?,?\s+\d{4}|\d{1,2}[\/.]\d{1,2}[\/.]\d{4}|\d{4}-\d{2}-\d{2})\s*(?:to|until|till|through|[-–—])\s*(\d{1,2}(?:st|nd|rd|th)?\s+[A-Za-z]{3,9}\.?,?\s+\d{4}|\d{1,2}[\/.]\d{1,2}[\/.]\d{4}|\d{4}-\d{2}-\d{2})/.exec(ln);
+      if (m2 && isoDate(m2[1]) && isoDate(m2[2])) { set("start", isoDate(m2[1]), file); set("end", isoDate(m2[2]), file); }
+    });
+    // The first e-mail address near the top of an outline is the contact for students (only when no "Contact:" line gave one).
+    const em = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/.exec(docLines.slice(0, 60).join("\n")); if (em) set("contact", em[0], file);
     const text = lines.join("\n") + "\n" + docLines.slice(0, 200).join("\n");
     const sem = SEMESTER.exec(text); if (sem) set("semester", sem[1][0].toUpperCase() + sem[1].slice(1).toLowerCase() + " semester " + sem[2], file);
     const tm = TIMES.exec(text); if (tm) set("times", tm[1][0].toUpperCase() + tm[1].slice(1).toLowerCase() + " " + pad(+tm[2]) + ":" + tm[3] + " to " + pad(+tm[4]) + ":" + tm[5], file);
@@ -108,6 +117,6 @@ function findDetails(sources, today) {
 
 // What each field is called on the form and in the settings.
 const FIELDS = [["code", "Course code", "courseCode"], ["title", "Course title", "courseTitle"], ["lecturer", "Lecturer", "lecturer"], ["institution", "Institution", "institution"],
-  ["semester", "Semester", "semester"], ["start", "First day of teaching", "startDate"], ["end", "Last day of teaching", "endDate"], ["times", "Class times", "contacts"], ["week", "Current week", "currentWeek"]];
+  ["semester", "Semester", "semester"], ["start", "First day of teaching", "startDate"], ["end", "Last day of teaching", "endDate"], ["times", "Class times", "contacts"], ["week", "Current week", "currentWeek"], ["contact", "Contact for students", "contact"]];
 
 module.exports = { findDetails, isoDate, FIELDS };
