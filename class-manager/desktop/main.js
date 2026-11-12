@@ -553,6 +553,12 @@ on("cm:linkFolder", async (c, e, id, unlink) => {
   ctx(id).backend.dropSiteCache();
   return { ok: true, list: courseList(c.id) };
 });
+// Course details found in the files of a linked folder (autoload/folder-details.js): CM suggests, the lecturer corrects.
+on("cm:folderDetails", async (c, e, id) => {
+  const x = registry.get(String(id || c.id));
+  if (!x || !x.source || x.source.kind !== "folder" || !x.source.path) return { ok: false, why: "This course is not linked to a folder." };
+  try { return await require("./autoload/folder-details").detailsOfFolder(x.source.path); } catch (err) { return { ok: false, why: err.message }; }
+});
 // A linked folder that is a Git repository: bring it up to date with git pull (fast-forward only, never a merge).
 on("cm:pullCourse", (c, e, id) => new Promise((resolve) => {
   const x = registry.get(String(id || c.id));

@@ -82,6 +82,14 @@ function findDetails(sources, today) {
       const tp = /^(?:week|lecture)\s+(\d{1,2})\s*[:.\-–]\s*(.{3,120})$/i.exec(ln);
       if (tp && !topics.some((t) => t.week === +tp[1])) topics.push({ week: +tp[1], title: tp[2].trim().replace(/\s+/g, " "), from: file });
     });
+    // An outline with no labels: the first lines usually read "PHYS 143: Mechanics and Thermal Physics", "Semester 2, 2026/27" and the institution. Used only for what the labels did not give.
+    const top = docLines.slice(0, 15).map((l) => l.replace(/^#+\s*/, "").replace(/\*\*/g, "").trim());
+    top.forEach((ln) => {
+      const ct = /^([A-Z]{2,5}\s?\d{3,4}[A-Z]?)\s*[:\-–—|.]\s*(.{4,100})$/.exec(ln);
+      if (ct) { const cc2 = {}; codesIn(ct[1], cc2); const first = Object.keys(cc2)[0]; if (first) set("code", first, file); set("title", ct[2].trim().replace(/\s+/g, " "), file); }
+      if (/^((University|College|Institute|School) of [A-Za-z ,'’-]{3,60}|[A-Za-z ,'’-]{3,60} (University|College|Institute))$/.test(ln)) set("institution", ln, file);
+      if (/^(semester|term|trimester)\s*\d[^:]{0,30}$/i.test(ln)) set("semester", ln, file);
+    });
     const text = lines.join("\n") + "\n" + docLines.slice(0, 200).join("\n");
     const sem = SEMESTER.exec(text); if (sem) set("semester", sem[1][0].toUpperCase() + sem[1].slice(1).toLowerCase() + " semester " + sem[2], file);
     const tm = TIMES.exec(text); if (tm) set("times", tm[1][0].toUpperCase() + tm[1].slice(1).toLowerCase() + " " + pad(+tm[2]) + ":" + tm[3] + " to " + pad(+tm[4]) + ":" + tm[5], file);

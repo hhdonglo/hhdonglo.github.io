@@ -51,7 +51,9 @@ test("a course outline in plain text gives the details and the weekly topics", (
   assert.strictEqual(f.code.value, "PHYS 143"); assert.strictEqual(f.lecturer.value, "Dr Test Person"); assert.strictEqual(f.institution.value, "Example University");
   assert.strictEqual(f.start.value, "2026-11-02"); assert.strictEqual(f.times.value, "Tuesday 09:30 to 11:20");
   assert.deepStrictEqual(f.topics.map((t) => [t.week, t.title]), [[1, "Units and measurement"], [2, "Motion in one dimension"], [3, "Vectors"]]);
-  assert.strictEqual(f.title, undefined, "a title that is not labelled is left blank, not guessed");
+  assert.strictEqual(f.title.value, "Mechanics and Waves", "a heading written as CODE: Title is read as the title");
+  const g = findDetails([{ file: "notes.txt", rows: [], text: "Some words about the course\nAnother line" }], new Date());
+  assert.strictEqual(g.title, undefined, "a title is never guessed from an ordinary line");
 });
 
 test("saving the found details keeps existing lectures and fills only new weeks", async () => {
