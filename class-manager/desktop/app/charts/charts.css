@@ -61,3 +61,10 @@ svg.pt{display:block;width:100%;height:auto}
 .gx-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,26rem),1fr));gap:1.4rem}
 .gx-cell h4{margin:0 0 .4rem}
 .gx .lv-legend{display:flex;flex-wrap:wrap;gap:.3rem 1rem}
+/* clickable regions: a band, a box or a quarter of the scatter lists its students under the graphs */
+.gx-region{cursor:pointer}.gx-hit{fill:transparent}.gx-quad{fill:transparent}
+.gx-region:hover .gx-hit,.gx-region:focus-visible .gx-hit,.gx-quad:hover,.gx-quad:focus-visible{fill:var(--bar);fill-opacity:.12;outline:none}
+.gx-region:focus-visible .dist-bar,.gx-region:focus-visible .box-box{stroke:var(--text);stroke-width:2}
+.gx-region.on .gx-hit{fill:var(--bar-hi);fill-opacity:.18}.gx-quad.on{fill:var(--bar-hi);fill-opacity:.18}
+.gx-list{margin:1rem 0 0;padding:.8rem 1rem;border:1px solid var(--line);border-radius:10px;background:var(--card-2)}
+.gx-list h4{margin:0 0 .4rem}.gx-list ul{margin:.3rem 0 0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:.3rem 1.2rem}

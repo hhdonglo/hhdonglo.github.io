@@ -5,6 +5,7 @@
    mode "to": everything up to and including the day; mode "on": the day only. */
 (function (root) {
   "use strict";
+  var H = typeof module === "object" && module.exports ? require("../headings") : root.cmHeadings || { readable: function (x) { return x; } };
   function parseDate(text) {
     var s = String(text || ""), m;
     if ((m = s.match(/(\d{4})-(\d{1,2})-(\d{1,2})/))) return Date.UTC(+m[1], +m[2] - 1, +m[3]);
@@ -24,7 +25,7 @@
       var key = it.date !== null ? "d" + it.date : "n" + it.kind + it.idx, day = byDate[key];
       if (!day) { day = byDate[key] = { key: key, date: it.date, sessions: [], quizzes: [], first: it.order }; days.push(day); }
       (it.kind === "session" ? day.sessions : day.quizzes).push(it.idx); day.first = Math.min(day.first, it.order);
-      day.label = it.date !== null ? dayLabel(it.date) : it.label;
+      day.label = it.date !== null ? dayLabel(it.date) : H.readable(it.label);
     });
     days.sort(function (a, b) { return a.date !== null && b.date !== null ? a.date - b.date : a.first - b.first; });
     days.forEach(function (day) { var parts = []; if (day.sessions.length) parts.push("attendance"); if (day.quizzes.length) parts.push("quiz"); day.what = parts.join(" and "); });

@@ -205,6 +205,7 @@
   });
   document.addEventListener("keydown", function (e) {
     if (e.key !== "Enter" && e.key !== " ") return;
+    var gr = e.target.closest && e.target.closest(".gx-region[data-gx]"); if (gr && data && window.cmCharts && cmCharts.panel) { e.preventDefault(); cmCharts.panel.handle(gr, data, gxDraw); return; }
     var tr = e.target.closest && e.target.closest("tr[data-id]"); if (tr) { e.preventDefault(); studentOpen(tr.getAttribute("data-id")); return; }
     var th0 = e.target.closest && e.target.closest("#st th[data-k]"); if (th0) { e.preventDefault(); th0.click(); }
   });

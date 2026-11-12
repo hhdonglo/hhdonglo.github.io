@@ -245,3 +245,11 @@ The banks as they stand: 347 questions over 12 lectures, every one with four opt
 ## Learning Progress charts (desktop, from 11 November 2026)
 
 The Learning Progress screen draws its graphs from `desktop/app/charts/`, one file per chart type (README.md there). The first two are the mastery distribution (stacked bars by objective) and the objective heat map (students by objectives). They read the figures of `learningProgress_` and do no calculation of their own. Added in the same release: class progress over time (weekly mean, median and quartile band, from `classTimeline_`), learning gain, before and after discussion, and for one student the trajectory against the class mean, student versus class by objective, learning gain and engagement (from `studentProfile_`, which now also returns `classTimeline`, `classByKey` and `engagement`). Class graphs on the dashboard (0.16.0): `stats.js`, `distribution.js` (histogram with Gaussian fit and outlier list), `boxplot.js`, `scatter.js`, `days.js` and `panel.js` (day selector; redraw when `cm:stamp` changes, a counter in `backend.js` that goes up on every change to the records). They read the figures of `classStats_` and do no server calculation. Not yet built: question difficulty (already on Quizzes and Questions) and the Sunday analytics list (evidence confidence, item analysis, concept and intervention tracking, fairness view), which should reuse `classTimeline_` and `classOutcomes_` rather than recalculate.
+
+
+## 0.17.0: smaller queued items
+- `desktop/remove-student.js`: remove a student from the class (Roster, Attendance, Master, Scores, Totals) by clicking a row in Grades and Results; the rows are kept in the `Removed_Students` tab and Restore puts them back. Logs (check-ins, quiz answers, records, notes) are never changed. IPC `cm:removeStudent`, `cm:restoreStudent`.
+- `desktop/app/headings.js`: readable names for assessments and columns (display only; the stored heading and exports are unchanged). Used by the Grades table and the day selector.
+- Roster integrity: in record tabs, rows for IDs not on the class list are marked and counted; the folder import summary says the class list is the source of truth.
+- Attendance column headings show the time the session was opened (from `Attendance_Control`).
+- Clickable graph regions: `panel.js` (see `app/charts/README.md`).

@@ -20,7 +20,7 @@
       var inside = vs.filter(function (v) { return v >= f.lo && v <= f.hi; }), lo = Math.min.apply(null, inside), hi = Math.max.apply(null, inside);
       svg += "<text class='pt-ax' x='" + (padL - 8) + "' y='" + (cy + 4) + "' text-anchor='end'>" + C.esc(m.label) + "</text>" +
         "<line class='box-whisk' x1='" + x(lo) + "' x2='" + x(hi) + "' y1='" + cy + "' y2='" + cy + "'/>" +
-        "<rect class='box-box' x='" + x(q.q1) + "' y='" + (cy - 11) + "' width='" + Math.max(2, x(q.q3) - x(q.q1)) + "' height='22'><title>" + C.esc(m.label + ": median " + S.r1(q.median) + "%, quartiles " + S.r1(q.q1) + " to " + S.r1(q.q3) + "%") + "</title></rect>" +
+        "<g class='gx-region' data-gx='box:" + i + "' tabindex='0' role='button' aria-label='" + C.esc(m.label) + ": the middle half of the class. Show them.'><rect class='box-box' x='" + x(q.q1) + "' y='" + (cy - 11) + "' width='" + Math.max(2, x(q.q3) - x(q.q1)) + "' height='22'><title>" + C.esc(m.label + ": median " + S.r1(q.median) + "%, quartiles " + S.r1(q.q1) + " to " + S.r1(q.q3) + "%") + "</title></rect></g>" +
         "<line class='box-med' x1='" + x(q.median) + "' x2='" + x(q.median) + "' y1='" + (cy - 11) + "' y2='" + (cy + 11) + "'/>";
       m.rows.filter(function (r) { return r.v < f.lo || r.v > f.hi; }).forEach(function (r) { svg += "<g class='box-out' data-student='" + C.esc(r.id) + "'><title>" + C.esc((r.name || r.id) + ": " + S.r1(r.v) + "%") + "</title><circle cx='" + x(r.v) + "' cy='" + cy + "' r='5'/></g>"; });
       tbl.push([m.label, vs.length, S.r1(q.min), S.r1(q.q1), S.r1(q.median), S.r1(q.q3), S.r1(q.max), m.rows.filter(function (r) { return r.v < f.lo || r.v > f.hi; }).map(function (r) { return r.name || r.id; }).join(", ") || "none"]);

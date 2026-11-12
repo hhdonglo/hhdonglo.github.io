@@ -1,7 +1,7 @@
 {
   "name": "class-manager",
   "productName": "Class Manager",
-  "version": "0.16.0",
+  "version": "0.17.0",
   "description": "Course pages, practice quizzes, mock exam, live quiz and attendance for each of the lecturer's courses, run from the lecturer's computer.",
   "author": "Hope Donglo",
   "license": "UNLICENSED",
@@ -35,6 +35,7 @@
       "tunnel.js",
       "access.js",
       "vault.js",
+      "remove-student.js",
       "linked-folder.js",
       "storage-providers.js",
       "storage/*.js",
