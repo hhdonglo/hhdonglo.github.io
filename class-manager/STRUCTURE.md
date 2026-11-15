@@ -280,3 +280,7 @@ Look (2026-11-15, from Hope's inspiration image): soft tinted tiles on cards, on
 - `desktop/governance.js`: Audit_Log tab, per-student export and permanent erase (typed ID to confirm, found by Student ID or ID column), term close (Term_Status tab; closed terms refuse student check-ins, quiz attempts, reports and chat, never the lecturer), role table, default privacy notice served at `/privacy.html`.
 - `desktop/summary.js`: weekly summary from class totals only; written locally; Claude wording only when the lecturer switches it on and a key is stored (off by default).
 - IPC: `cm:analyticsExtra`, `cm:addIntervention`, `cm:govern` (export, erase, term, audit, ai, notice), `cm:weeklySummary`. No Apps Script change, so no redeploy.
+
+## Assistant export (0.21.0)
+
+`desktop/llm/` (README.md there) saves a private snapshot of the current course for an AI assistant: `policy.js` (allowed tabs, columns), `pseudonym.js` and `salt.js` (stable pseudonyms; the salt stays in the course data folder), `snapshot.js` (snapshot and preview), `markdown.js`, `mcp-server.js` (stand-alone read-only MCP server copied beside the snapshot) and `ipc.js` (`cm:llmPreview`, `cm:llmSave`, `cm:llmLookup`). Screen: Settings card, `desktop/app/llm.js`. Tests: `desktop/test/llm.test.js`.
