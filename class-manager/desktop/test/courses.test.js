@@ -34,7 +34,9 @@ test("the 0.7.0 single-course layout becomes the first course, with nothing lost
   const old = createBackend({ webRoot: WEB, dataFile: path.join(root, "data", "workbook.json"), log: () => {} });
   old.rosterSync([["10000001", "Ama"], ["10000002", "Kofi"]], false);
   const oldKey = old.hostKey();
-  old.flush();
+  // 0.7.0 kept a plain workbook.json and no database: write it out in that form and release the stand-in database.
+  fs.writeFileSync(path.join(root, "data", "workbook.json"), old.exportText()); old.close();
+  for (const f of fs.readdirSync(path.join(root, "data"))) if (/^course\.db/.test(f)) fs.unlinkSync(path.join(root, "data", f));
   fs.mkdirSync(path.join(root, "course", "data"), { recursive: true });
   fs.writeFileSync(path.join(root, "course", "data", "lectures.json"), JSON.stringify({ groups: [{ id: "lectures", title: "Lectures", lectures: [{ number: 1, title: "Units" }] }] }));
   fs.mkdirSync(path.join(root, "authoring"), { recursive: true });

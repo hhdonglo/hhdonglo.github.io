@@ -23,8 +23,10 @@ const SCHEMA = `
 function open(file, vault) {
   fs.mkdirSync(path.dirname(file), { recursive: true });
   const db = new DatabaseSync(file);
-  db.exec("PRAGMA journal_mode = WAL; PRAGMA synchronous = FULL; PRAGMA foreign_keys = ON;");
-  db.exec(SCHEMA);
+  try {
+    db.exec("PRAGMA journal_mode = WAL; PRAGMA synchronous = FULL; PRAGMA foreign_keys = ON;");
+    db.exec(SCHEMA);
+  } catch (e) { try { db.close(); } catch (e2) { /* nothing to close */ } throw e; } // a file that is not a database must not stay locked (Windows cannot move an open file)
   const codec = createCodec(vault);
   const q = {
     meta: db.prepare("SELECT value FROM meta WHERE key = ?"),
