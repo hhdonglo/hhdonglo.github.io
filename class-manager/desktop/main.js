@@ -27,6 +27,7 @@ const names = require("./names");
 const excel = require("./excel");
 const webImport = require("./import-ipc");
 const folderImport = require("./autoload-ipc");
+const idNoticesIpc = require("./id-notices-ipc");
 const llm = require("./llm/ipc");
 const { nameChecks } = require("./import-plan");
 const courseReset = require("./course-reset");
@@ -614,6 +615,7 @@ on("cm:chooseLogo", async (c, e, clear) => {
 });
 webImport.register({ on, dialog, winOf, shell }); // cm:import*: bring results exported from the web version into this course
 llm.register({ on, dialog, winOf, shell, dirOf: (c) => registry.dirs(c.id).root }); // cm:llm*: a private snapshot of the course for an AI assistant (llm/README.md)
+idNoticesIpc.register({ on }); // cm:idNotices, cm:idResolve: the Duplicate IDs card
 folderImport.register({ on, dialog, winOf, shell, saveSettings, dirOf: (c) => registry.dirs(c.id).root }); // cm:auto*: point at a folder; CM finds and extracts what it needs
 require("./lms/ipc").register({ on, dialog, winOf, shell, dirOf: (c) => registry.dirs(c.id).root }); // cm:lms*: roster and gradebook exchange with a learning management system (lms/README.md)
 ipcMain.handle("cm:tableFile", async (e) => { // a class list as rows, from CSV, a text file or Excel (.xlsx)

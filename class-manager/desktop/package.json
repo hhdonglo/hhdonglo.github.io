@@ -61,6 +61,7 @@
       "import-plan.js",
       "import-apply.js",
       "import-ipc.js",
+      "id-notices-ipc.js",
       "autoload-ipc.js",
       "course-reset.js",
       "attendance-guard.js",

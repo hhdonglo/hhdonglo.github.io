@@ -318,3 +318,6 @@ Look (2026-11-15, from Hope's inspiration image): soft tinted tiles on cards, on
 
 ### Overflow guard (0.21.4)
 `desktop/test/overflow.test.js` opens every sidebar screen at 760, 1000 and 1280 px with a very long folder path and repository URL and fails if the page or `main` scrolls sideways. The Course and Content card shows labelled Folder, Repository and Branch lines with Copy buttons; full values appear on hover. Long text wraps (`overflow-wrap:anywhere`) and `main` never scrolls horizontally.
+
+### Duplicate IDs card (0.22.1)
+`desktop/id-notices-ipc.js` (two calls: `cm:idNotices`, `cm:idResolve`) and `desktop/app/id-notices.js` (the card on the Class Roster screen). A student ID that was on more than one row is merged by `db/id-guard.js` (first row stays, blanks filled, a different value never overwritten) and recorded by `db/notices.js`. The card lists each ID with both source rows exactly as they were and the names they gave; the lecturer picks the right name or marks the ID as checked, and the choice is written to the class list. Test: `desktop/test/id-notices.test.js`.
