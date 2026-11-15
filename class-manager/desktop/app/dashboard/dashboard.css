@@ -39,24 +39,3 @@ button.dstat:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 @media (max-width:1000px){.dstats{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:640px){.dstats{grid-template-columns:minmax(0,1fr)}}
 .dbars{max-height:240px}
-/* Look: soft tinted tiles on cards, one navy and blue palette, large readable numbers (2026-11-15). Tints come from tokens, so both themes work. */
-:root{--tn-blue:var(--bar);--tn-green:var(--g-on);--tn-purple:#8E7CE0;--tn-orange:var(--g-hard);--tn-red:var(--g-need)}
-@media (prefers-color-scheme:light){:root{--tn-purple:#5B49B8}}
-.t-blue{--tn:var(--tn-blue)}.t-green{--tn:var(--tn-green)}.t-purple{--tn:var(--tn-purple)}.t-orange{--tn:var(--tn-orange)}.t-red{--tn:var(--tn-red)}
-.ico{width:1.7rem;height:1.7rem;fill:none;stroke:var(--tn,var(--bar));stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none}
-button.dstat,.dtile{background:color-mix(in srgb,var(--tn,var(--bar)) 13%,var(--card));border:1px solid color-mix(in srgb,var(--tn,var(--bar)) 35%,var(--line));border-top-width:1px;border-radius:14px}
-.dstat{border-top:1px solid!important}
-button.dstat{gap:.1rem;padding:1.1rem 1.2rem}
-button.dstat .tbig{font-size:2.1rem;font-weight:700;margin-top:.35rem}
-button.dstat .lbl{font-weight:600;color:var(--text)}
-button.dstat:hover,button.dstat[aria-pressed="true"]{box-shadow:0 0 0 2px var(--tn,var(--bar))}
-.dctl{margin:0 0 var(--gap)}.dctl h3{margin:.2rem 0 .6rem}
-.dtiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--gap)}
-.dtile{display:flex;flex-direction:column;align-items:flex-start;gap:.2rem;padding:1rem 1.1rem;text-align:left;font:inherit;color:inherit;cursor:pointer}
-.dtile b{margin-top:.3rem}.dtile span{font-size:.82rem;color:var(--muted)}
-.dtile:hover{box-shadow:0 0 0 2px var(--tn)}.dtile:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
-.dcall{display:flex;align-items:center;gap:.8rem;padding:.8rem 1rem;border-radius:14px;background:color-mix(in srgb,var(--g-hard) 16%,var(--card));border:1px solid color-mix(in srgb,var(--g-hard) 40%,var(--line));margin-bottom:var(--gap)}
-.dcall p{margin:0}.dcall .ico{stroke:var(--g-hard)}
-.card{border-radius:14px}
-@media (max-width:1000px){.dtiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (max-width:640px){.dtiles{grid-template-columns:minmax(0,1fr)}}

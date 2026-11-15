@@ -12,18 +12,9 @@
     var pts = vals.map(function (v, i) { return (2 + i * (W - 4) / (vals.length - 1)).toFixed(1) + "," + (H - 3 - (H - 6) * (v - lo) / span).toFixed(1); }).join(" ");
     return "<svg class='spark' viewBox='0 0 " + W + " " + H + "' role='img' aria-label='" + esc(label + ": " + vals.join(", ") + unit) + "'><polyline points='" + pts + "'/></svg>";
   }
-  // One small line icon per card (decorative: the label says the same in words).
-  var ICON = {
-    students: "<circle cx='9' cy='8' r='3'/><path d='M3 19c0-3.3 2.7-6 6-6s6 2.7 6 6'/><circle cx='17' cy='9' r='2.2'/><path d='M16 14c2.8 0 5 2 5 5'/>",
-    attendance: "<rect x='4' y='5' width='16' height='15' rx='2.5'/><path d='M4 10h16M8 3v4M16 3v4M9 15l2 2 4-4'/>",
-    learning: "<path d='M4 17l5-5 4 3 7-8'/><path d='M15 7h5v5'/>",
-    practice: "<path d='M13 3L5 14h6l-1 7 8-11h-6z'/>",
-    risk: "<path d='M12 4l9 16H3z'/><path d='M12 10v4M12 17.5v.5'/>"
-  };
-  var TILE = { students: "t-blue", attendance: "t-green", learning: "t-purple", practice: "t-orange", risk: "t-red" };
   function stat(c) { // a button: a click opens the chart and the students behind the number (interact.js)
-    return "<button type='button' class='card dstat " + (TILE[c.key] || "") + " " + c.light + "' data-drill='" + esc(c.key) + "' aria-pressed='false'><svg class='ico' viewBox='0 0 24 24' aria-hidden='true'>" + (ICON[c.key] || "") + "</svg><span class='tbig'>" + esc(c.value) + "</span><span class='lbl'>" + esc(c.label) + "</span><span class='note'>" + esc(c.text) + "</span>" +
-      (c.light === "lt-none" ? "" : "<span class='lt'><i></i>" + WORD[c.light] + (c.reason ? " · " + esc(c.reason) : "") + "</span>") + "<span class='more'>See what is behind this</span></button>";
+    return "<button type='button' class='card dstat " + c.light + "' data-drill='" + esc(c.key) + "' aria-pressed='false'><span class='lbl'>" + esc(c.label) + "</span><span class='tbig'>" + esc(c.value) + "</span><span class='note'>" + esc(c.text) + "</span>" +
+      (c.light === "lt-none" ? "" : "<span class='lt'><i></i>" + WORD[c.light] + (c.reason ? " · " + esc(c.reason) : "") + "</span>") + "<span class='more'>Show what is behind this</span></button>";
   }
   function statCards(d) { return "<div class='dstats' role='group' aria-label='Click a number to see what is behind it'>" + R.statCards(d).map(stat).join("") + "</div><section class='card ddrill' id='ddrill' aria-live='polite' hidden></section>"; }
   function setupTracker(setup) {
@@ -56,17 +47,6 @@
     return "<section class='card dins' aria-labelledby='di-h'><div class='card-head'><h3 id='di-h'>Teaching insights</h3><span class='note'>From the numbers only</span></div>" +
       (xs.length ? "<ul>" + xs.map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ul>" : "<p class='note'>Insights appear after a few sessions and quizzes.</p>") + "</section>";
   }
-  // Four large tiles that open the tools a lecturer reaches for first. They only navigate (data-dgo, handled with the Today buttons).
-  function controls() {
-    var T = [["view:class", "Attendance", "Open, monitor, close", "t-green", ICON.attendance], ["view:quizzes", "Quizzes and Questions", "Prepare, start, control", "t-purple", ICON.practice],
-      ["view:students", "Students", "Records and notes", "t-blue", ICON.students], ["view:progress", "Learning Progress", "Graphs by day", "t-orange", ICON.learning]];
-    return "<section class='dctl' aria-label='Class tools'><h3>Class tools</h3><div class='dtiles'>" + T.map(function (t) { return "<button type='button' class='dtile " + t[3] + "' data-dgo='" + t[0] + "'><svg class='ico' viewBox='0 0 24 24' aria-hidden='true'>" + t[4] + "</svg><b>" + esc(t[1]) + "</b><span>" + esc(t[2]) + "</span></button>"; }).join("") + "</div></section>";
-  }
-  // The first insight as one callout, with a button to the full list.
-  function callout(d) {
-    var xs = R.insights(d); if (!xs.length) return "";
-    return "<div class='dcall' role='note'><svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><path d='M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z'/></svg><p><b>Insight:</b> " + esc(xs[0]) + "</p></div>";
-  }
   // Who needs attention, as a chart: attendance against quiz average with three zones. A click on a zone lists its students (interact.js).
   function riskCard(d) {
     var G = root.cmGroups || require("./groups"), C = root.cmDashCharts || require("./charts"), z = G.riskZones(d);
@@ -84,8 +64,8 @@
   }
   // The whole top of the dashboard.
   function top(d, setup, live) {
-    return today(d, setup, live) + setupTracker(setup) + statCards(d) + controls() + "<div class='dgrid'>" + riskCard(d) + corrCard(d) + trendsCard(d) + insightsCard(d) + healthCard(d) + "</div>" + callout(d);
+    return today(d, setup, live) + setupTracker(setup) + statCards(d) + "<div class='dgrid'>" + riskCard(d) + corrCard(d) + trendsCard(d) + insightsCard(d) + healthCard(d) + "</div>";
   }
-  var api = { spark: spark, statCards: statCards, setupTracker: setupTracker, today: today, queue: queue, controls: controls, callout: callout, riskCard: riskCard, corrCard: corrCard, trendsCard: trendsCard, healthCard: healthCard, insightsCard: insightsCard, top: top };
+  var api = { spark: spark, statCards: statCards, setupTracker: setupTracker, today: today, queue: queue, riskCard: riskCard, corrCard: corrCard, trendsCard: trendsCard, healthCard: healthCard, insightsCard: insightsCard, top: top };
   if (typeof module === "object" && module.exports) module.exports = api; else root.cmDashView = api;
 })(typeof window !== "undefined" ? window : globalThis);
