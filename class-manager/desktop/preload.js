@@ -23,6 +23,7 @@ contextBridge.exposeInMainWorld("cmApp", {
   onAutoProgress: (fn) => { ipcRenderer.on("cm:autoProgress", (e, p) => fn(p)); }, onAutoChanged: (fn) => { ipcRenderer.on("cm:autoChanged", () => fn()); },
   onImportProgress: (fn) => { ipcRenderer.on("cm:importProgress", (e, p) => fn(p)); },
   llmPreview: call("cm:llmPreview"), llmSave: call("cm:llmSave"), llmLookup: call("cm:llmLookup"),
+  grades: call("cm:grades"), gradesTimeline: call("cm:gradesTimeline"),
   mailboxStatus: call("cm:mailboxStatus"), mailboxSetup: call("cm:mailboxSetup"), mailboxClear: call("cm:mailboxClear"), mailboxPull: call("cm:mailboxPull"),
   lmsState: call("cm:lmsState"), lmsSave: call("cm:lmsSave"), lmsRosterFile: call("cm:lmsRosterFile"), lmsRosterService: call("cm:lmsRosterService"), lmsRosterApply: call("cm:lmsRosterApply"), lmsGradebookFile: call("cm:lmsGradebookFile"), lmsGradesService: call("cm:lmsGradesService"), lmsToolConfig: call("cm:lmsToolConfig"),
   readme: call("cm:readme"), tunnelStart: call("cm:tunnelStart"), tunnelStop: call("cm:tunnelStop"), security: call("cm:security"), saveSecurity: call("cm:saveSecurity"),

@@ -308,3 +308,5 @@ Look (2026-11-15, from Hope's inspiration image): soft tinted tiles on cards, on
 | `app/mailbox.html`, `app/mailbox.js` | The Mailbox screen. |
 | `../assets/outbox.js`, `../assets/relay-seal.js` | The phone's queue and encryption. |
 | `../relay/worker.mjs`, `../relay/README.md` | The mailbox Worker and the setup steps. |
+| `grades/build.js`, `grades/view-model.js`, `grades/times.js` | The clean Grades table with the time of each entry, a student's timeline, and the Excel layout (see `grades/README.md`). |
+| `app/grades-view.js` | Draws the Grades table, the row menu (Timeline, Remove from class) and the timeline. |

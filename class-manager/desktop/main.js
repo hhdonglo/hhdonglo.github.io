@@ -707,7 +707,7 @@ on("cm:exportExcel", async (c, e) => {
   const label = (c.settings.courseCode || c.id).replace(/[^\w .-]+/g, "_");
   const r = await dialog.showSaveDialog(winOf(e), { title: "Save the results as Excel", defaultPath: "Class Manager results " + label + " " + new Date().toISOString().slice(0, 10) + ".xlsx", filters: [{ name: "Excel workbook", extensions: ["xlsx"] }] });
   if (r.canceled || !r.filePath) return null;
-  try { fs.writeFileSync(r.filePath, await excel.writeXlsx(excel.resultsSheets(c.backend.tabs(), (n) => names.withNameColumns(c.backend.tab(n)), c.backend.students.list()))); shell.showItemInFolder(r.filePath); return { ok: true, file: r.filePath }; }
+  try { const g = gradesOf(c); fs.writeFileSync(r.filePath, await excel.writeXlsx(require("./grades/view-model").forExcel(g, (id) => g.entries(id)).concat(excel.resultsSheets(c.backend.tabs(), (n) => names.withNameColumns(c.backend.tab(n)), c.backend.students.list())))); shell.showItemInFolder(r.filePath); return { ok: true, file: r.filePath }; }
   catch (err) { return { ok: false, why: err.message }; }
 });
 // A table a screen has already drawn (for example the Students list), saved as a one-sheet Excel workbook.
@@ -729,6 +729,10 @@ function reopenCourse(c) { // after a restore: the course is made again from the
   for (const w of BrowserWindow.getAllWindows()) { try { if ((registry.idFromUrl(w.webContents.getURL()) || registry.active()) === c.id) w.webContents.reload(); } catch (e) {} }
   return n;
 }
+// The clean Grades table and a student's dated timeline (grades/): built from the records each time, so it is never out of date.
+const gradesOf = (c) => require("./grades/build").build((n) => c.backend.rawRows(n));
+on("cm:grades", (c) => require("./grades/view-model").forScreen(gradesOf(c)));
+on("cm:gradesTimeline", (c, e, id) => require("./grades/view-model").timelineForScreen(gradesOf(c).entries(String(id || ""))));
 on("cm:mailboxStatus", (c) => c.relay.status());
 on("cm:mailboxSetup", (c, e, o) => c.relay.setup(o || {}));
 on("cm:mailboxClear", (c) => c.relay.clear());
