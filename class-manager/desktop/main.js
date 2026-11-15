@@ -343,7 +343,7 @@ function makeCtx(id) {
   });
   c.backend = createBackend({ readSite: (rel) => c.authoring.siteFile(rel), webRoot: WEB, resolve: c.course.resolve, dataFile: d.workbook, vault,
     log: (m) => console.log("[backend " + id + "]", m), onChange: () => { if (c.google) c.google.changed(); if (c.sync) c.sync.changed(); } });
-  c.backups = createBackups({ dir: path.join(d.root, "backups"), workbook: d.workbook, vault });
+  c.backups = createBackups({ dir: path.join(d.root, "backups"), workbook: d.workbook, vault, readText: () => c.backend ? c.backend.exportText() : require("./db/migrate").readWorkbookText(path.join(d.data, "course.db"), vault) });
   c.linked = createLinkedFolder({ dir: d.root, label: () => c.settings.courseCode || id, content: () => backupContent(c), protect: vault.protectBytes, unprotect: vault.unprotectBytes, protected: vault.protected });
   c.sync = createCourseSync({ dir: d.root, contentDir: d.course, notesDir: path.join(d.root, "notes"), linked: c.linked, backend: c.backend, vault, deviceName: require("os").hostname(), log: (m) => console.log("[sync " + id + "]", m) });
   c.sync.start(); // local and online at the same time: a round now, then every two minutes, and a few seconds after each change
@@ -357,7 +357,7 @@ function ctx(id) {
 function closeCtx(id) { // after the course's folder changes: saved now, made again on next use
   const c = ctxs.get(id); if (!c) return;
   try { c.sync.stop(); } catch (e) {}
-  try { c.backend.flush(); } catch (e) {}
+  try { c.backend.close(); } catch (e) {}
   ctxs.delete(id);
 }
 // The course a window belongs to, from its address (/c/<id>/...). A window never acts on another course.
@@ -735,7 +735,7 @@ on("cm:backupRestore", (c, e, name) => {
 });
 function backupContent(c) { // the course's records and settings as one object, for a backup file or a linked-folder copy
   c.backend.flush();
-  return { kind: "class-manager-backup", version: app.getVersion(), course: c.id, made: new Date().toISOString(), settings: c.settings, workbook: vault.decode(fs.readFileSync(registry.dirs(c.id).workbook)) };
+  return { kind: "class-manager-backup", version: app.getVersion(), course: c.id, made: new Date().toISOString(), settings: c.settings, workbook: c.backend.exportText() };
 }
 function restoreContent(c, content) { // after the passphrase and the content have been checked
   closeCtx(c.id);

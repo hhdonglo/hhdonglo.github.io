@@ -78,13 +78,10 @@ test("access codes expire after the number of days the lecturer sets, and can be
   assert.equal(c.host("access_codes", { op: "expiry", days: "30" }).days, 30);
   assert.equal(c.call({ action: "my_results", id: a.id, code: c.codes[a.id] }).ok, true, "a new code is valid");
   // Age the codes by 40 days, as if they were issued at the start of term.
-  c.backend.flush();
-  const file = path.join(c.dir, "workbook.json");
-  const book = JSON.parse(fs.readFileSync(file, "utf8"));
-  const tab = book.sheets.find((s) => s.name === "Access_Codes");
-  tab.rows.slice(1).forEach((row) => { row[2] = { $d: new Date(Date.now() - 40 * 86400000).toISOString() }; });
-  fs.writeFileSync(file, JSON.stringify(book));
-  c.reopen();
+  c.editWorkbook((book) => {
+    const tab = book.sheets.find((s) => s.name === "Access_Codes");
+    tab.rows.slice(1).forEach((row) => { row[2] = { $d: new Date(Date.now() - 40 * 86400000).toISOString() }; });
+  });
   const r = c.call({ action: "my_results", id: a.id, code: c.codes[a.id] });
   assert.equal(r.why, "code expired");
   const list = c.host("access_codes", { op: "list" });

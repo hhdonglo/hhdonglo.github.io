@@ -169,8 +169,9 @@ test("two courses never see each other's records", () => {
   // The workbooks are different files, and B's file holds no trace of A's student.
   assert.notEqual(reg.dirs("phys-143").workbook, reg.dirs("math-101").workbook);
   A.backend.flush(); B.backend.flush();
-  assert.ok(!fs.readFileSync(reg.dirs("math-101").workbook, "utf8").includes("20005678"));
-  assert.ok(!fs.readFileSync(reg.dirs("math-101").workbook, "utf8").includes(codeA));
+  const bFile = path.join(reg.dirs("math-101").data, "course.db");
+  assert.ok(!fs.readFileSync(bFile, "latin1").includes("20005678"));
+  assert.ok(!fs.readFileSync(bFile, "latin1").includes(codeA));
 
   // Course content is separate: a lecture added to A is not a lecture of B.
   A.course.saveLecture({ number: 3, title: "Energy" });

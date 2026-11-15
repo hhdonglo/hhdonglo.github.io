@@ -289,3 +289,13 @@ Look (2026-11-15, from Hope's inspiration image): soft tinted tiles on cards, on
 ## LMS connector (added 15 November 2026)
 
 `desktop/lms/` (one job per file, listed in `desktop/lms/README.md`) with the screen `desktop/app/lms.html` and `lms.js`, opened from Course and Content. It reads an LMS roster export, writes a gradebook CSV, and optionally uses the LTI Advantage roster and grade services directly. Off until switched on; sends only user ids and points. Tests: `desktop/test/lms.test.js`.
+
+## Course database (desktop/db/)
+
+| File | Responsibility |
+| --- | --- |
+| `db/store.js` | Open the SQLite file, load the course, save changed tabs and rows in one transaction. |
+| `db/codec.js` | Turn a row or setting into stored bytes (encrypted with the vault) and back. |
+| `db/migrate.js` | Decide what is on disk: import `workbook.json` safely, move an unreadable database aside, read a course as workbook text for backups. |
+
+`backend.js` uses these three and keeps the spreadsheet shim for the server script. Tests: `desktop/test/db.test.js`, `vault.test.js`.

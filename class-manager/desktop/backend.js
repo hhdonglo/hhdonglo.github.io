@@ -7,6 +7,8 @@ const fs = require("fs");
 const path = require("path");
 const vm = require("vm");
 const crypto = require("crypto");
+const { openCourse } = require("./db/migrate");
+const { toJson } = require("./db/codec");
 
 const isDate = (v) => Object.prototype.toString.call(v) === "[object Date]"; // dates made inside the script come from another realm
 function bytes(buf) { return Array.from(buf, (b) => (b > 127 ? b - 256 : b)); } // Apps Script byte arrays are signed
@@ -17,34 +19,19 @@ function createBackend(opts) {
   const log = opts.log || (() => {});
   const vault = opts.vault || null;      // vault.js: the workbook is encrypted on disk when a vault is given
 
-  // ---------- workbook on disk ----------
-  let book = { sheets: [], props: {} }, loadProblem = null, legacyPlain = false;
-  try {
-    const raw = fs.readFileSync(FILE);
-    book = JSON.parse(vault ? vault.decode(raw) : raw.toString("utf8"), (k, v) => (v && typeof v === "object" && v.$d ? new Date(v.$d) : v));
-    if (!Array.isArray(book.sheets)) book.sheets = [];
-    if (!book.props) book.props = {};
-    if (vault && !vault.isSealed(raw)) legacyPlain = true; // written by an earlier version: encrypted at the first save, below
-  } catch (e) {
-    // No file: the first run. A file that cannot be read (another computer's key, damage) is never overwritten:
-    // it is moved aside, kept, and reported, and the course starts from an empty workbook until it is restored.
-    if (e.code !== "ENOENT" && fs.existsSync(FILE)) {
-      const aside = FILE.replace(/\.json$/, "") + ".unreadable-" + Date.now() + ".json";
-      try { fs.renameSync(FILE, aside); } catch (e2) { throw e; }
-      loadProblem = { file: aside, why: String(e.message || e) };
-      log("workbook could not be read; kept as " + aside);
-    }
-  }
+  // ---------- course database on disk (db/store.js; the old workbook.json is imported by db/migrate.js) ----------
+  const dbFile = opts.dbFile || path.join(path.dirname(FILE), "course.db");
+  const opened = openCourse({ dbFile, jsonFile: FILE, vault, log });
+  const db = opened.db, book = opened.book, loadProblem = opened.loadProblem;
+  if (!book.props) book.props = {};
 
-  let dirty = false, timer = null, version = Math.floor(Math.random() * 1e6) * 1000; // random start, so a new backend (reset, other course) never repeats a stamp; // version counts every change to the workbook: the screens poll it to redraw graphs
-  function touch() { version++; dirty = true; if (!timer) timer = setTimeout(flush, 400); if (opts.onChange) opts.onChange(); }
+  let dirty = new Set(), propsDirty = false, timer = null, version = Math.floor(Math.random() * 1e6) * 1000; // random start, so a new backend (reset, other course) never repeats a stamp; // version counts every change to the workbook: the screens poll it to redraw graphs
+  // data: the tab that changed (or "props" for settings); only changed tabs are written.
+  function touch(data) { version++; if (data === "props") propsDirty = true; else if (data) dirty.add(data); else { book.sheets.forEach((d) => dirty.add(d)); propsDirty = true; } if (!timer) timer = setTimeout(() => { try { flush(); } catch (e) { /* logged; kept to try again */ } }, 400); if (opts.onChange) opts.onChange(); }
   function flush() {
-    timer = null; if (!dirty) return; dirty = false;
-    const json = JSON.stringify(book, function (k, v) { const raw = this[k]; return isDate(raw) ? { $d: raw.toISOString() } : v; });
-    fs.mkdirSync(path.dirname(FILE), { recursive: true });
-    const tmp = FILE + ".tmp";
-    fs.writeFileSync(tmp, vault ? vault.encode(json) : json, { mode: 0o600 });
-    fs.renameSync(tmp, FILE);
+    timer = null; if (!dirty.size && !propsDirty) return;
+    const d = dirty, p = propsDirty; dirty = new Set(); propsDirty = false;
+    try { db.save(book, d, p); } catch (e) { d.forEach((x) => dirty.add(x)); propsDirty = propsDirty || p; log("could not save: " + e.message); throw e; }
   }
 
   // ---------- SpreadsheetApp ----------
@@ -59,7 +46,7 @@ function createBackend(opts) {
     function put(r, c, v) {
       const R = rows(); while (R.length < r) R.push([]);
       const row = R[r - 1] || (R[r - 1] = []); while (row.length < c) row.push("");
-      row[c - 1] = blank(v) ? "" : v; touch();
+      row[c - 1] = blank(v) ? "" : v; touch(data);
     }
     function Range(r, c, nr, nc) {
       nr = nr || 1; nc = nc || 1;
@@ -90,11 +77,11 @@ function createBackend(opts) {
       getRange: (r, c, nr, nc) => { if (typeof r === "string") throw new Error("A1 ranges are not supported"); return Range(r, c, nr, nc); },
       getDataRange: () => Range(1, 1, Math.max(1, lastRow()), Math.max(1, lastCol())),
       appendRow: (vals) => { const r = lastRow() + 1; vals.forEach((v, j) => put(r, j + 1, v)); return sp; },
-      deleteRow: (r) => { rows().splice(r - 1, 1); touch(); return sp; },
-      deleteRows: (r, n) => { rows().splice(r - 1, n); touch(); return sp; },
-      deleteColumn: (c) => { rows().forEach((row) => row && row.splice(c - 1, 1)); touch(); return sp; },
-      clear: () => { data.rows = []; touch(); return sp; },
-      clearContents: () => { data.rows = []; touch(); return sp; },
+      deleteRow: (r) => { rows().splice(r - 1, 1); touch(data); return sp; },
+      deleteRows: (r, n) => { rows().splice(r - 1, n); touch(data); return sp; },
+      deleteColumn: (c) => { rows().forEach((row) => row && row.splice(c - 1, 1)); touch(data); return sp; },
+      clear: () => { data.rows = []; touch(data); return sp; },
+      clearContents: () => { data.rows = []; touch(data); return sp; },
       getSheetId: () => data.id
     });
     sp = new Proxy(s, { get: (t, k) => (k in t ? t[k] : typeof k === "string" && /^(set|hide|show|protect|activate|autoResize)/.test(k) ? () => sp : undefined) });
@@ -110,7 +97,7 @@ function createBackend(opts) {
     getSheetByName: (n) => { const d = book.sheets.find((x) => x.name === n); return d ? sheetObj(d) : null; },
     insertSheet: (n) => {
       if (book.sheets.some((x) => x.name === n)) throw new Error('A sheet with the name "' + n + '" already exists.');
-      const d = { name: n, id: book.sheets.length + 1, rows: [] }; book.sheets.push(d); touch(); return sheetObj(d);
+      const d = { name: n, id: book.sheets.length + 1, rows: [] }; book.sheets.push(d); touch(d); return sheetObj(d);
     },
     getSheets: () => book.sheets.map(sheetObj),
     getName: () => "Class Manager (local)", getId: () => "local", getUrl: () => ""
@@ -129,8 +116,8 @@ function createBackend(opts) {
   };
   const props = {
     getProperty: (k) => (k in book.props ? book.props[k] : null),
-    setProperty: (k, v) => { book.props[k] = String(v); touch(); return props; },
-    deleteProperty: (k) => { delete book.props[k]; touch(); return props; },
+    setProperty: (k, v) => { book.props[k] = String(v); touch("props"); return props; },
+    deleteProperty: (k) => { delete book.props[k]; touch("props"); return props; },
     getProperties: () => Object.assign({}, book.props)
   };
   const lock = { waitLock: () => {}, tryLock: () => true, releaseLock: () => {}, hasLock: () => true };
@@ -181,8 +168,7 @@ function createBackend(opts) {
 
   // First run: create the tabs, the settings and a host key.
   if (!spreadsheet.getSheetByName("Key")) { ctx.setup(); log("local workbook created"); }
-  if (legacyPlain) dirty = true;
-  flush();
+  touch(); flush(); // the first run, and an import, are written at once
 
   function asHost(f) { const k = ctx.hostOk_; ctx.hostOk_ = () => true; try { return f(); } finally { ctx.hostOk_ = k; flush(); } }
 
@@ -224,9 +210,13 @@ function createBackend(opts) {
     tabs: () => book.sheets.map((d) => ({ name: d.name, rows: sheetObj(d).getLastRow() })),
     // For course synchronisation (sync/records.js): the raw rows of a tab, and replacing a tab's rows.
     rawRows: (name) => { const d = book.sheets.find((x) => x.name === name); return d ? d.rows.map((r) => (r || []).slice()) : null; },
-    setRows: (name, rows) => { let d = book.sheets.find((x) => x.name === name); if (!d) { d = { name, id: book.sheets.length + 1, rows: [] }; book.sheets.push(d); } d.rows = rows.map((r) => r.slice()); touch(); },
+    setRows: (name, rows) => { let d = book.sheets.find((x) => x.name === name); if (!d) { d = { name, id: book.sheets.length + 1, rows: [] }; book.sheets.push(d); } d.rows = rows.map((r) => r.slice()); touch(d); },
     tab: (name) => { const s = spreadsheet.getSheetByName(name); return s ? s.getDataRange().getDisplayValues() : null; },
-    flush
+    flush,
+    // The whole course as workbook text (db/codec.js format): what backups and backup files hold.
+    exportText: () => { flush(); return toJson({ sheets: book.sheets.map((x) => ({ name: x.name, id: x.id, rows: x.rows })), props: book.props }); },
+    close: () => { try { flush(); } finally { clearTimeout(timer); db.close(); } },
+    databaseInfo: () => Object.assign({ file: dbFile }, db.counts())
   };
 }
 

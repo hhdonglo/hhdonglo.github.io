@@ -26,7 +26,9 @@ function classroom(opts) {
     dir, state,
     get backend() { return backend; },
     key: backend.hostKey(),
-    reopen() { backend.flush(); backend = make(); return c; }, // as after a restart of the app
+    reopen() { backend.close(); backend = make(); return c; },
+    // Edits the records as workbook JSON and starts again from them (a restore: db/migrate.js imports the file).
+    editWorkbook(fn) { const book = JSON.parse(backend.exportText()); fn(book); backend.close(); fs.writeFileSync(path.join(dir, "workbook.json"), JSON.stringify(book)); backend = make(); return c; }, // as after a restart of the app
     get: (params) => parse(backend.doGet(Object.assign({}, params))), // a GET (JSONP) request, as older pages sent
     post: (params) => parse(backend.doPost(Object.assign({}, params), new URLSearchParams(params).toString())),
     call: (params) => c.post(params), // what the pages send now: every request by POST (CM.call)

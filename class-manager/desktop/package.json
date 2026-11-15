@@ -43,6 +43,7 @@
       "storage-providers.js",
       "storage/*.js",
       "sync/*.js",
+      "db/*.js",
       "lms/*.js",
       "excel.js",
       "course.js",

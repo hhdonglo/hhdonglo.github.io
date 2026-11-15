@@ -110,13 +110,12 @@ test("reset by the owner: a temporary key, no recovery code, every sign-in ended
 test("a key stored by the older sha256 format still signs in", () => {
   const c = classroom();
   const fs = require("fs"), path = require("path"), crypto = require("crypto");
-  c.backend.flush();
-  const f = path.join(c.dir, "workbook.json");
   const salt = "oldsalt", hash = crypto.createHash("sha256").update(salt + ":legacy password 99", "utf8").digest("hex");
-  const txt = fs.readFileSync(f, "utf8").split(JSON.stringify(c.key)).join(JSON.stringify("sha256:" + salt + ":" + hash));
-  assert.notEqual(txt, fs.readFileSync(f, "utf8"));
-  fs.writeFileSync(f, txt);
-  const d = c.reopen();
+  const before = c.backend.exportText();
+  const txt = before.split(JSON.stringify(c.key)).join(JSON.stringify("sha256:" + salt + ":" + hash));
+  assert.notEqual(txt, before);
+  c.editWorkbook((book) => { Object.assign(book, JSON.parse(txt)); });
+  const d = c;
   assert.equal(d.call({ action: "hostcheck", hostkey: "legacy password 99" }).ok, true);
   assert.equal(d.call({ action: "password_status" }).chosen, true);
 });
