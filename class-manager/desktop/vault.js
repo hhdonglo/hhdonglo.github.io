@@ -56,6 +56,8 @@ function createVault(opts) {
     protectBytes: (b) => opts.protect(b), // the keychain, for small secrets kept beside the records (linked-folder.js)
     unprotectBytes: (b) => opts.unprotect(b),
     isSealed,
+    // A fixed, secret-keyed code for a text (HMAC-SHA256 with the data key): the same ID always gives the same code, but the code reveals nothing, so IDs can be unique keys in the database without being readable in the file.
+    fingerprint: (text) => crypto.createHmac("sha256", dataKey()).update(String(text), "utf8").digest("hex"),
     encode: (text) => Buffer.concat([MAGIC, seal(dataKey(), Buffer.from(text, "utf8"))]),
     decode: (buf) => (isSealed(buf) ? open(dataKey(), buf.subarray(4)).toString("utf8") : buf.toString("utf8")) // plain JSON from an earlier version
   };

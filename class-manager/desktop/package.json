@@ -43,6 +43,8 @@
       "storage-providers.js",
       "storage/*.js",
       "sync/*.js",
+      "relay/*.js",
+      "receipts.js",
       "db/*.js",
       "lms/*.js",
       "excel.js",

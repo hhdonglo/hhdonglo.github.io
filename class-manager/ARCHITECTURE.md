@@ -394,4 +394,11 @@ Each course keeps its records in one SQLite file, `data/course.db`, using the SQ
 - Writes: only changed tabs, and within them only changed rows, in one transaction (a power cut leaves the last complete state).
 - `workbook.json` is an inbox. An older workbook, or a restored backup, is imported into a new database, read back and compared cell by cell, and only then replaces the old database. The old database (`course.replaced-*.db`) and the file (`workbook.json.imported-*`) are kept; nothing is deleted. A database that cannot be read is moved aside (`course.unreadable-*.db`) and reported.
 - Backups and backup files still hold workbook text, so older backups restore and the format is the same as before.
-- Next steps (design, not built): a relational `student` table with enforced unique IDs filled from Roster, fixed queries for charts and Excel, and a built-in receiver replacing the Google Apps Script path.
+- Student table (`desktop/db/students.js`): one row per ID, the unique key is a keyed fingerprint of the ID, so IDs and names stay unreadable in the file. It is rebuilt from Roster at each save; a repeated ID is kept once and reported. The Excel download starts with a Students sheet.
+- Safe retries (`desktop/receipts.js`): a request with a client key (`ckey`) runs once; a repeat gets the first answer.
+
+## Phone outbox and mailbox (15 November 2026)
+
+- `assets/outbox.js`: every practice result and question report is saved on the phone with a unique key, sent, and tried again (5 s, slower, and when the phone is back online) until CM accepts it. States: saved, received, held. Live check-in and live quiz answers are not queued: they need the room.
+- Mailbox (optional, `relay/`): if CM cannot be reached after two tries and the course has a mailbox, the phone encrypts the result with the course's public key (`assets/relay-seal.js`) and leaves it in a Cloudflare Worker with a KV store. CM collects every three minutes while open (`desktop/relay/client.js`), records each item once through `receipts.js`, then tells the mailbox to delete it. Only practice results and reports are accepted. Keys and tokens are kept sealed in the course database (`backend.secret`).
+- The Google Apps Script path is unchanged and still works for courses that use it. It has not been removed: that waits for tests with real phones and Hope's decision. Google Sheets remains an optional copy and import, not required.

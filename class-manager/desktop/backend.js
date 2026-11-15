@@ -9,6 +9,7 @@ const vm = require("vm");
 const crypto = require("crypto");
 const { openCourse } = require("./db/migrate");
 const { toJson } = require("./db/codec");
+const { createStudents } = require("./db/students");
 
 const isDate = (v) => Object.prototype.toString.call(v) === "[object Date]"; // dates made inside the script come from another realm
 function bytes(buf) { return Array.from(buf, (b) => (b > 127 ? b - 256 : b)); } // Apps Script byte arrays are signed
@@ -24,6 +25,8 @@ function createBackend(opts) {
   const opened = openCourse({ dbFile, jsonFile: FILE, vault, log });
   const db = opened.db, book = opened.book, loadProblem = opened.loadProblem;
   if (!book.props) book.props = {};
+  const students = createStudents(db, vault); // the student table: unique IDs, kept equal to the Roster tab
+  const rosterTab = () => book.sheets.find((x) => x.name === "Roster");
 
   let dirty = new Set(), propsDirty = false, timer = null, version = Math.floor(Math.random() * 1e6) * 1000; // random start, so a new backend (reset, other course) never repeats a stamp; // version counts every change to the workbook: the screens poll it to redraw graphs
   // data: the tab that changed (or "props" for settings); only changed tabs are written.
@@ -31,7 +34,7 @@ function createBackend(opts) {
   function flush() {
     timer = null; if (!dirty.size && !propsDirty) return;
     const d = dirty, p = propsDirty; dirty = new Set(); propsDirty = false;
-    try { db.save(book, d, p); } catch (e) { d.forEach((x) => dirty.add(x)); propsDirty = propsDirty || p; log("could not save: " + e.message); throw e; }
+    try { db.save(book, d, p); const rt = rosterTab(); if (rt && d.has(rt)) students.sync(rt.rows); } catch (e) { d.forEach((x) => dirty.add(x)); propsDirty = propsDirty || p; log("could not save: " + e.message); throw e; }
   }
 
   // ---------- SpreadsheetApp ----------
@@ -168,6 +171,7 @@ function createBackend(opts) {
 
   // First run: create the tabs, the settings and a host key.
   if (!spreadsheet.getSheetByName("Key")) { ctx.setup(); log("local workbook created"); }
+  if (rosterTab()) students.sync(rosterTab().rows);
   touch(); flush(); // the first run, and an import, are written at once
 
   function asHost(f) { const k = ctx.hostOk_; ctx.hostOk_ = () => true; try { return f(); } finally { ctx.hostOk_ = k; flush(); } }
@@ -216,6 +220,11 @@ function createBackend(opts) {
     // The whole course as workbook text (db/codec.js format): what backups and backup files hold.
     exportText: () => { flush(); return toJson({ sheets: book.sheets.map((x) => ({ name: x.name, id: x.id, rows: x.rows })), props: book.props }); },
     close: () => { try { flush(); } finally { clearTimeout(timer); db.close(); } },
+    students,
+    // Secrets kept sealed beside the records (for example the mailbox keys): never in settings.json, never in an export.
+    secret: (k) => ("cm.secret." + k in book.props ? book.props["cm.secret." + k] : null),
+    setSecret: (k, v) => { book.props["cm.secret." + k] = String(v); touch("props"); },
+    receipts: { get: (k) => { const r = db.raw.prepare("SELECT response FROM receipt WHERE ckey = ?").get(String(k)); return r ? r.response : null; }, put: (k, text) => { db.raw.prepare("INSERT OR IGNORE INTO receipt(ckey, response, at) VALUES(?, ?, ?)").run(String(k), String(text), Date.now()); }, prune: (days) => db.raw.prepare("DELETE FROM receipt WHERE at < ?").run(Date.now() - days * 86400000) },
     databaseInfo: () => Object.assign({ file: dbFile }, db.counts())
   };
 }

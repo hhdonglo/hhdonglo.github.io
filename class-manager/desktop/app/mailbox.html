@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Mailbox</title>
+<script src="../config.js"></script>
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/site.css">
+<link rel="stylesheet" href="lms.css">
+</head>
+<body>
+<header class="banner slim"><div class="wrap"><h1><a class="home-link" href="home.html">Class Manager</a></h1><p class="course"><span data-cm="courseCode"></span> · Mailbox</p></div></header>
+<main id="main"><div class="wrap lm">
+<p><a href="home.html">Back to Class Manager</a></p>
+<section class="card">
+ <h2>What the mailbox does</h2>
+ <p>Practice results and question reports are saved on each student's phone and sent to CM. If CM is off or out of reach, the phone leaves them, encrypted, in your mailbox. CM collects them the next time it is open. The mailbox cannot read them, holds no names, and forgets everything after 14 days. Check-in and live quizzes never use it: they need CM in the room.</p>
+ <p class="note">Optional. Without a mailbox, phones keep each result and send it as soon as CM can be reached.</p>
+</section>
+<section class="card" aria-labelledby="h-set">
+ <h2 id="h-set">Set up</h2>
+ <p class="note">The steps for creating the mailbox (about ten minutes, free) are in <code>class-manager/relay/README.md</code>. They give you an address and two codes.</p>
+ <div class="row"><div><label for="m-url">Mailbox address (https)</label><br><input id="m-url" autocomplete="off" placeholder="https://cm-mailbox.yourname.workers.dev"></div></div>
+ <div class="row"><div><label for="m-drop">Student code (DROP_TOKEN)</label><br><input id="m-drop" autocomplete="off"></div></div>
+ <div class="row"><div><label for="m-pull">Lecturer code (PULL_TOKEN)</label><br><input id="m-pull" type="password" autocomplete="off"></div></div>
+ <div class="row"><button class="b p" type="button" id="m-save">Save</button><button class="b" type="button" id="m-pullnow">Collect now</button><button class="b" type="button" id="m-clear">Switch off</button></div>
+ <p id="m-msg" class="msg" aria-live="polite"></p>
+</section>
+</div></main>
+<script src="mailbox.js"></script>
+</body>
+</html>

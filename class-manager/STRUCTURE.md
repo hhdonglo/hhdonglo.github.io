@@ -299,3 +299,12 @@ Look (2026-11-15, from Hope's inspiration image): soft tinted tiles on cards, on
 | `db/migrate.js` | Decide what is on disk: import `workbook.json` safely, move an unreadable database aside, read a course as workbook text for backups. |
 
 `backend.js` uses these three and keeps the spreadsheet shim for the server script. Tests: `desktop/test/db.test.js`, `vault.test.js`.
+
+| File | Responsibility |
+| --- | --- |
+| `db/students.js` | The student table with unique IDs, kept equal to Roster. |
+| `receipts.js` | Run a request with a client key once. |
+| `relay/client.js`, `relay/crypto.js` | Collect from the mailbox and open items; make the course keys. |
+| `app/mailbox.html`, `app/mailbox.js` | The Mailbox screen. |
+| `../assets/outbox.js`, `../assets/relay-seal.js` | The phone's queue and encryption. |
+| `../relay/worker.mjs`, `../relay/README.md` | The mailbox Worker and the setup steps. |

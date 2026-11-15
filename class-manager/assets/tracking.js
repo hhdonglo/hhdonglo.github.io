@@ -6,6 +6,11 @@
    (add ?trackpreview=1 to a quiz address to preview the box; nothing is sent in preview). */
 (function () {
   'use strict';
+  // The outbox and the mailbox sealing sit beside this file; load them first so a result is never lost (outbox.js).
+  if (!window.CM_OUTBOX && document.currentScript && document.readyState === 'loading') {
+    var base = document.currentScript.src.replace(/[^\/]*$/, '');
+    document.write('<script src="' + base + 'relay-seal.js"><\/script><script src="' + base + 'outbox.js"><\/script>');
+  }
   var ID_KEY = 'cm.studentid.v1';
   var preview = /[?&]trackpreview=1/.test(window.location.search);
   var live = !!(window.CM || {}).scriptUrl; // attempts go to the class server
@@ -45,15 +50,12 @@
 
   /* One shared route for attempts and reports: the lecturer's Apps Script web app, no Submit step for the student.
      done(true) once the request has left the browser, done(false) if it could not be sent. */
-  var SCRIPT_URL = (window.CM || {}).scriptUrl || '';
+  // The outbox (outbox.js) saves each record on the phone, sends it, and tries again until CM accepts it.
+  // done(true) once it is saved on the phone (it will be sent), done(false) only if the phone cannot save it.
   function post(kind, fields, done) {
-    var body = new URLSearchParams();
-    body.append('kind', kind);
-    Object.keys(fields).forEach(function (k) { body.append(k, fields[k]); });
-    try {
-      fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', credentials: 'omit', body: body })
-        .then(function () { done(true); }, function () { done(false); });
-    } catch (e) { done(false); }
+    if (!window.CM_OUTBOX) { done(false); return; }
+    window.CM_OUTBOX.send(kind, fields);
+    done(true);
   }
 
   /* Send one record for a completed attempt. Returns false (and sends nothing) when no ID is stored.
