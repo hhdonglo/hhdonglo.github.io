@@ -1,0 +1,24 @@
+/* Class Manager shared layout: rounded soft cards, tinted tiles, calm tables, clear focus, for every CM screen.
+   It does NOT set the palette: each page keeps its own original colours (the desktop hub's dark slate with the gold accent, the web pages' navy and brown).
+   Load it LAST on a page. Tint colours below are derived from the page's own tokens, so they follow light and dark. */
+:root{ --radius:14px; --shadow-soft:0 1px 2px rgba(0,0,0,.10),0 4px 14px rgba(0,0,0,.06); }
+
+/* cards and panels: rounded, soft, no heavy rule */
+.card,section.card,main .card,.panel,.box{border-radius:var(--radius)!important;border-top-width:1px!important;box-shadow:var(--shadow-soft)}
+.card{overflow:hidden}
+
+/* tinted tiles: a soft wash of the accent colours over the card, in light and dark */
+.tint-blue,.t-blue{background:color-mix(in srgb,#5B8BD9 14%,var(--card,var(--surface,#fff)))}
+.tint-teal,.t-teal{background:color-mix(in srgb,#4CC38A 14%,var(--card,var(--surface,#fff)))}
+.tint-gold,.t-gold{background:color-mix(in srgb,#C9A15A 16%,var(--card,var(--surface,#fff)))}
+.tint-rose,.t-rose{background:color-mix(in srgb,#E07A6E 14%,var(--card,var(--surface,#fff)))}
+.tint-violet,.t-violet{background:color-mix(in srgb,#8E7BD9 14%,var(--card,var(--surface,#fff)))}
+
+/* buttons, fields: rounded; the page's own colours stay */
+.btn,button.btn,.go{border-radius:10px}
+input,select,textarea{border-radius:10px}
+.chip,.pill{border-radius:999px}
+
+/* tables are the drill-down: calm and readable */
+th,td{border-bottom:1px solid var(--line,var(--border,#ddd))}
+a.btn,a.btn:hover{text-decoration:none}

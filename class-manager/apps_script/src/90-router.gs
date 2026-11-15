@@ -141,6 +141,10 @@ function route_(e) {
   }
 
   if (p.action === 'version') return jsonp_(e, { ok: true, version: SCRIPT_VERSION }); // the Control Centre: does the page match this script?
+  if (p.action === 'join_base') { // host only: read or set the base of this course's join codes (base + week number)
+    if (!hostOk_(p)) return jsonp_(e, { ok: false, why: 'host key not accepted' });
+    return jsonp_(e, p.base != null && p.base !== '' ? joinBaseSet_(p.base) : { ok: true, base: joinBase_() });
+  }
   if (p.action === 'set_week') return jsonp_(e, hostOk_(p) ? setWeek_(p) : { ok: false, why: 'host key not accepted' }); // the Control Centre week selector
   if (p.action === 'portal_status') return jsonp_(e, portalStatus_()); // the student portal banner
   if (p.action === 'my_results') return jsonp_(e, portalResults_(p)); // a student's own attendance and quiz scores

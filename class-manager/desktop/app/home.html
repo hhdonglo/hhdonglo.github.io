@@ -84,8 +84,12 @@ kbd{font:600 .78rem ui-monospace,monospace;color:var(--faint);letter-spacing:.02
 @media (max-width:900px){.cd .add{grid-template-columns:1fr 1fr}}
 
 /* main: views use the full width of the window, up to a comfortable limit on very large screens */
-main{grid-area:main;overflow:auto;padding:1.75rem var(--pad) 2.25rem}
-.view{max-width:120rem;margin:0 auto}
+main{grid-area:main;overflow:auto;overflow-x:hidden;min-width:0;padding:1.75rem var(--pad) 2.25rem}
+.view{max-width:120rem;margin:0 auto;min-width:0}
+.view *{min-width:0}.view .card,.view p,.view td,.view li,.view dd,.view h3{overflow-wrap:anywhere}
+.view table{table-layout:auto;max-width:100%}.view img,.view svg{max-width:100%}
+.path{font:600 .85rem ui-monospace,monospace;overflow-wrap:anywhere;color:var(--muted)}
+.where{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:.35rem .8rem;margin:.4rem 0 0}.where dt{font-weight:700;color:var(--muted);font-size:var(--fs-xs)}.where dd{margin:0;display:flex;gap:.5rem;align-items:flex-start;flex-wrap:wrap}.where dd .path{flex:1 1 14rem}
 .view>header{margin:0 0 1.4rem}
 .view h2{margin:0;font-size:var(--fs-h2);line-height:1.2;font-weight:700;color:var(--head)}
 .view>header p{margin:.35rem 0 0;color:var(--muted);font-size:1rem}
@@ -388,6 +392,7 @@ tr[data-sel]{cursor:pointer}tr[data-sel].sel>td{background:rgba(70,110,200,.28)}
 .rowbtn{padding:.25rem .7rem;font-size:.85rem}
 .sr{position:absolute;left:-9999px}
 </style>
+<link rel="stylesheet" href="../assets/cm-theme.css">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -418,7 +423,7 @@ tr[data-sel]{cursor:pointer}tr[data-sel].sel>td{background:rgba(70,110,200,.28)}
 <nav class="side" aria-label="Class Manager">
  <div class="brand"><img src="icon.svg" alt=""><span>Class Manager</span></div>
  <p class="side-h">Dashboard</p>
- <button class="nav" aria-current="page" data-view="overview"><svg><use href="#i-pulse"/></svg><span>Class Overview</span></button>
+ <button class="nav" aria-current="page" data-view="overview"><svg><use href="#i-pulse"/></svg><span>Class Analytics</span></button>
  <p class="side-h">Teach</p>
  <button class="nav" data-view="class"><svg><use href="#i-live"/></svg><span>Class Tools</span></button>
  <button class="nav" data-view="attendance"><svg><use href="#i-check"/></svg><span>Attendance</span></button>
@@ -451,7 +456,7 @@ tr[data-sel]{cursor:pointer}tr[data-sel].sel>td{background:rgba(70,110,200,.28)}
 
 <main id="main">
 
-<!-- Class Overview: how the class is doing. Computed in the backend (classStats_ in the server script) from the data already collected. -->
+<!-- Class Analytics: how the class is doing. Computed in the backend (classStats_ in the server script) from the data already collected. -->
 <section class="view" id="v-overview" aria-labelledby="h-overview">
  <div class="banner" id="setup" hidden>
   <strong>Finish setting up your course</strong>
@@ -462,14 +467,14 @@ tr[data-sel]{cursor:pointer}tr[data-sel].sel>td{background:rgba(70,110,200,.28)}
   </ul>
   <button type="button" class="x" id="setup-x" aria-label="Hide this reminder" title="Hide this reminder">&times;</button>
  </div>
- <header class="vh"><div><h2 id="h-overview">Class Overview</h2><p id="ov-sub">How the class is doing, from attendance, live quizzes and practice.</p></div>
+ <header class="vh"><div><h2 id="h-overview">Class Analytics</h2><p id="ov-sub">The class in numbers and charts: attendance, quizzes, practice, who needs attention and why. Click any bar or number for the students behind it.</p></div>
   <div class="row collect" role="group" aria-label="Collect data">
    <button class="btn sm" type="button" data-win="attendance.html"><svg><use href="#i-check"/></svg>Take attendance</button>
    <button class="btn sm" type="button" data-win="quiz-host.html"><svg><use href="#i-play"/></svg>Run a quiz</button>
    <button class="btn sm" type="button" data-scan><svg><use href="#i-qr"/></svg>Scan code</button>
   </div></header>
- <div class="livestrip" id="ov-live" hidden role="status" aria-live="polite"></div>
  <div class="ins" id="ov"><p class="note">Working out the class statistics…</p></div>
+ <div class="livestrip" id="ov-live" hidden role="status" aria-live="polite"></div>
 </section>
 
 <!-- Students -->
@@ -834,7 +839,7 @@ tr[data-sel]{cursor:pointer}tr[data-sel].sel>td{background:rgba(70,110,200,.28)}
 <dialog id="keys-d" aria-labelledby="keys-h">
  <h2 id="keys-h">Keyboard shortcuts</h2>
  <table><tbody>
-  <tr><td>Class Overview</td><td><kbd data-k="1"></kbd></td></tr>
+  <tr><td>Class Analytics</td><td><kbd data-k="1"></kbd></td></tr>
   <tr><td>Students</td><td><kbd data-k="2"></kbd></td></tr>
   <tr><td>Learning Progress</td><td><kbd data-k="9"></kbd></td></tr>
   <tr><td>Attendance</td><td><kbd data-k="3"></kbd></td></tr>
@@ -885,10 +890,12 @@ tr[data-sel]{cursor:pointer}tr[data-sel].sel>td{background:rgba(70,110,200,.28)}
 <link rel="stylesheet" href="dashboard/dashboard.css">
 <link rel="stylesheet" href="analytics/analytics.css">
 <script src="dashboard/rules.js"></script>
+<script src="dashboard/risk.js"></script>
 <script src="dashboard/groups.js"></script>
 <script src="dashboard/charts.js"></script>
 <script src="dashboard/render.js"></script>
 <script src="dashboard/interact.js"></script>
+<script src="charts/explore-data.js"></script><script src="charts/explore-view.js"></script><script src="charts/explore-panel.js"></script>
 <script src="analytics/evidence.js"></script><script src="analytics/items.js"></script><script src="analytics/concepts.js"></script><script src="analytics/interventions.js"></script><script src="analytics/fairness.js"></script><script src="analytics/render.js"></script><script src="analytics/panel.js"></script>
 <script src="records-view.js"></script>
 <script src="insights.js"></script>
@@ -955,7 +962,7 @@ $("key-copy").addEventListener("click",function(){if(hostKey)copy(hostKey,$("key
  btn.addEventListener("click",function(e){e.stopPropagation();var open=menu.hidden;menu.hidden=!open;btn.setAttribute("aria-expanded",String(open))});
  document.addEventListener("click",function(e){if(!menu.contains(e.target))shut()});
  document.addEventListener("keydown",function(e){if(e.key==="Escape"&&!menu.hidden){shut();btn.focus()}});
- Array.prototype.forEach.call(menu.querySelectorAll("[data-mode]"),function(it){it.addEventListener("click",function(){var r=document.querySelector("input[name=conn][value="+it.getAttribute("data-mode")+"]");shut();if(r&&!r.checked)r.click()})}); // drives the same radio buttons as Class Overview
+ Array.prototype.forEach.call(menu.querySelectorAll("[data-mode]"),function(it){it.addEventListener("click",function(){var r=document.querySelector("input[name=conn][value="+it.getAttribute("data-mode")+"]");shut();if(r&&!r.checked)r.click()})}); // drives the same radio buttons as Class Analytics
 })();
 $("how").addEventListener("click",function(){$("how-d").showModal()});
 $("copy-mini").addEventListener("click",function(){var u=$("addr").textContent;if(u&&u!=="…")copy(u,$("copy-mini"))});
@@ -1102,6 +1109,7 @@ function reload(){return cmApp.info().then(show)}
 /* ---- courses: the dropdown switches this window, and everything in it, to another course ---- */
 var COURSES=[],CUR="";
 function cname(c){return(c.code||"New course")+(c.title?": "+c.title:"")}
+function wb(t){return esc(t).replace(/\//g,"/<wbr>")}
 function drawCourses(d){
  COURSES=d.list;CUR=d.current;
  var sel=$("course-sel"),open=COURSES.filter(function(c){return!c.archived});
@@ -1112,7 +1120,7 @@ function drawCourses(d){
  $("course-others").textContent=busy.length?(busy.map(function(c){return c.code||c.id}).join(", ")+(busy.length===1?" has":" have")+" a class running"):"";
  var me=COURSES.find(function(c){return c.current})||{};
  var src=me.source||{};
- $("cc-where").innerHTML=src.kind==="folder"?"Lectures, files and question banks are read from and saved to the linked folder <span class='path' style='display:block;margin-top:.3rem'>"+esc(src.path)+"</span>"+(me.repo&&me.repo.url?"It is a copy of the repository "+esc(me.repo.url)+(me.repo.branch?" (branch "+esc(me.repo.branch)+")":"")+".":""):
+ $("cc-where").innerHTML=src.kind==="folder"?"Lectures, files and question banks are read from and saved to the linked folder.<dl class='where'><dt>Folder</dt><dd><span class='path' title='"+esc(src.path)+"'>"+wb(src.path)+"</span><button class='btn sm' type='button' data-copy='"+esc(src.path)+"'>Copy</button></dd>"+(me.repo&&me.repo.url?"<dt>Repository</dt><dd><span class='path' title='"+esc(me.repo.url)+"'>"+wb(me.repo.url)+"</span><button class='btn sm' type='button' data-copy='"+esc(me.repo.url)+"'>Copy</button></dd>"+(me.repo.branch?"<dt>Branch</dt><dd>"+esc(me.repo.branch)+"</dd>":""):"")+"</dl>":
   "Lectures, files and question banks are kept in CM's data folder. To work from your own folder or a copy of a repository, link it under Manage courses.";
  $("cd-copy").innerHTML='<option value="">Nothing</option>'+COURSES.map(function(c){return'<option value="'+esc(c.id)+'"'+(c.current?" selected":"")+'>'+esc(c.code||c.id)+'</option>'}).join("");
  drawCourseTable();
@@ -1121,7 +1129,7 @@ function drawCourses(d){
 }
 function drawCourseTable(){
  $("cd-list").innerHTML="<table><thead><tr><th>Code</th><th>Title</th><th>Term</th><th>Content</th><th></th></tr></thead><tbody>"+COURSES.map(function(c){
-  var src=c.source||{},where=src.kind==="folder"?"<span class='path'>"+esc(src.path)+"</span>"+(c.repo&&c.repo.url?"<br><span class='note'>Repository "+esc(c.repo.url.replace(/^https:\/\//,""))+(c.repo.branch?", "+esc(c.repo.branch):"")+"</span>":""):"<span class='note'>In CM</span>";
+  var src=c.source||{},where=src.kind==="folder"?"<span class='path' title='"+esc(src.path)+"'>"+esc(src.path)+"</span>"+(c.repo&&c.repo.url?"<br><span class='note'>Repository "+esc(c.repo.url.replace(/^https:\/\//,""))+(c.repo.branch?", "+esc(c.repo.branch):"")+"</span>":""):"<span class='note'>In CM</span>";
   var acts=c.archived?"<button class='btn sm' data-cact='restore' data-id='"+esc(c.id)+"'>Restore</button>":
    (c.current?"<span class='tag on'>Shown</span> ":"<button class='btn sm' data-cact='open' data-id='"+esc(c.id)+"'>Open</button> ")+
    "<button class='btn sm' data-cact='save' data-id='"+esc(c.id)+"'>Save</button> "+
@@ -1157,6 +1165,7 @@ $("course-sel").addEventListener("change",function(){
  if(v&&v!==CUR)cmApp.switchCourse(v).then(function(r){if(r&&r.ok)location.href=r.url;else{alert(r&&r.why||"Not switched.");loadCourses()}});
 });
 $("cc-manage").addEventListener("click",function(){$("courses-d").showModal()});
+document.addEventListener("click",function(e){var b=e.target.closest&&e.target.closest("[data-copy]");if(!b)return;var t=b.getAttribute("data-copy");try{navigator.clipboard.writeText(t)}catch(x){}b.textContent="Copied";setTimeout(function(){b.textContent="Copy"},1200)});
 $("cc-open").addEventListener("click",function(){cmApp.openContent()});
 $("cd-add").addEventListener("submit",function(e){
  e.preventDefault();cmsg("Adding…");

@@ -82,10 +82,17 @@
       "<div class='zbar' role='group' aria-label='Comparison'>" + vs.map(function (v, i) { return "<button type='button' class='zb' data-corr='" + i + "' aria-pressed='" + (i === 0) + "'>" + esc(v.title) + "</button>"; }).join("") + "</div>" +
       "<div id='dcorr-chart'>" + C.relation(vs[0], null) + "</div><p class='note' id='dcorr-text'>" + esc(vs[0].text) + "</p></section>";
   }
-  // The whole top of the dashboard.
-  function top(d, setup, live) {
-    return today(d, setup, live) + setupTracker(setup) + statCards(d) + controls() + "<div class='dgrid'>" + riskCard(d) + corrCard(d) + trendsCard(d) + insightsCard(d) + healthCard(d) + "</div>" + callout(d);
+  // The page is built in this order (insights.js): head (the hard numbers), then the charts, then grid (who needs attention, what goes with what, trends), then ops.
+  function head(d) { return statCards(d); }
+  function grid(d) { return "<div class='dgrid'>" + riskCard(d) + corrCard(d) + trendsCard(d) + insightsCard(d) + healthCard(d) + "</div>" + callout(d); }
+  // Today, setup and the class tools: needed, but not what the page is about, so they sit in a section the lecturer can open.
+  function ops(d, setup, live) {
+    var sp = R.setupProgress(setup);
+    var sum = "Today and setup" + (sp.complete ? "" : " · " + sp.done + " of " + sp.of + " setup steps done");
+    return "<details class='card ops' id='dops'><summary>" + esc(sum) + "</summary><div class='opsbody'>" + today(d, setup, live) + setupTracker(setup) + controls() + "</div></details>";
   }
-  var api = { spark: spark, statCards: statCards, setupTracker: setupTracker, today: today, queue: queue, controls: controls, callout: callout, riskCard: riskCard, corrCard: corrCard, trendsCard: trendsCard, healthCard: healthCard, insightsCard: insightsCard, top: top };
+  // Kept for the tests and for older callers: everything in one string, analytics first.
+  function top(d, setup, live) { return head(d) + grid(d) + ops(d, setup, live); }
+  var api = { head: head, grid: grid, ops: ops, spark: spark, statCards: statCards, setupTracker: setupTracker, today: today, queue: queue, controls: controls, callout: callout, riskCard: riskCard, corrCard: corrCard, trendsCard: trendsCard, healthCard: healthCard, insightsCard: insightsCard, top: top };
   if (typeof module === "object" && module.exports) module.exports = api; else root.cmDashView = api;
 })(typeof window !== "undefined" ? window : globalThis);

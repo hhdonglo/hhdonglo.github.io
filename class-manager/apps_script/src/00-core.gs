@@ -97,16 +97,19 @@ function hashKey_(salt, key) {
   return d.map(function (b) { return ('0' + (b & 0xff).toString(16)).slice(-2); }).join('');
 }
 
-// A join code of the form 2627 + week number (26271 = Week 1, 26272 = Week 2, ..., 262710 = Week 10) is valid
-// for any week that has a practice bank, with no Key row to add. The week comes from the code.
+// A join code is this course's base number followed by the week number. With the base 2627, 26271 is Week 1, 26272 is Week 2, ..., 262710 is Week 10.
+// The base is a setting of the course (Control Centre, "Join code base"); each course can have its own. It is valid for any week that has a practice bank.
+var JOIN_BASE_DEFAULT = '2627';
+function joinBase_() { var b = String(PropertiesService.getScriptProperties().getProperty('join_base') || '').replace(/\D/g, ''); return b.length >= 2 && b.length <= 8 ? b : JOIN_BASE_DEFAULT; }
+function joinBaseSet_(v) { var b = String(v == null ? '' : v).replace(/\D/g, ''); if (b.length < 2 || b.length > 8) return { ok: false, why: 'The base must be 2 to 8 digits.' }; PropertiesService.getScriptProperties().setProperty('join_base', b); log_('join code base', b, '', ''); return { ok: true, base: b }; }
+// The week a join code stands for by its shape alone (base 2627: 26271 is Week 1, 26272 is Week 2 ...), whether or not the course has a question bank for it. 0 if the code has another shape.
+function codeWeek_(code) { var b = joinBase_(), c = String(code); if (c.indexOf(b) !== 0) return 0; var rest = c.slice(b.length); return /^\d{1,2}$/.test(rest) && Number(rest) > 0 ? Number(rest) : 0; }
+// The same, but only for a week that has a practice bank in this course.
 function weekFromCode_(code) {
-  var m = /^2627(\d{1,2})$/.exec(String(code));
-  if (!m) return 0;
-  try { var wk = siteJson_('/apps_script/live_quizzes.json').weeks || {}; return wk[String(Number(m[1]))] ? Number(m[1]) : 0; } catch (err) { return 0; }
+  var w = codeWeek_(code);
+  if (!w) return 0;
+  try { var wk = siteJson_('/apps_script/live_quizzes.json').weeks || {}; return wk[String(w)] ? w : 0; } catch (err) { return 0; }
 }
-
-// The week a join code stands for by its shape alone (26271 is Week 1, 26272 is Week 2 ...), whether or not the course has a question bank for it. 0 if the code has another shape.
-function codeWeek_(code) { var m = /^2627(\d{1,2})$/.exec(String(code)); return m ? Number(m[1]) : 0; }
 
 function keyRow_(code) {
   var kc = null, kk = 'key:' + code;
