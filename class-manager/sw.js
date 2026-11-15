@@ -1,8 +1,8 @@
 /* Student shell: network first, cached copy only when offline.
    Cross-origin requests (the quiz and attendance script) are never touched,
    so no student data is ever stored by this worker. */
-var CACHE="cm-shell-v2";
-var SHELL=["index.html","assets/site.css","assets/student.css","assets/student.js","assets/messages.js","assets/icon.svg","assets/icon-192.png","config.js","data/portal.json"];
+var CACHE="cm-shell-v3";
+var SHELL=["index.html","assets/site.css","assets/student.css","assets/cm-theme.css","assets/student.js","assets/messages.js","assets/icon.svg","assets/icon-192.png","config.js","data/portal.json"];
 self.addEventListener("install",function(e){e.waitUntil(caches.open(CACHE).then(function(c){return c.addAll(SHELL)}).then(function(){return self.skipWaiting()}))});
 self.addEventListener("activate",function(e){e.waitUntil(caches.keys().then(function(k){return Promise.all(k.filter(function(n){return n!==CACHE}).map(function(n){return caches.delete(n)}))}).then(function(){return self.clients.claim()}))});
 self.addEventListener("fetch",function(e){

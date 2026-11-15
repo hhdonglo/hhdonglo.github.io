@@ -14,9 +14,9 @@
    so the whole interface scales together. Cmd or Ctrl with plus, minus and 0 zoom on top of that. */
 :root{
  --bg:#0E131C; --side:#0B1018; --panel:#131924; --card:#1B2333; --card-2:#202A3C; --line:#2A3650;
- --text:#E6ECF5; --muted:#A3AFC2; --faint:#7F8BA0; --head:#F4F1EA; --accent:#C9A15A; --accent-ink:#1A1408;
+ --text:#E6ECF5; --muted:#A3AFC2; --faint:#7F8BA0; --head:#F4F1EA; --accent:#6BA3FF; --accent-ink:#1A1408;
  --primary:#2F62AE; --primary-h:#3A70C2; --danger:#B4473C; --danger-h:#C65449;
- --ok:#4CC38A; --warn:#E0B254; --off:#7B869B; --focus:#F2C9A0;
+ --ok:#4CC38A; --warn:#E0B254; --off:#7B869B; --focus:#9CC0FF;
  --r:12px; --gap:1.25rem; --pad:1.5rem;
  --fs-h1:1.3rem; --fs-h2:1.75rem; --fs-h3:1.08rem; --fs-sm:.9rem; --fs-xs:.8rem;
 }
@@ -42,8 +42,8 @@ kbd{font:600 .78rem ui-monospace,monospace;color:var(--faint);letter-spacing:.02
 .nav svg{width:1.35rem;height:1.35rem;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .nav span{flex:1}
 .nav:hover{background:rgba(255,255,255,.06);color:#fff}
-.nav[aria-current="page"]{background:rgba(201,161,90,.16);color:#F4F1EA;box-shadow:inset 3px 0 0 #C9A15A}
-.nav:focus-visible{outline:2px solid #F2C9A0;outline-offset:0}
+.nav[aria-current="page"]{background:rgba(107,163,255,.16);color:#F4F1EA;box-shadow:inset 3px 0 0 #6BA3FF}
+.nav:focus-visible{outline:2px solid #9CC0FF;outline-offset:0}
 .side .grow{flex:1}
 .side .sep{height:1px;background:rgba(255,255,255,.08);margin:.6rem .5rem}
 
@@ -111,7 +111,7 @@ main{grid-area:main;overflow:auto;padding:1.75rem var(--pad) 2.25rem}
 .btn.sm{min-height:2.1rem;padding:.3rem .8rem;font-size:var(--fs-sm)}
 .btn svg{width:1.2rem;height:1.2rem;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
 .link{all:unset;cursor:pointer;color:var(--accent);font-weight:600;font-size:.95rem}
-@media (prefers-color-scheme:dark){.link{color:#E3C083}}
+@media (prefers-color-scheme:dark){.link{color:#9CC0FF}}
 .link:hover{text-decoration:underline}
 .link:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 .row{display:flex;flex-wrap:wrap;gap:.75rem;align-items:center}
@@ -176,7 +176,7 @@ main{grid-area:main;overflow:auto;padding:1.75rem var(--pad) 2.25rem}
 .proj-exit{position:absolute;top:1.2rem;right:1.2rem}
 
 /* banner */
-.banner{display:flex;align-items:center;gap:1.25rem;flex-wrap:wrap;background:linear-gradient(90deg,rgba(201,161,90,.16),rgba(201,161,90,.05));border:1px solid rgba(201,161,90,.25);border-radius:var(--r);padding:.85rem 1.1rem;margin-bottom:1.5rem}
+.banner{display:flex;align-items:center;gap:1.25rem;flex-wrap:wrap;background:linear-gradient(90deg,rgba(107,163,255,.16),rgba(107,163,255,.05));border:1px solid rgba(107,163,255,.25);border-radius:var(--r);padding:.85rem 1.1rem;margin-bottom:1.5rem}
 .banner strong{color:var(--head)}
 .todo{display:flex;gap:1.25rem;list-style:none;margin:0;padding:0;flex:1;flex-wrap:wrap}
 .todo li{display:flex;align-items:center;gap:.45rem;font-size:.95rem;font-weight:600}
@@ -228,7 +228,7 @@ details summary{cursor:pointer;font-weight:600;font-size:.95rem;margin-top:1.1re
 
 /* status bar */
 .status{grid-area:status;display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:0 1rem;background:var(--side);color:#A3AEC0;font-size:.85rem;border-top:1px solid var(--line)}
-.status .link{font-size:.85rem;color:#E3C083}
+.status .link{font-size:.85rem;color:#9CC0FF}
 .status span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* modal */
@@ -246,7 +246,7 @@ dialog td:last-child{text-align:right}
 .side-h:first-of-type{margin-top:0}
 
 /* Insight screens */
-:root{--g-on:#4CC38A;--g-hard:#E0B254;--g-dis:#8EA6E0;--g-need:#E07A6E;--g-none:#7B869B;--bar:#5B8BD9;--bar-hi:#C9A15A;--grid:rgba(255,255,255,.08)}
+:root{--g-on:#4CC38A;--g-hard:#E0B254;--g-dis:#8EA6E0;--g-need:#E07A6E;--g-none:#7B869B;--bar:#5B8BD9;--bar-hi:#6BA3FF;--grid:rgba(255,255,255,.08)}
 @media (prefers-color-scheme:light){:root{--g-on:#1F8A5B;--g-hard:#A36A00;--g-dis:#3F5FA8;--g-need:#B23A2E;--g-none:#6A7488;--bar:#2F62AE;--bar-hi:#7A4A2A;--grid:rgba(0,0,0,.08)}}
 .vh{display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;flex-wrap:wrap}
 .vh p{margin:.35rem 0 0;color:var(--muted)}
@@ -316,7 +316,7 @@ svg.bars .bar:hover path{fill:var(--bar-hi)}
 .tk{font-size:var(--fs-xs);font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding-top:.15rem}
 .todo-a{font-weight:600}
 .todo-a::before{content:"Suggested: ";color:var(--accent)}
-@media (prefers-color-scheme:dark){.todo-a::before{color:#E3C083}}
+@media (prefers-color-scheme:dark){.todo-a::before{color:#9CC0FF}}
 /* tables on Insight screens */
 .ins-tbl{height:auto;max-height:calc(100vh - 20rem);min-height:0}
 .ins-tbl.short{max-height:24rem}
@@ -364,6 +364,7 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
 @media (max-width:1000px){.app{grid-template-columns:4.5rem minmax(0,1fr)}.nav span,.brand span{display:none}.nav{justify-content:center;padding:.55rem}.brand{justify-content:center;padding:.2rem 0 1.2rem}}
 @media (max-width:640px){.keybox>span{display:none}}
 </style>
+<link rel="stylesheet" href="../assets/cm-theme.css">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
