@@ -102,7 +102,8 @@
       "<p class='lbl'>Attendance by session</p>" + (a.sessions ? bars(a.bySession.map(function (x) { return x.rate; }), a.bySession.map(function (x) { return x.label; }), { max: 100, unit: "%", h: 150, short: shortDate, title: "Attendance by session" }) : "<p class='note'>No session submitted yet.</p>") +
       "<p class='lbl' style='margin-top:1rem'>Mean quiz score</p>" + (d.quizzes.length ? bars(d.quizzes.map(function (q) { return q.stats.mean; }), d.quizzes.map(function (q) { return q.quiz; }), { max: 100, unit: "%", h: 150, short: shortDate, title: "Mean score by quiz", extra: d.quizzes.map(function (q) { return "(" + q.students + " students)"; }) }) : "<p class='note'>No quiz released yet.</p>") +
       "</section></div>";
-    $("ov").innerHTML = h; gxWatch();
+    h += "<div id='an'></div>"; // evidence, questions, concepts, support, groups, privacy (app/analytics/)
+    $("ov").innerHTML = h; gxWatch(); if (window.cmAnalyticsPanel) cmAnalyticsPanel.mount($("an"), d);
     if (window.cmDashInteract) { if (!window.cmDashBound) { window.cmDashBound = true; cmDashInteract.init(function () { return data; }); } cmDashInteract.restore(d); } // clicks on numbers, bars and zones (app/dashboard/interact.js)
   }
   function target(t) {

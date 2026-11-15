@@ -19,6 +19,7 @@ const { createGoogle } = require("./google");
 const { createLinkedFolder } = require("./linked-folder");
 const { createCourseSync } = require("./sync/course-sync");
 const { createAuthoring } = require("./authoring");
+const governance = require("./governance"), extras = require("./extras"), summary = require("./summary");
 const { createTunnel, createLimiter } = require("./tunnel");
 const { createCourse } = require("./course");
 const { readTable } = require("./table");
@@ -39,7 +40,7 @@ const ROOT = () => app.getPath("userData");
 const SETTINGS_FILE = () => path.join(ROOT(), "settings.json"); // CM's own settings: port and text size
 const TEMPLATES = app.isPackaged ? path.join(process.resourcesPath, "web", "templates") : path.join(__dirname, "..", "templates");
 const DEFAULTS = { courseCode: "", courseTitle: "", institution: "", lecturer: "", semester: "", startDate: "", endDate: "", contact: "", accent: "", logo: "", notice: "", noticeLinkLabel: "", noticeLinkUrl: "",
-  scriptUrl: "", setupSeen: false }; // one course's settings
+  scriptUrl: "", setupSeen: false, aiSummary: false, privacyNotice: "" }; // one course's settings
 const APP_DEFAULTS = Object.assign({ port: 8143, zoom: 1 }, SECURITY_DEFAULTS);
 const TYPES = {
   ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8",
@@ -194,6 +195,8 @@ async function handle(req, res, remote) {
         Object.assign(params, Object.fromEntries(new URLSearchParams(body)));
         const refused = lecturerRefusal(params, { remote, thisComputer: !remote && isThisComputer(req) }, appSettings);
         if (refused) { if (tunnel && remote) tunnel.note("lecturer"); res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" }); return res.end(JSON.stringify(refused)); }
+        const closed = governance.closedRefusal(params, governance.termClosed(c.backend)); // a closed term takes no new check-ins or answers
+        if (closed) { res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" }); return res.end(JSON.stringify(closed)); }
         const g = guardFor({ remote, tunnelOn: !!publicUrl(), action: params.action, remoteAddress: req.socket.remoteAddress }, appSettings);
         if (g.refuse) { res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" }); return res.end(JSON.stringify(g.refuse)); }
         c.backend.setGeoMode(g.geo); // location is checked for the internet address, not for plain Wi-Fi
@@ -207,6 +210,11 @@ async function handle(req, res, remote) {
   }
   if (req.method !== "GET" && req.method !== "HEAD") { res.writeHead(405); return res.end(); }
   if (p === "/") p = "/index.html";
+  if (p === "/privacy.html") { // the privacy notice students can read: the lecturer's own text, or the default
+    const t = String(c.settings.privacyNotice || governance.PRIVACY_NOTICE), esc = (x) => x.replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
+    res.writeHead(200, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-cache" });
+    return res.end("<!doctype html><meta charset=utf-8><meta name=viewport content=\"width=device-width,initial-scale=1\"><title>Privacy notice</title><body style=\"font:16px/1.6 system-ui;max-width:42rem;margin:2rem auto;padding:0 1rem\"><h1>Privacy notice</h1>" + t.split(/\n+/).map((l) => "<p>" + esc(l) + "</p>").join("") + "</body>");
+  }
   if (p === "/calendar.ics") { // the course calendar as a feed that calendar programs on the network can subscribe to
     const out = c.backend.doGet({ action: "calendar_ics", course: (c.settings.courseCode || "Class") + " calendar" });
     res.writeHead(200, { "Content-Type": "text/calendar; charset=utf-8", "Content-Disposition": 'inline; filename="calendar.ics"', "Cache-Control": "no-cache" });
@@ -659,6 +667,21 @@ on("cm:tab", (c, e, name) => c.backend.tab(String(name)));
 // Remove a student from the class and put the student back (remove-student.js): nothing is deleted, Restore undoes it.
 on("cm:removeStudent", (c, e, id) => { const r = require("./remove-student").remove(c.backend, id); if (r.ok) c.backend.flush(); return r; });
 on("cm:restoreStudent", (c, e, id) => { const r = require("./remove-student").restore(c.backend, id); if (r.ok) c.backend.flush(); return r; });
+// Analytics and governance (governance.js, extras.js, summary.js): cohorts, support given, audit log, per-student export and erase, term close, weekly summary.
+on("cm:analyticsExtra", (c) => ({ ok: true, cohorts: extras.cohorts(c.backend), interventions: extras.interventions(c.backend), termClosed: governance.termClosed(c.backend), aiSummary: !!c.settings.aiSummary, hasKey: !!loadApiKey(), privacyNotice: c.settings.privacyNotice || governance.PRIVACY_NOTICE }));
+on("cm:addIntervention", (c, e, rec) => { const held = (c.backend.stats(statOpts({})).quizzes || []).length; const r = extras.addIntervention(c.backend, rec || {}, held); if (r.ok) { governance.audit(c.backend, "lecturer", "support recorded", "", String((rec.ids || []).length) + " students"); c.backend.flush(); } return r; });
+on("cm:govern", (c, e, op, a) => {
+  a = a || {}; let r;
+  if (op === "export") { r = governance.studentExport(c.backend, a.id); if (r.ok) c.backend.flush(); }
+  else if (op === "erase") { r = governance.studentErase(c.backend, a.id, a.confirm); if (r.ok) c.backend.flush(); }
+  else if (op === "term") { r = governance.setTerm(c.backend, a.closed === true); c.backend.flush(); }
+  else if (op === "audit") r = { ok: true, log: governance.auditList(c.backend, 200) };
+  else if (op === "ai") { saveSettings(c, { aiSummary: a.on === true }); r = { ok: true, aiSummary: !!c.settings.aiSummary }; }
+  else if (op === "notice") { saveSettings(c, { privacyNotice: String(a.text || "") }); r = { ok: true }; }
+  else r = { ok: false, why: "Unknown action." };
+  return r;
+});
+on("cm:weeklySummary", async (c) => { try { return Object.assign({ ok: true }, await summary.weekly(c.backend.stats(statOpts({})), { enabled: !!c.settings.aiSummary, loadKey: loadApiKey, model: c.authoring.status().model })); } catch (err) { return { ok: false, why: err.message }; } });
 on("cm:export", async (c, e) => {
   const r = await dialog.showOpenDialog(winOf(e), { title: "Choose a folder for the results", properties: ["openDirectory", "createDirectory"] });
   if (r.canceled || !r.filePaths[0]) return null;
