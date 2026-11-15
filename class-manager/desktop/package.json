@@ -36,6 +36,7 @@
       "access.js",
       "vault.js",
       "remove-student.js",
+      "remove-entry.js",
       "governance.js",
       "extras.js",
       "summary.js",

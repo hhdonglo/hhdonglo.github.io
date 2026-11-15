@@ -674,6 +674,8 @@ on("cm:exportPack", async (c, e) => {
 on("cm:tab", (c, e, name) => c.backend.tab(String(name)));
 // Remove a student from the class and put the student back (remove-student.js): nothing is deleted, Restore undoes it.
 on("cm:removeStudent", (c, e, id) => { const r = require("./remove-student").remove(c.backend, id); if (r.ok) c.backend.flush(); return r; });
+on("cm:removeEntries", (c, e, tab, picks) => { const r = require("./remove-entry").remove(c.backend, tab, picks); if (r.ok) c.backend.flush(); return r; });
+on("cm:restoreEntries", (c, e, batch) => { const r = require("./remove-entry").restore(c.backend, batch); if (r.ok) c.backend.flush(); return r; });
 on("cm:restoreStudent", (c, e, id) => { const r = require("./remove-student").restore(c.backend, id); if (r.ok) c.backend.flush(); return r; });
 // Analytics and governance (governance.js, extras.js, summary.js): cohorts, support given, audit log, per-student export and erase, term close, weekly summary.
 on("cm:analyticsExtra", (c) => ({ ok: true, cohorts: extras.cohorts(c.backend), interventions: extras.interventions(c.backend), termClosed: governance.termClosed(c.backend), aiSummary: !!c.settings.aiSummary, hasKey: !!loadApiKey(), privacyNotice: c.settings.privacyNotice || governance.PRIVACY_NOTICE }));

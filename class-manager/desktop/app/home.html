@@ -374,6 +374,12 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
 .gt thead .stick1,.gt thead .stick2{z-index:3}
 .gt td.none{color:var(--faint);font-style:italic}
 .gt td.act{width:2.5rem;text-align:center}
+.selbar{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;position:sticky;top:0;z-index:20;margin:0 0 .5rem;padding:.55rem .8rem;background:var(--card-2);border:1px solid var(--gold,var(--accent));border-radius:10px}
+.selcount{font-weight:600;margin-right:.4rem}.selhint{margin-left:auto}
+tr[data-sel]{cursor:pointer}tr[data-sel].sel>td{background:rgba(70,110,200,.28)}tr[data-sel]:focus-visible{outline:2px solid var(--focus,var(--accent));outline-offset:-2px}
+.btn.danger{border-color:#c0554f;color:#f0b4b0}.btn.primary.danger{background:#a6423d;color:#fff}
+.rsd{width:min(34rem,94vw)}.rsc label{display:block;margin:.5rem 0}.rsc{border:0;padding:0}
+.rsn{position:fixed;left:50%;bottom:1.2rem;transform:translateX(-50%);z-index:80;display:flex;gap:.7rem;align-items:center;background:var(--card-2);border:1px solid var(--line);border-radius:10px;padding:.6rem .9rem;box-shadow:0 8px 24px rgba(0,0,0,.4)}.rsn[hidden]{display:none}
 .gdots{all:unset;cursor:pointer;width:2rem;height:2rem;text-align:center;line-height:2rem;border-radius:6px;color:var(--muted);font-size:1.2rem}.gdots:hover{background:var(--card-2);color:var(--head)}
 .gmenu{position:absolute;z-index:50;min-width:11.5rem;background:var(--card-2);border:1px solid var(--line);border-radius:8px;padding:.3rem;box-shadow:0 8px 24px rgba(0,0,0,.35)}
 .gmenu button{all:unset;display:block;width:calc(100% - 1.2rem);padding:.5rem .6rem;cursor:pointer;border-radius:6px;color:var(--text)}.gmenu button:hover{background:var(--card)}
@@ -866,6 +872,8 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
 <script src="charts/progress-over-time.js"></script>
 <script src="charts/bars.js"></script>
 <script src="charts/engagement.js"></script>
+<script src="row-select.js"></script>
+<script src="row-actions.js"></script>
 <script src="grades-view.js"></script>
 <script src="headings.js"></script>
 <script src="charts/stats.js"></script>
@@ -1046,15 +1054,19 @@ function rmOpen(id,name){
  $("rm-p").textContent=rmRestore?"The student goes back on the class list with every row as it was.":"The student leaves the class list, attendance, marks and totals. Nothing is deleted: the records are set aside in Removed_Students, and you can restore the student from there at any time.";
  $("rm-go").textContent=rmRestore?"Restore":"Remove from the class";$("rm-msg").textContent="";$("rm-d").showModal();$("rm-cancel").focus()}
 /* Removing a student is an explicit button in the row, never a click on the row itself; it asks first, sets the records aside and can be undone. */
-document.addEventListener("click",function(e){var b=e.target.closest&&e.target.closest("#tbl button[data-rm]");if(b)rmOpen(b.getAttribute("data-rm"),b.getAttribute("data-nm"))});
+
 function view(){
  cur=$("tab").value;if(!cur)return;
- if(cur===GRADES){cmGradesView.render({host:$("tbl"),filter:function(){return $("filter").value},remove:rmOpen});return}
+ if(cur===GRADES){cmGradesView.render({host:$("tbl"),filter:function(){return $("filter").value},reload:function(){cmApp.info().then(show).then(view)}});return}
  cmApp.tab(cur).then(function(r){rows=r||[];sortCol=-1;offList=null;openedAt={};
   if(cur==="Attendance")return cmApp.tab("Attendance_Control").then(function(c){(c||[]).slice(1).forEach(function(x){var t=/(\d{1,2}:\d{2})/.exec(String(x[3]||""));if(t&&!openedAt[String(x[1]).trim()])openedAt[String(x[1]).trim()]=t[1]});draw()});
   if(ID_COL[cur]===undefined)return draw();
   return cmApp.tab("Roster").then(function(ro){var on={};(ro||[]).slice(1).forEach(function(x){on[String(x[0]).replace(/\D/g,"")]=1});offList=on;draw()})})
 }
+function selItem(k){var r=rows[+k];if(!r||+k<1)return null;var idc=ID_COL[cur],st=!!REMOVABLE[cur]&&cur!=="Removed_Students"&&cur!=="Removed_Entries",kk=st?rowKey(r):null,id=kk?kk.id:(cur==="Removed_Students"?String(r[1]||"").replace(/\D/g,""):(idc!==undefined?String(r[idc]||"").replace(/\D/g,""):"")),nm=kk?kk.name:(cur==="Removed_Students"?String(r[2]||""):"");
+ return{key:k,index:+k,cells:r,id:id,name:nm}}
+function bindSel(){var ctx={tab:cur,student:!!REMOVABLE[cur]&&cur!=="Removed_Students",timeline:function(i,n){cmGradesView.timeline(i,n)},reload:function(){cmApp.info().then(show).then(view)}};
+ cmRowSelect.bind({host:$("tbl"),item:selItem,actions:function(items){return cmRowActions.actions(ctx,items)}})}
 function draw(){
  if(!rows.length){$("tbl").innerHTML="<p class='note' style='padding:.8rem 1rem'>Empty.</p>";return}
  var q=$("filter").value.trim().toLowerCase(),body=rows.slice(1);
@@ -1063,7 +1075,8 @@ function draw(){
   if(!isNaN(nx)&&!isNaN(ny)&&String(nx)===String(x).trim()&&String(ny)===String(y).trim())return(nx-ny)*sortDir;
   return String(x==null?"":x).localeCompare(String(y==null?"":y),undefined,{numeric:true})*sortDir});
  var n=body.length,offN=offList?rows.slice(1).filter(isOff).length:0;
- $("tbl").innerHTML=(offN?"<p class='integrity' role='alert'><b>"+offN+(offN===1?" row is":" rows are")+" for IDs that are not on the class list.</b> The class list is the source of truth, so these rows are marked and are not counted in any class figure. Check the IDs. If a student belongs in the class, add the student to the class list first.</p>":"")+"<table><thead><tr>"+rows[0].map(function(h,i){return"<th scope='col' tabindex='0' data-c='"+i+"'"+(i===sortCol?" aria-sort='"+(sortDir>0?"ascending":"descending")+"'":"")+" title='"+esc(h)+"'>"+esc(window.cmHeadings?cmHeadings.readable(h):h)+(cur==="Attendance"&&openedAt[String(h).trim()]?" · "+esc(openedAt[String(h).trim()]):"")+"</th>"}).join("")+(rows[0]&&REMOVABLE[cur]?"<th scope='col'><span class='sr'>Actions</span></th>":"")+"</tr></thead><tbody>"+body.slice(0,1000).map(function(r){var k=rowKey(r);return"<tr"+(isOff(r)?" class='off' title='This ID is not on the class list'":"")+">"+r.map(function(v){return"<td>"+esc(v)+"</td>"}).join("")+(REMOVABLE[cur]?"<td>"+(k?"<button type='button' class='btn rowbtn' data-rm='"+esc(k.id)+"' data-nm='"+esc(k.name)+"'>"+(cur==="Removed_Students"?"Restore…":"Remove…")+"</button>":"")+"</td>":"")+"</tr>"}).join("")+"</tbody></table>"+(offN?"":"")+(n>1000?"<p class='note' style='padding:.6rem 1rem'>First 1000 of "+n+" rows shown. Export to see all.</p>":"");
+ $("tbl").innerHTML=(offN?"<p class='integrity' role='alert'><b>"+offN+(offN===1?" row is":" rows are")+" for IDs that are not on the class list.</b> The class list is the source of truth, so these rows are marked and are not counted in any class figure. Check the IDs. If a student belongs in the class, add the student to the class list first.</p>":"")+"<table><thead><tr>"+rows[0].map(function(h,i){return"<th scope='col' tabindex='0' data-c='"+i+"'"+(i===sortCol?" aria-sort='"+(sortDir>0?"ascending":"descending")+"'":"")+" title='"+esc(h)+"'>"+esc(window.cmHeadings?cmHeadings.readable(h):h)+(cur==="Attendance"&&openedAt[String(h).trim()]?" · "+esc(openedAt[String(h).trim()]):"")+"</th>"}).join("")+"</tr></thead><tbody>"+body.slice(0,1000).map(function(r){var k=rowKey(r);return"<tr data-sel='"+rows.indexOf(r)+"' tabindex='0'"+(isOff(r)?" class='off' title='This ID is not on the class list'":"")+">"+r.map(function(v){return"<td>"+esc(v)+"</td>"}).join("")+"</tr>"}).join("")+"</tbody></table>"+(offN?"":"")+(n>1000?"<p class='note' style='padding:.6rem 1rem'>First 1000 of "+n+" rows shown. Export to see all.</p>":"");
+ bindSel();
  $("tbl").querySelectorAll("th").forEach(function(th){var f=function(){var c=+th.getAttribute("data-c");sortDir=c===sortCol?-sortDir:1;sortCol=c;draw();var t=$("tbl").querySelector("th[data-c='"+c+"']");if(t)t.focus()};th.addEventListener("click",f);th.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();f()}})});
 }
 $("filter").addEventListener("input",draw);
