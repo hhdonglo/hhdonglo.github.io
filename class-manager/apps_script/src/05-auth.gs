@@ -36,7 +36,7 @@ function sessValid_(t, bind) { return !!(t && !t.expired && bind && sessSign_(t.
 function signOutEveryone_() { PropertiesService.getScriptProperties().setProperty('sess_secret', Utilities.getUuid() + Utilities.getUuid()); log_('sessions ended', 'all', '', ''); return { ok: true }; }
 
 function hostStored_() {
-  var ks = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(KEY_TAB);
+  var ks = ss_().getSheetByName(KEY_TAB);
   return ks ? String(ks.getRange(2, 10).getValue()).trim() : '';
 }
 // The lecturer: a session made from the host key, or the host key itself (by POST only, and then a session is returned).

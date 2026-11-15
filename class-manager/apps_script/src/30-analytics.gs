@@ -9,7 +9,7 @@ function practiceLecture_(quiz) { // 'Lecture 5 ...' -> 5, 'Introduction ...' ->
   return /^Introduction/i.test(q) ? 0 : null;
 }
 function attemptRows_() { // [{ts, id, quiz, score, total, secs, wrong[], asked[], missed, mock, lec}]
-  var at = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Attempts');
+  var at = ss_().getSheetByName('Attempts');
   return bodyRows_(at, 9).map(function (r) {
     var quiz = String(r[2]);
     return { ts: new Date(r[0]).getTime() || 0, id: normId_(r[1]), quiz: quiz, score: Number(r[4]) || 0, total: Number(r[5]) || 0, secs: Number(r[6]) || 0,
@@ -52,7 +52,7 @@ function studentLearning_(id) {
     mock.asked.forEach(function (q) { add(lectureOfQid_(q), mock.wrong.indexOf(q) < 0 ? 1 : 0, 1); });
     mock.wrong.forEach(function (q) { want(q, 'Mock exam'); });
   }
-  var rel = releasedSet_(), items = bodyRows_(SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ITEMS_TAB), 11);
+  var rel = releasedSet_(), items = bodyRows_(ss_().getSheetByName(ITEMS_TAB), 11);
   items.forEach(function (r) {
     if (normId_(r[4]) !== id) return;
     var code = String(r[1]).trim().toUpperCase(), rnd = Number(r[2]) || 0;
@@ -103,7 +103,7 @@ function questionStats_(items, attempts) {
 
 // ---- Teaching insights (host only) ----
 function insights_(p) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet(), now = Date.now();
+  var ss = ss_(), now = Date.now();
   var attMin = Math.max(0, Math.min(100, Number(p.att) || 70)), quizMin = Math.max(0, Math.min(100, Number(p.quiz) || 50)), idleDays = Math.max(1, Math.min(120, Number(p.idle) || 14));
   var roster = rosterRows_().map(function (r) { return { id: normId_(r[0]), name: cleanName_(r[1]) }; }).filter(function (r) { return r.id; });
   var inRoster = {}; roster.forEach(function (r) { inRoster[r.id] = true; });
@@ -232,7 +232,7 @@ function engagementOf_(s, th, have) {
 }
 
 function classStats_(p) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet(), now = Date.now(), th = statThresholds_(p || {});
+  var ss = ss_(), now = Date.now(), th = statThresholds_(p || {});
   var roster = rosterRows_().map(function (r) { return { id: normId_(r[0]), name: cleanName_(r[1]).trim() }; }).filter(function (r) { return r.id; });
   var inRoster = {}; roster.forEach(function (r) { inRoster[r.id] = true; });
   var out = { ok: true, version: SCRIPT_VERSION, generated: new Date(now).toISOString(), thresholds: th, rosterSize: roster.length, groupNames: STATS_GROUPS };
@@ -529,7 +529,7 @@ function lecturesInfo_() { // {number: {title, outcomes: [text]}} from data/lect
   return out;
 }
 function bankFor_(n) { try { return bankList_('lecture' + n) || []; } catch (err) { return []; } }
-function outcomeTagRows_() { return bodyRows_(SpreadsheetApp.getActiveSpreadsheet().getSheetByName(QOUT_TAB), 4); }
+function outcomeTagRows_() { return bodyRows_(ss_().getSheetByName(QOUT_TAB), 4); }
 // {qid: {lec, n}}: the lecturer's tags first, then the bank's own field.
 function outcomeMap_(lects) {
   var map = {};
@@ -598,7 +598,7 @@ function outcomesAct_(p) {
 function evidence_() {
   var lects = lecturesInfo_(), map = outcomeMap_(lects), out = {}, rel = releasedSet_();
   function add(id, t, qid, ok, src) { if (!id || !qid) return; var k = outcomeKey_(qid, map); if (!k) return; (out[id] = out[id] || []).push({ t: t, qid: qid, ok: ok, src: src, key: k }); }
-  bodyRows_(SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ITEMS_TAB), ITEMS_W).forEach(function (r) {
+  bodyRows_(ss_().getSheetByName(ITEMS_TAB), ITEMS_W).forEach(function (r) {
     var id = normId_(r[4]), code = String(r[1]).trim().toUpperCase(), rnd = Number(r[2]) || 0;
     if (!rel[String(r[4]).trim() + '|' + code + '|' + rnd] || !String(r[7]).trim()) return; // released and answered
     add(id, new Date(r[0]).getTime() || 0, String(r[6]).trim(), Number(r[9]) ? 1 : 0, 'live');
@@ -664,7 +664,7 @@ function classTimeline_(ev) {
 // Ask, discuss, revise: every question that had a second vote, from Item_Log (both answers kept).
 // Normalised gain = (after - before) / (100 - before), the share of the possible improvement that discussion achieved.
 function discussionStats_() {
-  var rows = bodyRows_(SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ITEMS_TAB), ITEMS_W), qs = {}, order = [], byStudent = {};
+  var rows = bodyRows_(ss_().getSheetByName(ITEMS_TAB), ITEMS_W), qs = {}, order = [], byStudent = {};
   rows.forEach(function (r) {
     if (Number(r[12]) !== 1) return;
     var k = String(r[1]).trim().toUpperCase() + '|' + (Number(r[2]) || 0) + '|' + r[5], key = String(r[8]).trim(), f = String(r[11]).trim(), a = String(r[7]).trim(), id = normId_(r[4]);

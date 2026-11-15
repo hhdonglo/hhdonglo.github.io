@@ -12,7 +12,7 @@ var GROUPS_TAB = 'Groups', GROUPS_HEADER = ['Set', 'Group', 'Student ID', 'Name'
 
 function groupsSheet_() { return sheetWith_(GROUPS_TAB, GROUPS_HEADER); }
 function groupRows_() {
-  return bodyRows_(SpreadsheetApp.getActiveSpreadsheet().getSheetByName(GROUPS_TAB), 8).map(function (r) {
+  return bodyRows_(ss_().getSheetByName(GROUPS_TAB), 8).map(function (r) {
     return { set: String(r[0]).trim(), group: Number(r[1]) || 0, id: normId_(r[2]), name: String(r[3] || ''), mark: r[4], outOf: r[5], locked: /^y/i.test(String(r[6])), created: r[7] };
   }).filter(function (r) { return r.set && r.group && r.id; });
 }
@@ -44,7 +44,7 @@ function repeatCost_(groups, pc) {
 function studentMeasure_(mode) {
   var out = {};
   if (mode === 'attendance') {
-    var at = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_TAB);
+    var at = ss_().getSheetByName(ATT_TAB);
     if (at && at.getLastRow() > 1 && at.getLastColumn() > 1) {
       var g = at.getRange(1, 1, at.getLastRow(), at.getLastColumn()).getValues();
       for (var i = 1; i < g.length; i++) { var id = normId_(g[i][0]), p = 0, n = 0; for (var c = 1; c < g[0].length; c++) if (g[i][c] !== '' && String(g[0][c]).trim()) { n++; if (Number(g[i][c])) p++; } if (id && n) out[id] = p / n; }
@@ -192,7 +192,7 @@ var AMK_TAB = 'Assignment_Marks', AMK_HEAD = ['Assignment ID', 'Group', 'Mark', 
 var PEER_WORD = { full: 'Contributed fully', part: 'Contributed partly', little: 'Contributed little' }, PEER_VAL = { full: 2, part: 1, little: 0 };
 
 function asgRows_() {
-  return bodyRows_(SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ASG_TAB), 11).map(function (r) {
+  return bodyRows_(ss_().getSheetByName(ASG_TAB), 11).map(function (r) {
     return { id: String(r[0]).trim(), set: String(r[1]).replace(/^'/, ''), groups: String(r[2] || 'all'), title: String(r[3]), brief: String(r[4]), due: String(r[5] || '').replace(/^'/, ''),
       outcome: String(r[6] || '').replace(/^'/, ''), outOf: r[7] === '' ? '' : Number(r[7]), status: String(r[8] || 'open'), created: new Date(r[9]).getTime() || 0, updated: r[10] };
   }).filter(function (a) { return a.id; });
@@ -200,11 +200,11 @@ function asgRows_() {
 function asgSave_(list) { rewriteBody_(sheetWith_(ASG_TAB, ASG_HEAD), 11, list.map(function (a) { return [a.id, "'" + a.set, a.groups, a.title, a.brief, a.due ? "'" + a.due : '', a.outcome ? "'" + a.outcome : '', a.outOf, a.status, new Date(a.created || Date.now()), new Date()]; })); }
 function asgFor_(a, g) { return a.groups === 'all' || String(a.groups).split(',').map(Number).indexOf(Number(g)) >= 0; }
 function gwRows_() {
-  return bodyRows_(SpreadsheetApp.getActiveSpreadsheet().getSheetByName(GW_TAB), 9).map(function (r) {
+  return bodyRows_(ss_().getSheetByName(GW_TAB), 9).map(function (r) {
     return { t: new Date(r[0]).getTime() || 0, aid: String(r[1]).trim(), set: String(r[2]).replace(/^'/, ''), group: Number(r[3]) || 0, id: normId_(r[4]), kind: String(r[5]), text: String(r[6] || ''), link: String(r[7] || ''), rating: String(r[8] || '') };
   });
 }
-function amkRows_() { var o = {}; bodyRows_(SpreadsheetApp.getActiveSpreadsheet().getSheetByName(AMK_TAB), 5).forEach(function (r) { o[String(r[0]).trim() + '|' + Number(r[1])] = { mark: r[2] === '' ? null : Number(r[2]), feedback: String(r[3] || ''), marked: r[4] }; }); return o; }
+function amkRows_() { var o = {}; bodyRows_(ss_().getSheetByName(AMK_TAB), 5).forEach(function (r) { o[String(r[0]).trim() + '|' + Number(r[1])] = { mark: r[2] === '' ? null : Number(r[2]), feedback: String(r[3] || ''), marked: r[4] }; }); return o; }
 function dueMs_(due) { var d = calDate_(due); if (!d) return 0; if (!/T/.test(due)) d.setHours(23, 59, 0, 0); return d.getTime(); }
 // How one group did on one assignment: the latest shared submission, each member's part, the peer ratings (lecturer only) and the mark.
 function groupWorkOf_(a, g, members, work, marks, names) {
