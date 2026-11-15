@@ -1,78 +1,24 @@
-/* Class Manager look: one palette and one set of components for every CM screen (student and lecturer pages, projector, live quiz, desktop hub, setup, settings).
-   Load it LAST on a page, after site.css, student.css, teaching.css or the page's own style. Change colours here and every screen follows.
-   Rules: one navy and blue palette; soft tinted tiles; a dark sidebar; large readable numbers; charts first; no logos or crests; light and dark follow the computer. */
-:root{
-  --navy:#12306B; --navy-deep:#0F2354; --head:#0F2354;
-  --bg:#EEF3FB; --surface:#FFFFFF; --panel:#F6F9FE; --card:#FFFFFF; --card-2:#F2F6FD; --side:#0F2354;
-  --sky:#E6EEFD; --line:#D9E2F2; --border:#D9E2F2;
-  --text:#172447; --muted:#4B5877; --faint:#66728F;
-  --accent:#2F6FDE; --accent-ink:#FFFFFF; --link:#2456B8; --focus:#2F6FDE;
-  --primary:#2456B8; --primary-h:#1E4A9F; --primary-bg:#2456B8; --primary-text:#FFFFFF;
-  --brown:#2F6FDE; --brown-edge:#2F6FDE; --brown-fill:#2F6FDE; --brown-soft:#E6EEFD;
-  --btn-bg:#FFFFFF; --btn-text:#12306B;
-  --ok:#1E9E6A; --warn:#B7791F; --danger:#C0392B; --danger-h:#A93226; --off:#8794B0;
-  --t-blue:#E6EEFD; --t-teal:#E0F4EE; --t-gold:#FFF2D9; --t-rose:#FCE7EA; --t-violet:#ECE8FC;
-  --shadow:0 1px 2px rgba(18,48,107,.08),0 4px 14px rgba(18,48,107,.06); --radius:14px;
-}
-@media (prefers-color-scheme:dark){:root{
-  --navy:#1E3F7A; --navy-deep:#0A1730; --head:#F2F6FF;
-  --bg:#0A1224; --surface:#111C36; --panel:#0F1A33; --card:#14213F; --card-2:#1A2A4D; --side:#070E1D;
-  --sky:#1B2C52; --line:#243659; --border:#243659;
-  --text:#E7EEFB; --muted:#A5B3D0; --faint:#8493B3;
-  --accent:#6BA3FF; --accent-ink:#06142E; --link:#9CC0FF; --focus:#9CC0FF;
-  --primary:#2F64C8; --primary-h:#3C72D8; --primary-bg:#2F64C8; --primary-text:#FFFFFF;
-  --brown:#6BA3FF; --brown-edge:#6BA3FF; --brown-fill:#2F64C8; --brown-soft:#1B2C52;
-  --btn-bg:#14213F; --btn-text:#CFE0FF;
-  --ok:#4CC38A; --warn:#E0B254; --danger:#D0584B; --danger-h:#E06A5C; --off:#7482A3;
-  --t-blue:#17294F; --t-teal:#133A3A; --t-gold:#3A2E15; --t-rose:#3A1A24; --t-violet:#271F4A;
-  --shadow:none;
-}}
-:root[data-theme="light"]{color-scheme:light}
-body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+/* Class Manager shared layout: rounded soft cards, tinted tiles, calm tables, clear focus, for every CM screen.
+   It does NOT set the palette: each page keeps its own original colours (the desktop hub's dark slate with the gold accent, the web pages' navy and brown).
+   Load it LAST on a page. Tint colours below are derived from the page's own tokens, so they follow light and dark. */
+:root{ --radius:14px; --shadow-soft:0 1px 2px rgba(0,0,0,.10),0 4px 14px rgba(0,0,0,.06); }
 
-/* page header: navy band, no brown rule */
-header.banner{background:linear-gradient(135deg,var(--navy-deep),#1c4a9c);border-bottom:0}
-@media (prefers-color-scheme:dark){header.banner{background:linear-gradient(135deg,#0A1730,#14306b)}}
-.banner h1,.banner .course{font-family:inherit}
-nav.jump{background:var(--surface);border-bottom:1px solid var(--line)}
-nav.jump .links a,nav.jump .wrap a{border-radius:999px;padding:.25rem .75rem;text-decoration:none;color:var(--link)}
-nav.jump .links a:hover,nav.jump .wrap a:hover{background:var(--sky)}
-h1,h2,h3{font-family:inherit}
-h2{border-left:0;padding-left:0;color:var(--head);font-weight:700}
+/* cards and panels: rounded, soft, no heavy rule */
+.card,section.card,main .card,.panel,.box{border-radius:var(--radius)!important;border-top-width:1px!important;box-shadow:var(--shadow-soft)}
+.card{overflow:hidden}
 
-/* cards and tiles: rounded, soft, no heavy rule */
-.card,.panel,.box,section.card,.tile{background:var(--card);border:1px solid var(--line);border-top:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
-.card h3,.card-head h3{color:var(--head)}
-.tint-blue,.t-blue{background:var(--t-blue)}.tint-teal,.t-teal{background:var(--t-teal)}.tint-gold,.t-gold{background:var(--t-gold)}.tint-rose,.t-rose{background:var(--t-rose)}.tint-violet,.t-violet{background:var(--t-violet)}
+/* tinted tiles: a soft wash of the accent colours over the card, in light and dark */
+.tint-blue,.t-blue{background:color-mix(in srgb,#5B8BD9 14%,var(--card,var(--surface,#fff)))}
+.tint-teal,.t-teal{background:color-mix(in srgb,#4CC38A 14%,var(--card,var(--surface,#fff)))}
+.tint-gold,.t-gold{background:color-mix(in srgb,#C9A15A 16%,var(--card,var(--surface,#fff)))}
+.tint-rose,.t-rose{background:color-mix(in srgb,#E07A6E 14%,var(--card,var(--surface,#fff)))}
+.tint-violet,.t-violet{background:color-mix(in srgb,#8E7BD9 14%,var(--card,var(--surface,#fff)))}
 
-/* buttons */
-.btn,button.btn{border-radius:10px;border:1px solid var(--line);background:var(--btn-bg);color:var(--btn-text);font-weight:600}
-.btn:hover{background:var(--sky);border-color:var(--accent)}
-.btn.primary,button.primary{background:var(--primary);border-color:var(--primary);color:#fff}
-.btn.primary:hover{background:var(--primary-h);border-color:var(--primary-h)}
-.btn.danger{background:var(--danger);border-color:var(--danger);color:#fff}
-
-/* forms */
-input,select,textarea{border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--text);font:inherit}
-input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
-
-/* tables are the drill-down: calm, readable */
-table{border-collapse:collapse}
-th{background:var(--card-2);color:var(--head)}
-th,td{border-bottom:1px solid var(--line)}
-tr:hover td{background:var(--sky)}
-
-/* desktop hub: dark navy sidebar with a blue current item */
-.side{background:var(--side);border-right:0}
-.nav[aria-current="page"]{background:rgba(107,163,255,.18);color:#fff;box-shadow:inset 3px 0 0 var(--accent)}
-.nav:hover{background:rgba(255,255,255,.07)}
-.top,.topbar{background:var(--panel);border-bottom:1px solid var(--line)}
-.lbl{color:var(--muted)}
+/* buttons, fields: rounded; the page's own colours stay */
+.btn,button.btn,.go{border-radius:10px}
+input,select,textarea{border-radius:10px}
 .chip,.pill{border-radius:999px}
 
-/* type: one sans family everywhere (page titles included), headings in the head colour */
-header,header *,.su h1,.su h2,#quiz-app,#quiz-app *{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-main h1,.wrap>h1,.card>h1{color:var(--head)}
+/* tables are the drill-down: calm and readable */
+th,td{border-bottom:1px solid var(--line,var(--border,#ddd))}
 a.btn,a.btn:hover{text-decoration:none}
-.card,section.card,main .card,.panel,.box{border-top:1px solid var(--line)!important}
-.status .link,footer.status .link{color:#CFE0FF}
