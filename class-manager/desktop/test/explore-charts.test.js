@@ -29,3 +29,26 @@ test("each screen gets charts and the view escapes and offers a table", () => {
   const evil = { key: "k", title: "<b>", hint: "", caption: "", unit: "%", max: 100, kind: "student", bars: [{ label: "<i>", value: 1, n: 1, small: true, students: [{ id: "1", name: "<script>" }] }] };
   assert.ok(!/<script>|<i>/.test(V.card(evil, 0, false)));
 });
+
+test("at risk: practice alone never flags; thin evidence is counted apart; reasons carry the rule", () => {
+  const R = require("../app/dashboard/risk");
+  const st = [{ id: "1", name: "A", attendance: 90, quizAverage: 80, quizzesTaken: 3, missedInARow: 0, practiceAttempts: 0, practiceRecent: false },
+    { id: "2", name: "B", attendance: 40, quizAverage: 70, quizzesTaken: 3, missedInARow: 0 },
+    { id: "3", name: "C", attendance: 90, quizAverage: 70, quizzesTaken: 3, change: -20 }];
+  const base = { thresholds: { effort: 70, perf: 50, misses: 2 }, attendance: { sessions: 5 }, quizzes: [{}, {}, {}], students: st };
+  const r = R.atRisk(base);
+  assert.equal(r.total, 2); assert.equal(r.strong, 1); assert.equal(r.thin, 1);
+  assert.deepEqual(r.strongStudents.map((s) => s.id), ["2"]); assert.deepEqual(r.thinStudents.map((s) => s.id), ["3"]);
+  const few = R.atRisk(Object.assign({}, base, { attendance: { sessions: 2 } })); assert.equal(few.strong, 0); // two sessions is too little
+  assert.ok(r.reasons.every((x) => /\d|Took none|Latest/.test(x.rule)));
+});
+test("class analytics charts: sessions and quizzes carry counts, spread carries median and quartiles", () => {
+  const d2 = Object.assign({}, d, { attendance: { sessions: 2, bySession: [{ label: "S1", rate: 80, present: 19 }, { label: "S2", rate: 60 }] }, rosterSize: 24,
+    quizzes: [{ quiz: "Q1", students: 18, stats: { mean: 58 } }], thresholds: { perf: 50, effort: 70, misses: 2 } });
+  d2.students = students.map((s, i) => Object.assign({}, s, { marks: [i % 2 ? 1 : 0, 1] }));
+  const s = X.sessions(d2); assert.equal(s.bars[0].text, "80%"); assert.match(s.bars[0].label, /S1 · 19\/24/); assert.equal(s.bars[0].n, 12);
+  const q = X.quizTrend(d2); assert.equal(q.bars[0].text, "58%"); assert.match(q.bars[0].label, /Q1 · n=18/);
+  const sp = X.spread(d2); assert.equal(sp.facts[0][0], "Students"); assert.ok(sp.facts.some((f) => f[0] === "Median"));
+  assert.equal(X.forScreen("overview", d2, {})[0].key, "sessions");
+  assert.match(V.card(sp, null, false), /Middle half/);
+});

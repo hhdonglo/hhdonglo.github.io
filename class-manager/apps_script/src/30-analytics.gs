@@ -216,7 +216,7 @@ function engagementOf_(s, th, have) {
   var parts = [];
   if (have.sessions && s.attendance !== null) parts.push(s.attendance);
   if (have.quizzes) parts.push(100 * s.quizzesTaken / have.quizzes);
-  if (have.practice) parts.push(s.practiceRecent ? 100 : 0);
+  if (have.practice && s.practiceRecent) parts.push(100); // practice is optional: it can raise a student's effort, never lower it
   var effort = parts.length ? Math.round(parts.reduce(function (a, b) { return a + b; }, 0) / parts.length) : null;
   var perf = s.quizAverage !== null ? s.quizAverage : s.practiceAverage;
   var hiE = effort !== null && effort >= th.effort, hiP = perf !== null && perf >= th.perf, group;

@@ -2065,7 +2065,7 @@ function engagementOf_(s, th, have) {
   var parts = [];
   if (have.sessions && s.attendance !== null) parts.push(s.attendance);
   if (have.quizzes) parts.push(100 * s.quizzesTaken / have.quizzes);
-  if (have.practice) parts.push(s.practiceRecent ? 100 : 0);
+  if (have.practice && s.practiceRecent) parts.push(100); // practice is optional: it can raise a student's effort, never lower it
   var effort = parts.length ? Math.round(parts.reduce(function (a, b) { return a + b; }, 0) / parts.length) : null;
   var perf = s.quizAverage !== null ? s.quizAverage : s.practiceAverage;
   var hiE = effort !== null && effort >= th.effort, hiP = perf !== null && perf >= th.perf, group;
@@ -3325,7 +3325,7 @@ function announcements_(p) { // public for audience 'all'; signed-in students al
 // ---------- Portal and Control Centre support (additive: no existing action changes) ----------
 // SCRIPT_VERSION: change it whenever the script is redeployed; the Control Centre compares it with the version its page expects.
 // Key!M2 = Off hides "My results" from students (default On).
-var SCRIPT_VERSION = '2026-11-15-signin-2';
+var SCRIPT_VERSION = '2026-11-15-signin-3';
 
 function resultsOn_() {
   try {

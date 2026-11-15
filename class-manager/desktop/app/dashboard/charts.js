@@ -16,7 +16,7 @@
       var v = b.value, h = v === null || v === undefined ? 0 : Math.max(v ? 2 : 0, (base - top) * v / max), x = 50 + i * slot + (slot - w) / 2, on = sel === i;
       s += "<g class='dbar" + (on ? " on" : "") + "' data-bar='" + i + "' tabindex='0' role='button' aria-pressed='" + on + "' aria-label='" + esc(b.label + ": " + (v === null || v === undefined ? "no data" : f1(v) + (drill.unit || ""))) + "'>" +
         "<rect class='hit' x='" + (50 + i * slot) + "' y='0' width='" + slot + "' height='" + base + "'/><rect class='fill' x='" + x + "' y='" + (base - h) + "' width='" + w + "' height='" + h + "' rx='4'/>" +
-        "<text class='val' x='" + (x + w / 2) + "' y='" + (base - h - 6) + "' text-anchor='middle'>" + (v === null || v === undefined ? "–" : f1(v) + (drill.unit === "%" ? "%" : "")) + "</text>" +
+        "<text class='val' x='" + (x + w / 2) + "' y='" + (base - h - 6) + "' text-anchor='middle'>" + (b.text ? esc(b.text) : v === null || v === undefined ? "–" : f1(v) + (drill.unit === "%" ? "%" : "")) + "</text>" +
         "<text class='ax' x='" + (x + w / 2) + "' y='" + (H - 8) + "' text-anchor='middle'>" + esc(String(b.label).length > 14 ? String(b.label).slice(0, 13) + "…" : b.label) + "</text></g>";
     });
     return s + "</svg>";

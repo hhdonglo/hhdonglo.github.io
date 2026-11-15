@@ -67,7 +67,7 @@ phones reach CM through this connection.
 ----------------------------
 
 CM opens with a short setup. You can skip any step and come back later:
-a reminder list stays on "Class Overview" until the steps are done.
+a reminder list stays on "Class Analytics" until the steps are done.
 
 Step 1. Course details
   1. Type the course code and title, your name, the semester and the
@@ -120,7 +120,7 @@ Step 3. Course materials (optional now)
 Open "Class Tools" in the sidebar. This is the control point for a class.
 
 Step 1. Let students connect
-  1. On the "Class Overview" or "Class Tools" screen, choose how phones
+  1. On the "Class Analytics" or "Class Tools" screen, choose how phones
      connect:
      - Same Wi-Fi or hotspot (the default): your computer and the students'
        phones use the same Wi-Fi.
@@ -132,7 +132,7 @@ Step 1. Let students connect
      computer and the students' phones to it, or choose Internet.
 
 Step 2. Take attendance
-  1. Press "Take attendance" (Class Tools or Class Overview). Type your
+  1. Press "Take attendance" (Class Tools or Class Analytics). Type your
      host key or password, then press "Start attendance".
   2. Show the QR code on the projector. It changes during the session, so
      it must be scanned in the room.
@@ -175,7 +175,7 @@ Students open them from their portal whenever CM is open.
 The sidebar shows the results. Everything is worked out on your computer
 from attendance, quiz and practice records. Nothing is estimated.
 
-Class Overview (the first screen)
+Class Analytics (the first screen)
   - "Is the class learning?" gives a verdict with its evidence: do students
     answer the same questions better when they return, how quiz scores
     trend, which wrong answers many students share, and participation. It
@@ -278,7 +278,7 @@ Access codes
 
 Use this when the Wi-Fi keeps phones apart, or students are not in the
 room.
-  1. Open "Class Tools" (or "Class Overview") and choose Internet as the
+  1. Open "Class Tools" (or "Class Analytics") and choose Internet as the
      way students connect.
   2. Wait for the new address and QR code. Show them. The address changes
      each time you start.

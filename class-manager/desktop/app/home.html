@@ -395,7 +395,7 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
 <nav class="side" aria-label="Class Manager">
  <div class="brand"><img src="icon.svg" alt=""><span>Class Manager</span></div>
  <p class="side-h">Dashboard</p>
- <button class="nav" aria-current="page" data-view="overview"><svg><use href="#i-pulse"/></svg><span>Class Overview</span></button>
+ <button class="nav" aria-current="page" data-view="overview"><svg><use href="#i-pulse"/></svg><span>Class Analytics</span></button>
  <p class="side-h">Teach</p>
  <button class="nav" data-view="class"><svg><use href="#i-live"/></svg><span>Class Tools</span></button>
  <button class="nav" data-view="attendance"><svg><use href="#i-check"/></svg><span>Attendance</span></button>
@@ -428,7 +428,7 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
 
 <main id="main">
 
-<!-- Class Overview: how the class is doing. Computed in the backend (classStats_ in the server script) from the data already collected. -->
+<!-- Class Analytics: how the class is doing. Computed in the backend (classStats_ in the server script) from the data already collected. -->
 <section class="view" id="v-overview" aria-labelledby="h-overview">
  <div class="banner" id="setup" hidden>
   <strong>Finish setting up your course</strong>
@@ -439,14 +439,14 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
   </ul>
   <button type="button" class="x" id="setup-x" aria-label="Hide this reminder" title="Hide this reminder">&times;</button>
  </div>
- <header class="vh"><div><h2 id="h-overview">Class Overview</h2><p id="ov-sub">How the class is doing, from attendance, live quizzes and practice.</p></div>
+ <header class="vh"><div><h2 id="h-overview">Class Analytics</h2><p id="ov-sub">The class in numbers and charts: attendance, quizzes, practice, who needs attention and why. Click any bar or number for the students behind it.</p></div>
   <div class="row collect" role="group" aria-label="Collect data">
    <button class="btn sm" type="button" data-win="attendance.html"><svg><use href="#i-check"/></svg>Take attendance</button>
    <button class="btn sm" type="button" data-win="quiz-host.html"><svg><use href="#i-play"/></svg>Run a quiz</button>
    <button class="btn sm" type="button" data-scan><svg><use href="#i-qr"/></svg>Scan code</button>
   </div></header>
- <div class="livestrip" id="ov-live" hidden role="status" aria-live="polite"></div>
  <div class="ins" id="ov"><p class="note">Working out the class statistics…</p></div>
+ <div class="livestrip" id="ov-live" hidden role="status" aria-live="polite"></div>
 </section>
 
 <!-- Students -->
@@ -806,7 +806,7 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
 <dialog id="keys-d" aria-labelledby="keys-h">
  <h2 id="keys-h">Keyboard shortcuts</h2>
  <table><tbody>
-  <tr><td>Class Overview</td><td><kbd data-k="1"></kbd></td></tr>
+  <tr><td>Class Analytics</td><td><kbd data-k="1"></kbd></td></tr>
   <tr><td>Students</td><td><kbd data-k="2"></kbd></td></tr>
   <tr><td>Learning Progress</td><td><kbd data-k="9"></kbd></td></tr>
   <tr><td>Attendance</td><td><kbd data-k="3"></kbd></td></tr>
@@ -854,6 +854,7 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
 <link rel="stylesheet" href="dashboard/dashboard.css">
 <link rel="stylesheet" href="analytics/analytics.css">
 <script src="dashboard/rules.js"></script>
+<script src="dashboard/risk.js"></script>
 <script src="dashboard/groups.js"></script>
 <script src="dashboard/charts.js"></script>
 <script src="dashboard/render.js"></script>
@@ -925,7 +926,7 @@ $("key-copy").addEventListener("click",function(){if(hostKey)copy(hostKey,$("key
  btn.addEventListener("click",function(e){e.stopPropagation();var open=menu.hidden;menu.hidden=!open;btn.setAttribute("aria-expanded",String(open))});
  document.addEventListener("click",function(e){if(!menu.contains(e.target))shut()});
  document.addEventListener("keydown",function(e){if(e.key==="Escape"&&!menu.hidden){shut();btn.focus()}});
- Array.prototype.forEach.call(menu.querySelectorAll("[data-mode]"),function(it){it.addEventListener("click",function(){var r=document.querySelector("input[name=conn][value="+it.getAttribute("data-mode")+"]");shut();if(r&&!r.checked)r.click()})}); // drives the same radio buttons as Class Overview
+ Array.prototype.forEach.call(menu.querySelectorAll("[data-mode]"),function(it){it.addEventListener("click",function(){var r=document.querySelector("input[name=conn][value="+it.getAttribute("data-mode")+"]");shut();if(r&&!r.checked)r.click()})}); // drives the same radio buttons as Class Analytics
 })();
 $("how").addEventListener("click",function(){$("how-d").showModal()});
 $("copy-mini").addEventListener("click",function(){var u=$("addr").textContent;if(u&&u!=="…")copy(u,$("copy-mini"))});

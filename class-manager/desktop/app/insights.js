@@ -1,4 +1,4 @@
-/* Class Manager: the Insight screens (Class Overview, Students, Attendance, Quizzes and Questions).
+/* Class Manager: the Insight screens (Class Analytics, Students, Attendance, Quizzes and Questions).
    Every figure comes from the backend (classStats_ and studentStats_ in the server script, through cmApp.stats);
    this file only lays the results out. The engagement groups are suggestions for the lecturer and never reach students. */
 (function () {
@@ -78,12 +78,13 @@
     if (window.cmApp && cmApp.analyticsExtra && !xmount.asked) { xmount.asked = true; cmApp.analyticsExtra().then(function (r) { xCohorts = (r && r.cohorts) || {}; xmount.asked = false; var e2 = $(id); if (e2 && Object.keys(xCohorts).length) cmExplorePanel.draw(e2, screen, data, xCohorts); }).catch(function () { xmount.asked = false; }); }
   }
 
-  /* ---- Class Overview ---- */
+  /* ---- Class Analytics ---- */
   function overview() {
     var d = data, s = d.summary, L = d.learning, a = d.attendance;
-    $("ov-sub").textContent = "How the class is doing, from attendance, live quizzes and practice. " + plural(d.rosterSize, "student", "students") + " on the class list. Updated " + new Date(d.generated).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) + ".";
+    $("ov-sub").textContent = "The class in numbers and charts. Click any bar or number for the students behind it. " + plural(d.rosterSize, "student", "students") + " on the class list. Updated " + new Date(d.generated).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) + ".";
     if (!d.rosterSize) { $("ov").innerHTML = "<div class='card empty'><h3>No class yet</h3><p>Add the class list under Class Roster. The overview fills in as you take attendance and run quizzes.</p></div>"; return; }
-    var h = window.cmDashView ? cmDashView.top(d, window.cmSetup, window.cmLive) : ""; // Today, setup, stat cards, queue, health, trends, insights (app/dashboard/)
+    // Analytics first: the hard numbers, the main charts, who needs attention and what goes with what. Today and setup come last, in a section that opens (app/dashboard/).
+    var DV = window.cmDashView, h = DV ? DV.head(d) + "<h3 class='xh'>The class in numbers</h3><div id='xo'></div>" + DV.grid(d) : "";
     h += "<div id='gx'>" + gxHtml(d) + "</div>"; // distribution, box plot and scatter for the chosen day (app/charts/panel.js)
     // Is the class learning?
     h += "<section class='card verdict " + (VCLASS[L.verdict] || "") + "' aria-labelledby='vh'><div class='v-main'><p class='lbl' id='vh'>Is the class learning?</p>" +
@@ -110,7 +111,7 @@
       "<p class='lbl'>Attendance by session</p>" + (a.sessions ? bars(a.bySession.map(function (x) { return x.rate; }), a.bySession.map(function (x) { return x.label; }), { max: 100, unit: "%", h: 150, short: shortDate, title: "Attendance by session" }) : "<p class='note'>No session submitted yet.</p>") +
       "<p class='lbl' style='margin-top:1rem'>Mean quiz score</p>" + (d.quizzes.length ? bars(d.quizzes.map(function (q) { return q.stats.mean; }), d.quizzes.map(function (q) { return q.quiz; }), { max: 100, unit: "%", h: 150, short: shortDate, title: "Mean score by quiz", extra: d.quizzes.map(function (q) { return "(" + q.students + " students)"; }) }) : "<p class='note'>No quiz released yet.</p>") +
       "</section></div>";
-    h += "<h3 class='xh'>More charts</h3><div id='xo'></div><div id='an'></div>"; // evidence, questions, concepts, support, groups, privacy (app/analytics/)
+    h += "<div id='an'></div>" + (DV ? DV.ops(d, window.cmSetup, window.cmLive) : ""); // evidence, questions, concepts, support, groups, privacy (app/analytics/)
     $("ov").innerHTML = h; gxWatch(); xmount("xo", "overview"); if (window.cmAnalyticsPanel) cmAnalyticsPanel.mount($("an"), d);
     if (window.cmDashInteract) { if (!window.cmDashBound) { window.cmDashBound = true; cmDashInteract.init(function () { return data; }); } cmDashInteract.restore(d); } // clicks on numbers, bars and zones (app/dashboard/interact.js)
   }

@@ -5,7 +5,7 @@ const assert = require("node:assert");
 const R = require("../app/dashboard/rules");
 const V = require("../app/dashboard/render");
 
-const stu = (id, o) => Object.assign({ id, name: "Student " + id, group: "On track", missedInARow: 0, change: null }, o);
+const stu = (id, o) => Object.assign({ id, name: "Student " + id, group: "On track", missedInARow: 0, change: null, quizzesTaken: 3 }, o);
 const base = () => ({
   rosterSize: 20, thresholds: { misses: 2 },
   attendance: { rate: 85, sessions: 5, recentRate: 70, earlierRate: 90, bySession: [90, 88, 85, 75, 70].map((r, i) => ({ label: "S" + i, rate: r })) },

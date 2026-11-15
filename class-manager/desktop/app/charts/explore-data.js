@@ -17,8 +17,12 @@
     var ss = (d.students || []).filter(function (s) { return num(s.quizAverage) !== null; }), bands = [];
     for (var i = 0; i < 10; i++) bands.push([]);
     ss.forEach(function (s) { bands[Math.min(9, Math.floor(s.quizAverage / 10))].push(s); });
-    return chart("spread", "How quiz averages are spread", "Click a band to list the students in it.", "Students with at least one quiz result: " + ss.length + ".", " students", null,
+    var c = chart("spread", "How quiz averages are spread", "Click a band to list the students in it.", "Students with at least one quiz result: " + ss.length + ".", " students", null,
       bands.map(function (b, i) { return bar(i * 10 + "–" + (i === 9 ? 100 : i * 10 + 9), b, b.length); }));
+    var v = ss.map(function (s) { return s.quizAverage; }).sort(function (a, b) { return a - b; });
+    if (v.length) { var q = function (p) { var h = (v.length - 1) * p, lo = Math.floor(h), hi = Math.ceil(h); return Math.round(10 * (v[lo] + (v[hi] - v[lo]) * (h - lo))) / 10; };
+      c.facts = [["Students", String(v.length)], ["Median", q(0.5) + "%"], ["Middle half", q(0.25) + "% to " + q(0.75) + "%"], ["Lowest", q(0) + "%"], ["Highest", q(1) + "%"]]; }
+    return c;
   }
   // Change since the quiz before, in five steps. Only students with two or more quizzes.
   function change(d) {
@@ -74,15 +78,39 @@
     return [chart("difficulty", "Question difficulty", "Click a bar to list the questions.", "Very hard: under 20% correct; hard: 20 to 49; medium: 50 to 79; easy: 80 or more. Questions with at least 10 live answers: " + qs.length + ".", " questions", null, mk(dif), "question"),
       chart("discrimination", "Do questions separate stronger from weaker students?", "Click a bar to list the questions. Reversed questions need their key and wording checked.", "Reversed: below 0; weak: 0 to 0.2; good: 0.2 to 0.4; strong: 0.4 or more. Discrimination compares the top and bottom 27 percent of students on the rest of the quiz.", " questions", null, mk(dis), "question")];
   }
+  // Attendance by session, with the numbers: how many were present of how many, and who was absent.
+  function sessions(d) {
+    var ss = d.students || [], sess = (d.attendance && d.attendance.bySession) || [], roster = d.rosterSize || ss.length;
+    return chart("sessions", "Attendance by session", "Click a session to list who was absent.", "Present out of the class list (" + roster + "). Attendance in the first sessions of a term is often lower; read the trend, not one session.", "%", 100,
+      sess.map(function (x, i) { var absent = ss.filter(function (s) { return s.marks && s.marks[i] === 0; }); var pres = x.present !== undefined ? x.present : Math.round((x.rate || 0) * roster / 100);
+        return Object.assign(bar((x.label || "S" + (i + 1)) + " · " + pres + "/" + roster, absent, x.rate), { text: x.rate + "%", what: "absent" }); }));
+  }
+  // Quiz average and who took part, quiz by quiz.
+  function quizTrend(d) {
+    var ss = d.students || [], qs = d.quizzes || [], low = (d.thresholds && d.thresholds.perf) || 50;
+    return chart("quiztrend", "Quiz average and participation, quiz by quiz", "Click a quiz to list the students who scored below " + low + "%.", "Average of those who took part; the label shows how many took part. A rising average with falling participation can mean weaker students stopped taking the quiz.", "%", 100,
+      qs.map(function (q) { var l = ss.filter(function (s) { var t = (s.trajectory || []).filter(function (x) { return x.quiz === q.quiz; })[0]; return t && t.pct < low; });
+        return Object.assign(bar(q.quiz + " · n=" + q.students, l, q.stats ? q.stats.mean : null), { text: q.stats && q.stats.mean !== null ? q.stats.mean + "%" : "–", what: "below " + low + "%" }); }));
+  }
+  var SHORT = { attendance: "Low attendance", missed: "Missed in a row", quiz: "Low quiz avg", noquiz: "No quiz taken", fall: "Falling" };
+  // Who is at risk, and why. Practice is never a reason on its own; reasons built on little data are marked thin.
+  function risk(d) {
+    var RK = root.cmRisk || (typeof require === "function" ? require("../dashboard/risk") : null), r = RK.atRisk(d), th = d.thresholds || {};
+    var c = chart("atrisk", "Who is at risk, and why", "Click a reason to list the students. A student can have more than one reason.", r.total + " students have at least one reason: " + r.strong + " on solid evidence and " + r.thin + " on thin evidence (fewer than " + r.minSessions + " submitted sessions or " + r.minQuizzes + " quizzes). Not practising is never a reason by itself. Thresholds are set under Students, Engagement rules.", " students", null,
+      r.reasons.map(function (x) { return Object.assign(bar(SHORT[x.key] || x.label, x.students, x.students.length), { what: "students", note: x.label + ": " + x.rule + (x.thin ? " (thin evidence)" : "") }); }));
+    c.bars.forEach(function (b) { b.small = false; });
+    c.facts = [["At risk", String(r.total)], ["Solid evidence", String(r.strong)], ["Thin evidence", String(r.thin)], ["Submitted sessions", String(r.sessions)], ["Quizzes", String(r.quizzes)]];
+    return c;
+  }
   // The charts for each screen.
   function forScreen(screen, d, cohorts) {
     var g = groups(d, cohorts), it = items(d);
-    if (screen === "overview") return [spread(d), change(d), practice(d)].concat(g);
+    if (screen === "overview") return [sessions(d), quizTrend(d), spread(d), risk(d), change(d), practice(d), participation(d)].concat(g, it);
     if (screen === "attendance") return [missed(d)];
     if (screen === "quizzes") return [participation(d), spread(d), change(d), topics(d)].concat(it);
     if (screen === "students") return [spread(d), practice(d)].concat(g);
     return [];
   }
-  var api = { SMALL: SMALL, spread: spread, change: change, participation: participation, missed: missed, practice: practice, groups: groups, topics: topics, items: items, forScreen: forScreen };
+  var api = { sessions: sessions, quizTrend: quizTrend, risk: risk, SMALL: SMALL, spread: spread, change: change, participation: participation, missed: missed, practice: practice, groups: groups, topics: topics, items: items, forScreen: forScreen };
   if (typeof module === "object" && module.exports) module.exports = api; else root.cmExplore = api;
 })(typeof window !== "undefined" ? window : globalThis);
