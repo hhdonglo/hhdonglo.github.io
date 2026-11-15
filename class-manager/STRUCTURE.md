@@ -284,3 +284,8 @@ Look (2026-11-15, from Hope's inspiration image): soft tinted tiles on cards, on
 ## Assistant export (0.21.0)
 
 `desktop/llm/` (README.md there) saves a private snapshot of the current course for an AI assistant: `policy.js` (allowed tabs, columns), `pseudonym.js` and `salt.js` (stable pseudonyms; the salt stays in the course data folder), `snapshot.js` (snapshot and preview), `markdown.js`, `mcp-server.js` (stand-alone read-only MCP server copied beside the snapshot) and `ipc.js` (`cm:llmPreview`, `cm:llmSave`, `cm:llmLookup`). Screen: Settings card, `desktop/app/llm.js`. Tests: `desktop/test/llm.test.js`.
+
+
+## LMS connector (added 15 November 2026)
+
+`desktop/lms/` (one job per file, listed in `desktop/lms/README.md`) with the screen `desktop/app/lms.html` and `lms.js`, opened from Course and Content. It reads an LMS roster export, writes a gradebook CSV, and optionally uses the LTI Advantage roster and grade services directly. Off until switched on; sends only user ids and points. Tests: `desktop/test/lms.test.js`.
