@@ -270,7 +270,7 @@ Found by reading the real folder: the pack sits one level down in a wrapper fold
 
 ## Dashboard refresh (UI redesign, charts first)
 
-Class Overview now leads with five clickable numbers (students, attendance, learning, practice, at risk). A click opens a bar chart with the students behind each bar (`desktop/app/dashboard/groups.js` works out the groups, `charts.js` draws, `interact.js` handles clicks). "Who needs attention" is a scatter of attendance against quiz average with three clickable zones, replacing the long list. "What goes with what" shows three linked relations (attendance and quiz average, practice and quiz change, practice and quiz average) with n, r and the words association, not cause; a zone chosen above is highlighted in them. Server: "no practice recorded" no longer flags a student alone (`30-analytics.gs`); the lecturer sign-in form tells a wrong password from an unknown join code (`90-router.gs`, `quiz-host.html`). Tests: `desktop/test/dashboard-refresh.test.js`. Not yet built: support or intervention against later results (needs intervention tracking), and the refreshed look of the other screens.
+Class Analytics now leads with five clickable numbers (students, attendance, learning, practice, at risk). A click opens a bar chart with the students behind each bar (`desktop/app/dashboard/groups.js` works out the groups, `charts.js` draws, `interact.js` handles clicks). "Who needs attention" is a scatter of attendance against quiz average with three clickable zones, replacing the long list. "What goes with what" shows three linked relations (attendance and quiz average, practice and quiz change, practice and quiz average) with n, r and the words association, not cause; a zone chosen above is highlighted in them. Server: "no practice recorded" no longer flags a student alone (`30-analytics.gs`); the lecturer sign-in form tells a wrong password from an unknown join code (`90-router.gs`, `quiz-host.html`). Tests: `desktop/test/dashboard-refresh.test.js`. Not yet built: support or intervention against later results (needs intervention tracking), and the refreshed look of the other screens.
 
 Look (2026-11-15, from Hope's inspiration image): soft tinted tiles on cards, one navy and blue palette, large readable numbers, line icons, a row of four class tool tiles and one insight callout (`render.js`: `stat`, `controls`, `callout`; `dashboard.css`). Long lists of students show the first 8 and a "Show all" button (`interact.js`).
 
@@ -289,3 +289,12 @@ Look (2026-11-15, from Hope's inspiration image): soft tinted tiles on cards, on
 ## LMS connector (added 15 November 2026)
 
 `desktop/lms/` (one job per file, listed in `desktop/lms/README.md`) with the screen `desktop/app/lms.html` and `lms.js`, opened from Course and Content. It reads an LMS roster export, writes a gradebook CSV, and optionally uses the LTI Advantage roster and grade services directly. Off until switched on; sends only user ids and points. Tests: `desktop/test/lms.test.js`.
+
+## Join code base (0.21.1)
+- A join code is the course's base followed by the week number (base 2627: 26271 is Week 1). The base is a script property `join_base` (default 2627), changed by the host-only action `join_base` and the "Join code base" field in the Control Centre. `joinBase_`, `codeWeek_` and `weekFromCode_` are in `apps_script/src/00-core.gs`. A signed-in lecturer can open any join code of that shape; a week without a question bank says so. Script version 2026-11-15-signin-2.
+
+## More charts (0.21.2)
+`desktop/app/charts/explore-data.js`, `explore-view.js` and `explore-panel.js` (see `charts/README.md`): nine extra clickable bar charts across the Overview, Attendance, Quizzes and Questions and Students screens. Mounted from `app/insights.js` (`xmount`). Styles in `app/dashboard/dashboard.css`.
+
+### Overflow guard (0.21.4)
+`desktop/test/overflow.test.js` opens every sidebar screen at 760, 1000 and 1280 px with a very long folder path and repository URL and fails if the page or `main` scrolls sideways. The Course and Content card shows labelled Folder, Repository and Branch lines with Copy buttons; full values appear on hover. Long text wraps (`overflow-wrap:anywhere`) and `main` never scrolls horizontally.

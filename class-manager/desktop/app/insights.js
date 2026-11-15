@@ -1,4 +1,4 @@
-/* Class Manager: the Insight screens (Class Overview, Students, Attendance, Quizzes and Questions).
+/* Class Manager: the Insight screens (Class Analytics, Students, Attendance, Quizzes and Questions).
    Every figure comes from the backend (classStats_ and studentStats_ in the server script, through cmApp.stats);
    this file only lays the results out. The engagement groups are suggestions for the lecturer and never reach students. */
 (function () {
@@ -70,12 +70,21 @@
   }
   document.addEventListener("change", function (e) { if (e.target && e.target.id === "gx-day" && data) { cmCharts.panel.chosen(e.target.value, data, gxDraw); } });
 
-  /* ---- Class Overview ---- */
+  /* ---- Extra charts on each screen (app/charts/explore-*.js): each bar lists the students behind it ---- */
+  var xCohorts = {};
+  function xmount(id, screen) {
+    var el = $(id); if (!el || !window.cmExplorePanel) return;
+    cmExplorePanel.mount(el, screen, function () { return data; }, function () { return xCohorts; });
+    if (window.cmApp && cmApp.analyticsExtra && !xmount.asked) { xmount.asked = true; cmApp.analyticsExtra().then(function (r) { xCohorts = (r && r.cohorts) || {}; xmount.asked = false; var e2 = $(id); if (e2 && Object.keys(xCohorts).length) cmExplorePanel.draw(e2, screen, data, xCohorts); }).catch(function () { xmount.asked = false; }); }
+  }
+
+  /* ---- Class Analytics ---- */
   function overview() {
     var d = data, s = d.summary, L = d.learning, a = d.attendance;
-    $("ov-sub").textContent = "How the class is doing, from attendance, live quizzes and practice. " + plural(d.rosterSize, "student", "students") + " on the class list. Updated " + new Date(d.generated).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) + ".";
+    $("ov-sub").textContent = "The class in numbers and charts. Click any bar or number for the students behind it. " + plural(d.rosterSize, "student", "students") + " on the class list. Updated " + new Date(d.generated).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) + ".";
     if (!d.rosterSize) { $("ov").innerHTML = "<div class='card empty'><h3>No class yet</h3><p>Add the class list under Class Roster. The overview fills in as you take attendance and run quizzes.</p></div>"; return; }
-    var h = window.cmDashView ? cmDashView.top(d, window.cmSetup, window.cmLive) : ""; // Today, setup, stat cards, queue, health, trends, insights (app/dashboard/)
+    // Analytics first: the hard numbers, the main charts, who needs attention and what goes with what. Today and setup come last, in a section that opens (app/dashboard/).
+    var DV = window.cmDashView, h = DV ? DV.head(d) + "<h3 class='xh'>The class in numbers</h3><div id='xo'></div>" + DV.grid(d) : "";
     h += "<div id='gx'>" + gxHtml(d) + "</div>"; // distribution, box plot and scatter for the chosen day (app/charts/panel.js)
     // Is the class learning?
     h += "<section class='card verdict " + (VCLASS[L.verdict] || "") + "' aria-labelledby='vh'><div class='v-main'><p class='lbl' id='vh'>Is the class learning?</p>" +
@@ -102,8 +111,8 @@
       "<p class='lbl'>Attendance by session</p>" + (a.sessions ? bars(a.bySession.map(function (x) { return x.rate; }), a.bySession.map(function (x) { return x.label; }), { max: 100, unit: "%", h: 150, short: shortDate, title: "Attendance by session" }) : "<p class='note'>No session submitted yet.</p>") +
       "<p class='lbl' style='margin-top:1rem'>Mean quiz score</p>" + (d.quizzes.length ? bars(d.quizzes.map(function (q) { return q.stats.mean; }), d.quizzes.map(function (q) { return q.quiz; }), { max: 100, unit: "%", h: 150, short: shortDate, title: "Mean score by quiz", extra: d.quizzes.map(function (q) { return "(" + q.students + " students)"; }) }) : "<p class='note'>No quiz released yet.</p>") +
       "</section></div>";
-    h += "<div id='an'></div>"; // evidence, questions, concepts, support, groups, privacy (app/analytics/)
-    $("ov").innerHTML = h; gxWatch(); if (window.cmAnalyticsPanel) cmAnalyticsPanel.mount($("an"), d);
+    h += "<div id='an'></div>" + (DV ? DV.ops(d, window.cmSetup, window.cmLive) : ""); // evidence, questions, concepts, support, groups, privacy (app/analytics/)
+    $("ov").innerHTML = h; gxWatch(); xmount("xo", "overview"); if (window.cmAnalyticsPanel) cmAnalyticsPanel.mount($("an"), d);
     if (window.cmDashInteract) { if (!window.cmDashBound) { window.cmDashBound = true; cmDashInteract.init(function () { return data; }); } cmDashInteract.restore(d); } // clicks on numbers, bars and zones (app/dashboard/interact.js)
   }
   function target(t) {
@@ -133,7 +142,7 @@
         return "<tr tabindex='0' data-id='" + esc(s.id) + "' title='" + esc(s.why.join("; ")) + "'><td><b>" + esc(s.name || s.id) + "</b><span class='note'> " + esc(s.id) + "</span></td><td>" + chip(s.group) + "</td><td>" + num(s.attendance, "%") + "</td><td" + (s.missedInARow >= t.misses ? " class='flag'" : "") + ">" + s.missedInARow + "</td><td>" + num(s.arrivalMedian) +
           "</td><td>" + s.quizzesTaken + " of " + d.quizzes.length + "</td><td>" + num(s.quizAverage, "%") + "</td><td>" + signed(s.change) + "</td><td>" + num(s.percentile) + "</td><td>" + s.practiceRecent + "</td><td>" + s.practiceMinutes + "</td></tr>";
       }).join("") + "</tbody></table></div><p class='note'>Click a student for the full record. Percentile is the share of classmates with a lower quiz average. Practice (recent) counts attempts in the last " + t.idle + " days.</p>";
-    $("st").innerHTML = h;
+    $("st").innerHTML = h + "<h3 class='xh'>More charts</h3><div id='xs'></div>"; xmount("xs", "students");
   }
   function studentOpen(id) {
     cmApp.studentStats(Object.assign({ id: id }, th())).then(function (r) {
@@ -166,7 +175,7 @@
       "<div><p class='lbl'>Last session</p>" + bars(a.arrival.latest.map(function (b) { return b.n; }), a.arrival.latest.map(function (b) { return b.label; }), { w: 320, h: 150, labels: 5, short: function (l) { return l.replace(" min", "").replace(" or more", "+").replace(" to ", "–").replace("Under ", "<"); }, title: "Arrival, last session" }) + "</div></div></section></div>";
     h += "<section class='card'><div class='card-head'><h3>Missed " + t.misses + " or more sessions in a row</h3><span class='note'>Threshold under Students, Engagement rules</span></div>" +
       (miss.length ? "<div class='tbl ins-tbl short'><table><thead><tr><th>Student</th><th>Missed in a row</th><th>Longest run</th><th>Attendance</th><th>Suggested group</th></tr></thead><tbody>" + miss.map(function (s) { return "<tr tabindex='0' data-id='" + esc(s.id) + "'><td><b>" + esc(s.name || s.id) + "</b></td><td class='flag'>" + s.missedInARow + "</td><td>" + s.longestMissed + "</td><td>" + num(s.attendance, "%") + "</td><td>" + chip(s.group) + "</td></tr>"; }).join("") + "</tbody></table></div>" : "<p class='note'>No one at present.</p>") + "</section>";
-    $("at").innerHTML = h;
+    $("at").innerHTML = h + "<h3 class='xh'>More charts</h3><div id='xa'></div>"; xmount("xa", "attendance");
   }
 
   /* ---- Quizzes and Questions ---- */
@@ -191,7 +200,7 @@
         var dist = "<div class='opts'>" + ["A", "B", "C", "D", "E"].map(function (L) { var n = x.dist[L]; return "<span class='opt" + (L === x.key ? " key" : "") + (x.misconception && L === x.misconception.option ? " mis" : "") + "' title='" + L + ": " + n + (L === x.key ? " (correct)" : "") + "'><i style='height:" + Math.round(100 * n / tot) + "%'></i><b>" + L + "</b></span>"; }).join("") + "</div>";
         return "<tr><td><b>" + esc(x.id) + "</b></td><td>" + x.answers + "</td><td>" + num(x.pct, "%") + "</td><td>" + esc(x.label || "–") + "</td><td>" + dist + "</td><td>" + (x.misconception ? esc(x.misconception.option) + " (" + x.misconception.share + "%)" + (x.misconception.persists ? " <span class='note'>persists</span>" : "") : "–") + "</td><td" + (x.discrimination !== null && x.discrimination < 0.2 ? " class='flag'" : "") + ">" + num(x.discrimination) + "</td><td>" + x.confidentWrong + "</td><td>" + x.blank + "</td></tr>";
       }).join("") + "</tbody></table></div><p class='note'>Difficulty needs 10 answers. Discrimination compares the top and bottom 27% of the class on the rest of the quiz; below 0.2 the question may need its wording or key checked.</p></section>";
-    $("qz").innerHTML = h;
+    $("qz").innerHTML = h + "<h3 class='xh'>More charts</h3><div id='xq'></div>"; xmount("xq", "quizzes");
   }
 
   /* ---- events ---- */

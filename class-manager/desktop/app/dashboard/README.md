@@ -1,4 +1,4 @@
-# dashboard: the top of Class Overview
+# dashboard: the top of Class Analytics
 
 Answers "what do I need to do today?" with rules only. No AI-written text (that is planned separately).
 

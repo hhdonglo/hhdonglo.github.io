@@ -101,16 +101,19 @@ function hashKey_(salt, key) {
   return d.map(function (b) { return ('0' + (b & 0xff).toString(16)).slice(-2); }).join('');
 }
 
-// A join code of the form 2627 + week number (26271 = Week 1, 26272 = Week 2, ..., 262710 = Week 10) is valid
-// for any week that has a practice bank, with no Key row to add. The week comes from the code.
+// A join code is this course's base number followed by the week number. With the base 2627, 26271 is Week 1, 26272 is Week 2, ..., 262710 is Week 10.
+// The base is a setting of the course (Control Centre, "Join code base"); each course can have its own. It is valid for any week that has a practice bank.
+var JOIN_BASE_DEFAULT = '2627';
+function joinBase_() { var b = String(PropertiesService.getScriptProperties().getProperty('join_base') || '').replace(/\D/g, ''); return b.length >= 2 && b.length <= 8 ? b : JOIN_BASE_DEFAULT; }
+function joinBaseSet_(v) { var b = String(v == null ? '' : v).replace(/\D/g, ''); if (b.length < 2 || b.length > 8) return { ok: false, why: 'The base must be 2 to 8 digits.' }; PropertiesService.getScriptProperties().setProperty('join_base', b); log_('join code base', b, '', ''); return { ok: true, base: b }; }
+// The week a join code stands for by its shape alone (base 2627: 26271 is Week 1, 26272 is Week 2 ...), whether or not the course has a question bank for it. 0 if the code has another shape.
+function codeWeek_(code) { var b = joinBase_(), c = String(code); if (c.indexOf(b) !== 0) return 0; var rest = c.slice(b.length); return /^\d{1,2}$/.test(rest) && Number(rest) > 0 ? Number(rest) : 0; }
+// The same, but only for a week that has a practice bank in this course.
 function weekFromCode_(code) {
-  var m = /^2627(\d{1,2})$/.exec(String(code));
-  if (!m) return 0;
-  try { var wk = siteJson_('/apps_script/live_quizzes.json').weeks || {}; return wk[String(Number(m[1]))] ? Number(m[1]) : 0; } catch (err) { return 0; }
+  var w = codeWeek_(code);
+  if (!w) return 0;
+  try { var wk = siteJson_('/apps_script/live_quizzes.json').weeks || {}; return wk[String(w)] ? w : 0; } catch (err) { return 0; }
 }
-
-// The week a join code stands for by its shape alone (26271 is Week 1, 26272 is Week 2 ...), whether or not the course has a question bank for it. 0 if the code has another shape.
-function codeWeek_(code) { var m = /^2627(\d{1,2})$/.exec(String(code)); return m ? Number(m[1]) : 0; }
 
 function keyRow_(code) {
   var kc = null, kk = 'key:' + code;
@@ -2062,7 +2065,7 @@ function engagementOf_(s, th, have) {
   var parts = [];
   if (have.sessions && s.attendance !== null) parts.push(s.attendance);
   if (have.quizzes) parts.push(100 * s.quizzesTaken / have.quizzes);
-  if (have.practice) parts.push(s.practiceRecent ? 100 : 0);
+  if (have.practice && s.practiceRecent) parts.push(100); // practice is optional: it can raise a student's effort, never lower it
   var effort = parts.length ? Math.round(parts.reduce(function (a, b) { return a + b; }, 0) / parts.length) : null;
   var perf = s.quizAverage !== null ? s.quizAverage : s.practiceAverage;
   var hiE = effort !== null && effort >= th.effort, hiP = perf !== null && perf >= th.perf, group;
@@ -3322,7 +3325,7 @@ function announcements_(p) { // public for audience 'all'; signed-in students al
 // ---------- Portal and Control Centre support (additive: no existing action changes) ----------
 // SCRIPT_VERSION: change it whenever the script is redeployed; the Control Centre compares it with the version its page expects.
 // Key!M2 = Off hides "My results" from students (default On).
-var SCRIPT_VERSION = '2026-11-15-signin-1';
+var SCRIPT_VERSION = '2026-11-15-signin-3';
 
 function resultsOn_() {
   try {
@@ -3561,6 +3564,10 @@ function route_(e) {
   }
 
   if (p.action === 'version') return jsonp_(e, { ok: true, version: SCRIPT_VERSION }); // the Control Centre: does the page match this script?
+  if (p.action === 'join_base') { // host only: read or set the base of this course's join codes (base + week number)
+    if (!hostOk_(p)) return jsonp_(e, { ok: false, why: 'host key not accepted' });
+    return jsonp_(e, p.base != null && p.base !== '' ? joinBaseSet_(p.base) : { ok: true, base: joinBase_() });
+  }
   if (p.action === 'set_week') return jsonp_(e, hostOk_(p) ? setWeek_(p) : { ok: false, why: 'host key not accepted' }); // the Control Centre week selector
   if (p.action === 'portal_status') return jsonp_(e, portalStatus_()); // the student portal banner
   if (p.action === 'my_results') return jsonp_(e, portalResults_(p)); // a student's own attendance and quiz scores

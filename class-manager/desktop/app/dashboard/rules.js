@@ -23,7 +23,7 @@
   // The five cards at the top: Students, Attendance, Learning, Practice, At risk. Practice is optional work, so it has no light. Each has a value, a sentence and a light.
   function statCards(d) {
     var a = d.attendance || {}, L = d.learning || {}, groups = d.groups || {}, students = d.students || [];
-    var atRisk = students.filter(function (s) { return s.group === "Disengaged" || s.group === "Needs a check-in" || s.missedInARow >= (d.thresholds ? d.thresholds.misses : 2); }).length;
+    var RK = root.cmRisk || require("./risk"), rk = RK.atRisk(d), atRisk = rk.total;
     var learnLight = L.verdict === "Learning" ? LIGHTS.good : L.verdict === "Mixed" ? LIGHTS.watch : L.verdict === "Not yet learning" ? LIGHTS.bad : LIGHTS.none;
     var small = d.rosterSize > 0 && d.rosterSize < MIN_STUDENTS;
     var riskShare = d.rosterSize ? 100 * atRisk / d.rosterSize : null;
@@ -33,7 +33,7 @@
         light: small ? LIGHTS.watch : light(a.rate, 60, 80), reason: small ? "Small class: fewer than " + MIN_STUDENTS + " students." : "" },
       { key: "learning", label: "Learning", value: L.verdict || "Not enough data", text: L.confidence ? "confidence: " + L.confidence : "needs two released quizzes", light: learnLight },
       { key: "practice", label: "Practice", value: String(d.practice ? d.practice.last7Days || 0 : 0), text: d.practice && d.practice.studentsLast7Days ? "attempts in 7 days, by " + plural(d.practice.studentsLast7Days, "student", "students") : "no practice in the last 7 days", light: LIGHTS.none },
-      { key: "risk", label: "At risk", value: String(atRisk), text: atRisk ? "students to check in with" : "no one flagged", light: riskShare === null ? LIGHTS.none : riskShare >= 25 ? LIGHTS.bad : riskShare > 0 ? LIGHTS.watch : LIGHTS.good }
+      { key: "risk", label: "At risk", value: String(atRisk), text: atRisk ? "with at least one reason" + (rk.thin ? "; " + rk.thin + " on thin evidence" : "") : "no one flagged", reason: rk.thin ? rk.thin + " flagged on little data (fewer than " + RK.MIN_SESSIONS + " sessions or " + RK.MIN_QUIZZES + " quizzes)" : "", light: riskShare === null ? LIGHTS.none : riskShare >= 25 ? LIGHTS.bad : riskShare > 0 ? LIGHTS.watch : LIGHTS.good }
     ];
   }
 
