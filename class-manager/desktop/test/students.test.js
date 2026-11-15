@@ -28,13 +28,19 @@ test("the student table follows the class list, one row per ID", () => {
   again.close();
 });
 
-test("an ID listed twice is kept once and reported, never silently merged with another name", () => {
+test("an ID listed twice is merged into one student and reported with both rows, never silently overwritten", () => {
   const b = backendIn(tmp("cm-dup-"));
   b.sheet("Roster", true).clear();
-  b.sheet("Roster").getRange(1, 1, 4, 2).setValues([["Student ID", "Name"], ["20004444", "Ama"], ["20004444", "Ama B"], ["20005555", "Yaw"]]);
+  b.sheet("Roster").getRange(1, 1, 4, 2).setValues([["Student ID", "Name"], ["20004444", "Ama"], ["020004444.0", "Ama B"], ["20005555", "Yaw"]]);
   b.flush();
   assert.deepEqual(b.students.list(), [{ id: "20004444", name: "Ama" }, { id: "20005555", name: "Yaw" }]);
-  assert.deepEqual(b.students.issues().duplicateIds, ["20004444"]);
+  assert.deepEqual(b.rawRows("Roster").slice(1), [["20004444", "Ama"], ["20005555", "Yaw"]], "one row per student in the class list too");
+  const n = b.idNotices();
+  assert.equal(n.length, 1); assert.equal(n[0].id, "20004444"); assert.equal(n[0].namesDiffer, true);
+  assert.deepEqual(n[0].names.sort(), ["Ama", "Ama B"]);
+  assert.equal(n[0].entries.length, 2, "both source rows are shown");
+  assert.equal(b.resolveIdNotice("Roster", "20004444", "Ama B"), true);
+  assert.equal(b.idNotices().length, 0); assert.equal(b.students.get("20004444").name, "Ama B", "the lecturer's choice");
   b.close();
 });
 

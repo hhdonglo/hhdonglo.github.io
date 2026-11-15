@@ -46,6 +46,7 @@
       "relay/*.js",
       "grades/*.js",
       "receipts.js",
+      "ids.js",
       "db/*.js",
       "lms/*.js",
       "excel.js",

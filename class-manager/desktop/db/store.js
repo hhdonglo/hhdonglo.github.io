@@ -16,6 +16,7 @@ const SCHEMA = `
   CREATE TABLE IF NOT EXISTS sheet (id INTEGER PRIMARY KEY, name TEXT NOT NULL UNIQUE, position INTEGER NOT NULL);
   CREATE TABLE IF NOT EXISTS cell_row (sheet_id INTEGER NOT NULL REFERENCES sheet(id) ON DELETE CASCADE, row_no INTEGER NOT NULL, data BLOB NOT NULL, PRIMARY KEY (sheet_id, row_no)) WITHOUT ROWID;
   CREATE TABLE IF NOT EXISTS student (key TEXT PRIMARY KEY, data BLOB NOT NULL, position INTEGER NOT NULL) WITHOUT ROWID;
+  CREATE TABLE IF NOT EXISTS id_notice (key TEXT PRIMARY KEY, data BLOB NOT NULL, status TEXT NOT NULL, at INTEGER NOT NULL) WITHOUT ROWID;
   CREATE TABLE IF NOT EXISTS receipt (ckey TEXT PRIMARY KEY, response TEXT NOT NULL, at INTEGER NOT NULL) WITHOUT ROWID;
   CREATE TABLE IF NOT EXISTS prop (key TEXT PRIMARY KEY, value BLOB NOT NULL) WITHOUT ROWID;
 `;
@@ -90,7 +91,7 @@ function open(file, vault) {
 
   // Used only when a workbook file is imported into an empty database (db/migrate.js).
   function replaceAll(book) {
-    transaction(() => { db.exec("DELETE FROM cell_row; DELETE FROM sheet; DELETE FROM prop; DELETE FROM student;"); written.clear(); writtenProps.clear(); });
+    transaction(() => { db.exec("DELETE FROM cell_row; DELETE FROM sheet; DELETE FROM prop; DELETE FROM student; DELETE FROM id_notice;"); written.clear(); writtenProps.clear(); });
     save(book, null, true);
   }
   function isEmpty() { return q.allSheetIds.all().length === 0 && q.props.all().length === 0; }

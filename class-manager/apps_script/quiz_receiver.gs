@@ -179,7 +179,9 @@ function onOpen() { // a Class Manager menu in the sheet
 
 function totalsSafe_() { try { refreshTotals(); } catch (err) { log_('totals failed', String(err).slice(0, 150), '', ''); } }
 
-function normId_(s) { return String(s == null ? '' : s).replace(/\D/g, ''); }
+// One student ID, one form: digits only, no ".0" that a spreadsheet adds to a number, no leading zeros. So " 22583439 ", "22583439.0" and "022583439" are the same ID.
+// Keep in step with desktop/ids.js.
+function normId_(s) { return String(s == null ? '' : s).trim().replace(/\.0+$/, '').replace(/\D/g, '').replace(/^0+(?=\d)/, ''); }
 
 function cleanName_(s) { // a name for the lecturer's private view: trimmed, at most 80 characters, no control characters
   return ' ' + String(s == null ? '' : s).replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80);
