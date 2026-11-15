@@ -9,7 +9,7 @@
     var g = res.groups, row = function (name, list) { return list.length ? "<li><b>" + esc(name) + " (" + list.length + ")</b>: " + list.map(function (i) { return esc(i.id); }).join(", ") + "</li>" : ""; };
     var body = "<ul class='alist'>" + row("Review the wording or the key", g.review) + row("Very hard", g.hard) + row("Very easy", g.easy) + row("Too few answers", g.small) + "</ul>";
     if (!g.review.length && !g.hard.length && !g.easy.length) body = "<p>No question needs review yet.</p>" + body;
-    var det = res.items.filter(function (i) { return i.flags.length && i.group !== "small"; }).slice(0, 8).map(function (i) { return "<li><b>" + esc(i.id) + "</b>: " + i.flags.map(esc).join("; ") + "</li>"; }).join("");
+    var det = res.items.filter(function (i) { return i.flags.length && i.group !== "small"; }).slice(0, 5).map(function (i) { return "<li><b>" + esc(i.id) + "</b>: " + i.flags.map(esc).join("; ") + "</li>"; }).join("");
     return card("Questions to review", body + (det ? "<ul class='alist'>" + det + "</ul>" : ""), "A question is judged once at least " + 10 + " students have answered it.");
   }
   function concepts(list) {

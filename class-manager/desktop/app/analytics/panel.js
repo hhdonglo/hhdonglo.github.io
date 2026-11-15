@@ -14,7 +14,7 @@
       "<p><b>Term:</b> " + (ex.termClosed ? "closed. Students can no longer check in or answer." : "open.") + " <button class='btn' type='button' data-an='term' data-closed='" + (ex.termClosed ? "0" : "1") + "'>" + (ex.termClosed ? "Reopen the term" : "Close the term") + "</button></p>" +
       "<p><label>Student ID <input id='an-id' inputmode='numeric' autocomplete='off' style='width:9rem'></label> <button class='btn' type='button' data-an='export'>Export this student's data</button> <button class='btn danger' type='button' data-an='erase'>Erase permanently</button></p>" +
       "<p class='muted small'>Erase removes the student's rows from every tab and cannot be undone. You will be asked to type the ID again. Each export, erase and term change is written to the audit log.</p>" +
-      "<details><summary>Privacy notice shown to students</summary><p class='small'>Students read it at <code>/privacy.html</code>.</p><textarea id='an-notice' rows='7' style='width:100%'>" + esc(ex.privacyNotice) + "</textarea><button class='btn' type='button' data-an='notice'>Save notice</button></details>" +
+      "<details><summary>Privacy notice shown to students</summary><p class='small'>Students read it at <code>/privacy.html</code>.</p><textarea id='an-notice' aria-label='Privacy notice text' rows='7' style='width:100%'>" + esc(ex.privacyNotice) + "</textarea><button class='btn' type='button' data-an='notice'>Save notice</button></details>" +
       "<details><summary>Audit log</summary><div id='an-log' class='small'>Loading</div></details><p id='an-msg' class='small' role='status'></p></section>";
   }
   function build(d, ex, sm) {
