@@ -16,3 +16,26 @@
 .spark{width:100%;max-width:7rem;height:1.7rem}.spark polyline{fill:none;stroke:var(--bar);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 @media (max-width:1000px){.dstats,.dgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:640px){.dstats,.dgrid{grid-template-columns:minmax(0,1fr)}}
+/* Clickable numbers, the drill-down, the risk scatter and the linked views (interact.js, charts.js). One accent: --bar. */
+.dstats{grid-template-columns:repeat(5,minmax(0,1fr))}
+button.dstat{display:flex;flex-direction:column;gap:.15rem;align-items:flex-start;text-align:left;cursor:pointer;font:inherit;color:inherit}
+button.dstat .tbig{font-size:1.9rem;font-weight:600;line-height:1.15}
+button.dstat .more{margin-top:.35rem;font-size:.78rem;color:var(--faint)}
+button.dstat:hover,button.dstat[aria-pressed="true"]{box-shadow:0 0 0 2px var(--bar)}
+button.dstat:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.ddrill{margin-bottom:var(--gap)}
+.dbars,.dscatter{display:block;width:100%;height:auto}
+.dbars .fill{fill:var(--bar);opacity:.85}.dbar{cursor:pointer}.dbar .hit{fill:transparent}.dbar:hover .fill,.dbar.on .fill{opacity:1}.dbar.on .fill{stroke:var(--text);stroke-width:2}
+.dbar:focus-visible{outline:2px solid var(--focus)}
+.dbars .val{fill:var(--text);font-size:12px;font-weight:600}.dbars .ax,.dscatter .ax{fill:var(--faint);font-size:11px}
+.grid{stroke:var(--grid);stroke-width:1}
+.zone{cursor:pointer}.z-both{fill:var(--g-need);opacity:.14}.z-att,.z-quiz{fill:var(--g-hard);opacity:.12}.zone:hover,.zone.on{opacity:.3}
+.dot{fill:var(--faint);opacity:.9}.dot.on{fill:var(--bar);opacity:1}.dot.dim{opacity:.3}
+.zbar{display:flex;flex-wrap:wrap;gap:.5rem;margin:.6rem 0}
+.zb{border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:99px;padding:.3rem .8rem;font:inherit;font-size:.85rem;cursor:pointer}
+.zb[aria-pressed="true"]{background:var(--bar);border-color:var(--bar);color:var(--accent-ink)}
+.zb:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.zlist{display:flex;flex-wrap:wrap;gap:.4rem;align-items:center;margin-top:.5rem;min-height:1.8rem}
+@media (max-width:1000px){.dstats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:640px){.dstats{grid-template-columns:minmax(0,1fr)}}
+.dbars{max-height:240px}

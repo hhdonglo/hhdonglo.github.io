@@ -284,7 +284,8 @@ function route_(e) {
 
   if (p.action === 'host') { // host only: control state, participation, ranking
     var hk = keyRow_(code);
-    if (!hostOk_(p) || !hk) return jsonp_(e, { ok: false });
+    if (!hostOk_(p)) return jsonp_(e, { ok: false, why: 'password' }); // the lecturer password or key was wrong
+    if (!hk) return jsonp_(e, { ok: false, why: 'join code' }); // the password was right but no quiz uses this join code
     var ch = ctl_(code);
     if (!ch && weekFromCode_(code)) { ctlAct_({ act: 'init' }, code); ch = ctl_(code); }
     var cn = counts_(code), rows2 = ranking_(code, '');
