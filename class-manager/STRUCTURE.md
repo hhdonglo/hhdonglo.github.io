@@ -321,3 +321,6 @@ Look (2026-11-15, from Hope's inspiration image): soft tinted tiles on cards, on
 
 ### Duplicate IDs card (0.22.1)
 `desktop/id-notices-ipc.js` (two calls: `cm:idNotices`, `cm:idResolve`) and `desktop/app/id-notices.js` (the card on the Class Roster screen). A student ID that was on more than one row is merged by `db/id-guard.js` (first row stays, blanks filled, a different value never overwritten) and recorded by `db/notices.js`. The card lists each ID with both source rows exactly as they were and the names they gave; the lecturer picks the right name or marks the ID as checked, and the choice is written to the class list. Test: `desktop/test/id-notices.test.js`.
+
+### IDs read with certainty in the class list upload (0.22.1)
+`desktop/app/id-review.js` reads one ID cell: `22583439`, `22583439.0` and `022583439` are the same ID; Excel's scientific form, a decimal part, a wrong length or mixed characters are "ambiguous" and never guessed. The class list screen (`app/setup.html`) lists those rows (row number, value as written, name, reason) with a box to type the right ID, and the save leaves out any row still unread. Before this, `22583439.0` became `225834390` because all non-digits were removed. The column choice (ID, first name, last name) was already editable on that screen. Test: `desktop/test/id-review.test.js`.
