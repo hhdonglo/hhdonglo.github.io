@@ -1,7 +1,7 @@
 {
   "name": "class-manager",
   "productName": "Class Manager",
-  "version": "0.20.0",
+  "version": "0.21.0",
   "description": "Course pages, practice quizzes, mock exam, live quiz and attendance for each of the lecturer's courses, run from the lecturer's computer.",
   "author": "Hope Donglo",
   "license": "UNLICENSED",
@@ -55,6 +55,7 @@
       "course-reset.js",
       "attendance-guard.js",
       "autoload/**/*",
+      "llm/**/*",
       "build-from-roster.js",
       "import-template.js",
       "app/**/*",
