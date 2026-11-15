@@ -272,6 +272,20 @@ Found by reading the real folder: the pack sits one level down in a wrapper fold
 
 Class Overview now leads with five clickable numbers (students, attendance, learning, practice, at risk). A click opens a bar chart with the students behind each bar (`desktop/app/dashboard/groups.js` works out the groups, `charts.js` draws, `interact.js` handles clicks). "Who needs attention" is a scatter of attendance against quiz average with three clickable zones, replacing the long list. "What goes with what" shows three linked relations (attendance and quiz average, practice and quiz change, practice and quiz average) with n, r and the words association, not cause; a zone chosen above is highlighted in them. Server: "no practice recorded" no longer flags a student alone (`30-analytics.gs`); the lecturer sign-in form tells a wrong password from an unknown join code (`90-router.gs`, `quiz-host.html`). Tests: `desktop/test/dashboard-refresh.test.js`. Not yet built: support or intervention against later results (needs intervention tracking), and the refreshed look of the other screens.
 
+Look (2026-11-15, from Hope's inspiration image): soft tinted tiles on cards, one navy and blue palette, large readable numbers, line icons, a row of four class tool tiles and one insight callout (`render.js`: `stat`, `controls`, `callout`; `dashboard.css`). Long lists of students show the first 8 and a "Show all" button (`interact.js`).
+
+## Analytics, privacy and governance (0.21.0)
+- `desktop/app/analytics/` (see its README): evidence labels, question review, concept tracking, support given, results by group, panel on the Overview.
+- `desktop/extras.js`: groups (Roster column 3) and the Interventions tab (ID, kind, date, quizzes held, student IDs, note).
+- `desktop/governance.js`: Audit_Log tab, per-student export and permanent erase (typed ID to confirm, found by Student ID or ID column), term close (Term_Status tab; closed terms refuse student check-ins, quiz attempts, reports and chat, never the lecturer), role table, default privacy notice served at `/privacy.html`.
+- `desktop/summary.js`: weekly summary from class totals only; written locally; Claude wording only when the lecturer switches it on and a key is stored (off by default).
+- IPC: `cm:analyticsExtra`, `cm:addIntervention`, `cm:govern` (export, erase, term, audit, ai, notice), `cm:weeklySummary`. No Apps Script change, so no redeploy.
+
 ## Assistant export (0.21.0)
 
 `desktop/llm/` (README.md there) saves a private snapshot of the current course for an AI assistant: `policy.js` (allowed tabs, columns), `pseudonym.js` and `salt.js` (stable pseudonyms; the salt stays in the course data folder), `snapshot.js` (snapshot and preview), `markdown.js`, `mcp-server.js` (stand-alone read-only MCP server copied beside the snapshot) and `ipc.js` (`cm:llmPreview`, `cm:llmSave`, `cm:llmLookup`). Screen: Settings card, `desktop/app/llm.js`. Tests: `desktop/test/llm.test.js`.
+
+
+## LMS connector (added 15 November 2026)
+
+`desktop/lms/` (one job per file, listed in `desktop/lms/README.md`) with the screen `desktop/app/lms.html` and `lms.js`, opened from Course and Content. It reads an LMS roster export, writes a gradebook CSV, and optionally uses the LTI Advantage roster and grade services directly. Off until switched on; sends only user ids and points. Tests: `desktop/test/lms.test.js`.

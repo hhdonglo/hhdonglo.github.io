@@ -105,6 +105,9 @@ function weekFromCode_(code) {
   try { var wk = siteJson_('/apps_script/live_quizzes.json').weeks || {}; return wk[String(Number(m[1]))] ? Number(m[1]) : 0; } catch (err) { return 0; }
 }
 
+// The week a join code stands for by its shape alone (26271 is Week 1, 26272 is Week 2 ...), whether or not the course has a question bank for it. 0 if the code has another shape.
+function codeWeek_(code) { var m = /^2627(\d{1,2})$/.exec(String(code)); return m ? Number(m[1]) : 0; }
+
 function keyRow_(code) {
   var kc = null, kk = 'key:' + code;
   try { kc = CacheService.getScriptCache(); var kh = kc.get(kk); if (kh) return JSON.parse(kh); } catch (err) { kc = null; }

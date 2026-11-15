@@ -109,6 +109,9 @@ function weekFromCode_(code) {
   try { var wk = siteJson_('/apps_script/live_quizzes.json').weeks || {}; return wk[String(Number(m[1]))] ? Number(m[1]) : 0; } catch (err) { return 0; }
 }
 
+// The week a join code stands for by its shape alone (26271 is Week 1, 26272 is Week 2 ...), whether or not the course has a question bank for it. 0 if the code has another shape.
+function codeWeek_(code) { var m = /^2627(\d{1,2})$/.exec(String(code)); return m ? Number(m[1]) : 0; }
+
 function keyRow_(code) {
   var kc = null, kk = 'key:' + code;
   try { kc = CacheService.getScriptCache(); var kh = kc.get(kk); if (kh) return JSON.parse(kh); } catch (err) { kc = null; }
@@ -3319,7 +3322,7 @@ function announcements_(p) { // public for audience 'all'; signed-in students al
 // ---------- Portal and Control Centre support (additive: no existing action changes) ----------
 // SCRIPT_VERSION: change it whenever the script is redeployed; the Control Centre compares it with the version its page expects.
 // Key!M2 = Off hides "My results" from students (default On).
-var SCRIPT_VERSION = '2026-11-11-security-1';
+var SCRIPT_VERSION = '2026-11-15-signin-1';
 
 function resultsOn_() {
   try {
@@ -3702,11 +3705,13 @@ function route_(e) {
   if (p.action === 'host') { // host only: control state, participation, ranking
     var hk = keyRow_(code);
     if (!hostOk_(p)) return jsonp_(e, { ok: false, why: 'password' }); // the lecturer password or key was wrong
+    var unreg = false;
+    if (!hk && codeWeek_(code)) { hk = [code, '', '', '', '', '', 'Open', '']; unreg = true; } // a signed-in lecturer can open a join code shaped like a week (26271) before the course has a question bank for it
     if (!hk) return jsonp_(e, { ok: false, why: 'join code' }); // the password was right but no quiz uses this join code
     var ch = ctl_(code);
     if (!ch && weekFromCode_(code)) { ctlAct_({ act: 'init' }, code); ch = ctl_(code); }
     var cn = counts_(code), rows2 = ranking_(code, '');
-    var out = { ok: true, review: ch ? reviewData_(code, '') : { q: 0 }, controlled: !!ch, joined: cn.joined, inprogress: cn.inprogress, submitted: cn.submitted, notYet: cn.notYet, rows: rows2 };
+    var out = { ok: true, note: unreg && !ch ? 'Week ' + codeWeek_(code) + ' has no question bank in this course yet. Add its questions under Quizzes and Questions.' : '', review: ch ? reviewData_(code, '') : { q: 0 }, controlled: !!ch, joined: cn.joined, inprogress: cn.inprogress, submitted: cn.submitted, notYet: cn.notYet, rows: rows2 };
     if (ch && paced_(ch) && Number(ch.v[11]) > 0) { var ac = answerCounts_(code, Number(ch.v[11])); out.answered = ac.answered; out.dist = ac.dist; if (voteOf_(ch) === 2 || discussedOf_(ch).indexOf(Number(ch.v[11])) >= 0) { out.firstVote = ac.first; out.changed = ac.changed; } }
     if (ch) { out.status = ctlStatus_(ch); out.state = out.status.state; var wks = {}; try { wks = siteJson_('/apps_script/live_quizzes.json').weeks || {}; } catch (er) { /* no list */ }
     var le2 = null; try { le2 = liveEntry_(code, ch); } catch (er) { /* offline */ }

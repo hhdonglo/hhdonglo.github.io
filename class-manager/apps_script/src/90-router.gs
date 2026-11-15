@@ -285,11 +285,13 @@ function route_(e) {
   if (p.action === 'host') { // host only: control state, participation, ranking
     var hk = keyRow_(code);
     if (!hostOk_(p)) return jsonp_(e, { ok: false, why: 'password' }); // the lecturer password or key was wrong
+    var unreg = false;
+    if (!hk && codeWeek_(code)) { hk = [code, '', '', '', '', '', 'Open', '']; unreg = true; } // a signed-in lecturer can open a join code shaped like a week (26271) before the course has a question bank for it
     if (!hk) return jsonp_(e, { ok: false, why: 'join code' }); // the password was right but no quiz uses this join code
     var ch = ctl_(code);
     if (!ch && weekFromCode_(code)) { ctlAct_({ act: 'init' }, code); ch = ctl_(code); }
     var cn = counts_(code), rows2 = ranking_(code, '');
-    var out = { ok: true, review: ch ? reviewData_(code, '') : { q: 0 }, controlled: !!ch, joined: cn.joined, inprogress: cn.inprogress, submitted: cn.submitted, notYet: cn.notYet, rows: rows2 };
+    var out = { ok: true, note: unreg && !ch ? 'Week ' + codeWeek_(code) + ' has no question bank in this course yet. Add its questions under Quizzes and Questions.' : '', review: ch ? reviewData_(code, '') : { q: 0 }, controlled: !!ch, joined: cn.joined, inprogress: cn.inprogress, submitted: cn.submitted, notYet: cn.notYet, rows: rows2 };
     if (ch && paced_(ch) && Number(ch.v[11]) > 0) { var ac = answerCounts_(code, Number(ch.v[11])); out.answered = ac.answered; out.dist = ac.dist; if (voteOf_(ch) === 2 || discussedOf_(ch).indexOf(Number(ch.v[11])) >= 0) { out.firstVote = ac.first; out.changed = ac.changed; } }
     if (ch) { out.status = ctlStatus_(ch); out.state = out.status.state; var wks = {}; try { wks = siteJson_('/apps_script/live_quizzes.json').weeks || {}; } catch (er) { /* no list */ }
     var le2 = null; try { le2 = liveEntry_(code, ch); } catch (er) { /* offline */ }

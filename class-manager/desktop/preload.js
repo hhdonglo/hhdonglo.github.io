@@ -3,7 +3,7 @@
 const { contextBridge, ipcRenderer } = require("electron");
 const call = (ch) => (...a) => ipcRenderer.invoke(ch, ...a);
 contextBridge.exposeInMainWorld("cmApp", {
-  info: call("cm:info"), live: call("cm:live"), stamp: call("cm:stamp"), folderDetails: call("cm:folderDetails"), removeStudent: call("cm:removeStudent"), restoreStudent: call("cm:restoreStudent"), stats: call("cm:stats"), studentStats: call("cm:studentStats"), progress: call("cm:progress"), save: call("cm:save"), openWindow: call("cm:openWindow"), openExternal: call("cm:openExternal"),
+  info: call("cm:info"), live: call("cm:live"), stamp: call("cm:stamp"), folderDetails: call("cm:folderDetails"), removeStudent: call("cm:removeStudent"), restoreStudent: call("cm:restoreStudent"), stats: call("cm:stats"), analyticsExtra: call("cm:analyticsExtra"), addIntervention: call("cm:addIntervention"), govern: call("cm:govern"), weeklySummary: call("cm:weeklySummary"), studentStats: call("cm:studentStats"), progress: call("cm:progress"), save: call("cm:save"), openWindow: call("cm:openWindow"), openExternal: call("cm:openExternal"),
   classList: call("cm:classList"), classListFile: call("cm:classListFile"), tab: call("cm:tab"), exportResults: call("cm:export"), exportExcel: call("cm:exportExcel"), saveExcel: call("cm:saveExcel"),
   openData: call("cm:openData"), run: call("cm:run"),
   authStatus: call("cm:authStatus"), authSettings: call("cm:authSettings"), libList: call("cm:libList"), libAdd: call("cm:libAdd"),
@@ -23,6 +23,7 @@ contextBridge.exposeInMainWorld("cmApp", {
   onAutoProgress: (fn) => { ipcRenderer.on("cm:autoProgress", (e, p) => fn(p)); }, onAutoChanged: (fn) => { ipcRenderer.on("cm:autoChanged", () => fn()); },
   onImportProgress: (fn) => { ipcRenderer.on("cm:importProgress", (e, p) => fn(p)); },
   llmPreview: call("cm:llmPreview"), llmSave: call("cm:llmSave"), llmLookup: call("cm:llmLookup"),
+  lmsState: call("cm:lmsState"), lmsSave: call("cm:lmsSave"), lmsRosterFile: call("cm:lmsRosterFile"), lmsRosterService: call("cm:lmsRosterService"), lmsRosterApply: call("cm:lmsRosterApply"), lmsGradebookFile: call("cm:lmsGradebookFile"), lmsGradesService: call("cm:lmsGradesService"), lmsToolConfig: call("cm:lmsToolConfig"),
   readme: call("cm:readme"), tunnelStart: call("cm:tunnelStart"), tunnelStop: call("cm:tunnelStop"), security: call("cm:security"), saveSecurity: call("cm:saveSecurity"),
   backups: call("cm:backups"), backupNow: call("cm:backupNow"), backupCheck: call("cm:backupCheck"), backupRestore: call("cm:backupRestore"), backupExport: call("cm:backupExport"), backupImport: call("cm:backupImport"),
   linkedState: call("cm:linkedState"), linkedChoose: call("cm:linkedChoose"), linkedLink: call("cm:linkedLink"), linkedCopy: call("cm:linkedCopy"), linkedUnlink: call("cm:linkedUnlink"), linkedOpen: call("cm:linkedOpen"), linkedRestore: call("cm:linkedRestore"),

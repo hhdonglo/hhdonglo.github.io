@@ -68,6 +68,8 @@ test("no practice recorded does not flag a student on its own, but is noted besi
 
 test("lecturer sign-in says whether the password or the join code was refused", () => {
   const c = classroom({ students: 2 });
+  const wk = c.call({ action: "host", code: "26276", hostkey: c.key }); // shaped like a week, not in the course: a signed-in lecturer can still open it
+  assert.strictEqual(wk.ok, true); assert.match(wk.note, /Week 6 has no question bank/); assert.strictEqual(c.call({ action: "host", code: "26276", hostkey: "wrong password here" }).why, "password");
   assert.deepStrictEqual(c.call({ action: "host", code: "ZZZZ", hostkey: "wrong password here" }).why, "password");
   assert.deepStrictEqual(c.call({ action: "host", code: "ZZZZ", hostkey: c.key }).why, "join code");
   assert.strictEqual(c.call({ action: "host", code: "26279", hostkey: c.key }).ok, true); // a known join code opens

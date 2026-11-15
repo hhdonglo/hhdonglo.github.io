@@ -1,0 +1,19 @@
+.lm{max-width:60rem;margin:0 auto;font-family:system-ui,sans-serif}
+.lm .card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem 1.2rem;box-shadow:var(--shadow);margin-bottom:1rem}
+.lm h2{margin:.2rem 0 .5rem;font-size:1.15rem}
+.lm p{line-height:1.5}
+.lm .note{color:var(--muted);font-size:.92rem}
+.lm .row{display:flex;flex-wrap:wrap;gap:.6rem 1rem;align-items:flex-end;margin:.5rem 0}
+.lm label{font-weight:600;font-size:.92rem}
+.lm input:not([type=checkbox]),.lm select{min-height:40px;padding:.3rem .55rem;border:1.5px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);min-width:min(34rem,90vw)}
+.lm select{min-width:12rem}
+.lm button.b{min-height:40px;padding:.35rem .9rem;border:1.5px solid var(--border);border-radius:6px;background:var(--btn-bg);color:var(--btn-text);font:inherit;cursor:pointer}
+.lm button.b.p{background:var(--brown-fill);border-color:var(--brown-fill);color:#fff}
+.lm button.b:disabled{opacity:.5;cursor:default}
+.lm .checks label{display:block;font-weight:400;margin:.25rem 0}
+.lm .msg{font-weight:600;min-height:1.4em}
+.lm .err{color:#b3261e}
+.lm .warn{color:#8a5a00}
+@media (prefers-color-scheme:dark){.lm .err{color:#ff8a80}.lm .warn{color:#f0b85a}}
+.lm table{border-collapse:collapse;width:100%;font-size:.92rem}
+.lm td,.lm th{border-bottom:1px solid var(--border);padding:.35rem .5rem;text-align:left}
