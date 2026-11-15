@@ -137,8 +137,11 @@ function classListTemplate() {
 }
 
 // Every tab of one course's workbook, as sheets. tabs: [{ name }]; read(name) returns the tab's rows.
-function resultsSheets(tabs, read) {
-  return (tabs || []).map((t) => ({ name: t.name, rows: read(t.name) || [] }));
+// One sheet per tab of the course. students (optional): the student table, shown first as "Students" (one row per ID).
+function resultsSheets(tabs, read, students) {
+  const sheets = (tabs || []).map((t) => ({ name: t.name, rows: read(t.name) || [] }));
+  if (students && students.length) sheets.unshift({ name: "Students", rows: [["Student ID", "Name"]].concat(students.map((x) => [x.id, x.name])) });
+  return sheets;
 }
 
 module.exports = { writeXlsx, classListTemplate, resultsSheets, sheetNames, colName, isNumberCell, xmlEscape };

@@ -153,6 +153,7 @@ function configJs(c, req, remote, r) {
   const cm = { courseId: c.id, courseCode: s.courseCode, courseTitle: s.courseTitle, institution: s.institution, lecturer: s.lecturer, semester: s.semester,
     contact: s.contact, accent: s.accent, logo: s.logo, notice: s.notice ? { text: s.notice, linkLabel: s.noticeLinkLabel, linkUrl: s.noticeLinkUrl } : null,
     scriptUrl: s.scriptUrl || (remote ? "https://" : "http://") + host + (r.prefixed ? r.prefix : "/") + "exec", desktop: true };
+  const relay = c.relay && c.relay.publicConfig(); if (relay) cm.relay = relay; // the mailbox: address, student code and public key only (relay/client.js)
   if (publicUrl()) cm.publicBase = publicUrl() + r.prefix.slice(1); // QR codes and links for students use the internet address while it is on
   // Every course but the default one keeps its own browser storage on students' phones and in CM's windows.
   return courses.configScript(src, cm, c.id === registry.defaultId() ? "" : "cm@" + c.id + ":");
@@ -201,7 +202,7 @@ async function handle(req, res, remote) {
         const g = guardFor({ remote, tunnelOn: !!publicUrl(), action: params.action, remoteAddress: req.socket.remoteAddress }, appSettings);
         if (g.refuse) { res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" }); return res.end(JSON.stringify(g.refuse)); }
         c.backend.setGeoMode(g.geo); // location is checked for the internet address, not for plain Wi-Fi
-        try { out = c.backend.doPost(params, body); } finally { c.backend.setGeoMode("off"); } // CM's own calls never see a leftover setting
+        try { out = require("./receipts").once(c.backend, params, () => c.backend.doPost(params, body)); } finally { c.backend.setGeoMode("off"); } // CM's own calls never see a leftover setting
       } else { c.backend.setGeoMode(guardFor({ remote, tunnelOn: !!publicUrl() }, appSettings).geo); try { out = c.backend.doGet(params); } finally { c.backend.setGeoMode("off"); } }
       res.writeHead(200, { "Content-Type": out.mime + "; charset=utf-8", "Cache-Control": "no-store", "Access-Control-Allow-Origin": "*" });
       return res.end(out.text);
@@ -343,9 +344,11 @@ function makeCtx(id) {
   });
   c.backend = createBackend({ readSite: (rel) => c.authoring.siteFile(rel), webRoot: WEB, resolve: c.course.resolve, dataFile: d.workbook, vault,
     log: (m) => console.log("[backend " + id + "]", m), onChange: () => { if (c.google) c.google.changed(); if (c.sync) c.sync.changed(); } });
-  c.backups = createBackups({ dir: path.join(d.root, "backups"), workbook: d.workbook, vault });
+  c.backups = createBackups({ dir: path.join(d.root, "backups"), workbook: d.workbook, vault, readText: () => c.backend ? c.backend.exportText() : require("./db/migrate").readWorkbookText(path.join(d.data, "course.db"), vault) });
   c.linked = createLinkedFolder({ dir: d.root, label: () => c.settings.courseCode || id, content: () => backupContent(c), protect: vault.protectBytes, unprotect: vault.unprotectBytes, protected: vault.protected });
   c.sync = createCourseSync({ dir: d.root, contentDir: d.course, notesDir: path.join(d.root, "notes"), linked: c.linked, backend: c.backend, vault, deviceName: require("os").hostname(), log: (m) => console.log("[sync " + id + "]", m) });
+  c.relay = require("./relay/client").createRelay({ backend: c.backend, courseId: id, log: (m) => console.log("[mailbox " + id + "]", m) });
+  c.relay.start();
   c.sync.start(); // local and online at the same time: a round now, then every two minutes, and a few seconds after each change
   try { c.lastBackup = c.backups.make(""); } catch (e) { c.lastBackup = { ok: false, why: e.message }; } // a backup each time the course is opened, checked at once
   return c;
@@ -357,7 +360,8 @@ function ctx(id) {
 function closeCtx(id) { // after the course's folder changes: saved now, made again on next use
   const c = ctxs.get(id); if (!c) return;
   try { c.sync.stop(); } catch (e) {}
-  try { c.backend.flush(); } catch (e) {}
+  try { c.relay.stop(); } catch (e) {}
+  try { c.backend.close(); } catch (e) {}
   ctxs.delete(id);
 }
 // The course a window belongs to, from its address (/c/<id>/...). A window never acts on another course.
@@ -515,6 +519,7 @@ on("cm:updateCourse", (c, e, id, o) => {
 });
 // ---- reset a course's configuration (course-reset.js): backup first, typed confirmation, moved aside not deleted, restorable ----
 const resetBase = (id) => path.dirname(registry.dirs(id).settings);
+on("cm:resetDescribe", () => ({ all: courseReset.describe("all"), setup: courseReset.describe("setup") }));
 on("cm:resetList", (c, e, id) => (registry.get(String(id || "")) ? { ok: true, list: courseReset.listResets(resetBase(String(id))) } : { ok: false, why: "No such course." }));
 on("cm:resetCourse", (c, e, id, o) => {
   id = String(id || ""); o = o || {};
@@ -526,10 +531,10 @@ on("cm:resetCourse", (c, e, id, o) => {
     const b = x.backups.make("reset"); // the records as they are now, checked, before anything moves
     if (b && b.ok === false) return { ok: false, why: "A backup could not be made first, so nothing was reset: " + b.why };
     closeCtx(id);
-    const r = courseReset.resetCourse(resetBase(id), o.scope, { linked: registry.dirs(id).linked });
+    const r = courseReset.resetCourse(resetBase(id), o.scope, { linked: registry.dirs(id).linked, discardUndo: o.discardUndo === true });
     if (!r.ok) return r;
     const n = ctx(id);
-    return { ok: true, moved: r.moved, name: r.name, url: id === c.id ? baseUrl() + startPage(n) : "", list: courseReset.listResets(resetBase(id)) };
+    return { ok: true, moved: r.moved, name: r.name, discarded: !!r.discarded, unlinked: !!r.unlinked, url: id === c.id ? baseUrl() + startPage(n) : "", list: courseReset.listResets(resetBase(id)) };
   } catch (err) { return { ok: false, why: err.message }; }
 });
 on("cm:resetRestore", (c, e, id, name) => {
@@ -669,6 +674,8 @@ on("cm:exportPack", async (c, e) => {
 on("cm:tab", (c, e, name) => c.backend.tab(String(name)));
 // Remove a student from the class and put the student back (remove-student.js): nothing is deleted, Restore undoes it.
 on("cm:removeStudent", (c, e, id) => { const r = require("./remove-student").remove(c.backend, id); if (r.ok) c.backend.flush(); return r; });
+on("cm:removeEntries", (c, e, tab, picks) => { const r = require("./remove-entry").remove(c.backend, tab, picks); if (r.ok) c.backend.flush(); return r; });
+on("cm:restoreEntries", (c, e, batch) => { const r = require("./remove-entry").restore(c.backend, batch); if (r.ok) c.backend.flush(); return r; });
 on("cm:restoreStudent", (c, e, id) => { const r = require("./remove-student").restore(c.backend, id); if (r.ok) c.backend.flush(); return r; });
 // Analytics and governance (governance.js, extras.js, summary.js): cohorts, support given, audit log, per-student export and erase, term close, weekly summary.
 on("cm:analyticsExtra", (c) => ({ ok: true, cohorts: extras.cohorts(c.backend), interventions: extras.interventions(c.backend), termClosed: governance.termClosed(c.backend), aiSummary: !!c.settings.aiSummary, hasKey: !!loadApiKey(), privacyNotice: c.settings.privacyNotice || governance.PRIVACY_NOTICE }));
@@ -703,7 +710,7 @@ on("cm:exportExcel", async (c, e) => {
   const label = (c.settings.courseCode || c.id).replace(/[^\w .-]+/g, "_");
   const r = await dialog.showSaveDialog(winOf(e), { title: "Save the results as Excel", defaultPath: "Class Manager results " + label + " " + new Date().toISOString().slice(0, 10) + ".xlsx", filters: [{ name: "Excel workbook", extensions: ["xlsx"] }] });
   if (r.canceled || !r.filePath) return null;
-  try { fs.writeFileSync(r.filePath, await excel.writeXlsx(excel.resultsSheets(c.backend.tabs(), (n) => names.withNameColumns(c.backend.tab(n))))); shell.showItemInFolder(r.filePath); return { ok: true, file: r.filePath }; }
+  try { const g = gradesOf(c); fs.writeFileSync(r.filePath, await excel.writeXlsx(require("./grades/view-model").forExcel(g, (id) => g.entries(id)).concat(excel.resultsSheets(c.backend.tabs(), (n) => names.withNameColumns(c.backend.tab(n)), c.backend.students.list())))); shell.showItemInFolder(r.filePath); return { ok: true, file: r.filePath }; }
   catch (err) { return { ok: false, why: err.message }; }
 });
 // A table a screen has already drawn (for example the Students list), saved as a one-sheet Excel workbook.
@@ -725,6 +732,14 @@ function reopenCourse(c) { // after a restore: the course is made again from the
   for (const w of BrowserWindow.getAllWindows()) { try { if ((registry.idFromUrl(w.webContents.getURL()) || registry.active()) === c.id) w.webContents.reload(); } catch (e) {} }
   return n;
 }
+// The clean Grades table and a student's dated timeline (grades/): built from the records each time, so it is never out of date.
+const gradesOf = (c) => require("./grades/build").build((n) => c.backend.rawRows(n));
+on("cm:grades", (c) => require("./grades/view-model").forScreen(gradesOf(c)));
+on("cm:gradesTimeline", (c, e, id) => require("./grades/view-model").timelineForScreen(gradesOf(c).entries(String(id || ""))));
+on("cm:mailboxStatus", (c) => c.relay.status());
+on("cm:mailboxSetup", (c, e, o) => c.relay.setup(o || {}));
+on("cm:mailboxClear", (c) => c.relay.clear());
+on("cm:mailboxPull", (c) => c.relay.pull().then((r) => Object.assign(c.relay.status(), r)));
 on("cm:backups", (c) => backupInfo(c));
 on("cm:backupNow", (c) => { c.backend.flush(); c.lastBackup = c.backups.make("manual"); return backupInfo(c); });
 on("cm:backupCheck", (c, e, name) => c.backups.verify(String(name || "")));
@@ -735,7 +750,7 @@ on("cm:backupRestore", (c, e, name) => {
 });
 function backupContent(c) { // the course's records and settings as one object, for a backup file or a linked-folder copy
   c.backend.flush();
-  return { kind: "class-manager-backup", version: app.getVersion(), course: c.id, made: new Date().toISOString(), settings: c.settings, workbook: vault.decode(fs.readFileSync(registry.dirs(c.id).workbook)) };
+  return { kind: "class-manager-backup", version: app.getVersion(), course: c.id, made: new Date().toISOString(), settings: c.settings, workbook: c.backend.exportText() };
 }
 function restoreContent(c, content) { // after the passphrase and the content have been checked
   closeCtx(c.id);

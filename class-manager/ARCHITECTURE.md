@@ -48,7 +48,7 @@ The same server script runs in two places: in Google Apps Script, or inside the 
                             |  SpreadsheetApp (rows), CacheService, PropertiesService, LockService
                             v
    +---------------------------------------------------------------------+
-   |  Workbook: Google Sheet, or workbook.json on the lecturer's computer|
+   |  Workbook: Google Sheet, or course.db (SQLite) on the lecturer's computer|
    +---------------------------------------------------------------------+
 ```
 
@@ -57,7 +57,7 @@ The same server script runs in two places: in Google Apps Script, or inside the 
 | Mode | Pages served from | Server script runs in | Records kept in | Reach |
 |---|---|---|---|---|
 | A. Static site with Google | Any static host; GitHub Pages at `hhdonglo.github.io/class-manager` | Google Apps Script web app bound to a Google Sheet | The Google Sheet | Anywhere with internet |
-| B. Desktop app, local | The app's own HTTP server, `0.0.0.0:8143` by default | Node `vm` inside the Electron main process (`desktop/backend.js`) | `workbook.json` in the app's data folder | Devices on the same network while the app is open |
+| B. Desktop app, local | The app's own HTTP server, `0.0.0.0:8143` by default | Node `vm` inside the Electron main process (`desktop/backend.js`) | `course.db` (SQLite) in the course's data folder | Devices on the same network while the app is open |
 | C. Desktop app with an Apps Script address | The app's HTTP server | Google Apps Script (Settings: "Apps Script web app address") | The Google Sheet | Pages on the local network; records online |
 
 In mode B, the optional Google sign-in (`desktop/google.js`) copies every tab one way to a Google Sheet in the lecturer's Drive. The scope is `drive.file`. This copy is a backup and a view. It does not serve students.
@@ -78,7 +78,7 @@ In mode B, the optional Google sign-in (`desktop/google.js`) copies every tab on
  | backend.js   vm context: quiz_receiver.gs + shims for SpreadsheetApp,          |
  |              CacheService, PropertiesService, LockService, UrlFetchApp,        |
  |              Utilities, ContentService, MailApp (no-op), Session               |
- |              -> userData/data/workbook.json (written 400 ms after a change)     |
+ |              -> courses/<id>/data/course.db (changed tabs written 400 ms after a change)     |
  | authoring.js resource library, BM25 search, summaries, generation, import,     |
  |              drafts, bank overlay -> userData/authoring/                       |
  |              -> api.anthropic.com (only with an API key)                       |
@@ -182,7 +182,7 @@ Since 0.9.0 the pages send every request by form POST through `CM.call` (in `con
 **Desktop data folder.** This is `userData`, for example `~/.config/Class Manager` on Linux. It holds:
 
 - `settings.json`;
-- `data/workbook.json` (all tabs and properties; dates stored as `{$d: ISO}`), encrypted since 0.9.0 (AES-256-GCM, magic `CMV1`) with the data key `data.key`, which is itself encrypted with the system keychain (`safeStorage`) where available (`desktop/vault.js`);
+- `data/course.db` (SQLite, since 0.22.0; all tabs and properties, each row sealed; dates stored as `{$d: ISO}`), encrypted per row (AES-256-GCM, magic `CMV1`) with the data key `data.key`, which is itself encrypted with the system keychain (`safeStorage`) where available (`desktop/vault.js`);
 - `courses/<id>/backups/` (automatic encrypted backups of the workbook: on opening the course, every four hours and on closing; each read back and checked; the newest 14 kept, plus copies made before a restore);
 - `google.bin` (OAuth tokens) and `anthropic.bin` (the API key), both encrypted with `safeStorage` where available;
 - `authoring/library/` (copies of documents, `<id>.chunks.json`, `index.json`);
@@ -350,7 +350,7 @@ None of the session suites has been run against Google Apps Script itself. Gener
 ### Many courses (desktop, 0.8.0)
 
 - **Registry.** `courses.json` in the app's data folder lists the courses (id, code, title, term, content source, archived), the course last shown and the default course. The id is made once from the course code and never changes, so students' links survive a rename.
-- **Folders.** Each course has `courses/<id>/` with `settings.json` (course details, Apps Script address), `data/workbook.json`, `authoring/` and `course/`. The app's own `settings.json` keeps only the port and text size. A course may link a folder of its own for its content instead of `course/`; the workbook and the authoring library never move there.
+- **Folders.** Each course has `courses/<id>/` with `settings.json` (course details, Apps Script address), `data/course.db`, `authoring/` and `course/`. The app's own `settings.json` keeps only the port and text size. A course may link a folder of its own for its content instead of `course/`; the workbook and the authoring library never move there.
 - **Server.** Pages of a course are served under `/c/<id>/`, each with its own `config.js` and `/exec`. One backend (one vm context running the server script) per course, made on first use and kept while the app runs. Paths without the prefix serve the default course. Archived and unknown courses return 404. One tunnel serves every course through the same prefixes.
 - **Screens.** The app's screens are served under `/c/<id>/app/`. Each IPC call is resolved to the course in the calling window's address, so a window can act on no other course. The course dropdown navigates the window to another course.
 - **Students.** Records, host keys, access codes and phone registrations are per course. For every course but the default one, `config.js` prefixes the browser storage keys of the pages with the course id, so one phone keeps separate records per course.
@@ -385,3 +385,31 @@ These are proposals for review, ordered by the value they would give relative to
 **Trust boundaries.** CM calls out; nothing calls in. The private key stays in the course folder; only the public JWKS is shared. Settings are per course (`lms.json`) and default to off; only https addresses are kept.
 
 **Not yet verified.** The direct route has run against a mock LMS only; each LMS's gradebook CSV layout needs one trial import.
+
+## Course database (SQLite, 15 November 2026)
+
+Each course keeps its records in one SQLite file, `data/course.db`, using the SQLite built into Node (`node:sqlite`): no server, no account, no extra install. The code is in `desktop/db/` (README there). The server script is unchanged: `backend.js` still gives it a spreadsheet, now backed by the database instead of a JSON file.
+
+- Tables: `sheet` (a tab), `cell_row` (one row of a tab, sealed with the vault key), `prop` (settings, sealed), `meta` (schema version, import record).
+- Writes: only changed tabs, and within them only changed rows, in one transaction (a power cut leaves the last complete state).
+- `workbook.json` is an inbox. An older workbook, or a restored backup, is imported into a new database, read back and compared cell by cell, and only then replaces the old database. The old database (`course.replaced-*.db`) and the file (`workbook.json.imported-*`) are kept; nothing is deleted. A database that cannot be read is moved aside (`course.unreadable-*.db`) and reported.
+- Backups and backup files still hold workbook text, so older backups restore and the format is the same as before.
+- Student table (`desktop/db/students.js`): one row per ID, the unique key is a keyed fingerprint of the ID, so IDs and names stay unreadable in the file. It is rebuilt from Roster at each save; a repeated ID is kept once and reported. The Excel download starts with a Students sheet.
+- Safe retries (`desktop/receipts.js`): a request with a client key (`ckey`) runs once; a repeat gets the first answer.
+
+## Phone outbox and mailbox (15 November 2026)
+
+- `assets/outbox.js`: every practice result and question report is saved on the phone with a unique key, sent, and tried again (5 s, slower, and when the phone is back online) until CM accepts it. States: saved, received, held. Live check-in and live quiz answers are not queued: they need the room.
+- Mailbox (optional, `relay/`): if CM cannot be reached after two tries and the course has a mailbox, the phone encrypts the result with the course's public key (`assets/relay-seal.js`) and leaves it in a Cloudflare Worker with a KV store. CM collects every three minutes while open (`desktop/relay/client.js`), records each item once through `receipts.js`, then tells the mailbox to delete it. Only practice results and reports are accepted. Keys and tokens are kept sealed in the course database (`backend.secret`).
+- The Google Apps Script path is unchanged and still works for courses that use it. It has not been removed: that waits for tests with real phones and Hope's decision. Google Sheets remains an optional copy and import, not required.
+
+## Grades table (15 November 2026)
+
+"Grades and Results" opens on a clean table built from the records (`desktop/grades/`), not from Master. One row per student on the class list; fixed columns Student ID and Name, then Attendance, Quizzes (one column per week, latest try shown), Assignments and Practice, then Last activity. A blank is "no record". Every value keeps the time of the entry it came from (shown on hover); the timeline lists every dated entry, newest first. Download as Excel starts with the same Grades sheet and a Timeline sheet. Removing a student is an explicit row action (confirm, set aside, restorable); clicking a row no longer removes anything. Master, Scores and Totals remain in the tab list as raw tabs.
+
+## Courses, IDs and Reset (15 November 2026)
+
+- A course owns its class list. Each course has its own database (`courses/<id>/data/course.db`), so a student ID is unique within a course and the same person in two courses is two separate records. Every record refers to an ID in its own course's class list; an import matches only against that course's class list. IDs in a file that are not on the class list are listed in the preview ("IDs not on the class list"), never added silently and never sent to another course.
+- The mailbox keeps items per course (`<course>:` prefix) and each course has its own keys.
+- Reset "everything" erases what the course keeps: the database, notes, every earlier backup, and synchronisation state, and switches the class list and attendance of a linked course to this computer only so nothing is pulled back. By default the erased parts are moved aside and can be restored; "Erase for good" deletes them. Other courses are never touched (`test/reset-records.test.js`).
+- The import preview now plans with the same option the screen shows (a ticked "Add the students in the file" was previously shown ticked while the preview was planned without it, which produced "Nothing in the file is new").

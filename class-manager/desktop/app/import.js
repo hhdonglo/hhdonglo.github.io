@@ -36,7 +36,7 @@
       (msg ? "<p class='msg err' role='alert'>" + esc(msg) + "</p>" : "") +
       buttons("<button class='btn' type='button' id='imp-cancel'>Cancel</button><button class='btn primary' type='button' id='imp-pick'>Choose the file…</button>");
     body.querySelector("#imp-cancel").onclick = close;
-    body.querySelector("#imp-pick").onclick = function () { cmApp.importPick().then(function (r) { if (!r) return; if (!r.ok) return start(r.why); file = r.name; preview(r.report); }); };
+    body.querySelector("#imp-pick").onclick = function () { cmApp.importPick(opts).then(function (r) { if (!r) return; if (!r.ok) return start(r.why); file = r.name; preview(r.report); }); };
   }
 
   function rowOf(t) {
@@ -51,7 +51,8 @@
     var table = rep.blocked || !rep.tabs.length ? "" :
       "<div class='tbl' style='height:auto;max-height:18rem'><table><thead><tr><th>Records</th><th>In the file</th><th>New</th><th>Already here</th><th>Not on class list</th></tr></thead><tbody>" + rep.tabs.map(rowOf).join("") + "</tbody></table></div>";
     var people = "<p>Class list: <strong>" + n(s.classList) + "</strong> students. <strong>" + n(s.withData) + "</strong> of them have records in the file." +
-      (s.notOnList ? " <strong>" + n(s.notOnList) + "</strong> other IDs in the file are not on the class list and are left out." : "") + "</p>";
+      (s.notOnList ? " <strong>" + n(s.notOnList) + "</strong> other IDs in the file are <strong>not</strong> on this course's class list. They are left out until you add them." : "") + "</p>" +
+      (s.notOnListIds && s.notOnListIds.length ? "<details style='margin:.4rem 0'><summary class='note'>IDs not on the class list (" + n(s.notOnList) + ")</summary><p class='note' style='word-break:break-word'>" + s.notOnListIds.map(esc).join(", ") + (s.notOnList > s.notOnListIds.length ? " and " + n(s.notOnList - s.notOnListIds.length) + " more" : "") + "</p></details>" : "");
     var add = (s.notOnList || s.toAdd || !s.classList) ?
       "<label style='display:block;margin:.6rem 0'><input type='checkbox' id='imp-add'" + (opts.addMissing ? " checked" : "") + "> Add the students in the file to the class list" + (s.toAdd ? " (" + n(s.toAdd) + " would be added)" : "") + "</label>" : "";
     var cols = rep.tabs.filter(function (t) { return t.columns && t.columns.length; });

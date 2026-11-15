@@ -52,7 +52,7 @@ Choosing **Internet** starts a Cloudflare quick tunnel: a free service that need
 
 ## Records, backups and restore
 
-- Each course's records (`data/workbook.json`) are encrypted on this computer; the key is held by the system keychain where the computer has one (CM Settings, Records protection and backups, says which).
+- Each course's records (`data/course.db`, a SQLite database) are encrypted on this computer; the key is held by the system keychain where the computer has one (CM Settings, Records protection and backups, says which).
 - A backup is made when a course opens, every four hours and when CM closes, and is checked at once. The newest 14 are kept in the course's `backups/` folder. **Restore** next to a backup brings the records back; the records as they were are kept as a backup first.
 - **Save a backup to a file** makes one file, encrypted with a passphrase, to keep elsewhere or to move a course to another computer. **Restore from a file** asks for the passphrase. A lost passphrase cannot be recovered.
 - Settings, Access and safety: when internet access stops by itself, and where lecturer pages may be used.

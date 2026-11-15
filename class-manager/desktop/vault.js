@@ -5,6 +5,8 @@
      safeStorage) where the computer offers one. Copying the data folder to another computer does not copy the keychain,
      so the copy cannot be read there. Where no keychain is available the key is stored with owner-only permissions and
      CM says that the records are not protected by the keychain.
+   - Since 0.22.0 the records live in a SQLite database (db/); workbook.json is only an inbox: a restore writes the restored
+     records there and the next start imports them after checking (db/migrate.js). Backups hold the same workbook text as before.
    - A workbook written by an earlier version (plain JSON) is read as it is and written encrypted at the next save.
    - Automatic backups: a copy of the encrypted workbook in the course's backups/ folder when CM starts, every
      few hours while it runs and when it closes; the newest KEEP_AUTO are kept. Each new backup is read back and
@@ -54,6 +56,8 @@ function createVault(opts) {
     protectBytes: (b) => opts.protect(b), // the keychain, for small secrets kept beside the records (linked-folder.js)
     unprotectBytes: (b) => opts.unprotect(b),
     isSealed,
+    // A fixed, secret-keyed code for a text (HMAC-SHA256 with the data key): the same ID always gives the same code, but the code reveals nothing, so IDs can be unique keys in the database without being readable in the file.
+    fingerprint: (text) => crypto.createHmac("sha256", dataKey()).update(String(text), "utf8").digest("hex"),
     encode: (text) => Buffer.concat([MAGIC, seal(dataKey(), Buffer.from(text, "utf8"))]),
     decode: (buf) => (isSealed(buf) ? open(dataKey(), buf.subarray(4)).toString("utf8") : buf.toString("utf8")) // plain JSON from an earlier version
   };
@@ -77,10 +81,13 @@ function createBackups(opts) {
   }
   // Copies the workbook as it is on disk (already encrypted), then reads the copy back to prove it can be restored.
   function make(reason) {
-    if (!fs.existsSync(opts.workbook)) return { ok: false, why: "no workbook yet" };
+    // The records as workbook text: from the course database (opts.readText, db/migrate.js) or, for the older layout, from the workbook file.
+    let text = null;
+    if (opts.readText) text = opts.readText();
+    else if (fs.existsSync(opts.workbook)) text = vault.decode(fs.readFileSync(opts.workbook));
+    if (text === null || text === undefined) return { ok: false, why: "no workbook yet" };
     fs.mkdirSync(dir, { recursive: true });
-    const raw = fs.readFileSync(opts.workbook);
-    const sealed = vault.isSealed(raw) ? raw : vault.encode(raw.toString("utf8"));
+    const sealed = vault.encode(text);
     const tag = reason ? "-" + reason.replace(/[^a-z]/g, "") : "";
     let t = Date.now(), name;
     do { name = "workbook-" + stamp(new Date(t++)) + tag + ".cmv"; } while (fs.existsSync(path.join(dir, name)));
@@ -99,7 +106,7 @@ function createBackups(opts) {
   // Replaces the workbook with a backup's content. The caller closes the course first and opens it again after.
   function restoreText(text) {
     const check = checkBook(text);
-    const before = fs.existsSync(opts.workbook) ? make("restore") : null; // the records as they were, in case this was a mistake
+    const made = make("restore"), before = made.ok ? made : null; // the records as they were, in case this was a mistake
     const tmp = opts.workbook + ".tmp";
     fs.mkdirSync(path.dirname(opts.workbook), { recursive: true });
     fs.writeFileSync(tmp, vault.encode(text)); fs.renameSync(tmp, opts.workbook);

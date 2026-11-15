@@ -17,7 +17,7 @@ const mcp = require("../llm/mcp-server");
 const WEB = path.resolve(__dirname, "..", "..");
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), "cm-llm-"));
 const file = path.join(dir, "workbook.json");
-createBackend({ webRoot: WEB, dataFile: file, log: () => {} }).flush();
+createBackend({ webRoot: WEB, dataFile: file, log: () => {} }).close();
 const sample = writeSample(file);
 const backend = createBackend({ webRoot: WEB, dataFile: file, log: () => {} });
 const base = { course: { code: "PHYS 143", title: "Mechanics", term: "2026" }, salt: "a".repeat(48), readTab: (n) => backend.tab(n), now: 0 };

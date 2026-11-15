@@ -6,12 +6,9 @@ const isDate = (v) => Object.prototype.toString.call(v) === "[object Date]";
 const blank = (v) => v === undefined || v === null || v === "" || (typeof v === "number" && Number.isNaN(v));
 const pad = (n) => ("0" + n).slice(-2);
 
-// A student ID as digits only, like the script's normId_: 22524013, "22524013.0" and " 22524013 " all give "22524013".
-function idOf(v) {
-  if (blank(v)) return "";
-  if (typeof v === "number") return Number.isFinite(v) ? String(Math.round(v)).replace(/\D/g, "") : "";
-  return String(v).trim().replace(/\.0+$/, "").replace(/\D/g, "");
-}
+// A student ID in its one form (ids.js): 22524013, "22524013.0", " 22524013 " and "022524013" all give "22524013".
+const { normalizeId } = require("./ids");
+function idOf(v) { return blank(v) ? "" : normalizeId(v); }
 
 // A join code or other short text, upper case, without the ".0" a spreadsheet adds to a number.
 function codeOf(v) {

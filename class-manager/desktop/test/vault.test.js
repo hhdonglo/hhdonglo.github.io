@@ -19,16 +19,18 @@ const fakeKeychain = (dir) => createVault({ keyFile: path.join(dir, "data.key"),
 function course(dir, vault) {
   const file = path.join(dir, "data", "workbook.json");
   const b = createBackend({ webRoot: WEB, dataFile: file, vault, log: () => {} });
-  return { file, b };
+  const dbFile = path.join(dir, "data", "course.db");
+  return { file, dbFile, b, readText: () => b.exportText() };
 }
 
 test("the workbook is encrypted on disk and reads back the same", () => {
   const dir = tmp("cm-vault-"), vault = fakeKeychain(dir);
-  const { file, b } = course(dir, vault);
-  b.rosterSync([["20001111", "Abena Mensah"]], true); b.flush();
-  const raw = fs.readFileSync(file);
-  assert.equal(raw.subarray(0, 4).toString(), "CMV1");
+  const { file, dbFile, b } = course(dir, vault);
+  b.rosterSync([["20001111", "Abena Mensah"]], true); b.close();
+  const raw = fs.readFileSync(dbFile);
+  assert.ok(raw.subarray(0, 15).toString() === "SQLite format 3", "a SQLite database");
   assert.ok(!raw.includes("20001111") && !raw.includes("Abena"), "no student data in clear on disk");
+  assert.ok(!fs.existsSync(file), "no workbook file is left in the data folder");
   assert.ok(!fs.readFileSync(path.join(dir, "data.key")).subarray(3).equals(Buffer.alloc(32)), "a real key");
   const again = createBackend({ webRoot: WEB, dataFile: file, vault: fakeKeychain(dir), log: () => {} });
   assert.deepEqual(again.tab("Roster").slice(1), [["20001111", "Abena Mensah"]]);
@@ -37,23 +39,28 @@ test("the workbook is encrypted on disk and reads back the same", () => {
 test("version upgrade: a plain workbook from 0.7.0 is migrated, read and then written encrypted, with nothing lost", () => {
   const root = tmp("cm-up-");
   fs.writeFileSync(path.join(root, "settings.json"), JSON.stringify({ courseCode: "PHYS 143", port: 8143 }));
-  const old = createBackend({ webRoot: WEB, dataFile: path.join(root, "data", "workbook.json"), log: () => {} }); // 0.7.0: no vault
-  old.rosterSync([["20002222", "Kojo"]], true); const key = old.hostKey(); old.flush();
+  // 0.7.0 kept the records in a plain workbook.json; a database made here stands in for it and is written out in that format.
+  const old = createBackend({ webRoot: WEB, dataFile: path.join(tmp("cm-old-"), "workbook.json"), log: () => {} });
+  old.rosterSync([["20002222", "Kojo"]], true); const key = old.hostKey();
+  fs.mkdirSync(path.join(root, "data"), { recursive: true });
+  fs.writeFileSync(path.join(root, "data", "workbook.json"), old.exportText()); old.close();
   assert.equal(fs.readFileSync(path.join(root, "data", "workbook.json"), "utf8").charAt(0), "{");
   assert.equal(C.migrateLegacy(root).migrated, "phys-143");
   const reg = C.createRegistry(root), d = reg.dirs("phys-143");
   const b = createBackend({ webRoot: WEB, dataFile: d.workbook, vault: fakeKeychain(root), log: () => {} });
   assert.equal(b.hostKey(), key);
   assert.deepEqual(b.tab("Roster").slice(1), [["20002222", "Kojo"]]);
-  b.flush();
-  assert.equal(fs.readFileSync(d.workbook).subarray(0, 4).toString(), "CMV1", "encrypted from the first save");
+  b.close();
+  assert.ok(!fs.existsSync(d.workbook), "the old file is not the live copy any more");
+  assert.ok(fs.readdirSync(path.dirname(d.workbook)).some((f) => /^workbook\.json\.imported-/.test(f)), "the original is kept, renamed");
+  assert.ok(!fs.readFileSync(path.join(path.dirname(d.workbook), "course.db")).includes("Kojo"), "encrypted from the first save");
 });
 
 test("a workbook that cannot be read is kept aside, never overwritten", () => {
   const dir = tmp("cm-bad-");
-  const { file, b } = course(dir, fakeKeychain(dir));
-  b.rosterSync([["20003333", "Esi"]], true); b.flush();
-  const before = fs.readFileSync(file);
+  const { file, dbFile, b } = course(dir, fakeKeychain(dir));
+  b.rosterSync([["20003333", "Esi"]], true); b.close();
+  const before = fs.readFileSync(dbFile);
   const other = tmp("cm-other-"); // another computer: another key
   const b2 = createBackend({ webRoot: WEB, dataFile: file, vault: fakeKeychain(other), log: () => {} });
   const p = b2.loadProblem();
@@ -63,8 +70,8 @@ test("a workbook that cannot be read is kept aside, never overwritten", () => {
 
 test("automatic backups are checked when made, pruned to the newest, and restore the records", () => {
   const dir = tmp("cm-bk-"), vault = fakeKeychain(dir);
-  const { file, b } = course(dir, vault);
-  const bk = createBackups({ dir: path.join(dir, "backups"), workbook: file, vault });
+  const { file, b, readText } = course(dir, vault);
+  const bk = createBackups({ dir: path.join(dir, "backups"), workbook: file, vault, readText });
   b.rosterSync([["20004444", "Ama"]], true); b.flush();
   const first = bk.make("");
   assert.equal(first.ok, true); assert.ok(first.check.hasKey); assert.ok(first.check.rows > 0);
@@ -73,7 +80,7 @@ test("automatic backups are checked when made, pruned to the newest, and restore
   assert.equal(bk.list().length, KEEP_AUTO, "only the newest are kept");
   // Records change after the backup; restoring brings back the backed-up state and keeps the current one.
   const keep = bk.list()[0].name;
-  b.rosterSync([["20005555", "Yaw"]], true); b.flush();
+  b.rosterSync([["20005555", "Yaw"]], true); b.close();
   const r = bk.restore(keep);
   assert.equal(r.ok, true); assert.ok(r.kept && /-restore\.cmv$/.test(r.kept));
   const after = createBackend({ webRoot: WEB, dataFile: file, vault, log: () => {} });
@@ -88,9 +95,9 @@ test("automatic backups are checked when made, pruned to the newest, and restore
 
 test("a backup file restores on another computer with the passphrase, and only with it", () => {
   const dir = tmp("cm-fx-"), vault = fakeKeychain(dir);
-  const { file, b } = course(dir, vault);
-  b.rosterSync([["20006666", "Kwame"]], true); b.flush();
-  const content = { kind: "class-manager-backup", course: "phys-143", settings: { courseCode: "PHYS 143" }, workbook: vault.decode(fs.readFileSync(file)) };
+  const { b } = course(dir, vault);
+  b.rosterSync([["20006666", "Kwame"]], true);
+  const content = { kind: "class-manager-backup", course: "phys-143", settings: { courseCode: "PHYS 143" }, workbook: b.exportText() };
   assert.throws(() => exportFile(content, "short"), /10 characters/);
   const buf = exportFile(content, "correct horse battery");
   assert.ok(!buf.includes("20006666"));
@@ -101,10 +108,10 @@ test("a backup file restores on another computer with the passphrase, and only w
   // Another computer: another key, an empty course, then the restore.
   const dir2 = tmp("cm-fx2-"), vault2 = fakeKeychain(dir2);
   const target = course(dir2, vault2);
-  target.b.flush();
+  target.b.close();
   const got = importFile(buf, "correct horse battery");
   assert.equal(got.settings.courseCode, "PHYS 143");
-  createBackups({ dir: path.join(dir2, "backups"), workbook: target.file, vault: vault2 }).restoreText(got.workbook);
+  createBackups({ dir: path.join(dir2, "backups"), workbook: target.file, vault: vault2, readText: () => require("../db/migrate").readWorkbookText(target.dbFile, vault2) }).restoreText(got.workbook);
   const restored = createBackend({ webRoot: WEB, dataFile: target.file, vault: vault2, log: () => {} });
   assert.deepEqual(restored.tab("Roster").slice(1), [["20006666", "Kwame"]]);
 });

@@ -290,6 +290,26 @@ Look (2026-11-15, from Hope's inspiration image): soft tinted tiles on cards, on
 
 `desktop/lms/` (one job per file, listed in `desktop/lms/README.md`) with the screen `desktop/app/lms.html` and `lms.js`, opened from Course and Content. It reads an LMS roster export, writes a gradebook CSV, and optionally uses the LTI Advantage roster and grade services directly. Off until switched on; sends only user ids and points. Tests: `desktop/test/lms.test.js`.
 
+## Course database (desktop/db/)
+
+| File | Responsibility |
+| --- | --- |
+| `db/store.js` | Open the SQLite file, load the course, save changed tabs and rows in one transaction. |
+| `db/codec.js` | Turn a row or setting into stored bytes (encrypted with the vault) and back. |
+| `db/migrate.js` | Decide what is on disk: import `workbook.json` safely, move an unreadable database aside, read a course as workbook text for backups. |
+
+`backend.js` uses these three and keeps the spreadsheet shim for the server script. Tests: `desktop/test/db.test.js`, `vault.test.js`.
+
+| File | Responsibility |
+| --- | --- |
+| `db/students.js` | The student table with unique IDs, kept equal to Roster. |
+| `receipts.js` | Run a request with a client key once. |
+| `relay/client.js`, `relay/crypto.js` | Collect from the mailbox and open items; make the course keys. |
+| `app/mailbox.html`, `app/mailbox.js` | The Mailbox screen. |
+| `../assets/outbox.js`, `../assets/relay-seal.js` | The phone's queue and encryption. |
+| `../relay/worker.mjs`, `../relay/README.md` | The mailbox Worker and the setup steps. |
+| `grades/build.js`, `grades/view-model.js`, `grades/times.js` | The clean Grades table with the time of each entry, a student's timeline, and the Excel layout (see `grades/README.md`). |
+| `app/grades-view.js` | Draws the Grades table, the row menu (Timeline, Remove from class) and the timeline. |
 ## Join code base (0.21.1)
 - A join code is the course's base followed by the week number (base 2627: 26271 is Week 1). The base is a script property `join_base` (default 2627), changed by the host-only action `join_base` and the "Join code base" field in the Control Centre. `joinBase_`, `codeWeek_` and `weekFromCode_` are in `apps_script/src/00-core.gs`. A signed-in lecturer can open any join code of that shape; a week without a question bank says so. Script version 2026-11-15-signin-2.
 
