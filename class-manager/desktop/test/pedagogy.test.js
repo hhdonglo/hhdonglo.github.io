@@ -15,7 +15,7 @@ const { readSite } = require("./sample-pedagogy");
 const WEB = path.resolve(__dirname, "..", "..");
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), "cm-peda-"));
 const file = path.join(dir, "workbook.json");
-createBackend({ webRoot: WEB, dataFile: file, readSite, log: () => {} }).flush();
+createBackend({ webRoot: WEB, dataFile: file, readSite, log: () => {} }).close();
 const sample = writeSample(file);
 const B = createBackend({ webRoot: WEB, dataFile: file, readSite, log: () => {} });
 const KEY = B.hostKey();

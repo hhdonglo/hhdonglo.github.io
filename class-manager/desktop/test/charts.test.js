@@ -58,7 +58,7 @@ test("the charts agree with the server figures of the made-up class", () => {
   const { readSite } = require("./sample-pedagogy");
   const WEB = path.resolve(__dirname, "..", "..");
   const file = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "cm-charts-")), "workbook.json");
-  createBackend({ webRoot: WEB, dataFile: file, readSite, log: () => {} }).flush();
+  createBackend({ webRoot: WEB, dataFile: file, readSite, log: () => {} }).close();
   writeSample(file);
   const B = createBackend({ webRoot: WEB, dataFile: file, readSite, log: () => {} });
   const t = B.doPost({ callback: "cb", hostkey: B.hostKey(), action: "learning_progress" }).text;
@@ -115,7 +115,7 @@ test("the server gives the class timeline and the student's class comparison", (
   const { readSite } = require("./sample-pedagogy");
   const WEB = path.resolve(__dirname, "..", "..");
   const file = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "cm-charts2-")), "workbook.json");
-  createBackend({ webRoot: WEB, dataFile: file, readSite, log: () => {} }).flush();
+  createBackend({ webRoot: WEB, dataFile: file, readSite, log: () => {} }).close();
   const sample = writeSample(file);
   const B = createBackend({ webRoot: WEB, dataFile: file, readSite, log: () => {} });
   const host = (p) => JSON.parse(/^cb\(([\s\S]*)\)\s*;?\s*$/.exec(B.doPost(Object.assign({ callback: "cb", hostkey: B.hostKey() }, p)).text)[1]);

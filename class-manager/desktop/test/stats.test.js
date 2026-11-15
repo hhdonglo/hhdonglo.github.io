@@ -14,7 +14,7 @@ const WEB = path.resolve(__dirname, "..", "..");
 function freshClass() {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "cm-stats-"));
   const file = path.join(dir, "workbook.json");
-  createBackend({ webRoot: WEB, dataFile: file, log: () => {} }).flush(); // the first run creates the standard tabs
+  createBackend({ webRoot: WEB, dataFile: file, log: () => {} }).close(); // the first run creates the standard tabs
   const sample = writeSample(file);
   return { sample, backend: createBackend({ webRoot: WEB, dataFile: file, log: () => {} }) };
 }
@@ -166,7 +166,7 @@ test("is the class learning: a verdict only with enough evidence, with the evide
 test("one quiz never gives a verdict", () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "cm-one-"));
   const file = path.join(dir, "workbook.json");
-  createBackend({ webRoot: WEB, dataFile: file, log: () => {} }).flush();
+  createBackend({ webRoot: WEB, dataFile: file, log: () => {} }).close();
   writeSample(file);
   const book = JSON.parse(fs.readFileSync(file, "utf8"));
   const keep = (name, f) => { const sh = book.sheets.find((x) => x.name === name); sh.rows = [sh.rows[0]].concat(sh.rows.slice(1).filter(f)); };
