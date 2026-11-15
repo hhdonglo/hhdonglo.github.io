@@ -295,3 +295,6 @@ Look (2026-11-15, from Hope's inspiration image): soft tinted tiles on cards, on
 
 ## More charts (0.21.2)
 `desktop/app/charts/explore-data.js`, `explore-view.js` and `explore-panel.js` (see `charts/README.md`): nine extra clickable bar charts across the Overview, Attendance, Quizzes and Questions and Students screens. Mounted from `app/insights.js` (`xmount`). Styles in `app/dashboard/dashboard.css`.
+
+### Overflow guard (0.21.4)
+`desktop/test/overflow.test.js` opens every sidebar screen at 760, 1000 and 1280 px with a very long folder path and repository URL and fails if the page or `main` scrolls sideways. The Course and Content card shows labelled Folder, Repository and Branch lines with Copy buttons; full values appear on hover. Long text wraps (`overflow-wrap:anywhere`) and `main` never scrolls horizontally.
