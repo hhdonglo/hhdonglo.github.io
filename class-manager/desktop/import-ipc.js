@@ -13,14 +13,14 @@ const pending = new Map(); // course id -> { name, book }: the file chosen, kept
 
 function register({ on, dialog, winOf, shell }) {
 
-  on("cm:importPick", async (c, e) => {
+  on("cm:importPick", async (c, e, o) => {
     const r = await dialog.showOpenDialog(winOf(e), { title: "Choose the results exported from the web version", properties: ["openFile"],
       filters: [{ name: "Excel workbook or CSV", extensions: ["xlsx", "csv"] }] });
     if (r.canceled || !r.filePaths[0]) return null;
     try {
       const book = await readBook(r.filePaths[0], (p) => { try { e.sender.send("cm:importProgress", p); } catch (x) { /* the window closed */ } }); // progress for the screen; the reader gives way between chunks, so CM stays responsive
       pending.set(c.id, { name: path.basename(r.filePaths[0]), book });
-      return { ok: true, name: pending.get(c.id).name, report: plan(book, localOf(c.backend), options()).report };
+      return { ok: true, name: pending.get(c.id).name, report: plan(book, localOf(c.backend), options(o)).report };
     } catch (err) { return { ok: false, why: err.message }; }
   });
 

@@ -109,3 +109,14 @@ test("the mailbox refuses kinds that need the room", async () => {
   const r = await createRelay({ backend: c.backend, courseId: "c", fetch: f, log: () => {} }).pull();
   assert.equal(r.received, 0); assert.equal(e2.BOX.size(), 0, "dropped, not kept");
 });
+
+test("each course has its own mailbox items and keys: another course collects nothing of this one", async () => {
+  const e3 = { BOX: fakeKv(), DROP_TOKEN: "drop-code-1234", PULL_TOKEN: "pull-code-0123456789" };
+  const f = (u, i) => worker.fetch(new Request(u, i), e3);
+  const put = (course) => f("https://box/put", { method: "POST", body: JSON.stringify({ course, drop: e3.DROP_TOKEN, sealed: { k: "a", iv: "b", c: "c" } }) });
+  await put("phys-14"); await put("phys-143");
+  const pull = async (course) => (await (await f("https://box/pull", { method: "POST", headers: { Authorization: "Bearer " + e3.PULL_TOKEN }, body: JSON.stringify({ course }) })).json()).items;
+  assert.equal((await pull("phys-14")).length, 1, "a longer course name is not mixed in");
+  assert.equal((await pull("phys-143")).length, 1);
+  assert.equal((await pull("math-101")).length, 0);
+});

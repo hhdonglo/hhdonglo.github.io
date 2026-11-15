@@ -519,6 +519,7 @@ on("cm:updateCourse", (c, e, id, o) => {
 });
 // ---- reset a course's configuration (course-reset.js): backup first, typed confirmation, moved aside not deleted, restorable ----
 const resetBase = (id) => path.dirname(registry.dirs(id).settings);
+on("cm:resetDescribe", () => ({ all: courseReset.describe("all"), setup: courseReset.describe("setup") }));
 on("cm:resetList", (c, e, id) => (registry.get(String(id || "")) ? { ok: true, list: courseReset.listResets(resetBase(String(id))) } : { ok: false, why: "No such course." }));
 on("cm:resetCourse", (c, e, id, o) => {
   id = String(id || ""); o = o || {};
@@ -530,10 +531,10 @@ on("cm:resetCourse", (c, e, id, o) => {
     const b = x.backups.make("reset"); // the records as they are now, checked, before anything moves
     if (b && b.ok === false) return { ok: false, why: "A backup could not be made first, so nothing was reset: " + b.why };
     closeCtx(id);
-    const r = courseReset.resetCourse(resetBase(id), o.scope, { linked: registry.dirs(id).linked });
+    const r = courseReset.resetCourse(resetBase(id), o.scope, { linked: registry.dirs(id).linked, discardUndo: o.discardUndo === true });
     if (!r.ok) return r;
     const n = ctx(id);
-    return { ok: true, moved: r.moved, name: r.name, url: id === c.id ? baseUrl() + startPage(n) : "", list: courseReset.listResets(resetBase(id)) };
+    return { ok: true, moved: r.moved, name: r.name, discarded: !!r.discarded, unlinked: !!r.unlinked, url: id === c.id ? baseUrl() + startPage(n) : "", list: courseReset.listResets(resetBase(id)) };
   } catch (err) { return { ok: false, why: err.message }; }
 });
 on("cm:resetRestore", (c, e, id, name) => {

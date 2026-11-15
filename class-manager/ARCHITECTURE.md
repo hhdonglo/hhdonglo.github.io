@@ -406,3 +406,10 @@ Each course keeps its records in one SQLite file, `data/course.db`, using the SQ
 ## Grades table (15 November 2026)
 
 "Grades and Results" opens on a clean table built from the records (`desktop/grades/`), not from Master. One row per student on the class list; fixed columns Student ID and Name, then Attendance, Quizzes (one column per week, latest try shown), Assignments and Practice, then Last activity. A blank is "no record". Every value keeps the time of the entry it came from (shown on hover); the timeline lists every dated entry, newest first. Download as Excel starts with the same Grades sheet and a Timeline sheet. Removing a student is an explicit row action (confirm, set aside, restorable); clicking a row no longer removes anything. Master, Scores and Totals remain in the tab list as raw tabs.
+
+## Courses, IDs and Reset (15 November 2026)
+
+- A course owns its class list. Each course has its own database (`courses/<id>/data/course.db`), so a student ID is unique within a course and the same person in two courses is two separate records. Every record refers to an ID in its own course's class list; an import matches only against that course's class list. IDs in a file that are not on the class list are listed in the preview ("IDs not on the class list"), never added silently and never sent to another course.
+- The mailbox keeps items per course (`<course>:` prefix) and each course has its own keys.
+- Reset "everything" erases what the course keeps: the database, notes, every earlier backup, and synchronisation state, and switches the class list and attendance of a linked course to this computer only so nothing is pulled back. By default the erased parts are moved aside and can be restored; "Erase for good" deletes them. Other courses are never touched (`test/reset-records.test.js`).
+- The import preview now plans with the same option the screen shows (a ticked "Add the students in the file" was previously shown ticked while the preview was planned without it, which produced "Nothing in the file is new").

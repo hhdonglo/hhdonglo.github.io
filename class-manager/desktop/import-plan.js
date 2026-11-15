@@ -276,7 +276,7 @@ function plan(book, local, options) {
   // The student ID is the key. The same ID never gets a second name: a name that differs from the one already on the class list is flagged, never written;
   // a student on the list with no name yet is given the name the file has.
   const { fills, conflicts } = nameChecks(local.read("Roster"), nameMap(book));
-  const students = { classList: localList.size, withData: [...ctx.activity].filter((id) => localList.has(id)).length, notOnList: offIds.length, notOnListSample: offIds.slice(0, 5), toAdd: addIds.length, flagged: flaggedAll.slice(0, 50), flaggedCount: flaggedAll.length, noIdRows,
+  const students = { classList: localList.size, withData: [...ctx.activity].filter((id) => localList.has(id)).length, notOnList: offIds.length, notOnListSample: offIds.slice(0, 5), notOnListIds: offIds.slice(0, 500), toAdd: addIds.length, flagged: flaggedAll.slice(0, 50), flaggedCount: flaggedAll.length, noIdRows,
     namesFilled: fills.length, nameConflicts: conflicts.length, conflicts: conflicts.slice(0, 50) };
   const roster = addIds.map((id) => [id, names[id] || ""]).concat(fills);
   const blocked = !localList.size && !opt.addMissing; // with nobody to match, nothing is written
