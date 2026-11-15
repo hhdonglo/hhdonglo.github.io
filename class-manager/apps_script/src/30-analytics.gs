@@ -165,7 +165,8 @@ function insights_(p) {
     if (ar !== null && ar < attMin) why.push('attendance ' + ar + '%');
     if (qa !== null && qa < quizMin) why.push('quiz average ' + qa + '%');
     if (out.quizzes.length && (!s || s.taken < out.quizzes.length)) why.push('missed ' + (out.quizzes.length - (s ? s.taken : 0)) + ' of ' + out.quizzes.length + ' quizzes');
-    if (!lp) why.push('no practice recorded'); else if (now - lp > idleDays * 864e5) why.push('no practice for ' + Math.floor((now - lp) / 864e5) + ' days');
+    // Practice is optional work. Never having practised is only a note beside a real reason (low attendance, low quiz average, missed quizzes); on its own it flags no one.
+    if (!lp) { if (why.length) why.push('no practice recorded'); } else if (now - lp > idleDays * 864e5) why.push('no practice for ' + Math.floor((now - lp) / 864e5) + ' days');
     if (why.length) flags.push({ id: r.id, name: r.name, attendance: ar, quizAverage: qa, quizzesTaken: s ? s.taken : 0, lastPractice: lp ? Utilities.formatDate(new Date(lp), Session.getScriptTimeZone(), 'dd/MM/yyyy') : '', reasons: why });
   });
   flags.sort(function (a, b) { return b.reasons.length - a.reasons.length || (a.quizAverage === null ? 101 : a.quizAverage) - (b.quizAverage === null ? 101 : b.quizAverage); });

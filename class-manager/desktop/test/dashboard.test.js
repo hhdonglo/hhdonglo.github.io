@@ -29,10 +29,10 @@ test("setup progress counts steps and treats unknown setup as nothing to show", 
   assert.strictEqual(V.setupTracker(undefined), "");
 });
 
-test("stat cards: four cards, a small class is amber with the reason", () => {
+test("stat cards: five cards, a small class is amber with the reason", () => {
   const cards = R.statCards(base());
-  assert.deepStrictEqual(cards.map((c) => c.key), ["students", "attendance", "learning", "risk"]);
-  assert.strictEqual(cards[3].value, "2");
+  assert.deepStrictEqual(cards.map((c) => c.key), ["students", "attendance", "learning", "practice", "risk"]);
+  assert.strictEqual(cards[4].value, "2");
   const d = base(); d.rosterSize = 6;
   const att = R.statCards(d)[1];
   assert.strictEqual(att.light, "lt-watch"); assert.ok(/Small class/.test(att.reason));
