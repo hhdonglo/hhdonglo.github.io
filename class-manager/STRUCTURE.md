@@ -6,6 +6,8 @@ Written 9 November 2026. A description of the class management tool as it stands
 
 **Further update, 9 November 2026.** The desktop app gained a resource library with search, summaries, question generation with Claude, question import and a review queue (desktop/README.md, "Resources and questions"); the server script gained a course calendar, messages with moderation, and announcements (README.md, "Calendar, messages and announcements"). Line counts below describe the script before these additions.
 
+**Architecture.** `ARCHITECTURE.md` was rewritten on 15 November 2026 from `main` at 9917cf2 (purpose, context, components, data model and storage, flows, analytics definitions, privacy, UI design, build and release, testing, open items). This file stays the file map; the dates below record when each part was added.
+
 ## Purpose and architecture
 
 The class management tool runs one course from three layers: static pages that students and the lecturer open in a browser, one server script that holds every rule, and a private workbook that stores every record. It serves PHYS 143 (12 lectures plus an introduction, 347 practice questions) and is built so that the course content can be replaced.
