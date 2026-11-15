@@ -271,3 +271,8 @@ Found by reading the real folder: the pack sits one level down in a wrapper fold
 ## Dashboard refresh (UI redesign, charts first)
 
 Class Overview now leads with five clickable numbers (students, attendance, learning, practice, at risk). A click opens a bar chart with the students behind each bar (`desktop/app/dashboard/groups.js` works out the groups, `charts.js` draws, `interact.js` handles clicks). "Who needs attention" is a scatter of attendance against quiz average with three clickable zones, replacing the long list. "What goes with what" shows three linked relations (attendance and quiz average, practice and quiz change, practice and quiz average) with n, r and the words association, not cause; a zone chosen above is highlighted in them. Server: "no practice recorded" no longer flags a student alone (`30-analytics.gs`); the lecturer sign-in form tells a wrong password from an unknown join code (`90-router.gs`, `quiz-host.html`). Tests: `desktop/test/dashboard-refresh.test.js`. Not yet built: support or intervention against later results (needs intervention tracking), and the refreshed look of the other screens.
+
+
+## LMS connector (added 15 November 2026)
+
+`desktop/lms/` (one job per file, listed in `desktop/lms/README.md`) with the screen `desktop/app/lms.html` and `lms.js`, opened from Course and Content. It reads an LMS roster export, writes a gradebook CSV, and optionally uses the LTI Advantage roster and grade services directly. Off until switched on; sends only user ids and points. Tests: `desktop/test/lms.test.js`.

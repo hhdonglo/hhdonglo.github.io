@@ -373,3 +373,14 @@ These are proposals for review, ordered by the value they would give relative to
 11. **Generation checks.** Run `check_calcs.py`-style numerical checks on generated calculation questions before they reach review, and let the lecturer regenerate a single question.
 12. **Week range.** Derive the allowed range from `live_quizzes.json` instead of the fixed 0 to 12.
 13. **Accessibility pass.** Audit the new pages with a screen reader and keyboard only (the views use buttons and live regions, but this has not been audited).
+
+
+## LMS connector (15 November 2026)
+
+**Purpose.** Let a lecturer keep the class list in step with the LMS and put CM's scores in the LMS gradebook without retyping, while student data stays local.
+
+**Flow.** File route: the lecturer exports a roster from the LMS, `roster-read` turns it into students, `roster-plan` compares it with the Roster tab, and only on confirmation (after a backup) `roster-apply` adds the missing students through the backend's class-list function. For grades, `assessments` reads the Master tab, `gradebook` writes the LMS's CSV layout. Direct route: `keys` makes an RSA key on this computer; `token` signs a client assertion and receives a short-lived token; `members` reads learners (matched to CM IDs by the LMS student number); `push-grades` finds or creates one gradebook column per assessment (`scores`) and posts each score by LMS user id. `ipc` exposes these to the screen as `cm:lms*`.
+
+**Trust boundaries.** CM calls out; nothing calls in. The private key stays in the course folder; only the public JWKS is shared. Settings are per course (`lms.json`) and default to off; only https addresses are kept.
+
+**Not yet verified.** The direct route has run against a mock LMS only; each LMS's gradebook CSV layout needs one trial import.
