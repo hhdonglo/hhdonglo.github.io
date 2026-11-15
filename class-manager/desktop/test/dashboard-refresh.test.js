@@ -74,3 +74,14 @@ test("lecturer sign-in says whether the password or the join code was refused", 
   assert.deepStrictEqual(c.call({ action: "host", code: "ZZZZ", hostkey: c.key }).why, "join code");
   assert.strictEqual(c.call({ action: "host", code: "26279", hostkey: c.key }).ok, true); // a known join code opens
 });
+
+test("join code base is a course setting: 26271 is Week 1 by default, another base changes it", () => {
+  const c = classroom({ students: 2 });
+  assert.equal(c.host("join_base").base, "2627");
+  assert.equal(c.host("host", { code: "26271" }).ok, true);
+  assert.equal(c.host("join_base", { base: "9" }).ok, false);
+  assert.equal(c.host("join_base", { base: "4410" }).base, "4410");
+  assert.equal(c.host("host", { code: "44101" }).ok, true);
+  assert.equal(c.host("host", { code: "26272" }).ok, false);
+  assert.equal(c.post({ action: "join_base", base: "1234" }).ok, false); // host only
+});

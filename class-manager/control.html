@@ -64,6 +64,9 @@ body.focus main{padding-top:0}
    <p class="note" id="t-wmsg" role="status"></p>
    <p class="note" style="margin:0">Join code</p>
    <p class="code" id="t-code">&nbsp;</p>
+   <label for="t-base" class="note">Join code base (the code is the base followed by the week number, for example 2627 gives 26271 for Week 1)</label>
+   <input id="t-base" inputmode="numeric" autocomplete="off" style="min-height:44px;width:8rem"> <button class="go alt" type="button" id="t-base-save">Save base</button>
+   <p class="note" id="t-base-msg" role="status"></p>
    <a class="go alt" id="t-hand" href="#" hidden>Open handout</a>
   </section>
   <section class="panel"><h3>Pre-class check</h3>
@@ -119,7 +122,7 @@ body.focus main{padding-top:0}
 (function(){
 "use strict";
 var SCRIPT_URL=window.CM.scriptUrl;
-var EXPECT_VERSION="2026-11-15-signin-1"; // must equal SCRIPT_VERSION in apps_script/quiz_receiver.gs
+var EXPECT_VERSION="2026-11-15-signin-2"; // must equal SCRIPT_VERSION in apps_script/quiz_receiver.gs
 var $=function(i){return document.getElementById(i)};
 var KEY="";try{KEY=sessionStorage.getItem("cm_hk")||""}catch(x){}
 if(!KEY){location.replace("lecturer.html");return}
@@ -155,7 +158,7 @@ var WEEK=null,CFGP=null;
 function showWeek(){
  if(!CFGP||!WEEK)return;
  $("t-lec").innerHTML="<b>Week "+esc(WEEK)+", Lecture "+esc(WEEK)+": "+esc(CFGP.lectures[WEEK]||"")+"</b><br><span class='note'>"+esc(CFGP.contacts)+"</span>";
- $("t-code").textContent="2627"+WEEK;
+ $("t-code").textContent=(window.JOINBASE||"2627")+WEEK;
  if(CFGP.handouts[WEEK]){$("t-hand").href=CFGP.handouts[WEEK];$("t-hand").hidden=false}else $("t-hand").hidden=true;
 }
 function loadWeek(){
@@ -179,6 +182,8 @@ $("t-week").addEventListener("change",function(){
   loadWeek();
  });
 });
+$("t-base-save").addEventListener("click",function(){$("t-base-msg").textContent="Saving.";jsonp("action=join_base&base="+encodeURIComponent($("t-base").value)+"&"+hk(),function(d){$("t-base-msg").textContent=d&&d.ok?"Saved. Week 1 is now "+d.base+"1.":"Not saved: "+(d&&d.why?d.why:"no answer or script not updated")+"."; if(d&&d.ok){window.JOINBASE=d.base;$("t-base").value=d.base;if(window.WEEK)$("t-code").textContent=d.base+WEEK;loadWeek()}})});
+jsonp("action=join_base&"+hk(),function(d){if(d&&d.ok){window.JOINBASE=d.base;$("t-base").value=d.base;if(window.WEEK)$("t-code").textContent=d.base+WEEK}});
 // ---- pre-class check ----
 function line(c,t){return'<li class="'+c+'"><b aria-hidden="true">'+(c==="ok"?"&#10003;":(c==="am"?"!":"&times;"))+'</b><span>'+t+'</span></li>'}
 $("k-run").addEventListener("click",function(){
