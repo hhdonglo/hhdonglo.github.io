@@ -600,6 +600,7 @@ on("cm:chooseLogo", async (c, e, clear) => {
 });
 webImport.register({ on, dialog, winOf, shell }); // cm:import*: bring results exported from the web version into this course
 folderImport.register({ on, dialog, winOf, shell, saveSettings, dirOf: (c) => registry.dirs(c.id).root }); // cm:auto*: point at a folder; CM finds and extracts what it needs
+require("./lms/ipc").register({ on, dialog, winOf, shell, dirOf: (c) => registry.dirs(c.id).root }); // cm:lms*: roster and gradebook exchange with a learning management system (lms/README.md)
 ipcMain.handle("cm:tableFile", async (e) => { // a class list as rows, from CSV, a text file or Excel (.xlsx)
   const r = await dialog.showOpenDialog(winOf(e), { title: "Choose the class list", filters: [{ name: "Class list", extensions: ["csv", "xlsx", "txt", "tsv"] }], properties: ["openFile"] });
   if (r.canceled || !r.filePaths[0]) return null;
