@@ -37,3 +37,15 @@ Charts for the Learning Progress screen of the desktop app. Each file draws one 
 ## Tests
 
 `npm test` in `class-manager/desktop`; `test/charts.test.js` covers these modules.
+
+## Extra analytics charts (`explore-*.js`)
+
+Bar charts on the Overview, Attendance, Quizzes and Questions and Students screens. Every bar is clickable and lists the students (or the questions) behind it.
+
+| File | Job |
+|---|---|
+| `explore-data.js` | Builds each chart from the class statistics: score spread, change since the quiz before, who took each quiz, sessions missed in a row, practice against quiz average, results by suggested group and by teaching group, percent correct by lecture, question difficulty, question discrimination. `forScreen(screen, d, cohorts)` says which go where. |
+| `explore-view.js` | One chart card: bars (the dashboard's bar drawing), caption, a table of the same numbers with n, and the list behind a clicked bar. |
+| `explore-panel.js` | Mounts the cards on a screen and handles clicks and the keyboard. |
+
+Rules: counts are not judged by size, averages are: a group of fewer than 5 students is marked small. A relation is worded as what goes together, never as a cause. A gap between teaching groups is a prompt to check conditions. Tests: `test/explore-charts.test.js`. To add a chart, write a builder in `explore-data.js` and add its key to `forScreen`.
