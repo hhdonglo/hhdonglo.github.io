@@ -630,6 +630,16 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
     <p class="row" style="margin-top:16px"><button class="btn primary" type="submit">Save settings</button> <span id="saved" class="note" role="status"></span></p>
    </form>
   </div>
+  <div class="card" id="llm">
+   <h3>Use this course with an AI assistant (optional)</h3>
+   <p class="note">CM sends nothing anywhere. This saves a private copy of the course (attendance, marks, quiz items) into a folder you choose; you then give that folder to the assistant you trust. By default student IDs are replaced by pseudonyms and names are left out. Host key, access codes, check-in devices and notes are never included.</p>
+   <p><label><input type="checkbox" id="llm-names"> Include student names</label><br><label><input type="checkbox" id="llm-ids"> Keep real student IDs (otherwise pseudonyms such as S-3F9A1C)</label></p>
+   <p class="row"><button class="btn" type="button" id="llm-preview">Show what would be saved</button> <button class="btn primary" type="button" id="llm-save">Save for an assistant…</button></p>
+   <div id="llm-view" class="note" aria-live="polite"></div>
+   <p class="note">Files: <b>snapshot.md</b> (paste or attach to any assistant), <b>snapshot.json</b>, and <b>cm-mcp-server.js</b> with <b>mcp-config.json</b> (a read-only connector for assistants that support MCP, such as Claude Desktop; needs Node.js installed).</p>
+   <label class="f" for="llm-who">Which student is this pseudonym? (looked up on this computer only)</label>
+   <p class="row"><input class="f" id="llm-who" placeholder="S-3F9A1C" style="max-width:12rem"> <button class="btn" type="button" id="llm-find">Look up</button> <span id="llm-found" role="status"></span></p>
+  </div>
   <div class="card" id="lf">
    <h3>Link storage (optional)</h3>
    <p class="note">Keep an encrypted copy of this course's records in your own cloud storage: a folder that Google Drive, OneDrive, Dropbox, MEGA, iCloud Drive or another sync app keeps in the cloud, or your own account on Nextcloud or another WebDAV service, a private GitHub repository, your own Dropbox app, or an S3-compatible bucket. You register with the service; CM holds no keys of its own. Off until you link a folder. Student records leave this computer only as an encrypted file that needs your passphrase.</p>
@@ -849,6 +859,7 @@ dl.stats dd{margin:.1rem 0 0;font-size:1.35rem;font-weight:700;color:var(--head)
 <script src="folder.js"></script>
 <script src="reset.js"></script>
 <script src="linked-folder.js"></script>
+<script src="llm.js"></script>
 <script>
 (function(){
 "use strict";
