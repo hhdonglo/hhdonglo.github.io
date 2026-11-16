@@ -6,7 +6,7 @@ const { readBook } = require("./xlsx-book");
 const { plan } = require("./import-plan");
 const { apply } = require("./import-apply");
 
-const options = (o) => ({ onlyClassList: true, addMissing: !!(o && o.addMissing) });
+const options = (o) => ({ onlyClassList: true, addMissing: !!(o && o.addMissing), mapping: o && o.mapping && typeof o.mapping === "object" ? o.mapping : undefined });
 const localOf = (backend) => ({ read: (name) => backend.rows(name) });
 
 const pending = new Map(); // course id -> { name, book }: the file chosen, kept in memory only and never copied. Shared with autoload-ipc.js, which fills it from a folder.

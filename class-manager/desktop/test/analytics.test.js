@@ -33,6 +33,29 @@ test("interventions: compares change, words it as association", () => {
   assert.match(r.text, /association, not proof/);
   assert.match(iv.compare({ afterQuiz: 5, ids: [1] }, ss).text, /nothing to compare/);
 });
+test("interventions: compared only with students whose earlier results were similar", () => {
+  const mk = (id, a, b) => ({ id, trajectory: [{ pct: a }, { pct: a }, { pct: b }, { pct: b }] });
+  // Given: started at 40. Student 3 started at 45 (similar); student 4 at 90 (not similar, would flatter the comparison).
+  const ss = [mk(1, 40, 60), mk(3, 45, 47), mk(4, 90, 90)];
+  const r = iv.compare({ id: "i1", kind: "Tutoring", date: "2026-11-01", afterQuiz: 2, ids: [1] }, ss);
+  assert.equal(r.matched, true);
+  assert.deepEqual(r.comparedIds, ["3"], "the far-off student is left out");
+  assert.match(r.text, /similar earlier results/);
+  assert.deepEqual(r.givenIds, ["1"]);
+  // With no similar student at all, everyone else is used and the text says so.
+  const r2 = iv.compare({ id: "i2", kind: "Tutoring", date: "2026-11-01", afterQuiz: 2, ids: [1] }, [mk(1, 40, 60), mk(4, 90, 90)]);
+  assert.equal(r2.matched, false);
+  assert.match(r2.text, /No student with similar earlier results/);
+});
+test("the Support given card records as well as reports", () => {
+  const html = vw.interventions([{ id: "i1", kind: "Check-in", date: "2026-11-01", text: "x", note: "after lecture 3", given: 1, compared: 1, givenIds: ["20004444"], comparedIds: ["20005555"], confidence: null }]);
+  assert.ok(html.includes("sp-kind") && html.includes("sp-ids") && html.includes("data-an-form='support'"), "the record form is on the card");
+  assert.match(html, /students behind these numbers/);
+  assert.match(html, /20004444/);
+  const fs2 = require("fs"), path2 = require("path");
+  assert.ok(fs2.readFileSync(path2.join(__dirname, "..", "preload.js"), "utf8").includes("cm:addIntervention"), "the screen can reach the backend");
+  assert.ok(fs2.readFileSync(path2.join(__dirname, "..", "app", "analytics", "panel.js"), "utf8").includes("data-an-form='support'"), "the panel submits the form");
+});
 test("fairness: needs groups of 10, flags a gap, no cohorts is empty", () => {
   const ss = [], co2 = {};
   for (let i = 0; i < 20; i++) { ss.push({ id: i, quizAverage: i < 10 ? 70 : 55 }); co2[i] = i < 10 ? "A" : "B"; }

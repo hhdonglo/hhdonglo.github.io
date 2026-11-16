@@ -33,6 +33,13 @@
   function say(t) { var m = document.getElementById("an-msg"); if (m) m.textContent = t; }
   function bind(el, d) {
     if (el._bound) return; el._bound = true;
+    // Recording support: the kind and the student IDs are required; the backend checks them again and writes the audit line.
+    el.addEventListener("submit", function (e) {
+      var f = e.target.closest && e.target.closest("[data-an-form='support']"); if (!f) return;
+      e.preventDefault();
+      var kind = (document.getElementById("sp-kind") || {}).value || "", ids = ((document.getElementById("sp-ids") || {}).value || "").split(/[\s,;]+/).filter(Boolean), note = (document.getElementById("sp-note") || {}).value || "";
+      cmApp.addIntervention({ kind: kind, ids: ids, note: note }).then(function (r) { if (r && r.ok) mount(el, d); else say(r && r.why || "Not recorded."); });
+    });
     el.addEventListener("click", function (e) {
       var b = e.target.closest("[data-an]"); if (!b) return; var op = b.getAttribute("data-an"), idEl = document.getElementById("an-id"), id = idEl ? idEl.value.replace(/\D/g, "") : "";
       if (op === "term") cmApp.govern("term", { closed: b.getAttribute("data-closed") === "1" }).then(function () { mount(el, d); });

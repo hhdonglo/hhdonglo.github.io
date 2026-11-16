@@ -27,7 +27,7 @@ A lecturer who ran the course on the web has a Google Sheet with the tabs the se
 
 ## Columns and large files
 
-- Columns are found by heading, with other headings that mean the same (`ALIASES` in `import-specs.js`, for example Student Number for Student ID, Marks for Score). A required column that cannot be found is named in the preview together with the columns the file does have; the tab is then not imported. The preview also lists which file column was used for each required one.
+- Columns are found by heading, with other headings that mean the same (`ALIASES` in `import-specs.js`, for example Student Number for Student ID, Marks for Score). On the preview, "Columns the import uses" shows which file column each required column is read from, as a choice the lecturer can change; the choice (`options.mapping` in `import-plan.js`) is followed by the preview and the import alike, and it can rescue a tab that was skipped for a missing column. Choosing a new file clears it. A required column that cannot be found is named in the preview together with the columns the file does have; the tab is then not imported. The preview also lists which file column was used for each required one.
 - A sheet is read in chunks of 3,000 rows with a pause between chunks, and progress is sent to the screen, so a large file does not freeze CM. Up to 50,000 rows per sheet are read; beyond that the preview says so. In the tests, 40,000 rows read in about 0.3 s and plan in about 0.1 s.
 
 ## Rules
@@ -45,7 +45,7 @@ Add an entry to `LOG_TABS` in `import-specs.js` (columns, `need`, `id`, `text`, 
 
 ## Tests
 
-`npm test` in this folder. `test/import.test.js` builds a made-up web workbook (`test/sample-class.js` written by `test/web-export.js` as Google Sheets writes one) and checks the preview, the apply, a second import, attendance merging, open sessions, students not on the list, an empty class list, column names and the screen's calls. `test/packaging.test.js` checks that every module CM loads is listed in `package.json` (`build.files`).
+`npm test` in this folder. `test/import.test.js` builds a made-up web workbook (`test/sample-class.js` written by `test/web-export.js` as Google Sheets writes one) and checks the preview, the apply, a second import, attendance merging, open sessions, students not on the list, an empty class list, column names and the screen's calls. `test/column-mapping.test.js` covers the lecturer's own column choices. `test/packaging.test.js` checks that every module CM loads is listed in `package.json` (`build.files`).
 
 ## Files in any layout
 
