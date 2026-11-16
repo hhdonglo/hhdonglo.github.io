@@ -3,6 +3,7 @@
 "use strict";
 const { readShots } = require("./vision");
 const { review } = require("./review");
+const update = require("./update");
 
 const listOf = (c) => { const names = {}; (c.backend.rawRows("Roster") || []).slice(1).forEach((r) => { if (r && r[0] !== "" && r[0] != null) names[String(r[0])] = String(r[1] || ""); }); return { names }; };
 
@@ -27,13 +28,16 @@ function register({ on }) {
     if (r.ambiguous.length) return { ok: false, why: r.ambiguous.length + " ID" + (r.ambiguous.length === 1 ? " cannot" : "s cannot") + " be read with certainty. Correct or delete " + (r.ambiguous.length === 1 ? "it" : "them") + " before saving.", review: r };
     if (!r.students.length) return { ok: false, why: "No student IDs to save." };
     c.backend.flush();
-    const backup = c.backups && c.backups.make(o.replace ? "before replacing the class list" : "before adding to the class list");
+    const backup = c.backups && c.backups.make(o.replace ? "before replacing the class list" : "before updating to the class list");
     if (backup && backup.ok === false) return { ok: false, why: "A backup could not be made first, so nothing was saved: " + backup.why };
-    const done = c.backend.rosterSync(r.students.map((s) => [s.id, s.name]), !!o.replace);
+    // Replacing: a student missing from the new list is set aside with all their records (Restore brings them back), never deleted.
+    const setAside = o.replace ? update.setAsideDropped(c.backend, r.students.map((s) => s.id)) : [];
+    const done = c.backend.rosterSync(r.students.map((s) => [s.id, s.name]), false);
     if (!done || done.ok === false) return { ok: false, why: (done && done.why) || "The class list could not be saved." };
+    const renamed = update.applyRenames(c.backend, r.students, o.renames); // only the names the lecturer chose to correct
     const built = c.backend.buildFromRoster(); // a row for every student in Attendance, Master and Scores
     c.backend.flush();
-    return { ok: true, added: done.added, unchanged: done.unchanged, removed: done.removed || 0, differsFromList: r.differsFromList, merged: r.merged, built, backup: backup && backup.name ? backup.name : "" };
+    return { ok: true, added: done.added, unchanged: done.unchanged, removed: setAside.length, setAside, renamed, differsFromList: r.differsFromList, merged: r.merged, built, backup: backup && backup.name ? backup.name : "" };
   });
 }
 
