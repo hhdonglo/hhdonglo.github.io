@@ -13,9 +13,11 @@ Stage 1 (this folder) only adds the modules and the tests that prove they give t
 | `quiz-results.js` | `10-assessment.gs` (results part): answers, compile into held results, release and discard, item log, presence | ported, parity tested (`quiz-results-parity.test.js`); Master, Scores and Totals are in `score-tables.js` |
 | `quiz-submit.js` | `90-router.gs` (POST part): an answer, joining, progress, a timed submission, a practice attempt, a question report | ported, parity tested (`quiz-submit-parity.test.js`); finishes step 3 |
 | `quiz-views.js` | `90-router.gs` (GET part), `60-portal.gs`, review and ranking: status, questions, review, ranking, result, host view, projector display, portal status, My results | ported, parity tested (`quiz-views-parity.test.js`); My results takes the groups, learning and progress parts from a hook until their steps land |
+| `learning.js` | `30-analytics.gs` (evidence part), `35-records.gs`: questions to revisit, per-question statistics, Teaching insights, student records and notes | ported, parity tested (`learning-parity.test.js`) |
 | `score-tables.js` | `10-assessment.gs` (tables part): Master, Scores, Totals, practice and mock entries | ported, parity tested through a release (`quiz-results-parity.test.js`) |
 | `quiz-submit.js` | `90-router.gs` (POST part): an answer, joining, progress, a timed submission, a practice attempt, a question report | ported, parity tested (`quiz-submit-parity.test.js`); finishes step 3 |
 | `quiz-views.js` | `90-router.gs` (GET part), `60-portal.gs`, review and ranking: status, questions, review, ranking, result, host view, projector display, portal status, My results | ported, parity tested (`quiz-views-parity.test.js`); My results takes the groups, learning and progress parts from a hook until their steps land |
+| `learning.js` | `30-analytics.gs` (evidence part), `35-records.gs`: questions to revisit, per-question statistics, Teaching insights, student records and notes | ported, parity tested (`learning-parity.test.js`) |
 | `attendance-review.js` | `attStatus_`, `attReview_`, `attRemove_`, `attApprove_`, `attPhoneReset_` | ported, parity tested (`attendance-review-parity.test.js`) |
 
 Store interface (`store.js`): `rows(tab)` (header first, or null), `setRows(tab, rows)`, `prop(key)`, `setProp(key, value)`, `now()`.
