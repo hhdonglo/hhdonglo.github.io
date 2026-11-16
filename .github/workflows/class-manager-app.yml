@@ -48,6 +48,12 @@ jobs:
       - run: npm ci
       - name: Test the class statistics
         run: npm test
+      - name: Build the relay address into the app (repository variable CM_RELAY_URL; empty means no relay)
+        shell: bash
+        env:
+          CM_RELAY_URL: ${{ vars.CM_RELAY_URL }}
+        run: |
+          node -e "require('fs').writeFileSync('relay/address.json', JSON.stringify({ url: process.env.CM_RELAY_URL || '' }) + '\n')"
       - name: Build installer (unsigned)
         run: npx electron-builder ${{ matrix.target }} --publish never
         env:
