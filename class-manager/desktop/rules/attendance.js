@@ -73,7 +73,7 @@ function open(store, p, o) {
   if ((o.geoMode || K.GEO_MODE) === "enforce" && !hasGeo && String(p.nogeo || "") !== "1") return { ok: false, why: "location needed", needLocation: true };
   const rad = Math.max(50, Math.min(Number(p.radius) || K.RADIUS, 5000)), now = store.now().getTime();
   append(store, CTL, CTL_HEAD, [code, label, "Open", store.now().toISOString(), "", secret, hasGeo ? hla : "", hasGeo ? hlo : "", hasGeo ? rad : ""]);
-  return { ok: true, session: { link: linkFor(secret, slotOf(now)), secondsLeft: secondsLeft(now), label: column(label), status: "Open", present: 0, notOnList: 0, geo: hasGeo && (o.geoMode || K.GEO_MODE) !== "off" ? (o.geoMode || K.GEO_MODE) : "off" } };
+  return { ok: true, session: { link: linkFor(secret, slotOf(now)), secondsLeft: secondsLeft(now), label: column(label), status: "Open", present: 0, notOnList: 0, geo: hasGeo && (o.geoMode || K.GEO_MODE) !== "off" ? (o.geoMode || K.GEO_MODE) : "off", radius: hasGeo ? rad : 0 } };
 }
 
 function close(store) {
