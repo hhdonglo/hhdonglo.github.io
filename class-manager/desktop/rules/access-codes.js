@@ -64,4 +64,4 @@ function run(store, p, opts) {
   return { ok: true, made, rows: list, missing: list.filter((x) => !x.code).length, days: days(store), expired: list.filter((x) => x.expired).length };
 }
 
-module.exports = { run, codesMap, rosterRows, normCode, newCode, expired, TAB, ALPHA };
+module.exports = { run, codesMap, rosterRows, cleanName, normCode, newCode, expired, TAB, ALPHA };

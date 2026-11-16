@@ -20,4 +20,9 @@ function append(store, tab, header, row) {
   store.setRows(tab, rows);
 }
 
-module.exports = { fromBackend, append };
+// One line in the Log tab, as the script's log_ writes it: [time, outcome, first name, ID, join code].
+function logLine(store, outcome, name, id, code) {
+  try { append(store, "Log", ["Timestamp", "Outcome", "First Name", "ID", "Join Code"], [store.now(), outcome, name || "", id || "", code || ""]); } catch (e) { /* logging never stops a request */ }
+}
+
+module.exports = { fromBackend, append, logLine };
