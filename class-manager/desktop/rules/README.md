@@ -23,6 +23,9 @@ Stage 1 (this folder) only adds the modules and the tests that prove they give t
 | `class-stats.js` | `30-analytics.gs` (class part): Class statistics, engagement groups, the learning verdict, areas to target | ported, parity tested (`class-stats-parity.test.js`) |
 | `outcomes.js` | `30-analytics.gs` (objectives part): links from questions to objectives, answers as evidence, progress by objective, class by week, ask-discuss-revise | ported, parity tested (`outcomes-parity.test.js`); Learning progress and the student profile follow with group work |
 | `attendance-review.js` | `attStatus_`, `attReview_`, `attRemove_`, `attApprove_`, `attPhoneReset_` | ported, parity tested (`attendance-review-parity.test.js`) |
+| `text.js` | `calWhen_`, `calDate_`, `chatTxt_`, `safeLink_`, `fmtDay_`, `randInt_`, `shuffled_` | shared text, date and shuffle helpers (used by groups, assignments, calendar and chat) |
+| `groups.js` | `groupsAct_`, `studentGroups_`, `groupsDisplay_` | ported, parity tested (`collaboration-parity.test.js`); random dealing takes `o.random` so tests can be exact |
+| `assignments.js` | `assignmentsAct_`, `groupWork_`, `groupWorkOf_`, `asgSummary_` | ported, parity tested (`collaboration-parity.test.js`) |
 
 Store interface (`store.js`): `rows(tab)` (header first, or null), `setRows(tab, rows)`, `prop(key)`, `setProp(key, value)`, `now()`.
 Rule of the port: same input, same output as the script (`test/rules-parity.test.js` runs both on the same workbook). Do not change behaviour in a port; change it afterwards, with its own test.
