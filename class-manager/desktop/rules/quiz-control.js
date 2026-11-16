@@ -234,4 +234,4 @@ function act(store, p, code, o) {
   return { ok: true, status: status(c) };
 }
 
-module.exports = { HEADER, TAB, act, ctl, ctlSave, status, eff, keyRow, weekFromCode, codeWeek, joinBase, chooseQuestions, lettersFor, mark, shuffle, quizN, qids, paced, voteOf, discussedOf, allowLate, visible, drawSalt, randomText: () => crypto.randomUUID() };
+module.exports = { HEADER, TAB, liveEntry, maxN, act, ctl, ctlSave, status, eff, keyRow, weekFromCode, codeWeek, joinBase, chooseQuestions, lettersFor, mark, shuffle, quizN, qids, paced, voteOf, discussedOf, allowLate, visible, drawSalt, randomText: () => crypto.randomUUID() };
