@@ -1,0 +1,23 @@
+/* Frozen columns for wide tables (one shared style).
+   Use on a <table class="frz">: give the first column cells class "fz1" and the second "fz2".
+   The ID column is a fixed width (--fz1) and the Name column starts exactly where it ends (left: var(--fz1)),
+   so the other columns scroll cleanly to the right of both and never slide under them.
+   Frozen cells have a solid background; headers stay at the top. A grouped header row, if any, is <tr class="band">.
+   Used by: grades-view.js (Grades and Results, Class Roster). To change a width, change the variables below only. */
+:root{--fz1:8.5rem;--fz2:13rem;--fz-band:2.1rem}
+.frz{--fz-bg:var(--card);border-collapse:separate;border-spacing:0}
+/* the scrolling box around a .frz table: keyboard focus scrolls a column clear of the frozen ones, not under them */
+.frz-scroll{overflow:auto;scroll-padding-left:calc(var(--fz1) + var(--fz2))}
+.frz th,.frz td{border-bottom:1px solid var(--line)}
+.frz .fz1,.frz .fz2{position:sticky;box-sizing:border-box;overflow:hidden;text-overflow:ellipsis;background:var(--fz-bg);z-index:2}
+.frz .fz1{left:0;width:var(--fz1);min-width:var(--fz1);max-width:var(--fz1)}
+.frz .fz2{left:var(--fz1);width:var(--fz2);min-width:var(--fz2);max-width:var(--fz2);box-shadow:2px 0 0 var(--line)}
+/* headers: the grouped row at the very top, the column titles just below it */
+.frz thead th{position:sticky;top:0;z-index:3;background:var(--card-2)}
+.frz thead tr:nth-child(2) th{top:var(--fz-band)}
+.frz tr.band th{height:var(--fz-band);box-sizing:border-box;line-height:1.2;background:var(--card);z-index:4;color:var(--accent);text-transform:uppercase;letter-spacing:.07em;font-size:.78rem;border-bottom:2px solid var(--accent);cursor:default}
+/* frozen header cells sit above everything that scrolls under them */
+.frz thead th.fz1,.frz thead th.fz2{z-index:6;background:var(--card-2)}
+.frz tr.band th.fz1,.frz tr.band th.fz2{z-index:7;background:var(--card)}
+/* a selected row is tinted; keep the frozen cells solid underneath the tint */
+.frz tr.sel>td.fz1,.frz tr.sel>td.fz2{background:linear-gradient(rgba(70,110,200,.28),rgba(70,110,200,.28)),var(--fz-bg)}
