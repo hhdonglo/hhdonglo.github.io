@@ -342,3 +342,6 @@ CM's side of the relay hub: `desktop/relay/hub.js` and `desktop/relay/address.js
 
 ### Move to SQL, step 1: class list
 `desktop/rules/class-list.js` (sync from an upload, tidy other tabs to the list, add, remove or check one ID, lecturer notes) with `test/class-list-parity.test.js`. The host key check stays in the caller until step 2 (sign-in). Nothing calls the module yet; the router (step 7) will.
+
+### Move to SQL, step 2: sign-in
+`desktop/rules/auth.js` (sessions, lecturer key and password with recovery code, student sign-in, quiz receipts) with `test/auth-parity.test.js`. It keeps the script's stored forms (`pw1` hash in Key!J2, property `sess_secret`), so sessions and passwords made by either side work on the other. Failed-try counters come from `memoryCounters` (a short-lived counter, as the script's cache).
