@@ -347,3 +347,5 @@ CM's side of the relay hub: `desktop/relay/hub.js` and `desktop/relay/address.js
 `desktop/rules/auth.js` (sessions, lecturer key and password with recovery code, student sign-in, quiz receipts) with `test/auth-parity.test.js`. It keeps the script's stored forms (`pw1` hash in Key!J2, property `sess_secret`), so sessions and passwords made by either side work on the other. Failed-try counters come from `memoryCounters` (a short-lived counter, as the script's cache).
 
 `desktop/rules/quiz-control.js` (start, next, pause, end, release, restart, review, settings; the question draw and the correct letters) with `test/quiz-control-parity.test.js`. The held-results steps (finalize, commit, discard) are passed in as hooks and arrive with step 3b. `backend.setProp(key, null)` now removes a setting, as the script's deleteProperty does.
+
+`desktop/rules/quiz-results.js` (the answers of a paced quiz, compiling them when it ends, Release and Discard of held results, the item log, presence) with `test/quiz-results-parity.test.js`. Release calls the score tables through the `master` and `totals` hooks, which `rules/score-tables.js` fills in the next step.
