@@ -636,7 +636,7 @@ tr[data-sel]{cursor:pointer}tr[data-sel].sel>td{background:rgba(70,110,200,.28)}
   <label for="tab" class="lbl" style="margin:0">Tab</label><select id="tab" class="f"></select>
   <input id="filter" class="f" type="search" placeholder="Filter rows" aria-label="Filter rows" style="width:11rem">
   <span style="flex:1"></span>
-  <button class="btn" type="button" id="load-folder" data-folder-import="home" title="Point CM at a folder; it finds the class list, quiz results, attendance and quiz questions in your files and builds a clean working file">Load from a folder…</button>
+  <button class="btn" type="button" id="load-folder" data-folder-import="home" title="Load student records (attendance, quiz results, marks) from files or a folder in any layout. CM finds the columns, checks every ID against the class list and previews before adding. IDs not on the class list are only flagged.">Load student records…</button>
   <button class="btn" type="button" id="import-web" data-import-web title="Bring scores, attendance and practice attempts collected on the web into this course">Import from the web…</button>
   <button class="btn" type="button" id="refresh">Refresh totals</button>
   <button class="btn" type="button" id="named">Attendance with names</button>
@@ -884,6 +884,7 @@ tr[data-sel]{cursor:pointer}tr[data-sel].sel>td{background:rgba(70,110,200,.28)}
 <script src="insights.js"></script>
 <script src="progress.js"></script>
 <script src="import.js"></script>
+<script src="offlist.js"></script>
 <script src="id-notices.js"></script>
 <script src="folder-course.js"></script>
 <script src="folder.js"></script>

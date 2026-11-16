@@ -636,6 +636,10 @@ on("cm:exportPack", async (c, e) => {
 });
 on("cm:tab", (c, e, name) => c.backend.tab(String(name)));
 // Remove a student from the class and put the student back (remove-student.js): nothing is deleted, Restore undoes it.
+// IDs not on the class list: rows already in the tables, set aside on the lecturer's say, and the review list (offlist.js).
+on("cm:offListScan", (c) => Object.assign(require("./offlist").scan(c.backend), { flagged: require("./offlist").flagged(c.backend) }));
+on("cm:offListSetAside", (c, e, ids) => { const r = require("./offlist").setAside(c.backend, ids); if (r.ok) { c.backend.flush(); c.backend.rebuildMarks(); } return r; });
+on("cm:offListRestore", (c) => { const r = require("./offlist").restore(c.backend); if (r.ok) c.backend.flush(); return r; });
 on("cm:removeStudent", (c, e, id) => { const r = require("./remove-student").remove(c.backend, id); if (r.ok) c.backend.flush(); return r; });
 on("cm:removeEntries", (c, e, tab, picks) => { const r = require("./remove-entry").remove(c.backend, tab, picks); if (r.ok) c.backend.flush(); return r; });
 on("cm:restoreEntries", (c, e, batch) => { const r = require("./remove-entry").restore(c.backend, batch); if (r.ok) c.backend.flush(); return r; });

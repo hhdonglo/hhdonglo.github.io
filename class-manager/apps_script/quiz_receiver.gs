@@ -678,8 +678,17 @@ function masterLabel_(quiz) { // a practice or mock quiz name from the pages -> 
 }
 
 // entries: [{id, name, label, score, n}]. Rows are matched by ID, columns by header text (created when missing), the cell is overwritten.
+// The class list is the only source of who is in the course: a result for an ID that is not on it never becomes a row in Master or Scores.
+// With no class list yet nothing is filtered (the first live quiz of a web course still records everyone).
+function onRoster_(entries) {
+  var set = rosterSet_();
+  if (!Object.keys(set).length) return entries;
+  return entries.filter(function (e) { return set[normId_(e.id)]; });
+}
+
 function updateMaster_(entries) {
   try {
+    entries = onRoster_(entries);
     if (!entries.length || !masterOn_()) return;
     var ss = ss_(), sh = ss.getSheetByName(MASTER_TAB) || ss.insertSheet(MASTER_TAB);
     if (sh.getLastRow() === 0) { sh.getRange(1, 1, 1, 3).setValues([['Student ID', 'Name', 'Last updated']]); sh.setFrozenRows(1); sh.setFrozenColumns(2); }
@@ -730,6 +739,7 @@ function scoreHeader_(label, live, weeks, today) {
 // entries: [{id, label, score, n}]. The grid is read once, changed in memory and written back: a few rows for a single result, the whole grid for a class.
 function updateScores_(entries) {
   try {
+    entries = onRoster_(entries);
     if (!entries.length || !masterOn_()) return;
     var ss = ss_(), sh = ss.getSheetByName(SCORES_TAB) || ss.insertSheet(SCORES_TAB);
     var weeks = {}; try { weeks = siteJson_('/apps_script/live_quizzes.json').weeks || {}; } catch (err) { /* headings are a nicety */ }
@@ -3349,7 +3359,7 @@ function announcements_(p) { // public for audience 'all'; signed-in students al
 // ---------- Portal and Control Centre support (additive: no existing action changes) ----------
 // SCRIPT_VERSION: change it whenever the script is redeployed; the Control Centre compares it with the version its page expects.
 // Key!M2 = Off hides "My results" from students (default On).
-var SCRIPT_VERSION = '2026-11-16-quizctl-1';
+var SCRIPT_VERSION = '2026-11-16-rosteronly-1';
 
 function resultsOn_() {
   try {
