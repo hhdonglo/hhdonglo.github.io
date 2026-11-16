@@ -4,8 +4,8 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const { classroom } = require("./classroom");
 
-test("init on a week-shaped code without a bank switches control on", () => {
-  const c = classroom({ students: 2 });
+for (const engine of ["script", "js"]) test("init on a week-shaped code without a bank switches control on (" + engine + ")", () => {
+  const c = classroom({ students: 2, engine });
   const code = "262750"; // week 50, not in the course's quiz list
   const r = c.host("control", { code, act: "init" });
   assert.equal(r.ok, true, JSON.stringify(r));

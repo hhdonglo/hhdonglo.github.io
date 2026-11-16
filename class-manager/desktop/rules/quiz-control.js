@@ -136,7 +136,7 @@ const none = { finalize() {}, commit() {}, discard: () => ({ discarded: 0 }) };
 // Returns what the script returns: {ok, status} or {ok:false, why}. o = {site, random, finalize, commit, discard}.
 function act(store, p, code, o) {
   o = Object.assign({}, none, o); const log = (a, b) => logLine(store, a, b, "", code);
-  if (!keyRow(store, code, o)) return { ok: false, why: "no such code" };
+  if (!keyRow(store, code, o) && !codeWeek(store, code)) return { ok: false, why: "no such code" }; // a week-shaped join code can be switched on before its question bank exists (script 2026-11-16-quizctl-1)
   const a = String(p.act || "").toLowerCase(); let c = ctl(store, code); const now = store.now().getTime();
   if (a === "init") {
     if (c) return { ok: true, status: status(c) };
