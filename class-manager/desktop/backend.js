@@ -260,7 +260,7 @@ function createBackend(opts) {
     databaseInfo: () => Object.assign({ file: dbFile }, db.counts())
   };
   // The engine: "script" (the Apps Script, run here) or "js" (the rules/ modules through rules/router.js). Both answer the same requests; "js" needs no script.
-  const engine = opts.engine || process.env.CM_ENGINE || "script";
+  const engine = opts.engine || process.env.CM_ENGINE || "js";
   if (engine === "js") {
     const { createRouter } = require("./rules/router"), { fromBackend } = require("./rules/store");
     const site = (p) => { const r = UrlFetchApp.fetch("http://local" + p); if (r.getResponseCode() !== 200) throw new Error("not found: " + p); return JSON.parse(r.getContentText()); };
@@ -268,6 +268,17 @@ function createBackend(opts) {
     const run = (fn, params) => { tidyIds(); try { const r = fn(idParams(params)); return ContentService.createTextOutput(r.text).setMimeType(r.mime); } finally { flush(); } };
     api.doGet = (params) => run(router.get, params);
     api.doPost = (params) => run(router.post, params);
+    // The methods the app screens call directly (not through a page request) use the same rules.
+    const R = { AU: require("./rules/auth"), CL: require("./rules/class-list"), CS: require("./rules/class-stats"), L: require("./rules/learning"), P: require("./rules/progress") };
+    const st = fromBackend(api), ro = () => ({ site, random: () => crypto.randomUUID(), counters: R.AU.memoryCounters(() => new Date()) }), ver = String(ctx.SCRIPT_VERSION);
+    const done = (f) => { try { return f(); } finally { flush(); } };
+    api.setPasswordAsOwner = (pw) => done(() => R.AU.ownerSetPassword(st, pw, ro()));
+    api.passwordStatus = () => R.AU.passwordStatus(st);
+    api.stats = (p) => R.CS.classStats(st, Object.assign({}, p || {}), ver);
+    api.studentNote = (id, text) => done(() => R.L.noteAdd(st, id, text));
+    api.studentStats = (p) => R.P.studentStats(st, Object.assign({}, p || {}), ro(), ver);
+    api.progress = (p) => R.P.learningProgress(st, Object.assign({}, p || {}), ro());
+    api.rosterSync = (rows, replace) => { try { tidyGrid("Roster", [["Student ID", "Name"]].concat(rows || [])).notices.forEach((n) => notices.record(n)); } catch (e) { /* the merge itself still happens */ } return done(() => R.CL.sync(st, { rows: JSON.stringify(rows), mode: "apply", replace: replace ? "yes" : "" })); };
     api.engine = "js";
   } else api.engine = "script";
   return api;

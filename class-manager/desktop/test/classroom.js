@@ -19,7 +19,7 @@ function classroom(opts) {
     const a = path.join(PACK, p);
     return fs.existsSync(a) ? a : path.join(WEB, p);
   };
-  const make = () => createBackend({ webRoot: WEB, resolve, dataFile: path.join(dir, "workbook.json"), log: () => {}, engine: opts.engine });
+  const make = () => createBackend({ webRoot: WEB, resolve, dataFile: path.join(dir, "workbook.json"), log: () => {}, engine: opts.engine || process.env.CM_ENGINE || "script" });
   let backend = make();
   const parse = (out) => { const t = out.text; try { return JSON.parse(t); } catch (e) { return t; } };
   const c = {
