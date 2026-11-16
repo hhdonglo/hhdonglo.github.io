@@ -13,7 +13,8 @@ const ANSWERS_HEADER = ["Timestamp", "ID", "First Name", "Join Code", "Q", "Answ
 const PRESENCE_HEADER = ["Timestamp", "ID", "First Name", "Join Code", "Status"];
 const up = (v) => String(v).trim().toUpperCase();
 const blanks = (n) => new Array(n).fill("");
-const body = (store, tab, w) => { const r = store.rows(tab); return r && r.length > 1 ? r.slice(1).map((x) => x.slice(0, w)) : []; };
+// A sheet ends at its last row with something in it: rows a release emptied do not count (the script reads them the same way).
+const body = (store, tab, w) => { const r = store.rows(tab); if (!r || r.length < 2) return []; const rows = r.slice(1).map((x) => x.slice(0, w)); while (rows.length && !rows[rows.length - 1].some((c) => c !== "" && c != null)) rows.pop(); return rows; };
 const putBody = (store, tab, header, rows) => store.setRows(tab, [header.slice()].concat(rows));
 const roundOf = (store, code) => { const c = C.ctl(store, code); return c ? Number(c.v[16]) || 0 : 0; };
 

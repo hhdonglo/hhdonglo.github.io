@@ -207,7 +207,7 @@ function createBackend(opts) {
     return out && typeof out.text === "string" ? out : ContentService.createTextOutput(out == null ? "" : String(out));
   }
 
-  return {
+  const api = {
     doGet: (params) => call("doGet", params),
     doPost: (params, raw) => call("doPost", params, raw),
     version: () => version,
@@ -259,6 +259,18 @@ function createBackend(opts) {
     receipts: { get: (k) => { const r = db.raw.prepare("SELECT response FROM receipt WHERE ckey = ?").get(String(k)); return r ? r.response : null; }, put: (k, text) => { db.raw.prepare("INSERT OR IGNORE INTO receipt(ckey, response, at) VALUES(?, ?, ?)").run(String(k), String(text), Date.now()); }, prune: (days) => db.raw.prepare("DELETE FROM receipt WHERE at < ?").run(Date.now() - days * 86400000) },
     databaseInfo: () => Object.assign({ file: dbFile }, db.counts())
   };
+  // The engine: "script" (the Apps Script, run here) or "js" (the rules/ modules through rules/router.js). Both answer the same requests; "js" needs no script.
+  const engine = opts.engine || process.env.CM_ENGINE || "script";
+  if (engine === "js") {
+    const { createRouter } = require("./rules/router"), { fromBackend } = require("./rules/store");
+    const site = (p) => { const r = UrlFetchApp.fetch("http://local" + p); if (r.getResponseCode() !== 200) throw new Error("not found: " + p); return JSON.parse(r.getContentText()); };
+    const router = createRouter({ store: fromBackend(api), site, version: String(ctx.SCRIPT_VERSION), geoMode: () => ctx.ATT_GEO_MODE });
+    const run = (fn, params) => { tidyIds(); try { const r = fn(idParams(params)); return ContentService.createTextOutput(r.text).setMimeType(r.mime); } finally { flush(); } };
+    api.doGet = (params) => run(router.get, params);
+    api.doPost = (params) => run(router.post, params);
+    api.engine = "js";
+  } else api.engine = "script";
+  return api;
 }
 
 module.exports = { createBackend };
