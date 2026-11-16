@@ -29,6 +29,7 @@ Stage 1 (this folder) only adds the modules and the tests that prove they give t
 | `chat.js` | `chat_` and helpers | ported, parity tested (`communication-parity.test.js`); rate limit and change counter use `o.counters` |
 | `announcements.js` | `announcements_` | ported, parity tested (`communication-parity.test.js`) |
 | `calendar.js` | `calendar_`, `calendarAct_`, `calendarIcs_` | ported, parity tested (`communication-parity.test.js`); `ics()` returns the text, the router sets the type |
+| `progress.js` | `learningProgress_`, `studentProfile_`, `studentStats_`, My results extras | ported, parity tested (`progress-parity.test.js`); `portalExtras(store, id, o)` is what `quiz-views.portalResults` takes as `o.extras` (pass `(s, i) => portalExtras(s, i, o)`) |
 
 Store interface (`store.js`): `rows(tab)` (header first, or null), `setRows(tab, rows)`, `prop(key)`, `setProp(key, value)`, `now()`.
 Rule of the port: same input, same output as the script (`test/rules-parity.test.js` runs both on the same workbook). Do not change behaviour in a port; change it afterwards, with its own test.
