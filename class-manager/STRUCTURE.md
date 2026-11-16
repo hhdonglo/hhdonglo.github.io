@@ -355,3 +355,5 @@ CM's side of the relay hub: `desktop/relay/hub.js` and `desktop/relay/address.js
 `desktop/rules/quiz-submit.js` (what a student's page sends: answer, join, progress, timed submission, practice attempt, question report) with `test/quiz-submit-parity.test.js`, which sends the same requests to the script and to the module and compares outcomes, receipts and every record tab.
 
 `desktop/rules/quiz-views.js` (what the quiz pages read: status, questions, review, ranking, a student's result, the host view, the projector display, portal status and My results) with `test/quiz-views-parity.test.js`, which compares every view with the script at each stage of a quiz (running, second vote, ended, review, released, board hidden).
+
+`desktop/rules/learning.js` (a student's questions to revisit, per-question statistics, Teaching insights, records and notes) with `test/learning-parity.test.js`. The script's sandbox does not see its dates as dates, so the test checks the date text of records and notes by its form rather than against the script.
