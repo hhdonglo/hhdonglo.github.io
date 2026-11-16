@@ -14,7 +14,7 @@ var ROSTER_TAB = 'Roster', ATT_CTL_TAB = 'Attendance_Control', ATT_LOG_TAB = 'At
 // Named attendance view (lecturer only, from the sheet's Class Manager menu): writes a private tab Attendance_Named with Name, Student ID and a copy of every
 // Attendance column, so the lecturer can see who was present. The Attendance tab itself stays IDs only (the format a gradebook imports). Run again to refresh.
 function buildNamedAttendance() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet(), at = ss.getSheetByName(ATT_TAB), ui = SpreadsheetApp.getUi();
+  var ss = ss_(), at = ss.getSheetByName(ATT_TAB), ui = SpreadsheetApp.getUi();
   if (!at || at.getLastRow() < 1) { ui.alert('The Attendance tab is empty. Submit attendance first.'); return; }
   var names = {}; rosterRows_().forEach(function (r) { names[r[0]] = r[1]; });
   var data = at.getRange(1, 1, at.getLastRow(), at.getLastColumn()).getDisplayValues();
@@ -27,14 +27,14 @@ function buildNamedAttendance() {
 }
 
 function attSheet_() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(ATT_CTL_TAB);
+  var ss = ss_(), sh = ss.getSheetByName(ATT_CTL_TAB);
   if (!sh) { sh = ss.insertSheet(ATT_CTL_TAB); sh.appendRow(['Code', 'Label', 'Status', 'Opened', 'Closed', 'Secret', 'Lat', 'Lon', 'Radius m']); }
   if (!String(sh.getRange(1, 6).getValue()).trim()) sh.getRange(1, 6).setValue('Secret'); // the per-session secret that makes the QR token change: keep this tab private
   return sh;
 }
 
 function attRows_() { // [{row, code, label, status}]
-  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_CTL_TAB);
+  var sh = ss_().getSheetByName(ATT_CTL_TAB);
   if (!sh || sh.getLastRow() < 2) return [];
   return sh.getRange(2, 1, sh.getLastRow() - 1, 9).getValues().map(function (r, i) { return { row: i + 2, code: String(r[0]).trim().toUpperCase(), label: String(r[1]), status: String(r[2]).trim(), secret: String(r[5] || ''), lat: r[6] === '' ? null : Number(r[6]), lon: r[7] === '' ? null : Number(r[7]), radius: Number(r[8]) || 0 }; });
 }
@@ -94,7 +94,7 @@ function attDevHash_(dev) {
 function attPurgeSemester() {
   var ui = SpreadsheetApp.getUi();
   if (ui.alert('Delete device codes, registered phones, flags, classroom positions and session secrets?', 'Attendance marks are kept.', ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
-  var ss = SpreadsheetApp.getActiveSpreadsheet(), n = 0, lg = ss.getSheetByName(ATT_LOG_TAB), fl = ss.getSheetByName(ATT_FLAGS_TAB), ct = ss.getSheetByName(ATT_CTL_TAB);
+  var ss = ss_(), n = 0, lg = ss.getSheetByName(ATT_LOG_TAB), fl = ss.getSheetByName(ATT_FLAGS_TAB), ct = ss.getSheetByName(ATT_CTL_TAB);
   if (lg && lg.getLastRow() > 1 && lg.getLastColumn() >= 5) { lg.getRange(2, 5, lg.getLastRow() - 1, 1).clearContent(); n++; }
   if (fl && fl.getLastRow() > 1) { fl.deleteRows(2, fl.getLastRow() - 1); n++; }
   var phs = ss.getSheetByName(ATT_PHONES_TAB); if (phs && phs.getLastRow() > 1) { phs.deleteRows(2, phs.getLastRow() - 1); n++; }
@@ -110,7 +110,7 @@ function attPurgeSemester() {
 function clearSemesterRecords() {
   var ui = SpreadsheetApp.getUi();
   if (ui.alert('Delete all rows of Attendance_Log, Not_On_List, Reports, Attempts, Staged_Quiz, Item_Log, Question_Stats and Access_Codes?', 'Attendance, Scores, Master and Roster are kept. This cannot be undone.', ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
-  var ss = SpreadsheetApp.getActiveSpreadsheet(), n = 0;
+  var ss = ss_(), n = 0;
   [ATT_LOG_TAB, NOTLIST_TAB, 'Reports', 'Attempts', STAGED_TAB, 'Item_Log', 'Question_Stats', 'Access_Codes'].forEach(function (name) {
     var sh = ss.getSheetByName(name);
     if (sh && sh.getLastRow() > 1) { sh.deleteRows(2, sh.getLastRow() - 1); n++; }
@@ -126,7 +126,7 @@ function attFails_(key) { try { return Number(CacheService.getScriptCache().get(
 function attFailAdd_(key) { try { var c = CacheService.getScriptCache(); c.put('attf:' + key, String(Number(c.get('attf:' + key) || 0) + 1), 600); } catch (err) { /* cache only */ } }
 
 function attDeviceIds_(label, dev) { // the IDs this device token has already checked in this session, from the log
-  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_LOG_TAB), got = {};
+  var sh = ss_().getSheetByName(ATT_LOG_TAB), got = {};
   if (!sh || sh.getLastRow() < 2 || sh.getLastColumn() < 5) return got;
   sh.getRange(2, 2, sh.getLastRow() - 1, 4).getValues().forEach(function (r) { if (String(r[0]) === label && String(r[3]) === dev) got[normId_(r[1])] = true; });
   return got;
@@ -180,11 +180,11 @@ function attCheckIn_(p, code) { // the student side of the check-in: the QR toke
 // lecturer, who presses "Reset phone" on the review list; the next check-in registers the new one. Rows are deleted by attPurgeSemester.
 var ATT_PHONES_TAB = 'Attendance_Phones', ATT_REQUIRE_CODE = true, ATT_PHONE_BIND = true, ATT_PENDING = 'waiting for approval: ';
 function attPendingHas_(label, id) {
-  return bodyRows_(SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_FLAGS_TAB), 5).some(function (r) { return String(r[1]) === label && normId_(r[2]) === id && String(r[4]).indexOf(ATT_PENDING) === 0; });
+  return bodyRows_(ss_().getSheetByName(ATT_FLAGS_TAB), 5).some(function (r) { return String(r[1]) === label && normId_(r[2]) === id && String(r[4]).indexOf(ATT_PENDING) === 0; });
 }
 function attPhones_() { // {byId: {id: dev}, byDev: {dev: id}}
   var out = { byId: {}, byDev: {} };
-  bodyRows_(SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_PHONES_TAB), 2).forEach(function (r) { var id = normId_(r[0]), d = String(r[1] || ''); if (id && d) { out.byId[id] = d; out.byDev[d] = id; } });
+  bodyRows_(ss_().getSheetByName(ATT_PHONES_TAB), 2).forEach(function (r) { var id = normId_(r[0]), d = String(r[1] || ''); if (id && d) { out.byId[id] = d; out.byDev[d] = id; } });
   return out;
 }
 function attPhoneCheck_(id, dev) { // {refuse, owner} or {bind} or {changed} or {}
@@ -197,7 +197,7 @@ function attPhoneBind_(id, dev) {
   try { append_(ATT_PHONES_TAB, ['Student ID', 'Device', 'Registered'], [id, dev, new Date()]); } catch (err) { /* the check-in is already recorded */ }
 }
 function attPhoneReset_(id) { // host only: forget a student's phone, so the next check-in registers the new one
-  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_PHONES_TAB);
+  var sh = ss_().getSheetByName(ATT_PHONES_TAB);
   if (!sh) return { ok: true, removed: 0 };
   var rows = bodyRows_(sh, 3), keep = rows.filter(function (r) { return normId_(r[0]) !== id; });
   if (keep.length !== rows.length) rewriteBody_(sh, 3, keep);
@@ -212,7 +212,7 @@ function attReview_(p) { // the latest session (or p.label): its flags, each wit
   if (!cur) { rows.forEach(function (r) { if (r.status === 'Open') cur = r; }); if (!cur && rows.length) cur = rows[rows.length - 1]; }
   if (!cur) return { ok: true, session: null, items: [] };
   var present = attPresent_(cur.label), ph = attPhones_(), names = {}; rosterRows_().forEach(function (r) { names[r[0]] = r[1] || ''; });
-  var fl = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_FLAGS_TAB), items = [];
+  var fl = ss_().getSheetByName(ATT_FLAGS_TAB), items = [];
   bodyRows_(fl, 5).forEach(function (r) {
     if (String(r[1]) !== cur.label) return;
     var ids = splitIds_(r[2]).map(normId_).filter(String);
@@ -225,7 +225,7 @@ function attRemove_(p) { // host only: take one check-in out of a session that i
   rows.forEach(function (r) { if (attColumn_(r.label) === String(p.label || '')) cur = r; });
   if (!cur || !id) return { ok: false, why: 'session not found' };
   if (cur.status === 'Submitted') return { ok: false, why: 'this session is already submitted: change the mark in the Attendance tab' };
-  var lg = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_LOG_TAB), gone = 0;
+  var lg = ss_().getSheetByName(ATT_LOG_TAB), gone = 0;
   if (lg && lg.getLastRow() > 1) {
     var vals = lg.getRange(2, 2, lg.getLastRow() - 1, 2).getValues();
     for (var i = vals.length - 1; i >= 0; i--) if (String(vals[i][0]) === cur.label && normId_(vals[i][1]) === id) { lg.deleteRow(i + 2); gone++; }
@@ -236,7 +236,7 @@ function attRemove_(p) { // host only: take one check-in out of a session that i
 }
 
 function attFlagDevices_(label) { // at closing: devices that checked in more than one ID (catches two phones' taps that raced), added to the Flags tab
-  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_LOG_TAB), by = {}, n = 0;
+  var sh = ss_().getSheetByName(ATT_LOG_TAB), by = {}, n = 0;
   if (!sh || sh.getLastRow() < 2 || sh.getLastColumn() < 5) return 0;
   sh.getRange(2, 2, sh.getLastRow() - 1, 4).getValues().forEach(function (r) { var d = String(r[3]); if (String(r[0]) === label && d) (by[d] = by[d] || []).push(normId_(r[1])); });
   Object.keys(by).forEach(function (d) { if (by[d].length > ATT_DEVICE_IDS) { n++; attFlag_(label, by[d].join(', '), d, 'one device, ' + by[d].length + ' IDs (check in the log)'); } });
@@ -279,7 +279,7 @@ function attDayKey_() { return Utilities.formatDate(new Date(), Session.getScrip
 function attDayHas_(day, id) {
   var cache = null, ck = 'attd:' + day;
   try { cache = CacheService.getScriptCache(); var h = cache.get(ck); if (h && ('|' + h + '|').indexOf('|' + id + '|') >= 0) return true; } catch (err) { cache = null; }
-  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_LOG_TAB);
+  var sh = ss_().getSheetByName(ATT_LOG_TAB);
   if (!sh || sh.getLastRow() < 2) return false;
   var found = false;
   sh.getRange(2, 2, sh.getLastRow() - 1, 2).getValues().forEach(function (r) { if (String(r[0]).indexOf(day + ' #') === 0 && normId_(r[1]) === id) found = true; });
@@ -292,7 +292,7 @@ function attDayAdd_(day, id) {
 }
 
 function attPresent_(label) { // {id: true} for one session, from the log
-  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_LOG_TAB), got = {};
+  var sh = ss_().getSheetByName(ATT_LOG_TAB), got = {};
   if (!sh || sh.getLastRow() < 2) return got;
   sh.getRange(2, 1, sh.getLastRow() - 1, 3).getValues().forEach(function (r) { if (String(r[1]) === label) got[normId_(r[2])] = true; });
   return got;
@@ -305,7 +305,7 @@ function attStatus_() { // the open session if there is one, else the latest, wi
   if (!cur) { var m0 = ATT_REQUIRE_CODE ? codesMap_() : {}; return { ok: true, session: null, noCode: ATT_REQUIRE_CODE ? rosterRows_().filter(function (r) { return !m0[r[0]]; }).length : 0 }; }
   var present = attPresent_(cur.label), roster = {}; rosterRows_().forEach(function (r) { roster[r[0]] = 1; });
   var on = 0, off = 0; Object.keys(present).forEach(function (id) { if (roster[id]) on++; else off++; });
-  var waiting = {}; bodyRows_(SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_FLAGS_TAB), 5).forEach(function (r) { var i = normId_(r[2]); if (String(r[1]) === cur.label && String(r[4]).indexOf(ATT_PENDING) === 0 && !present[i]) waiting[i] = 1; });
+  var waiting = {}; bodyRows_(ss_().getSheetByName(ATT_FLAGS_TAB), 5).forEach(function (r) { var i = normId_(r[2]); if (String(r[1]) === cur.label && String(r[4]).indexOf(ATT_PENDING) === 0 && !present[i]) waiting[i] = 1; });
   var live = cur.status === 'Open' && cur.secret, now = Date.now(), slot = attSlot_(now);
   return { ok: true, session: { link: live ? attLinkFor_(cur.secret, slot) : '', secondsLeft: live ? Math.max(1, Math.ceil(((slot + 1) * ATT_SLOT_SEC * 1000 - now) / 1000)) : 0, label: attColumn_(cur.label), status: cur.status, geo: cur.lat != null && ATT_GEO_MODE !== 'off' ? ATT_GEO_MODE : 'off', radius: cur.lat != null ? (cur.radius || ATT_GEO_RADIUS_M) : 0, present: on, notOnList: off, waiting: Object.keys(waiting).length, noCode: ATT_REQUIRE_CODE && cur.status !== 'Open' ? (function () { var m = codesMap_(); return Object.keys(roster).filter(function (i) { return !m[i]; }).length; })() : 0, rosterSize: Object.keys(roster).length, pending: rows.filter(function (r) { return r.status === 'Closed'; }).length } };
 }
@@ -325,7 +325,7 @@ function attOpen_(p) {
   var base = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'dd/MM/yyyy'), n = 1;
   rows.forEach(function (r) { if (r.label.indexOf(base + ' #') === 0) n++; });
   var label = base + ' #' + n;
-  try { var lg = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_LOG_TAB); if (lg && lg.getLastRow() > 0 && !String(lg.getRange(1, 5).getValue()).trim()) lg.getRange(1, 5).setValue('Device'); if (lg && lg.getLastRow() > 0 && !String(lg.getRange(1, 6).getValue()).trim()) lg.getRange(1, 6).setValue('Location'); } catch (err) { /* header only */ }
+  try { var lg = ss_().getSheetByName(ATT_LOG_TAB); if (lg && lg.getLastRow() > 0 && !String(lg.getRange(1, 5).getValue()).trim()) lg.getRange(1, 5).setValue('Device'); if (lg && lg.getLastRow() > 0 && !String(lg.getRange(1, 6).getValue()).trim()) lg.getRange(1, 6).setValue('Location'); } catch (err) { /* header only */ }
   var secret = Utilities.getUuid() + Utilities.getUuid();
   var hla = p.lat === undefined || p.lat === '' ? NaN : Number(p.lat), hlo = Number(p.lon), hasGeo = !isNaN(hla) && !isNaN(hlo) && Math.abs(hla) <= 90 && Math.abs(hlo) <= 180;
   if (ATT_GEO_MODE === 'enforce' && !hasGeo && String(p.nogeo || '') !== '1') return { ok: false, why: 'location needed', needLocation: true }; // never start an unprotected session by accident
@@ -354,7 +354,7 @@ function attClose_() {
 function attSubmit_() {
   var sessions = attRows_().filter(function (r) { return r.status === 'Closed'; });
   if (!sessions.length) return { ok: false, why: 'no closed session is waiting to be submitted' };
-  var roster = rosterRows_(), ss = SpreadsheetApp.getActiveSpreadsheet(), done = [];
+  var roster = rosterRows_(), ss = ss_(), done = [];
   sessions.forEach(function (cur) {
     var present = attPresent_(cur.label), col = attColumn_(cur.label);
     var as = ss.getSheetByName(ATT_TAB) || ss.insertSheet(ATT_TAB);
@@ -390,7 +390,7 @@ function attSubmit_() {
 function attDiscard_() {
   var sessions = attRows_().filter(function (r) { return r.status === 'Closed'; });
   if (!sessions.length) return { ok: false, why: 'no closed session is waiting' };
-  var lg = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_LOG_TAB), gone = 0, labels = {};
+  var lg = ss_().getSheetByName(ATT_LOG_TAB), gone = 0, labels = {};
   sessions.forEach(function (r) { labels[r.label] = true; });
   if (lg && lg.getLastRow() > 1) {
     var vals = lg.getRange(2, 2, lg.getLastRow() - 1, 1).getValues();

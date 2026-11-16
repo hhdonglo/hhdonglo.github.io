@@ -270,7 +270,7 @@ function route_(e) {
       var want = String(p.state || '').toLowerCase();
       if (want && !p.act) { // older host page: legacy state in Key column H
         if (['waiting', 'started', 'stopped'].indexOf(want) < 0) return jsonp_(e, { ok: false });
-        var ks2 = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(KEY_TAB);
+        var ks2 = ss_().getSheetByName(KEY_TAB);
         var codes = ks2.getRange(2, 1, ks2.getLastRow() - 1, 1).getValues();
         for (var cc = 0; cc < codes.length; cc++) {
           if (String(codes[cc][0]).trim().toUpperCase() === code) {
