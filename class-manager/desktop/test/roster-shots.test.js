@@ -71,3 +71,28 @@ test("page requests and scripts cannot add students; they may still read and rem
   assert.equal(gate.addsStudents({ action: "roster_edit", op: "check", id: "20000001" }), false);
   assert.equal(JSON.parse(gate.refusal()).ok, false);
 });
+
+test("updating a saved class list keeps every record: new students are added, a name is corrected only when chosen, dropped students are set aside and restorable", () => {
+  const c = classroom({ students: 0 }), b = c.backend, h = {};
+  shots.register({ on: (ch, fn) => { h[ch] = (...a) => fn({ backend: b, authoring: { status: () => ({ hasKey: true }) }, backups: { make: () => ({ ok: true, name: "b" }) } }, {}, ...a); } });
+  const R = (rows) => rows.map(([id, name]) => ({ id, name }));
+  assert.ok(h["cm:rosterShotsSave"]({ rows: R([["20000001", "Ama Mensah"], ["20000002", "Kofi Boateng"], ["20000003", "Esi Owusu"]]) }).ok);
+  const mark = (tab, id, vals) => { const rows = b.rawRows(tab); const r = rows.find((x, i) => i > 0 && String(x[0]) === id); vals.forEach((v, i) => { r[i + 1] = v; }); b.setRows(tab, rows); };
+  mark("Attendance", "20000001", [1, 1]); mark("Attendance", "20000003", [1, 1]); mark("Scores", "20000002", [42, 50, 84]);
+  const next = R([["20000001", "Ama Mensah-Asare"], ["20000002", "Kofi Boateng"], ["20000004", "Yaw Darko"]]);
+  const keep = h["cm:rosterShotsSave"]({ rows: next }); // add only: no name changes, nobody dropped
+  assert.equal(keep.added, 1); assert.equal(keep.renamed, 0); assert.equal(keep.removed, 0);
+  assert.equal(b.rawRows("Roster").find((r) => r[0] === "20000001")[1], "Ama Mensah");
+  const upd = h["cm:rosterShotsSave"]({ rows: next, renames: ["20000001"], replace: true });
+  assert.equal(upd.renamed, 1); assert.equal(upd.removed, 1);
+  const name = (tab) => b.rawRows(tab).find((r) => r[0] === "20000001")[1];
+  assert.equal(name("Roster"), "Ama Mensah-Asare"); assert.equal(name("Master"), "Ama Mensah-Asare");
+  assert.deepEqual(b.rawRows("Attendance").find((r) => r[0] === "20000001").slice(1, 3), [1, 1], "attendance stays with the same ID");
+  assert.equal(b.rawRows("Scores").find((r) => r[0] === "20000002")[1], 42);
+  assert.ok(!b.rawRows("Roster").some((r) => r[0] === "20000003"), "a dropped student leaves the list");
+  assert.ok(b.rawRows("Removed_Students").some((r) => r[1] === "20000003"), "and is kept, with all rows, in Removed_Students");
+  assert.equal(b.rawRows("Roster").slice(1).length, 3);
+  assert.ok(require("../remove-student").restore(b, "20000003").ok);
+  assert.deepEqual(b.rawRows("Attendance").find((r) => r[0] === "20000003").slice(1, 3), [1, 1], "restored with the attendance it had");
+  b.close();
+});

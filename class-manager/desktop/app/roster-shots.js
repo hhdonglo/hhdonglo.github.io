@@ -6,7 +6,7 @@
   "use strict";
   var $ = function (i) { return document.getElementById(i); };
   var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
-  var rows = [], choices = {}, last = null, onSaved = function () {};
+  var rows = [], choices = {}, renames = {}, last = null, onSaved = function () {};
   var TYPES = /^image\/(png|jpeg|webp|gif)$/;
 
   function toImage(file) { // one screenshot as { name, type, data (base64) }
@@ -51,7 +51,8 @@
       p.conflicts.map(function (c) { return "<p><code>" + esc(c.id) + "</code> " + c.names.map(function (n) { return "<label style='display:inline;font-weight:400;margin-right:1rem'><input type='radio' name='rs-c-" + esc(c.id) + "' data-pick='" + esc(c.id) + "' value='" + esc(n) + "'" + (choices[c.id] === n ? " checked" : "") + "> " + esc(n) + "</label>"; }).join("") + "</p>"; }).join("");
     if (p.ambiguous.length) h += "<p class='msg err'><strong>" + p.ambiguous.length + " ID" + (p.ambiguous.length === 1 ? " cannot" : "s cannot") + " be read with certainty</strong> (" + esc(p.ambiguous.slice(0, 3).map(function (a) { return a.raw + ": " + a.why; }).join("; ")) + "). Correct " + (p.ambiguous.length === 1 ? "it" : "them") + " in the table or delete the row.</p>";
     if (p.merged.length) h += "<p class='note'>" + p.merged.length + " student" + (p.merged.length === 1 ? " appears" : "s appear") + " more than once in the screenshots (same ID and name). Each is kept once.</p>";
-    if (p.differsFromList.length) h += "<p class='note'>" + p.differsFromList.length + " student" + (p.differsFromList.length === 1 ? " is" : "s are") + " already on the list under a different name. The list keeps its name.</p>";
+    if (p.differsFromList.length) h += "<p class='note'>" + p.differsFromList.length + " student" + (p.differsFromList.length === 1 ? " is" : "s are") + " already on the list under a different name. The list keeps its name unless you tick the box.</p>" +
+      p.differsFromList.map(function (d) { return "<p><label style='display:inline;font-weight:400'><input type='checkbox' data-rename='" + esc(d.id) + "'" + (renames[d.id] ? " checked" : "") + "> <code>" + esc(d.id) + "</code> change " + esc(d.listName) + " to " + esc(d.shotName) + "</label></p>"; }).join("");
     var fresh = p.students.length - p.alreadyOnList.length;
     h += "<p class='note'>" + fresh + " new student" + (fresh === 1 ? "" : "s") + " to add; " + p.alreadyOnList.length + " already on the list.</p>";
     $("rs-notes").innerHTML = h;
@@ -69,16 +70,16 @@
     document.addEventListener("paste", function (e) { if (!$("rs-drop").offsetParent) return; var f = Array.prototype.filter.call((e.clipboardData && e.clipboardData.files) || [], function (x) { return TYPES.test(x.type); }); if (f.length) { e.preventDefault(); readFiles(f); } });
     $("rs-table").addEventListener("change", function (e) { var t = e.target; if (!t.dataset || t.dataset.i == null) return; rows[+t.dataset.i][t.dataset.f] = t.value; if (t.dataset.f === "id") rows[+t.dataset.i].unclear = false; draw(); });
     $("rs-table").addEventListener("click", function (e) { var b = e.target.closest && e.target.closest("[data-del]"); if (!b) return; rows.splice(+b.dataset.del, 1); draw(); });
-    $("rs-notes").addEventListener("change", function (e) { var t = e.target; if (t.dataset && t.dataset.pick) { choices[t.dataset.pick] = t.value; draw(); } });
-    $("rs-clear").addEventListener("click", function () { rows = []; choices = {}; draw(); msg(""); });
+    $("rs-notes").addEventListener("change", function (e) { var t = e.target; if (t.dataset && t.dataset.pick) { choices[t.dataset.pick] = t.value; draw(); } if (t.dataset && t.dataset.rename) { if (t.checked) renames[t.dataset.rename] = true; else delete renames[t.dataset.rename]; } });
+    $("rs-clear").addEventListener("click", function () { rows = []; choices = {}; renames = {}; draw(); msg(""); });
     $("rs-save").addEventListener("click", function () {
       var rep = $("rs-replace").checked;
-      if (rep && !confirm("Replace the whole class list? Students who are not in these screenshots are removed from the list. Their past marks stay.")) return;
+      if (rep && !confirm("Replace the whole class list? Students who are not in these screenshots are set aside with all their records, and can be restored.")) return;
       $("rs-save").disabled = true;
-      cmApp.rosterShotsSave({ rows: rows, choices: choices, replace: rep }).then(function (r) {
+      cmApp.rosterShotsSave({ rows: rows, choices: choices, replace: rep, renames: Object.keys(renames) }).then(function (r) {
         if (!r || !r.ok) { msg("Not saved: " + ((r && r.why) || "unknown problem"), true); $("rs-save").disabled = false; return; }
-        rows = []; choices = {}; draw();
-        msg("Saved. " + r.added + " added, " + r.unchanged + " already on the list" + (r.removed ? ", " + r.removed + " removed" : "") + ". A backup was made first.");
+        rows = []; choices = {}; renames = {}; draw();
+        msg("Saved. " + r.added + " added, " + r.unchanged + " already on the list" + (r.renamed ? ", " + r.renamed + " renamed" : "") + (r.removed ? ", " + r.removed + " set aside" : "") + ". A backup was made first.");
         onSaved(r);
       });
     });

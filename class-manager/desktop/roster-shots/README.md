@@ -11,6 +11,7 @@ For the person who maintains this code.
 | `vision.js` | Sends each screenshot to Claude (the lecturer's own API key, `authoring.askJson`) and returns raw rows. Only the image and a fixed instruction are sent. |
 | `review.js` | The one check: IDs read without guessing (`app/id-review.js`), unique per ID, conflicts and unreadable IDs listed. Pure. |
 | `ipc.js` | `cm:rosterShotsRead` (screenshots to rows and review), `cm:rosterShotsPreview` (review of the corrected table), `cm:rosterShotsSave` (review again, backup first, `backend.rosterSync`, `buildFromRoster`). The only lecturer-facing code that adds students. |
+| `update.js` | Updating a saved list: a student dropped under Replace is set aside with all their rows (Removed_Students, restorable), and a name changes only when the lecturer ticks it (Roster and Master, by ID). |
 | `gate.js` | Page and script requests (`roster_sync`, `roster_edit` with `op=add`) are refused in `main.js`. Reading and removing stay. |
 | `../app/roster-shots.js` | The screen: choose, drop or paste screenshots, correct the table, save. |
 
