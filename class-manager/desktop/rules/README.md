@@ -7,6 +7,7 @@ Stage 1 (this folder) only adds the modules and the tests that prove they give t
 | --- | --- | --- |
 | `access-codes.js` | `accessCodes_`, `codesMap_`, `codeExpired_`, `newAccessCode_` | ported, parity tested |
 | `attendance.js` | `20-attendance.gs`: open, close, check-in (QR token, device, phone, location, one mark a day), submit, discard | ported, parity tested (`attendance-parity.test.js`) |
+| `class-list.js` | `rosterSync_`, `rosterTidy_`, `rosterEdit_` (00-core.gs), `studentNoteAdd_` (35-records.gs) | ported, parity tested (`class-list-parity.test.js`) |
 | `attendance-review.js` | `attStatus_`, `attReview_`, `attRemove_`, `attApprove_`, `attPhoneReset_` | ported, parity tested (`attendance-review-parity.test.js`) |
 
 Store interface (`store.js`): `rows(tab)` (header first, or null), `setRows(tab, rows)`, `prop(key)`, `setProp(key, value)`, `now()`.
