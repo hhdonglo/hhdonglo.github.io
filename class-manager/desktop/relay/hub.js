@@ -97,6 +97,7 @@ function createHub(opts) {
     return busy;
   }
   // Live state the phones read (the open question, the attendance session): small named text values.
+  async function post(path, body) { await register(); return signed(path, body || {}); } // any signed route, for the live rules (relay/live-attend.js)
   async function pushState(set, remove) { await register(); return signed("/v1/state", { set: set || {}, remove: remove || [] }); }
   // The lecturer closes the course on the relay: everything held there for it is forgotten at once.
   async function closeCourse() { await register(); const r = await signed("/v1/close", {}); ["course", "sign", "pub"].forEach((k) => backend.setSecret("hub." + k, "")); backend.flush(); return r; }
@@ -105,7 +106,7 @@ function createHub(opts) {
   function publicConfig() { const pub = backend.secret("relay.public"); return configured() && pub ? { hub: true, url: address(), course: course(), key: pub } : null; }
   function start() { if (timer) return; register().then(() => pull()).catch((e) => { last = { at: Date.now(), ok: false, received: 0, why: e.message }; }); timer = setInterval(() => { pull().catch(() => {}); }, EVERY_MS); if (timer.unref) timer.unref(); }
   function stop() { if (timer) clearInterval(timer); timer = null; }
-  return { register, pull, pushState, closeCourse, publicConfig, start, stop, configured, setup: () => ({ ok: false, why: "The relay needs no setup." }), clear: () => ({ ok: true }), status: () => Object.assign({ configured: configured(), hub: true }, last) };
+  return { register, pull, post, pushState, closeCourse, publicConfig, start, stop, configured, setup: () => ({ ok: false, why: "The relay needs no setup." }), clear: () => ({ ok: true }), status: () => Object.assign({ configured: configured(), hub: true }, last) };
 }
 
 module.exports = { createHub, courseIdOf, sign, solve, ALLOWED };

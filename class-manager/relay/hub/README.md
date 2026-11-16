@@ -8,6 +8,12 @@ One hosted Cloudflare Worker, run by the CM owner, that lets students' phones ta
 - **Phones need only the course id.** `GET /v1/course/<id>` gives the sealing key and the live state; `POST /v1/drop` leaves a sealed item (encrypted on the phone, the relay cannot read it).
 - **Live state** (`/v1/state`): small named values CM sets (for example the open question). The class rules that use them are ported in later stages (`desktop/rules/`).
 
+## Live attendance (laptop off)
+- `src/attend.js`. CM (signed) calls `POST /v1/live/open` with the class list and a hash of each access code (the relay never holds a raw code), the session secret and the location mode; `POST /v1/live/events` and `/v1/live/ack` collect what happened; `POST /v1/live/close` stops the session and forgets the class list and secret.
+- A phone calls `POST /v1/attend` with the course id, its Student ID, a device token, the QR token and its access code. The relay applies the same rules as `desktop/rules/attendance.js` (QR token every 30 s with one cycle of grace, access code, one mark per ID per day, one phone per ID per session, one phone per student for the term, location check) and answers at once. `test/attend.test.js` runs both on the same cases.
+- Events (`ok`, `pending`, `flag`, `bind`) are kept until CM collects them, at most 14 days. While a class runs the relay can read Student IDs and device hashes; closing the session removes the class list.
+- Quizzes on the relay are the next stage.
+
 ## Abuse controls (no human action)
 Rate limits per network address and per day for new courses, a proof of work (18 bits, about a second for CM), caps on items, bytes and state per course, a ceiling on all courses, optional `BUILD_KEYS` (only listed builds may register), a kill switch (`REGISTRATION_OPEN="0"`), and forgetting: unpulled items after 14 days, unused courses after 60 days, old nonces and counters daily (`src/db.js`, the scheduled cleanup).
 
