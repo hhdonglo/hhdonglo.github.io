@@ -61,8 +61,8 @@ body.focus main{padding-top:1rem}
  <div id="a-main" hidden>
  <section class="panel">
   <h3>Access codes for My progress</h3>
-  <p class="note">Students open their progress page in the Portal with their student ID and a personal access code. The ID alone is no longer enough, so a classmate who knows an ID cannot see that student's marks. Create a code for every student on the class list, print the slips and hand each student their own slip in class. A code can be replaced at any time; the old one stops working at once.</p>
-  <p><button class="go" type="button" id="a-gen">Create codes for students without one</button><button class="go alt" type="button" id="a-print">Print slips</button><a class="go alt" href="control.html">Control Centre</a></p>
+  <p class="note">Students open their progress page in the Portal with their student ID and a personal access code. The ID alone is no longer enough, so a classmate who knows an ID cannot see that student's marks. Every student on the class list gets a code automatically, so print the slips and hand each student their own slip in class. A code can be replaced at any time; the old one stops working at once.</p>
+  <p><button class="go" type="button" id="a-gen">Create missing codes now</button><button class="go alt" type="button" id="a-print">Print slips</button><a class="go alt" href="control.html">Control Centre</a></p>
   <p class="note" id="a-state" role="status"></p>
   <p class="err" id="a-err" role="alert" hidden></p>
  </section>
@@ -84,13 +84,14 @@ body.focus main{padding-top:1rem}
 var SCRIPT_URL=window.CM.scriptUrl,$=function(i){return document.getElementById(i)},ROWS=[];
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function jsonp(params,cb,ms){CM.call(params,cb,ms)} // every request by POST: see CM.call in config.js
-var KEY="";try{KEY=sessionStorage.getItem("cm_hk")||""}catch(x){}
+var AUTO=0,KEY="";try{KEY=sessionStorage.getItem("cm_hk")||""}catch(x){}
 var PORTAL=CM.pageUrl("index.html");
 function call(op,extra){
  $("a-err").hidden=true;
  jsonp("action=access_codes&op="+op+"&hostkey="+encodeURIComponent(KEY)+(extra||""),function(d){
   if(!d){$("a-err").textContent="The class server could not be reached, or it does not support access codes yet (update the Apps Script).";$("a-err").hidden=false;return}
   if(!d.ok){if(/host key/.test(d.why||"")){KEY="";try{sessionStorage.removeItem("cm_hk")}catch(x){}login();return}$("a-err").textContent=d.why==="not on list"?"That ID is not on the class list.":"Not done: "+(d.why||"unknown");$("a-err").hidden=false;return}
+  if(op==="list"&&d.missing&&!AUTO){AUTO=1;call("generate");return} // codes appear by themselves for every student on the class list
   ROWS=d.rows||[];
   if(d.days!=null&&document.activeElement!==$("a-days"))$("a-days").value=d.days;
   $("a-state").textContent=ROWS.length+" students on the class list; "+(ROWS.length-d.missing)+" with a code"+(d.missing?", "+d.missing+" without":"")+"."+(d.expired?" "+d.expired+" expired.":"")+(op==="generate"?" Created "+d.made+".":op==="reset"&&d.made?" Code replaced.":op==="renew"?" Renewed "+d.made+".":op==="expiry"?" Expiry saved.":"");
