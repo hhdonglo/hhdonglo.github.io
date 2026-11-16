@@ -349,3 +349,5 @@ CM's side of the relay hub: `desktop/relay/hub.js` and `desktop/relay/address.js
 `desktop/rules/quiz-control.js` (start, next, pause, end, release, restart, review, settings; the question draw and the correct letters) with `test/quiz-control-parity.test.js`. The held-results steps (finalize, commit, discard) are passed in as hooks and arrive with step 3b. `backend.setProp(key, null)` now removes a setting, as the script's deleteProperty does.
 
 `desktop/rules/quiz-results.js` (the answers of a paced quiz, compiling them when it ends, Release and Discard of held results, the item log, presence) with `test/quiz-results-parity.test.js`. Release calls the score tables through the `master` and `totals` hooks, which `rules/score-tables.js` fills in the next step.
+
+`desktop/rules/score-tables.js` (Master, Scores and Totals, built from released results, practice and mock tries) is the `master` and `totals` hook of a release; the release test compares all three tabs with the script's.
