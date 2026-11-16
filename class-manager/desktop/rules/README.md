@@ -26,6 +26,9 @@ Stage 1 (this folder) only adds the modules and the tests that prove they give t
 | `text.js` | `calWhen_`, `calDate_`, `chatTxt_`, `safeLink_`, `fmtDay_`, `randInt_`, `shuffled_` | shared text, date and shuffle helpers (used by groups, assignments, calendar and chat) |
 | `groups.js` | `groupsAct_`, `studentGroups_`, `groupsDisplay_` | ported, parity tested (`collaboration-parity.test.js`); random dealing takes `o.random` so tests can be exact |
 | `assignments.js` | `assignmentsAct_`, `groupWork_`, `groupWorkOf_`, `asgSummary_` | ported, parity tested (`collaboration-parity.test.js`) |
+| `chat.js` | `chat_` and helpers | ported, parity tested (`communication-parity.test.js`); rate limit and change counter use `o.counters` |
+| `announcements.js` | `announcements_` | ported, parity tested (`communication-parity.test.js`) |
+| `calendar.js` | `calendar_`, `calendarAct_`, `calendarIcs_` | ported, parity tested (`communication-parity.test.js`); `ics()` returns the text, the router sets the type |
 
 Store interface (`store.js`): `rows(tab)` (header first, or null), `setRows(tab, rows)`, `prop(key)`, `setProp(key, value)`, `now()`.
 Rule of the port: same input, same output as the script (`test/rules-parity.test.js` runs both on the same workbook). Do not change behaviour in a port; change it afterwards, with its own test.
