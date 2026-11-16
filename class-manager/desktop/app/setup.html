@@ -6,7 +6,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Course setup | Class Manager</title>
 <script src="../config.js"></script>
-<script src="id-review.js"></script>
+<script src="roster-shots.js"></script>
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="../assets/site.css">
 <style>
@@ -31,6 +31,7 @@ html{font-size:clamp(15px,calc(9.5px + .42vw),19px)}
 .su button.link{border:0;background:none;padding:.2rem .3rem;min-height:0;text-decoration:underline;color:var(--link)}
 .su .msg{font-weight:600;min-height:1.4em}
 .su .nav{display:flex;flex-wrap:wrap;justify-content:space-between;gap:.5rem;margin-top:1rem}
+.su .drop{border:2px dashed var(--border);border-radius:8px;padding:14px;text-align:center}.su .drop.over{border-color:var(--gold,#c9a227)}.su .tbl input{width:100%;min-width:7rem}.su tr.unclear td{background:rgba(201,162,39,.18)}
 .su .tbl{overflow:auto;max-height:20rem;border:1px solid var(--border);border-radius:6px;margin-top:.6rem}
 .su table{border-collapse:collapse;font-size:.9rem;width:max-content;min-width:100%}
 .su td,.su th{border-bottom:1px solid var(--border);padding:.3rem .55rem;text-align:left;white-space:nowrap}
@@ -68,10 +69,10 @@ html{font-size:clamp(15px,calc(9.5px + .42vw),19px)}
 <section data-step="start" aria-labelledby="h-start" hidden>
  <h2 id="h-start">How do you want to begin?</h2>
  <div class="choice">
-  <div class="card"><h3>Start from scratch</h3><p class="why">Enter the course details, then paste or load just student ID and name. CM builds everything else: the class list, Master, Scores, Totals and the attendance sheet, ready for the first session.</p><button type="button" class="p" id="start-new">Start from scratch</button></div>
-  <div class="card"><h3>Use a template</h3><p class="why">Download a workbook with the right headings, fill in the class list (and scores or attendance if you have them), then load it.</p><button type="button" id="tpl-get">Download the template</button> <button type="button" class="p" id="tpl-load" data-import-web="template">Load the filled template…</button><p class="msg" id="tpl-msg" role="status"></p></div>
-  <div class="card"><h3>Load from a folder</h3><p class="why">Point CM at the folder that holds your files (class list, scores, attendance, quiz bank, in any layout). It finds what it needs, ignores the rest and builds a clean working file of its own. Your files are never changed.</p><button type="button" class="p" id="start-folder" data-folder-import="setup">Choose a folder…</button></div>
-  <div class="card"><h3>Continue from existing data</h3><p class="why">Load the results exported from the web version (the Google Sheet downloaded as Excel). You read a preview first; the class list, scores, attendance and practice attempts are loaded and you carry on from there.</p><button type="button" class="p" id="start-continue" data-import-web="continue">Continue from existing data…</button></div>
+  <div class="card"><h3>Start from scratch</h3><p class="why">Enter the course details, then add screenshots of your class list. CM builds everything else: the class list, Master, Scores, Totals and the attendance sheet, ready for the first session.</p><button type="button" class="p" id="start-new">Start from scratch</button></div>
+  <div class="card"><h3>Use a template</h3><p class="why">Download a workbook with the right headings, fill in scores or attendance, then load it. It is checked against the class list from the Class roster step; it never adds students.</p><button type="button" id="tpl-get">Download the template</button> <button type="button" class="p" id="tpl-load" data-import-web="template">Load the filled template…</button><p class="msg" id="tpl-msg" role="status"></p></div>
+  <div class="card"><h3>Load from a folder</h3><p class="why">Point CM at the folder that holds your files (scores, attendance, quiz bank, in any layout). Students are never added from it: it is checked against your class list. It finds what it needs, ignores the rest and builds a clean working file of its own. Your files are never changed.</p><button type="button" class="p" id="start-folder" data-folder-import="setup">Choose a folder…</button></div>
+  <div class="card"><h3>Continue from existing data</h3><p class="why">Load the results exported from the web version (the Google Sheet downloaded as Excel). You read a preview first; scores, attendance and practice attempts for students on your class list are loaded and you carry on from there. Add the class list first, from screenshots.</p><button type="button" class="p" id="start-continue" data-import-web="continue">Continue from existing data…</button></div>
  </div>
 </section>
 
@@ -104,28 +105,18 @@ html{font-size:clamp(15px,calc(9.5px + .42vw),19px)}
 </section>
 
 <section data-step="class" aria-labelledby="h-class" hidden>
- <h2 id="h-class">Class list</h2>
- <p class="why">Attendance, quiz marks and access codes count only the students on the class list. Choose a file exported from your student records (CSV or Excel), or paste the list. Then say which columns hold the student ID, the first name and the last name, and check the preview before saving.</p>
+ <h2 id="h-class">Class roster</h2>
+ <p class="why">The class list is the fact the whole course depends on: attendance, marks and access codes count only the students on it. It is entered here and nowhere else. Every other file you add to CM is only checked against this list, and never adds or changes a student.</p>
  <div class="card">
-  <p><button type="button" id="cl-file">Choose a file (CSV or Excel)</button><button type="button" id="cl-sample">Download the Excel template</button></p>
-  <label for="cl-text">Or paste the list <span class="opt">(one student per line, columns separated by commas or tabs)</span></label>
-  <textarea id="cl-text" placeholder="Student ID, First name, Last name"></textarea>
-  <p><button type="button" id="cl-read">Read the pasted list</button></p>
-  <div id="cl-map" hidden>
-   <p class="note" id="cl-src"></p>
-   <div class="two">
-    <div><label for="cl-id">Column with the student ID</label><select id="cl-id"></select></div>
-    <div><label for="cl-name">Column with the first name, or the whole name <span class="opt">(optional)</span></label><select id="cl-name"></select></div>
-    <div><label for="cl-last">Column with the last name <span class="opt">(optional)</span></label><select id="cl-last"></select></div>
-   </div>
-   <p><label style="display:inline;font-weight:400"><input type="checkbox" id="cl-head"> The first row holds column headings</label></p>
-   <p><label style="display:inline;font-weight:400"><input type="checkbox" id="cl-replace"> Replace the whole list (otherwise new students are added)</label></p>
-   <p class="note" id="cl-count"></p>
-   <div id="cl-amb" hidden></div>
-   <div class="tbl" id="cl-prev"></div>
-   <p><button class="p" type="button" id="cl-save">Save the class list</button></p>
+  <p class="why">Add screenshots of your class list. CM reads the student IDs and names from them with your Anthropic API key (the images are sent to Anthropic to be read; nothing else about the course is sent). You then check and correct the table before anything is saved. An ID belongs to one student: a repeat is merged, and an ID read with two names must be settled by you.</p>
+  <div id="rs-drop" class="drop" tabindex="0"><p><button type="button" class="p" id="rs-pick">Add screenshots</button> or drop or paste them here. PNG, JPEG, WebP or GIF, up to 12 at a time.</p><input type="file" id="rs-file" accept="image/png,image/jpeg,image/webp,image/gif" multiple hidden></div>
+  <p class="msg" id="rs-msg" role="status"></p>
+  <div id="rs-work" hidden>
+   <div class="tbl" id="rs-table"></div>
+   <div id="rs-notes"></div>
+   <p><label style="display:inline;font-weight:400"><input type="checkbox" id="rs-replace"> Replace the whole list (otherwise new students are added)</label></p>
+   <p><button class="p" type="button" id="rs-save">Save the class list</button> <button type="button" id="rs-clear">Start again</button></p>
   </div>
-  <p class="msg" id="cl-msg" role="status"></p>
  </div>
  <div class="nav"><button type="button" data-go="course">Back</button><span><button type="button" class="link" data-skip="materials">Skip for now</button><button class="p" type="button" data-go="materials">Continue</button></span></div>
 </section>
@@ -226,56 +217,8 @@ $("f-course").addEventListener("submit",function(e){e.preventDefault();
 $("c-accent").addEventListener("input",function(){$("c-accent-on").checked=true});
 $("logo-pick").addEventListener("click",function(){cmApp.chooseLogo(false).then(function(r){if(!r)return;if(!r.ok){$("c-msg").textContent=r.why;return}showLogo(r.logo)})});
 $("logo-clear").addEventListener("click",function(){cmApp.chooseLogo(true).then(function(r){if(r&&r.ok)showLogo("")})});
-// ---------- class list ----------
-function colName(i){return "Column "+String.fromCharCode(65+i)}
-function setRows(rows,src){
- FIX={};ROWS=rows||[];if(!ROWS.length){$("cl-msg").textContent="Nothing to read: the list is empty.";$("cl-map").hidden=true;return}
- $("cl-msg").textContent="";$("cl-map").hidden=false;$("cl-src").textContent=src;
- var w=ROWS.reduce(function(m,r){return Math.max(m,r.length)},0),head=ROWS[0];
- var looksHead=!/\d{4,}/.test(head.join(" "));$("cl-head").checked=looksHead;
- var opts=function(none){var h="";if(none)h+='<option value="-1">No name</option>';for(var i=0;i<w;i++)h+='<option value="'+i+'">'+esc(colName(i)+(looksHead&&head[i]?": "+head[i]:""))+'</option>';return h};
- $("cl-id").innerHTML=opts(false);$("cl-name").innerHTML=opts(true);$("cl-last").innerHTML=opts(true);
- // Guess: the column with most 4 to 12 digit numbers is the ID; a heading with "name" is the name.
- var best=0,bestN=-1;for(var i=0;i<w;i++){var n=ROWS.filter(function(r){return /^\D*\d{4,12}\D*$/.test(r[i]||"")}).length;if(n>bestN){bestN=n;best=i}}
- $("cl-id").value=best;var nm=-1,ln=-1;
- // Headings decide first: first/given name, then last/surname/family name, then any "name" column.
- head.forEach(function(h,i){if(i===best)return;if(nm<0&&/first|given|forename/i.test(h))nm=i;else if(ln<0&&/last|sur|family/i.test(h))ln=i});
- if(nm<0)head.forEach(function(h,i){if(nm<0&&i!==best&&i!==ln&&/name/i.test(h))nm=i});
- if(nm<0&&w>1)nm=best===0?1:0;$("cl-name").value=nm;$("cl-last").value=ln;
- preview();
-}
-var FIX={},AMB=[]; // FIX: the ID the lecturer typed for a row whose ID could not be read with certainty; AMB: those rows
-function mapped(){var id=+$("cl-id").value,nm=+$("cl-name").value,ln=+$("cl-last").value,rows=$("cl-head").checked?ROWS.slice(1):ROWS,off=$("cl-head").checked?2:1;AMB=[];
- // [ID, first name (or whole name), last name]; CM joins them into one name when it saves. An ID is never guessed: see id-review.js.
- return rows.map(function(r,k){var raw=r[id],fixed=FIX[k],res=cmIdReview.read(fixed!=null&&fixed!==""?fixed:raw);
-  if(res.status==="ambiguous")AMB.push({k:k,line:k+off,raw:String(raw==null?"":raw),why:res.why,name:[nm>=0?r[nm]:"",ln>=0?r[ln]:""].join(" ").trim(),typed:fixed!=null&&fixed!==""});
-  return[res.id,nm>=0?String(r[nm]||""):"",ln>=0?String(r[ln]||""):""]})}
-function ambHtml(){if(!AMB.length){$("cl-amb").hidden=true;$("cl-amb").innerHTML="";return}
- $("cl-amb").hidden=false;$("cl-amb").innerHTML="<p class='msg'><strong>"+AMB.length+" ID"+(AMB.length===1?"":"s")+" could not be read with certainty.</strong> These rows are not saved until the ID is corrected. Type the right ID (4 to 12 digits) and press Check, or leave the row out.</p>"+
-  "<div class='tbl'><table><thead><tr><th>Row</th><th>As written in the file</th><th>Name</th><th>Why</th><th>Correct ID</th></tr></thead><tbody>"+AMB.slice(0,50).map(function(a){
-   return"<tr><td>"+a.line+"</td><td><code>"+esc(a.raw)+"</code></td><td>"+esc(a.name)+"</td><td>"+esc(a.why)+"</td><td><label class='vh' for='amb-"+a.k+"'>Correct ID for row "+a.line+"</label><input id='amb-"+a.k+"' data-amb='"+a.k+"' inputmode='numeric' style='width:7rem'> <button type='button' data-ambok='"+a.k+"'>Check</button></td></tr>"}).join("")+"</tbody></table></div>"+(AMB.length>50?"<p class='note'>The first 50 are shown.</p>":"")}
-function preview(){var m=mapped(),ok=m.filter(function(r){return /^\d{4,12}$/.test(r[0])}),bad=m.length-ok.length-AMB.length;
- $("cl-count").textContent=ok.length+" students will be saved"+(AMB.length?"; "+AMB.length+(AMB.length===1?" row needs":" rows need")+" a corrected ID":"")+(bad>0?"; "+bad+" rows without a student ID will be skipped":"")+".";
- ambHtml();
- $("cl-prev").innerHTML="<table><thead><tr><th>Student ID</th><th>First name</th><th>Last name</th></tr></thead><tbody>"+m.slice(0,10).map(function(r){var v=/^\d{4,12}$/.test(r[0]);return"<tr><td>"+(v?esc(r[0]):"<em>not valid</em>")+"</td><td>"+esc(r[1])+"</td><td>"+esc(r[2])+"</td></tr>"}).join("")+"</tbody></table>"+(m.length>10?"<p class='note' style='padding:.3rem .55rem'>First 10 rows shown.</p>":"");
-}
-$("cl-amb").addEventListener("click",function(e){var b=e.target.closest&&e.target.closest("[data-ambok]");if(!b)return;var k=b.getAttribute("data-ambok"),inp=$("amb-"+k),v=cmIdReview.read(inp.value);
- if(v.status!=="ok"){inp.setAttribute("aria-invalid","true");inp.value="";inp.placeholder="4 to 12 digits";return}
- FIX[k]=v.id;preview()});
-["cl-id","cl-name","cl-last","cl-head"].forEach(function(i){$(i).addEventListener("change",function(){FIX={};preview()})});
-$("cl-file").addEventListener("click",function(){cmApp.tableFile().then(function(r){if(!r)return;if(!r.ok){$("cl-msg").textContent=r.why;return}setRows(r.rows,"From "+r.name+": "+r.rows.length+" rows.")})});
-$("cl-read").addEventListener("click",function(){cmApp.tableText($("cl-text").value).then(function(r){setRows(r.rows,"From the pasted list: "+r.rows.length+" rows.")})});
-$("cl-sample").addEventListener("click",function(){cmApp.sampleClassList().then(function(p){if(p)$("cl-msg").textContent="Saved the template to "+p+". Fill in the Class list sheet, save it, then choose it above."})});
-$("cl-save").addEventListener("click",function(){
- var rep=$("cl-replace").checked;
- if(AMB.length&&!confirm(AMB.length+" row(s) have an ID that could not be read with certainty and will be left out. Save the rest?"))return;
- if(rep&&!confirm("Replace the whole class list? Students not in the new list are removed from the list. Their past marks stay."))return;
- cmApp.classRows(mapped(),rep).then(function(r){
-  if(!r||!r.ok){$("cl-msg").textContent="Not saved: "+(r&&r.why||"unknown problem");return}
-  $("cl-map").hidden=true;$("cl-text").value="";
-  cmApp.setup().then(function(d){marks(d.setup);$("cl-msg").textContent="Saved. "+r.added+" added, "+r.unchanged+" already on the list"+(r.removed?", "+r.removed+" removed":"")+". The class list now has "+d.setup.roster+" students."})
- });
-});
+// ---------- class roster: screenshots (roster-shots.js) ----------
+cmRosterShots.init({onSaved:function(){cmApp.setup().then(function(d){marks(d.setup)})}});
 // ---------- materials ----------
 function drawLecs(){
  $("lec-list").innerHTML=LECS.length?LECS.map(function(l){

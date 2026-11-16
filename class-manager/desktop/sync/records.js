@@ -71,7 +71,8 @@ function createRecordsSync(opts) {
 
   // One synchronisation: read the others, merge, apply here, publish this computer's result.
   async function run(items) {
-    const want = { classList: items.classList === "sync", attendance: items.attendance === "sync" };
+    // The class list is never merged in from another computer or a linked folder: it is entered only on the Class Roster page (roster-shots/README.md).
+    const want = { classList: false, attendance: items.attendance === "sync" };
     if (!want.classList && !want.attendance) return { ok: true, skipped: true, conflicts: 0, devices: 0, changed: {} };
     const base = opts.readBase() || {};
     const { snaps, problems } = await others();
@@ -90,6 +91,9 @@ function createRecordsSync(opts) {
       for (const s of snaps) if (s.attendance) {
         const m = merge3(base.attendance || {}, cur, seenBy(s.attendance, s.knownAttendance, cur), presentWins); cur = m.data; conflicts += m.conflicts; cols = union(cols, s.attCols || []);
       }
+      const onList = new Set(Object.keys(rosterMap(opts.readRows("Roster")))), had = mine0.attendance; // another computer never adds a student: rows for IDs not on this class list are left out
+      const idOf = (k) => k.split(SEP)[0], hadIds = new Set(Object.keys(had).map(idOf));
+      cur = Object.keys(cur).reduce((o, k) => { if (onList.has(idOf(k)) || hadIds.has(idOf(k))) o[k] = cur[k]; return o; }, {});
       if (JSON.stringify([cur, cols]) !== before) { opts.setRows("Attendance", attRows(cur, cols)); changed.attendance = true; }
       result.attendance = cur; result.attCols = cols; result.knownAttendance = union(base.knownAttendance || Object.keys(base.attendance || {}), Object.keys(cur));
     }

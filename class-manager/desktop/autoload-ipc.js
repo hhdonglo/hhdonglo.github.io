@@ -15,7 +15,7 @@ const { analyzeFile } = require("./autoload/analyze");
 const { findDetails, FIELDS } = require("./autoload/course-details");
 const { importSummary } = require("./autoload/summary");
 const { oversized } = require("./autoload/oversize");
-const { plan, classIdsOf } = require("./import-plan");
+const { plan } = require("./import-plan");
 const { pending } = require("./import-ipc");
 
 const localOf = (backend) => ({ read: (name) => backend.rows(name) });
@@ -88,9 +88,7 @@ function registerOn(opts, { on, dialog, winOf, shell, dirOf }) {
       const book = mergeBooks(webBooks.concat([planBookOf([], { web: false, clean: plain })]));
       const name = chosen.length === 1 ? chosen[0].name : chosen.length + " files from the folder";
       pending.set(c.id, { name, book });
-      const hasList = book.some((sh) => /^roster$/i.test(sh.name));
-      const courseHasList = classIdsOf(localOf(c.backend).read("Roster")).length > 0; // once a course has a class list, IDs outside it are flagged, not added, unless the lecturer ticks the box
-      const opts = { onlyClassList: true, addMissing: o && o.addMissing != null ? !!o.addMissing : hasList && !courseHasList };
+      const opts = { onlyClassList: true, addMissing: false }; // a folder never adds students: they are checked against the class list from the Class Roster page
       pending.get(c.id).addMissing = opts.addMissing;
       const report = plan(book, localOf(c.backend), opts).report;
       const seen = new Set(report.students.conflicts.map((x) => x.id)); // names that differ between the chosen files themselves are flagged too

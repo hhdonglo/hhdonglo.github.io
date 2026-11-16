@@ -9,7 +9,6 @@ const config = require("./config");
 const keys = require("./keys");
 const { readRoster } = require("./roster-read");
 const { planRoster } = require("./roster-plan");
-const { applyRoster } = require("./roster-apply");
 const { listAssessments } = require("./assessments");
 const { buildGradebook } = require("./gradebook");
 const { getToken, SCOPES } = require("./token");
@@ -49,17 +48,6 @@ function register({ on, dialog, winOf, shell, dirOf, fetchFn }) {
       const got = await fetchMembers(cfg.membersUrl, token, doFetch);
       return summary(c, "the LMS", got.students, { unmatched: got.unmatched });
     } catch (err) { return stop(err.message); }
-  });
-
-  on("cm:lmsRosterApply", (c, e, o) => {
-    const p = pending.get(c.id);
-    if (!p) return stop("Read a roster first.");
-    const plan = planRoster(p.students, classRows(c));
-    const toAdd = o && o.addMissing ? plan.toAdd : [];
-    if (toAdd.length) { const b = c.backups && c.backups.make("before LMS roster"); if (b && b.ok === false) return stop("A backup could not be made first, so nothing was added: " + b.why); }
-    const done = applyRoster(c.backend, toAdd);
-    pending.delete(c.id);
-    return Object.assign({ ok: true }, done);
   });
 
   on("cm:lmsGradebookFile", async (c, e, o) => { // the file to upload to the LMS gradebook

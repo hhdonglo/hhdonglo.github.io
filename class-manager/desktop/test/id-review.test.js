@@ -12,11 +12,9 @@ test("IDs Excel has changed only in form are read; anything uncertain is listed,
   for (const v of ["", "   ", "Student ID", null, undefined]) assert.equal(read(v).status, "blank");
 });
 
-test("22583439.0 is no longer turned into 225834390 on the way in", () => {
-  const main = fs.readFileSync(path.join(__dirname, "..", "main.js"), "utf8");
-  const start = main.indexOf('on("cm:classRows"');
-  assert.ok(main.slice(start, start + 600).includes("idReview.read"));
+test("the Class Roster screen and the save read IDs with the same rule, never guessing", () => {
+  const rv = fs.readFileSync(path.join(__dirname, "..", "roster-shots", "review.js"), "utf8");
+  assert.ok(rv.includes("idReview.read"), "review.js uses id-review.js");
   const setup = fs.readFileSync(path.join(__dirname, "..", "app", "setup.html"), "utf8");
-  assert.ok(!/String\(r\[id\]\|\|""\)\.replace\(\/\\D\/g/.test(setup), "the setup screen no longer strips non-digits blindly");
-  assert.ok(setup.includes('id="cl-amb"') && setup.includes("id-review.js"));
+  assert.ok(setup.includes("roster-shots.js") && setup.includes('id="rs-save"'));
 });

@@ -550,7 +550,7 @@ function createAuthoring(opts) {
   }
 
   return { status, setSettings, listDocs, addFiles, removeDoc, setDoc, docPassages, search, summarise, banks, setBankTitle, siteFile,
-    listDrafts, addDrafts: (items, origin) => addDrafts((items || []).map(fromForm), origin), updateDraft, rejectDrafts, approve, withdraw, importFile, importText, generate };
+    askJson, listDrafts, addDrafts: (items, origin) => addDrafts((items || []).map(fromForm), origin), updateDraft, rejectDrafts, approve, withdraw, importFile, importText, generate };
 }
 
 module.exports = { createAuthoring, parseQuestions, extract, chunk, toHtml };

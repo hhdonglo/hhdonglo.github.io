@@ -135,8 +135,7 @@
     body.innerHTML =
       "<p><strong>Working file made.</strong> From " + (r.name ? esc(r.name) : "the files") + ", CM kept " + esc(countsOf(s) || "nothing") + ". It is saved in CM's own folder; your originals are untouched.</p>" +
       "<p class='row'><button class='btn' type='button' id='fld-export'>Export the working file…</button><button class='btn' type='button' id='fld-open'>Open the working folder</button></p>" +
-      "<p>Class list: <strong>" + n(st.classList) + "</strong> students in this course. <strong>" + n(st.withData) + "</strong> have records in the files." + (st.notOnList ? " <strong>" + n(st.notOnList) + "</strong> other IDs are not on the class list and are left out unless you add them. <strong>The class list is the source of truth for who is in this course.</strong> Check these IDs before adding anyone: a wrong ID would put a stranger's records in your class." : "") + "</p>" +
-      ((st.notOnList || st.toAdd || !st.classList) ? "<label style='display:block;margin:.6rem 0'><input type='checkbox' id='fld-add'" + (opts.addMissing ? " checked" : "") + "> Add the students in the files to the class list" + (st.toAdd ? " (" + n(st.toAdd) + " would be added)" : "") + "</label>" : "") +
+      "<p>Class list: <strong>" + n(st.classList) + "</strong> students in this course. <strong>" + n(st.withData) + "</strong> have records in the files." + (st.notOnList ? " <strong>" + n(st.notOnList) + "</strong> other IDs are not on the class list. They are left out and not added. <strong>The class list is the source of truth for who is in this course</strong>, and it is changed only on the Class Roster page." : "") + "</p>" +
       summaryHtml(r.summary, rep) + (window.cmFolderCourse ? cmFolderCourse.html(courseFields, courseTopics, courseExisting) : "") +
       (st.namesFilled ? "<p class='note'>" + n(st.namesFilled) + " student(s) on the class list had no name; the files give it.</p>" : "") + flaggedHtml(st) + conflictsHtml(st) + table + (rep.warnings || []).map(function (x) { return "<p class='msg'>" + esc(x) + "</p>"; }).join("") +
       (qn ? "<p>The files also hold <strong>" + n(qn) + "</strong> quiz question set(s). <button class='btn' type='button' id='fld-q'>Send them to the review queue</button> <span class='note' id='fld-qmsg' role='status'>You approve each question before students see it.</span></p>" : "") +
@@ -147,8 +146,6 @@
     body.querySelector("#fld-back").onclick = function () { cmApp.autoScan({}).then(found); };
     body.querySelector("#fld-export").onclick = function () { cmApp.autoExport().then(function (x) { if (x && !x.ok) alert(x.why); }); };
     body.querySelector("#fld-open").onclick = function () { cmApp.autoOpenWorking(); };
-    var add = body.querySelector("#fld-add");
-    if (add) add.onchange = function () { opts.addMissing = add.checked; cmApp.importPlan({ addMissing: opts.addMissing }).then(function (x) { if (x && x.ok) show({ ok: true, name: r.name, working: r.working, addMissing: opts.addMissing, report: x.report, summary: r.summary }); }); };
     var q = body.querySelector("#fld-q");
     if (q) q.onclick = function () { cmApp.autoQuestions({ ids: chosenIds }).then(function (x) { body.querySelector("#fld-qmsg").textContent = x.ok ? n(x.added) + " question(s) are in the review queue (Author, Drafts)." + (x.flagged ? " " + x.flagged + " could not be read as complete questions." : "") : x.why; q.disabled = !!x.ok; }); };
     var go = body.querySelector("#fld-go");
@@ -170,7 +167,7 @@
 
   Array.prototype.forEach.call(btns, function (b) {
     b.addEventListener("click", function () {
-      opts = { addMissing: b.getAttribute("data-folder-import") === "setup" ? true : null };
+      opts = { addMissing: false };
       d.showModal(); busy("Looking at the folder…");
       cmApp.autoState().then(function (s) { watching = false; if (!s.folder) return welcome(); cmApp.autoScan({}).then(found); });
     });

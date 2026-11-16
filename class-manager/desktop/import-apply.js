@@ -1,6 +1,6 @@
 // The web import, step two: write the plan made by import-plan.js into this course's workbook.
 // Only adds: a row already in the workbook is never changed or removed, and the Attendance record only gains sessions and marks of 1.
-// `book` is the backend's small interface: sheet(name, create) and rows(name); `addToClassList(rows)` adds students; `rebuild()` works out the marks again.
+// `book` is the backend's small interface: sheet(name, create) and rows(name); `rebuild()` works out the marks again. It never adds students.
 "use strict";
 
 function writeTab(book, op) {
@@ -22,7 +22,6 @@ function apply(ops, book, hooks) {
     if (op.grid) writeGrid(book, op); else writeTab(book, op);
     done.tabs++; done.rows += op.rows ? op.rows.length : 0;
   });
-  if (ops.roster && ops.roster.length) { const r = hooks.addToClassList(ops.roster); done.students = r && r.added !== undefined ? r.added : ops.roster.length; }
   if (ops.tabs.length || done.students) hooks.rebuild();
   return done;
 }

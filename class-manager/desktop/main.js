@@ -19,15 +19,13 @@ const { createAuthoring } = require("./authoring");
 const governance = require("./governance"), extras = require("./extras"), summary = require("./summary");
 const { createTunnel, createLimiter } = require("./tunnel");
 const { createCourse } = require("./course");
-const { readTable } = require("./table");
 const names = require("./names");
+const rosterGate = require("./roster-shots/gate");
 const excel = require("./excel");
 const webImport = require("./import-ipc");
 const folderImport = require("./autoload-ipc");
 const idNoticesIpc = require("./id-notices-ipc");
-const idReview = require("./app/id-review");
 const llm = require("./llm/ipc");
-const { nameChecks } = require("./import-plan");
 const courseReset = require("./course-reset");
 const { guardFor } = require("./attendance-guard");
 const { execFile } = require("child_process");
@@ -175,6 +173,7 @@ async function handle(req, res, remote) {
       if (req.method === "POST") {
         const body = await readBody(req, 200000);
         Object.assign(params, Object.fromEntries(new URLSearchParams(body)));
+        if (rosterGate.addsStudents(params)) { res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" }); return res.end(rosterGate.refusal()); } // students are added only on the Class Roster page
         const refused = lecturerRefusal(params, { remote, thisComputer: !remote && isThisComputer(req) }, appSettings);
         if (refused) { if (tunnel && remote) tunnel.note("lecturer"); res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" }); return res.end(JSON.stringify(refused)); }
         const closed = governance.closedRefusal(params, governance.termClosed(c.backend)); // a closed term takes no new check-ins or answers
@@ -184,6 +183,7 @@ async function handle(req, res, remote) {
         c.backend.setGeoMode(g.geo); // location is checked for the internet address, not for plain Wi-Fi
         try { out = require("./receipts").once(c.backend, params, () => c.backend.doPost(params, body)); } finally { c.backend.setGeoMode("off"); } // CM's own calls never see a leftover setting
         if (c.live && !remote) out = Object.assign({}, out, { text: c.liveQuiz ? c.liveQuiz.after(params, c.live.after(params, out.text)) : c.live.after(params, out.text) }); // hand an opened attendance session to the relay; the page learns where phones go
+      } else if (rosterGate.addsStudents(params)) { res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" }); return res.end(rosterGate.refusal());
       } else { c.backend.setGeoMode(guardFor({ remote, tunnelOn: !!publicUrl() }, appSettings).geo); try { out = c.backend.doGet(params); } finally { c.backend.setGeoMode("off"); } }
       res.writeHead(200, { "Content-Type": out.mime + "; charset=utf-8", "Cache-Control": "no-store", "Access-Control-Allow-Origin": "*" });
       return res.end(out.text);
@@ -427,16 +427,6 @@ function setupState(c) {
   };
   return { steps, roster: Math.max(0, roster), complete: steps.course && steps.classList && steps.materials, seen: !!c.settings.setupSeen };
 }
-// Rows [ID, name] whose name differs from the one already on the class list for the same ID (the existing name is kept; see import-plan.js, nameChecks).
-function nameConflictsOf(c, rows) {
-  const incoming = {}; rows.forEach((r) => { const id = String(r[0] || "").replace(/\D/g, ""), n = String(r[1] || "").trim(); if (id && n && !incoming[id]) incoming[id] = n; });
-  return nameChecks(c.backend.rows("Roster"), incoming).conflicts.slice(0, 50);
-}
-function parseClassList(text) {
-  // One student per line: ID, then an optional name (or first name and last name), separated by a comma, semicolon or tab. A header line is skipped.
-  return String(text || "").split(/\r?\n/).map((l) => l.split(/[,;\t]/).map((x) => x.replace(/^"|"$/g, "").trim()))
-    .filter((r) => r[0] && /\d{4,12}/.test(r[0].replace(/\D/g, ""))).map((r) => [r[0].replace(/\D/g, ""), names.rowName(r)]);
-}
 function csvCell(v) { v = String(v == null ? "" : v); return /[",\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
 
 on("cm:info", (c) => info(c));
@@ -462,17 +452,6 @@ on("cm:save", async (c, e, s) => {
 });
 on("cm:openWindow", (c, e, page) => { if (/^[\w.-]+\.html([?#][\w=&#.-]*)?$/.test(page)) newWindow(coursePrefix(c) + page); });
 ipcMain.handle("cm:openExternal", (e, url) => { if (/^https:\/\//.test(String(url))) shell.openExternal(url); });
-on("cm:classList", (c, e, text, replace) => {
-  const rows = parseClassList(text);
-  if (!rows.length) return { ok: false, why: "No student IDs found. Put one student per line: ID, then name if you wish." };
-  const flagged = nameConflictsOf(c, rows);
-  return Object.assign({}, c.backend.rosterSync(rows, !!replace), { nameConflicts: flagged }); // the ID is the key: an existing name is kept and a different one is flagged
-});
-on("cm:classListFile", async (c, e) => {
-  const r = await dialog.showOpenDialog(winOf(e), { title: "Choose the class list", filters: [{ name: "Class list", extensions: ["csv", "txt", "tsv"] }], properties: ["openFile"] });
-  if (r.canceled || !r.filePaths[0]) return null;
-  return fs.readFileSync(r.filePaths[0], "utf8").slice(0, 2000000);
-});
 
 // ---------- the course list: add, rename, archive, switch, link a folder ----------
 on("cm:courses", (c) => ({ current: c.id, list: courseList(c.id) }));
@@ -597,31 +576,8 @@ webImport.register({ on, dialog, winOf, shell }); // cm:import*: bring results e
 llm.register({ on, dialog, winOf, shell, dirOf: (c) => registry.dirs(c.id).root }); // cm:llm*: a private snapshot of the course for an AI assistant (llm/README.md)
 idNoticesIpc.register({ on }); // cm:idNotices, cm:idResolve: the Duplicate IDs card
 folderImport.register({ on, dialog, winOf, shell, saveSettings, dirOf: (c) => registry.dirs(c.id).root }); // cm:auto*: point at a folder; CM finds and extracts what it needs
+require("./roster-shots/ipc").register({ on }); // cm:rosterShots*: the Class Roster page, the only place a roster is entered (roster-shots/README.md)
 require("./lms/ipc").register({ on, dialog, winOf, shell, dirOf: (c) => registry.dirs(c.id).root }); // cm:lms*: roster and gradebook exchange with a learning management system (lms/README.md)
-ipcMain.handle("cm:tableFile", async (e) => { // a class list as rows, from CSV, a text file or Excel (.xlsx)
-  const r = await dialog.showOpenDialog(winOf(e), { title: "Choose the class list", filters: [{ name: "Class list", extensions: ["csv", "xlsx", "txt", "tsv"] }], properties: ["openFile"] });
-  if (r.canceled || !r.filePaths[0]) return null;
-  try { return { ok: true, name: path.basename(r.filePaths[0]), rows: await readTable(r.filePaths[0]) }; } catch (err) { return { ok: false, why: err.message }; }
-});
-ipcMain.handle("cm:tableText", (e, text) => ({ ok: true, rows: require("./table").splitText(String(text || "").slice(0, 2000000)) }));
-on("cm:classRows", (c, e, rows, replace) => { // rows already mapped to [ID, name] or [ID, first name, last name]
-  const clean = (rows || []).map((r) => [idReview.read(r[0]).id, names.rowName(r).slice(0, 120)]).filter((r) => /^\d{4,12}$/.test(r[0])); // an ID that cannot be read with certainty is left out, never guessed (app/id-review.js)
-  if (!clean.length) return { ok: false, why: "No student IDs found in the chosen column. Student IDs must have 4 to 12 digits." };
-  const flagged = nameConflictsOf(c, clean);
-  const r = c.backend.rosterSync(clean, !!replace);
-  if (r) r.nameConflicts = flagged;
-  if (r && r.ok) r.built = c.backend.buildFromRoster(); // a row for every student in Attendance, Master and Scores, ready for the first session
-  return r;
-});
-ipcMain.handle("cm:sampleClassList", async (e) => { // the class list template, as Excel by default or CSV if the lecturer picks .csv
-  const r = await dialog.showSaveDialog(winOf(e), { title: "Save the class list template", defaultPath: "class-list-template.xlsx",
-    filters: [{ name: "Excel workbook", extensions: ["xlsx"] }, { name: "CSV file", extensions: ["csv"] }] });
-  if (r.canceled || !r.filePath) return null;
-  const rows = excel.classListTemplate()[0].rows;
-  if (path.extname(r.filePath).toLowerCase() === ".csv") fs.writeFileSync(r.filePath, "\uFEFF" + rows.map((x) => x.map(csvCell).join(",")).join("\r\n") + "\r\n");
-  else fs.writeFileSync(r.filePath, await excel.writeXlsx(excel.classListTemplate()));
-  shell.showItemInFolder(r.filePath); return r.filePath;
-});
 on("cm:lectures", (c) => c.course.lectures());
 on("cm:saveLecture", (c, e, o) => { const r = c.course.saveLecture(o || {}); c.backend.dropSiteCache(); return r; });
 on("cm:removeLecture", (c, e, n) => { const r = c.course.removeLecture(Number(n)); c.backend.dropSiteCache(); return r; });
