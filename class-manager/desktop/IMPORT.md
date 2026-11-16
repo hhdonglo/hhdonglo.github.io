@@ -50,3 +50,11 @@ Add an entry to `LOG_TABS` in `import-specs.js` (columns, `need`, `id`, `text`, 
 ## Files in any layout
 
 The import above expects the web version's tabs or the template. `autoload/` accepts any file: it finds the columns, keeps only the useful fields, and either passes a web export's own tabs through this import unchanged or turns the clean data into the template's tables (Roster, Quiz scores, Attendance) and previews them here. See `autoload/README.md`. An ID that is not 4 to 12 digits long (a typo in a log) is never added to the class list.
+
+## IDs not on the class list (offlist.js)
+
+The class list alone decides who has a row. A file never adds a student, and since this change a result for an ID that is not on the Roster never becomes a row in Master or Scores either (`onRoster_` in `apps_script/src/10-assessment.gs`; it applies when the Roster has at least one student). Earlier versions added such IDs as blank rows when the marks were worked out again after an import.
+
+- **Flagged list:** every apply records IDs not on the class list in the `Flagged_IDs` tab (first seen, ID, why, source file), once per ID and file. The Grades and Results page shows it under the table. The source row is not recorded yet, only the file.
+- **Old blank rows:** `offlist.scan` finds rows in Master, Scores, Attendance and Totals for IDs not on the Roster. `setAside` moves the ones the lecturer chooses to `Offlist_Rows_Kept` (nothing is deleted); `restore` puts them back. The notice on the Grades page (`app/offlist.js`) asks for confirmation first.
+- Tests: `test/offlist.test.js`.
