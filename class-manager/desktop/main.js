@@ -27,6 +27,8 @@ const names = require("./names");
 const excel = require("./excel");
 const webImport = require("./import-ipc");
 const folderImport = require("./autoload-ipc");
+const idNoticesIpc = require("./id-notices-ipc");
+const idReview = require("./app/id-review");
 const llm = require("./llm/ipc");
 const { nameChecks } = require("./import-plan");
 const courseReset = require("./course-reset");
@@ -614,6 +616,7 @@ on("cm:chooseLogo", async (c, e, clear) => {
 });
 webImport.register({ on, dialog, winOf, shell }); // cm:import*: bring results exported from the web version into this course
 llm.register({ on, dialog, winOf, shell, dirOf: (c) => registry.dirs(c.id).root }); // cm:llm*: a private snapshot of the course for an AI assistant (llm/README.md)
+idNoticesIpc.register({ on }); // cm:idNotices, cm:idResolve: the Duplicate IDs card
 folderImport.register({ on, dialog, winOf, shell, saveSettings, dirOf: (c) => registry.dirs(c.id).root }); // cm:auto*: point at a folder; CM finds and extracts what it needs
 require("./lms/ipc").register({ on, dialog, winOf, shell, dirOf: (c) => registry.dirs(c.id).root }); // cm:lms*: roster and gradebook exchange with a learning management system (lms/README.md)
 ipcMain.handle("cm:tableFile", async (e) => { // a class list as rows, from CSV, a text file or Excel (.xlsx)
@@ -623,7 +626,7 @@ ipcMain.handle("cm:tableFile", async (e) => { // a class list as rows, from CSV,
 });
 ipcMain.handle("cm:tableText", (e, text) => ({ ok: true, rows: require("./table").splitText(String(text || "").slice(0, 2000000)) }));
 on("cm:classRows", (c, e, rows, replace) => { // rows already mapped to [ID, name] or [ID, first name, last name]
-  const clean = (rows || []).map((r) => [String(r[0] || "").replace(/\D/g, ""), names.rowName(r).slice(0, 120)]).filter((r) => /^\d{4,12}$/.test(r[0]));
+  const clean = (rows || []).map((r) => [idReview.read(r[0]).id, names.rowName(r).slice(0, 120)]).filter((r) => /^\d{4,12}$/.test(r[0])); // an ID that cannot be read with certainty is left out, never guessed (app/id-review.js)
   if (!clean.length) return { ok: false, why: "No student IDs found in the chosen column. Student IDs must have 4 to 12 digits." };
   const flagged = nameConflictsOf(c, clean);
   const r = c.backend.rosterSync(clean, !!replace);

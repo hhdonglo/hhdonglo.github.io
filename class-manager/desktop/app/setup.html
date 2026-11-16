@@ -6,6 +6,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Course setup | Class Manager</title>
 <script src="../config.js"></script>
+<script src="id-review.js"></script>
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="../assets/site.css">
 <style>
@@ -120,6 +121,7 @@ html{font-size:clamp(15px,calc(9.5px + .42vw),19px)}
    <p><label style="display:inline;font-weight:400"><input type="checkbox" id="cl-head"> The first row holds column headings</label></p>
    <p><label style="display:inline;font-weight:400"><input type="checkbox" id="cl-replace"> Replace the whole list (otherwise new students are added)</label></p>
    <p class="note" id="cl-count"></p>
+   <div id="cl-amb" hidden></div>
    <div class="tbl" id="cl-prev"></div>
    <p><button class="p" type="button" id="cl-save">Save the class list</button></p>
   </div>
@@ -227,7 +229,7 @@ $("logo-clear").addEventListener("click",function(){cmApp.chooseLogo(true).then(
 // ---------- class list ----------
 function colName(i){return "Column "+String.fromCharCode(65+i)}
 function setRows(rows,src){
- ROWS=rows||[];if(!ROWS.length){$("cl-msg").textContent="Nothing to read: the list is empty.";$("cl-map").hidden=true;return}
+ FIX={};ROWS=rows||[];if(!ROWS.length){$("cl-msg").textContent="Nothing to read: the list is empty.";$("cl-map").hidden=true;return}
  $("cl-msg").textContent="";$("cl-map").hidden=false;$("cl-src").textContent=src;
  var w=ROWS.reduce(function(m,r){return Math.max(m,r.length)},0),head=ROWS[0];
  var looksHead=!/\d{4,}/.test(head.join(" "));$("cl-head").checked=looksHead;
@@ -242,19 +244,31 @@ function setRows(rows,src){
  if(nm<0&&w>1)nm=best===0?1:0;$("cl-name").value=nm;$("cl-last").value=ln;
  preview();
 }
-function mapped(){var id=+$("cl-id").value,nm=+$("cl-name").value,ln=+$("cl-last").value,rows=$("cl-head").checked?ROWS.slice(1):ROWS;
- // [ID, first name (or whole name), last name]; CM joins them into one name when it saves.
- return rows.map(function(r){return[String(r[id]||"").replace(/\D/g,""),nm>=0?String(r[nm]||""):"",ln>=0?String(r[ln]||""):""]})}
-function preview(){var m=mapped(),ok=m.filter(function(r){return /^\d{4,12}$/.test(r[0])}),bad=m.length-ok.length;
- $("cl-count").textContent=ok.length+" students will be saved"+(bad?"; "+bad+" rows without a valid student ID (4 to 12 digits) will be skipped":"")+".";
+var FIX={},AMB=[]; // FIX: the ID the lecturer typed for a row whose ID could not be read with certainty; AMB: those rows
+function mapped(){var id=+$("cl-id").value,nm=+$("cl-name").value,ln=+$("cl-last").value,rows=$("cl-head").checked?ROWS.slice(1):ROWS,off=$("cl-head").checked?2:1;AMB=[];
+ // [ID, first name (or whole name), last name]; CM joins them into one name when it saves. An ID is never guessed: see id-review.js.
+ return rows.map(function(r,k){var raw=r[id],fixed=FIX[k],res=cmIdReview.read(fixed!=null&&fixed!==""?fixed:raw);
+  if(res.status==="ambiguous")AMB.push({k:k,line:k+off,raw:String(raw==null?"":raw),why:res.why,name:[nm>=0?r[nm]:"",ln>=0?r[ln]:""].join(" ").trim(),typed:fixed!=null&&fixed!==""});
+  return[res.id,nm>=0?String(r[nm]||""):"",ln>=0?String(r[ln]||""):""]})}
+function ambHtml(){if(!AMB.length){$("cl-amb").hidden=true;$("cl-amb").innerHTML="";return}
+ $("cl-amb").hidden=false;$("cl-amb").innerHTML="<p class='msg'><strong>"+AMB.length+" ID"+(AMB.length===1?"":"s")+" could not be read with certainty.</strong> These rows are not saved until the ID is corrected. Type the right ID (4 to 12 digits) and press Check, or leave the row out.</p>"+
+  "<div class='tbl'><table><thead><tr><th>Row</th><th>As written in the file</th><th>Name</th><th>Why</th><th>Correct ID</th></tr></thead><tbody>"+AMB.slice(0,50).map(function(a){
+   return"<tr><td>"+a.line+"</td><td><code>"+esc(a.raw)+"</code></td><td>"+esc(a.name)+"</td><td>"+esc(a.why)+"</td><td><label class='vh' for='amb-"+a.k+"'>Correct ID for row "+a.line+"</label><input id='amb-"+a.k+"' data-amb='"+a.k+"' inputmode='numeric' style='width:7rem'> <button type='button' data-ambok='"+a.k+"'>Check</button></td></tr>"}).join("")+"</tbody></table></div>"+(AMB.length>50?"<p class='note'>The first 50 are shown.</p>":"")}
+function preview(){var m=mapped(),ok=m.filter(function(r){return /^\d{4,12}$/.test(r[0])}),bad=m.length-ok.length-AMB.length;
+ $("cl-count").textContent=ok.length+" students will be saved"+(AMB.length?"; "+AMB.length+(AMB.length===1?" row needs":" rows need")+" a corrected ID":"")+(bad>0?"; "+bad+" rows without a student ID will be skipped":"")+".";
+ ambHtml();
  $("cl-prev").innerHTML="<table><thead><tr><th>Student ID</th><th>First name</th><th>Last name</th></tr></thead><tbody>"+m.slice(0,10).map(function(r){var v=/^\d{4,12}$/.test(r[0]);return"<tr><td>"+(v?esc(r[0]):"<em>not valid</em>")+"</td><td>"+esc(r[1])+"</td><td>"+esc(r[2])+"</td></tr>"}).join("")+"</tbody></table>"+(m.length>10?"<p class='note' style='padding:.3rem .55rem'>First 10 rows shown.</p>":"");
 }
-["cl-id","cl-name","cl-last","cl-head"].forEach(function(i){$(i).addEventListener("change",preview)});
+$("cl-amb").addEventListener("click",function(e){var b=e.target.closest&&e.target.closest("[data-ambok]");if(!b)return;var k=b.getAttribute("data-ambok"),inp=$("amb-"+k),v=cmIdReview.read(inp.value);
+ if(v.status!=="ok"){inp.setAttribute("aria-invalid","true");inp.value="";inp.placeholder="4 to 12 digits";return}
+ FIX[k]=v.id;preview()});
+["cl-id","cl-name","cl-last","cl-head"].forEach(function(i){$(i).addEventListener("change",function(){FIX={};preview()})});
 $("cl-file").addEventListener("click",function(){cmApp.tableFile().then(function(r){if(!r)return;if(!r.ok){$("cl-msg").textContent=r.why;return}setRows(r.rows,"From "+r.name+": "+r.rows.length+" rows.")})});
 $("cl-read").addEventListener("click",function(){cmApp.tableText($("cl-text").value).then(function(r){setRows(r.rows,"From the pasted list: "+r.rows.length+" rows.")})});
 $("cl-sample").addEventListener("click",function(){cmApp.sampleClassList().then(function(p){if(p)$("cl-msg").textContent="Saved the template to "+p+". Fill in the Class list sheet, save it, then choose it above."})});
 $("cl-save").addEventListener("click",function(){
  var rep=$("cl-replace").checked;
+ if(AMB.length&&!confirm(AMB.length+" row(s) have an ID that could not be read with certainty and will be left out. Save the rest?"))return;
  if(rep&&!confirm("Replace the whole class list? Students not in the new list are removed from the list. Their past marks stay."))return;
  cmApp.classRows(mapped(),rep).then(function(r){
   if(!r||!r.ok){$("cl-msg").textContent="Not saved: "+(r&&r.why||"unknown problem");return}
