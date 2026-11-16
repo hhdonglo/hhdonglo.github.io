@@ -130,6 +130,16 @@ html{font-size:clamp(15px,calc(9.5px + .42vw),19px)}
   <p><button type="button" id="pk-import">Import a course pack</button><button type="button" id="pk-export">Export this course as a pack</button></p>
   <p class="msg" id="pk-msg" role="status"></p>
  </div>
+<div class="card" id="bf-card">
+  <h3 style="margin-top:0">Course folder <span class="opt">(quizzes)</span></h3>
+  <p class="why">Point CM at the folder that holds your course. CM finds the quiz banks in the format of the quizzes already online (files named lecture1.json, lecture2.json and so on, with the questions inside), checks every question and adds them to the course. Questions already in the course are never changed.</p>
+  <p><button type="button" id="bf-pick">Choose the course folder…</button> <button type="button" class="p" id="bf-load" hidden>Load these quizzes</button></p>
+  <div id="bf-found"></div>
+  <p class="msg" id="bf-msg" role="status"></p>
+  <h4>New quizzes written by CM</h4>
+  <p class="why" id="bf-gen">CM writes new quiz questions from your teaching material, for you to review before students see them. It needs your Anthropic API key.</p>
+  <p><a class="btn" href="author.html#gen" style="text-decoration:underline">Generate new quizzes…</a></p>
+ </div>
  <div class="card">
   <h3 style="margin-top:0">Lectures</h3>
   <div id="lec-list"></div>
@@ -261,6 +271,7 @@ load().then(function(){var h=(location.hash||"").slice(1);
   go(fresh?"start":["course","class","materials"].indexOf(h)>=0?h:"course")})});
 })();
 </script>
+<script src="bank-folder.js"></script>
 <script src="import.js"></script>
 <script src="folder-course.js"></script>
 <script src="folder.js"></script>

@@ -14,7 +14,7 @@ The first time it runs, Windows and macOS ask whether CM may accept connections 
 
 **Before class**
 
-1. Open Class Manager. The home screen shows the address students open, a QR code for it, and your host key.
+1. Open Class Manager. The home screen shows the address students open, a QR code for it, and the way to sign in.
 2. Under **Class list**, paste your class list (student ID, then first name and last name if you wish, one student per line) or choose a CSV or Excel file and say which columns hold the ID, the first name and the last name (a single Name column also works), and press **Save class list**.
 
 **In class**
@@ -22,7 +22,7 @@ The first time it runs, Windows and macOS ask whether CM may accept connections 
 1. Choose how students connect, under **Students open** on the home screen:
    - **Same Wi-Fi or hotspot** (the default): the laptop and the phones join the same Wi-Fi. If the university network does not let phones reach the laptop, switch on a phone hotspot and connect the laptop and the class to it.
    - **Internet**: CM starts a temporary https address that students open from any network, including mobile data. Show the QR code; the address changes each time. Press **Stop internet access** at the end of the class. See "Internet access" below.
-2. **Attendance**: Lecturer menu, log in with the host key, Take attendance. Show the QR code on the projector. Students scan it and type their student ID. Close attendance, then submit it.
+2. **Attendance**: Lecturer menu, Take attendance. Show the QR code on the projector. Students scan it and type their student ID. Close attendance, then submit it.
 3. **Live quiz**: Lecturer menu, Run quiz. Use join code `2627` followed by the week number (for example `26272` for week 2). Open **Projector display** on the projector. Students open the student address, choose Quiz, and enter their first name, student ID and the join code.
 4. Practice questions and the mock exam need nothing from the lecturer; students open them from the portal at any time while CM is running, or the lecturer can give them the course pages another way.
 
@@ -30,7 +30,7 @@ The first time it runs, Windows and macOS ask whether CM may accept connections 
 
 Under **Results and marks**, choose a tab (Attendance, Master, Totals and others) to see it, or press **Download as Excel** (names are written as separate First name and Last name columns, ready for Sakai) to save every tab of the current course in one workbook (one sheet per tab); **Export all tabs as CSV** saves one CSV file per tab instead. The Students screen has its own **Download as Excel**. Under Setup, **Download the Excel template** saves a class list to fill in: fill in the first sheet, save it, then choose it with **Choose a file** and check the preview before saving. **Attendance with names** shows names next to the attendance marks.
 
-**Access codes and Teaching insights.** Before students first look at their progress, open **Access codes for students**, log in with the host key, press **Create codes for students without one**, then **Print slips** and hand each student their slip. **Student groups** makes groups for an activity and holds a mark for each group. **Teaching insights** shows the weakest lectures and questions and the students who may need attention.
+**Access codes and Teaching insights.** Before students first look at their progress, open **Access codes for students**, press **Create codes for students without one**, then **Print slips** and hand each student their slip. **Student groups** makes groups for an activity and holds a mark for each group. **Teaching insights** shows the weakest lectures and questions and the students who may need attention.
 
 All data stays on the laptop, in the data folder shown at the bottom of the home screen. Back it up with the rest of your files.
 

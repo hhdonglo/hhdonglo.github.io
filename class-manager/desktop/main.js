@@ -21,6 +21,8 @@ const { createTunnel, createLimiter } = require("./tunnel");
 const { createCourse } = require("./course");
 const names = require("./names");
 const rosterGate = require("./roster-shots/gate");
+const firstRun = require("./first-run/stages");
+const { createCentralLogin } = require("./first-run/central-login");
 const excel = require("./excel");
 const webImport = require("./import-ipc");
 const folderImport = require("./autoload-ipc");
@@ -173,6 +175,7 @@ async function handle(req, res, remote) {
       if (req.method === "POST") {
         const body = await readBody(req, 200000);
         Object.assign(params, Object.fromEntries(new URLSearchParams(body)));
+        if (firstRun.changesPassword(params)) { res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" }); return res.end(firstRun.passwordRefusal()); }
         if (rosterGate.addsStudents(params)) { res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" }); return res.end(rosterGate.refusal()); } // students are added only on the Class Roster page
         const refused = lecturerRefusal(params, { remote, thisComputer: !remote && isThisComputer(req) }, appSettings);
         if (refused) { if (tunnel && remote) tunnel.note("lecturer"); res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" }); return res.end(JSON.stringify(refused)); }
@@ -183,6 +186,7 @@ async function handle(req, res, remote) {
         c.backend.setGeoMode(g.geo); // location is checked for the internet address, not for plain Wi-Fi
         try { out = require("./receipts").once(c.backend, params, () => c.backend.doPost(params, body)); } finally { c.backend.setGeoMode("off"); } // CM's own calls never see a leftover setting
         if (c.live && !remote) out = Object.assign({}, out, { text: c.liveQuiz ? c.liveQuiz.after(params, c.live.after(params, out.text)) : c.live.after(params, out.text) }); // hand an opened attendance session to the relay; the page learns where phones go
+      } else if (firstRun.changesPassword(params)) { res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" }); return res.end(firstRun.passwordRefusal());
       } else if (rosterGate.addsStudents(params)) { res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" }); return res.end(rosterGate.refusal());
       } else { c.backend.setGeoMode(guardFor({ remote, tunnelOn: !!publicUrl() }, appSettings).geo); try { out = c.backend.doGet(params); } finally { c.backend.setGeoMode("off"); } }
       res.writeHead(200, { "Content-Type": out.mime + "; charset=utf-8", "Cache-Control": "no-store", "Access-Control-Allow-Origin": "*" });
@@ -332,7 +336,7 @@ function makeCtx(id) {
   return c;
 }
 function ctx(id) {
-  if (!ctxs.has(id)) ctxs.set(id, makeCtx(id));
+  if (!ctxs.has(id)) { ctxs.set(id, makeCtx(id)); giveCentral(ctxs.get(id)); }
   return ctxs.get(id);
 }
 function closeCtx(id) { // after the course's folder changes: saved now, made again on next use
@@ -351,7 +355,28 @@ function ctxOf(e) {
 }
 const winOf = (e) => BrowserWindow.fromWebContents(e.sender) || win;
 // An IPC handler that receives the window's course first.
-const on = (ch, fn) => ipcMain.handle(ch, (e, ...a) => fn(ctxOf(e), e, ...a));
+// ---------- one lecturer password for CM (first-run/README.md) ----------
+// Chosen once, opens CM, and is the same for every course. After sign-in nothing else asks for a password: the courses receive the same password and the CM window signs in to them.
+let central = null, unlockedPw = null; // unlockedPw is held in memory only, from sign-in until CM closes
+const OPEN_WHILE_LOCKED = new Set(["cm:centralStatus", "cm:centralLogin", "cm:centralCreate", "cm:centralRecover"]);
+function giveCentral(c) { // a course takes the central password the first time CM is open with it (and again after a change)
+  if (!central || !unlockedPw) return;
+  const st = central.status();
+  if (c.settings.centralStamp === st.stamp) return;
+  const r = c.backend.setPasswordAsOwner(unlockedPw);
+  if (r && r.ok) saveSettings(c, { centralStamp: st.stamp });
+}
+function giveCentralToAll() { for (const m of registry.list()) giveCentral(ctx(m.id)); }
+function stageNow(c) {
+  const roster = ((c.backend.tabs().find((t) => t.name === "Roster") || { rows: 1 }).rows || 1) - 1;
+  return firstRun.stageOf({ passwordChosen: !!(central && central.status().chosen), roster, banks: c.course.bankNumbers().length, hasContent: c.course.hasContent() });
+}
+const on = (ch, fn) => ipcMain.handle(ch, (e, ...a) => {
+  if (!unlockedPw && !OPEN_WHILE_LOCKED.has(ch)) return { ok: false, locked: true, why: "Sign in to CM first." };
+  const c = ctxOf(e);
+  const refused = firstRun.refusal(ch, stageNow(c));
+  return refused || fn(c, e, ...a);
+});
 const coursePrefix = (c) => "c/" + c.id + "/";
 const studentHome = (c) => baseUrl() + coursePrefix(c);
 function tunnelFor(c) { // the internet address of this course's pages
@@ -405,7 +430,7 @@ function repoInfo(dir) {
   } catch (e) { return null; }
 }
 // The screen a course opens on: its setup until that has been seen once, then the home screen.
-const startPage = (c) => coursePrefix(c) + (c.settings.setupSeen ? "app/home.html" : "app/setup.html");
+const startPage = (c) => coursePrefix(c) + (!unlockedPw ? "app/login.html" : c.settings.setupSeen ? "app/home.html" : "app/setup.html");
 
 // ---------- CM's own screens ----------
 function info(c) {
@@ -413,7 +438,6 @@ function info(c) {
     settings: shownSettings(c), base: studentHome(c), version: app.getVersion(), courseId: c.id,
     addresses: lanAddresses().map((a) => "http://" + a.address + ":" + port + "/" + coursePrefix(c)),
     tunnel: tunnelFor(c),
-    hostKey: c.backend.hostKeyIsPlain() ? c.backend.hostKey() : "",
     tabs: c.backend.tabs(), dataFolder: registry.dirs(c.id).root, contentFolder: registry.dirs(c.id).course, setup: setupState(c)
   };
 }
@@ -576,6 +600,7 @@ webImport.register({ on, dialog, winOf, shell }); // cm:import*: bring results e
 llm.register({ on, dialog, winOf, shell, dirOf: (c) => registry.dirs(c.id).root }); // cm:llm*: a private snapshot of the course for an AI assistant (llm/README.md)
 idNoticesIpc.register({ on }); // cm:idNotices, cm:idResolve: the Duplicate IDs card
 folderImport.register({ on, dialog, winOf, shell, saveSettings, dirOf: (c) => registry.dirs(c.id).root }); // cm:auto*: point at a folder; CM finds and extracts what it needs
+require("./first-run/ipc").register({ on, dialog, winOf, courseDirOf: (c) => registry.dirs(c.id).course, stageFor: stageNow });
 require("./roster-shots/ipc").register({ on }); // cm:rosterShots*: the Class Roster page, the only place a roster is entered (roster-shots/README.md)
 require("./lms/ipc").register({ on, dialog, winOf, shell, dirOf: (c) => registry.dirs(c.id).root }); // cm:lms*: roster and gradebook exchange with a learning management system (lms/README.md)
 on("cm:lectures", (c) => c.course.lectures());
@@ -732,15 +757,14 @@ on("cm:openNotes", (c) => { const d = path.join(registry.dirs(c.id).root, "notes
 on("cm:linkedRestore", async (c, e, name, pass) => { try { return restoreContent(c, await c.linked.open(String(name || ""), pass)); } catch (err) { return { ok: false, why: err.message }; } });
 on("cm:openContent", (c) => { const d = registry.dirs(c.id).course; fs.mkdirSync(d, { recursive: true }); return shell.openPath(d); });
 on("cm:run", (c, e, name) => { if (["refreshTotals", "rebuildMaster", "buildNamedAttendance"].includes(name)) { c.backend.run(name); c.backend.flush(); return true; } return false; });
-on("cm:passwordStatus", (c) => c.backend.passwordStatus());
-on("cm:setPassword", (c, e, pw) => c.backend.setPasswordAsOwner(pw));
-// Lost both the lecturer password and the recovery code: the person at this computer may reset it (password-reset path, see README "Lecturer password").
-on("cm:resetPassword", async (c, e) => {
-  const r = await dialog.showMessageBox(winOf(e), { type: "warning", buttons: ["Reset password", "Cancel"], defaultId: 1, cancelId: 1, title: "Reset the lecturer password",
-    message: "Reset the lecturer password for this course?", detail: "A temporary key is shown on the home screen, the recovery code is removed and every lecturer sign-in ends. Choose a new password straight afterwards." });
-  if (r.response !== 0) return false;
-  c.backend.run("resetHostKey"); c.backend.flush(); return true;
-});
+on("cm:passwordStatus", () => central.status());
+on("cm:setPassword", (c, e, pw) => { const r = central.set(pw); if (r.ok) { unlockedPw = String(pw); giveCentralToAll(); } return r; }); // one password for every course
+on("cm:centralStatus", () => central.status());
+const signedIn = (c, pw, r) => { if (!r.ok) return r; unlockedPw = String(pw); giveCentralToAll(); return Object.assign({}, r, { url: baseUrl() + startPage(ctx(registry.active())) }); };
+on("cm:centralLogin", (c, e, pw) => signedIn(c, pw, central.check(pw)));
+on("cm:centralCreate", (c, e, pw) => central.status().chosen ? { ok: false, why: "A password is already chosen." } : signedIn(c, pw, central.set(pw)));
+on("cm:centralRecover", (c, e, code, pw) => signedIn(c, pw, central.recover(code, pw)));
+ipcMain.on("cm:sessionKey", (e) => { e.returnValue = unlockedPw && String(e.sender.getURL()).startsWith(baseUrl()) ? unlockedPw : ""; }); // read by preload.js so lecturer pages open already signed in
 // ---------- resources and question authoring (app/author.html) ----------
 const DOC_TYPES = [{ name: "Teaching material", extensions: ["pdf", "docx", "pptx", "md", "markdown", "txt"] }];
 on("cm:authStatus", (c) => c.authoring.status());
@@ -789,6 +813,7 @@ app.whenReady().then(async () => {
   registry = courses.createRegistry(ROOT());
   registry.ensureOne();
   vault = makeVault();
+  central = createCentralLogin({ file: path.join(ROOT(), "central-login.json") });
   setInterval(() => backupAll(""), BACKUP_EVERY_MS).unref();
   appSettings = loadAppSettings();
   await restartServer();

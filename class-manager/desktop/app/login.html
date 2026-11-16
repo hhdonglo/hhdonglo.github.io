@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Sign in | Class Manager</title>
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/site.css">
+<link rel="stylesheet" href="../assets/cm-theme.css">
+<style>
+.lg{max-width:30rem;margin:8vh auto;font-family:system-ui,sans-serif}
+.lg .card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1.2rem 1.4rem;box-shadow:var(--shadow)}
+.lg label{display:block;font-weight:600;margin:.8rem 0 .2rem}
+.lg input{width:100%;min-height:42px;padding:.35rem .6rem;border:1.5px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font:1rem system-ui,sans-serif;box-sizing:border-box}
+.lg button{margin-top:1rem;min-height:42px;padding:.4rem 1.2rem;border:1.5px solid var(--brown-fill);border-radius:6px;background:var(--brown-fill);color:#fff;font:600 1rem system-ui,sans-serif;cursor:pointer}
+.lg button.link{background:none;border:0;color:var(--link);text-decoration:underline;min-height:0;padding:.2rem}
+.lg .msg{font-weight:600;min-height:1.4em;color:#b00020}.lg .note{color:var(--muted);line-height:1.5}
+.lg code{display:block;font-size:1.3rem;letter-spacing:.06em;margin:.5rem 0;user-select:all}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main class="lg" id="main">
+ <div class="card">
+  <h1 id="t" style="margin-top:0">Class Manager</h1>
+  <p class="note" id="lead"></p>
+  <form id="f" autocomplete="off">
+   <div id="rec-row" hidden><label for="rec">Recovery code</label><input id="rec" autocomplete="off"></div>
+   <label for="pw" id="pw-l">Password</label><input type="password" id="pw" maxlength="100" autocomplete="current-password">
+   <div id="pw2-row" hidden><label for="pw2">Repeat the password</label><input type="password" id="pw2" maxlength="100" autocomplete="new-password"></div>
+   <p class="msg" id="msg" role="alert"></p>
+   <button type="submit" id="go">Continue</button> <button type="button" class="link" id="forgot" hidden>I forgot my password</button>
+  </form>
+  <div id="code-box" hidden>
+   <p><strong>Your recovery code. It is shown only once.</strong></p><code id="code"></code>
+   <p class="note">Keep it somewhere safe, away from this computer. It is the only way back in if you forget the password.</p>
+   <p><label style="display:inline;font-weight:400"><input type="checkbox" id="saved" style="width:auto;min-height:0"> I have saved the recovery code</label></p>
+   <button type="button" id="enter" disabled>Open CM</button>
+  </div>
+ </div>
+</main>
+<script>
+(function(){
+"use strict";
+var $=function(i){return document.getElementById(i)},mode="login",url="";
+if(!window.cmApp){document.body.innerHTML="<p style='padding:2rem'>Open this page from Class Manager.</p>";return}
+function setMode(m,chosen){mode=m;$("msg").textContent="";$("rec-row").hidden=m!=="recover";$("pw2-row").hidden=m==="login";$("forgot").hidden=m!=="login";
+ $("pw").autocomplete=m==="login"?"current-password":"new-password";
+ if(m==="create"){$("t").textContent="Choose your lecturer password";$("lead").textContent="This is the first step. One password opens CM and works for every course. At least 10 characters. You will not be asked for another password.";$("pw-l").textContent="Password";$("go").textContent="Choose password"}
+ else if(m==="recover"){$("t").textContent="Choose a new password";$("lead").textContent="Enter the recovery code you saved, then a new password.";$("pw-l").textContent="New password";$("go").textContent="Change password"}
+ else{$("t").textContent="Sign in to CM";$("lead").textContent="Enter your lecturer password. It opens every course.";$("pw-l").textContent="Password";$("go").textContent="Sign in"}
+ $("pw").focus()}
+function done(r){if(r.recovery){$("f").hidden=true;$("code").textContent=r.recovery;$("code-box").hidden=false;url=r.url;$("lead").textContent="Your password is set.";$("t").textContent="Save your recovery code"}else location.href=r.url}
+$("f").addEventListener("submit",function(e){e.preventDefault();var pw=$("pw").value;
+ if(mode!=="login"&&pw!==$("pw2").value){$("msg").textContent="The two passwords are not the same.";return}
+ var p=mode==="login"?cmApp.centralLogin(pw):mode==="create"?cmApp.centralCreate(pw):cmApp.centralRecover($("rec").value,pw);
+ p.then(function(r){if(!r||!r.ok){$("msg").textContent=(r&&r.why)||"That was not accepted.";return}$("pw").value=$("pw2").value="";done(r)})});
+$("forgot").addEventListener("click",function(){setMode("recover")});
+$("saved").addEventListener("change",function(){$("enter").disabled=!$("saved").checked});
+$("enter").addEventListener("click",function(){location.href=url});
+cmApp.centralStatus().then(function(s){setMode(s&&s.chosen?"login":"create")});
+})();
+</script>
+</body>
+</html>
