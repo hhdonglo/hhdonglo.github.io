@@ -537,10 +537,12 @@ on("cm:resetCourse", (c, e, id, o) => {
     const x = ctx(id); x.backend.flush();
     const b = x.backups.make("reset"); // the records as they are now, checked, before anything moves
     if (b && b.ok === false) return { ok: false, why: "A backup could not be made first, so nothing was reset: " + b.why };
+    const lecturerKey = x.backend.tab("Key"); // the lecturer's password (a salted hash) belongs to the lecturer, not to the course: it is carried across
     closeCtx(id);
     const r = courseReset.resetCourse(resetBase(id), o.scope, { linked: registry.dirs(id).linked, discardUndo: o.discardUndo === true });
     if (!r.ok) return r;
     const n = ctx(id);
+    if (o.scope === "all" && lecturerKey && lecturerKey.length > 1) { n.backend.setRows("Key", lecturerKey); n.backend.flush(); }
     return { ok: true, moved: r.moved, name: r.name, discarded: !!r.discarded, unlinked: !!r.unlinked, url: id === c.id ? baseUrl() + startPage(n) : "", list: courseReset.listResets(resetBase(id)) };
   } catch (err) { return { ok: false, why: err.message }; }
 });
