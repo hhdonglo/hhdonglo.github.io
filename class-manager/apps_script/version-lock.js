@@ -8,7 +8,7 @@ const FILE = path.join(__dirname, "quiz_receiver.gs"), LOCK = path.join(__dirnam
 
 function describe(text) {
   const m = text.match(/^var SCRIPT_VERSION = '([^']+)';/m);
-  const body = text.replace(/^var SCRIPT_VERSION = '[^']+';/m, "var SCRIPT_VERSION = '';");
+  const body = text.replace(/\r\n/g, "\n").replace(/^var SCRIPT_VERSION = '[^']+';/m, "var SCRIPT_VERSION = '';"); // Windows checkouts may turn line ends into CRLF: the hash must not depend on them
   return { version: m ? m[1] : "", hash: crypto.createHash("sha256").update(body, "utf8").digest("hex") };
 }
 const current = () => describe(fs.readFileSync(FILE, "utf8"));
