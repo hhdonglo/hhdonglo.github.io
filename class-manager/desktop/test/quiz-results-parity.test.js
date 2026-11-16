@@ -36,7 +36,7 @@ function scenario(then) {
   try { then({ step, same, script, mod, store, o }); } finally { script.backend.close(); mod.backend.close(); }
 }
 
-test("end compiles the answers into held results, presence and the item log", () => scenario(({ step, same, store }) => {
+test("end compiles the answers into held results, presence and the item log", () => scenario(({ step, same, store, script }) => {
   step({ act: "end" }); same("after end");
   assert.equal(strip(tab(script, "Staged_Quiz")).length, 4, "three held results and a header");
   const got = R.latestAnswers(store, CODE); assert.equal(Object.keys(got).length, 3);
