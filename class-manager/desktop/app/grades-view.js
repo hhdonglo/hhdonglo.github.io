@@ -29,15 +29,15 @@
     var chips = [["all", "All students (" + s.students + ")"], ["with", "With records (" + s.withRecords + ")"], ["none", "No records yet (" + (s.students - s.withRecords) + ")"]].map(function (c) {
       return "<button type='button' class='gchip" + (show === c[0] ? " on" : "") + "' data-show='" + c[0] + "' aria-pressed='" + (show === c[0]) + "'>" + esc(c[1]) + "</button>";
     }).join("");
-    var band = "<tr class='band'><th colspan='2'></th>" + data.groups.map(function (g) { return "<th colspan='" + g.span + "' scope='colgroup'>" + esc(g.label) + "</th>"; }).join("") + "<th></th></tr>";
-    var head = "<tr>" + th("__id", "Student ID", "stick1") + th("__name", "Name", "stick2") + data.columns.map(function (c) { return th(c.key, c.label); }).join("") + th("__last", "Last activity") + "</tr>";
+    var band = "<tr class='band'><th class='fz1'></th><th class='fz2'></th>" + data.groups.map(function (g) { return "<th colspan='" + g.span + "' scope='colgroup'>" + esc(g.label) + "</th>"; }).join("") + "<th></th></tr>";
+    var head = "<tr>" + th("__id", "Student ID", "fz1") + th("__name", "Name", "fz2") + data.columns.map(function (c) { return th(c.key, c.label); }).join("") + th("__last", "Last activity") + "</tr>";
     var body = rows.slice(0, 1000).map(function (r) {
-      return "<tr data-sel='" + esc(r.id) + "' tabindex='0'><td class='stick1'>" + esc(r.id) + "</td><td class='stick2'>" + esc(r.name) + "</td>" + data.columns.map(function (c) {
+      return "<tr data-sel='" + esc(r.id) + "' tabindex='0'><td class='fz1'>" + esc(r.id) + "</td><td class='fz2'>" + esc(r.name) + "</td>" + data.columns.map(function (c) {
         var x = r.cells[c.key]; return "<td" + (x.empty ? " class='none'" : "") + (x.when ? " title='Entered " + esc(x.when) + "'" : "") + ">" + esc(x.t) + "</td>";
       }).join("") + "<td" + (r.last === null ? " class='none'" : "") + ">" + esc(r.lastText) + "</td>" +
         "</tr>";
     }).join("");
-    host.innerHTML = "<div class='gbar'>" + chips + "</div><div class='gscroll'><table class='gt'><thead>" + band + head + "</thead><tbody>" + body + "</tbody></table></div>" +
+    host.innerHTML = "<div class='gbar'>" + chips + "</div><div class='gscroll frz-scroll'><table class='gt frz'><thead>" + band + head + "</thead><tbody>" + body + "</tbody></table></div>" +
       (rows.length === 0 ? "<p class='note' style='padding:.8rem 1rem'>No students match.</p>" : "") + (rows.length > 1000 ? "<p class='note' style='padding:.6rem 1rem'>First 1000 of " + rows.length + " students shown. Download as Excel to see all.</p>" : "");
     var ctx = { tab: "Grades", student: true, timeline: timeline, reload: function () { if (hooks.reload) hooks.reload(); } };
     cmRowSelect.bind({ host: host, item: function (k) { var r = data.rows.filter(function (x) { return x.id === k; })[0]; return r ? { key: k, id: r.id, name: r.name } : null; }, actions: function (items) { return cmRowActions.actions(ctx, items); } });
