@@ -15,7 +15,9 @@ async function openOnRelay(hub, store, course, geo) {
   const codes = AC.codesMap(store), roster = {};
   AT.roster(store).forEach(([id]) => { roster[id] = codes[id] ? hashCode(course, id, codes[id].code) : ""; });
   const phones = AT.phones(store).byId; // phones the relay registered earlier (its own hash); one registered through CM's own page has a different hash, so it is held for review once
-  return hub.post("/v1/live/open", { label: ses.label, secret: ses.secret, mode: geo === "enforce" ? "enforce" : "off", lat: ses.lat, lon: ses.lon, radius: ses.radius || 500, roster, phones });
+  const show = String(store.prop("code_claim") || "1") !== "0", shown = {}; // codes go to the relay only for this open session, only so that students can be shown their own on sign-in; they are deleted when the session closes
+  if (show) Object.keys(roster).forEach((id) => { if (codes[id]) shown[id] = codes[id].code; });
+  return hub.post("/v1/live/open", { codes: shown, label: ses.label, secret: ses.secret, mode: geo === "enforce" ? "enforce" : "off", lat: ses.lat, lon: ses.lon, radius: ses.radius || 500, roster, phones });
 }
 
 // Records the relay's events once each: a check-in is added to the log unless that ID is already there; flags and held check-ins go to the flags tab.

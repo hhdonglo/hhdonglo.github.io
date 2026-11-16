@@ -56,8 +56,9 @@ body.focus main{padding-top:1.2rem}
   <h1>Attendance check-in</h1>
   <form id="c-form" autocomplete="off" novalidate>
    <label for="c-id">Student ID</label><input type="text" id="c-id" maxlength="12" inputmode="numeric" autocomplete="off" placeholder="Your ID number">
-   <label for="c-code">Access code</label><input type="text" id="c-code" maxlength="9" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="From your slip, e.g. ABCD-2345">
+   <label for="c-code">Access code <span class="note">(optional)</span></label><input type="text" id="c-code" maxlength="9" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Leave empty: it is shown to you">
    <label class="cb"><input type="checkbox" id="c-rem" checked> Remember my ID and code on this phone</label>
+   <p class="note">First time? Enter only your ID. Your access code is shown to you here and kept on this phone.</p>
    <p class="note" id="c-saved" hidden>Your ID and code are saved on this phone. Press Check in.</p>
    <p class="err" id="c-err" role="alert" hidden></p>
    <button type="submit" class="go" id="c-btn">Check in</button>
@@ -84,7 +85,13 @@ body.focus main{padding-top:1.2rem}
   <h3 id="c-dh">Check-in received</h3>
   <p>Student ID <b id="c-sid"></b></p>
   <p class="when" id="c-when"></p>
+  <p class="note" id="c-showcode" hidden>Your access code is <b id="c-yourcode"></b>. It is saved on this phone; write it down if you also use another device.</p>
   <p class="note">Your attendance record is in the Portal, under My progress. <a href="#" id="c-other">Not your ID? Enter it again</a></p>
+ </section>
+ <section class="panel done" id="c-held" aria-live="polite" hidden>
+  <p class="tick warn" aria-hidden="true">&#8987;</p>
+  <h3>Please see your lecturer</h3>
+  <p>Student ID <b id="c-hid"></b> has already been set up on a different phone, so this phone is not shown the access code. <b>Tell your lecturer.</b> Your lecturer can give you the code or reset the phone.</p>
  </section>
  <section class="panel done" id="c-wait" aria-live="polite" hidden>
   <p class="tick warn" aria-hidden="true">&#8987;</p>
@@ -115,10 +122,10 @@ function getPos(cb){
 }
 getPos(function(){}); // ask early so the phone has a fix by the time the form is filled in
 function jsonp(params,cb){
- if(RELAY&&COURSE&&/^https:\/\//.test(RELAY)&&/^action=attend&/.test(params)){ // the relay takes the same fields as JSON
-  var q={course:COURSE};params.split("&").forEach(function(kv){var i=kv.indexOf("=");if(i>0)q[kv.slice(0,i)]=decodeURIComponent(kv.slice(i+1))});
+ if(RELAY&&COURSE&&/^https:\/\//.test(RELAY)&&/^action=(attend|claim_code)&/.test(params)){ // the relay takes the same fields as JSON
+  var ep=/^action=claim_code/.test(params)?"/v1/claim":"/v1/attend",q={course:COURSE};params.split("&").forEach(function(kv){var i=kv.indexOf("=");if(i>0)q[kv.slice(0,i)]=decodeURIComponent(kv.slice(i+1))});
   var done=false,t=setTimeout(function(){if(!done){done=true;cb(null)}},15000);
-  fetch(RELAY.replace(/\/$/,"")+"/v1/attend",{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify(q)}).then(function(r){return r.json()}).then(function(j){if(!done){done=true;clearTimeout(t);cb(j)}},function(){if(!done){done=true;clearTimeout(t);cb(null)}});
+  fetch(RELAY.replace(/\/$/,"")+ep,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify(q)}).then(function(r){return r.json()}).then(function(j){if(!done){done=true;clearTimeout(t);cb(j)}},function(){if(!done){done=true;clearTimeout(t);cb(null)}});
   return}
  CM.call(params,cb)} // every request by POST: see CM.call in config.js
 function err(m){$("c-err").textContent=m;$("c-err").hidden=false}
@@ -137,13 +144,24 @@ $("c-form").addEventListener("submit",function(e){
  $("c-btn").disabled=true;
  var send=function(pos){
  var loc=pos?"&lat="+pos.lat.toFixed(4)+"&lon="+pos.lon.toFixed(4)+"&acc="+Math.round(pos.acc):""; // about 11 m: no more precision than the check needs
- jsonp("action=attend&id="+encodeURIComponent(id)+"&code="+encodeURIComponent(code)+"&dev="+DEV+"&t="+TOK+loc,function(r){
+ var base="&id="+encodeURIComponent(id)+"&dev="+DEV+"&t="+TOK+loc;
+ var finish=function(shown){
+ jsonp("action=attend&code="+encodeURIComponent(code)+base,function(r){
   $("c-btn").disabled=false;
   if(!r){err(PHYSMSG.text("E8"));return}
   if(r.ok){try{if($("c-rem").checked&&r.onList!==false&&!r.pending){localStorage.setItem(REMK,id);if(code)localStorage.setItem(REMC,code)}else if(!$("c-rem").checked&&!r.pending){localStorage.removeItem(REMK);localStorage.removeItem(REMC)}}catch(x){} // a borrowed phone keeps its owner's details and never stores the borrower's code
    var now=new Date();$("c-when").textContent="Recorded at "+("0"+now.getHours()).slice(-2)+":"+("0"+now.getMinutes()).slice(-2)+" on "+now.toLocaleDateString(undefined,{weekday:"long",day:"numeric",month:"long"})+". Your lecturer submits the session after class.";
-   $("c-form-wrap").hidden=true;window.scrollTo(0,0);if(r.pending){$("c-wid").textContent=r.id;$("c-wwhen").textContent=$("c-when").textContent.replace(" Your lecturer submits the session after class.","");$("c-wait").hidden=false;return}var h=r.already?"Already marked present today":"Check-in received";if(r.onList===false){$("c-mid").textContent=r.id;$("c-mh").textContent=h;$("c-missing").hidden=false}else{$("c-sid").textContent=r.id;$("c-dh").textContent=h;$("c-done").hidden=false}return}
+   $("c-form-wrap").hidden=true;window.scrollTo(0,0);if(r.pending){$("c-wid").textContent=r.id;$("c-wwhen").textContent=$("c-when").textContent.replace(" Your lecturer submits the session after class.","");$("c-wait").hidden=false;return}var h=r.already?"Already marked present today":"Check-in received";if(r.onList===false){$("c-mid").textContent=r.id;$("c-mh").textContent=h;$("c-missing").hidden=false}else{$("c-sid").textContent=r.id;$("c-dh").textContent=h;if(shown){$("c-yourcode").textContent=shown;$("c-showcode").hidden=false}$("c-done").hidden=false}return}
   err(PHYSMSG.fromWhy(r.why));
+ });
+ };
+ if(code){finish("");return}
+ // No code typed and none remembered: this phone, in the room (the QR code proves it), is shown the code for this ID, once. Anyone else asking for that ID is held for the lecturer.
+ jsonp("action=claim_code"+base,function(c){
+  if(!c){$("c-btn").disabled=false;err(PHYSMSG.text("E8"));return}
+  if(c.ok&&c.pending){$("c-btn").disabled=false;$("c-form-wrap").hidden=true;window.scrollTo(0,0);$("c-hid").textContent=c.id;$("c-held").hidden=false;return}
+  if(!c.ok){$("c-btn").disabled=false;if(c.why==="not recognised"){err("This ID is not on the class list, or has no access code yet. Check the number, or ask your lecturer.");return}err(PHYSMSG.fromWhy(c.why));return}
+  code=normCode(c.code);finish(code);
  });
  };
  if(POS)send(POS);else getPos(send);

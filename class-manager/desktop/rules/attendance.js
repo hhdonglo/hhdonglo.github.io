@@ -156,4 +156,4 @@ function discard(store) {
   return { ok: true, discarded: list.length, checkins: gone };
 }
 
-module.exports = { openSession, present, flag, phones, roster, rosterSet, secondsLeft, slotOf, body, open, close, checkIn, submit, discard, sessions, linkFor, linkOk, column, metres, K, CTL, LOG, GRID, FLAGS, PHONES };
+module.exports = { devHash, phoneCheck, geo, geoText, pendingHas, openSession, present, flag, phones, roster, rosterSet, secondsLeft, slotOf, body, open, close, checkIn, submit, discard, sessions, linkFor, linkOk, column, metres, K, CTL, LOG, GRID, FLAGS, PHONES };
