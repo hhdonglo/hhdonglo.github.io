@@ -39,7 +39,7 @@
     var r = cfg().relay; if (!r || !r.url || !r.key || !RELAY_KINDS[item.kind] || !env.seal) return Promise.resolve(false);
     var payload = JSON.stringify({ ckey: item.ckey, params: Object.assign({ kind: item.kind }, item.fields) });
     return env.seal(r.key, payload).then(function (sealed) {
-      return doFetch(r.url.replace(/\/$/, "") + "/put", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ course: r.course, drop: r.drop, sealed: sealed }) })
+      return doFetch(r.url.replace(/\/$/, "") + (r.hub ? "/v1/drop" : "/put"), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(r.hub ? { course: r.course, sealed: sealed } : { course: r.course, drop: r.drop, sealed: sealed }) }) // the hub needs only the course id; the older mailbox also wants its student code
         .then(function (x) { return x.ok; }, function () { return false; });
     }).catch(function () { return false; });
   }

@@ -331,3 +331,5 @@ The course rules as plain JavaScript over a small store interface, ported one ar
 
 ## relay/hub (the CM relay)
 The hosted Cloudflare Worker with D1 that lets phones take part when the lecturer's computer is off: automatic course registration, signed requests from CM, sealed drops from phones, small live state, abuse controls and forgetting. One file per job under `relay/hub/src/`; tested without Cloudflare through `relay/hub/test/fake-d1.js`. See `relay/hub/README.md`. The older KV mailbox (`relay/worker.mjs`) stays until CM moves over.
+
+CM's side of the relay hub: `desktop/relay/hub.js` and `desktop/relay/address.js` (address built into the installer from `CM_RELAY_URL`); `desktop/test/relay-hub.test.js`.

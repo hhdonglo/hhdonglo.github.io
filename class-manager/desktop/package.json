@@ -45,6 +45,7 @@
       "storage/*.js",
       "sync/*.js",
       "relay/*.js",
+      "relay/address.json",
       "grades/*.js",
       "receipts.js",
       "ids.js",

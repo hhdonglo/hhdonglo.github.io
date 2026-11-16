@@ -20,3 +20,6 @@ Items are sealed on the phone. Live state and the class list pushed for rules ar
 - Setup: `deploy.mjs` (guided, one command; see the plan).
 
 The older mailbox (`../worker.mjs`, KV and tokens) keeps working until CM moves to this relay.
+
+## CM's side
+`desktop/relay/hub.js` (register by itself, sign requests, collect, push state, close), `desktop/relay/address.js` (the address built into the installer: `desktop/relay/address.json`, written by the build from the repository variable `CM_RELAY_URL`; empty means no relay and CM uses the older mailbox if set up by hand). The phone side is `assets/outbox.js` (`/v1/drop` with only the course id). Tests: `desktop/test/relay-hub.test.js` runs CM against the real hub code with a fake D1.
