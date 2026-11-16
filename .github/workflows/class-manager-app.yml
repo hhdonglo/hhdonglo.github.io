@@ -52,7 +52,8 @@ jobs:
         shell: bash
         env:
           CM_RELAY_URL: ${{ vars.CM_RELAY_URL }}
-        run: node -e "require('fs').writeFileSync('relay/address.json', JSON.stringify({ url: process.env.CM_RELAY_URL || '' }) + '\n')"
+        run: |
+          node -e "require('fs').writeFileSync('relay/address.json', JSON.stringify({ url: process.env.CM_RELAY_URL || '' }) + '\n')"
       - name: Build installer (unsigned)
         run: npx electron-builder ${{ matrix.target }} --publish never
         env:
