@@ -328,3 +328,6 @@ The course rules as plain JavaScript over a small store interface, ported one ar
 
 ### IDs read with certainty in the class list upload (0.22.1)
 `desktop/app/id-review.js` reads one ID cell: `22583439`, `22583439.0` and `022583439` are the same ID; Excel's scientific form, a decimal part, a wrong length or mixed characters are "ambiguous" and never guessed. The class list screen (`app/setup.html`) lists those rows (row number, value as written, name, reason) with a box to type the right ID, and the save leaves out any row still unread. Before this, `22583439.0` became `225834390` because all non-digits were removed. The column choice (ID, first name, last name) was already editable on that screen. Test: `desktop/test/id-review.test.js`.
+
+## relay/hub (the CM relay)
+The hosted Cloudflare Worker with D1 that lets phones take part when the lecturer's computer is off: automatic course registration, signed requests from CM, sealed drops from phones, small live state, abuse controls and forgetting. One file per job under `relay/hub/src/`; tested without Cloudflare through `relay/hub/test/fake-d1.js`. See `relay/hub/README.md`. The older KV mailbox (`relay/worker.mjs`) stays until CM moves over.
