@@ -5,6 +5,7 @@
    entries(id) gives that student's dated timeline, newest first. */
 "use strict";
 const { toMs, shownDate } = require("./times");
+const { sessionLabel, sessionDate } = require("../rules/session-label");
 
 const clean = (v) => String(v == null ? "" : v).trim();
 const idOf = (v) => clean(v).replace(/\D/g, "");
@@ -39,16 +40,16 @@ function build(read) {
   const labelFor = (h) => [...opened.keys()].find((l) => l === h || l.indexOf(h + " ") === 0) || h;
   // One column per session, headed by its date (a second session on the same day reads "12 Nov 2026 #2").
   heads.forEach((h, i) => {
-    const m = /^(.*?)\s*#(\d+)$/.exec(h), base = m ? m[1] : h, ms = toMs(base), key = "att:" + i;
-    cols.attendance.push({ key, label: (ms === null ? base : shownDate(ms)) + (m && Number(m[2]) > 1 ? " #" + m[2] : ""), kind: "mark", order: ms === null ? 1e15 + i : ms + i });
+    const ms = toMs(sessionDate(h)), key = "att:" + i;
+    cols.attendance.push({ key, label: sessionLabel(h), kind: "mark", order: ms === null ? 1e15 + i : ms + i });
   });
   cols.attendance.sort((x, y) => x.order - y.order);
   grid.slice(1).forEach((r) => {
     const id = idOf(r[0]); if (!byId.has(id)) return;
     heads.forEach((h, i) => {
       const v = r[i + 1]; if (v === "" || v === undefined || v === null) return;
-      const label = labelFor(h), at = checkin.get(label + "|" + id) || opened.get(label) || toMs(h), here = Number(v) === 1;
-      setCell(id, "att:" + i, { t: here ? "Present" : "Absent", n: here ? 1 : 0, at });
+      const label = labelFor(h), at = checkin.get(label + "|" + id) || opened.get(label) || toMs(sessionDate(h)), here = Number(v) === 1;
+      setCell(id, "att:" + i, { t: here ? "1" : "0", n: here ? 1 : 0, at });
       if (here) add(id, at, "Attendance", "Session " + h, "Present");
     });
   });

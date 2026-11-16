@@ -4,7 +4,8 @@
    Hover a value to see when it was entered. Click a heading to sort. */
 (function () {
   "use strict";
-  var data = null, tbl = null, tabId = null, sortKey = null, sortDir = 1, show = "all", host = null, hooks = {};
+  function make() { // one table viewer per place it is shown (Grades and Results, the Attendance page), all drawn by this one component
+  var data = null, tbl = null, tabId = null, only = null, sortKey = null, sortDir = 1, show = "all", host = null, hooks = {};
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
 
   function value(r, key) {
@@ -26,7 +27,8 @@
 
   function draw() {
     if (!data.tables.length) { host.innerHTML = "<p class='note' style='padding:.8rem 1rem'>No results yet.</p>"; return; }
-    tbl = data.tables.filter(function (t) { return t.id === tabId; })[0] || data.tables[0]; tabId = tbl.id;
+    tbl = data.tables.filter(function (t) { return t.id === (only || tabId); })[0] || (only ? null : data.tables[0]);
+    if (!tbl) { host.innerHTML = "<p class='note' style='padding:.8rem 1rem'>No records yet.</p>"; return; } tabId = tbl.id;
     var q = (hooks.filter && hooks.filter() || "").trim().toLowerCase(), rows = rowsShown(q), s = tbl.summary;
     var tabs = data.tables.map(function (t) { return "<button type='button' class='gchip" + (t.id === tabId ? " on" : "") + "' data-tab='" + esc(t.id) + "' aria-pressed='" + (t.id === tabId) + "'>" + esc(t.label) + "</button>"; }).join("");
     var chips = [["all", "All students (" + s.students + ")"], ["with", "With records (" + s.withRecords + ")"], ["none", "No records yet (" + (s.students - s.withRecords) + ")"]].map(function (c) {
@@ -38,7 +40,7 @@
         var x = r.cells[c.key]; return "<td" + (x.empty ? " class='none'" : "") + (x.when ? " title='Entered " + esc(x.when) + "'" : "") + ">" + esc(x.t) + "</td>";
       }).join("") + "</tr>";
     }).join("");
-    host.innerHTML = "<div class='gbar'>" + tabs + "</div><div class='gbar'>" + chips + "</div><div class='gscroll frz-scroll'><table class='gt frz'><thead>" + head + "</thead><tbody>" + body + "</tbody></table></div>" +
+    host.innerHTML = (only ? "" : "<div class='gbar'>" + tabs + "</div>") + "<div class='gbar'>" + chips + "</div><div class='gscroll frz-scroll'><table class='gt frz'><thead>" + head + "</thead><tbody>" + body + "</tbody></table></div>" +
       (rows.length === 0 ? "<p class='note' style='padding:.8rem 1rem'>No students match.</p>" : "") + (rows.length > 1000 ? "<p class='note' style='padding:.6rem 1rem'>First 1000 of " + rows.length + " students shown. Download as Excel to see all.</p>" : "");
     var ctx = { tab: "Grades", student: true, timeline: timeline, reload: function () { if (hooks.reload) hooks.reload(); } };
     cmRowSelect.bind({ host: host, item: function (k) { var r = tbl.rows.filter(function (x) { return x.id === k; })[0]; return r ? { key: k, id: r.id, name: r.name } : null; }, actions: function (items) { return cmRowActions.actions(ctx, items); } });
@@ -54,7 +56,7 @@
   }
 
   function render(h) {
-    host = h.host; hooks = h;
+    host = h.host; hooks = h; only = h.only || null;
     return cmApp.grades().then(function (g) { data = g; draw(); });
   }
   document.addEventListener("click", function (e) {
@@ -67,5 +69,7 @@
     if (!host || !host.contains(e.target) || (e.key !== "Enter" && e.key !== " ")) return;
     var t = e.target.closest && e.target.closest("th[data-k]"); if (t) { e.preventDefault(); t.click(); }
   });
-  window.cmGradesView = { timeline: timeline, render: render, redraw: function () { if (data && host) draw(); } };
+  return { timeline: timeline, render: render, redraw: function () { if (data && host) draw(); } };
+  }
+  window.cmGradesView = make(); window.cmGradesView.make = make;
 })();

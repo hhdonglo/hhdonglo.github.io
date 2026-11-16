@@ -55,7 +55,7 @@ test("attendance is its own table with one column per session date", () => {
   const grid = [["Student ID", "02/11/2026", "02/11/2026 #2", "03/11/2026"], ["10690001", 1, 0, 1], ["10690002", 0, 1, ""]];
   const t = vm.forScreen(build((n) => (n === "Attendance" ? grid : n === "Roster" ? ros : null))).tables[0];
   assert.deepEqual(t.columns.map((c) => c.label), ["2 Nov 2026", "2 Nov 2026 #2", "3 Nov 2026"]);
-  assert.deepEqual(t.rows[0].cells["att:0"].t, "Present"); assert.equal(t.rows[0].cells["att:1"].t, "Absent");
+  assert.deepEqual(t.rows[0].cells["att:0"].t, "1"); assert.equal(t.rows[0].cells["att:1"].t, "0");
   assert.ok(t.rows[1].cells["att:2"].empty);
 });
 
@@ -95,4 +95,24 @@ test("times in any record format are read; marks are not mistaken for times", ()
   assert.equal(toMs(5), null); assert.equal(toMs(""), null);
   assert.match(shown(new Date(2026, 10, 12, 14, 5).getTime()), /^12 Nov 2026, 14:05$/);
   assert.equal(practiceLabel("Lecture 3 practice").label, "Lecture 3"); assert.equal(practiceLabel("Lecture 3 (missed only)"), null);
+});
+
+test("a session heading that came in as a long date string reads as a clean short date", () => {
+  const { sessionLabel, sessionDate } = require("../rules/session-label");
+  assert.equal(sessionLabel("Attendance Tue Nov 03 2026 00:00:00 GMT+0000 (Greenwich Mean Time)"), "3 Nov 2026");
+  assert.equal(sessionLabel("04/11/2026"), "4 Nov 2026"); assert.equal(sessionLabel("04/11/2026 #2"), "4 Nov 2026 #2");
+  assert.equal(sessionLabel("Midterm"), "Midterm"); assert.equal(sessionDate("04/11/2026"), "2026-11-04");
+  const grid = [["Student ID", "Attendance Tue Nov 03 2026 00:00:00 GMT+0000 (Greenwich Mean Time)"], ["10690001", 1]];
+  const t = vm.forScreen(build((n) => (n === "Attendance" ? grid : n === "Roster" ? ros : null))).tables[0];
+  assert.deepEqual(t.columns.map((c) => c.label), ["3 Nov 2026"]);
+});
+
+test("attendance bands: who comes and who does not, with names beside IDs", () => {
+  const { attendanceBands } = require("../rules/attendance-bands");
+  const st = [{ id: "1", name: "A", attendance: 100, present: 4, sessions: 4, missedInARow: 0 }, { id: "2", name: "B", attendance: 50, present: 2, sessions: 4, missedInARow: 1 },
+    { id: "3", name: "C", attendance: 0, present: 0, sessions: 4, missedInARow: 4 }, { id: "4", name: "D", attendance: null, present: 0, sessions: 0, missedInARow: 0 }];
+  const r = attendanceBands(st);
+  assert.equal(r.counted, 3); assert.equal(r.never, 1); assert.equal(r.attending, 2);
+  assert.deepEqual(r.bands.map((b) => b.count), [1, 0, 1, 0, 1]);
+  assert.equal(r.bands[4].students[0].name, "C"); assert.equal(r.bands[0].pct, 33.3);
 });

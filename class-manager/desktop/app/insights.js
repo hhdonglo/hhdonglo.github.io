@@ -41,7 +41,7 @@
     return "<div class='stackbar' role='img' aria-label='Engagement groups'>" + GROUPS.map(function (g) { var n = counts[g] || 0; return n ? "<span class='" + GCLASS[g] + "' style='flex:" + n + "' title='" + esc(g) + ": " + n + "'></span>" : ""; }).join("") + "</div>" +
       "<ul class='legend'>" + GROUPS.map(function (g) { var n = counts[g] || 0; return n || g !== "Not enough data" ? "<li><button type='button' class='lg' data-group='" + esc(g) + "'><i class='" + GCLASS[g] + "'></i>" + esc(g) + " <b>" + n + "</b></button></li>" : ""; }).join("") + "</ul>";
   }
-  var shortDate = function (l) { var m = /^(\d\d)\/(\d\d)/.exec(l); return m ? m[1] + "/" + m[2] : l.replace(/^Week /, "W"); };
+  var shortDate = function (l) { var m = /^(\d\d)\/(\d\d)/.exec(l), n = /^(\d{1,2} [A-Z][a-z]{2}) \d{4}( #\d+)?$/.exec(l); return n ? n[1] + (n[2] || "") : m ? m[1] + "/" + m[2] : l.replace(/^Week /, "W"); };
   var tile = function (lbl, big, sub, extra) { return "<div class='card tile'><p class='lbl'>" + lbl + "</p><p class='tbig'>" + big + "</p><p class='note'>" + sub + "</p>" + (extra || "") + "</div>"; };
 
   var data = null, loading = null, cur = "overview";
@@ -162,11 +162,21 @@
   }
 
   /* ---- Attendance ---- */
+  var gridView = null, band = "";
+  // Who comes and who does not: the class split by attendance rate. Click a band to list its students (ID and name); click a student for the full record.
+  function people(p) {
+    if (!p || !p.counted) return "";
+    var tiles = p.bands.map(function (b) { return "<button type='button' class='gf" + (band === b.key ? " on" : "") + "' data-band='" + b.key + "' aria-pressed='" + (band === b.key) + "'>" + esc(b.label) + " <b>" + b.count + "</b> <span class='note'>" + num(b.pct, "%") + "</span></button>"; }).join("");
+    var pick = p.bands.filter(function (b) { return b.key === band; })[0];
+    var list = pick ? (pick.students.length ? "<div class='tbl ins-tbl short'><table><thead><tr><th>ID</th><th>Name</th><th>Present</th><th>Attendance</th><th>Missed in a row</th></tr></thead><tbody>" + pick.students.map(function (s) {
+      return "<tr tabindex='0' data-id='" + esc(s.id) + "'><td><b>" + esc(s.id) + "</b></td><td>" + esc(s.name || "No name on the list") + "</td><td>" + s.present + " of " + s.sessions + "</td><td>" + s.attendance + "%</td><td>" + s.missedInARow + "</td></tr>"; }).join("") + "</tbody></table></div>" : "<p class='note'>No students in this band.</p>") : "<p class='note'>Choose a band to see who is in it.</p>";
+    return "<section class='card'><div class='card-head'><h3>Who comes to class and who does not</h3><span class='note'>" + p.attending + " of " + p.counted + " students have attended at least once; " + p.never + " never.</span></div><div class='row gfilter' role='group' aria-label='Attendance bands'>" + tiles + "</div>" + list + "</section>";
+  }
   function attendance() {
     var d = data, a = d.attendance, t = d.thresholds;
     if (!a.sessions) { $("at").innerHTML = "<div class='card empty'><h3>No session submitted yet</h3><p>Take attendance under Class Tools, then submit it. Rates, trends and arrival times appear here.</p></div>"; return; }
     var miss = d.students.filter(function (s) { return s.missedInARow >= t.misses; }).sort(function (x, y) { return y.missedInARow - x.missedInARow; });
-    var h = "<div class='tiles4'>" + tile("Term rate", num(a.rate, "%"), plural(a.sessions, "session", "sessions")) + tile("Last session", num(a.lastRate, "%"), esc(a.bySession[a.bySession.length - 1].label)) +
+    var h = "<section class='card'><div class='card-head'><h3>Attendance record</h3><span class='note'>1 present, 0 absent, blank no record. One column per session date.</span></div><div id='at-grid'></div></section>" + people(a.people) + "<div class='tiles4'>" + tile("Term rate", num(a.rate, "%"), plural(a.sessions, "session", "sessions")) + tile("Last session", num(a.lastRate, "%"), esc(a.bySession[a.bySession.length - 1].label)) +
       tile("Last three against earlier", a.earlierRate !== null ? signed(Math.round(10 * (a.recentRate - a.earlierRate)) / 10, " pts") : "–", a.earlierRate !== null ? a.recentRate + "% against " + a.earlierRate + "%" : "Needs four sessions or more") +
       tile("Median arrival", num(a.arrival.median, " min"), "after the check-in opened") + "</div>";
     h += "<div class='ov2'><section class='card'><h3>Rate by session</h3>" + bars(a.bySession.map(function (x) { return x.rate; }), a.bySession.map(function (x) { return x.label; }), { max: 100, unit: "%", h: 180, short: shortDate, title: "Attendance by session", extra: a.bySession.map(function (x) { return "(" + x.present + " of " + x.counted + ")"; }) }) + "</section>" +
@@ -174,8 +184,9 @@
       "<div class='g2'><div><p class='lbl'>All sessions</p>" + bars(a.arrival.bands.map(function (b) { return b.n; }), a.arrival.bands.map(function (b) { return b.label; }), { w: 320, h: 150, labels: 5, short: function (l) { return l.replace(" min", "").replace(" or more", "+").replace(" to ", "–").replace("Under ", "<"); }, title: "Arrival, all sessions" }) + "</div>" +
       "<div><p class='lbl'>Last session</p>" + bars(a.arrival.latest.map(function (b) { return b.n; }), a.arrival.latest.map(function (b) { return b.label; }), { w: 320, h: 150, labels: 5, short: function (l) { return l.replace(" min", "").replace(" or more", "+").replace(" to ", "–").replace("Under ", "<"); }, title: "Arrival, last session" }) + "</div></div></section></div>";
     h += "<section class='card'><div class='card-head'><h3>Missed " + t.misses + " or more sessions in a row</h3><span class='note'>Threshold under Students, Engagement rules</span></div>" +
-      (miss.length ? "<div class='tbl ins-tbl short'><table><thead><tr><th>Student</th><th>Missed in a row</th><th>Longest run</th><th>Attendance</th><th>Suggested group</th></tr></thead><tbody>" + miss.map(function (s) { return "<tr tabindex='0' data-id='" + esc(s.id) + "'><td><b>" + esc(s.name || s.id) + "</b></td><td class='flag'>" + s.missedInARow + "</td><td>" + s.longestMissed + "</td><td>" + num(s.attendance, "%") + "</td><td>" + chip(s.group) + "</td></tr>"; }).join("") + "</tbody></table></div>" : "<p class='note'>No one at present.</p>") + "</section>";
+      (miss.length ? "<div class='tbl ins-tbl short'><table><thead><tr><th>ID</th><th>Name</th><th>Missed in a row</th><th>Longest run</th><th>Attendance</th><th>Suggested group</th></tr></thead><tbody>" + miss.map(function (s) { return "<tr tabindex='0' data-id='" + esc(s.id) + "'><td><b>" + esc(s.id) + "</b></td><td>" + esc(s.name || "No name on the list") + "</td><td class='flag'>" + s.missedInARow + "</td><td>" + s.longestMissed + "</td><td>" + num(s.attendance, "%") + "</td><td>" + chip(s.group) + "</td></tr>"; }).join("") + "</tbody></table></div>" : "<p class='note'>No one at present.</p>") + "</section>";
     $("at").innerHTML = h + "<h3 class='xh'>More charts</h3><div id='xa'></div>"; xmount("xa", "attendance");
+    if (window.cmGradesView && window.cmGradesView.make) { gridView = gridView || cmGradesView.make(); gridView.render({ host: $("at-grid"), only: "attendance", filter: function () { return ""; }, reload: function () { load(true).then(function () { if (data) render(cur); }); } }); }
   }
 
   /* ---- Quizzes and Questions ---- */
@@ -208,6 +219,7 @@
     var t = e.target.closest ? e.target : null; if (!t) return;
     if (data && window.cmCharts && cmCharts.panel && cmCharts.panel.handle(t, data, gxDraw)) return;
     var g = t.closest("[data-group]"); if (g && data) { filt = g.getAttribute("data-group"); if (window.cmGo) cmGo("students"); else students(); if (cur === "students") students(); return; }
+    var bd = t.closest("[data-band]"); if (bd) { band = band === bd.getAttribute("data-band") ? "" : bd.getAttribute("data-band"); attendance(); return; }
     var q = t.closest("[data-q]"); if (q) { qsel = +q.getAttribute("data-q"); quizzes(); return; }
     var th0 = t.closest("#st th[data-k]"); if (th0) { var k = th0.getAttribute("data-k"); sortD = k === sortK ? -sortD : 1; sortK = k; students(); return; }
     var ds = t.closest("[data-student]"); if (ds) { studentOpen(ds.getAttribute("data-student")); return; }
