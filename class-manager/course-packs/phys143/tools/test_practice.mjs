@@ -17,7 +17,7 @@ for(const N of [1,2,3,4,5,7,8,9,10,11,12]){
   check(`L${N}: button opens lecture-${N}-practice.html`, p.url().endsWith(`lecture-${N}-practice.html`));
   check(`L${N}: first question shown at once, no start screen`, (await p.locator('#quiz-app .opt').first().boundingBox()).y<900);
   check(`L${N}: no learning objectives or contacts on the quiz page`, !/Learning objectives|Contact 1/.test(await p.locator('main').innerText()));
-  check(`L${N}: says not assessment`, /not assessment/i.test(await p.locator('main').innerText()));
+  check(`L${N}: says the ID and score are optional`, /Optional\. If you enter an ID/i.test(await p.locator('main').innerText()));
   check(`L${N}: link back to the lecture`, await p.locator(`main a[href="lecture-${N}.html"]`).count()>=1);
   let right=0;
   for(let i=0;i<20;i++){
@@ -40,11 +40,11 @@ for(const N of [1,2,3,4,5,7,8,9,10,11,12]){
 }
 const p=await b.newPage();
 await p.goto(BASE+'lecture-6.html');await p.waitForTimeout(700);
-check('L6: coming soon, no quiz', await p.locator('.lecture-buttons').count()===0 && /Coming soon/.test(await p.locator('main').innerText()));
+check('L6: slides and handout shown, practice questions coming soon, no quiz', await p.locator('.lecture-buttons a[href*="-practice.html"]').count()===0 && /Practice questions\s*:?\s*Coming soon/.test(await p.locator('main').innerText()));
 await p.goto(BASE+'course.html');await p.waitForSelector('.week');
 check('phys143: no grouped practice section', await p.locator('#practice-qs').count()===0 && !/Open practice questions/.test(await p.locator('main').innerText()));
 const links=await p.$$eval('.week .wl a[href*="-practice.html"]',a=>a.map(x=>x.getAttribute('href')));
-check('weekly: 11 practice links, one per lecture, straight to the quiz page', links.length===11 && !links.some(h=>h.includes('lecture-6')));
+check('weekly: 12 practice links (introduction and lectures 1 to 5 and 7 to 12), straight to the quiz page', links.length===12 && links.some(h=>h.includes('introduction')) && !links.some(h=>h.includes('lecture-6')));
 for(const [from,to] of [['course.html#weekly#lecture-3','lecture-3-practice.html'],['course.html#weekly#lecture-4-menu','lecture-4-practice.html'],['lecture-5.html#practice','lecture-5-practice.html'],['course.html#weekly#lecture-6','lecture-6.html'],['course.html#weekly','course.html']]){
   await p.goto(BASE+from);await p.waitForTimeout(500);
   check(`${from} forwards to ${to}`, p.url().includes(to));

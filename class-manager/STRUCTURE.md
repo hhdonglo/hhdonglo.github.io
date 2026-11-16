@@ -1,5 +1,7 @@
 # Class Manager: structure and review notes
 
+**Current version: 0.22.1**
+
 Written 9 November 2026. A description of the class management tool as it stands in this folder, for review of the tool and of the course it serves.
 
 **Update, later on 9 November 2026.** Following the review, the package gained learning support; see "Learning support" in README.md. Of the gaps listed below, these are now closed: the own-results lookup needs a personal access code; the live quiz draw changes with each new workbook; every live answer is kept per question (Item_Log), so per-question statistics are computed; practice attempts record the questions asked. Four private tabs were added: Item_Log, Access_Codes, Question_Stats and Groups. Group marks now exist (groups.html), so "no group marks" below no longer holds.
@@ -316,7 +318,7 @@ Look (2026-11-15, from Hope's inspiration image): soft tinted tiles on cards, on
 ## More charts (0.21.2)
 `desktop/app/charts/explore-data.js`, `explore-view.js` and `explore-panel.js` (see `charts/README.md`): nine extra clickable bar charts across the Overview, Attendance, Quizzes and Questions and Students screens. Mounted from `app/insights.js` (`xmount`). Styles in `app/dashboard/dashboard.css`.
 
-### Overflow guard (0.21.4)
+### Overflow guard (0.22.0)
 `desktop/test/overflow.test.js` opens every sidebar screen at 760, 1000 and 1280 px with a very long folder path and repository URL and fails if the page or `main` scrolls sideways. The Course and Content card shows labelled Folder, Repository and Branch lines with Copy buttons; full values appear on hover. Long text wraps (`overflow-wrap:anywhere`) and `main` never scrolls horizontally.
 
 ### Duplicate IDs card (0.22.1)
