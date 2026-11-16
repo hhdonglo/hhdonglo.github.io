@@ -205,6 +205,7 @@ async function handle(req, res, remote) {
         if (g.refuse) { res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" }); return res.end(JSON.stringify(g.refuse)); }
         c.backend.setGeoMode(g.geo); // location is checked for the internet address, not for plain Wi-Fi
         try { out = require("./receipts").once(c.backend, params, () => c.backend.doPost(params, body)); } finally { c.backend.setGeoMode("off"); } // CM's own calls never see a leftover setting
+        if (c.live && !remote) out = Object.assign({}, out, { text: c.live.after(params, out.text) }); // hand an opened attendance session to the relay; the page learns where phones go
       } else { c.backend.setGeoMode(guardFor({ remote, tunnelOn: !!publicUrl() }, appSettings).geo); try { out = c.backend.doGet(params); } finally { c.backend.setGeoMode("off"); } }
       res.writeHead(200, { "Content-Type": out.mime + "; charset=utf-8", "Cache-Control": "no-store", "Access-Control-Allow-Origin": "*" });
       return res.end(out.text);
@@ -353,6 +354,7 @@ function makeCtx(id) {
   c.relay = hubUrl ? require("./relay/hub").createHub({ backend: c.backend, address: hubUrl, log: (m) => console.log("[relay " + id + "]", m) })
     : require("./relay/client").createRelay({ backend: c.backend, courseId: id, log: (m) => console.log("[mailbox " + id + "]", m) });
   c.relay.start();
+  c.live = hubUrl ? require("./relay/live-session").createLiveSession({ hub: c.relay, backend: c.backend, address: () => hubUrl, pages: "https://hhdonglo.github.io/class-manager/", log: (m) => console.log("[live " + id + "]", m) }) : null; // phones check in on the relay while a class runs, so the laptop may be off
   c.sync.start(); // local and online at the same time: a round now, then every two minutes, and a few seconds after each change
   try { c.lastBackup = c.backups.make(""); } catch (e) { c.lastBackup = { ok: false, why: e.message }; } // a backup each time the course is opened, checked at once
   return c;
@@ -365,6 +367,7 @@ function closeCtx(id) { // after the course's folder changes: saved now, made ag
   const c = ctxs.get(id); if (!c) return;
   try { c.sync.stop(); } catch (e) {}
   try { c.relay.stop(); } catch (e) {}
+  try { if (c.live) c.live.close(); } catch (e) {}
   try { c.backend.close(); } catch (e) {}
   ctxs.delete(id);
 }
