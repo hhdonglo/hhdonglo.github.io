@@ -1,6 +1,6 @@
 # Redeploy the CM Apps Script (keeps the same web app address)
 
-Version to expect afterwards: 2026-11-16-ids-1 (the Control Centre shows the same number).
+Version to expect afterwards: 2026-11-16-ids-2 (the Control Centre shows the same number).
 
 ## Before you change the script (for whoever edits it)
 

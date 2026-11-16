@@ -61,7 +61,7 @@ function recoveryNorm_(t) { return String(t || '').toUpperCase().replace(/[^A-Z0
 function recoveryStore_() { return PropertiesService.getScriptProperties().getProperty('pw_recovery') || ''; }
 
 function pwStore_(newPw) { // saves the password and a fresh recovery code; ends every sign-in made with the old password
-  var ks = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(KEY_TAB);
+  var ks = ss_().getSheetByName(KEY_TAB);
   ks.getRange(2, 10).setNumberFormat('@').setValue(pwMake_(newPw));
   var code = recoveryNew_();
   PropertiesService.getScriptProperties().setProperty('pw_recovery', pwMake_(code));
@@ -106,7 +106,7 @@ function recoverHostKey_(p) {
 // Run by hand in the script editor by the Sheet's owner (or by the desktop app's Reset button): both password and
 // recovery code lost. Makes a temporary key, removes the recovery code and ends every sign-in.
 function resetHostKey() {
-  var ks = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(KEY_TAB);
+  var ks = ss_().getSheetByName(KEY_TAB);
   var tmp = Utilities.getUuid().replace(/-/g, '').slice(0, 16);
   ks.getRange(2, 10).setNumberFormat('@').setValue(tmp);
   PropertiesService.getScriptProperties().deleteProperty('pw_recovery');

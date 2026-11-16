@@ -5,7 +5,7 @@ var NOTES_TAB = 'Student_Notes', NOTES_HEAD = ['Timestamp', 'Student ID', 'Note'
 
 // One student's records and notes, newest notes first.
 function studentRecords_(id) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet(), out = { records: [], notes: [] };
+  var ss = ss_(), out = { records: [], notes: [] };
   bodyRows_(ss.getSheetByName(RECORDS_TAB), 7).forEach(function (r) {
     if (normId_(r[1]) !== id) return;
     out.records.push({ date: r[0] instanceof Date ? Utilities.formatDate(r[0], Session.getScriptTimeZone(), 'yyyy-MM-dd') : String(r[0] || ''), category: String(r[2]), assessment: String(r[3]),

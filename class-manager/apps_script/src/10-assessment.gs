@@ -10,7 +10,7 @@ var MASTER_TAB = 'Master';
 
 function masterOn_() {
   try {
-    var ks = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(KEY_TAB);
+    var ks = ss_().getSheetByName(KEY_TAB);
     return !ks || String(ks.getRange(2, 12).getValue()).trim().toLowerCase() !== 'off';
   } catch (err) { return true; }
 }
@@ -29,7 +29,7 @@ function masterLabel_(quiz) { // a practice or mock quiz name from the pages -> 
 function updateMaster_(entries) {
   try {
     if (!entries.length || !masterOn_()) return;
-    var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(MASTER_TAB) || ss.insertSheet(MASTER_TAB);
+    var ss = ss_(), sh = ss.getSheetByName(MASTER_TAB) || ss.insertSheet(MASTER_TAB);
     if (sh.getLastRow() === 0) { sh.getRange(1, 1, 1, 3).setValues([['Student ID', 'Name', 'Last updated']]); sh.setFrozenRows(1); sh.setFrozenColumns(2); }
     entries.forEach(function (e) {
       var id = String(e.id || '').trim(), label = String(e.label || '').trim();
@@ -79,7 +79,7 @@ function scoreHeader_(label, live, weeks, today) {
 function updateScores_(entries) {
   try {
     if (!entries.length || !masterOn_()) return;
-    var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(SCORES_TAB) || ss.insertSheet(SCORES_TAB);
+    var ss = ss_(), sh = ss.getSheetByName(SCORES_TAB) || ss.insertSheet(SCORES_TAB);
     var weeks = {}; try { weeks = siteJson_('/apps_script/live_quizzes.json').weeks || {}; } catch (err) { /* headings are a nicety */ }
     var grid, whole = false;
     if (sh.getLastRow() < 3) {
@@ -139,7 +139,7 @@ function collectResults_() {
     if (!cur || rnd > cur.rnd || (rnd === cur.rnd && ts >= cur.ts)) latest[k] = { rnd: rnd, ts: ts, id: id, name: String(r[1]), label: week ? 'Week ' + week : 'Quiz ' + code, score: Number(r[9]), n: Number(r[11]) || 5 };
   });
   Object.keys(latest).forEach(function (k) { var x = latest[k]; entries.push({ id: x.id, name: x.name, label: x.label, score: x.score, n: x.n }); });
-  var at = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Attempts');
+  var at = ss_().getSheetByName('Attempts');
   if (at && at.getLastRow() > 1) {
     var best = {};
     at.getRange(2, 1, at.getLastRow() - 1, 6).getValues().forEach(function (r) { // Timestamp, Student ID, Quiz, Attempt, Score, Total
@@ -177,7 +177,7 @@ function parseAnswers_(row) { // from a stored row [ID, Join Code, Q1..Q5, Score
 function roundOf_(code) { var c = ctl_(code); return c ? Number(c.v[16]) || 0 : 0; }
 
 function responses_() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = ss_();
   var sh = ss.getSheetByName(RESPONSES_TAB);
   if (sh) return sh;
   var all = ss.getSheets();
@@ -197,7 +197,7 @@ function responses_() {
 var CTL_HEADER = ['join_code', 'status', 'duration_min', 'end_time_ms', 'remaining_ms', 'allow_late_join', 'show_score', 'show_leaderboard', 'message', 'title', 'updated', 'current_q', 'q_seconds', 'q_deadline_ms', 'q_remaining_ms', 'mode', 'round', 'review_q', 'n_questions', 'question_ids', 'week', 'vote', 'discussed'];
 
 function controlSheet_() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = ss_();
   var sh = ss.getSheetByName(CONTROL_TAB) || ss.insertSheet(CONTROL_TAB);
   if (sh.getLastRow() === 0) sh.appendRow(CTL_HEADER);
   else if (!String(sh.getRange(1, 22).getValue()).trim()) sh.getRange(1, 22, 1, 2).setValues([['vote', 'discussed']]); // tabs made before the second vote
@@ -215,12 +215,12 @@ function ctl_(code, fresh) {
     if (raw) {
       try {
         var o = JSON.parse(raw);
-        Object.defineProperty(o, 'sh', { get: function () { return SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONTROL_TAB); } });
+        Object.defineProperty(o, 'sh', { get: function () { return ss_().getSheetByName(CONTROL_TAB); } });
         return o;
       } catch (err) { /* fall through to the sheet */ }
     }
   }
-  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONTROL_TAB);
+  var sh = ss_().getSheetByName(CONTROL_TAB);
   if (!sh || sh.getLastRow() < 2) return null;
   var rows = sh.getRange(2, 1, sh.getLastRow() - 1, CTL_HEADER.length).getValues();
   for (var i = 0; i < rows.length; i++) {
@@ -430,7 +430,7 @@ function ctlAct_(p, code) {
   }
   else if (act === 'restart' || act === 'restartsame') { // stop and reset from any state: the answers so far are compiled, then a new round starts in the lobby
     if ((s === 'running' || s === 'paused') && pc) finalize_(code);
-    var ps2 = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(PRESENCE_TAB);
+    var ps2 = ss_().getSheetByName(PRESENCE_TAB);
     if (ps2) for (var pj = ps2.getLastRow(); pj >= 2; pj--) if (String(ps2.getRange(pj, 4).getValue()).trim().toUpperCase() === code) ps2.deleteRow(pj);
     var sameQs = act === 'restartsame' && qids_(c).length > 0 && qids_(c).length === quizN_(c);
     c.v[16] = (Number(c.v[16]) || 0) + 1; c.v[1] = 'Lobby'; c.v[3] = 0; c.v[4] = dur; c.v[11] = 0; c.v[13] = 0; c.v[14] = 0; c.v[8] = ''; c.v[17] = 0; c.v[21] = 1; c.v[22] = '';
@@ -439,7 +439,7 @@ function ctlAct_(p, code) {
     detail = 'round ' + c.v[16] + (sameQs ? ', same questions' : ', new questions');
   }
   else if (act === 'newround') { // student records are kept; a new round starts the class ranking again from zero
-    var ps = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(PRESENCE_TAB);
+    var ps = ss_().getSheetByName(PRESENCE_TAB);
     if (ps) for (var pi = ps.getLastRow(); pi >= 2; pi--) if (String(ps.getRange(pi, 4).getValue()).trim().toUpperCase() === code) ps.deleteRow(pi);
     c.v[16] = (Number(c.v[16]) || 0) + 1; c.v[1] = 'Lobby'; c.v[3] = 0; c.v[4] = dur; c.v[11] = 0; c.v[13] = 0; c.v[14] = 0; c.v[8] = ''; c.v[17] = 0; c.v[21] = 1; c.v[22] = '';
     detail = 'round ' + c.v[16];
@@ -478,7 +478,7 @@ function ctlAct_(p, code) {
 // ---------- Held results: Staged_Quiz, released by the lecturer ----------
 
 function stagedSheet_() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(STAGED_TAB);
+  var ss = ss_(), sh = ss.getSheetByName(STAGED_TAB);
   if (!sh) { sh = ss.insertSheet(STAGED_TAB); sh.appendRow(RESP_HEADER); sh.setFrozenRows(1); }
   return sh;
 }
@@ -486,17 +486,17 @@ function stagedSheet_() {
 // Rows of Form Responses 1 followed by the held rows (14 columns each); readers use this so a held result can still be shown when the lecturer chose "Immediate".
 function respRows_() {
   var rs = responses_(), n = rs.getLastRow(), out = n > 1 ? rs.getRange(2, 1, n - 1, 14).getValues() : [];
-  var st = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(STAGED_TAB);
+  var st = ss_().getSheetByName(STAGED_TAB);
   if (st && st.getLastRow() > 1) out = out.concat(st.getRange(2, 1, st.getLastRow() - 1, 14).getValues());
   return out;
 }
 
-function stagedCount_() { var st = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(STAGED_TAB); return st && st.getLastRow() > 1 ? st.getLastRow() - 1 : 0; }
+function stagedCount_() { var st = ss_().getSheetByName(STAGED_TAB); return st && st.getLastRow() > 1 ? st.getLastRow() - 1 : 0; }
 
 // Copy held rows into Form Responses 1 (a re-release of the same ID, code and round updates that row), update Master, Scores and Totals,
 // then remove them from staging. code = '' releases every held row. Earlier weeks in Master are never touched: a cell is replaced only for the same student and quiz.
 function commitQuiz_(code, everyRound) {
-  var st = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(STAGED_TAB);
+  var st = ss_().getSheetByName(STAGED_TAB);
   if (!st || st.getLastRow() < 2) return { released: 0 };
   var rs = responses_(), n = rs.getLastRow();
   if (n === 0) { rs.appendRow(RESP_HEADER); n = 1; }
@@ -525,7 +525,7 @@ function commitQuiz_(code, everyRound) {
 }
 
 function discardQuiz_(code, everyRound) {
-  var st = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(STAGED_TAB);
+  var st = ss_().getSheetByName(STAGED_TAB);
   if (!st || st.getLastRow() < 2) return { discarded: 0 };
   var data = st.getRange(2, 1, st.getLastRow() - 1, 14).getValues(), keepRows = [], gone = 0, curRound = {}, dropped = {};
   data.forEach(function (r) {
@@ -542,7 +542,7 @@ function discardQuiz_(code, everyRound) {
 
 // Practice and mock tries sit in the Attempts log until a release; only IDs on the Roster join Master and Scores (test IDs stay out).
 function practiceEntries_() {
-  var at = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Attempts');
+  var at = ss_().getSheetByName('Attempts');
   if (!at || at.getLastRow() < 2) return [];
   var roster = rosterSet_(), hasRoster = Object.keys(roster).length > 0, best = {};
   at.getRange(2, 1, at.getLastRow() - 1, 6).getValues().forEach(function (r) { // Timestamp, Student ID, Quiz, Attempt, Score, Total
@@ -563,7 +563,7 @@ function heldStatus_() {
 
 function latestAnswers_(code) { // {id: {name, ans:[5], conf, first}} for the current round; the last answer to each question wins
   // first: the answer given before a second vote (ask, discuss, revise); the same as ans when there was no second vote.
-  var out = {}, sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ANSWERS_TAB);
+  var out = {}, sh = ss_().getSheetByName(ANSWERS_TAB);
   if (!sh || sh.getLastRow() < 2) return out;
   var cc = ctl_(code), round = cc ? Number(cc.v[16]) || 0 : 0, N = cc ? quizN_(cc) : 5;
   var rows = sh.getRange(2, 2, sh.getLastRow() - 1, 8).getValues(); // ID, First Name, Join Code, Q, Answer, Round, Confidence, Vote
@@ -626,7 +626,7 @@ function discussionMoves_(got, q, key) {
 // One row per student ID. A column per quiz code holds the counted score for that quiz. If a student has several
 // rounds for the same code, Key!K2 chooses which counts: Best (default) or Latest.
 function refreshTotals() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet(), rs = responses_(), n = rs.getLastRow();
+  var ss = ss_(), rs = responses_(), n = rs.getLastRow();
   var ks = ss.getSheetByName(KEY_TAB), mode = ks ? String(ks.getRange(2, 11).getValue()).trim().toLowerCase() : '';
   var latest = mode === 'latest', weeks = {};
   try { weeks = siteJson_('/apps_script/live_quizzes.json').weeks || {}; } catch (err) { /* titles are a nicety */ }
@@ -663,8 +663,8 @@ function discardHeldQuiz() { return discardQuiz_('', true); }
 // ---------- Presence: who has joined, who is working, who has submitted ----------
 
 function presence_(code, id, name, status) {
-  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(PRESENCE_TAB);
-  if (!sh) { sh = SpreadsheetApp.getActiveSpreadsheet().insertSheet(PRESENCE_TAB); sh.appendRow(['Timestamp', 'ID', 'First Name', 'Join Code', 'Status']); }
+  var sh = ss_().getSheetByName(PRESENCE_TAB);
+  if (!sh) { sh = ss_().insertSheet(PRESENCE_TAB); sh.appendRow(['Timestamp', 'ID', 'First Name', 'Join Code', 'Status']); }
   var n = sh.getLastRow();
   if (n > 1) {
     var rows = sh.getRange(2, 2, n - 1, 3).getValues();
@@ -681,7 +681,7 @@ function presence_(code, id, name, status) {
 }
 
 function hasPresence_(code, id) {
-  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(PRESENCE_TAB);
+  var sh = ss_().getSheetByName(PRESENCE_TAB);
   if (!sh || sh.getLastRow() < 2) return false;
   var rows = sh.getRange(2, 2, sh.getLastRow() - 1, 3).getValues();
   for (var i = 0; i < rows.length; i++) {
@@ -711,7 +711,7 @@ function reviewData_(code, id) {
   if (!c || !key || q < 1 || (st !== 'ended' && st !== 'released')) return { q: 0 };
   var got = latestAnswers_(code), dist = { A: 0, B: 0, C: 0, D: 0, E: 0 }, n = 0;
   Object.keys(got).forEach(function (k) { var a = got[k].ans[q - 1]; if (a) { n++; if (dist[a] !== undefined) dist[a]++; } });
-  var expl = '', es = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(EXPL_TAB);
+  var expl = '', es = ss_().getSheetByName(EXPL_TAB);
   if (es && es.getLastRow() > 1) {
     var rows = es.getRange(2, 1, es.getLastRow() - 1, 3).getValues();
     for (var i = 0; i < rows.length; i++) if (String(rows[i][0]).trim().toUpperCase() === code && Number(rows[i][1]) === q) expl = String(rows[i][2]);
@@ -741,7 +741,7 @@ function ranking_(code, me) {
 
 function counts_(code) {
   var out = { joined: 0, inprogress: 0, submitted: 0, notYet: [] };
-  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(PRESENCE_TAB);
+  var sh = ss_().getSheetByName(PRESENCE_TAB);
   if (sh && sh.getLastRow() > 1) {
     var rows = sh.getRange(2, 1, sh.getLastRow() - 1, 5).getValues();
     for (var i = 0; i < rows.length; i++) {
@@ -786,7 +786,7 @@ function logItems_(code, rnd, wk, ids, letters, got, discussed) {
   else if (add.length) sh.getRange(sh.getLastRow() + 1, 1, add.length, ITEMS_W).setValues(add);
 }
 function dropItems_(pairs) { // pairs: {'CODE|round': true}, from a discard
-  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ITEMS_TAB);
+  var sh = ss_().getSheetByName(ITEMS_TAB);
   if (!sh || !Object.keys(pairs).length) return;
   var rows = bodyRows_(sh, ITEMS_W), keep = rows.filter(function (r) { return !pairs[String(r[1]).trim().toUpperCase() + '|' + (Number(r[2]) || 0)]; });
   if (keep.length !== rows.length) rewriteBody_(sh, ITEMS_W, keep);

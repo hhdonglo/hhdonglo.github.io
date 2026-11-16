@@ -4,11 +4,11 @@
 // ---------- Portal and Control Centre support (additive: no existing action changes) ----------
 // SCRIPT_VERSION: change it whenever the script is redeployed; the Control Centre compares it with the version its page expects.
 // Key!M2 = Off hides "My results" from students (default On).
-var SCRIPT_VERSION = '2026-11-16-ids-1';
+var SCRIPT_VERSION = '2026-11-16-ids-2';
 
 function resultsOn_() {
   try {
-    var ks = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(KEY_TAB);
+    var ks = ss_().getSheetByName(KEY_TAB);
     return !ks || String(ks.getRange(2, 13).getValue()).trim().toLowerCase() !== 'off';
   } catch (err) { return true; }
 }
@@ -16,7 +16,7 @@ function resultsOn_() {
 // Key!N2 holds the week the lecturer chose in the Control Centre (1 to 12). Empty means: use data/portal.json.
 function weekChoice_() {
   try {
-    var v = Number(SpreadsheetApp.getActiveSpreadsheet().getSheetByName(KEY_TAB).getRange(2, 14).getValue());
+    var v = Number(ss_().getSheetByName(KEY_TAB).getRange(2, 14).getValue());
     return v >= 1 && v <= 12 ? v : 0;
   } catch (err) { return 0; }
 }
@@ -24,7 +24,7 @@ function weekChoice_() {
 function setWeek_(p) { // host only; w=0 clears the choice
   var w = Number(String(p.w || '').replace(/\D/g, '').slice(0, 2));
   if (isNaN(w) || w < 0 || w > 12) return { ok: false, why: 'week must be 0 to 12' };
-  var ks = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(KEY_TAB);
+  var ks = ss_().getSheetByName(KEY_TAB);
   if (!ks) return { ok: false, why: 'no Key tab' };
   ks.getRange(2, 14).setValue(w || '');
   try { CacheService.getScriptCache().remove('portal'); } catch (err) { /* cache only */ }
@@ -37,7 +37,7 @@ function portalStatus_() { // public, no secrets: is attendance open, is a live 
   try { attRows_().forEach(function (r) { if (r.status === 'Open') att = 'open'; }); } catch (err) { /* leave closed */ }
   var quiz = 'none';
   try {
-    var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONTROL_TAB);
+    var sh = ss_().getSheetByName(CONTROL_TAB);
     if (sh && sh.getLastRow() > 1) {
       sh.getRange(2, 1, sh.getLastRow() - 1, CTL_HEADER.length).getValues().forEach(function (v) {
         var st = eff_({ v: v }); // lobby, running or paused counts as open; the join code is never returned
@@ -56,7 +56,7 @@ function portalResults_(p) {
   var who = studentCheck_(p.id, p.code, 'r'); // the ID with its personal access code or a session, both required
   if (!who.id) return { ok: false, why: who.why };
   var id = who.id;
-  var ss = SpreadsheetApp.getActiveSpreadsheet(), out = { ok: true, attendance: [], quizzes: [] };
+  var ss = ss_(), out = { ok: true, attendance: [], quizzes: [] };
   var at = ss.getSheetByName(ATT_TAB);
   if (at && at.getLastRow() > 1 && at.getLastColumn() > 1) {
     var g = at.getRange(1, 1, at.getLastRow(), at.getLastColumn()).getValues();
@@ -82,7 +82,7 @@ function portalResults_(p) {
 
 // Host only: the checks behind the Control Centre's "Run checks" button. Reads only; nothing is changed.
 function preclass_(p) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet(), o = { ok: true, version: SCRIPT_VERSION, serverNow: Date.now() };
+  var ss = ss_(), o = { ok: true, version: SCRIPT_VERSION, serverNow: Date.now() };
   try { o.rosterCount = rosterRows_().length; } catch (err) { o.rosterCount = -1; }
   o.masterOn = masterOn_(); o.resultsOn = resultsOn_();
   try { o.totalsMode = String(ss.getSheetByName(KEY_TAB).getRange(2, 11).getValue()).trim() || 'Best'; } catch (err) { o.totalsMode = 'Best'; }

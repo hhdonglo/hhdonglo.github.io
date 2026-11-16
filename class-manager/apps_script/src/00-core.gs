@@ -46,7 +46,7 @@ function clean_(v, max) {
 }
 
 function append_(tab, header, row) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = ss_();
   var sh = ss.getSheetByName(tab) || ss.insertSheet(tab);
   if (sh.getLastRow() === 0) sh.appendRow(header);
   sh.appendRow(row);
@@ -78,12 +78,22 @@ function log_(outcome, name, id, code) {
   try { append_('Log', ['Timestamp', 'Outcome', 'First Name', 'ID', 'Join Code'], [new Date(), outcome, name, id, code]); } catch (err) { /* logging must never stop a submission */ }
 }
 
+// The active spreadsheet, fetched once per execution (a script global lives for one request) instead of in every helper.
+var SS_ = null;
+function ss_() { return SS_ || (SS_ = SpreadsheetApp.getActiveSpreadsheet()); }
+
+// The newest Log line for this ID and join code. Reads the Log from the end in blocks of LOG_BLOCK rows and stops at the first match,
+// so a recent line is found without reading the whole sheet, and an old line is still found (the answer is the same as reading everything).
+var LOG_BLOCK = 400;
 function lastOutcome_(id, code) {
-  var ls = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Log');
+  var ls = ss_().getSheetByName('Log');
   if (!ls || ls.getLastRow() < 2) return '';
-  var rows = ls.getRange(2, 2, ls.getLastRow() - 1, 4).getValues(); // Outcome, First Name, ID, Join Code
-  for (var i = rows.length - 1; i >= 0; i--) {
-    if (String(rows[i][2]).trim() === id && String(rows[i][3]).trim().toUpperCase() === code) return String(rows[i][0]);
+  for (var end = ls.getLastRow(); end >= 2; end -= LOG_BLOCK) {
+    var start = Math.max(2, end - LOG_BLOCK + 1);
+    var rows = ls.getRange(start, 2, end - start + 1, 4).getValues(); // Outcome, First Name, ID, Join Code
+    for (var i = rows.length - 1; i >= 0; i--) {
+      if (String(rows[i][2]).trim() === id && String(rows[i][3]).trim().toUpperCase() === code) return String(rows[i][0]);
+    }
   }
   return '';
 }
@@ -114,7 +124,7 @@ function weekFromCode_(code) {
 function keyRow_(code) {
   var kc = null, kk = 'key:' + code;
   try { kc = CacheService.getScriptCache(); var kh = kc.get(kk); if (kh) return JSON.parse(kh); } catch (err) { kc = null; }
-  var ks = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(KEY_TAB);
+  var ks = ss_().getSheetByName(KEY_TAB);
   if (!ks || ks.getLastRow() < 2) return null;
   var rows = ks.getRange(2, 1, ks.getLastRow() - 1, 8).getValues(), found = null;
   for (var i = 0; i < rows.length; i++) {
@@ -134,7 +144,7 @@ function rowFor_(ts, name, id, code, ans, score, rnd, n, week) {
 
 // Run once from the editor: makes sure the Key, Quiz_Control, responses and Log tabs exist and tells you what it found.
 function setup() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = ss_();
   var ks = ss.getSheetByName(KEY_TAB) || ss.insertSheet(KEY_TAB);
   if (ks.getLastRow() === 0) ks.appendRow(['Join Code', 'Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Ranking']);
   ks.getRange(1, 8).setValue('State');
@@ -187,7 +197,7 @@ function cleanName_(s) { // a name for the lecturer's private view: trimmed, at 
 }
 
 function rosterRows_() { // [[id, name], ...] straight from the Roster tab
-  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ROSTER_TAB);
+  var sh = ss_().getSheetByName(ROSTER_TAB);
   if (!sh || sh.getLastRow() < 1) return [];
   var v = sh.getRange(1, 1, sh.getLastRow(), 2).getValues(), out = [];
   v.forEach(function (r) { var id = normId_(r[0]); if (id.length >= 4) out.push([id, String(r[1] || '').trim()]); }); // the header row has no digits and is skipped
@@ -223,7 +233,7 @@ function rosterSync_(p) {
   var apply = String(p.mode || '') === 'apply', lk = LockService.getScriptLock();
   lk.waitLock(30000);
   try {
-    var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(ROSTER_TAB) || ss.insertSheet(ROSTER_TAB);
+    var ss = ss_(), sh = ss.getSheetByName(ROSTER_TAB) || ss.insertSheet(ROSTER_TAB);
     if (sh.getLastRow() === 0) sh.getRange(1, 1, 1, 2).setValues([['Student ID', 'Name']]);
     var have = {}, nameAt = {};
     sh.getRange(1, 1, sh.getLastRow(), 2).getValues().forEach(function (r, i) { var id = normId_(r[0]); if (id.length >= 4) { have[id] = 1; if (!String(r[1] || '').trim()) nameAt[id] = i + 1; } });
@@ -242,9 +252,15 @@ function rosterSync_(p) {
       sh.getRange(r0, 1, added.length, 2).setNumberFormat('@');
       sh.getRange(r0, 1, added.length, 2).setValues(added);
     }
-    if (apply && named) { // fill blank names of IDs already on the Roster; a name that is already there is never overwritten
-      if (!String(sh.getRange(1, 2).getValue()).trim()) sh.getRange(1, 2).setValue('Name');
-      Object.keys(nameAt).forEach(function (id) { if (up[id] && up[id].trim()) sh.getRange(nameAt[id], 2).setNumberFormat('@').setValue(up[id].trim()); });
+    if (apply && named) { // fill blank names of IDs already on the Roster; a name that is already there is never overwritten. Read again (rows may have moved) and write column B once.
+      var cur = sh.getRange(1, 1, sh.getLastRow(), 2).getValues(), colB = [];
+      cur.forEach(function (r, i) {
+        var id = normId_(r[0]), cell = r[1] == null ? '' : r[1];
+        if (i === 0 && !String(cell).trim()) cell = 'Name';
+        if (id.length >= 4 && !String(r[1] == null ? '' : r[1]).trim() && up[id] && up[id].trim()) cell = up[id].trim();
+        colB.push([cell]);
+      });
+      sh.getRange(1, 2, colB.length, 1).setNumberFormat('@').setValues(colB);
     }
     if (apply) { try { CacheService.getScriptCache().remove('roster'); } catch (err) { /* cache only */ } log_('roster:sync', added.length + ' added', '', ''); }
     return { ok: true, mode: apply ? 'apply' : 'dry', replace: replace, added: added.length, namesFilled: named, unchanged: order.length - added.length, missing: missing, removed: replace ? (apply ? removed : missing) : 0, skipped: bad, total: order.length };
@@ -280,7 +296,7 @@ function rosterTidy_(p) {
   if (!Object.keys(roster).length) return { ok: false, why: 'the Roster is empty, so nothing is tidied' };
   var lk = LockService.getScriptLock(); lk.waitLock(30000);
   try {
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var ss = ss_();
     var nonZero = function (v) { return v !== '' && v !== 0 && String(v).trim() !== '0'; }, nonBlank = function (v) { return String(v).trim() !== ''; };
     var a = tidyTab_(ss.getSheetByName(ATT_TAB), 2, 1, nonZero, roster, apply);
     var s = tidyTab_(ss.getSheetByName(SCORES_TAB), 4, 4, nonBlank, roster, apply);
@@ -306,7 +322,7 @@ function rosterEdit_(p) {
   if (op !== 'add' && op !== 'remove' && op !== 'check') return { ok: false, why: 'unknown operation' };
   var lk = LockService.getScriptLock(); lk.waitLock(30000);
   try {
-    var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(ROSTER_TAB) || ss.insertSheet(ROSTER_TAB);
+    var ss = ss_(), sh = ss.getSheetByName(ROSTER_TAB) || ss.insertSheet(ROSTER_TAB);
     if (sh.getLastRow() === 0) sh.getRange(1, 1).setValue('Student ID');
     var col = sh.getRange(1, 1, sh.getLastRow(), 1).getValues(), at = -1, n = 0;
     col.forEach(function (r, i) { var x = normId_(r[0]); if (x.length >= 4) { n++; if (x === id && at < 0) at = i + 1; } });
@@ -336,7 +352,7 @@ function siteJson_(path) {
 function plainText_(t) { return String(t || '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim(); }
 
 function sheetWith_(name, header) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(name);
+  var ss = ss_(), sh = ss.getSheetByName(name);
   if (!sh) { sh = ss.insertSheet(name); sh.appendRow(header); sh.setFrozenRows(1); }
   else if (sh.getLastRow() === 0) sh.appendRow(header);
   return sh;
@@ -356,7 +372,7 @@ function newAccessCode_() {
   return s.slice(0, 4) + '-' + s.slice(4);
 }
 function codesMap_() {
-  var out = {}, sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CODES_TAB);
+  var out = {}, sh = ss_().getSheetByName(CODES_TAB);
   bodyRows_(sh, 3).forEach(function (r) { var id = normId_(r[0]), c = normCode_(r[1]); if (id && c) out[id] = { code: c, issued: r[2] }; });
   return out;
 }
@@ -381,9 +397,15 @@ function accessCodes_(p) {
     var rid = normId_(p.id);
     if (!rid || !rosterSet_()[rid]) return { ok: false, why: 'not on list' };
     map[rid] = { code: newAccessCode_(), issued: now };
-    var rows = bodyRows_(sh, 3).filter(function (r) { return normId_(r[0]) !== rid; });
-    rows.push([rid, map[rid].code, now]);
-    rewriteBody_(sh, 3, rows);
+    var body = bodyRows_(sh, 3), at = [];
+    body.forEach(function (r, i) { if (normId_(r[0]) === rid) at.push(i); });
+    if (at.length === 1) sh.getRange(at[0] + 2, 2, 1, 2).setValues([[map[rid].code, now]]); // one row: change just that row
+    else if (!at.length) sh.getRange(sh.getLastRow() + 1, 1, 1, 3).setNumberFormat('@').setValues([[rid, map[rid].code, now]]);
+    else { // the ID is listed twice (older data): keep one row for it
+      var rows = body.filter(function (r) { return normId_(r[0]) !== rid; });
+      rows.push([rid, map[rid].code, now]);
+      rewriteBody_(sh, 3, rows);
+    }
     log_('access code replaced', '', rid, '');
     made = 1;
   }

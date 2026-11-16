@@ -50,7 +50,7 @@ function clean_(v, max) {
 }
 
 function append_(tab, header, row) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = ss_();
   var sh = ss.getSheetByName(tab) || ss.insertSheet(tab);
   if (sh.getLastRow() === 0) sh.appendRow(header);
   sh.appendRow(row);
@@ -82,12 +82,22 @@ function log_(outcome, name, id, code) {
   try { append_('Log', ['Timestamp', 'Outcome', 'First Name', 'ID', 'Join Code'], [new Date(), outcome, name, id, code]); } catch (err) { /* logging must never stop a submission */ }
 }
 
+// The active spreadsheet, fetched once per execution (a script global lives for one request) instead of in every helper.
+var SS_ = null;
+function ss_() { return SS_ || (SS_ = SpreadsheetApp.getActiveSpreadsheet()); }
+
+// The newest Log line for this ID and join code. Reads the Log from the end in blocks of LOG_BLOCK rows and stops at the first match,
+// so a recent line is found without reading the whole sheet, and an old line is still found (the answer is the same as reading everything).
+var LOG_BLOCK = 400;
 function lastOutcome_(id, code) {
-  var ls = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Log');
+  var ls = ss_().getSheetByName('Log');
   if (!ls || ls.getLastRow() < 2) return '';
-  var rows = ls.getRange(2, 2, ls.getLastRow() - 1, 4).getValues(); // Outcome, First Name, ID, Join Code
-  for (var i = rows.length - 1; i >= 0; i--) {
-    if (String(rows[i][2]).trim() === id && String(rows[i][3]).trim().toUpperCase() === code) return String(rows[i][0]);
+  for (var end = ls.getLastRow(); end >= 2; end -= LOG_BLOCK) {
+    var start = Math.max(2, end - LOG_BLOCK + 1);
+    var rows = ls.getRange(start, 2, end - start + 1, 4).getValues(); // Outcome, First Name, ID, Join Code
+    for (var i = rows.length - 1; i >= 0; i--) {
+      if (String(rows[i][2]).trim() === id && String(rows[i][3]).trim().toUpperCase() === code) return String(rows[i][0]);
+    }
   }
   return '';
 }
@@ -118,7 +128,7 @@ function weekFromCode_(code) {
 function keyRow_(code) {
   var kc = null, kk = 'key:' + code;
   try { kc = CacheService.getScriptCache(); var kh = kc.get(kk); if (kh) return JSON.parse(kh); } catch (err) { kc = null; }
-  var ks = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(KEY_TAB);
+  var ks = ss_().getSheetByName(KEY_TAB);
   if (!ks || ks.getLastRow() < 2) return null;
   var rows = ks.getRange(2, 1, ks.getLastRow() - 1, 8).getValues(), found = null;
   for (var i = 0; i < rows.length; i++) {
@@ -138,7 +148,7 @@ function rowFor_(ts, name, id, code, ans, score, rnd, n, week) {
 
 // Run once from the editor: makes sure the Key, Quiz_Control, responses and Log tabs exist and tells you what it found.
 function setup() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = ss_();
   var ks = ss.getSheetByName(KEY_TAB) || ss.insertSheet(KEY_TAB);
   if (ks.getLastRow() === 0) ks.appendRow(['Join Code', 'Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Ranking']);
   ks.getRange(1, 8).setValue('State');
@@ -191,7 +201,7 @@ function cleanName_(s) { // a name for the lecturer's private view: trimmed, at 
 }
 
 function rosterRows_() { // [[id, name], ...] straight from the Roster tab
-  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ROSTER_TAB);
+  var sh = ss_().getSheetByName(ROSTER_TAB);
   if (!sh || sh.getLastRow() < 1) return [];
   var v = sh.getRange(1, 1, sh.getLastRow(), 2).getValues(), out = [];
   v.forEach(function (r) { var id = normId_(r[0]); if (id.length >= 4) out.push([id, String(r[1] || '').trim()]); }); // the header row has no digits and is skipped
@@ -227,7 +237,7 @@ function rosterSync_(p) {
   var apply = String(p.mode || '') === 'apply', lk = LockService.getScriptLock();
   lk.waitLock(30000);
   try {
-    var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(ROSTER_TAB) || ss.insertSheet(ROSTER_TAB);
+    var ss = ss_(), sh = ss.getSheetByName(ROSTER_TAB) || ss.insertSheet(ROSTER_TAB);
     if (sh.getLastRow() === 0) sh.getRange(1, 1, 1, 2).setValues([['Student ID', 'Name']]);
     var have = {}, nameAt = {};
     sh.getRange(1, 1, sh.getLastRow(), 2).getValues().forEach(function (r, i) { var id = normId_(r[0]); if (id.length >= 4) { have[id] = 1; if (!String(r[1] || '').trim()) nameAt[id] = i + 1; } });
@@ -246,9 +256,15 @@ function rosterSync_(p) {
       sh.getRange(r0, 1, added.length, 2).setNumberFormat('@');
       sh.getRange(r0, 1, added.length, 2).setValues(added);
     }
-    if (apply && named) { // fill blank names of IDs already on the Roster; a name that is already there is never overwritten
-      if (!String(sh.getRange(1, 2).getValue()).trim()) sh.getRange(1, 2).setValue('Name');
-      Object.keys(nameAt).forEach(function (id) { if (up[id] && up[id].trim()) sh.getRange(nameAt[id], 2).setNumberFormat('@').setValue(up[id].trim()); });
+    if (apply && named) { // fill blank names of IDs already on the Roster; a name that is already there is never overwritten. Read again (rows may have moved) and write column B once.
+      var cur = sh.getRange(1, 1, sh.getLastRow(), 2).getValues(), colB = [];
+      cur.forEach(function (r, i) {
+        var id = normId_(r[0]), cell = r[1] == null ? '' : r[1];
+        if (i === 0 && !String(cell).trim()) cell = 'Name';
+        if (id.length >= 4 && !String(r[1] == null ? '' : r[1]).trim() && up[id] && up[id].trim()) cell = up[id].trim();
+        colB.push([cell]);
+      });
+      sh.getRange(1, 2, colB.length, 1).setNumberFormat('@').setValues(colB);
     }
     if (apply) { try { CacheService.getScriptCache().remove('roster'); } catch (err) { /* cache only */ } log_('roster:sync', added.length + ' added', '', ''); }
     return { ok: true, mode: apply ? 'apply' : 'dry', replace: replace, added: added.length, namesFilled: named, unchanged: order.length - added.length, missing: missing, removed: replace ? (apply ? removed : missing) : 0, skipped: bad, total: order.length };
@@ -284,7 +300,7 @@ function rosterTidy_(p) {
   if (!Object.keys(roster).length) return { ok: false, why: 'the Roster is empty, so nothing is tidied' };
   var lk = LockService.getScriptLock(); lk.waitLock(30000);
   try {
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var ss = ss_();
     var nonZero = function (v) { return v !== '' && v !== 0 && String(v).trim() !== '0'; }, nonBlank = function (v) { return String(v).trim() !== ''; };
     var a = tidyTab_(ss.getSheetByName(ATT_TAB), 2, 1, nonZero, roster, apply);
     var s = tidyTab_(ss.getSheetByName(SCORES_TAB), 4, 4, nonBlank, roster, apply);
@@ -310,7 +326,7 @@ function rosterEdit_(p) {
   if (op !== 'add' && op !== 'remove' && op !== 'check') return { ok: false, why: 'unknown operation' };
   var lk = LockService.getScriptLock(); lk.waitLock(30000);
   try {
-    var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(ROSTER_TAB) || ss.insertSheet(ROSTER_TAB);
+    var ss = ss_(), sh = ss.getSheetByName(ROSTER_TAB) || ss.insertSheet(ROSTER_TAB);
     if (sh.getLastRow() === 0) sh.getRange(1, 1).setValue('Student ID');
     var col = sh.getRange(1, 1, sh.getLastRow(), 1).getValues(), at = -1, n = 0;
     col.forEach(function (r, i) { var x = normId_(r[0]); if (x.length >= 4) { n++; if (x === id && at < 0) at = i + 1; } });
@@ -340,7 +356,7 @@ function siteJson_(path) {
 function plainText_(t) { return String(t || '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim(); }
 
 function sheetWith_(name, header) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(name);
+  var ss = ss_(), sh = ss.getSheetByName(name);
   if (!sh) { sh = ss.insertSheet(name); sh.appendRow(header); sh.setFrozenRows(1); }
   else if (sh.getLastRow() === 0) sh.appendRow(header);
   return sh;
@@ -360,7 +376,7 @@ function newAccessCode_() {
   return s.slice(0, 4) + '-' + s.slice(4);
 }
 function codesMap_() {
-  var out = {}, sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CODES_TAB);
+  var out = {}, sh = ss_().getSheetByName(CODES_TAB);
   bodyRows_(sh, 3).forEach(function (r) { var id = normId_(r[0]), c = normCode_(r[1]); if (id && c) out[id] = { code: c, issued: r[2] }; });
   return out;
 }
@@ -385,9 +401,15 @@ function accessCodes_(p) {
     var rid = normId_(p.id);
     if (!rid || !rosterSet_()[rid]) return { ok: false, why: 'not on list' };
     map[rid] = { code: newAccessCode_(), issued: now };
-    var rows = bodyRows_(sh, 3).filter(function (r) { return normId_(r[0]) !== rid; });
-    rows.push([rid, map[rid].code, now]);
-    rewriteBody_(sh, 3, rows);
+    var body = bodyRows_(sh, 3), at = [];
+    body.forEach(function (r, i) { if (normId_(r[0]) === rid) at.push(i); });
+    if (at.length === 1) sh.getRange(at[0] + 2, 2, 1, 2).setValues([[map[rid].code, now]]); // one row: change just that row
+    else if (!at.length) sh.getRange(sh.getLastRow() + 1, 1, 1, 3).setNumberFormat('@').setValues([[rid, map[rid].code, now]]);
+    else { // the ID is listed twice (older data): keep one row for it
+      var rows = body.filter(function (r) { return normId_(r[0]) !== rid; });
+      rows.push([rid, map[rid].code, now]);
+      rewriteBody_(sh, 3, rows);
+    }
     log_('access code replaced', '', rid, '');
     made = 1;
   }
@@ -440,7 +462,7 @@ function sessValid_(t, bind) { return !!(t && !t.expired && bind && sessSign_(t.
 function signOutEveryone_() { PropertiesService.getScriptProperties().setProperty('sess_secret', Utilities.getUuid() + Utilities.getUuid()); log_('sessions ended', 'all', '', ''); return { ok: true }; }
 
 function hostStored_() {
-  var ks = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(KEY_TAB);
+  var ks = ss_().getSheetByName(KEY_TAB);
   return ks ? String(ks.getRange(2, 10).getValue()).trim() : '';
 }
 // The lecturer: a session made from the host key, or the host key itself (by POST only, and then a session is returned).
@@ -558,7 +580,7 @@ function recoveryNorm_(t) { return String(t || '').toUpperCase().replace(/[^A-Z0
 function recoveryStore_() { return PropertiesService.getScriptProperties().getProperty('pw_recovery') || ''; }
 
 function pwStore_(newPw) { // saves the password and a fresh recovery code; ends every sign-in made with the old password
-  var ks = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(KEY_TAB);
+  var ks = ss_().getSheetByName(KEY_TAB);
   ks.getRange(2, 10).setNumberFormat('@').setValue(pwMake_(newPw));
   var code = recoveryNew_();
   PropertiesService.getScriptProperties().setProperty('pw_recovery', pwMake_(code));
@@ -603,7 +625,7 @@ function recoverHostKey_(p) {
 // Run by hand in the script editor by the Sheet's owner (or by the desktop app's Reset button): both password and
 // recovery code lost. Makes a temporary key, removes the recovery code and ends every sign-in.
 function resetHostKey() {
-  var ks = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(KEY_TAB);
+  var ks = ss_().getSheetByName(KEY_TAB);
   var tmp = Utilities.getUuid().replace(/-/g, '').slice(0, 16);
   ks.getRange(2, 10).setNumberFormat('@').setValue(tmp);
   PropertiesService.getScriptProperties().deleteProperty('pw_recovery');
@@ -640,7 +662,7 @@ var MASTER_TAB = 'Master';
 
 function masterOn_() {
   try {
-    var ks = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(KEY_TAB);
+    var ks = ss_().getSheetByName(KEY_TAB);
     return !ks || String(ks.getRange(2, 12).getValue()).trim().toLowerCase() !== 'off';
   } catch (err) { return true; }
 }
@@ -659,7 +681,7 @@ function masterLabel_(quiz) { // a practice or mock quiz name from the pages -> 
 function updateMaster_(entries) {
   try {
     if (!entries.length || !masterOn_()) return;
-    var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(MASTER_TAB) || ss.insertSheet(MASTER_TAB);
+    var ss = ss_(), sh = ss.getSheetByName(MASTER_TAB) || ss.insertSheet(MASTER_TAB);
     if (sh.getLastRow() === 0) { sh.getRange(1, 1, 1, 3).setValues([['Student ID', 'Name', 'Last updated']]); sh.setFrozenRows(1); sh.setFrozenColumns(2); }
     entries.forEach(function (e) {
       var id = String(e.id || '').trim(), label = String(e.label || '').trim();
@@ -709,7 +731,7 @@ function scoreHeader_(label, live, weeks, today) {
 function updateScores_(entries) {
   try {
     if (!entries.length || !masterOn_()) return;
-    var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(SCORES_TAB) || ss.insertSheet(SCORES_TAB);
+    var ss = ss_(), sh = ss.getSheetByName(SCORES_TAB) || ss.insertSheet(SCORES_TAB);
     var weeks = {}; try { weeks = siteJson_('/apps_script/live_quizzes.json').weeks || {}; } catch (err) { /* headings are a nicety */ }
     var grid, whole = false;
     if (sh.getLastRow() < 3) {
@@ -769,7 +791,7 @@ function collectResults_() {
     if (!cur || rnd > cur.rnd || (rnd === cur.rnd && ts >= cur.ts)) latest[k] = { rnd: rnd, ts: ts, id: id, name: String(r[1]), label: week ? 'Week ' + week : 'Quiz ' + code, score: Number(r[9]), n: Number(r[11]) || 5 };
   });
   Object.keys(latest).forEach(function (k) { var x = latest[k]; entries.push({ id: x.id, name: x.name, label: x.label, score: x.score, n: x.n }); });
-  var at = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Attempts');
+  var at = ss_().getSheetByName('Attempts');
   if (at && at.getLastRow() > 1) {
     var best = {};
     at.getRange(2, 1, at.getLastRow() - 1, 6).getValues().forEach(function (r) { // Timestamp, Student ID, Quiz, Attempt, Score, Total
@@ -807,7 +829,7 @@ function parseAnswers_(row) { // from a stored row [ID, Join Code, Q1..Q5, Score
 function roundOf_(code) { var c = ctl_(code); return c ? Number(c.v[16]) || 0 : 0; }
 
 function responses_() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = ss_();
   var sh = ss.getSheetByName(RESPONSES_TAB);
   if (sh) return sh;
   var all = ss.getSheets();
@@ -827,7 +849,7 @@ function responses_() {
 var CTL_HEADER = ['join_code', 'status', 'duration_min', 'end_time_ms', 'remaining_ms', 'allow_late_join', 'show_score', 'show_leaderboard', 'message', 'title', 'updated', 'current_q', 'q_seconds', 'q_deadline_ms', 'q_remaining_ms', 'mode', 'round', 'review_q', 'n_questions', 'question_ids', 'week', 'vote', 'discussed'];
 
 function controlSheet_() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = ss_();
   var sh = ss.getSheetByName(CONTROL_TAB) || ss.insertSheet(CONTROL_TAB);
   if (sh.getLastRow() === 0) sh.appendRow(CTL_HEADER);
   else if (!String(sh.getRange(1, 22).getValue()).trim()) sh.getRange(1, 22, 1, 2).setValues([['vote', 'discussed']]); // tabs made before the second vote
@@ -845,12 +867,12 @@ function ctl_(code, fresh) {
     if (raw) {
       try {
         var o = JSON.parse(raw);
-        Object.defineProperty(o, 'sh', { get: function () { return SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONTROL_TAB); } });
+        Object.defineProperty(o, 'sh', { get: function () { return ss_().getSheetByName(CONTROL_TAB); } });
         return o;
       } catch (err) { /* fall through to the sheet */ }
     }
   }
-  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONTROL_TAB);
+  var sh = ss_().getSheetByName(CONTROL_TAB);
   if (!sh || sh.getLastRow() < 2) return null;
   var rows = sh.getRange(2, 1, sh.getLastRow() - 1, CTL_HEADER.length).getValues();
   for (var i = 0; i < rows.length; i++) {
@@ -1060,7 +1082,7 @@ function ctlAct_(p, code) {
   }
   else if (act === 'restart' || act === 'restartsame') { // stop and reset from any state: the answers so far are compiled, then a new round starts in the lobby
     if ((s === 'running' || s === 'paused') && pc) finalize_(code);
-    var ps2 = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(PRESENCE_TAB);
+    var ps2 = ss_().getSheetByName(PRESENCE_TAB);
     if (ps2) for (var pj = ps2.getLastRow(); pj >= 2; pj--) if (String(ps2.getRange(pj, 4).getValue()).trim().toUpperCase() === code) ps2.deleteRow(pj);
     var sameQs = act === 'restartsame' && qids_(c).length > 0 && qids_(c).length === quizN_(c);
     c.v[16] = (Number(c.v[16]) || 0) + 1; c.v[1] = 'Lobby'; c.v[3] = 0; c.v[4] = dur; c.v[11] = 0; c.v[13] = 0; c.v[14] = 0; c.v[8] = ''; c.v[17] = 0; c.v[21] = 1; c.v[22] = '';
@@ -1069,7 +1091,7 @@ function ctlAct_(p, code) {
     detail = 'round ' + c.v[16] + (sameQs ? ', same questions' : ', new questions');
   }
   else if (act === 'newround') { // student records are kept; a new round starts the class ranking again from zero
-    var ps = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(PRESENCE_TAB);
+    var ps = ss_().getSheetByName(PRESENCE_TAB);
     if (ps) for (var pi = ps.getLastRow(); pi >= 2; pi--) if (String(ps.getRange(pi, 4).getValue()).trim().toUpperCase() === code) ps.deleteRow(pi);
     c.v[16] = (Number(c.v[16]) || 0) + 1; c.v[1] = 'Lobby'; c.v[3] = 0; c.v[4] = dur; c.v[11] = 0; c.v[13] = 0; c.v[14] = 0; c.v[8] = ''; c.v[17] = 0; c.v[21] = 1; c.v[22] = '';
     detail = 'round ' + c.v[16];
@@ -1108,7 +1130,7 @@ function ctlAct_(p, code) {
 // ---------- Held results: Staged_Quiz, released by the lecturer ----------
 
 function stagedSheet_() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(STAGED_TAB);
+  var ss = ss_(), sh = ss.getSheetByName(STAGED_TAB);
   if (!sh) { sh = ss.insertSheet(STAGED_TAB); sh.appendRow(RESP_HEADER); sh.setFrozenRows(1); }
   return sh;
 }
@@ -1116,17 +1138,17 @@ function stagedSheet_() {
 // Rows of Form Responses 1 followed by the held rows (14 columns each); readers use this so a held result can still be shown when the lecturer chose "Immediate".
 function respRows_() {
   var rs = responses_(), n = rs.getLastRow(), out = n > 1 ? rs.getRange(2, 1, n - 1, 14).getValues() : [];
-  var st = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(STAGED_TAB);
+  var st = ss_().getSheetByName(STAGED_TAB);
   if (st && st.getLastRow() > 1) out = out.concat(st.getRange(2, 1, st.getLastRow() - 1, 14).getValues());
   return out;
 }
 
-function stagedCount_() { var st = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(STAGED_TAB); return st && st.getLastRow() > 1 ? st.getLastRow() - 1 : 0; }
+function stagedCount_() { var st = ss_().getSheetByName(STAGED_TAB); return st && st.getLastRow() > 1 ? st.getLastRow() - 1 : 0; }
 
 // Copy held rows into Form Responses 1 (a re-release of the same ID, code and round updates that row), update Master, Scores and Totals,
 // then remove them from staging. code = '' releases every held row. Earlier weeks in Master are never touched: a cell is replaced only for the same student and quiz.
 function commitQuiz_(code, everyRound) {
-  var st = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(STAGED_TAB);
+  var st = ss_().getSheetByName(STAGED_TAB);
   if (!st || st.getLastRow() < 2) return { released: 0 };
   var rs = responses_(), n = rs.getLastRow();
   if (n === 0) { rs.appendRow(RESP_HEADER); n = 1; }
@@ -1155,7 +1177,7 @@ function commitQuiz_(code, everyRound) {
 }
 
 function discardQuiz_(code, everyRound) {
-  var st = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(STAGED_TAB);
+  var st = ss_().getSheetByName(STAGED_TAB);
   if (!st || st.getLastRow() < 2) return { discarded: 0 };
   var data = st.getRange(2, 1, st.getLastRow() - 1, 14).getValues(), keepRows = [], gone = 0, curRound = {}, dropped = {};
   data.forEach(function (r) {
@@ -1172,7 +1194,7 @@ function discardQuiz_(code, everyRound) {
 
 // Practice and mock tries sit in the Attempts log until a release; only IDs on the Roster join Master and Scores (test IDs stay out).
 function practiceEntries_() {
-  var at = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Attempts');
+  var at = ss_().getSheetByName('Attempts');
   if (!at || at.getLastRow() < 2) return [];
   var roster = rosterSet_(), hasRoster = Object.keys(roster).length > 0, best = {};
   at.getRange(2, 1, at.getLastRow() - 1, 6).getValues().forEach(function (r) { // Timestamp, Student ID, Quiz, Attempt, Score, Total
@@ -1193,7 +1215,7 @@ function heldStatus_() {
 
 function latestAnswers_(code) { // {id: {name, ans:[5], conf, first}} for the current round; the last answer to each question wins
   // first: the answer given before a second vote (ask, discuss, revise); the same as ans when there was no second vote.
-  var out = {}, sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ANSWERS_TAB);
+  var out = {}, sh = ss_().getSheetByName(ANSWERS_TAB);
   if (!sh || sh.getLastRow() < 2) return out;
   var cc = ctl_(code), round = cc ? Number(cc.v[16]) || 0 : 0, N = cc ? quizN_(cc) : 5;
   var rows = sh.getRange(2, 2, sh.getLastRow() - 1, 8).getValues(); // ID, First Name, Join Code, Q, Answer, Round, Confidence, Vote
@@ -1256,7 +1278,7 @@ function discussionMoves_(got, q, key) {
 // One row per student ID. A column per quiz code holds the counted score for that quiz. If a student has several
 // rounds for the same code, Key!K2 chooses which counts: Best (default) or Latest.
 function refreshTotals() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet(), rs = responses_(), n = rs.getLastRow();
+  var ss = ss_(), rs = responses_(), n = rs.getLastRow();
   var ks = ss.getSheetByName(KEY_TAB), mode = ks ? String(ks.getRange(2, 11).getValue()).trim().toLowerCase() : '';
   var latest = mode === 'latest', weeks = {};
   try { weeks = siteJson_('/apps_script/live_quizzes.json').weeks || {}; } catch (err) { /* titles are a nicety */ }
@@ -1293,8 +1315,8 @@ function discardHeldQuiz() { return discardQuiz_('', true); }
 // ---------- Presence: who has joined, who is working, who has submitted ----------
 
 function presence_(code, id, name, status) {
-  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(PRESENCE_TAB);
-  if (!sh) { sh = SpreadsheetApp.getActiveSpreadsheet().insertSheet(PRESENCE_TAB); sh.appendRow(['Timestamp', 'ID', 'First Name', 'Join Code', 'Status']); }
+  var sh = ss_().getSheetByName(PRESENCE_TAB);
+  if (!sh) { sh = ss_().insertSheet(PRESENCE_TAB); sh.appendRow(['Timestamp', 'ID', 'First Name', 'Join Code', 'Status']); }
   var n = sh.getLastRow();
   if (n > 1) {
     var rows = sh.getRange(2, 2, n - 1, 3).getValues();
@@ -1311,7 +1333,7 @@ function presence_(code, id, name, status) {
 }
 
 function hasPresence_(code, id) {
-  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(PRESENCE_TAB);
+  var sh = ss_().getSheetByName(PRESENCE_TAB);
   if (!sh || sh.getLastRow() < 2) return false;
   var rows = sh.getRange(2, 2, sh.getLastRow() - 1, 3).getValues();
   for (var i = 0; i < rows.length; i++) {
@@ -1341,7 +1363,7 @@ function reviewData_(code, id) {
   if (!c || !key || q < 1 || (st !== 'ended' && st !== 'released')) return { q: 0 };
   var got = latestAnswers_(code), dist = { A: 0, B: 0, C: 0, D: 0, E: 0 }, n = 0;
   Object.keys(got).forEach(function (k) { var a = got[k].ans[q - 1]; if (a) { n++; if (dist[a] !== undefined) dist[a]++; } });
-  var expl = '', es = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(EXPL_TAB);
+  var expl = '', es = ss_().getSheetByName(EXPL_TAB);
   if (es && es.getLastRow() > 1) {
     var rows = es.getRange(2, 1, es.getLastRow() - 1, 3).getValues();
     for (var i = 0; i < rows.length; i++) if (String(rows[i][0]).trim().toUpperCase() === code && Number(rows[i][1]) === q) expl = String(rows[i][2]);
@@ -1371,7 +1393,7 @@ function ranking_(code, me) {
 
 function counts_(code) {
   var out = { joined: 0, inprogress: 0, submitted: 0, notYet: [] };
-  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(PRESENCE_TAB);
+  var sh = ss_().getSheetByName(PRESENCE_TAB);
   if (sh && sh.getLastRow() > 1) {
     var rows = sh.getRange(2, 1, sh.getLastRow() - 1, 5).getValues();
     for (var i = 0; i < rows.length; i++) {
@@ -1416,7 +1438,7 @@ function logItems_(code, rnd, wk, ids, letters, got, discussed) {
   else if (add.length) sh.getRange(sh.getLastRow() + 1, 1, add.length, ITEMS_W).setValues(add);
 }
 function dropItems_(pairs) { // pairs: {'CODE|round': true}, from a discard
-  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ITEMS_TAB);
+  var sh = ss_().getSheetByName(ITEMS_TAB);
   if (!sh || !Object.keys(pairs).length) return;
   var rows = bodyRows_(sh, ITEMS_W), keep = rows.filter(function (r) { return !pairs[String(r[1]).trim().toUpperCase() + '|' + (Number(r[2]) || 0)]; });
   if (keep.length !== rows.length) rewriteBody_(sh, ITEMS_W, keep);
@@ -1447,7 +1469,7 @@ var ROSTER_TAB = 'Roster', ATT_CTL_TAB = 'Attendance_Control', ATT_LOG_TAB = 'At
 // Named attendance view (lecturer only, from the sheet's Class Manager menu): writes a private tab Attendance_Named with Name, Student ID and a copy of every
 // Attendance column, so the lecturer can see who was present. The Attendance tab itself stays IDs only (the format a gradebook imports). Run again to refresh.
 function buildNamedAttendance() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet(), at = ss.getSheetByName(ATT_TAB), ui = SpreadsheetApp.getUi();
+  var ss = ss_(), at = ss.getSheetByName(ATT_TAB), ui = SpreadsheetApp.getUi();
   if (!at || at.getLastRow() < 1) { ui.alert('The Attendance tab is empty. Submit attendance first.'); return; }
   var names = {}; rosterRows_().forEach(function (r) { names[r[0]] = r[1]; });
   var data = at.getRange(1, 1, at.getLastRow(), at.getLastColumn()).getDisplayValues();
@@ -1460,14 +1482,14 @@ function buildNamedAttendance() {
 }
 
 function attSheet_() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(ATT_CTL_TAB);
+  var ss = ss_(), sh = ss.getSheetByName(ATT_CTL_TAB);
   if (!sh) { sh = ss.insertSheet(ATT_CTL_TAB); sh.appendRow(['Code', 'Label', 'Status', 'Opened', 'Closed', 'Secret', 'Lat', 'Lon', 'Radius m']); }
   if (!String(sh.getRange(1, 6).getValue()).trim()) sh.getRange(1, 6).setValue('Secret'); // the per-session secret that makes the QR token change: keep this tab private
   return sh;
 }
 
 function attRows_() { // [{row, code, label, status}]
-  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_CTL_TAB);
+  var sh = ss_().getSheetByName(ATT_CTL_TAB);
   if (!sh || sh.getLastRow() < 2) return [];
   return sh.getRange(2, 1, sh.getLastRow() - 1, 9).getValues().map(function (r, i) { return { row: i + 2, code: String(r[0]).trim().toUpperCase(), label: String(r[1]), status: String(r[2]).trim(), secret: String(r[5] || ''), lat: r[6] === '' ? null : Number(r[6]), lon: r[7] === '' ? null : Number(r[7]), radius: Number(r[8]) || 0 }; });
 }
@@ -1527,7 +1549,7 @@ function attDevHash_(dev) {
 function attPurgeSemester() {
   var ui = SpreadsheetApp.getUi();
   if (ui.alert('Delete device codes, registered phones, flags, classroom positions and session secrets?', 'Attendance marks are kept.', ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
-  var ss = SpreadsheetApp.getActiveSpreadsheet(), n = 0, lg = ss.getSheetByName(ATT_LOG_TAB), fl = ss.getSheetByName(ATT_FLAGS_TAB), ct = ss.getSheetByName(ATT_CTL_TAB);
+  var ss = ss_(), n = 0, lg = ss.getSheetByName(ATT_LOG_TAB), fl = ss.getSheetByName(ATT_FLAGS_TAB), ct = ss.getSheetByName(ATT_CTL_TAB);
   if (lg && lg.getLastRow() > 1 && lg.getLastColumn() >= 5) { lg.getRange(2, 5, lg.getLastRow() - 1, 1).clearContent(); n++; }
   if (fl && fl.getLastRow() > 1) { fl.deleteRows(2, fl.getLastRow() - 1); n++; }
   var phs = ss.getSheetByName(ATT_PHONES_TAB); if (phs && phs.getLastRow() > 1) { phs.deleteRows(2, phs.getLastRow() - 1); n++; }
@@ -1543,7 +1565,7 @@ function attPurgeSemester() {
 function clearSemesterRecords() {
   var ui = SpreadsheetApp.getUi();
   if (ui.alert('Delete all rows of Attendance_Log, Not_On_List, Reports, Attempts, Staged_Quiz, Item_Log, Question_Stats and Access_Codes?', 'Attendance, Scores, Master and Roster are kept. This cannot be undone.', ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
-  var ss = SpreadsheetApp.getActiveSpreadsheet(), n = 0;
+  var ss = ss_(), n = 0;
   [ATT_LOG_TAB, NOTLIST_TAB, 'Reports', 'Attempts', STAGED_TAB, 'Item_Log', 'Question_Stats', 'Access_Codes'].forEach(function (name) {
     var sh = ss.getSheetByName(name);
     if (sh && sh.getLastRow() > 1) { sh.deleteRows(2, sh.getLastRow() - 1); n++; }
@@ -1559,7 +1581,7 @@ function attFails_(key) { try { return Number(CacheService.getScriptCache().get(
 function attFailAdd_(key) { try { var c = CacheService.getScriptCache(); c.put('attf:' + key, String(Number(c.get('attf:' + key) || 0) + 1), 600); } catch (err) { /* cache only */ } }
 
 function attDeviceIds_(label, dev) { // the IDs this device token has already checked in this session, from the log
-  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_LOG_TAB), got = {};
+  var sh = ss_().getSheetByName(ATT_LOG_TAB), got = {};
   if (!sh || sh.getLastRow() < 2 || sh.getLastColumn() < 5) return got;
   sh.getRange(2, 2, sh.getLastRow() - 1, 4).getValues().forEach(function (r) { if (String(r[0]) === label && String(r[3]) === dev) got[normId_(r[1])] = true; });
   return got;
@@ -1613,11 +1635,11 @@ function attCheckIn_(p, code) { // the student side of the check-in: the QR toke
 // lecturer, who presses "Reset phone" on the review list; the next check-in registers the new one. Rows are deleted by attPurgeSemester.
 var ATT_PHONES_TAB = 'Attendance_Phones', ATT_REQUIRE_CODE = true, ATT_PHONE_BIND = true, ATT_PENDING = 'waiting for approval: ';
 function attPendingHas_(label, id) {
-  return bodyRows_(SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_FLAGS_TAB), 5).some(function (r) { return String(r[1]) === label && normId_(r[2]) === id && String(r[4]).indexOf(ATT_PENDING) === 0; });
+  return bodyRows_(ss_().getSheetByName(ATT_FLAGS_TAB), 5).some(function (r) { return String(r[1]) === label && normId_(r[2]) === id && String(r[4]).indexOf(ATT_PENDING) === 0; });
 }
 function attPhones_() { // {byId: {id: dev}, byDev: {dev: id}}
   var out = { byId: {}, byDev: {} };
-  bodyRows_(SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_PHONES_TAB), 2).forEach(function (r) { var id = normId_(r[0]), d = String(r[1] || ''); if (id && d) { out.byId[id] = d; out.byDev[d] = id; } });
+  bodyRows_(ss_().getSheetByName(ATT_PHONES_TAB), 2).forEach(function (r) { var id = normId_(r[0]), d = String(r[1] || ''); if (id && d) { out.byId[id] = d; out.byDev[d] = id; } });
   return out;
 }
 function attPhoneCheck_(id, dev) { // {refuse, owner} or {bind} or {changed} or {}
@@ -1630,7 +1652,7 @@ function attPhoneBind_(id, dev) {
   try { append_(ATT_PHONES_TAB, ['Student ID', 'Device', 'Registered'], [id, dev, new Date()]); } catch (err) { /* the check-in is already recorded */ }
 }
 function attPhoneReset_(id) { // host only: forget a student's phone, so the next check-in registers the new one
-  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_PHONES_TAB);
+  var sh = ss_().getSheetByName(ATT_PHONES_TAB);
   if (!sh) return { ok: true, removed: 0 };
   var rows = bodyRows_(sh, 3), keep = rows.filter(function (r) { return normId_(r[0]) !== id; });
   if (keep.length !== rows.length) rewriteBody_(sh, 3, keep);
@@ -1645,7 +1667,7 @@ function attReview_(p) { // the latest session (or p.label): its flags, each wit
   if (!cur) { rows.forEach(function (r) { if (r.status === 'Open') cur = r; }); if (!cur && rows.length) cur = rows[rows.length - 1]; }
   if (!cur) return { ok: true, session: null, items: [] };
   var present = attPresent_(cur.label), ph = attPhones_(), names = {}; rosterRows_().forEach(function (r) { names[r[0]] = r[1] || ''; });
-  var fl = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_FLAGS_TAB), items = [];
+  var fl = ss_().getSheetByName(ATT_FLAGS_TAB), items = [];
   bodyRows_(fl, 5).forEach(function (r) {
     if (String(r[1]) !== cur.label) return;
     var ids = splitIds_(r[2]).map(normId_).filter(String);
@@ -1658,7 +1680,7 @@ function attRemove_(p) { // host only: take one check-in out of a session that i
   rows.forEach(function (r) { if (attColumn_(r.label) === String(p.label || '')) cur = r; });
   if (!cur || !id) return { ok: false, why: 'session not found' };
   if (cur.status === 'Submitted') return { ok: false, why: 'this session is already submitted: change the mark in the Attendance tab' };
-  var lg = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_LOG_TAB), gone = 0;
+  var lg = ss_().getSheetByName(ATT_LOG_TAB), gone = 0;
   if (lg && lg.getLastRow() > 1) {
     var vals = lg.getRange(2, 2, lg.getLastRow() - 1, 2).getValues();
     for (var i = vals.length - 1; i >= 0; i--) if (String(vals[i][0]) === cur.label && normId_(vals[i][1]) === id) { lg.deleteRow(i + 2); gone++; }
@@ -1669,7 +1691,7 @@ function attRemove_(p) { // host only: take one check-in out of a session that i
 }
 
 function attFlagDevices_(label) { // at closing: devices that checked in more than one ID (catches two phones' taps that raced), added to the Flags tab
-  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_LOG_TAB), by = {}, n = 0;
+  var sh = ss_().getSheetByName(ATT_LOG_TAB), by = {}, n = 0;
   if (!sh || sh.getLastRow() < 2 || sh.getLastColumn() < 5) return 0;
   sh.getRange(2, 2, sh.getLastRow() - 1, 4).getValues().forEach(function (r) { var d = String(r[3]); if (String(r[0]) === label && d) (by[d] = by[d] || []).push(normId_(r[1])); });
   Object.keys(by).forEach(function (d) { if (by[d].length > ATT_DEVICE_IDS) { n++; attFlag_(label, by[d].join(', '), d, 'one device, ' + by[d].length + ' IDs (check in the log)'); } });
@@ -1712,7 +1734,7 @@ function attDayKey_() { return Utilities.formatDate(new Date(), Session.getScrip
 function attDayHas_(day, id) {
   var cache = null, ck = 'attd:' + day;
   try { cache = CacheService.getScriptCache(); var h = cache.get(ck); if (h && ('|' + h + '|').indexOf('|' + id + '|') >= 0) return true; } catch (err) { cache = null; }
-  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_LOG_TAB);
+  var sh = ss_().getSheetByName(ATT_LOG_TAB);
   if (!sh || sh.getLastRow() < 2) return false;
   var found = false;
   sh.getRange(2, 2, sh.getLastRow() - 1, 2).getValues().forEach(function (r) { if (String(r[0]).indexOf(day + ' #') === 0 && normId_(r[1]) === id) found = true; });
@@ -1725,7 +1747,7 @@ function attDayAdd_(day, id) {
 }
 
 function attPresent_(label) { // {id: true} for one session, from the log
-  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_LOG_TAB), got = {};
+  var sh = ss_().getSheetByName(ATT_LOG_TAB), got = {};
   if (!sh || sh.getLastRow() < 2) return got;
   sh.getRange(2, 1, sh.getLastRow() - 1, 3).getValues().forEach(function (r) { if (String(r[1]) === label) got[normId_(r[2])] = true; });
   return got;
@@ -1738,7 +1760,7 @@ function attStatus_() { // the open session if there is one, else the latest, wi
   if (!cur) { var m0 = ATT_REQUIRE_CODE ? codesMap_() : {}; return { ok: true, session: null, noCode: ATT_REQUIRE_CODE ? rosterRows_().filter(function (r) { return !m0[r[0]]; }).length : 0 }; }
   var present = attPresent_(cur.label), roster = {}; rosterRows_().forEach(function (r) { roster[r[0]] = 1; });
   var on = 0, off = 0; Object.keys(present).forEach(function (id) { if (roster[id]) on++; else off++; });
-  var waiting = {}; bodyRows_(SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_FLAGS_TAB), 5).forEach(function (r) { var i = normId_(r[2]); if (String(r[1]) === cur.label && String(r[4]).indexOf(ATT_PENDING) === 0 && !present[i]) waiting[i] = 1; });
+  var waiting = {}; bodyRows_(ss_().getSheetByName(ATT_FLAGS_TAB), 5).forEach(function (r) { var i = normId_(r[2]); if (String(r[1]) === cur.label && String(r[4]).indexOf(ATT_PENDING) === 0 && !present[i]) waiting[i] = 1; });
   var live = cur.status === 'Open' && cur.secret, now = Date.now(), slot = attSlot_(now);
   return { ok: true, session: { link: live ? attLinkFor_(cur.secret, slot) : '', secondsLeft: live ? Math.max(1, Math.ceil(((slot + 1) * ATT_SLOT_SEC * 1000 - now) / 1000)) : 0, label: attColumn_(cur.label), status: cur.status, geo: cur.lat != null && ATT_GEO_MODE !== 'off' ? ATT_GEO_MODE : 'off', radius: cur.lat != null ? (cur.radius || ATT_GEO_RADIUS_M) : 0, present: on, notOnList: off, waiting: Object.keys(waiting).length, noCode: ATT_REQUIRE_CODE && cur.status !== 'Open' ? (function () { var m = codesMap_(); return Object.keys(roster).filter(function (i) { return !m[i]; }).length; })() : 0, rosterSize: Object.keys(roster).length, pending: rows.filter(function (r) { return r.status === 'Closed'; }).length } };
 }
@@ -1758,7 +1780,7 @@ function attOpen_(p) {
   var base = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'dd/MM/yyyy'), n = 1;
   rows.forEach(function (r) { if (r.label.indexOf(base + ' #') === 0) n++; });
   var label = base + ' #' + n;
-  try { var lg = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_LOG_TAB); if (lg && lg.getLastRow() > 0 && !String(lg.getRange(1, 5).getValue()).trim()) lg.getRange(1, 5).setValue('Device'); if (lg && lg.getLastRow() > 0 && !String(lg.getRange(1, 6).getValue()).trim()) lg.getRange(1, 6).setValue('Location'); } catch (err) { /* header only */ }
+  try { var lg = ss_().getSheetByName(ATT_LOG_TAB); if (lg && lg.getLastRow() > 0 && !String(lg.getRange(1, 5).getValue()).trim()) lg.getRange(1, 5).setValue('Device'); if (lg && lg.getLastRow() > 0 && !String(lg.getRange(1, 6).getValue()).trim()) lg.getRange(1, 6).setValue('Location'); } catch (err) { /* header only */ }
   var secret = Utilities.getUuid() + Utilities.getUuid();
   var hla = p.lat === undefined || p.lat === '' ? NaN : Number(p.lat), hlo = Number(p.lon), hasGeo = !isNaN(hla) && !isNaN(hlo) && Math.abs(hla) <= 90 && Math.abs(hlo) <= 180;
   if (ATT_GEO_MODE === 'enforce' && !hasGeo && String(p.nogeo || '') !== '1') return { ok: false, why: 'location needed', needLocation: true }; // never start an unprotected session by accident
@@ -1787,7 +1809,7 @@ function attClose_() {
 function attSubmit_() {
   var sessions = attRows_().filter(function (r) { return r.status === 'Closed'; });
   if (!sessions.length) return { ok: false, why: 'no closed session is waiting to be submitted' };
-  var roster = rosterRows_(), ss = SpreadsheetApp.getActiveSpreadsheet(), done = [];
+  var roster = rosterRows_(), ss = ss_(), done = [];
   sessions.forEach(function (cur) {
     var present = attPresent_(cur.label), col = attColumn_(cur.label);
     var as = ss.getSheetByName(ATT_TAB) || ss.insertSheet(ATT_TAB);
@@ -1823,7 +1845,7 @@ function attSubmit_() {
 function attDiscard_() {
   var sessions = attRows_().filter(function (r) { return r.status === 'Closed'; });
   if (!sessions.length) return { ok: false, why: 'no closed session is waiting' };
-  var lg = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_LOG_TAB), gone = 0, labels = {};
+  var lg = ss_().getSheetByName(ATT_LOG_TAB), gone = 0, labels = {};
   sessions.forEach(function (r) { labels[r.label] = true; });
   if (lg && lg.getLastRow() > 1) {
     var vals = lg.getRange(2, 2, lg.getLastRow() - 1, 1).getValues();
@@ -1860,7 +1882,7 @@ function practiceLecture_(quiz) { // 'Lecture 5 ...' -> 5, 'Introduction ...' ->
   return /^Introduction/i.test(q) ? 0 : null;
 }
 function attemptRows_() { // [{ts, id, quiz, score, total, secs, wrong[], asked[], missed, mock, lec}]
-  var at = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Attempts');
+  var at = ss_().getSheetByName('Attempts');
   return bodyRows_(at, 9).map(function (r) {
     var quiz = String(r[2]);
     return { ts: new Date(r[0]).getTime() || 0, id: normId_(r[1]), quiz: quiz, score: Number(r[4]) || 0, total: Number(r[5]) || 0, secs: Number(r[6]) || 0,
@@ -1903,7 +1925,7 @@ function studentLearning_(id) {
     mock.asked.forEach(function (q) { add(lectureOfQid_(q), mock.wrong.indexOf(q) < 0 ? 1 : 0, 1); });
     mock.wrong.forEach(function (q) { want(q, 'Mock exam'); });
   }
-  var rel = releasedSet_(), items = bodyRows_(SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ITEMS_TAB), 11);
+  var rel = releasedSet_(), items = bodyRows_(ss_().getSheetByName(ITEMS_TAB), 11);
   items.forEach(function (r) {
     if (normId_(r[4]) !== id) return;
     var code = String(r[1]).trim().toUpperCase(), rnd = Number(r[2]) || 0;
@@ -1954,7 +1976,7 @@ function questionStats_(items, attempts) {
 
 // ---- Teaching insights (host only) ----
 function insights_(p) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet(), now = Date.now();
+  var ss = ss_(), now = Date.now();
   var attMin = Math.max(0, Math.min(100, Number(p.att) || 70)), quizMin = Math.max(0, Math.min(100, Number(p.quiz) || 50)), idleDays = Math.max(1, Math.min(120, Number(p.idle) || 14));
   var roster = rosterRows_().map(function (r) { return { id: normId_(r[0]), name: cleanName_(r[1]) }; }).filter(function (r) { return r.id; });
   var inRoster = {}; roster.forEach(function (r) { inRoster[r.id] = true; });
@@ -2083,7 +2105,7 @@ function engagementOf_(s, th, have) {
 }
 
 function classStats_(p) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet(), now = Date.now(), th = statThresholds_(p || {});
+  var ss = ss_(), now = Date.now(), th = statThresholds_(p || {});
   var roster = rosterRows_().map(function (r) { return { id: normId_(r[0]), name: cleanName_(r[1]).trim() }; }).filter(function (r) { return r.id; });
   var inRoster = {}; roster.forEach(function (r) { inRoster[r.id] = true; });
   var out = { ok: true, version: SCRIPT_VERSION, generated: new Date(now).toISOString(), thresholds: th, rosterSize: roster.length, groupNames: STATS_GROUPS };
@@ -2380,7 +2402,7 @@ function lecturesInfo_() { // {number: {title, outcomes: [text]}} from data/lect
   return out;
 }
 function bankFor_(n) { try { return bankList_('lecture' + n) || []; } catch (err) { return []; } }
-function outcomeTagRows_() { return bodyRows_(SpreadsheetApp.getActiveSpreadsheet().getSheetByName(QOUT_TAB), 4); }
+function outcomeTagRows_() { return bodyRows_(ss_().getSheetByName(QOUT_TAB), 4); }
 // {qid: {lec, n}}: the lecturer's tags first, then the bank's own field.
 function outcomeMap_(lects) {
   var map = {};
@@ -2449,7 +2471,7 @@ function outcomesAct_(p) {
 function evidence_() {
   var lects = lecturesInfo_(), map = outcomeMap_(lects), out = {}, rel = releasedSet_();
   function add(id, t, qid, ok, src) { if (!id || !qid) return; var k = outcomeKey_(qid, map); if (!k) return; (out[id] = out[id] || []).push({ t: t, qid: qid, ok: ok, src: src, key: k }); }
-  bodyRows_(SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ITEMS_TAB), ITEMS_W).forEach(function (r) {
+  bodyRows_(ss_().getSheetByName(ITEMS_TAB), ITEMS_W).forEach(function (r) {
     var id = normId_(r[4]), code = String(r[1]).trim().toUpperCase(), rnd = Number(r[2]) || 0;
     if (!rel[String(r[4]).trim() + '|' + code + '|' + rnd] || !String(r[7]).trim()) return; // released and answered
     add(id, new Date(r[0]).getTime() || 0, String(r[6]).trim(), Number(r[9]) ? 1 : 0, 'live');
@@ -2515,7 +2537,7 @@ function classTimeline_(ev) {
 // Ask, discuss, revise: every question that had a second vote, from Item_Log (both answers kept).
 // Normalised gain = (after - before) / (100 - before), the share of the possible improvement that discussion achieved.
 function discussionStats_() {
-  var rows = bodyRows_(SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ITEMS_TAB), ITEMS_W), qs = {}, order = [], byStudent = {};
+  var rows = bodyRows_(ss_().getSheetByName(ITEMS_TAB), ITEMS_W), qs = {}, order = [], byStudent = {};
   rows.forEach(function (r) {
     if (Number(r[12]) !== 1) return;
     var k = String(r[1]).trim().toUpperCase() + '|' + (Number(r[2]) || 0) + '|' + r[5], key = String(r[8]).trim(), f = String(r[11]).trim(), a = String(r[7]).trim(), id = normId_(r[4]);
@@ -2611,7 +2633,7 @@ var NOTES_TAB = 'Student_Notes', NOTES_HEAD = ['Timestamp', 'Student ID', 'Note'
 
 // One student's records and notes, newest notes first.
 function studentRecords_(id) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet(), out = { records: [], notes: [] };
+  var ss = ss_(), out = { records: [], notes: [] };
   bodyRows_(ss.getSheetByName(RECORDS_TAB), 7).forEach(function (r) {
     if (normId_(r[1]) !== id) return;
     out.records.push({ date: r[0] instanceof Date ? Utilities.formatDate(r[0], Session.getScriptTimeZone(), 'yyyy-MM-dd') : String(r[0] || ''), category: String(r[2]), assessment: String(r[3]),
@@ -2648,7 +2670,7 @@ var GROUPS_TAB = 'Groups', GROUPS_HEADER = ['Set', 'Group', 'Student ID', 'Name'
 
 function groupsSheet_() { return sheetWith_(GROUPS_TAB, GROUPS_HEADER); }
 function groupRows_() {
-  return bodyRows_(SpreadsheetApp.getActiveSpreadsheet().getSheetByName(GROUPS_TAB), 8).map(function (r) {
+  return bodyRows_(ss_().getSheetByName(GROUPS_TAB), 8).map(function (r) {
     return { set: String(r[0]).trim(), group: Number(r[1]) || 0, id: normId_(r[2]), name: String(r[3] || ''), mark: r[4], outOf: r[5], locked: /^y/i.test(String(r[6])), created: r[7] };
   }).filter(function (r) { return r.set && r.group && r.id; });
 }
@@ -2680,7 +2702,7 @@ function repeatCost_(groups, pc) {
 function studentMeasure_(mode) {
   var out = {};
   if (mode === 'attendance') {
-    var at = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATT_TAB);
+    var at = ss_().getSheetByName(ATT_TAB);
     if (at && at.getLastRow() > 1 && at.getLastColumn() > 1) {
       var g = at.getRange(1, 1, at.getLastRow(), at.getLastColumn()).getValues();
       for (var i = 1; i < g.length; i++) { var id = normId_(g[i][0]), p = 0, n = 0; for (var c = 1; c < g[0].length; c++) if (g[i][c] !== '' && String(g[0][c]).trim()) { n++; if (Number(g[i][c])) p++; } if (id && n) out[id] = p / n; }
@@ -2828,7 +2850,7 @@ var AMK_TAB = 'Assignment_Marks', AMK_HEAD = ['Assignment ID', 'Group', 'Mark', 
 var PEER_WORD = { full: 'Contributed fully', part: 'Contributed partly', little: 'Contributed little' }, PEER_VAL = { full: 2, part: 1, little: 0 };
 
 function asgRows_() {
-  return bodyRows_(SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ASG_TAB), 11).map(function (r) {
+  return bodyRows_(ss_().getSheetByName(ASG_TAB), 11).map(function (r) {
     return { id: String(r[0]).trim(), set: String(r[1]).replace(/^'/, ''), groups: String(r[2] || 'all'), title: String(r[3]), brief: String(r[4]), due: String(r[5] || '').replace(/^'/, ''),
       outcome: String(r[6] || '').replace(/^'/, ''), outOf: r[7] === '' ? '' : Number(r[7]), status: String(r[8] || 'open'), created: new Date(r[9]).getTime() || 0, updated: r[10] };
   }).filter(function (a) { return a.id; });
@@ -2836,11 +2858,11 @@ function asgRows_() {
 function asgSave_(list) { rewriteBody_(sheetWith_(ASG_TAB, ASG_HEAD), 11, list.map(function (a) { return [a.id, "'" + a.set, a.groups, a.title, a.brief, a.due ? "'" + a.due : '', a.outcome ? "'" + a.outcome : '', a.outOf, a.status, new Date(a.created || Date.now()), new Date()]; })); }
 function asgFor_(a, g) { return a.groups === 'all' || String(a.groups).split(',').map(Number).indexOf(Number(g)) >= 0; }
 function gwRows_() {
-  return bodyRows_(SpreadsheetApp.getActiveSpreadsheet().getSheetByName(GW_TAB), 9).map(function (r) {
+  return bodyRows_(ss_().getSheetByName(GW_TAB), 9).map(function (r) {
     return { t: new Date(r[0]).getTime() || 0, aid: String(r[1]).trim(), set: String(r[2]).replace(/^'/, ''), group: Number(r[3]) || 0, id: normId_(r[4]), kind: String(r[5]), text: String(r[6] || ''), link: String(r[7] || ''), rating: String(r[8] || '') };
   });
 }
-function amkRows_() { var o = {}; bodyRows_(SpreadsheetApp.getActiveSpreadsheet().getSheetByName(AMK_TAB), 5).forEach(function (r) { o[String(r[0]).trim() + '|' + Number(r[1])] = { mark: r[2] === '' ? null : Number(r[2]), feedback: String(r[3] || ''), marked: r[4] }; }); return o; }
+function amkRows_() { var o = {}; bodyRows_(ss_().getSheetByName(AMK_TAB), 5).forEach(function (r) { o[String(r[0]).trim() + '|' + Number(r[1])] = { mark: r[2] === '' ? null : Number(r[2]), feedback: String(r[3] || ''), marked: r[4] }; }); return o; }
 function dueMs_(due) { var d = calDate_(due); if (!d) return 0; if (!/T/.test(due)) d.setHours(23, 59, 0, 0); return d.getTime(); }
 // How one group did on one assignment: the latest shared submission, each member's part, the peer ratings (lecturer only) and the mark.
 function groupWorkOf_(a, g, members, work, marks, names) {
@@ -3327,11 +3349,11 @@ function announcements_(p) { // public for audience 'all'; signed-in students al
 // ---------- Portal and Control Centre support (additive: no existing action changes) ----------
 // SCRIPT_VERSION: change it whenever the script is redeployed; the Control Centre compares it with the version its page expects.
 // Key!M2 = Off hides "My results" from students (default On).
-var SCRIPT_VERSION = '2026-11-16-ids-1';
+var SCRIPT_VERSION = '2026-11-16-ids-2';
 
 function resultsOn_() {
   try {
-    var ks = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(KEY_TAB);
+    var ks = ss_().getSheetByName(KEY_TAB);
     return !ks || String(ks.getRange(2, 13).getValue()).trim().toLowerCase() !== 'off';
   } catch (err) { return true; }
 }
@@ -3339,7 +3361,7 @@ function resultsOn_() {
 // Key!N2 holds the week the lecturer chose in the Control Centre (1 to 12). Empty means: use data/portal.json.
 function weekChoice_() {
   try {
-    var v = Number(SpreadsheetApp.getActiveSpreadsheet().getSheetByName(KEY_TAB).getRange(2, 14).getValue());
+    var v = Number(ss_().getSheetByName(KEY_TAB).getRange(2, 14).getValue());
     return v >= 1 && v <= 12 ? v : 0;
   } catch (err) { return 0; }
 }
@@ -3347,7 +3369,7 @@ function weekChoice_() {
 function setWeek_(p) { // host only; w=0 clears the choice
   var w = Number(String(p.w || '').replace(/\D/g, '').slice(0, 2));
   if (isNaN(w) || w < 0 || w > 12) return { ok: false, why: 'week must be 0 to 12' };
-  var ks = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(KEY_TAB);
+  var ks = ss_().getSheetByName(KEY_TAB);
   if (!ks) return { ok: false, why: 'no Key tab' };
   ks.getRange(2, 14).setValue(w || '');
   try { CacheService.getScriptCache().remove('portal'); } catch (err) { /* cache only */ }
@@ -3360,7 +3382,7 @@ function portalStatus_() { // public, no secrets: is attendance open, is a live 
   try { attRows_().forEach(function (r) { if (r.status === 'Open') att = 'open'; }); } catch (err) { /* leave closed */ }
   var quiz = 'none';
   try {
-    var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONTROL_TAB);
+    var sh = ss_().getSheetByName(CONTROL_TAB);
     if (sh && sh.getLastRow() > 1) {
       sh.getRange(2, 1, sh.getLastRow() - 1, CTL_HEADER.length).getValues().forEach(function (v) {
         var st = eff_({ v: v }); // lobby, running or paused counts as open; the join code is never returned
@@ -3379,7 +3401,7 @@ function portalResults_(p) {
   var who = studentCheck_(p.id, p.code, 'r'); // the ID with its personal access code or a session, both required
   if (!who.id) return { ok: false, why: who.why };
   var id = who.id;
-  var ss = SpreadsheetApp.getActiveSpreadsheet(), out = { ok: true, attendance: [], quizzes: [] };
+  var ss = ss_(), out = { ok: true, attendance: [], quizzes: [] };
   var at = ss.getSheetByName(ATT_TAB);
   if (at && at.getLastRow() > 1 && at.getLastColumn() > 1) {
     var g = at.getRange(1, 1, at.getLastRow(), at.getLastColumn()).getValues();
@@ -3405,7 +3427,7 @@ function portalResults_(p) {
 
 // Host only: the checks behind the Control Centre's "Run checks" button. Reads only; nothing is changed.
 function preclass_(p) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet(), o = { ok: true, version: SCRIPT_VERSION, serverNow: Date.now() };
+  var ss = ss_(), o = { ok: true, version: SCRIPT_VERSION, serverNow: Date.now() };
   try { o.rosterCount = rosterRows_().length; } catch (err) { o.rosterCount = -1; }
   o.masterOn = masterOn_(); o.resultsOn = resultsOn_();
   try { o.totalsMode = String(ss.getSheetByName(KEY_TAB).getRange(2, 11).getValue()).trim() || 'Best'; } catch (err) { o.totalsMode = 'Best'; }
@@ -3695,7 +3717,7 @@ function route_(e) {
       var want = String(p.state || '').toLowerCase();
       if (want && !p.act) { // older host page: legacy state in Key column H
         if (['waiting', 'started', 'stopped'].indexOf(want) < 0) return jsonp_(e, { ok: false });
-        var ks2 = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(KEY_TAB);
+        var ks2 = ss_().getSheetByName(KEY_TAB);
         var codes = ks2.getRange(2, 1, ks2.getLastRow() - 1, 1).getValues();
         for (var cc = 0; cc < codes.length; cc++) {
           if (String(codes[cc][0]).trim().toUpperCase() === code) {
