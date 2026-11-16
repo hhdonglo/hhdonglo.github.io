@@ -41,7 +41,7 @@ body.focus main{padding-top:1rem}
 </style>
 <style>
 .host.att{max-width:60rem;text-align:center}
-.att .qr{width:min(340px,70vw);height:min(340px,70vw);background:#fff;border:1px solid var(--border);border-radius:10px;padding:8px}
+.att .qr{width:min(520px,80vw,70vh);height:min(520px,80vw,70vh);background:#fff;border:1px solid var(--border);border-radius:10px;padding:8px}
 .att .code{font:700 clamp(4rem,16vw,9rem)/1.05 ui-monospace,Menlo,monospace;letter-spacing:.08em;color:var(--brown);margin:.2rem 0}
 @media (prefers-color-scheme:dark){.att .code{color:#e9c9a8}}
 .att .addr{font:1.3rem ui-monospace,Menlo,monospace;margin:.4rem 0}
@@ -74,25 +74,29 @@ body.focus main{padding-top:1rem}
  </section>
  <section class="panel" id="a-idle" hidden>
   <h3 style="margin:.1rem 0 .6rem">Attendance</h3>
-  <p class="note"><label for="a-rad">Distance from this device that still counts as in class</label>
-   <select id="a-rad"><option value="250">250 m</option><option value="500" selected>500 m (default)</option><option value="1000">1 km</option><option value="2000">2 km</option></select></p>
   <p><button class="go big" type="button" id="a-start">Start attendance</button></p>
+  <p><label><input type="checkbox" id="a-near"> Only students in the room can check in</label></p>
   <p class="note" id="a-last"></p>
-  <div id="a-pos" hidden>
-   <p class="note" id="a-pos-why" role="alert"></p>
-   <p class="note">This computer could not give its own position (some desktop programs cannot, even when location is allowed). Enter the classroom position instead. In an online map, right-click the classroom and copy the two numbers, for example 5.6037, -0.1870. CM remembers it for next time.</p>
-   <p><label for="a-pos-in">Classroom position (latitude, longitude)</label> <input id="a-pos-in" type="text" inputmode="decimal" autocomplete="off" placeholder="5.6037, -0.1870"></p>
-   <p><button class="go" type="button" id="a-pos-go">Start with this position</button> <button class="go alt" type="button" id="a-pos-none">Start without the location check</button></p>
-  </div>
+  <details id="a-more">
+   <summary>More options</summary>
+   <p class="note"><label for="a-rad">How far from this computer still counts as in the room</label>
+    <select id="a-rad"><option value="250">250 m</option><option value="500" selected>500 m (default)</option><option value="1000">1 km</option><option value="2000">2 km</option></select></p>
+   <div id="a-pos">
+    <p class="note" id="a-pos-why" role="alert"></p>
+    <p class="note">Only if this computer cannot find its own position: type the classroom position as two numbers (right-click the classroom in an online map and copy them). CM remembers it.</p>
+    <p><label for="a-pos-in">Classroom position (latitude, longitude)</label> <input id="a-pos-in" type="text" inputmode="decimal" autocomplete="off" placeholder="5.6037, -0.1870"></p>
+    <p><button class="go" type="button" id="a-pos-go">Start with this position</button> <button class="go alt" type="button" id="a-pos-none">Start without the location check</button></p>
+   </div>
+  </details>
   <p class="note" id="a-nocode" hidden></p>
  </section>
  <section class="panel" id="a-live" hidden>
-  <p class="lbl">Scan this screen with your phone and enter your student ID and access code. Your phone must be in the classroom.</p>
+  <p class="lbl">Scan with your phone, then enter your student ID and access code.</p>
   <p><span id="a-qr" class="qr" role="img" aria-label="QR code to open the check-in page; it changes every 30 seconds" style="display:inline-block"></span></p>
   <p class="note" id="a-tick" role="status"></p>
   <p class="count" id="a-count" role="status"></p>
   <p class="waiting" id="a-waiting" role="status" hidden></p>
-  <p><button class="go big" type="button" id="a-close">Close attendance and record absences</button></p>
+  <p><button class="go big" type="button" id="a-close">Stop attendance</button></p>
   <p class="note" id="a-msg" role="status"></p>
  </section>
  <section class="panel rv" id="a-review" hidden>
@@ -206,37 +210,42 @@ $("a-form").addEventListener("submit",function(e){
   else{$("a-err").textContent=d?"That key was not accepted.":"Could not reach the class sheet. Check the connection.";$("a-err").hidden=false}
  });
 });
-$("a-start").addEventListener("click",function(){
- $("a-start").disabled=true;$("a-last").textContent="Getting the classroom location...";
- var go=function(extra,note){
+// Start: one button. The location check is a single tick box ("Only students in the room"); CM then uses this computer's own position, or the saved or typed one. Nothing is typed unless this computer cannot find itself.
+var NEAR=false;try{NEAR=localStorage.getItem("cm_near")==="1"}catch(x){}
+$("a-near").checked=NEAR;
+$("a-near").addEventListener("change",function(){try{localStorage.setItem("cm_near",$("a-near").checked?"1":"0")}catch(x){}});
+var parsePos=function(t){var m=String(t||"").match(/^\s*(-?\d{1,2}(?:\.\d+)?)\s*[,;\s]\s*(-?\d{1,3}(?:\.\d+)?)\s*$/);if(!m)return null;var la=+m[1],lo=+m[2];return Math.abs(la)<=90&&Math.abs(lo)<=180?[la,lo]:null};
+function go(extra,note,again){
  $("a-last").textContent="Starting...";
- call("attend_open",extra,function(d){ // the sheet makes a new random code each time, never one used before
+ call("attend_open",extra,function(d){ // CM makes a new random code each time, never one used before
   $("a-start").disabled=false;
-  if(!d){$("a-last").textContent="Could not reach the class sheet. Try again.";return}
+  if(!d){$("a-last").textContent="Could not reach CM. Try again.";return}
+  if(!d.ok&&d.needLocation&&again){$("a-near").checked=true;start(true);return} // the settings require a location check: switch it on for the lecturer
   if(!d.ok){$("a-last").textContent="Not started: "+(d.why||"refused")+".";return}
-  $("a-msg").textContent=note||(d.session&&d.session.geo&&d.session.geo!=="off"?"Location check on ("+d.session.geo+", "+d.session.radius+" m).":"");draw(d);
+  $("a-msg").textContent=note||(d.session&&d.session.geo&&d.session.geo!=="off"?"Only students in the room can check in.":"");draw(d);
  });
- };
- // The browser asks once for this device's location; students are compared with it. Without it, only a confirmed "start without" opens a session, and then nobody is checked by location.
- var parsePos=function(t){var m=String(t||"").match(/^\s*(-?\d{1,2}(?:\.\d+)?)\s*[,;\s]\s*(-?\d{1,3}(?:\.\d+)?)\s*$/);if(!m)return null;var la=+m[1],lo=+m[2];return Math.abs(la)<=90&&Math.abs(lo)<=180?[la,lo]:null};
- var withPos=function(la,lo,note){try{localStorage.setItem("cm_rad",$("a-rad").value)}catch(x){}go("&lat="+la.toFixed(5)+"&lon="+lo.toFixed(5)+"&radius="+encodeURIComponent($("a-rad").value),note)};
- // Never silent: say what failed, then offer the classroom position typed in, or an explicit start without the check.
- var noLoc=function(why){
-  var saved="";try{saved=localStorage.getItem("cm_pos")||""}catch(x){}
-  $("a-pos-why").textContent=why;$("a-pos-in").value=saved;$("a-pos").hidden=false;$("a-pos-in").focus();
-  $("a-start").disabled=false;$("a-last").textContent="Location check not started yet: enter the classroom position below, or start without it.";
- };
- $("a-pos-go").onclick=function(){var v=parsePos($("a-pos-in").value);if(!v){$("a-pos-why").textContent="Enter latitude and longitude as two numbers, for example 5.6037, -0.1870.";return}
-  try{localStorage.setItem("cm_pos",v[0]+", "+v[1])}catch(x){}$("a-pos").hidden=true;$("a-start").disabled=true;withPos(v[0],v[1],"Location check on, using the classroom position you entered.")};
- $("a-pos-none").onclick=function(){if(window.confirm("Start WITHOUT the location check? Then anyone with the link and code could check in from anywhere."))$("a-pos").hidden=true,$("a-start").disabled=true,go("&nogeo=1","Started without the location check.")};
+}
+function withPos(la,lo,note){try{localStorage.setItem("cm_rad",$("a-rad").value)}catch(x){}go("&lat="+la.toFixed(5)+"&lon="+lo.toFixed(5)+"&radius="+encodeURIComponent($("a-rad").value),note)}
+function noLoc(why){ // say what failed, then offer the typed position (inside More options) or an explicit start without the check
+ var saved="";try{saved=localStorage.getItem("cm_pos")||""}catch(x){}
+ var v=parsePos(saved);if(v){withPos(v[0],v[1],"Only students in the room can check in (using the saved classroom position).");return}
+ $("a-pos-why").textContent=why;$("a-more").open=true;$("a-pos-in").focus();
+ $("a-start").disabled=false;$("a-last").textContent="This computer could not find its position. Type the classroom position under More options, or untick the box.";
+}
+$("a-pos-go").onclick=function(){var v=parsePos($("a-pos-in").value);if(!v){$("a-pos-why").textContent="Enter latitude and longitude as two numbers, for example 5.6037, -0.1870.";return}
+ try{localStorage.setItem("cm_pos",v[0]+", "+v[1])}catch(x){}$("a-start").disabled=true;withPos(v[0],v[1],"Only students in the room can check in (using the classroom position you entered).")};
+$("a-pos-none").onclick=function(){if(window.confirm("Start WITHOUT the location check? Then anyone with the link and code could check in from anywhere.")){$("a-start").disabled=true;go("&nogeo=1","Started without the location check.")}};
+function start(near){
+ if(!near){go("","",true);return}
  if(!navigator.geolocation){noLoc("This device cannot give a location.");return}
+ $("a-last").textContent="Finding this computer's position...";
  navigator.geolocation.getCurrentPosition(function(p){
-  try{localStorage.setItem("cm_rad",$("a-rad").value)}catch(x){}
-  go("&lat="+p.coords.latitude.toFixed(5)+"&lon="+p.coords.longitude.toFixed(5)+"&radius="+encodeURIComponent($("a-rad").value),p.coords.accuracy>100?"This device's location is rough (about "+Math.round(p.coords.accuracy)+" m); the radius is widened by that much for the check. Try a student's phone at the back of the room.":"");
+  withPos(p.coords.latitude,p.coords.longitude,p.coords.accuracy>100?"This device's location is rough (about "+Math.round(p.coords.accuracy)+" m), so the distance is widened by that much.":"Only students in the room can check in.");
  },function(er){noLoc(er&&er.code===1?"This computer refused the location request (allow location for CM in the system privacy settings).":"This computer could not find its location ("+((er&&er.message)||"no reason given")+").")},{enableHighAccuracy:true,timeout:15000,maximumAge:0});
-});
+}
+$("a-start").addEventListener("click",function(){$("a-start").disabled=true;start($("a-near").checked)});
 $("a-close").addEventListener("click",function(){
- if(!window.confirm("Close attendance? Check-ins stay held and are not recorded in the Attendance sheet until you press Submit attendance in the Control Centre."))return;
+ if(!window.confirm("Stop attendance? Check-ins stay held and are recorded only when you press Submit attendance in the Control Centre."))return;
  $("a-msg").textContent="Closing...";
  call("attend_close","",function(d){
   if(!d||!d.ok){$("a-msg").textContent="Not closed: "+((d&&d.why)||"could not reach the class sheet")+".";return}
