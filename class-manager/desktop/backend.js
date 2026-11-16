@@ -260,6 +260,7 @@ function createBackend(opts) {
     databaseInfo: () => Object.assign({ file: dbFile }, db.counts())
   };
   // The engine: "script" (the Apps Script, run here) or "js" (the rules/ modules through rules/router.js). Both answer the same requests; "js" needs no script.
+  api.site = (p) => { const r = UrlFetchApp.fetch("http://local" + p); if (r.getResponseCode() !== 200) throw new Error("not found: " + p); return JSON.parse(r.getContentText()); }; // the course's JSON files, for the rules
   const engine = opts.engine || process.env.CM_ENGINE || "js";
   if (engine === "js") {
     const { createRouter } = require("./rules/router"), { fromBackend } = require("./rules/store");

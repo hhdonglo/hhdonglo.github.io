@@ -25,6 +25,15 @@ window.CM = {
   CM.pageUrl = function (name) { return new URL(name, CM.publicBase || location.href).href.replace(/[?#].*$/, ""); }; // publicBase: the desktop app's internet address, when it is on
   // The quiz page with the join code filled in, for QR codes on the projector and on students' phones.
   CM.joinUrl = function (code) { return CM.pageUrl("quiz.html") + (code ? "?code=" + encodeURIComponent(String(code).toUpperCase()) : ""); };
+  // While CM has handed the live quiz to the relay, the quiz's QR code opens the page from the website and the phone talks to the relay, so this computer may be off.
+  CM.quizRelay = null;
+  CM.useRelay = function (r) { var on = r && /^https:\/\//.test(r.url || "") && r.course && /^https?:\/\//.test(r.pages || ""); var next = on ? r : null; if (JSON.stringify(next) === JSON.stringify(CM.quizRelay)) return; CM.quizRelay = next; CM.refreshJoin(); };
+  CM.addrOf = function (page) { var r = CM.quizRelay; return r && page === "quiz.html" ? r.pages + "quiz.html?r=" + encodeURIComponent(r.url) + "&c=" + encodeURIComponent(r.course) : CM.pageUrl(page); };
+  // Join addresses and QR codes for the live quiz (host and projector pages).
+  CM.refreshJoin = function () {
+    document.querySelectorAll("[data-addr]").forEach(function (el) { el.textContent = CM.addrOf(el.getAttribute("data-addr")).replace(/^https?:\/\//, ""); });
+    document.querySelectorAll("img[data-qr]").forEach(function (img) { CM.drawQr(img, CM.addrOf(img.getAttribute("data-qr"))); });
+  };
   CM.drawQr = function (img, url) {
     if (!img || typeof qrcode !== "function") return;
     if (img.getAttribute("data-qr-url") === url) return; // already drawn
@@ -86,17 +95,7 @@ window.CM = {
       if (n.linkUrl && /^https?:/.test(n.linkUrl)) { var l = document.createElement("a"); l.className = "cm-notice-link"; l.href = n.linkUrl; l.target = "_blank"; l.rel = "noopener"; l.textContent = n.linkLabel || n.linkUrl; w.appendChild(l); }
       a.appendChild(w); a.hidden = false;
     });
-    // Join addresses and QR codes for the live quiz (host and projector pages).
-    document.querySelectorAll("[data-addr]").forEach(function (el) {
-      el.textContent = CM.pageUrl(el.getAttribute("data-addr")).replace(/^https?:\/\//, "");
-    });
-    document.querySelectorAll("img[data-qr]").forEach(function (img) {
-      if (typeof qrcode !== "function") return;
-      try {
-        var q = qrcode(0, "M"); q.addData(CM.pageUrl(img.getAttribute("data-qr"))); q.make();
-        img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(q.createSvgTag({ cellSize: 8, margin: 2, scalable: true }));
-      } catch (e) { /* the address is shown beside the code */ }
-    });
+    CM.refreshJoin();
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", fill); else fill();
 })(window.CM);

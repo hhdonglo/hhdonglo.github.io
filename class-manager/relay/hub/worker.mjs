@@ -8,6 +8,7 @@ import { challenge, register, publicCourse } from "./src/registry.js";
 import { drop, pull, ack } from "./src/mailbox.js";
 import { setState, closeCourse } from "./src/live.js";
 import * as attend from "./src/attend.js";
+import * as quiz from "./src/quiz.js";
 
 export async function handle(req, env, now) {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS });
@@ -21,8 +22,9 @@ export async function handle(req, env, now) {
   if (path === "/v1/register") return register(req, env, db, now);
   if (path === "/v1/drop") return drop(req, db, now);
   if (path === "/v1/attend") return attend.checkIn(req, db, now); // a phone checking in
-  if (["/v1/pull", "/v1/ack", "/v1/state", "/v1/close", "/v1/live/open", "/v1/live/close", "/v1/live/events", "/v1/live/ack"].includes(path)) { // only the course's own CM, signed
-    const r = await readJson(req, path === "/v1/live/open" ? 262144 : 65536); if (r.error) return r.error;
+  if (path === "/v1/quiz/call") return quiz.call(req, db, now); // a phone joining or answering a live quiz
+  if (["/v1/pull", "/v1/ack", "/v1/state", "/v1/close", "/v1/live/open", "/v1/live/close", "/v1/live/events", "/v1/live/ack", "/v1/quiz/put", "/v1/quiz/close", "/v1/quiz/events", "/v1/quiz/ack"].includes(path)) { // only the course's own CM, signed
+    const r = await readJson(req, path === "/v1/live/open" || path === "/v1/quiz/put" ? 262144 : 65536); if (r.error) return r.error;
     const who = await authCourse(req, r.text, db, now); if (!who.ok) return fail(who.status, who.why);
     if (path === "/v1/pull") return pull(who.course, db);
     if (path === "/v1/ack") return ack(who.course, r.body, db);
@@ -31,6 +33,10 @@ export async function handle(req, env, now) {
     if (path === "/v1/live/close") return attend.close(who.course, db, now);
     if (path === "/v1/live/events") return attend.events(who.course, r.body, db);
     if (path === "/v1/live/ack") return attend.ackEvents(who.course, r.body, db);
+    if (path === "/v1/quiz/put") return quiz.put(who.course, r.body, db, now);
+    if (path === "/v1/quiz/close") return quiz.close(who.course, db);
+    if (path === "/v1/quiz/events") return quiz.events(who.course, r.body, db);
+    if (path === "/v1/quiz/ack") return quiz.ackEvents(who.course, r.body, db);
     return closeCourse(who.course, db);
   }
   return fail(404, "not found");

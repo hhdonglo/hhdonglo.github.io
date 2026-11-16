@@ -179,6 +179,7 @@ function refresh(first){
    if(first){$("h-err").textContent=!d?"Could not reach the class sheet. Check the connection.":d.why==="join code"?"The password was accepted, but no quiz uses that join code. Check the join code, or set up the quiz week first.":d.why==="password"?"That password was not accepted.":"That join code or key was not accepted.";$("h-err").hidden=false;if(d)keyField(true)}
    else $("h-upd").textContent="Could not refresh just now; trying again.";
    return}
+  if(CM.useRelay)CM.useRelay(d.relay||null); // the QR code follows the relay while it holds the quiz
   $("h-setup").hidden=true;$("h-main").hidden=false;if(d.note)$("h-msgline").textContent=d.note;
   try{localStorage.setItem("cm_quiz_code",cfg.code)}catch(x){}
   $("h-init").hidden=!!d.controlled;$("h-ctl").hidden=!d.controlled;
