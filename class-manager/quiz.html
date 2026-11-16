@@ -163,7 +163,16 @@ body.focus .try .fun{display:block}
 <script>
 (function(){
 "use strict";
-var SCRIPT_URL=window.CM.scriptUrl; // Apps Script web app address (see apps_script/quiz_receiver.gs)
+var SCRIPT_URL=window.CM.scriptUrl; // the class server's address
+// From the QR code: when the relay address and the course are there, joining and answering go to the relay, which answers with the lecturer's computer off.
+var RQ=(/[?&]r=([^&]+)/.exec(location.search)||[0,""])[1],RC=(/[?&]c=([^&]+)/.exec(location.search)||[0,""])[1];
+RQ=RQ?decodeURIComponent(RQ):"";RC=RC?decodeURIComponent(RC):"";
+var VIA=!!(RQ&&RC&&/^https:\/\//.test(RQ));
+function postTo(b,opt){ // the class server, or the relay when this page came from its QR code
+ if(!VIA)return fetch(SCRIPT_URL,Object.assign({method:"POST",body:b},opt||{}));
+ var o={};b.forEach(function(v,k){o[k]=v});
+ return fetch(RQ.replace(/\/$/,"")+"/v1/quiz/call",{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({course:RC,params:o})});
+}
 var LEADERBOARD_CSV=window.CM.leaderboardCsv||""; // optional: a published Google Sheet CSV of the ranking
 var SECONDS=60;
 var D=function(s){return s};
@@ -254,7 +263,7 @@ function roomShow(m,n,closed){
 }
 function join(kind){
  var b=new URLSearchParams();b.set("kind",kind||"join");b.set("name",st.name);b.set("id",st.id);b.set("code",st.code);b.set("want","receipt");
- var send=function(){try{fetch(SCRIPT_URL,{method:"POST",body:b}).then(keepReceipt,function(){return fetch(SCRIPT_URL,{method:"POST",mode:"no-cors",body:b})}).catch(function(){})}catch(x){}};
+ var send=function(){try{postTo(b).then(keepReceipt,function(){return postTo(b,{mode:"no-cors"})}).catch(function(){})}catch(x){}};
  if((kind||"join")==="join")setTimeout(send,Math.floor(Math.random()*4000));else send(); // a whole class joins at once, so spread the joins over a few seconds
 }
 // ---- lecturer-paced mode: the lecturer moves the whole class from question to question ----
@@ -323,7 +332,7 @@ Array.prototype.forEach.call(document.querySelectorAll("#conf button"),function(
 function sendAnswer(q,a){
  var b=new URLSearchParams();b.set("kind","answer");b.set("name",st.name);b.set("id",st.id);b.set("code",st.code);b.set("q",String(q));b.set("answer",a);b.set("conf",(st.conf&&st.conf[q-1])||"");
  $("pnote").textContent="Sending your answer.";
- fetch(SCRIPT_URL,{method:"POST",mode:"no-cors",body:b}).then(function(){$("pnote").textContent="Your answer is sent. You can change it until time runs out. Wait for the next question."},function(){$("pnote").textContent="Your answer could not be sent. Check your connection and tap it again."});
+ postTo(b,{mode:"no-cors"}).then(function(){$("pnote").textContent="Your answer is sent. You can change it until time runs out. Wait for the next question."},function(){$("pnote").textContent="Your answer could not be sent. Check your connection and tap it again."});
 }
 function setLocked(){
  var lock=pacedClosed();
@@ -463,7 +472,13 @@ function finish(){
  $("board").hidden=true;
  deliver();
 }
-function jsonp(params,cb){CM.call(params,cb)} // every request by POST: see CM.call in config.js
+function jsonp(params,cb){
+ if(VIA&&/^action=(status|questions)&/.test(params)){ // the relay holds the quiz's status and questions
+  var q=new URLSearchParams(params),o={};q.forEach(function(v,k){o[k]=v});
+  var done=false,t=setTimeout(function(){if(!done){done=true;cb(null)}},15000);
+  fetch(RQ.replace(/\/$/,"")+"/v1/quiz/call",{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({course:RC,params:o})}).then(function(r){return r.json()}).then(function(j){if(!done){done=true;clearTimeout(t);cb(j)}},function(){if(!done){done=true;clearTimeout(t);cb(null)}});
+  return}
+ CM.call(params,cb)} // every request by POST: see CM.call in config.js
 function deliver(){
  $("retry").hidden=true;
  $("t-end").textContent="Sending your answers";
@@ -471,7 +486,7 @@ function deliver(){
  var body=new URLSearchParams();
  body.set("name",st.name);body.set("id",st.id);body.set("code",st.code);
  st.ans.forEach(function(a,j){body.set("q"+(j+1),a)});
- body.set("want","receipt");fetch(SCRIPT_URL,{method:"POST",body:body}).then(function(r){keepReceipt(r);setTimeout(function(){poll(0)},2500)},function(){return fetch(SCRIPT_URL,{method:"POST",mode:"no-cors",body:body}).then(function(){setTimeout(function(){poll(0)},2500)})}).catch(function(){problem("Your answers could not be sent. Check your connection and press Send again.")});
+ body.set("want","receipt");postTo(body).then(function(r){keepReceipt(r);setTimeout(function(){poll(0)},2500)},function(){return postTo(body,{mode:"no-cors"}).then(function(){setTimeout(function(){poll(0)},2500)})}).catch(function(){problem("Your answers could not be sent. Check your connection and press Send again.")});
 }
 function problem(m){$("end-msg").hidden=false;$("t-end").textContent="Not recorded yet";$("end-msg").textContent=m;$("retry").hidden=false}
 function poll(n){

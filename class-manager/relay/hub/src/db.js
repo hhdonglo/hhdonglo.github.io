@@ -13,7 +13,11 @@ export const SCHEMA = [
   "CREATE INDEX IF NOT EXISTS live_event_course ON live_event(course, id)",
   "CREATE UNIQUE INDEX IF NOT EXISTS live_event_one_id ON live_event(course, label, sid) WHERE kind = 'ok'",
   "CREATE UNIQUE INDEX IF NOT EXISTS live_event_one_dev ON live_event(course, label, dev) WHERE kind = 'ok' AND dev <> ''",
-  "CREATE TABLE IF NOT EXISTS live_phone (course TEXT NOT NULL, sid TEXT NOT NULL, dev TEXT NOT NULL, PRIMARY KEY (course, sid))"
+  "CREATE TABLE IF NOT EXISTS live_phone (course TEXT NOT NULL, sid TEXT NOT NULL, dev TEXT NOT NULL, PRIMARY KEY (course, sid))",
+  // Live quizzes (src/quiz.js): the open quiz's status and question text (no answers) and the joins and answers phones send.
+  "CREATE TABLE IF NOT EXISTS live_quiz (course TEXT PRIMARY KEY, code TEXT NOT NULL, status TEXT NOT NULL, questions TEXT NOT NULL, present TEXT NOT NULL, at INTEGER NOT NULL)",
+  "CREATE TABLE IF NOT EXISTS quiz_event (id INTEGER PRIMARY KEY AUTOINCREMENT, course TEXT NOT NULL, kind TEXT NOT NULL, sid TEXT NOT NULL, body TEXT NOT NULL, at INTEGER NOT NULL)",
+  "CREATE INDEX IF NOT EXISTS quiz_event_course ON quiz_event(course, id)"
 ];
 
 export const LIMITS = {
@@ -34,6 +38,8 @@ export async function cleanup(db, now) {
   const old = now - LIMITS.unusedCourseDays * day;
   await run("courseItems", "DELETE FROM item WHERE course IN (SELECT id FROM course WHERE last_seen < ?)", old);
   await run("liveEvents", "DELETE FROM live_event WHERE at < ?", now - LIMITS.keepItemDays * day);
+  await run("quizEvents", "DELETE FROM quiz_event WHERE at < ?", now - LIMITS.keepItemDays * day);
+  await run("quizStale", "DELETE FROM live_quiz WHERE at < ?", now - day);
   await run("liveClosed", "DELETE FROM live_session WHERE status <> 'Open' AND at < ?", now - LIMITS.keepItemDays * day);
   await run("courseState", "DELETE FROM state WHERE course IN (SELECT id FROM course WHERE last_seen < ?)", old);
   await run("courseNonces", "DELETE FROM nonce WHERE course IN (SELECT id FROM course WHERE last_seen < ?)", old);
@@ -42,6 +48,6 @@ export async function cleanup(db, now) {
 }
 
 export async function deleteCourse(db, id) {
-  for (const t of ["item", "state", "nonce", "live_session", "live_event", "live_phone"]) await db.prepare("DELETE FROM " + t + " WHERE course = ?").bind(id).run();
+  for (const t of ["item", "state", "nonce", "live_session", "live_event", "live_phone", "live_quiz", "quiz_event"]) await db.prepare("DELETE FROM " + t + " WHERE course = ?").bind(id).run();
   await db.prepare("DELETE FROM course WHERE id = ?").bind(id).run();
 }

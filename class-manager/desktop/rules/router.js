@@ -160,4 +160,4 @@ function createRouter(env) {
   return { get, post };
 }
 
-module.exports = { createRouter };
+module.exports = { createRouter, quizHooks: (store, o) => { const t = Object.assign({}, o, ST.hooks(store, o)); return Object.assign({}, t, QR.hooks(store, t)); } };

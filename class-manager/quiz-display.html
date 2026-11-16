@@ -109,6 +109,7 @@ function jsonp(params,cb){CM.call(params,cb)} // every request by POST: see CM.c
 function refresh(){
  jsonp("action=display&code="+encodeURIComponent(cfg.code),function(d){
   if(!d||!d.ok)return;
+  if(CM.useRelay)CM.useRelay(d.relay||null);
   $("d-ask").hidden=true;$("d-main").hidden=false;$("d-showcode").textContent=cfg.code;
   $("d-joined").textContent=d.joined;$("d-joined2").textContent=d.joined;$("d-answered").textContent=d.answered||0;
   var st=d.status;cfg.c=st;cfg.at=Date.now();
