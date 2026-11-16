@@ -321,8 +321,15 @@ Look (2026-11-15, from Hope's inspiration image): soft tinted tiles on cards, on
 ### Overflow guard (0.22.0)
 `desktop/test/overflow.test.js` opens every sidebar screen at 760, 1000 and 1280 px with a very long folder path and repository URL and fails if the page or `main` scrolls sideways. The Course and Content card shows labelled Folder, Repository and Branch lines with Copy buttons; full values appear on hover. Long text wraps (`overflow-wrap:anywhere`) and `main` never scrolls horizontally.
 
+## rules/ (desktop/rules)
+The course rules as plain JavaScript over a small store interface, ported one area at a time from `apps_script/` with parity tests (`test/rules-parity.test.js`). Stage 1 has `access-codes.js` and `store.js`; nothing calls them yet. See `RULES-AND-RELAY-PLAN.md` for the staged plan and the removal list.
 ### Duplicate IDs card (0.22.1)
 `desktop/id-notices-ipc.js` (two calls: `cm:idNotices`, `cm:idResolve`) and `desktop/app/id-notices.js` (the card on the Class Roster screen). A student ID that was on more than one row is merged by `db/id-guard.js` (first row stays, blanks filled, a different value never overwritten) and recorded by `db/notices.js`. The card lists each ID with both source rows exactly as they were and the names they gave; the lecturer picks the right name or marks the ID as checked, and the choice is written to the class list. Test: `desktop/test/id-notices.test.js`.
 
 ### IDs read with certainty in the class list upload (0.22.1)
 `desktop/app/id-review.js` reads one ID cell: `22583439`, `22583439.0` and `022583439` are the same ID; Excel's scientific form, a decimal part, a wrong length or mixed characters are "ambiguous" and never guessed. The class list screen (`app/setup.html`) lists those rows (row number, value as written, name, reason) with a box to type the right ID, and the save leaves out any row still unread. Before this, `22583439.0` became `225834390` because all non-digits were removed. The column choice (ID, first name, last name) was already editable on that screen. Test: `desktop/test/id-review.test.js`.
+
+## relay/hub (the CM relay)
+The hosted Cloudflare Worker with D1 that lets phones take part when the lecturer's computer is off: automatic course registration, signed requests from CM, sealed drops from phones, small live state, abuse controls and forgetting. One file per job under `relay/hub/src/`; tested without Cloudflare through `relay/hub/test/fake-d1.js`. See `relay/hub/README.md`. The older KV mailbox (`relay/worker.mjs`) stays until CM moves over.
+
+CM's side of the relay hub: `desktop/relay/hub.js` and `desktop/relay/address.js` (address built into the installer from `CM_RELAY_URL`); `desktop/test/relay-hub.test.js`.

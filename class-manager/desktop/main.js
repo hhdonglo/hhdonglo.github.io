@@ -349,7 +349,9 @@ function makeCtx(id) {
   c.backups = createBackups({ dir: path.join(d.root, "backups"), workbook: d.workbook, vault, readText: () => c.backend ? c.backend.exportText() : require("./db/migrate").readWorkbookText(path.join(d.data, "course.db"), vault) });
   c.linked = createLinkedFolder({ dir: d.root, label: () => c.settings.courseCode || id, content: () => backupContent(c), protect: vault.protectBytes, unprotect: vault.unprotectBytes, protected: vault.protected });
   c.sync = createCourseSync({ dir: d.root, contentDir: d.course, notesDir: path.join(d.root, "notes"), linked: c.linked, backend: c.backend, vault, deviceName: require("os").hostname(), log: (m) => console.log("[sync " + id + "]", m) });
-  c.relay = require("./relay/client").createRelay({ backend: c.backend, courseId: id, log: (m) => console.log("[mailbox " + id + "]", m) });
+  const hubUrl = require("./relay/address").relayAddress(); // built into the installer; empty means no relay hub, and the older mailbox (set up by hand) is used
+  c.relay = hubUrl ? require("./relay/hub").createHub({ backend: c.backend, address: hubUrl, log: (m) => console.log("[relay " + id + "]", m) })
+    : require("./relay/client").createRelay({ backend: c.backend, courseId: id, log: (m) => console.log("[mailbox " + id + "]", m) });
   c.relay.start();
   c.sync.start(); // local and online at the same time: a round now, then every two minutes, and a few seconds after each change
   try { c.lastBackup = c.backups.make(""); } catch (e) { c.lastBackup = { ok: false, why: e.message }; } // a backup each time the course is opened, checked at once
