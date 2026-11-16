@@ -1,6 +1,7 @@
 /* The small set of app functions that CM's own screens may call. Student phones never see this. */
 "use strict";
 const { contextBridge, ipcRenderer } = require("electron");
+try { const k = ipcRenderer.sendSync("cm:sessionKey"); if (k) sessionStorage.setItem("cm_hk", k); } catch (e) { /* not signed in yet */ }
 const call = (ch) => (...a) => ipcRenderer.invoke(ch, ...a);
 contextBridge.exposeInMainWorld("cmApp", {
   info: call("cm:info"), live: call("cm:live"), stamp: call("cm:stamp"), folderDetails: call("cm:folderDetails"), removeStudent: call("cm:removeStudent"), restoreStudent: call("cm:restoreStudent"), removeEntries: call("cm:removeEntries"), restoreEntries: call("cm:restoreEntries"), stats: call("cm:stats"), analyticsExtra: call("cm:analyticsExtra"), addIntervention: call("cm:addIntervention"), govern: call("cm:govern"), weeklySummary: call("cm:weeklySummary"), studentStats: call("cm:studentStats"), progress: call("cm:progress"), save: call("cm:save"), openWindow: call("cm:openWindow"), openExternal: call("cm:openExternal"),
@@ -12,6 +13,8 @@ contextBridge.exposeInMainWorld("cmApp", {
   drafts: call("cm:drafts"), draftsAdd: call("cm:draftsAdd"), draftUpdate: call("cm:draftUpdate"), draftsReject: call("cm:draftsReject"),
   approve: call("cm:approve"), withdraw: call("cm:withdraw"), importFile: call("cm:importFile"), importText: call("cm:importText"), saveTemplate: call("cm:saveTemplate"),
   filePath: (f) => { try { return require("electron").webUtils.getPathForFile(f); } catch (e) { return ""; } },
+  centralStatus: call("cm:centralStatus"), centralLogin: call("cm:centralLogin"), centralCreate: call("cm:centralCreate"), centralRecover: call("cm:centralRecover"),
+  firstRunState: call("cm:firstRunState"), bankFolderPick: call("cm:bankFolderPick"), bankFolderLoad: call("cm:bankFolderLoad"),
   setup: call("cm:setup"), saveCourse: call("cm:saveCourse"), setupSeen: call("cm:setupSeen"), chooseLogo: call("cm:chooseLogo"),
   rosterShotsRead: call("cm:rosterShotsRead"), rosterShotsPreview: call("cm:rosterShotsPreview"), rosterShotsSave: call("cm:rosterShotsSave"),
   lectures: call("cm:lectures"), saveLecture: call("cm:saveLecture"), removeLecture: call("cm:removeLecture"), lectureFile: call("cm:lectureFile"),
