@@ -7,6 +7,7 @@ const AC = require("./access-codes");
 const AN = require("./announcements");
 const AS = require("./assignments");
 const AT = require("./attendance");
+const CC = require("./code-claim");
 const AR = require("./attendance-review");
 const AU = require("./auth");
 const C = require("./quiz-control");
@@ -94,6 +95,7 @@ function createRouter(env) {
       case "access_codes": return hostJ(() => AC.run(store, p, { random: o.random, log: (x, y, z) => logLine(store, x, y, z, "") }));
       case "preclass": return hostJ(() => preclass(p, o));
       case "attend": return J(AT.checkIn(store, p, o));
+      case "claim_code": return J(CC.claim(store, p, o));
       case "password_status": return J(AU.passwordStatus(store));
       case "password_recover": if (!req.post) return J({ ok: false, why: "not accepted" }); return J(AU.recoverHostKey(store, p, o));
       case "hostcheck": return J({ ok: host(), post: req.post });

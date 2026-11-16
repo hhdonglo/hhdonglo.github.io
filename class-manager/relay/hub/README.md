@@ -33,3 +33,7 @@ The older mailbox (`../worker.mjs`, KV and tokens) keeps working until CM moves 
 
 ## CM's side
 `desktop/relay/hub.js` (register by itself, sign requests, collect, push state, close), `desktop/relay/address.js` (the address built into the installer: `desktop/relay/address.json`, written by the build from the repository variable `CM_RELAY_URL`; empty means no relay and CM uses the older mailbox if set up by hand). The phone side is `assets/outbox.js` (`/v1/drop` with only the course id). Tests: `desktop/test/relay-hub.test.js` runs CM against the real hub code with a fake D1.
+
+## Access codes shown at sign-in
+
+`POST /v1/claim` (phone, unsigned) shows a student their own access code under the rules in `desktop/rules/code-claim.js`. The codes are in table `live_code`, sent by CM only in `/v1/live/open`, deleted at `/v1/live/close` and by the daily cleanup. Existing relays pick up the new table with `node class-manager/relay/deploy.mjs --update`.

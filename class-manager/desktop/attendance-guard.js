@@ -20,7 +20,7 @@ function isPrivateAddress(addr) {
 function guardFor(where, settings) {
   const on = !settings || settings.geoInternet !== false;
   const geo = on && (where.remote || where.tunnelOn) ? "enforce" : "off";
-  const refuse = where.action === "attend" && !where.remote && !isPrivateAddress(where.remoteAddress) ? { ok: false, why: "not on network" } : null;
+  const refuse = (where.action === "attend" || where.action === "claim_code") && !where.remote && !isPrivateAddress(where.remoteAddress) ? { ok: false, why: "not on network" } : null;
   return { geo, refuse };
 }
 

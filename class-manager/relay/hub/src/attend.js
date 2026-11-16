@@ -39,13 +39,17 @@ export async function open(course, body, db, now) {
   if (cur && cur.status === "Open") return fail(409, "a session is already open: close it first");
   await db.prepare("INSERT INTO live_session(course, label, secret, mode, lat, lon, radius, status, roster, phones, at) VALUES(?, ?, ?, ?, ?, ?, ?, 'Open', ?, ?, ?) ON CONFLICT(course) DO UPDATE SET label = excluded.label, secret = excluded.secret, mode = excluded.mode, lat = excluded.lat, lon = excluded.lon, radius = excluded.radius, status = 'Open', roster = excluded.roster, phones = excluded.phones, at = excluded.at")
     .bind(course, label, secret, body.mode, lat, lon, Math.max(50, Math.min(Number(body.radius) || 500, 5000)), JSON.stringify(roster), JSON.stringify(phones), now).run();
-  return reply({ ok: true, label, students: ids.length });
+  await db.prepare("DELETE FROM live_code WHERE course = ?").bind(course).run();
+  const codes = body.codes && typeof body.codes === "object" ? body.codes : {}; let shown = 0; // codes to show to students who sign in, only for IDs on this class list, only while the session is open
+  for (const id of Object.keys(codes)) { const c = normCode(codes[id]); if (c && Object.prototype.hasOwnProperty.call(roster, id)) { await db.prepare("INSERT INTO live_code(course, sid, code, at) VALUES(?, ?, ?, ?)").bind(course, id, c, now).run(); shown++; } }
+  return reply({ ok: true, label, students: ids.length, codes: shown });
 }
 
 // CM, signed: stop the session and forget the class list and the secret; the events stay until CM collects them.
 export async function close(course, db, now) {
   const s = await db.prepare("SELECT status FROM live_session WHERE course = ?").bind(course).first();
   if (!s || s.status !== "Open") return fail(409, "no session is open");
+  await db.prepare("DELETE FROM live_code WHERE course = ?").bind(course).run();
   await db.prepare("UPDATE live_session SET status = 'Closed', secret = '', roster = '{}', phones = '{}', at = ? WHERE course = ?").bind(now, course).run();
   return reply({ ok: true });
 }
@@ -104,4 +108,40 @@ export async function checkIn(req, db, now) {
   }
   if (bind) { await db.prepare("INSERT OR IGNORE INTO live_phone(course, sid, dev) VALUES(?, ?, ?)").bind(course, sid, dev).run(); await event(db, course, s.label, "bind", sid, dev, "", now); } // CM keeps the registration for the term
   return reply({ ok: true, id: sid, onList: onl });
+}
+
+// A phone, unsigned: body { course, id, dev, t, lat?, lon?, acc? }. Shows the student their own access code; the same rules as desktop/rules/code-claim.js (see its header).
+const HELD = PENDING + "asked for the access code from a phone other than the one registered";
+export async function claim(req, db, now) {
+  const r = await readJson(req, 2048); if (r.error) return r.error; const p = r.body, course = String(p.course || "").slice(0, 30);
+  if (!(await allow(db, "att:ip:" + ipOf(req) + ":" + course, 60, 30, now))) return fail(429, "slow down");
+  if (!(await allow(db, "att:" + course, 60, 600, now))) return fail(429, "this class is busy, try again");
+  const s = await db.prepare("SELECT * FROM live_session WHERE course = ? AND status = 'Open'").bind(course).first();
+  if (!s) return reply({ ok: false, why: "closed" });
+  const sid = normId(p.id); let dev = String(p.dev || "").replace(/[^A-Za-z0-9]/g, "").slice(0, 40);
+  if (sid.length < 4 || sid.length > 12) return reply({ ok: false, why: "bad id" });
+  if (dev.length < 16) return reply({ ok: false, why: "update page" });
+  dev = (await sha256Hex(course + ":" + dev)).slice(0, 16);
+  const failed = async (k) => (await peek(db, "att:f:" + k, 600, now)) >= MAX_FAILS, bad = (k) => bump(db, "att:f:" + k, 600, now);
+  if ((await failed("d" + dev)) || (await failed("i" + sid))) return reply({ ok: false, why: "slow down" });
+  if (!(await linkOk(s.secret, String(p.t || "").replace(/[^0-9a-f]/g, "").slice(0, 8), now))) { await bad("d" + dev); await bad("i" + sid); return reply({ ok: false, why: "old link" }); }
+  const g = geo(s, p);
+  if (s.mode === "enforce" && (g.state === "far" || g.state === "none")) return reply({ ok: false, why: g.state === "far" ? "too far" : "no location" });
+  const roster = JSON.parse(s.roster), row = Object.prototype.hasOwnProperty.call(roster, sid) ? await db.prepare("SELECT code FROM live_code WHERE course = ? AND sid = ?").bind(course, sid).first() : null;
+  if (!row) { await bad("d" + dev); await bad("i" + sid); return reply({ ok: false, why: "not recognised" }); }
+  const mine = await db.prepare("SELECT dev FROM live_phone WHERE course = ? AND sid = ?").bind(course, sid).first(), seed = JSON.parse(s.phones);
+  const owner = (await db.prepare("SELECT sid FROM live_phone WHERE course = ? AND dev = ?").bind(course, dev).first() || {}).sid || Object.keys(seed).find((k) => seed[k] === dev);
+  const bound = mine ? mine.dev : seed[sid];
+  if ((owner && owner !== sid) || (bound && bound !== dev)) {
+    await bad("d" + dev);
+    if (!(await db.prepare("SELECT 1 AS x FROM live_event WHERE course = ? AND label = ? AND sid = ? AND kind = 'pending'").bind(course, s.label, sid).first())) await event(db, course, s.label, "pending", sid, dev, HELD, now);
+    return reply({ ok: true, id: sid, pending: true });
+  }
+  if (!bound) {
+    const ins = await db.prepare("INSERT OR IGNORE INTO live_phone(course, sid, dev) VALUES(?, ?, ?)").bind(course, sid, dev).run();
+    if (!(ins.meta && ins.meta.changes)) return reply({ ok: true, id: sid, pending: true }); // another phone registered this ID a moment ago
+    await event(db, course, s.label, "bind", sid, dev, "", now);
+    await event(db, course, s.label, "flag", sid, dev, "access code shown on this phone, now registered to this ID", now);
+  }
+  return reply({ ok: true, id: sid, code: row.code });
 }
