@@ -8,6 +8,7 @@
 const fs = require("fs"), os = require("os"), path = require("path"), { spawnSync } = require("child_process");
 
 function find(dist) { // { resources, bin } of the unpacked build for this operating system
+  dist = path.resolve(dist);
   const dirs = fs.readdirSync(dist, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => path.join(dist, d.name));
   for (const d of dirs) {
     if (/mac/.test(path.basename(d))) { // dist/mac*/Class Manager.app
@@ -42,6 +43,7 @@ console.log("SMOKE OK node " + process.versions.node + (process.versions.electro
 `;
 
 function run(resources, bin) {
+  resources = path.resolve(resources); // the child resolves paths from its own folder: always pass absolute ones
   const r = spawnSync(bin, ["-e", CHILD], { env: Object.assign({}, process.env, { ELECTRON_RUN_AS_NODE: "1", CM_RES: resources }), encoding: "utf8", timeout: 120000 });
   return { ok: r.status === 0 && /SMOKE OK/.test(r.stdout || ""), out: ((r.stdout || "") + (r.stderr || "")).trim(), status: r.status };
 }

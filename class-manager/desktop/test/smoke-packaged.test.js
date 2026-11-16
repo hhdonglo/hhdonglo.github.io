@@ -26,3 +26,15 @@ test("the build workflow runs the smoke check on every platform before uploading
   const wf = fs.readFileSync(path.join(__dirname, "..", "..", "..", ".github", "workflows", "class-manager-app.yml"), "utf8");
   assert.ok(wf.indexOf("tools/smoke-packaged.js") > wf.indexOf("electron-builder") && wf.indexOf("tools/smoke-packaged.js") < wf.indexOf("upload-artifact"));
 });
+
+test("a relative dist folder works (this is how the build workflow calls it)", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "cm-dist-")), res = path.join(root, "dist", "linux-unpacked", "resources");
+  fs.mkdirSync(res, { recursive: true });
+  fs.symlinkSync(path.join(__dirname, ".."), path.join(res, "app.asar"), "dir");
+  fs.symlinkSync(path.join(__dirname, "..", ".."), path.join(res, "web"), "dir");
+  fs.copyFileSync(process.execPath, path.join(root, "dist", "linux-unpacked", "class-manager")); fs.chmodSync(path.join(root, "dist", "linux-unpacked", "class-manager"), 0o755);
+  const { spawnSync } = require("child_process");
+  const r = spawnSync(process.execPath, [path.join(__dirname, "..", "tools", "smoke-packaged.js"), "dist"], { cwd: root, encoding: "utf8" });
+  assert.equal(r.status, 0, r.stdout + r.stderr);
+  assert.match(r.stdout, /SMOKE OK/);
+});
