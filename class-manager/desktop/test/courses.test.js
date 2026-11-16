@@ -182,19 +182,6 @@ test("two courses never see each other's records", () => {
   assert.equal(B.course.portal().lectures["3"], undefined);
 });
 
-test("one Google sign-in, one Google Sheet per course", () => {
-  // The token file of 0.7.0 held one sheet: it becomes the sheet of the migrated course.
-  let all = C.migrateTokens({ refresh: "r1", email: "me@example.org", sheetId: "S-OLD", sheetUrl: "u-old" }, "phys-143");
-  assert.deepEqual(C.courseTokens(all, "phys-143"), { refresh: "r1", email: "me@example.org", sheetId: "S-OLD", sheetUrl: "u-old" });
-  assert.equal(C.courseTokens(all, "math-101").sheetId, "", "a new course gets its own sheet");
-  all = C.storeCourseTokens(all, "math-101", { refresh: "r1", email: "me@example.org", sheetId: "S-MATH", sheetUrl: "u-math" });
-  assert.equal(C.courseTokens(all, "math-101").sheetId, "S-MATH");
-  assert.equal(C.courseTokens(all, "phys-143").sheetId, "S-OLD", "saving one course's sheet leaves the other's");
-  all = C.storeCourseTokens(all, "phys-143", {}); // sign-out from any course signs the app out
-  assert.equal(C.courseTokens(all, "math-101").refresh, undefined);
-  assert.equal(C.courseTokens(all, "math-101").sheetId, "S-MATH", "the sheets are remembered for the next sign-in");
-});
-
 test("pages of two courses keep separate browser storage", () => {
   const src = fs.readFileSync(path.join(WEB, "config.js"), "utf8");
   function page(prefix, store) { // runs config.js in a fake window and returns that window

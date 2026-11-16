@@ -3,9 +3,7 @@
      same Wi-Fi open the quiz and check-in pages on their phones.
    - Runs the quiz and attendance server on this computer (backend.js): results, attendance and
      marks are stored in a local workbook, created automatically on first launch.
-   - Optional: sign in with Google to keep a copy of every tab in a Google Sheet in the lecturer's
-     own Drive (google.js).
-   - Many courses at once (courses.js): each course has its own folder, workbook, settings, Google Sheet
+   - Many courses at once (courses.js): each course has its own folder, workbook, settings
      and pages under /c/<id>/. Every window belongs to one course, read from its address, and every
      request from it acts on that course only. */
 "use strict";
@@ -15,7 +13,6 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const { createBackend } = require("./backend");
-const { createGoogle } = require("./google");
 const { createLinkedFolder } = require("./linked-folder");
 const { createCourseSync } = require("./sync/course-sync");
 const { createAuthoring } = require("./authoring");
@@ -43,7 +40,7 @@ const ROOT = () => app.getPath("userData");
 const SETTINGS_FILE = () => path.join(ROOT(), "settings.json"); // CM's own settings: port and text size
 const TEMPLATES = app.isPackaged ? path.join(process.resourcesPath, "web", "templates") : path.join(__dirname, "..", "templates");
 const DEFAULTS = { courseCode: "", courseTitle: "", institution: "", lecturer: "", semester: "", startDate: "", endDate: "", contact: "", accent: "", logo: "", notice: "", noticeLinkLabel: "", noticeLinkUrl: "",
-  scriptUrl: "", setupSeen: false, aiSummary: false, privacyNotice: "" }; // one course's settings
+  setupSeen: false, aiSummary: false, privacyNotice: "" }; // one course's settings
 const APP_DEFAULTS = Object.assign({ port: 8143, zoom: 1 }, SECURITY_DEFAULTS);
 const TYPES = {
   ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8",
@@ -53,7 +50,7 @@ const TYPES = {
 };
 
 let appSettings, server = null, port = 0, win = null, registry = null;
-const ctxs = new Map(); // course id -> { id, settings, course, authoring, backend, google }, made on first use
+const ctxs = new Map(); // course id -> { id, settings, course, authoring, backend }, made on first use
 let tunnel = null, tunnelServer = null, tunnelPort = 0;
 let vault = null; // encrypts each course's workbook on disk (vault.js), made when CM is ready
 const BACKUP_EVERY_MS = 4 * 3600000;
@@ -80,7 +77,6 @@ function loadCourseSettings(id) { return Object.assign({}, DEFAULTS, readJson(re
 // Saves one course's settings. Fields left out keep their value.
 function saveSettings(c, s) {
   const settings = c.settings;
-  const url = String(s.scriptUrl == null ? settings.scriptUrl || "" : s.scriptUrl).trim();
   const txt = (k, n) => String(s[k] == null ? settings[k] || "" : s[k]).trim().slice(0, n);
   const day = (k) => (/^\d{4}-\d{2}-\d{2}$/.test(String(s[k] == null ? settings[k] || "" : s[k])) ? String(s[k] == null ? settings[k] : s[k]) : "");
   const clean = {
@@ -90,8 +86,7 @@ function saveSettings(c, s) {
     noticeLinkUrl: /^https:\/\/[^\s"<>]+$/.test(txt("noticeLinkUrl", 400)) ? txt("noticeLinkUrl", 400) : "",
     accent: /^#[0-9a-f]{6}$/i.test(String(s.accent == null ? settings.accent : s.accent)) ? String(s.accent == null ? settings.accent : s.accent) : "",
     logo: s.logo == null ? settings.logo || "" : String(s.logo),
-    setupSeen: s.setupSeen == null ? !!settings.setupSeen : !!s.setupSeen,
-    scriptUrl: /^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(url) ? url : ""
+    setupSeen: s.setupSeen == null ? !!settings.setupSeen : !!s.setupSeen
   };
   const f = registry.dirs(c.id).settings;
   fs.mkdirSync(path.dirname(f), { recursive: true });
@@ -102,23 +97,6 @@ function saveSettings(c, s) {
 // What CM's screens see as "settings": the course's settings with CM's port.
 const shownSettings = (c) => Object.assign({}, c.settings, { port: appSettings.port });
 
-// Google OAuth client of this build (registered once by the publisher; see desktop/README.md).
-function oauthClient() {
-  for (const f of [path.join(__dirname, "google-oauth.json"), path.join(ROOT(), "google-oauth.json")]) {
-    try { const j = JSON.parse(fs.readFileSync(f, "utf8")); const c = j.installed || j; if (c.client_id) return c; } catch (e) { /* not set */ }
-  }
-  return {};
-}
-// Google sign-in tokens, encrypted with the system keychain where it is available.
-// One sign-in for CM; each course keeps the address of its own Google Sheet in the same file (courses.js).
-const TOKENS = () => path.join(ROOT(), "google.bin");
-function loadTokens() {
-  try { const b = fs.readFileSync(TOKENS()); return JSON.parse(safeStorage.isEncryptionAvailable() ? safeStorage.decryptString(b) : b.toString("utf8")); } catch (e) { return {}; }
-}
-function saveTokens(o) {
-  const s = JSON.stringify(o || {});
-  fs.writeFileSync(TOKENS(), safeStorage.isEncryptionAvailable() ? safeStorage.encryptString(s) : Buffer.from(s, "utf8"), { mode: 0o600 });
-}
 
 // Anthropic API key for summaries and question generation, encrypted with the system keychain where it is available.
 // It never leaves this computer except in requests to the Anthropic API.
@@ -154,7 +132,7 @@ function configJs(c, req, remote, r) {
   const s = c.settings;
   const cm = { courseId: c.id, courseCode: s.courseCode, courseTitle: s.courseTitle, institution: s.institution, lecturer: s.lecturer, semester: s.semester,
     contact: s.contact, accent: s.accent, logo: s.logo, notice: s.notice ? { text: s.notice, linkLabel: s.noticeLinkLabel, linkUrl: s.noticeLinkUrl } : null,
-    scriptUrl: s.scriptUrl || (remote ? "https://" : "http://") + host + (r.prefixed ? r.prefix : "/") + "exec", desktop: true };
+    scriptUrl: (remote ? "https://" : "http://") + host + (r.prefixed ? r.prefix : "/") + "exec", desktop: true };
   const relay = c.relay && c.relay.publicConfig(); if (relay) cm.relay = relay; // the mailbox: address, student code and public key only (relay/client.js)
   if (publicUrl()) cm.publicBase = publicUrl() + r.prefix.slice(1); // QR codes and links for students use the internet address while it is on
   // Every course but the default one keeps its own browser storage on students' phones and in CM's windows.
@@ -190,7 +168,7 @@ async function handle(req, res, remote) {
   const c = ctx(r.id);
   let p = r.rest;
   if (p === "/exec") {
-    // The quiz and attendance server of this course: same requests as the Google web app.
+    // The quiz and attendance server of this course: same requests the pages always send.
     try {
       const params = Object.fromEntries(u.searchParams);
       let out;
@@ -338,15 +316,8 @@ function makeCtx(id) {
   c.course = createCourse({ dir: d.course, web: WEB, templates: TEMPLATES });
   c.authoring = createAuthoring({ dir: d.authoring, webRoot: WEB, resolve: c.course.resolve, bankNumbers: c.course.bankNumbers, loadKey: loadApiKey, saveKey: saveApiKey,
     keyIsEncrypted: () => safeStorage.isEncryptionAvailable(), log: (m) => console.log("[authoring " + id + "]", m) });
-  const oc = oauthClient();
-  c.google = createGoogle({
-    clientId: oc.client_id || "", clientSecret: oc.client_secret || "",
-    load: () => courses.courseTokens(loadTokens(), id), save: (o) => saveTokens(courses.storeCourseTokens(loadTokens(), id, o)),
-    openBrowser: (u) => shell.openExternal(u), log: (m) => console.log("[google " + id + "]", m),
-    tabs: () => c.backend.tabs(), tab: (n) => c.backend.tab(n), title: () => "Class Manager: " + (c.settings.courseCode || "class") + " results"
-  });
   c.backend = createBackend({ readSite: (rel) => c.authoring.siteFile(rel), webRoot: WEB, resolve: c.course.resolve, dataFile: d.workbook, vault,
-    log: (m) => console.log("[backend " + id + "]", m), onChange: () => { if (c.google) c.google.changed(); if (c.sync) c.sync.changed(); } });
+    log: (m) => console.log("[backend " + id + "]", m), onChange: () => { if (c.sync) c.sync.changed(); } });
   c.backups = createBackups({ dir: path.join(d.root, "backups"), workbook: d.workbook, vault, readText: () => c.backend ? c.backend.exportText() : require("./db/migrate").readWorkbookText(path.join(d.data, "course.db"), vault) });
   c.linked = createLinkedFolder({ dir: d.root, label: () => c.settings.courseCode || id, content: () => backupContent(c), protect: vault.protectBytes, unprotect: vault.unprotectBytes, protected: vault.protected });
   c.sync = createCourseSync({ dir: d.root, contentDir: d.course, notesDir: path.join(d.root, "notes"), linked: c.linked, backend: c.backend, vault, deviceName: require("os").hostname(), log: (m) => console.log("[sync " + id + "]", m) });
@@ -443,7 +414,7 @@ function info(c) {
     addresses: lanAddresses().map((a) => "http://" + a.address + ":" + port + "/" + coursePrefix(c)),
     tunnel: tunnelFor(c),
     hostKey: c.backend.hostKeyIsPlain() ? c.backend.hostKey() : "",
-    tabs: c.backend.tabs(), google: c.google.status(), dataFolder: registry.dirs(c.id).root, contentFolder: registry.dirs(c.id).course, setup: setupState(c)
+    tabs: c.backend.tabs(), dataFolder: registry.dirs(c.id).root, contentFolder: registry.dirs(c.id).course, setup: setupState(c)
   };
 }
 // What the first-launch setup of a course still needs. Every step can be skipped and finished later.
@@ -485,7 +456,6 @@ on("cm:saveSecurity", (c, e, s) => { saveAppSettings(cleanSecurity(s || {}, appS
 on("cm:save", async (c, e, s) => {
   s = s || {};
   const before = appSettings.port;
-  if (s.scriptUrl != null) saveSettings(c, { scriptUrl: s.scriptUrl }); // the Apps Script address belongs to the course
   if (s.port != null) saveAppSettings({ port: s.port });
   if (appSettings.port !== before) { await restartServer(); for (const w of BrowserWindow.getAllWindows()) { const id = registry.idFromUrl(w.webContents.getURL()) || registry.active(); w.loadURL(baseUrl() + startPage(ctx(id))); } }
   return info(c);
@@ -609,7 +579,7 @@ on("cm:pullCourse", (c, e, id) => new Promise((resolve) => {
 // ---------- course setup (app/setup.html) ----------
 on("cm:setup", (c) => ({ settings: shownSettings(c), setup: setupState(c), lectures: c.course.lectures(), kinds: c.course.KINDS, portal: c.course.portal(), courseId: c.id, linked: registry.dirs(c.id).linked }));
 on("cm:saveCourse", (c, e, o) => {
-  o = o || {}; const keep = Object.assign({}, o); delete keep.scriptUrl; delete keep.setupSeen; delete keep.port;
+  o = o || {}; const keep = Object.assign({}, o); delete keep.setupSeen; delete keep.port;
   saveSettings(c, keep);
   c.course.setCourseInfo({ courseCode: c.settings.courseCode, contacts: o.contacts, currentWeek: o.currentWeek });
   return { settings: shownSettings(c), setup: setupState(c) };
@@ -667,7 +637,7 @@ on("cm:importPack", async (c, e) => {
   if (r.canceled || !r.filePaths[0]) return null;
   try {
     const out = await c.course.importPack(r.filePaths[0]);
-    const keep = { scriptUrl: c.settings.scriptUrl, setupSeen: c.settings.setupSeen };
+    const keep = { setupSeen: c.settings.setupSeen };
     const ps = Object.assign({}, out.settings);
     delete ps.port; delete ps.zoom;
     if (ps.notice && typeof ps.notice === "object") { ps.noticeLinkLabel = ps.notice.linkLabel || ""; ps.noticeLinkUrl = ps.notice.linkUrl || ""; ps.notice = ps.notice.text || ""; }
@@ -767,7 +737,7 @@ function backupContent(c) { // the course's records and settings as one object, 
 function restoreContent(c, content) { // after the passphrase and the content have been checked
   closeCtx(c.id);
   const out = c.backups.restoreText(content.workbook);
-  if (content.settings && typeof content.settings === "object") saveSettings(c, Object.assign({}, content.settings, { scriptUrl: c.settings.scriptUrl })); // the course details travel with the records; the server address stays this computer's
+  if (content.settings && typeof content.settings === "object") saveSettings(c, Object.assign({}, content.settings)); // the course details travel with the records; the server address stays this computer's
   reopenCourse(c);
   return Object.assign(out, { from: content.course, made: content.made }, backupInfo(ctx(c.id)));
 }
@@ -815,7 +785,6 @@ on("cm:resetPassword", async (c, e) => {
   if (r.response !== 0) return false;
   c.backend.run("resetHostKey"); c.backend.flush(); return true;
 });
-on("cm:googleSignIn", async (c) => { try { return await c.google.signIn().then(() => c.google.syncNow()); } catch (e) { return Object.assign(c.google.status(), { lastError: e.message }); } });
 // ---------- resources and question authoring (app/author.html) ----------
 const DOC_TYPES = [{ name: "Teaching material", extensions: ["pdf", "docx", "pptx", "md", "markdown", "txt"] }];
 on("cm:authStatus", (c) => c.authoring.status());
@@ -853,8 +822,6 @@ ipcMain.handle("cm:saveTemplate", async (e, kind) => {
   if (r.canceled || !r.filePath) return null;
   fs.copyFileSync(path.join(__dirname, "app", "question-template." + ext), r.filePath); shell.showItemInFolder(r.filePath); return r.filePath;
 });
-on("cm:googleSignOut", (c) => c.google.signOut());
-on("cm:googleSync", (c) => c.google.syncNow());
 
 // ---------- start ----------
 function flushAll() { for (const c of ctxs.values()) { try { c.backend.flush(); } catch (e) {} } }
@@ -863,7 +830,6 @@ let closingBackupDone = false;
 app.whenReady().then(async () => {
   // Before 0.8.0 CM held one course; it becomes the first course here, with all of its records.
   const mig = courses.migrateLegacy(ROOT(), (m) => console.log("[courses]", m));
-  if (mig.migrated) { try { const t = loadTokens(); if (t.sheetId) saveTokens(courses.migrateTokens(t, mig.migrated)); } catch (e) {} }
   registry = courses.createRegistry(ROOT());
   registry.ensureOne();
   vault = makeVault();

@@ -663,10 +663,6 @@ tr[data-sel]{cursor:pointer}tr[data-sel].sel>td{background:rgba(70,110,200,.28)}
    <h3>Server</h3>
    <form id="f">
     <label class="f" for="s-port">Port</label><input class="f" id="s-port" type="number" min="1024" max="65535" style="max-width:10rem">
-    <details><summary>Advanced: use your own Google Apps Script for this course instead of this computer</summary>
-     <p class="note">Leave empty to keep everything on this computer (recommended). Each course has its own address, its own Google Sheet and its own script deployment.</p>
-     <label class="f" for="s-url">Apps Script web app address</label><input class="f" id="s-url" placeholder="https://script.google.com/macros/s/…/exec">
-    </details>
     <p class="row" style="margin-top:16px"><button class="btn primary" type="submit">Save settings</button> <span id="saved" class="note" role="status"></span></p>
    </form>
   </div>
@@ -712,12 +708,6 @@ tr[data-sel]{cursor:pointer}tr[data-sel].sel>td{background:rgba(70,110,200,.28)}
     <p class="note" id="sy-last"></p><div id="sy-devices" class="note"></div>
    </div>
    <p class="msg" id="lf-msg" role="status"></p>
-  </div>
-  <div class="card" id="g">
-   <h3>Google Drive copy (optional)</h3>
-   <p id="g-text">…</p>
-   <p class="row" style="margin-top:14px"><button class="btn primary" type="button" id="g-in" hidden>Sign in with Google</button><button class="btn" type="button" id="g-sync" hidden>Copy now</button><button class="btn" type="button" id="g-open" hidden>Open the Google Sheet</button><button class="link" type="button" id="g-out" hidden>Sign out</button></p>
-   <p class="msg" id="g-msg" role="status"></p>
   </div>
   <div class="card">
    <h3>Access and safety</h3>
@@ -823,7 +813,7 @@ tr[data-sel]{cursor:pointer}tr[data-sel].sel>td{background:rgba(70,110,200,.28)}
  <p class="row" style="justify-content:flex-end;margin-top:12px"><button class="btn" type="button" id="pw-close">Close</button></p></dialog>
 <dialog id="courses-d" class="cd" aria-labelledby="courses-h">
  <h2 id="courses-h">Courses</h2>
- <p class="note">Each course has its own class list, attendance, quizzes, groups, assignments, learning objectives, messages, host key and Google Sheet. Nothing is shared between courses. A course's lectures and files are kept in CM, or in a folder you link, such as a copy of a GitHub repository. Student records are never written to a linked folder.</p>
+ <p class="note">Each course has its own class list, attendance, quizzes, groups, assignments, learning objectives, messages and host key. Nothing is shared between courses. A course's lectures and files are kept in CM, or in a folder you link, such as a copy of a GitHub repository. Student records are never written to a linked folder.</p>
  <div id="cd-list"></div>
  <div id="cd-found" class="found" role="status" aria-live="polite"></div>
  <h3 style="margin:1.2rem 0 .2rem">Add a course</h3>
@@ -1031,16 +1021,14 @@ function show(info){
  tshow(info.tunnel);
  hostKey=info.hostKey||"";
  if(hostKey){$("key").textContent=hostKey;$("key-copy").hidden=false}else{$("key").textContent="your password";$("key-copy").hidden=true;$("keynote").textContent="You have chosen your own lecturer password, so it is not shown here. Use it on the lecturer login. To change it, use the form below."}
- if(s.scriptUrl){$("pw-form").hidden=true;$("keynote").textContent="CM is set to use your own Apps Script (CM Settings), so the host key is the one in your Google Sheet."}
  var st=info.setup;window.cmSetup=st;$("setup").hidden=true; /* the setup tracker is now part of the dashboard (dashboard/render.js) */
  [["td-course","course"],["td-class","classList"],["td-materials","materials"]].forEach(function(x){var ok=st.steps[x[1]];$(x[0]).className=ok?"done":"";$(x[0]).querySelector(".mk").textContent=ok?"✓":"○"});
  $("cl-big").textContent=st.roster||0;
  $("cl-n").textContent=st.roster?(st.roster===1?"student is":"students are")+" on the list.":"No students on the list yet.";
- $("s-url").value=s.scriptUrl;$("s-port").value=s.port;
+ $("s-port").value=s.port;
  var sel=$("tab"),keep=cur||GRADES;sel.innerHTML='<option value="'+GRADES+'">Grades (clean table)</option>'+info.tabs.map(function(t){return'<option value="'+esc(t.name)+'">'+esc(t.name)+' ('+Math.max(0,t.rows-1)+' rows)</option>'}).join("");
  if(keep===GRADES||info.tabs.some(function(t){return t.name===keep}))sel.value=keep;else if(info.tabs.some(function(t){return t.name==="Totals"}))sel.value="Totals";
  if(!$("v-grades").hidden)view();
- gshow(info.google);
  $("d-folder").textContent=info.dataFolder;$("d-ver").textContent=info.version;
  $("sb-left").textContent="Class Manager "+info.version;
  $("sb-right").textContent="Data folder: "+info.dataFolder;$("sb-right").title=info.dataFolder;
@@ -1097,15 +1085,6 @@ $("rm-go").addEventListener("click",function(){
  (rmRestore?cmApp.restoreStudent(rmId):cmApp.removeStudent(rmId)).then(function(r){
   if(r&&r.ok){$("rm-d").close();cmApp.info().then(show).then(view)}else $("rm-msg").textContent=(r&&r.why)||"Not done."})});
 
-function gshow(g){
- var t=$("g-text");
- ["g-in","g-sync","g-open","g-out"].forEach(function(i){$(i).hidden=true});
- if(!g.configured){t.textContent="Results are kept on this computer. A copy in Google Drive is not available in this build of CM.";return}
- if(!g.signedIn){t.textContent="Sign in to keep a copy of every tab in a Google Sheet in your own Drive. CM can see only the file it creates.";$("g-in").hidden=false;return}
- t.textContent="Signed in as "+(g.email||"your Google account")+". A copy of the results is kept in your Google Sheet and updated within a minute of each change."+(g.lastSync?" Last copied "+new Date(g.lastSync).toLocaleTimeString()+".":"");
- $("g-sync").hidden=false;$("g-out").hidden=false;$("g-open").hidden=!g.sheetUrl;$("g-open").onclick=function(){cmApp.openExternal(g.sheetUrl)};
- $("g-msg").textContent=g.lastError?"Last copy failed: "+g.lastError:"";
-}
 function reload(){return cmApp.info().then(show)}
 
 /* ---- courses: the dropdown switches this window, and everything in it, to another course ---- */
@@ -1240,16 +1219,11 @@ $("export-xlsx").addEventListener("click",function(){cmApp.exportExcel().then(fu
 $("export").addEventListener("click",function(){cmApp.exportResults().then(function(d){if(d)$("r-msg").textContent="Exported to "+d})});
 $("data").addEventListener("click",function(){cmApp.openData()});
 $("readme").addEventListener("click",function(){cmApp.readme()});
-$("g-in").addEventListener("click",function(){$("g-msg").textContent="Finish signing in in your browser.";cmApp.googleSignIn().then(function(g){gshow(g)})});
-$("g-sync").addEventListener("click",function(){$("g-msg").textContent="Copying…";cmApp.googleSync().then(function(g){gshow(g);if(!g.lastError)$("g-msg").textContent="Copied."})});
-$("g-out").addEventListener("click",function(){cmApp.googleSignOut().then(gshow)});
 $("f").addEventListener("submit",function(e){
  e.preventDefault();
- var url=$("s-url").value.trim();
- if(url&&!/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(url)){$("saved").textContent="The address must look like https://script.google.com/macros/s/…/exec";return}
- cmApp.save({scriptUrl:url,port:$("s-port").value}).then(function(){location.reload()});
+  cmApp.save({port:$("s-port").value}).then(function(){location.reload()});
 });
-setInterval(function(){if(document.visibilityState==="visible")cmApp.info().then(function(i){gshow(i.google);tshow(i.tunnel)})},30000);
+setInterval(function(){if(document.visibilityState==="visible")cmApp.info().then(function(i){tshow(i.tunnel)})},30000);
 /* ---- records protection and backups ---- */
 function bkWhen(ms){var d=new Date(ms);return d.toLocaleDateString(undefined,{day:"numeric",month:"short"})+" "+("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2)}
 var BKWHY={auto:"automatic",close:"when CM closed",manual:"made by you",restore:"before a restore"};
