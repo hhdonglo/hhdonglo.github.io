@@ -318,3 +318,6 @@ Look (2026-11-15, from Hope's inspiration image): soft tinted tiles on cards, on
 
 ### Overflow guard (0.21.4)
 `desktop/test/overflow.test.js` opens every sidebar screen at 760, 1000 and 1280 px with a very long folder path and repository URL and fails if the page or `main` scrolls sideways. The Course and Content card shows labelled Folder, Repository and Branch lines with Copy buttons; full values appear on hover. Long text wraps (`overflow-wrap:anywhere`) and `main` never scrolls horizontally.
+
+## rules/ (desktop/rules)
+The course rules as plain JavaScript over a small store interface, ported one area at a time from `apps_script/` with parity tests (`test/rules-parity.test.js`). Stage 1 has `access-codes.js` and `store.js`; nothing calls them yet. See `RULES-AND-RELAY-PLAN.md` for the staged plan and the removal list.

@@ -48,6 +48,7 @@
       "grades/*.js",
       "receipts.js",
       "ids.js",
+      "rules/*.js",
       "db/*.js",
       "lms/*.js",
       "excel.js",
