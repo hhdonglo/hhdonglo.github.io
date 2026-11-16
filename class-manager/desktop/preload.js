@@ -18,6 +18,7 @@ contextBridge.exposeInMainWorld("cmApp", {
   importPack: call("cm:importPack"), exportPack: call("cm:exportPack"),
   courses: call("cm:courses"), addCourse: call("cm:addCourse"), updateCourse: call("cm:updateCourse"), archiveCourse: call("cm:archiveCourse"),
   switchCourse: call("cm:switchCourse"), linkFolder: call("cm:linkFolder"), pullCourse: call("cm:pullCourse"), openContent: call("cm:openContent"),
+  idNotices: call("cm:idNotices"), idResolve: call("cm:idResolve"),
   importPick: call("cm:importPick"), resetDescribe: call("cm:resetDescribe"), importPlan: call("cm:importPlan"), importApply: call("cm:importApply"), importForget: call("cm:importForget"), importTemplate: call("cm:importTemplate"),
   autoState: call("cm:autoState"), resetList: call("cm:resetList"), resetCourse: call("cm:resetCourse"), resetRestore: call("cm:resetRestore"), autoPick: call("cm:autoPick"), autoPickFiles: call("cm:autoPickFiles"), autoScan: call("cm:autoScan"), autoWatch: call("cm:autoWatch"), autoPlan: call("cm:autoPlan"), autoQuestions: call("cm:autoQuestions"), autoCourse: call("cm:autoCourse"), studentNote: call("cm:studentNote"), autoCourseSave: call("cm:autoCourseSave"), autoExport: call("cm:autoExport"), autoOpenWorking: call("cm:autoOpenWorking"),
   onAutoProgress: (fn) => { ipcRenderer.on("cm:autoProgress", (e, p) => fn(p)); }, onAutoChanged: (fn) => { ipcRenderer.on("cm:autoChanged", () => fn()); },

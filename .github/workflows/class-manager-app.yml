@@ -52,6 +52,8 @@ jobs:
         run: npx electron-builder ${{ matrix.target }} --publish never
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
+      - name: Smoke test the packaged app (the installer's own runtime opens a course database)
+        run: node tools/smoke-packaged.js dist
       - uses: actions/upload-artifact@v4
         with:
           name: Class Manager for ${{ matrix.name }}
