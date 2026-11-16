@@ -1,10 +1,10 @@
-/* The Grades table: one clean row per student, built from the records, with the time each value was entered.
+/* The Grades tables: one clean row per student on the class list, built from the records, with the time each value was entered.
    One responsibility: turn the course's tabs into {groups, rows, entries}. Pure: it only reads, through read(name) -> raw rows or null.
-   Columns: Student ID and Name, then groups: Attendance, Quizzes (one column per week), Assignments, Practice. A blank is "no record".
+   Each group is its own table: Student ID and Name, then one column per quiz date (Quizzes), per session date (Attendance), per assignment, per practice. A blank is "no record".
    Every cell carries the time of the entry it came from; "last" is the time of a student's latest entry of any kind.
    entries(id) gives that student's dated timeline, newest first. */
 "use strict";
-const { toMs } = require("./times");
+const { toMs, shownDate } = require("./times");
 
 const clean = (v) => String(v == null ? "" : v).trim();
 const idOf = (v) => clean(v).replace(/\D/g, "");
@@ -37,22 +37,20 @@ function build(read) {
   const checkin = new Map(); log.forEach((r) => { const k = clean(r[1]) + "|" + idOf(r[2]), t = toMs(r[0]); if (t !== null && (!checkin.has(k) || t < checkin.get(k))) checkin.set(k, t); });
   const heads = (grid[0] || []).slice(1).map(clean);
   const labelFor = (h) => [...opened.keys()].find((l) => l === h || l.indexOf(h + " ") === 0) || h;
-  if (heads.length) cols.attendance = [{ key: "att_n", label: "Sessions attended", kind: "count" }, { key: "att_pct", label: "Attendance %", kind: "percent" }, { key: "att_last", label: "Last check-in", kind: "time" }];
-  const present = new Map();
-  grid.slice(1).forEach((r) => {
-    const id = idOf(r[0]); if (!byId.has(id)) return; let n = 0, lastAt = null;
-    heads.forEach((h, i) => {
-      if (Number(r[i + 1]) !== 1) return; n++;
-      const label = labelFor(h), at = checkin.get(label + "|" + id) || opened.get(label) || toMs(h);
-      add(id, at, "Attendance", "Session " + h, "Present"); if (at !== null && (lastAt === null || at > lastAt)) lastAt = at;
-    });
-    present.set(id, { n, lastAt });
+  // One column per session, headed by its date (a second session on the same day reads "12 Nov 2026 #2").
+  heads.forEach((h, i) => {
+    const m = /^(.*?)\s*#(\d+)$/.exec(h), base = m ? m[1] : h, ms = toMs(base), key = "att:" + i;
+    cols.attendance.push({ key, label: (ms === null ? base : shownDate(ms)) + (m && Number(m[2]) > 1 ? " #" + m[2] : ""), kind: "mark", order: ms === null ? 1e15 + i : ms + i });
   });
-  byId.forEach((s) => {
-    if (!heads.length) return; const p = present.get(s.id) || { n: 0, lastAt: null };
-    s.cells.att_n = { t: p.n + " of " + heads.length, n: p.n, at: p.lastAt };
-    s.cells.att_pct = { t: Math.round(100 * p.n / heads.length) + "%", n: p.n / heads.length, at: p.lastAt };
-    if (p.lastAt !== null) s.cells.att_last = { t: null, n: p.lastAt, at: p.lastAt, time: true };
+  cols.attendance.sort((x, y) => x.order - y.order);
+  grid.slice(1).forEach((r) => {
+    const id = idOf(r[0]); if (!byId.has(id)) return;
+    heads.forEach((h, i) => {
+      const v = r[i + 1]; if (v === "" || v === undefined || v === null) return;
+      const label = labelFor(h), at = checkin.get(label + "|" + id) || opened.get(label) || toMs(h), here = Number(v) === 1;
+      setCell(id, "att:" + i, { t: here ? "Present" : "Absent", n: here ? 1 : 0, at });
+      if (here) add(id, at, "Attendance", "Session " + h, "Present");
+    });
   });
 
   // ----- live quizzes: Form Responses 1 (Timestamp, First Name, ID, Join Code, Q1..Q5, Score, Round, Questions, Answers, Week) -----
@@ -63,7 +61,8 @@ function build(read) {
     const id = idOf(r[2]), at = toMs(r[0]), week = clean(r[cWeek]), code = clean(r[cCode]);
     const key = week ? "q:w" + week : "q:c" + code, label = week ? "Week " + week : "Code " + code;
     const sc = Number(r[cScore]), n = Number(r[cN]) || 0; if (isNaN(sc)) return;
-    cols.quiz.set(key, { key, label, kind: "score", order: week ? Number(week) : 900 });
+    const q = cols.quiz.get(key) || { key, name: label, kind: "score", first: null }; // the quiz's date is when its first answer arrived
+    if (at !== null && (q.first === null || at < q.first)) q.first = at; cols.quiz.set(key, q);
     setCell(id, key, { t: text(sc, n), n: fraction(sc, n), at });
     add(id, at, "Quiz", label + " (live quiz)", text(sc, n));
   });
@@ -88,10 +87,14 @@ function build(read) {
     }));
   });
 
-  const quiz = [...cols.quiz.values()].sort((a, b) => a.order - b.order), practice = [...cols.practice.values()].sort((a, b) => a.order - b.order);
+  // One column per quiz, headed by its date, oldest first. Two quizzes on one day add the week or code to tell them apart.
+  const quizList = [...cols.quiz.values()].sort((a, b) => (a.first === null) - (b.first === null) || (a.first || 0) - (b.first || 0) || a.name.localeCompare(b.name, undefined, { numeric: true }));
+  const dayCount = new Map(); quizList.forEach((q) => { const d = shownDate(q.first); dayCount.set(d, (dayCount.get(d) || 0) + 1); });
+  const quiz = quizList.map((q) => { const d = shownDate(q.first) || "No date"; return { key: q.key, label: dayCount.get(shownDate(q.first)) > 1 || !q.first ? d + " (" + q.name + ")" : d, kind: "score" }; });
+  const practice = [...cols.practice.values()].sort((a, b) => a.order - b.order);
   const groupsOut = [
-    { id: "attendance", label: "Attendance", columns: cols.attendance },
     { id: "quizzes", label: "Quizzes", columns: quiz },
+    { id: "attendance", label: "Attendance", columns: cols.attendance },
     { id: "assignments", label: "Assignments", columns: cols.assignment },
     { id: "practice", label: "Practice", columns: practice }
   ].filter((g) => g.columns.length);

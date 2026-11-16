@@ -22,4 +22,7 @@ function shown(ms) {
   return d.getDate() + " " + mon + " " + d.getFullYear() + ", " + p2(d.getHours()) + ":" + p2(d.getMinutes());
 }
 
-module.exports = { toMs, shown };
+// "12 Nov 2026": the date alone, used for the heading of a quiz or an attendance session.
+function shownDate(ms) { return ms === null || ms === undefined ? "" : shown(ms).split(",")[0]; }
+
+module.exports = { toMs, shown, shownDate };
