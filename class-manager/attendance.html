@@ -113,7 +113,9 @@ function signOut(){KEY="";try{sessionStorage.removeItem("cm_hk")}catch(x){}locat
 try{var sr=localStorage.getItem("cm_rad");if(sr)setTimeout(function(){var e=$("a-rad");if(e&&e.querySelector('option[value="'+sr+'"]'))e.value=sr},0)}catch(x){}
 var timer=null,tk=null,left=0,stamp=0,show=function(id){["a-login","a-idle","a-live"].forEach(function(x){$(x).hidden=(x!==id)})};
 function call(act,extra,cb){jsonp("action="+act+"&hostkey="+encodeURIComponent(KEY)+(extra||""),cb)}
+var RELAY=null; // set while CM has handed this session to the relay: the QR then opens the check-in page from the website and the phone talks to the relay, so the laptop may be off
 function draw(d){
+  RELAY=d.relay||null;
  var ss=d&&d.session,open=ss&&ss.status==="Open";
  if(open){
   drawQr(ss.link);left=ss.secondsLeft||0;stamp=Date.now();tickDraw();if(!tk)tk=setInterval(tickDraw,1000);
@@ -169,8 +171,8 @@ $("r-addbtn").addEventListener("click",function(){
 });
 function drawQr(t){
  if(!t){lastLink="";$("a-qr").innerHTML='<span style="display:block;padding:1.2rem;color:#b3261e;font:700 1.1rem/1.4 system-ui,sans-serif;text-align:left">No QR token received from the Apps Script. The deployed script is the old version. Paste the new quiz_receiver.gs, Save, then Deploy &gt; Manage deployments &gt; edit &gt; New version, and reload this page.</span>';return}
- if(t===lastLink)return;lastLink=t;
- try{var q=qrcode(0,"M");q.addData(CM.pageUrl("attend.html")+"?t="+t);q.make();
+ var key=t+(RELAY?"@relay":"");if(key===lastLink)return;lastLink=key;
+ try{var q=qrcode(0,"M");q.addData(RELAY?RELAY.pages+"attend.html?t="+t+"&r="+encodeURIComponent(RELAY.url)+"&c="+encodeURIComponent(RELAY.course):CM.pageUrl("attend.html")+"?t="+t);q.make();
   $("a-qr").innerHTML=q.createSvgTag({cellSize:8,margin:0,scalable:true});
   var s=$("a-qr").firstChild;if(s){s.setAttribute("width","100%");s.setAttribute("height","100%")}}catch(x){lastLink="";$("a-qr").innerHTML='<span style="display:block;padding:1.2rem;color:#b3261e;font:700 1.1rem/1.4 system-ui,sans-serif">The QR code could not be drawn ('+String(x&&x.message||x).replace(/</g,"")+'). Reload the page; if it persists, check that assets/qrcode.js loads.</span>'}
 }

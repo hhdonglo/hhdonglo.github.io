@@ -106,13 +106,21 @@ function devToken(){var t="";try{t=localStorage.getItem("cm_dev")||""}catch(x){}
  return t}
 var DEV=devToken();
 var TOK=(/[?&]t=([0-9a-f]{1,8})/.exec(location.search)||[0,""])[1];
+var RELAY=(/[?&]r=([^&]+)/.exec(location.search)||[0,""])[1],COURSE=(/[?&]c=([^&]+)/.exec(location.search)||[0,""])[1];
+RELAY=RELAY?decodeURIComponent(RELAY):"";COURSE=COURSE?decodeURIComponent(COURSE):""; // from the QR code: when both are there the check-in goes to the relay, which answers with the lecturer's computer off
 var POS=null; // this phone's location, used once for the check-in: the server keeps only the distance, never the coordinates
 function getPos(cb){
  if(!navigator.geolocation){cb(null);return}
  navigator.geolocation.getCurrentPosition(function(p){POS={lat:p.coords.latitude,lon:p.coords.longitude,acc:p.coords.accuracy};cb(POS)},function(){cb(null)},{enableHighAccuracy:true,timeout:10000,maximumAge:60000});
 }
 getPos(function(){}); // ask early so the phone has a fix by the time the form is filled in
-function jsonp(params,cb){CM.call(params,cb)} // every request by POST: see CM.call in config.js
+function jsonp(params,cb){
+ if(RELAY&&COURSE&&/^https:\/\//.test(RELAY)&&/^action=attend&/.test(params)){ // the relay takes the same fields as JSON
+  var q={course:COURSE};params.split("&").forEach(function(kv){var i=kv.indexOf("=");if(i>0)q[kv.slice(0,i)]=decodeURIComponent(kv.slice(i+1))});
+  var done=false,t=setTimeout(function(){if(!done){done=true;cb(null)}},15000);
+  fetch(RELAY.replace(/\/$/,"")+"/v1/attend",{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify(q)}).then(function(r){return r.json()}).then(function(j){if(!done){done=true;clearTimeout(t);cb(j)}},function(){if(!done){done=true;clearTimeout(t);cb(null)}});
+  return}
+ CM.call(params,cb)} // every request by POST: see CM.call in config.js
 function err(m){$("c-err").textContent=m;$("c-err").hidden=false}
 var REMK="cm_att_id",REMC="cm_att_code";
 var ATTOK=""; // the session this phone remembers instead of the access code
@@ -123,7 +131,7 @@ $("c-code").addEventListener("blur",function(){$("c-code").value=normCode($("c-c
 $("c-id").addEventListener("input",function(){$("c-saved").hidden=true;var v=$("c-id").value.replace(/\D/g,"");if(v!==$("c-id").value)$("c-id").value=v});
 $("c-form").addEventListener("submit",function(e){
  e.preventDefault();$("c-err").hidden=true;
- var id=$("c-id").value.trim(),code=$("c-code").value.trim()?normCode($("c-code").value):ATTOK;
+ var id=$("c-id").value.trim(),code=$("c-code").value.trim()?normCode($("c-code").value):(RELAY?"":ATTOK);
  if(!id){err(PHYSMSG.text("E1"));return}
  if(!TOK){err(PHYSMSG.text("E4"));return}
  $("c-btn").disabled=true;
