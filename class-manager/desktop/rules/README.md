@@ -11,7 +11,9 @@ Stage 1 (this folder) only adds the modules and the tests that prove they give t
 | `auth.js` | `05-auth.gs`, `06-password.gs`: sessions, host key and password with recovery, student sign-in, quiz receipts | ported, parity tested (`auth-parity.test.js`) |
 | `quiz-control.js` | `10-assessment.gs` (control part): the lecturer's actions on a live quiz, the state students see, the choice of questions and letters | ported, parity tested (`quiz-control-parity.test.js`); held results and answers follow in step 3b |
 | `quiz-results.js` | `10-assessment.gs` (results part): answers, compile into held results, release and discard, item log, presence | ported, parity tested (`quiz-results-parity.test.js`); Master, Scores and Totals are in `score-tables.js` |
+| `quiz-submit.js` | `90-router.gs` (POST part): an answer, joining, progress, a timed submission, a practice attempt, a question report | ported, parity tested (`quiz-submit-parity.test.js`); finishes step 3 |
 | `score-tables.js` | `10-assessment.gs` (tables part): Master, Scores, Totals, practice and mock entries | ported, parity tested through a release (`quiz-results-parity.test.js`) |
+| `quiz-submit.js` | `90-router.gs` (POST part): an answer, joining, progress, a timed submission, a practice attempt, a question report | ported, parity tested (`quiz-submit-parity.test.js`); finishes step 3 |
 | `attendance-review.js` | `attStatus_`, `attReview_`, `attRemove_`, `attApprove_`, `attPhoneReset_` | ported, parity tested (`attendance-review-parity.test.js`) |
 
 Store interface (`store.js`): `rows(tab)` (header first, or null), `setRows(tab, rows)`, `prop(key)`, `setProp(key, value)`, `now()`.
