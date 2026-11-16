@@ -1,12 +1,67 @@
 # Class Manager: structure and review notes
 
-**Current version: 0.22.2**
+**Current version: 0.22.2** (file map revised 16 November 2026)
 
 Written 9 November 2026. A description of the class management tool as it stands in this folder, for review of the tool and of the course it serves.
 
 **Update, later on 9 November 2026.** Following the review, the package gained learning support; see "Learning support" in README.md. Of the gaps listed below, these are now closed: the own-results lookup needs a personal access code; the live quiz draw changes with each new workbook; every live answer is kept per question (Item_Log), so per-question statistics are computed; practice attempts record the questions asked. Four private tabs were added: Item_Log, Access_Codes, Question_Stats and Groups. Group marks now exist (groups.html), so "no group marks" below no longer holds.
 
 **Further update, 9 November 2026.** The desktop app gained a resource library with search, summaries, question generation with Claude, question import and a review queue (desktop/README.md, "Resources and questions"); the server script gained a course calendar, messages with moderation, and announcements (README.md, "Calendar, messages and announcements"). Line counts below describe the script before these additions.
+
+## Where things are now (16 November 2026)
+
+This section is the current file map, checked against `main` at `ea2db87`. The sections after it were written on 9 November for the web package that ran on Google Apps Script; they are kept for the course and data-model detail and are **out of date where they mention Google, `scriptUrl`, redeploying the script, or "the app"**. `ARCHITECTURE.md` explains how the parts fit; this file says where each part is.
+
+### Folders under `class-manager/`
+
+| Folder or file | What it is |
+| --- | --- |
+| `*.html`, `assets/`, `config.js`, `sw.js`, `manifest.webmanifest` | Static pages for phones and the lecturer's browser (portal, check-in, live quiz, practice, calendar, messages, groups, assignments, insights) |
+| `data/`, `templates/`, `course-packs/phys143/` | Course data, page templates, and the PHYS 143 course pack source |
+| `desktop/` | CM itself (Electron): everything below |
+| `relay/hub/` | The hosted relay: one Cloudflare Worker and D1 database (`worker.mjs`, `src/`, `test/`) |
+| `relay/deploy.mjs`, `relay/staging-check.mjs`, `relay/STAGING.md` | Guided deploy of the relay, and a staging check |
+| `relay/worker.mjs` | The older KV mailbox Worker, used only when no relay address is built in |
+| `apps_script/` | The old server script (`quiz_receiver.gs`, built from `src/` by `build.js`). Still loaded inside CM as a legacy shim; the website keeps its own copy |
+| `RULES-AND-RELAY-PLAN.md`, `google-path-removal.md` | The design and the removal list behind the move to JavaScript rules and the relay |
+
+### `desktop/` (CM)
+
+| Path | One responsibility |
+| --- | --- |
+| `main.js` | Window, local web server, settings, and the calls the screens make |
+| `backend.js` | Opens a course database, loads the legacy shim, chooses the engine (`js` by default) |
+| `rules/` (22 files, see `rules/README.md`) | The course rules in plain JavaScript, one area per file; `router.js` answers every request; `store.js` is the interface to the data |
+| `db/` | `store.js` SQLite per course, `codec.js` sealing of rows, `migrate.js` safe import, `id-guard.js`, `students.js`, `notices.js` one row per ID |
+| `vault.js` | The key that seals records, passphrase backup and restore |
+| `ids.js`, `names.js`, `receipts.js` | One form of an ID; name handling; carry a request out once |
+| `courses.js`, `course.js`, `course-reset.js` | Many courses, the course's own content, reset with undo |
+| `relay/` | CM's side of the relay: `address.js` (built-in address), `hub.js` (register, sign, post), `live-session.js` and `live-attend.js` (attendance), `live-quiz.js`, and the older mailbox `client.js`, `crypto.js` |
+| `access.js`, `attendance-guard.js`, `tunnel.js` | Who may use lecturer pages and from where; location check; the internet address |
+| `import-*.js`, `table.js`, `xlsx-book.js`, `excel.js`, `autoload/` | Reading class lists and course files in, writing Excel out |
+| `grades/` | The Grades and Results table with the time of each entry |
+| `remove-student.js`, `remove-entry.js` | Remove a student or one entry, with undo |
+| `governance.js`, `summary.js`, `extras.js` | Audit and retention, the weekly summary, extra data for the analytics cards |
+| `lms/` | The LMS connector (roster in, grades out), off until switched on |
+| `llm/` | The assistant export: pseudonymised snapshot and a read-only MCP server |
+| `storage/`, `sync/`, `linked-folder.js`, `storage-providers.js` | Optional encrypted copies in a folder or cloud service the lecturer chooses |
+| `authoring.js` | Resource library and question authoring with the lecturer's own key |
+| `app/` | The screens: `dashboard/`, `analytics/`, `charts/`, and the single-purpose scripts for roster, grades, import, reset, mailbox, LMS |
+| `test/` | 73 test files; `npm test` also runs `relay/hub/test/`. 425 tests pass |
+
+### The relay Worker (`relay/hub/src/`)
+
+`registry.js` registration and the public course page; `limits.js` rate limits and proof of work; `auth.js` signatures; `mailbox.js` sealed drop box; `attend.js` live attendance; `quiz.js` live quiz; `live.js` state and close; `db.js` tables, limits, cleanup; `crypto.js` hashing and verification; `http.js` replies.
+
+### Settings that matter
+
+| Where | Setting | Effect |
+| --- | --- | --- |
+| Repository variable `CM_RELAY_URL` | relay address | Written into `desktop/relay/address.json` by the build; empty means no relay |
+| `desktop/relay/address.json` | `url` | Committed empty; the build fills it |
+| Relay Worker variables | `REGISTRATION_OPEN`, `BUILD_KEYS`, `POW_BITS`, `RELAY_SECRET` | Kill switch for registration, optional list of allowed builds, test-only work level, signing secret |
+| `relay/hub/src/db.js` `LIMITS`, `src/limits.js` `RATES` | caps and rates | One place for every number |
+| `desktop/package.json` | `version` | 0.22.2 (the draft release is titled 0.23.0) |
 
 ## Purpose and architecture
 
