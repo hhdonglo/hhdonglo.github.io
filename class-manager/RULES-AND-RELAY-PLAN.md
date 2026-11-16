@@ -31,6 +31,18 @@ One hosted relay, run by Hope, for all lecturers (a Cloudflare Worker with D1 in
 2. **Keyed hashes of IDs.** The relay then never stores a readable ID, but IDs are short numbers so a hash can be guessed if the key is known to the relay (it must be, to check). It protects against casual exposure only, not against the operator.
 3. **Sealed only, no live checks (the mailbox today).** Strongest privacy, but the relay cannot enforce roster, one per day or device rules, and a quiz cannot run with CM off. Not enough for "phones work with the laptop off".
 
+## 1b. Setting up the relay: guided, once, by Hope only
+**(a) What Hope does once** (about 15 minutes, no coding):
+1. Create a free Cloudflare account (email and a password; this cannot be automated).
+2. In the Cloudflare dashboard make one API token with the "Edit Cloudflare Workers" and "Edit D1" permissions and copy it.
+3. Run one command on any computer with Node: `node relay/deploy.mjs` and paste the token when asked.
+
+**(b) What the command does by itself** (it uses Wrangler, Cloudflare's own tool, with that token): creates the D1 database, applies the tables, generates the secrets (signing and encryption keys), deploys the Worker, sets the daily cleanup schedule, checks that the Worker answers, and prints the relay address, for example `https://cm-relay.<name>.workers.dev`. Running it again updates the Worker and keeps the data. The token is used only on that computer and is never stored in CM or the repository.
+
+**(c) Lecturers never touch Cloudflare.** The relay address is built into CM: the release workflow reads it from one repository setting (`CM_RELAY_URL`) and writes it into the app's config when it builds the installers. A lecturer installs CM and phones work; CM registers the course by itself (section 1). If the address is empty, CM works as it does today with no relay (local only). A guided "set up my own relay" screen in CM is possible for an institution that wants its own relay (it would run the same deploy script after asking for their token), but it is not needed for Hope's users and is left out of the first version.
+
+What cannot be automated: creating the Cloudflare account and the token, and Hope deciding the privacy notice text. Everything after that is scripted.
+
 ## 2. What will be removed from CM and what stays (nothing removed yet)
 Removal happens in the last stage, after the rules are ported and the relay works. Exactly:
 - **Google Sheets copy and sign-in:** `desktop/google.js`, the Google card and its script in `desktop/app/home.html`, the IPCs `cm:googleSignIn`, `cm:googleSignOut`, sync-now in `desktop/main.js`, the `google-oauth.json` and `google.bin` files, and the tests that cover them.
@@ -42,6 +54,7 @@ Removal happens in the last stage, after the rules are ported and the relay work
 ## 3. Staged work (each stage is one PR, tested, not merged without Hope's "publish")
 1. **Rules package and parity harness (this PR).** `desktop/rules/` with the store interface, access codes ported, tests that run the script and the module on the same workbook and compare. Nothing calls the module yet; no behaviour change.
 2. **Port the areas, one per PR, each with parity tests:** attendance, then roster and class list, then quiz control and answers, then student views, then lecturer views and stats. After each, CM can call the module instead of the script for that area (behind a setting that Hope can turn off).
+3a. **Guided relay setup:** `relay/deploy.mjs` (Wrangler with a token: database, tables, secrets, Worker, schedule, health check, prints the address) and the release workflow writes `CM_RELAY_URL` into the build. Testable without Cloudflare through a dry-run mode.
 3. **Relay with live state:** Worker and D1 using the same rules; automatic registration with proof of work and rate limits; caps; expiry of unused courses; push and pull; retention job; tests with a fake D1; a setup guide.
 4. **Phone path:** pages talk to the relay (with the outbox, as today) and fall back to CM's own server when on the same network.
 5. **Deprecate:** remove what section 2 lists, update docs and release notes, one draft release. Nothing is removed before Hope says so for that PR.
