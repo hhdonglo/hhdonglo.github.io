@@ -41,7 +41,7 @@ test("IDs that do not conform to the class list are flagged and never added sile
   assert.deepStrictEqual(r.flagged.map((x) => x.why).sort(), ["not a valid student ID (4 to 12 digits)", "not on the class list"]);
   assert.strictEqual(r.toAdd, 0);
   const withAdd = plan(book, local, { onlyClassList: true, addMissing: true }).report.students;
-  assert.strictEqual(withAdd.flaggedCount, 2); assert.strictEqual(withAdd.toAdd, 1, "only the valid ID is added, and only when ticked");
+  assert.strictEqual(withAdd.flaggedCount, 2); assert.strictEqual(withAdd.toAdd, 0, "nothing is added, even when asked");
 });
 
 test("a course outline in plain text gives the details and the weekly topics", () => {

@@ -8,7 +8,7 @@ const path = require("path");
 const { classroom, WEB } = require("./classroom");
 const { createBackend } = require("../backend");
 const { normalizeId, sameId } = require("../ids");
-const { applyRoster } = require("../lms/roster-apply");
+const shots = require("../roster-shots/ipc");
 
 const tmp = (p) => fs.mkdtempSync(path.join(os.tmpdir(), p));
 const ids = (b) => b.rawRows("Roster").slice(1).map((r) => String(r[0]));
@@ -34,11 +34,14 @@ test("manual add of an existing ID adds no second student", () => {
   oneEach(ids(b)); assert.equal(b.students.count(), 2); b.close();
 });
 
-test("LMS roster import: an ID already on the list is not added again and keeps its name", () => {
+test("Class Roster page save: an ID already on the list is not added again and keeps its name", () => {
   const c = classroom({ students: 2 }); const b = c.backend;
-  applyRoster(b, [{ id: "020000001", name: "From LMS" }, { id: "30000009", name: "Fresh" }]);
+  const h = {}; shots.register({ on: (ch, fn) => { h[ch] = (...a) => fn({ backend: b, backups: { make: () => ({ ok: true, name: "b" }) } }, {}, ...a); } });
+  const r = h["cm:rosterShotsSave"]({ rows: [{ id: "020000001", name: "From a screenshot" }, { id: "30000009", name: "Fresh" }] });
+  assert.ok(r.ok, r.why);
   oneEach(ids(b)); assert.equal(b.students.count(), 3);
   assert.equal(b.students.get("20000001").name, "Student1", "an existing name is never silently overwritten");
+  assert.equal(r.differsFromList.length, 1);
   b.close();
 });
 

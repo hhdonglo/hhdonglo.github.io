@@ -69,7 +69,7 @@ test("erase for good deletes the moved-aside copy; the screen lists exactly what
   assert.ok(describe("all").some((x) => /Attendance/.test(x)) && describe("all").some((x) => /backup/i.test(x)));
 });
 
-test("after a reset the import preview tells the truth: with 'add the students' ticked they are counted as new", async () => {
+test("after a reset the import preview tells the truth: asking to add students changes nothing: they are reported, never added", async () => {
   const handlers = new Map(), s = sampleClass(), root = tmp("cm-rsi-");
   const file = path.join(root, "PHYS 143 Quizzes (Responses).xlsx");
   fs.writeFileSync(file, await makeXlsx(Object.entries(s.tabs).map(([name, rows]) => ({ name, rows }))));
@@ -80,6 +80,6 @@ test("after a reset the import preview tells the truth: with 'add the students' 
   assert.equal(off.report.students.classList, 0);
   assert.ok(off.report.students.notOnList >= s.ids.length && off.report.students.notOnListIds.length > 0, "unmatched IDs are listed, not dropped");
   assert.equal(off.report.changes, 0);
-  const on = await call("cm:importPick", { addMissing: true }); // what the screen shows when its box is ticked
-  assert.equal(on.report.students.notOnList, 0); assert.ok(on.report.students.toAdd >= s.ids.length); assert.ok(on.report.changes > 0, "the file is not 'nothing new'");
+  const on = await call("cm:importPick", { addMissing: true }); // an old screen asking to add: ignored
+  assert.ok(on.report.students.notOnList >= s.ids.length); assert.equal(on.report.students.toAdd, 0); assert.equal(on.report.changes, 0, "a file cannot supply the class list");
 });

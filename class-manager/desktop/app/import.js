@@ -60,10 +60,9 @@
     var table = rep.blocked || !rep.tabs.length ? "" :
       "<div class='tbl' style='height:auto;max-height:18rem'><table><thead><tr><th>Records</th><th>In the file</th><th>New</th><th>Already here</th><th>Not on class list</th></tr></thead><tbody>" + rep.tabs.map(rowOf).join("") + "</tbody></table></div>";
     var people = "<p>Class list: <strong>" + n(s.classList) + "</strong> students. <strong>" + n(s.withData) + "</strong> of them have records in the file." +
-      (s.notOnList ? " <strong>" + n(s.notOnList) + "</strong> other IDs in the file are <strong>not</strong> on this course's class list. They are left out until you add them." : "") + "</p>" +
+      (s.notOnList ? " <strong>" + n(s.notOnList) + "</strong> other IDs in the file are <strong>not</strong> on this course's class list. They are left out and reported here. The class list is changed only on the Class Roster page." : "") + "</p>" +
       (s.notOnListIds && s.notOnListIds.length ? "<details style='margin:.4rem 0'><summary class='note'>IDs not on the class list (" + n(s.notOnList) + ")</summary><p class='note' style='word-break:break-word'>" + s.notOnListIds.map(esc).join(", ") + (s.notOnList > s.notOnListIds.length ? " and " + n(s.notOnList - s.notOnListIds.length) + " more" : "") + "</p></details>" : "");
-    var add = (s.notOnList || s.toAdd || !s.classList) ?
-      "<label style='display:block;margin:.6rem 0'><input type='checkbox' id='imp-add'" + (opts.addMissing ? " checked" : "") + "> Add the students in the file to the class list" + (s.toAdd ? " (" + n(s.toAdd) + " would be added)" : "") + "</label>" : "";
+    var add = ""; // a file never adds students: the class list is entered only on the Class Roster page
     // Which file column each required column is read from, as selects the lecturer can change. A tab skipped for a missing column opens this list.
     var maps = rep.tabs.filter(function (t) { return t.needs && t.needs.length && t.fileColumns && t.fileColumns.length; });
     var mapOpen = keepMap || maps.some(function (t) { return t.status === "skipped" && t.missing; });
@@ -80,8 +79,6 @@
       buttons("<button class='btn' type='button' id='imp-cancel'>Cancel</button><button class='btn' type='button' id='imp-other'>Choose another file…</button><button class='btn primary' type='button' id='imp-go'" + (rep.changes ? "" : " disabled") + ">Import " + (rep.changes ? n(rep.changes) + " records" : "") + "</button>");
     body.querySelector("#imp-cancel").onclick = close;
     body.querySelector("#imp-other").onclick = function () { start(); };
-    var box = body.querySelector("#imp-add");
-    if (box) box.onchange = function () { opts.addMissing = box.checked; cmApp.importPlan(opts).then(function (r) { if (r && r.ok) preview(r.report); }); };
     body.querySelector("#imp-go").onclick = function () {
       body.querySelector("#imp-go").disabled = true; body.querySelector("#imp-go").textContent = "Importing…";
       cmApp.importApply(opts).then(done);
@@ -96,11 +93,11 @@
     body.querySelector("#imp-ok").onclick = function () { d.close(); location.reload(); };
   }
 
-  // data-import-web="continue": the first-run choice "Continue from existing data". The class list is taken from the file, and the course carries on from there.
+  // data-import-web="continue": the first-run choice "Continue from existing data". Records are checked against the class list; no student is added from the file.
   Array.prototype.forEach.call(btns, function (b) {
     b.addEventListener("click", function () {
       var mode = b.getAttribute("data-import-web"), cont = mode === "continue" || mode === "template";
-      opts = { addMissing: cont };
+      opts = { addMissing: false };
       d.querySelector("#imp-h").textContent = mode === "template" ? "Load the filled template" : cont ? "Continue from existing data" : "Import results from the web version";
       start(); d.showModal();
     });

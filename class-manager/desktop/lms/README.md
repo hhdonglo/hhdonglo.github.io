@@ -13,7 +13,6 @@ Two ways to use it, from the screen `app/lms.html`:
 | `ids.js` | What a valid student ID is. |
 | `roster-read.js` | An LMS roster export into students (ID, name). |
 | `roster-plan.js` | What would change in CM's class list. Changes nothing. |
-| `roster-apply.js` | Adds the students the lecturer agreed to add. |
 | `assessments.js` | The assessments and scores in CM's Master tab. |
 | `gradebook.js` | The CSV to upload to the LMS gradebook. |
 | `config.js` | The course's settings in `lms.json` (off by default, https only). |

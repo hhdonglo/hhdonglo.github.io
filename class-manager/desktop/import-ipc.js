@@ -6,7 +6,7 @@ const { readBook } = require("./xlsx-book");
 const { plan } = require("./import-plan");
 const { apply } = require("./import-apply");
 
-const options = (o) => ({ onlyClassList: true, addMissing: !!(o && o.addMissing), mapping: o && o.mapping && typeof o.mapping === "object" ? o.mapping : undefined });
+const options = (o) => ({ onlyClassList: true, addMissing: false, mapping: o && o.mapping && typeof o.mapping === "object" ? o.mapping : undefined });
 const localOf = (backend) => ({ read: (name) => backend.rows(name) });
 
 const pending = new Map(); // course id -> { name, book }: the file chosen, kept in memory only and never copied. Shared with autoload-ipc.js, which fills it from a folder.
@@ -38,7 +38,7 @@ function register({ on, dialog, winOf, shell }) {
       c.backend.flush();
       const backup = c.backups.make("before web import"); // the records as they were, to restore if this was a mistake
       if (backup && backup.ok === false) return { ok: false, why: "A backup could not be made first, so nothing was imported: " + backup.why };
-      const done = apply(made.ops, c.backend, { addToClassList: (rows) => c.backend.rosterSync(rows, false), rebuild: () => { c.backend.rebuildMarks(); c.backend.buildFromRoster(); } });
+      const done = apply(made.ops, c.backend, { rebuild: () => { c.backend.rebuildMarks(); c.backend.buildFromRoster(); } });
       c.backend.flush();
       pending.delete(c.id);
       return { ok: true, done, backup: backup && backup.name ? backup.name : "", report: made.report };

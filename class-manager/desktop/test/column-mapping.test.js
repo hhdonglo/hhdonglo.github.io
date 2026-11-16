@@ -43,13 +43,14 @@ test("a mapping outside the file's columns is ignored, not an error", () => {
   assert.equal(rep.tabs.find((x) => x.tab === "Attempts").status, "skipped");
 });
 
-test("with add-missing on, the ID probe follows the mapping too", () => {
+test("with add-missing asked for, the ID is still found by the mapping, and still not added", () => {
   // The ID is in an unlabelled column that only the mapping names.
   const odd = [{ name: "Attempts", rows: [
     ["Timestamp", "Who", "Quiz", "Attempt", "Score", "Total"],
     ["2026-11-01 10:00", "20007777", "L1", 1, 4, 5]
   ] }];
   const r = plan(odd, local, { addMissing: true, mapping: { Attempts: { studentid: 1 } } });
-  assert.equal(r.report.students.toAdd, 1);
-  assert.deepEqual(r.ops.roster[0][0], "20007777");
+  assert.equal(r.report.students.toAdd, 0);
+  assert.deepEqual(r.report.students.notOnListIds, ["20007777"], "the mapped ID is read and reported");
+  assert.equal(r.ops.roster.length, 0);
 });

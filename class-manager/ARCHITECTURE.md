@@ -416,3 +416,7 @@ Each course keeps its records in one SQLite file, `data/course.db`, using the SQ
 - `desktop/rules/*.js` hold every rule of the former script as plain JavaScript over a store interface (`rows`, `setRows`, `prop`, `setProp`, `now`). `rules/router.js` turns a request into a reply. `CM_ENGINE` selects the engine: `js` (default) or `script` (the old vm script, kept for side-by-side tests).
 - The relay (`relay/hub/`) also serves the live quiz at `/v1/quiz/*`: status, question text without the key, who joined and admitted answers. CM collects the events and records them with the same rules.
 - The Google sign-in, the Sheet copy and the Apps Script address setting were removed (see `google-path-removal.md`). The website keeps its own copy of the script.
+
+## Roster entry (single path)
+
+One path writes the class list: `app/roster-shots.js` (screen) to `cm:rosterShotsRead` and `cm:rosterShotsSave` (`roster-shots/ipc.js`) to `roster-shots/review.js` (unique IDs, conflicts, unreadable IDs) to a backup, then `backend.rosterSync` and `buildFromRoster`. Screenshots are read by Claude through the lecturer's own API key (`roster-shots/vision.js`). All other inputs go through `import-plan.js`, which forces `addMissing` off and returns no roster rows, so they can only be matched against the list. `main.js` refuses `roster_sync` and `roster_edit` with `op=add` from pages and scripts (`roster-shots/gate.js`). Sync (`sync/records.js`) no longer merges the class list and drops attendance for IDs not on the local list.

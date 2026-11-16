@@ -231,7 +231,8 @@ function scoresAsResponses(rows, names) {
 // ---------- the whole plan ----------
 
 function plan(book, local, options) {
-  const opt = Object.assign({ onlyClassList: true, addMissing: false }, options);
+  // The class list is entered only on the Class Roster page (roster-shots/README.md). A file is checked against it and never adds or changes a student, whatever options the caller passes.
+  const opt = Object.assign({ onlyClassList: true }, options, { addMissing: false, onlyClassList: true });
   const localList = classIdsOf(local.read("Roster"));
   // opt.mapping: { tab name: { required column key: file column index } }, the lecturer's own column choices from the preview.
   const ctx = { onlyClassList: opt.onlyClassList, classIds: new Set(localList), activity: new Set(), mapping: opt.mapping || null };
@@ -257,6 +258,7 @@ function plan(book, local, options) {
     rosterIdsOf(book).forEach((id) => { ctx.classIds.add(id); ctx.activity.add(id); }); // the file's own class list comes too
   }
 
+  rosterIdsOf(book).forEach((id) => ctx.activity.add(id)); // IDs a file lists as a class list are checked against ours and reported when they are not on it; they are never added
   found.forEach(({ sh, what }) => {
     if (what.kind === "log") { const r = planLog(what.spec, sh.rows, local.read(what.spec.name), ctx); if (what.label) r.rep.label = what.label; reports.push(r.rep); if (r.op) ops.push(r.op); }
     else if (what.kind === "attendance") { const r = planAttendance(sh.rows, local.read(S.ATTENDANCE_TAB), ctx); reports.push(r.rep); if (r.op) ops.push(r.op); }
@@ -276,17 +278,17 @@ function plan(book, local, options) {
   const addIds = opt.addMissing ? [...ctx.activity].filter((id) => !localList.has(id) && validId(id)) : [];
   const offIds = opt.addMissing ? [] : [...ctx.activity].filter((id) => !localList.has(id));
   const offList = reports.reduce((n, r) => n + (r.offList || 0), 0);
-  if (!localList.size && !opt.addMissing) warnings.push("This course has no class list yet, so no student can be matched. Add the class list first, or tick \"Add the students in the file to the class list\".");
+  if (!localList.size && !opt.addMissing) warnings.push("This course has no class list yet, so no student can be matched. Add the class list first on the Class Roster page.");
   else if (offList && !opt.addMissing) warnings.push(offList + " row(s) belong to IDs that are not on this course's class list and are left out.");
   // The student ID is the key. The same ID never gets a second name: a name that differs from the one already on the class list is flagged, never written;
   // a student on the list with no name yet is given the name the file has.
   const { fills, conflicts } = nameChecks(local.read("Roster"), nameMap(book));
   const students = { classList: localList.size, withData: [...ctx.activity].filter((id) => localList.has(id)).length, notOnList: offIds.length, notOnListSample: offIds.slice(0, 5), notOnListIds: offIds.slice(0, 500), toAdd: addIds.length, flagged: flaggedAll.slice(0, 50), flaggedCount: flaggedAll.length, noIdRows,
     namesFilled: fills.length, nameConflicts: conflicts.length, conflicts: conflicts.slice(0, 50) };
-  const roster = addIds.map((id) => [id, names[id] || ""]).concat(fills);
+  const roster = []; // a file never adds a student or fills in a name on the class list
   const blocked = !localList.size && !opt.addMissing; // with nobody to match, nothing is written
   const changes = blocked ? 0 : reports.reduce((n, r) => n + (r.add || 0), 0) + roster.length;
-  if (flaggedAll.length) warnings.push(flaggedAll.length + " ID(s) in the files do not conform to the class list. They are flagged below" + (opt.addMissing ? ", and only valid IDs are added." : " and are not added."));
+  if (flaggedAll.length) warnings.push(flaggedAll.length + " ID(s) in the files do not conform to the class list. They are flagged below" + " and are not added.");
   if (conflicts.length) warnings.push(conflicts.length + " student ID(s) have a different name in the file than on the class list. The class list name is kept. Review them below.");
   return { report: { tabs: reports, ignored, students, warnings, changes, blocked }, ops: blocked ? { tabs: [], roster: [] } : { tabs: ops, roster } };
 }

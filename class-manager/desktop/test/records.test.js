@@ -57,6 +57,7 @@ test("through the screens' calls: records are filed once per student and assessm
   require("../autoload-ipc").register({ on: (ch, fn) => handlers.set(ch, fn), dialog, winOf: () => null, shell: null, dirOf: () => data });
   require("../import-ipc").register({ on: (ch, fn) => handlers.set(ch, fn), dialog, winOf: () => null, shell: null });
   const e = { sender: { send() {} } }, call = (ch, ...a) => handlers.get(ch)(c, e, ...a);
+  c.backend.rosterSync([["20000001", "Ama Mensah"], ["20000002", "Kofi Boateng"]], false); // entered on the Class Roster page
   const found = await call("cm:autoPick"), ids = found.files.filter((f) => f.useful).map((f) => f.id);
   const p = await call("cm:autoPlan", { ids }); assert.ok(p.ok, p.why);
   assert.ok((await call("cm:importApply", { addMissing: true })).ok);

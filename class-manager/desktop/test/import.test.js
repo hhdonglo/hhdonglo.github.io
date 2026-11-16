@@ -181,7 +181,7 @@ test("sessions still open are not copied, secrets are dropped, and a code in use
   assert.ok(!rows.some((x) => /^(Open|Closed)$/.test(x[2])));
 });
 
-test("students not on the class list are left out, or added with their names when asked", async () => {
+test("students not on the class list are left out and reported, never added, even when asked", async () => {
   const { file, s } = await webFile();
   const c = course(s, 5);
   const book = await readBook(file);
@@ -189,12 +189,11 @@ test("students not on the class list are left out, or added with their names whe
   assert.ok(without.report.students.notOnList > 0);
   assert.equal(without.ops.roster.length, 0);
   const withAll = plan(book, local(c), { addMissing: true });
-  assert.equal(withAll.report.students.toAdd, s.ids.length - 5);
-  assert.equal(withAll.report.students.notOnList, 0);
-  assert.ok(withAll.ops.roster.every((x) => x[1]), "names come from the file");
+  assert.equal(withAll.report.students.toAdd, 0, "asking to add changes nothing: a file never adds students");
+  assert.ok(withAll.report.students.notOnList > 0, "they are reported for the lecturer");
+  assert.equal(withAll.ops.roster.length, 0);
   apply(withAll.ops, c.backend, hooks(c));
-  assert.equal(c.backend.rows("Roster").filter((r) => V.idOf(r[0]).length >= 4).length, s.ids.length);
-  assert.equal(plan(book, local(c), { addMissing: true }).report.changes, 0);
+  assert.equal(c.backend.rows("Roster").filter((r) => V.idOf(r[0]).length >= 4).length, 5, "the class list is as it was entered");
 });
 
 test("an empty class list is reported, not guessed", async () => {
@@ -233,7 +232,8 @@ test("the screen's calls: pick, change the option, apply, and a failed backup st
   const picked = await handlers["cm:importPick"]();
   assert.ok(picked.ok && picked.report.students.notOnList > 0);
   const more = handlers["cm:importPlan"]({ addMissing: true });
-  assert.equal(more.report.students.notOnList, 0);
+  assert.ok(more.report.students.notOnList > 0, "the option to add is ignored");
+  assert.equal(more.report.students.toAdd, 0);
   backupOk = false;
   const refused = handlers["cm:importApply"]({ addMissing: false });
   assert.equal(refused.ok, false);
@@ -245,15 +245,19 @@ test("the screen's calls: pick, change the option, apply, and a failed backup st
   assert.equal(handlers["cm:importPlan"]({}).ok, false, "the file is forgotten after an import");
 });
 
-test("continuing from existing data: an empty course takes the class list from the file, including students with no records yet", async () => {
+test("continuing from existing data: with no class list nothing is loaded; once it is entered, the records of those students are", async () => {
   const { file, s } = await webFile((tabs) => { tabs.Roster = tabs.Roster.concat([["29990001", "Quiet Student"]]); });
   const c = classroom(); // a new course: no class list
   const book = await readBook(file);
   const r = plan(book, local(c), { addMissing: true });
-  assert.equal(r.report.students.toAdd, s.ids.length + 1);
-  assert.ok(r.ops.roster.some((x) => x[0] === "29990001" && x[1] === "Quiet Student"));
-  apply(r.ops, c.backend, hooks(c));
-  assert.equal(c.backend.rows("Roster").filter((x) => V.idOf(x[0]).length >= 4).length, s.ids.length + 1);
+  assert.equal(r.report.changes, 0, "the file cannot supply the class list");
+  assert.match(r.report.warnings.join(" "), /Class Roster page/);
+  c.backend.rosterSync(s.ids.map((id) => [id, ""]), false); // the Class Roster page's save
+  const r2 = plan(book, local(c), { addMissing: true });
+  assert.equal(r2.report.students.toAdd, 0);
+  assert.ok(r2.report.students.notOnList >= 1, "the student only in the file is reported, not added");
+  apply(r2.ops, c.backend, hooks(c));
+  assert.equal(c.backend.rows("Roster").filter((x) => V.idOf(x[0]).length >= 4).length, s.ids.length);
   assert.ok((c.backend.rows("Form Responses 1") || []).length > 1);
   assert.equal(plan(book, local(c), { addMissing: true }).report.changes, 0, "continuing twice adds nothing");
 });
@@ -292,8 +296,10 @@ test("the template loads: roster, quiz scores and attendance, and an unfilled te
   filled[3].rows[0].push("10/11/2026"); filled[3].rows.push(["20000001", 1], ["20000002", 0]);
   fs.writeFileSync(file, await excel.writeXlsx(filled));
   const c = classroom();
+  assert.equal(plan(await readBook(file), { read: (n) => c.backend.rows(n) }, { addMissing: true }).report.changes, 0, "no class list yet: nothing is loaded");
+  c.backend.rosterSync([["20000001", "Ama Mensah"], ["20000002", "Kofi Boateng"]], false); // entered on the Class Roster page
   const r = plan(await readBook(file), { read: (n) => c.backend.rows(n) }, { addMissing: true });
-  assert.equal(r.report.students.toAdd, 2);
+  assert.equal(r.report.students.toAdd, 0);
   apply(r.ops, c.backend, hooks(c));
   assert.equal(c.backend.rows("Roster")[1][1], "Ama Mensah");
   assert.equal((c.backend.rows("Totals") || []).length, 3);

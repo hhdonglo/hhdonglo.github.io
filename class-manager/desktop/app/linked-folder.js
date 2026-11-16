@@ -78,7 +78,7 @@
   });
   /* ---- what is kept in step (sync/course-sync.js) ---- */
   var ITEMS = [["notes", "Lecturer notes", "Files you keep in the notes folder; readable in your cloud storage."], ["materials", "Course materials", "Lectures, slides and question banks; readable in your cloud storage."],
-    ["classList", "Class list", "Encrypted with your passphrase."], ["attendance", "Attendance", "Encrypted with your passphrase."]];
+    ["attendance", "Attendance", "Encrypted with your passphrase."]];
   function syShow(s) {
     if (!s || !s.items) return;
     $("sy-items").innerHTML = ITEMS.map(function (it) { var v = s.items[it[0]]; return '<p class="row"><label for="sy-' + it[0] + '" style="min-width:11rem"><b>' + it[1] + '</b></label><select class="f" id="sy-' + it[0] + '" data-item="' + it[0] + '" style="max-width:26rem"><option value="local"' + (v === "local" ? " selected" : "") + '>This computer only</option><option value="sync"' + (v === "sync" ? " selected" : "") + '>Kept here and in the cloud, in step</option></select> <span class="note">' + esc(it[2]) + "</span></p>"; }).join("");

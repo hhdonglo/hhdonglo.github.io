@@ -27,13 +27,9 @@
     if (r.unmatched) h += "<p class='warn'>" + r.unmatched + " LMS learners have no student number and cannot be matched.</p>";
     if (p.nameDiffers.length) h += "<p class='warn'>" + p.nameDiffers.length + " students have a different name in the LMS. CM keeps its own.</p>";
     if (p.notInLms.length) h += "<p class='warn'>" + n(p.notInLms.length, "student", "students") + " in CM " + (p.notInLms.length === 1 ? "is" : "are") + " not in the LMS. Left as is.</p>";
-    if (p.toAdd.length) h += "<p>" + p.toAdd.length + " students are in the LMS but not in CM.</p><p><button class='b p' type='button' id='l-add'>Add these " + p.toAdd.length + " to the class list</button></p>";
-    else h += "<p>Nothing to add: the class list already has every student.</p>";
+    if (p.toAdd.length) h += "<p class='warn'>" + n(p.toAdd.length, "student", "students") + " in the LMS " + (p.toAdd.length === 1 ? "is" : "are") + " not on the class list. They are not added: the class list is changed only on the Class Roster page.</p>";
+    else h += "<p>Every LMS student is on the class list.</p>";
     $("l-plan").innerHTML = h;
-    if ($("l-add")) $("l-add").onclick = function () {
-      if (!confirm("Add " + p.toAdd.length + " students to the class list? A backup is made first.")) return;
-      cmApp.lmsRosterApply({ addMissing: true }).then(function (d) { $("l-plan").innerHTML = d.ok ? "<p>Added " + d.added + " students.</p>" : "<p class='err'>" + esc(d.why) + "</p>"; });
-    };
   }
 
   $("l-file").onclick = function () { cmApp.lmsRosterFile({ profile: $("l-prof").value }).then(drawPlan); };

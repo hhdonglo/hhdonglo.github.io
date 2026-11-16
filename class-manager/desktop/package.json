@@ -67,6 +67,7 @@
       "course-reset.js",
       "attendance-guard.js",
       "autoload/**/*",
+      "roster-shots/*.js",
       "llm/**/*",
       "build-from-roster.js",
       "import-template.js",

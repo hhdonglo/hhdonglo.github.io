@@ -158,16 +158,17 @@ test("through the screens' calls: preview, import, a second import adds nothing,
   require("../autoload-ipc").register({ on: (ch, fn) => handlers.set(ch, fn), dialog, winOf: () => null, shell: null, dirOf: () => data });
   require("../import-ipc").register({ on: (ch, fn) => handlers.set(ch, fn), dialog, winOf: () => null, shell: null });
   const e = { sender: { send() {} } }, call = (ch, ...a) => handlers.get(ch)(c, e, ...a);
+  c.backend.rosterSync([["20000001", "Ama Mensah"], ["20000002", "Kofi Boateng"]], false); // the class list, entered on the Class Roster page
   const rosterBefore = c.backend.rows("Roster").length;
   const found = await call("cm:autoPick");
   assert.equal(found.files.length, 3);
   const p = await call("cm:autoPlan", { ids: found.files.map((f) => f.id) });
-  assert.ok(p.ok); assert.equal(p.addMissing, true);
+  assert.ok(p.ok); assert.equal(p.addMissing, false, "a folder never adds students");
   assert.ok(fs.existsSync(path.join(data, "working", "working-file.xlsx")));
   assert.equal(c.backend.rows("Roster").length, rosterBefore, "the preview changes nothing");
   assert.ok(p.report.changes > 0);
   const done = await call("cm:importApply", { addMissing: true });
-  assert.ok(done.ok); assert.equal(c.backend.rows("Roster").length, rosterBefore + 2);
+  assert.ok(done.ok); assert.equal(c.backend.rows("Roster").length, rosterBefore, "the class list is not changed by a folder");
   const again = await call("cm:autoPlan", { ids: found.files.map((f) => f.id) });
   assert.equal(again.report.changes, 0, "the same files add nothing a second time");
   const none = await call("cm:autoQuestions", { ids: [0] });

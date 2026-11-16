@@ -43,27 +43,36 @@ function computer(shared, name, extra) {
 }
 const ids = (c) => (c.tabs.get("Roster") || []).slice(1).map((r) => r[0]);
 
-test("class list and attendance flow both ways between two computers", async () => {
+const roster = (...idsIn) => [["Student ID", ""]].concat(idsIn.map((i) => [i, "S" + i]));
+
+test("attendance flows both ways between two computers, and the class list never does", async () => {
   const sh = sharedPlace(), a = computer(sh, "laptop"), b = computer(sh, "desktop");
-  a.tabs.set("Roster", [["Student ID", ""], ["1001", "Ama"], ["1002", "Kofi"]]);
+  a.tabs.set("Roster", roster("1001", "1002", "1003")); b.tabs.set("Roster", roster("1001", "1002", "1003")); // each computer's class list was entered on its own Class Roster page
   a.tabs.set("Attendance", [["Student ID", "01/11/2026"], ["1001", 1], ["1002", 0]]);
   assert.equal((await a.cs.syncNow()).ok, true);
   assert.equal((await b.cs.syncNow()).ok, true);
-  assert.deepEqual(ids(b), ["1001", "1002"]);
   assert.deepEqual(b.tabs.get("Attendance"), [["Student ID", "01/11/2026"], ["1001", 1], ["1002", 0]]);
-  // b takes attendance for a new session and adds a student; a removes a student
-  b.tabs.set("Roster", b.tabs.get("Roster").concat([["1003", "Esi"]]));
   b.tabs.set("Attendance", [["Student ID", "01/11/2026", "03/11/2026"], ["1001", 1, 1], ["1002", 0, 1], ["1003", "", 1]]);
-  a.tabs.set("Roster", a.tabs.get("Roster").filter((r) => r[0] !== "1002"));
+  a.tabs.set("Roster", a.tabs.get("Roster").concat([["1004", "New"]])); // a student added on one computer's class list...
   await b.cs.syncNow(); await a.cs.syncNow(); await b.cs.syncNow();
-  assert.deepEqual(ids(a), ["1001", "1003"]); assert.deepEqual(ids(b), ["1001", "1003"]);
+  assert.deepEqual(ids(b), ["1001", "1002", "1003"], "...never reaches the other computer through the place");
   assert.deepEqual(a.tabs.get("Attendance")[0], ["Student ID", "01/11/2026", "03/11/2026"]);
   assert.equal(a.tabs.get("Attendance").find((r) => r[0] === "1003")[2], 1);
 });
 
+test("attendance for an ID that is not on this computer's class list is not brought in", async () => {
+  const sh = sharedPlace(), a = computer(sh, "laptop"), b = computer(sh, "desktop");
+  a.tabs.set("Roster", roster("1001", "9009")); b.tabs.set("Roster", roster("1001"));
+  a.tabs.set("Attendance", [["Student ID", "D1"], ["1001", 1], ["9009", 1]]);
+  b.tabs.set("Attendance", [["Student ID", "D1"], ["1001", 0]]);
+  await a.cs.syncNow(); await b.cs.syncNow();
+  assert.deepEqual(b.tabs.get("Attendance").map((r) => r[0]), ["Student ID", "1001"], "9009 is not on b's list, so is left out");
+  assert.equal(b.tabs.get("Attendance")[1][1], 1);
+});
+
 test("a student present on either computer stays present; conflicts are counted", async () => {
   const sh = sharedPlace(), a = computer(sh, "laptop"), b = computer(sh, "desktop");
-  a.tabs.set("Attendance", [["Student ID", "D1"], ["1001", 0]]); a.tabs.set("Roster", [["Student ID", ""], ["1001", "Ama"]]);
+  a.tabs.set("Attendance", [["Student ID", "D1"], ["1001", 0]]); a.tabs.set("Roster", roster("1001")); b.tabs.set("Roster", roster("1001"));
   await a.cs.syncNow(); await b.cs.syncNow();
   a.tabs.set("Attendance", [["Student ID", "D1"], ["1001", 1]]);
   b.tabs.set("Attendance", [["Student ID", "D1"], ["1001", ""]]);
@@ -75,19 +84,22 @@ test("a student present on either computer stays present; conflicts are counted"
 
 test("two computers syncing at once cannot overwrite each other: each writes only its own file", async () => {
   const sh = sharedPlace(), a = computer(sh, "laptop"), b = computer(sh, "desktop");
-  a.tabs.set("Roster", [["Student ID", ""], ["1001", "Ama"]]); b.tabs.set("Roster", [["Student ID", ""], ["2002", "Yaw"]]);
+  a.tabs.set("Roster", roster("1001", "2002")); b.tabs.set("Roster", roster("1001", "2002"));
+  a.tabs.set("Attendance", [["Student ID", "D1"], ["1001", 1], ["2002", ""]]); b.tabs.set("Attendance", [["Student ID", "D1"], ["1001", ""], ["2002", 1]]);
   await Promise.all([a.cs.syncNow(), b.cs.syncNow()]);
   await a.cs.syncNow(); await b.cs.syncNow();
-  assert.deepEqual(ids(a), ["1001", "2002"]); assert.deepEqual(ids(b), ["1001", "2002"]);
+  const marks = (c) => c.tabs.get("Attendance").slice(1).map((r) => r[1]);
+  assert.deepEqual(marks(a), [1, 1]); assert.deepEqual(marks(b), [1, 1]);
   assert.equal([...sh.files.keys()].filter((k) => /^records-.*\.cmsync$/.test(k)).length, 2);
 });
 
 test("what is stored in the place is encrypted, and a wrong passphrase changes nothing", async () => {
   const sh = sharedPlace(), a = computer(sh, "laptop");
-  a.tabs.set("Roster", [["Student ID", ""], ["1001", "Ama Mensah"]]);
+  a.tabs.set("Roster", [["Student ID", ""], ["1001", "Ama Mensah"]]); a.tabs.set("Attendance", [["Student ID", "D1"], ["1001", 1]]);
   await a.cs.syncNow();
+  assert.ok([...sh.files.keys()].some((k) => k.startsWith("records-")));
   for (const [k, v] of sh.files) assert.equal(v.includes("Mensah"), false, k);
-  const b = computer(sh, "desktop"); b.tabs.set("Roster", [["Student ID", ""], ["5005", "Yaw"]]);
+  const b = computer(sh, "desktop"); b.tabs.set("Roster", [["Student ID", ""], ["5005", "Yaw"]]); b.tabs.set("Attendance", [["Student ID", "D1"], ["5005", 1]]);
   const r = await b.cs.syncNow("a wrong passphrase!!");
   assert.deepEqual(ids(b), ["5005"], "a file that cannot be opened is skipped, local data stay");
   assert.equal(r.ok, true); assert.ok(r.records.problems.length >= 1);
@@ -95,14 +107,15 @@ test("what is stored in the place is encrypted, and a wrong passphrase changes n
 
 test("offline: the local copy carries on, and the next round catches up", async () => {
   const sh = sharedPlace(), a = computer(sh, "laptop"), b = computer(sh, "desktop");
-  a.tabs.set("Roster", [["Student ID", ""], ["1001", "Ama"]]); await a.cs.syncNow(); await b.cs.syncNow();
+  a.tabs.set("Roster", roster("1001", "1002")); b.tabs.set("Roster", roster("1001", "1002"));
+  a.tabs.set("Attendance", [["Student ID", "D1"], ["1001", 1], ["1002", ""]]); await a.cs.syncNow(); await b.cs.syncNow();
   b.opt.online = false;
-  b.tabs.set("Roster", b.tabs.get("Roster").concat([["1002", "Kofi"]]));
+  b.tabs.set("Attendance", [["Student ID", "D1"], ["1001", 1], ["1002", 1]]);
   const off = await b.cs.syncNow();
   assert.equal(off.ok, false); assert.match(off.why, /carries on/);
-  assert.deepEqual(ids(b), ["1001", "1002"]);
+  assert.equal(b.tabs.get("Attendance")[2][1], 1);
   b.opt.online = true; await b.cs.syncNow(); await a.cs.syncNow();
-  assert.deepEqual(ids(a), ["1001", "1002"]);
+  assert.equal(a.tabs.get("Attendance")[2][1], 1);
 });
 
 test("an item set to local is neither read nor written; switching loses nothing", async () => {
@@ -110,11 +123,11 @@ test("an item set to local is neither read nor written; switching loses nothing"
   a.tabs.set("Roster", [["Student ID", ""], ["1001", "Ama"]]); a.tabs.set("Attendance", [["Student ID", "D1"], ["1001", 1]]);
   await a.cs.syncNow();
   const b = computer(sh, "desktop", { items: { materials: "local", classList: "sync", attendance: "sync" } });
-  b.tabs.set("Attendance", [["Student ID", "D1"], ["1001", 0]]);
+  b.tabs.set("Roster", roster("1001")); b.tabs.set("Attendance", [["Student ID", "D1"], ["1001", 0]]);
   await b.cs.syncNow();
   assert.deepEqual(ids(b), ["1001"]);
   assert.equal(b.tabs.get("Attendance")[1][1], 0, "a's attendance was never sent");
-  a.cs.setItems({ classList: "local" });
+  a.cs.setItems({ attendance: "local" });
   assert.deepEqual(ids(a), ["1001"]);
   assert.ok([...sh.files.keys()].some((k) => k.startsWith("records-")), "the copy in the place stays");
 });

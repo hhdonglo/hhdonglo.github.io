@@ -14,9 +14,10 @@ const { classroom } = require("./classroom");
 
 const tmp = (p) => fs.mkdtempSync(path.join(os.tmpdir(), p));
 const local = (c) => ({ read: (n) => c.backend.rows(n) });
-const hooks = (c) => ({ addToClassList: (rows) => c.backend.rosterSync(rows, false), rebuild: () => { c.backend.rebuildMarks(); c.backend.buildFromRoster(); } });
+const hooks = (c) => ({ rebuild: () => { c.backend.rebuildMarks(); c.backend.buildFromRoster(); } });
 const book = (rows) => [{ name: "Roster", rows: [["Student ID", "First name", "Last name"]].concat(rows) }];
-const load = (c, rows) => { const p = plan(book(rows), local(c), { addMissing: true }); if (p.report.changes) apply(p.ops, c.backend, hooks(c)); return p.report; };
+const load = (c, rows) => { const p = plan(book(rows), local(c), { addMissing: true }); if (p.report.changes) apply(p.ops, c.backend, hooks(c)); return p.report; }; // addMissing: true is ignored: a file never adds students
+const enter = (c, rows) => c.backend.rosterSync(rows.map((r) => [r[0], (r[1] + " " + r[2]).trim()]), false); // the Class Roster page's save, for the tests
 const nameOf = (c, id) => (c.backend.rows("Roster").find((r) => String(r[0]) === id) || [])[1];
 
 test("names are compared without case, commas or order", () => {
@@ -24,22 +25,20 @@ test("names are compared without case, commas or order", () => {
   assert.notEqual(nameKey("Ama Mensah"), nameKey("Ama Boateng"));
 });
 
-test("repeat loads merge by ID: new students are added, gaps are filled, a different name is flagged and not written", () => {
+test("a file never adds students or fills names: only the Class Roster page does, and a file is checked against it", () => {
   const c = classroom();
   let r = load(c, [["20000001", "Ama", "Mensah"], ["20000002", "", ""]]);
-  assert.equal(r.students.toAdd, 2);
-  assert.equal(nameOf(c, "20000001"), "Ama Mensah");
+  assert.equal(r.students.toAdd, 0, "nothing is added from a file, even when asked");
+  assert.equal(nameOf(c, "20000001"), undefined);
+  enter(c, [["20000001", "Ama", "Mensah"], ["20000002", "", ""]]);
   r = load(c, [["20000001", "Ama", "Mensah"], ["20000002", "Kofi", "Boateng"], ["20000003", "Efua", "Owusu"]]);
-  assert.equal(r.students.toAdd, 1, "only the new student is added");
-  assert.equal(r.students.namesFilled, 1, "the student with no name is given one");
-  assert.equal(r.students.nameConflicts, 0);
-  assert.equal(nameOf(c, "20000002"), "Kofi Boateng");
+  assert.equal(r.students.toAdd, 0, "the new student in the file is not added");
+  assert.equal(r.students.notOnList, 1, "but is reported for the lecturer");
+  assert.equal(nameOf(c, "20000002"), "", "a name in a file is not written either");
+  assert.equal(nameOf(c, "20000003"), undefined);
   r = load(c, [["20000001", "Ama", "Boateng"]]); // same ID, another name
   assert.equal(r.students.nameConflicts, 1);
-  assert.deepEqual(r.students.conflicts[0], { id: "20000001", existing: "Ama Mensah", incoming: "Ama Boateng" });
   assert.equal(nameOf(c, "20000001"), "Ama Mensah", "the existing name is kept");
-  const again = plan(book([["20000001", "Ama", "Mensah"], ["20000002", "Kofi", "Boateng"], ["20000003", "Efua", "Owusu"]]), local(c), { addMissing: true });
-  assert.equal(again.report.changes, 0, "loading the same file again changes nothing");
 });
 
 test("two files that give one ID two names are flagged and the first name is kept", () => {
@@ -50,11 +49,12 @@ test("two files that give one ID two names are flagged and the first name is kep
   assert.equal(m.conflicts.length, 1);
 });
 
-test("a large load is planned quickly", () => {
+test("a large file is checked against the roster quickly", () => {
   const c = classroom(), rows = [];
+  enter(c, [["30000000", "F", "L"]]);
   for (let i = 0; i < 20000; i++) rows.push([String(30000000 + i), "F" + i, "L" + i]);
   const t0 = Date.now(); const p = plan(book(rows), local(c), { addMissing: true });
-  assert.equal(p.report.students.toAdd, 20000); assert.ok(Date.now() - t0 < 3000, "took " + (Date.now() - t0) + " ms");
+  assert.equal(p.report.students.toAdd, 0); assert.equal(p.report.students.notOnList, 19999); assert.ok(Date.now() - t0 < 3000, "took " + (Date.now() - t0) + " ms");
 });
 
 function courseFolder(linked) {
