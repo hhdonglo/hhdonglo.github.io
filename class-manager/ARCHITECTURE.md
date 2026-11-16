@@ -58,9 +58,8 @@ The same server script runs in two places: in Google Apps Script, or inside the 
 |---|---|---|---|---|
 | A. Static site with Google | Any static host; GitHub Pages at `hhdonglo.github.io/class-manager` | Google Apps Script web app bound to a Google Sheet | The Google Sheet | Anywhere with internet |
 | B. Desktop app, local | The app's own HTTP server, `0.0.0.0:8143` by default | Node `vm` inside the Electron main process (`desktop/backend.js`) | `course.db` (SQLite) in the course's data folder | Devices on the same network while the app is open |
-| C. Desktop app with an Apps Script address | The app's HTTP server | Google Apps Script (Settings: "Apps Script web app address") | The Google Sheet | Pages on the local network; records online |
 
-In mode B, the optional Google sign-in (`desktop/google.js`) copies every tab one way to a Google Sheet in the lecturer's Drive. The scope is `drive.file`. This copy is a backup and a view. It does not serve students.
+The optional Google copy of mode B was removed in version 0.23.0 (see google-path-removal.md). Phones reach the lecturer's computer, or the relay when the computer is off.
 
 ```
  Desktop app (Electron)
@@ -82,7 +81,6 @@ In mode B, the optional Google sign-in (`desktop/google.js`) copies every tab on
  | authoring.js resource library, BM25 search, summaries, generation, import,     |
  |              drafts, bank overlay -> userData/authoring/                       |
  |              -> api.anthropic.com (only with an API key)                       |
- | google.js    OAuth (loopback, PKCE) -> one-way copy of all tabs to a Sheet     |
  | tunnel.js    optional internet address: cloudflared quick tunnel -> second     |
  |              server on 127.0.0.1 (remote requests: no /app/, 240 per minute)    |
  +--------------------------------------------------------------------------------+
@@ -109,7 +107,7 @@ In mode B, the optional Google sign-in (`desktop/google.js`) copies every tab on
 | `sw.js`, `manifest.webmanifest` | Installable portal; network first, with the shell cached for offline use. |
 | `data/`, `PHYS143/` | Course data for the portal and the lecture materials. |
 | `tools/` | `validate_quizzes.py`, `check_calcs.py`, `test_practice.mjs`, and the bank build in `quiz_src/`. |
-| `desktop/` | The Electron app: `main.js`, `preload.js`, `backend.js`, `authoring.js`, `google.js`, `linked-folder.js` and `storage-providers.js` (optional encrypted copies in a folder kept in the cloud by a sync app; tested in `test/linked-folder.test.js`), `sync/` and `storage/` (keeping records and materials in step with a linked cloud place), `table.js` (reads CSV and Excel class lists), `xlsx-book.js`, `import-values.js`, `import-specs.js`, `import-plan.js`, `import-apply.js`, `import-ipc.js` (importing results from the web version, see `desktop/IMPORT.md`), `autoload-ipc.js` and `autoload/` (point the app at a folder: it finds the class list, quiz results, attendance and quiz questions in files of any layout, keeps only those fields in a clean working file in the app's data folder, and previews them through the same import; see `desktop/autoload/README.md`), `excel.js` (writes Excel workbooks: the class list template and the results of one course), `names.js` (joins first and last names for the class list, and replaces each whole-name column by First name and Last name in every export; pure functions, tested in `test/names.test.js`), `app/home.html`, `app/author.html`, `app/question-template.md` and `.docx`, and `package.json` (build). |
+| `desktop/` | The Electron app: `main.js`, `preload.js`, `backend.js`, `authoring.js`, `linked-folder.js` and `storage-providers.js` (optional encrypted copies in a folder kept in the cloud by a sync app; tested in `test/linked-folder.test.js`), `sync/` and `storage/` (keeping records and materials in step with a linked cloud place), `table.js` (reads CSV and Excel class lists), `xlsx-book.js`, `import-values.js`, `import-specs.js`, `import-plan.js`, `import-apply.js`, `import-ipc.js` (importing results from the web version, see `desktop/IMPORT.md`), `autoload-ipc.js` and `autoload/` (point the app at a folder: it finds the class list, quiz results, attendance and quiz questions in files of any layout, keeps only those fields in a clean working file in the app's data folder, and previews them through the same import; see `desktop/autoload/README.md`), `excel.js` (writes Excel workbooks: the class list template and the results of one course), `names.js` (joins first and last names for the class list, and replaces each whole-name column by First name and Last name in every export; pure functions, tested in `test/names.test.js`), `app/home.html`, `app/author.html`, `app/question-template.md` and `.docx`, and `package.json` (build). |
 | `README.md`, `STRUCTURE.md`, `desktop/README.md`, `ARCHITECTURE.md` | Documentation. `STRUCTURE.md` and `ARCHITECTURE.md` are left out of the installers. |
 
 ## 5. Server script: endpoints
@@ -184,7 +182,7 @@ Since 0.9.0 the pages send every request by form POST through `CM.call` (in `con
 - `settings.json`;
 - `data/course.db` (SQLite, since 0.22.0; all tabs and properties, each row sealed; dates stored as `{$d: ISO}`), encrypted per row (AES-256-GCM, magic `CMV1`) with the data key `data.key`, which is itself encrypted with the system keychain (`safeStorage`) where available (`desktop/vault.js`);
 - `courses/<id>/backups/` (automatic encrypted backups of the workbook: on opening the course, every four hours and on closing; each read back and checked; the newest 14 kept, plus copies made before a restore);
-- `google.bin` (OAuth tokens) and `anthropic.bin` (the API key), both encrypted with `safeStorage` where available;
+- `anthropic.bin` (the API key), encrypted with `safeStorage` where available;
 - `authoring/library/` (copies of documents, `<id>.chunks.json`, `index.json`);
 - `authoring/drafts.json` and `authoring/settings.json` (the model);
 - `authoring/banks/lectureN.json` (approved questions, with a `next` counter).
@@ -313,7 +311,7 @@ Two warnings do not block approval: a missing explanation or difficulty, and a d
 - **Pages.** No build step. They are served as files.
 - **Desktop app.** Electron 44.9.3 with electron-builder 26.18.0, from `desktop/package.json`. Run `npm run dist:mac`, `dist:win` or `dist:linux`. The outputs are a universal macOS DMG (ad hoc signature), a Windows NSIS installer (x64) and a Linux AppImage.
 - **What the app bundle contains.**
-  - `app.asar`: `main.js`, `preload.js`, `backend.js`, `google.js`, `authoring.js`, `app/**`, `google-oauth.json` (if present) and the production dependencies (`@anthropic-ai/sdk`, `mammoth`, `unpdf`, `jszip`).
+  - `app.asar`: `main.js`, `preload.js`, `backend.js`, `authoring.js`, `app/**` and the production dependencies (`@anthropic-ai/sdk`, `mammoth`, `unpdf`, `jszip`).
   - `resources/web`: the class-manager folder, except `desktop/`, `tools/`, `README.md`, `STRUCTURE.md`, `ARCHITECTURE.md` and `.nojekyll`.
 - **Release.** A private draft GitHub release `class-manager-v0.1.0` holds earlier installers. Publishing it needs Hope's approval.
 
@@ -350,11 +348,10 @@ None of the session suites has been run against Google Apps Script itself. Gener
 ### Many courses (desktop, 0.8.0)
 
 - **Registry.** `courses.json` in the app's data folder lists the courses (id, code, title, term, content source, archived), the course last shown and the default course. The id is made once from the course code and never changes, so students' links survive a rename.
-- **Folders.** Each course has `courses/<id>/` with `settings.json` (course details, Apps Script address), `data/course.db`, `authoring/` and `course/`. The app's own `settings.json` keeps only the port and text size. A course may link a folder of its own for its content instead of `course/`; the workbook and the authoring library never move there.
+- **Folders.** Each course has `courses/<id>/` with `settings.json` (course details), `data/course.db`, `authoring/` and `course/`. The app's own `settings.json` keeps only the port and text size. A course may link a folder of its own for its content instead of `course/`; the workbook and the authoring library never move there.
 - **Server.** Pages of a course are served under `/c/<id>/`, each with its own `config.js` and `/exec`. One backend (one vm context running the server script) per course, made on first use and kept while the app runs. Paths without the prefix serve the default course. Archived and unknown courses return 404. One tunnel serves every course through the same prefixes.
 - **Screens.** The app's screens are served under `/c/<id>/app/`. Each IPC call is resolved to the course in the calling window's address, so a window can act on no other course. The course dropdown navigates the window to another course.
 - **Students.** Records, host keys, access codes and phone registrations are per course. For every course but the default one, `config.js` prefixes the browser storage keys of the pages with the course id, so one phone keeps separate records per course.
-- **Google.** One sign-in for the app (`google.bin`); each course has its own Sheet, held in the same file under the course id. Mode A: each course stores its own Apps Script address.
 - **Migration.** On the first start of 0.8.0 the 0.7.0 layout (`settings.json`, `data/`, `course/`, `authoring/`) is moved, by renames inside the same folder, into the first course; the registry is written last, so an interrupted move finishes at the next start.
 
 ## 15. Candidate improvements
@@ -413,3 +410,9 @@ Each course keeps its records in one SQLite file, `data/course.db`, using the SQ
 - The mailbox keeps items per course (`<course>:` prefix) and each course has its own keys.
 - Reset "everything" erases what the course keeps: the database, notes, every earlier backup, and synchronisation state, and switches the class list and attendance of a linked course to this computer only so nothing is pulled back. By default the erased parts are moved aside and can be restored; "Erase for good" deletes them. Other courses are never touched (`test/reset-records.test.js`).
 - The import preview now plans with the same option the screen shows (a ticked "Add the students in the file" was previously shown ticked while the preview was planned without it, which produced "Nothing in the file is new").
+
+## Rules in JavaScript, the router and the relay quiz (July to November 2026 refactor)
+
+- `desktop/rules/*.js` hold every rule of the former script as plain JavaScript over a store interface (`rows`, `setRows`, `prop`, `setProp`, `now`). `rules/router.js` turns a request into a reply. `CM_ENGINE` selects the engine: `js` (default) or `script` (the old vm script, kept for side-by-side tests).
+- The relay (`relay/hub/`) also serves the live quiz at `/v1/quiz/*`: status, question text without the key, who joined and admitted answers. CM collects the events and records them with the same rules.
+- The Google sign-in, the Sheet copy and the Apps Script address setting were removed (see `google-path-removal.md`). The website keeps its own copy of the script.

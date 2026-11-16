@@ -34,7 +34,6 @@ Under **Results and marks**, choose a tab (Attendance, Master, Totals and others
 
 All data stays on the laptop, in the data folder shown at the bottom of the home screen. Back it up with the rest of your files.
 
-**Optional: Google Drive copy.** If this build has Google sign-in, press **Sign in with Google**. CM creates one Google Sheet in your own Drive and keeps a copy of every tab there, updated within a minute of each change. CM can see only the file it creates.
 
 **Use with an AI assistant (optional).** Under App Settings, **Use this course with an AI assistant** saves a private copy of the course (pseudonymised, no names unless you choose) as Markdown, JSON and a read-only MCP connector in a folder you choose, after showing what it contains. CM sends nothing itself. Details: `llm/README.md`.
 
@@ -62,7 +61,6 @@ Choosing **Internet** starts a Cloudflare quick tunnel: a free service that need
 - `main.js`: starts the classroom server on the local network (port 8143 by default), opens the home screen, handles CM's own buttons. Each course is served under `/c/<id>/`; each window belongs to the course in its address, and its buttons act on that course only.
 - `courses.js`: the course registry (`courses.json`), each course's folders, the move of a 0.7.0 data folder into the first course, and the per-course `config.js`. No Electron dependency; tested in `test/courses.test.js`.
 - `backend.js`: runs `apps_script/quiz_receiver.gs`, unchanged, against a workbook stored in CM's data folder, so every rule of the Google version (join codes, rounds, scoring, one check-in per ID per day, class list, Master and Totals) works the same way. Location checking for attendance is off, because phones share their location only with secure (https) addresses.
-- `google.js`: optional Google sign-in and the copy to a Google Sheet.
 - `tunnel.js`: internet access through a Cloudflare quick tunnel (above).
 - `authoring.js`: the resource library, search, summaries, question generation, import and the bank overlay (below).
 - `app/home.html`: the home screen. `app/author.html`: Resources and questions.
@@ -87,18 +85,6 @@ The installers are not signed. Signing removes the warnings on first launch:
 - Windows needs a code-signing certificate from a certificate authority.
 
 Both can be added later to the build settings without changing CM.
-
-## Switch on Google sign-in (once, by the publisher)
-
-Google requires every app that signs users in to be registered once. This is done by whoever publishes CM, not by each colleague.
-
-1. Open https://console.cloud.google.com/, create a project (for example "Class Manager").
-2. **APIs and Services, Library**: enable the **Google Sheets API** and the **Google Drive API**.
-3. **Google Auth Platform** (or OAuth consent screen): user type **External**, app name "Class Manager", support email, and the scopes `openid`, `email` and `.../auth/drive.file`. While CM is in Testing, add colleagues' Google addresses as test users (up to 100). To let anyone sign in, choose **Publish app**; `drive.file` is not a sensitive scope, so Google's review is light.
-4. **Clients, Create client**, type **Desktop app**. Download the JSON file.
-5. Save it as `class-manager/desktop/google-oauth.json` and build the installers again. (A colleague can also put the file in CM's settings folder, next to `settings.json`.)
-
-For a desktop app Google does not treat the client secret as secret, and the sign-in uses PKCE, so shipping the file inside CM is the normal practice. It gives no access to the publisher's own Google account or files: each colleague signs in to their own account, and CM can open only the Sheet it created for them.
 
 ## Starting a course: three ways
 

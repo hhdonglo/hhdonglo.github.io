@@ -30,7 +30,6 @@
       "main.js",
       "preload.js",
       "backend.js",
-      "google.js",
       "authoring.js",
       "tunnel.js",
       "access.js",
@@ -72,7 +71,6 @@
       "build-from-roster.js",
       "import-template.js",
       "app/**/*",
-      "google-oauth.json",
       "package.json"
     ],
     "extraResources": [

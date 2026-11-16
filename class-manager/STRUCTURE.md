@@ -125,7 +125,7 @@ class-manager/
   course-packs/phys143/     the PHYS 143 course pack source (lecture pages, PDFs, banks, data, bank tools)
   apps_script/              quiz_receiver.gs (generated), src/ (its modules), build.js, live_quizzes.json
   assets/                   render.js, styles, QR library, KaTeX, icons
-  desktop/                  the desktop app: main.js, backend.js, course.js (course folder and packs), table.js (reads class list files), excel.js (writes Excel workbooks), xlsx-book.js, import-values.js, import-specs.js, import-plan.js, import-apply.js and import-ipc.js (the web import: see desktop/IMPORT.md), dashboard/ in desktop/app (rules.js and render.js build the Today card, setup tracker, stat cards, priority queue, trends, health and insights: see its README), attendance-guard.js (check-in location range and same-network rule: see its header), autoload-ipc.js and autoload/ (categories.js, summary.js and records-view.js file records by category and show the import summary and student history, course-details.js finds course details in loaded files, oversize.js flags a class list far bigger than the other files; load data from a folder in any layout: see desktop/autoload/README.md), names.js (first and last names: join, split, name columns in exports), google.js, linked-folder.js (encrypted copies in a synced folder), storage-providers.js, sync/ (merge.js, records.js, materials.js, course-sync.js), storage/ (WebDAV, GitHub, Dropbox, S3 providers), preload.js, app/linked-folder.js (the Link storage card), app/home.html, app/setup.html, package.json
+  desktop/                  the desktop app: main.js, backend.js, course.js (course folder and packs), table.js (reads class list files), excel.js (writes Excel workbooks), xlsx-book.js, import-values.js, import-specs.js, import-plan.js, import-apply.js and import-ipc.js (the web import: see desktop/IMPORT.md), dashboard/ in desktop/app (rules.js and render.js build the Today card, setup tracker, stat cards, priority queue, trends, health and insights: see its README), attendance-guard.js (check-in location range and same-network rule: see its header), autoload-ipc.js and autoload/ (categories.js, summary.js and records-view.js file records by category and show the import summary and student history, course-details.js finds course details in loaded files, oversize.js flags a class list far bigger than the other files; load data from a folder in any layout: see desktop/autoload/README.md), names.js (first and last names: join, split, name columns in exports), linked-folder.js (encrypted copies in a synced folder), storage-providers.js, sync/ (merge.js, records.js, materials.js, course-sync.js), storage/ (WebDAV, GitHub, Dropbox, S3 providers), preload.js, app/linked-folder.js (the Link storage card), app/home.html, app/setup.html, package.json
 ```
 
 **Configuration points**
@@ -140,8 +140,8 @@ class-manager/
 | quiz_receiver.gs, top | SITE, attendance mode and radius, notification email | Web version only; the app overrides them (location off, no email) |
 | Key tab | J2, K2, L2 | Host key, Totals mode (Best or Latest), Master on or off |
 | Quiz dashboard | duration, seconds per question, mode, number of questions, week, show score, show ranking | Per quiz, chosen before it starts |
-| App, Settings | course code, title, institution; advanced Apps Script address | Labels, or use a Google Apps Script server instead of the local one |
-| App data folder | settings.json, workbook file, google.bin | Settings, all results, and the encrypted Google sign-in token |
+| App, Settings | course code, title, institution | Labels |
+| App data folder | settings.json, workbook file | Settings and all results |
 
 The live quiz join code is 2627 followed by the week number (26271 for week 1, 262710 for week 10). This pattern is written into quiz_receiver.gs itself, not into a setting, so another course or another academic year needs a one-line change in the script.
 
@@ -159,7 +159,6 @@ The live quiz join code is 2627 followed by the week number (26271 for week 1, 2
 | Attendance | Rotating QR every 30 seconds, one check-in per ID per day, device and failure limits, Not_On_List | Open, close, then Submit or Discard each session |
 | Explanations | Shown from the bank | Optional overrides in Explanations |
 | Problem reports | Logged in Reports (emailed on the web) | Read and correct the bank |
-| Google copy | Every tab copied within about a minute of a change, after sign-in | Sign in once (optional) |
 | Export | CSV per tab | Press Export; any final course mark is calculated outside the tool |
 | End of term | None | Run clearSemesterRecords (web) and export what is needed first |
 | Question banks | Validation and calculation checks by script | Write and correct questions; run build, validate and check_calcs |
@@ -194,7 +193,6 @@ The live quiz join code is 2627 followed by the week number (26271 for week 1, 2
 - Location checking for attendance is off, because phones give their location only to secure (https) addresses.
 - Problem reports and notifications are not emailed.
 - The installers are unsigned, so Windows and macOS show a warning on first launch.
-- Google sign-in needs a one-time registration of a Google OAuth client by the publisher, which has not yet been done.
 - Students can reach the portal, practice and mock exam only while the app is running on the lecturer's laptop.
 
 ## Questions for the course, and opportunities

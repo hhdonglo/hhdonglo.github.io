@@ -56,28 +56,6 @@ function migrateLegacy(root, log) {
   return { migrated: id };
 }
 
-// Google sign-in is one account for the whole app; each course has its own Google Sheet.
-// Old token files held one sheetId: it becomes the sheet of the course that was migrated.
-function migrateTokens(t, id) {
-  t = Object.assign({}, t || {});
-  t.sheets = Object.assign({}, t.sheets || {});
-  if (t.sheetId && id && !t.sheets[id]) t.sheets[id] = { sheetId: t.sheetId, sheetUrl: t.sheetUrl || "" };
-  delete t.sheetId; delete t.sheetUrl;
-  return t;
-}
-function courseTokens(all, id) { // what google.js sees for one course
-  const sh = (all && all.sheets && all.sheets[id]) || {};
-  return all && all.refresh ? { refresh: all.refresh, email: all.email || "", sheetId: sh.sheetId || "", sheetUrl: sh.sheetUrl || "" } : { sheetId: sh.sheetId || "", sheetUrl: sh.sheetUrl || "" };
-}
-function storeCourseTokens(all, id, o) { // google.js saved its state for one course
-  all = migrateTokens(all, "");
-  o = o || {};
-  all.refresh = o.refresh || ""; all.email = o.refresh ? o.email || "" : "";
-  if (o.sheetId) all.sheets[id] = { sheetId: o.sheetId, sheetUrl: o.sheetUrl || "" };
-  if (!all.refresh) { delete all.refresh; delete all.email; }
-  return all;
-}
-
 // ---------- the registry ----------
 function createRegistry(root) {
   const REG = path.join(root, "courses.json");
@@ -181,4 +159,4 @@ function configScript(src, cm, storagePrefix) {
     "window.CM = " + JSON.stringify(cm, null, 1) + ";\n\n" + (i >= 0 ? src.slice(i) : "");
 }
 
-module.exports = { createRegistry, migrateLegacy, migrateTokens, courseTokens, storeCourseTokens, configScript, slug, APP_KEYS, ID_RE };
+module.exports = { createRegistry, migrateLegacy, configScript, slug, APP_KEYS, ID_RE };
