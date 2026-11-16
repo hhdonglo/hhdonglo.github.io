@@ -29,3 +29,10 @@ export async function checkWork(secret, challenge, pubId, nonce, now, bits) {
   const h = await sha256(challenge + ":" + pubId + ":" + String(nonce || "").slice(0, 40));
   return leadingZeroBits(h) >= bits;
 }
+
+// Failed attempts: count without adding (peek), add one (bump). Used for the check-in slow-down after repeated wrong answers.
+export async function peek(db, key, windowSec, now) {
+  const row = await db.prepare("SELECT n FROM hit WHERE k = ? AND win = ?").bind(key + "@" + windowSec, Math.floor(now / windowSec)).first();
+  return row ? row.n : 0;
+}
+export const bump = (db, key, windowSec, now) => allow(db, key, windowSec, 1e9, now);
