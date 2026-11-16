@@ -354,7 +354,7 @@ function mark_(letters, row) { // [1,0,...] for each question, without revealing
 // Host-only changes. Every change is written to the audit log.
 function ctlAct_(p, code) {
   var key = keyRow_(code);
-  if (!key) return { ok: false, why: 'no such code' };
+  if (!key && !codeWeek_(code)) return { ok: false, why: 'no such code' }; // a week-shaped join code can be switched on before its question bank exists
   var act = String(p.act || '').toLowerCase(), c = ctl_(code, true), now = Date.now();
   if (act === 'init') {
     if (c) return { ok: true, status: ctlStatus_(c) };
