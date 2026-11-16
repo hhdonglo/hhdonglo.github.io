@@ -17,7 +17,7 @@ Items are sealed on the phone. Live state and the class list pushed for rules ar
 ## Files
 - `worker.mjs` entry and routing; `src/http.js` replies; `src/registry.js` registration and the public course page; `src/auth.js` signatures; `src/limits.js` rate limits and proof of work; `src/mailbox.js` drop, pull, ack; `src/live.js` state and close; `src/db.js` tables, limits, cleanup; `src/crypto.js` hashing and verification.
 - Tests: `test/relay.test.js` with `test/fake-d1.js` (D1 is SQLite, so the whole relay is tested without Cloudflare).
-- Setup: `deploy.mjs` (guided, one command; see the plan).
+- Setup: `../deploy.mjs`, guided and one command. `node deploy.mjs --dry-run` shows the plan and changes nothing; `node deploy.mjs` creates the database `cm-relay-db` and the Worker `cm-relay` on the free workers.dev address; `node deploy.mjs --update` publishes new code. It reads your other Workers, databases and domains only to check for a clash, stops if a CM relay already exists, and never changes anything else. Token: Workers Scripts Edit, D1 Edit, Account Settings Read; read from `CLOUDFLARE_API_TOKEN` or typed, never saved. Tests: `test/deploy.test.js` (fake Cloudflare).
 
 The older mailbox (`../worker.mjs`, KV and tokens) keeps working until CM moves to this relay.
 
