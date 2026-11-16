@@ -23,10 +23,10 @@ test("frozen cells are solid and sit above the cells that scroll under them", ()
   assert.ok(z(".frz tr.band th.fz1,.frz tr.band th.fz2") > z(".frz thead th.fz1,.frz thead th.fz2"));
 });
 
-test("the Grades table uses the shared style, with a frozen cell in every row of the header", () => {
+test("the Grades table uses the shared style, with ID and Name frozen in the header", () => {
   const js = read("grades-view.js");
   assert.match(js, /class='gt frz'/);
-  assert.match(js, /class='band'><th class='fz1'><\/th><th class='fz2'><\/th>/);
+  assert.doesNotMatch(js, /class='band'/, "one header row only: the date columns need no group band");
   assert.match(js, /"__id", "Student ID", "fz1"/);
   assert.match(js, /"__name", "Name", "fz2"/);
   assert.doesNotMatch(js, /stick1|stick2/);

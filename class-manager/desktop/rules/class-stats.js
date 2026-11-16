@@ -2,6 +2,7 @@
    target. A port of classStats_, statNums_, engagementOf_, repeatPairs_, learningVerdict_ and targets_ (apps_script/src/30-analytics.gs), with the
    same answers. Computed only from the tabs CM keeps; nothing is estimated. version is the script version the pages compare. */
 "use strict";
+const SL = require("./session-label");
 const AC = require("./access-codes");
 const AT = require("./attendance");
 const L = require("./learning");
@@ -143,7 +144,7 @@ function classStats(store, p, version) {
   const out = { ok: true, version, generated: new Date(now).toISOString(), thresholds: th, rosterSize: roster.length, groupNames: STATS_GROUPS };
   const grid = (() => { const g = store.rows(ATT); return g && g.length > 1 && g[0].length > 1 ? g : null; })(), sessions = [], attOf = {};
   if (grid) {
-    for (let c = 1; c < grid[0].length; c++) if (String(grid[0][c]).trim()) sessions.push({ col: c, label: String(grid[0][c]).trim(), present: 0, counted: 0 });
+    for (let c = 1; c < grid[0].length; c++) if (String(grid[0][c]).trim()) sessions.push({ col: c, raw: String(grid[0][c]).trim(), label: SL.sessionLabel(grid[0][c]), date: SL.sessionDate(grid[0][c]), present: 0, counted: 0 });
     for (let i = 1; i < grid.length; i++) {
       const aid = normalizeId(grid[i][0]); if (!aid || (roster.length && !inRoster[aid])) continue; const marks = [];
       sessions.forEach((s) => { const v = grid[i][s.col]; if (v === "" || v === null || v === undefined) { marks.push(null); return; } const on = Number(v) ? 1 : 0; marks.push(on); s.counted++; s.present += on; });
@@ -162,9 +163,9 @@ function classStats(store, p, version) {
   const BANDS = [[0, 2, "Under 2 min"], [2, 5, "2 to 5 min"], [5, 10, "5 to 10 min"], [10, 15, "10 to 15 min"], [15, 1e9, "15 min or more"]];
   const band = (xs) => BANDS.map((b) => ({ label: b[2], n: xs.filter((m) => m >= b[0] && m < b[1]).length }));
   let allArr = []; Object.keys(arrBySession).forEach((k) => { allArr = allArr.concat(arrBySession[k]); });
-  const bySession = sessions.map((s) => { const a = statNums(arrBySession[s.label] || []); return { label: s.label, present: s.present, counted: s.counted, rate: pct(s.present, s.counted), arrivalMedian: a.median, arrivals: a.n }; });
+  const bySession = sessions.map((s) => { const a = statNums(arrBySession[s.raw] || []); return { label: s.label, date: s.date, present: s.present, counted: s.counted, rate: pct(s.present, s.counted), arrivalMedian: a.median, arrivals: a.n }; });
   const recent = bySession.slice(-3), earlier = bySession.slice(0, -3), avgRate = (xs) => { let p2 = 0, c2 = 0; xs.forEach((x) => { p2 += x.present; c2 += x.counted; }); return pct(p2, c2); };
-  out.attendance = { sessions: sessions.length, rate: avgRate(bySession), lastRate: bySession.length ? bySession[bySession.length - 1].rate : null, recentRate: avgRate(recent), earlierRate: earlier.length ? avgRate(earlier) : null, bySession, arrival: { median: statNums(allArr).median, bands: band(allArr), latest: sessions.length ? band(arrBySession[sessions[sessions.length - 1].label] || []) : [] } };
+  out.attendance = { sessions: sessions.length, rate: avgRate(bySession), lastRate: bySession.length ? bySession[bySession.length - 1].rate : null, recentRate: avgRate(recent), earlierRate: earlier.length ? avgRate(earlier) : null, bySession, arrival: { median: statNums(allArr).median, bands: band(allArr), latest: sessions.length ? band(arrBySession[sessions[sessions.length - 1].raw] || []) : [] } };
 
   const latest = {}, quizMeta = {};
   body(store, RESPONSES, 14).forEach((r) => {
@@ -214,6 +215,7 @@ function classStats(store, p, version) {
     const e = engagementOf(s, th, have); s.effort = e.effort; s.performance = e.performance; s.group = e.group; s.why = e.why;
   });
   out.students = students;
+  out.attendance.people = require("./attendance-bands").attendanceBands(students); // who comes and who does not, by band
   const counts = {}; STATS_GROUPS.forEach((g) => { counts[g] = 0; }); students.forEach((s) => { counts[s.group]++; }); out.groups = counts;
   out.learning = learningVerdict(out, rep); out.targets = targets(out, out.learning, th);
   const lastQ = out.quizzes.length ? out.quizzes[out.quizzes.length - 1] : null;

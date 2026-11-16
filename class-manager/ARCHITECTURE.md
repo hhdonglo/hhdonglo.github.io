@@ -402,7 +402,7 @@ Each course keeps its records in one SQLite file, `data/course.db`, using the SQ
 
 ## Grades table (15 November 2026)
 
-"Grades and Results" opens on a clean table built from the records (`desktop/grades/`), not from Master. One row per student on the class list; fixed columns Student ID and Name, then Attendance, Quizzes (one column per week, latest try shown), Assignments and Practice, then Last activity. A blank is "no record". Every value keeps the time of the entry it came from (shown on hover); the timeline lists every dated entry, newest first. Download as Excel starts with the same Grades sheet and a Timeline sheet. Removing a student is an explicit row action (confirm, set aside, restorable); clicking a row no longer removes anything. Master, Scores and Totals remain in the tab list as raw tabs.
+"Grades and Results" opens on a clean table built from the records (`desktop/grades/`), not from Master. One row per student on the class list; each group is its own table, chosen by buttons above it (Quizzes, Attendance, Assignments, Practice): Student ID, Name, then one column per date. Quiz columns are headed by the quiz date, oldest first (two quizzes on one day read "2 Nov 2026 (Week 1)" and "2 Nov 2026 (Week 2)"; the latest try shows). Attendance has one column per session date, with 1 for present and 0 for absent. A blank cell means no record. Only students on the class list are rows. Every value keeps the time of the entry it came from (shown on hover); the timeline lists every dated entry, newest first. Download as Excel has one sheet per table with the same layout, then a Timeline sheet. Removing a student is an explicit row action (confirm, set aside, restorable); clicking a row no longer removes anything. Master, Scores and Totals remain in the tab list as raw tabs.
 
 ## Courses, IDs and Reset (15 November 2026)
 
@@ -434,3 +434,7 @@ A student scans the room's QR code and enters only their ID. `rules/code-claim.j
 ## IDs not on the class list
 
 The class list decides who has a row. `onRoster_` in the server script (`10-assessment.gs`) drops results for IDs not on the Roster before Master and Scores are written. Imports record such IDs in `Flagged_IDs` (`desktop/offlist.js`, called from `import-ipc.js`) and never as rows. Rows left by older versions are set aside on the lecturer's confirmation and can be restored. See `desktop/IMPORT.md`.
+
+
+### Attendance page: the record, then who comes and who does not
+The Attendance page opens with the same Attendance table as Grades and Results (ID, Name, one column per session date, 1 present, 0 absent, blank no record), drawn by the same component (`app/grades-view.js`, `make()` gives one viewer per place, `only: "attendance"` hides the table buttons). Below it, `rules/attendance-bands.js` splits the students who have a counted session into bands (every session, regular 75% to 99%, occasional 40% to 74%, rarely under 40%, never attended), with counts and shares; clicking a band lists its students with ID and name, and clicking a student opens the record. The "Missed in a row" list shows ID and Name in separate columns. Session headings from any file are cleaned by `rules/session-label.js` ("3 Nov 2026", a second session that day "3 Nov 2026 #2"); the charts use `date` (2026-11-03) for ordering and the short form "3 Nov" on the axis.

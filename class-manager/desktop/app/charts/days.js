@@ -18,7 +18,7 @@
   function dayLabel(ms) { var d = new Date(ms), p = function (n) { return (n < 10 ? "0" : "") + n; }; return p(d.getUTCDate()) + "/" + p(d.getUTCMonth() + 1) + "/" + d.getUTCFullYear(); }
   function timeline(d) {
     var items = [];
-    ((d.attendance && d.attendance.bySession) || []).forEach(function (s, i) { items.push({ kind: "session", idx: i, label: s.label, date: parseDate(s.label), order: i }); });
+    ((d.attendance && d.attendance.bySession) || []).forEach(function (s, i) { items.push({ kind: "session", idx: i, label: s.label, date: parseDate(s.date || s.label), order: i }); });
     (d.quizzes || []).forEach(function (q, i) { items.push({ kind: "quiz", idx: i, label: q.quiz, date: parseDate(q.date), order: 1000 + i }); });
     var days = [], byDate = {};
     items.forEach(function (it) {
