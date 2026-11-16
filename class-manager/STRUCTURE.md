@@ -1,6 +1,6 @@
 # Class Manager: structure and review notes
 
-**Current version: 0.22.1**
+**Current version: 0.22.2**
 
 Written 9 November 2026. A description of the class management tool as it stands in this folder, for review of the tool and of the course it serves.
 
@@ -326,3 +326,6 @@ Look (2026-11-15, from Hope's inspiration image): soft tinted tiles on cards, on
 
 ### IDs read with certainty in the class list upload (0.22.1)
 `desktop/app/id-review.js` reads one ID cell: `22583439`, `22583439.0` and `022583439` are the same ID; Excel's scientific form, a decimal part, a wrong length or mixed characters are "ambiguous" and never guessed. The class list screen (`app/setup.html`) lists those rows (row number, value as written, name, reason) with a box to type the right ID, and the save leaves out any row still unread. Before this, `22583439.0` became `225834390` because all non-digits were removed. The column choice (ID, first name, last name) was already editable on that screen. Test: `desktop/test/id-review.test.js`.
+
+### Column mapping and support tracking (0.22.2)
+The web import preview shows which file column each required column is read from and lets the lecturer change it ("Columns the import uses"; `options.mapping` in `desktop/import-plan.js`, screen in `desktop/app/import.js`). The Support given card on Class Analytics records support (kind, student IDs, note; `cm:addIntervention`, audited) and compares later quizzes of students given it with students whose earlier results were similar (within 10 points, `TOLERANCE` in `desktop/app/analytics/interventions.js`); the counts open to the student IDs behind them. Tests: `desktop/test/column-mapping.test.js`, `desktop/test/analytics.test.js`.

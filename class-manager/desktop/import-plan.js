@@ -51,10 +51,11 @@ function identify(sheet, onlySheet) {
 
 // Where each column of the tab's target layout comes from in the file: { target: [heading], pick: [file column or -1] }.
 // The target is this course's own heading row when it has one (the script reads by position), else the script's. Extra columns of the file follow.
-function layout(spec, head, localHead) {
+function layout(spec, head, localHead, override) {
   const names = head.map(V.headOf), taken = new Set();
-  const byName = (h) => { // the column with this heading, or with a heading that means the same
+  const byName = (h) => { // the column with this heading, or with a heading that means the same; the lecturer's own choice wins
     const key = V.headOf(h);
+    if (override && Number.isInteger(override[key]) && override[key] >= 0 && override[key] < head.length) { taken.add(override[key]); return override[key]; }
     let i = names.indexOf(key);
     if (i < 0) i = names.findIndex((n, j) => !taken.has(j) && (S.ALIASES[key] || []).indexOf(n) >= 0);
     if (i >= 0) taken.add(i);
@@ -71,7 +72,7 @@ function layout(spec, head, localHead) {
     if (V.blank(h) || pick.indexOf(j) >= 0 || target.some((t) => V.headOf(t) === V.headOf(h))) return;
     target.push(String(h).trim()); pick.push(j);
   });
-  return { target, pick, named: spec.header.slice(0, spec.need).map((h, i) => ({ need: h, found: byNames ? String(head[named[i]]) : String(head[i] == null ? "" : head[i]) })) };
+  return { target, pick, named: spec.header.slice(0, spec.need).map((h, i) => ({ need: h, key: V.headOf(h), col: byNames ? named[i] : i, found: byNames ? String(head[named[i]]) : String(head[i] == null ? "" : head[i]) })) };
 }
 
 const letters = (head) => head.map((h, i) => (V.blank(h) ? "" : String(h))).filter(Boolean).slice(0, 14).join(", ");
@@ -87,7 +88,10 @@ function cellOf(spec, k, v) {
 
 function planLog(spec, rows, localRows, ctx) {
   const rep = { tab: spec.name, label: spec.label, total: 0, add: 0, duplicates: 0, offList: 0, noId: 0, note: "" };
-  const lay = layout(spec, rows[0] || [], localRows && localRows[0]);
+  // What the preview needs to let the lecturer change the mapping: the required columns and the file's own columns.
+  rep.needs = spec.header.slice(0, spec.need).map((h) => ({ need: h, key: V.headOf(h) }));
+  rep.fileColumns = (rows[0] || []).map((h, i) => ({ i, label: V.blank(h) ? "Column " + (i + 1) : String(h).trim().slice(0, 40) }));
+  const lay = layout(spec, rows[0] || [], localRows && localRows[0], ctx.mapping && (ctx.mapping[spec.name] || null));
   if (!lay.target) {
     rep.status = "skipped"; rep.missing = lay.missing;
     rep.note = "cannot be imported: no column found for " + lay.missing.join(", ") + ". The file's columns are: " + (letters(rows[0] || []) || "none") + ".";
@@ -229,7 +233,8 @@ function scoresAsResponses(rows, names) {
 function plan(book, local, options) {
   const opt = Object.assign({ onlyClassList: true, addMissing: false }, options);
   const localList = classIdsOf(local.read("Roster"));
-  const ctx = { onlyClassList: opt.onlyClassList, classIds: new Set(localList), activity: new Set() };
+  // opt.mapping: { tab name: { required column key: file column index } }, the lecturer's own column choices from the preview.
+  const ctx = { onlyClassList: opt.onlyClassList, classIds: new Set(localList), activity: new Set(), mapping: opt.mapping || null };
   const names = Object.assign({}, ...(local.read("Roster") || []).map((r) => ({ [V.idOf(r[0])]: String(r[1] || "").trim() })), nameMap(book));
   const reports = [], ops = [], ignored = [], warnings = [];
   const only = book.length === 1;
@@ -244,7 +249,7 @@ function plan(book, local, options) {
 
   // Pass 1 finds every ID with activity so that "add the missing students" knows them before the tabs are filtered.
   if (opt.addMissing) {
-    const probe = { onlyClassList: false, classIds: new Set(), activity: new Set() };
+    const probe = { onlyClassList: false, classIds: new Set(), activity: new Set(), mapping: ctx.mapping };
     found.forEach(({ sh, what }) => {
       if (what.kind === "log") planLog(what.spec, sh.rows, null, probe); else if (what.kind === "attendance") planAttendance(sh.rows, null, probe);
     });
@@ -263,7 +268,7 @@ function plan(book, local, options) {
 
   // Every ID in the files that does not conform to the class list is flagged for the lecturer, whether or not it is added: not on the list, or not in the list's format.
   const seenIds = new Set([...ctx.activity]);
-  if (!opt.addMissing) { const probe2 = { onlyClassList: false, classIds: new Set(), activity: new Set() }; found.forEach(({ sh, what }) => { if (what.kind === "log") planLog(what.spec, sh.rows, null, probe2); else if (what.kind === "attendance") planAttendance(sh.rows, null, probe2); }); probe2.activity.forEach((id) => seenIds.add(id)); }
+  if (!opt.addMissing) { const probe2 = { onlyClassList: false, classIds: new Set(), activity: new Set(), mapping: ctx.mapping }; found.forEach(({ sh, what }) => { if (what.kind === "log") planLog(what.spec, sh.rows, null, probe2); else if (what.kind === "attendance") planAttendance(sh.rows, null, probe2); }); probe2.activity.forEach((id) => seenIds.add(id)); }
   const badFormat = (id) => !/^\d{4,12}$/.test(id);
   const flaggedAll = [...seenIds].filter((id) => localList.size && !localList.has(id)).map((id) => ({ id, why: badFormat(id) ? "not a valid student ID (4 to 12 digits)" : "not on the class list" }));
   const noIdRows = reports.reduce((n, r) => n + (r.noId || 0), 0);

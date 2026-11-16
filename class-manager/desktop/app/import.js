@@ -12,7 +12,16 @@
   d.id = "imp-d"; d.setAttribute("aria-labelledby", "imp-h"); d.style.maxWidth = "46rem"; d.style.width = "min(46rem, 94vw)";
   d.innerHTML = "<h2 id='imp-h'>Import results from the web version</h2><div id='imp-body'></div>";
   document.body.appendChild(d);
-  var body = d.querySelector("#imp-body"), opts = { addMissing: false }, file = "";
+  var body = d.querySelector("#imp-body"), opts = { addMissing: false }, file = "", keepMap = false; // keepMap: the columns list stays open after the lecturer has changed a column
+
+  // The lecturer's own column choices: { tab name: { required column key: file column index } }. Worked into the plan by import-plan.js.
+  d.addEventListener("change", function (e) {
+    var sel = e.target.closest && e.target.closest("select[data-map-tab]"); if (!sel) return;
+    var tab = sel.getAttribute("data-map-tab"), key = sel.getAttribute("data-map-key"), v = parseInt(sel.value, 10);
+    keepMap = true; opts.mapping = opts.mapping || {}; opts.mapping[tab] = opts.mapping[tab] || {};
+    if (v >= 0) opts.mapping[tab][key] = v; else delete opts.mapping[tab][key];
+    cmApp.importPlan(opts).then(function (r) { if (r && r.ok) preview(r.report); });
+  });
 
   if (cmApp.onImportProgress) cmApp.onImportProgress(function (p) { // the file is read in chunks; show where it is
     if (!d.open) return;
@@ -36,7 +45,7 @@
       (msg ? "<p class='msg err' role='alert'>" + esc(msg) + "</p>" : "") +
       buttons("<button class='btn' type='button' id='imp-cancel'>Cancel</button><button class='btn primary' type='button' id='imp-pick'>Choose the file…</button>");
     body.querySelector("#imp-cancel").onclick = close;
-    body.querySelector("#imp-pick").onclick = function () { cmApp.importPick(opts).then(function (r) { if (!r) return; if (!r.ok) return start(r.why); file = r.name; preview(r.report); }); };
+    body.querySelector("#imp-pick").onclick = function () { delete opts.mapping; keepMap = false; cmApp.importPick(opts).then(function (r) { if (!r) return; if (!r.ok) return start(r.why); file = r.name; preview(r.report); }); };
   }
 
   function rowOf(t) {
@@ -55,8 +64,16 @@
       (s.notOnListIds && s.notOnListIds.length ? "<details style='margin:.4rem 0'><summary class='note'>IDs not on the class list (" + n(s.notOnList) + ")</summary><p class='note' style='word-break:break-word'>" + s.notOnListIds.map(esc).join(", ") + (s.notOnList > s.notOnListIds.length ? " and " + n(s.notOnList - s.notOnListIds.length) + " more" : "") + "</p></details>" : "");
     var add = (s.notOnList || s.toAdd || !s.classList) ?
       "<label style='display:block;margin:.6rem 0'><input type='checkbox' id='imp-add'" + (opts.addMissing ? " checked" : "") + "> Add the students in the file to the class list" + (s.toAdd ? " (" + n(s.toAdd) + " would be added)" : "") + "</label>" : "";
-    var cols = rep.tabs.filter(function (t) { return t.columns && t.columns.length; });
-    var colsHtml = cols.length ? "<details style='margin:.6rem 0'><summary class='note'>Columns the import found</summary><ul class='note'>" + cols.map(function (t) { return "<li>" + esc(t.label) + ": " + t.columns.map(function (c) { return esc(c.need) + (c.found && c.found !== c.need ? " (from “" + esc(c.found) + "”)" : ""); }).join(", ") + "</li>"; }).join("") + "</ul></details>" : "";
+    // Which file column each required column is read from, as selects the lecturer can change. A tab skipped for a missing column opens this list.
+    var maps = rep.tabs.filter(function (t) { return t.needs && t.needs.length && t.fileColumns && t.fileColumns.length; });
+    var mapOpen = keepMap || maps.some(function (t) { return t.status === "skipped" && t.missing; });
+    var colsHtml = maps.length ? "<details" + (mapOpen ? " open" : "") + " style='margin:.6rem 0'><summary class='note'>Columns the import uses (change them if a column was read wrongly or not found)</summary>" + maps.map(function (t) {
+      var byKey = {}; (t.columns || []).forEach(function (c) { byKey[c.key] = c.col; });
+      return "<p class='note' style='margin:.5rem 0 .2rem'><strong>" + esc(t.label) + "</strong></p><p class='row' style='flex-wrap:wrap;gap:.5rem .9rem'>" + t.needs.map(function (nd) {
+        var cur = byKey[nd.key] !== undefined ? byKey[nd.key] : -1;
+        return "<label style='font-weight:400;display:inline-flex;align-items:center;gap:.3rem'>" + esc(nd.need) + " <select data-map-tab='" + esc(t.tab) + "' data-map-key='" + esc(nd.key) + "'><option value='-1'" + (cur < 0 ? " selected" : "") + ">Not found</option>" + t.fileColumns.map(function (fc) { return "<option value='" + fc.i + "'" + (fc.i === cur ? " selected" : "") + ">" + esc(fc.label) + "</option>"; }).join("") + "</select></label>";
+      }).join("") + "</p>";
+    }).join("") + "</details>" : "";
     var ign = (rep.ignored || []).length ? "<details style='margin:.6rem 0'><summary class='note'>Tabs in the file that are not imported (" + rep.ignored.length + ")</summary><ul class='note'>" + rep.ignored.map(function (x) { return "<li>" + esc(x.tab) + ": " + esc(x.why) + "</li>"; }).join("") + "</ul></details>" : "";
     body.innerHTML = "<p class='note'>File: " + esc(file) + "</p>" + people + add + (s.namesFilled ? "<p class='note'>" + n(s.namesFilled) + " student(s) on the class list had no name; the file gives it.</p>" : "") + conflictsHtml(s) + table + w.map(function (x) { return "<p class='msg'>" + esc(x) + "</p>"; }).join("") + colsHtml + ign +
       (rep.changes ? "<p class='note'>Marks (Master, Scores and Totals) are worked out again after the import. Learning Progress, Students and Attendance then include the new records.</p>" : "<p class='msg'>Nothing in the file is new to this course.</p>") +
