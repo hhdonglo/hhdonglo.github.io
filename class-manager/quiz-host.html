@@ -81,6 +81,7 @@ body.focus main{padding-top:1rem}
   <section class="panel" id="h-init" hidden>
    <p>This quiz is not lecturer-controlled yet. Students can still take it the older way. To run it question by question from this screen, switch it on.</p>
    <button class="go" id="h-initbtn">Switch on lecturer control</button>
+   <p class="err" id="h-initerr" role="alert" hidden></p>
   </section>
   <div id="h-ctl" hidden>
    <section class="panel" id="h-stale" hidden style="border-top-color:#b3261e">
@@ -169,6 +170,7 @@ function act(a,extra,cb){
  cfg.stale=false;
  jsonp("action=control&act="+a+"&"+q()+(extra||""),function(d){
   $("h-msgline").textContent=!d?"Could not reach the class sheet.":(d.ok?"Done: "+a+".":"Not done: "+(d.why||"refused")+".");
+  var ie=$("h-initerr");if(ie){ie.hidden=!!(d&&d.ok);ie.textContent=d&&d.ok?"":(!d?"Could not reach the class server, so lecturer control was not switched on. Check that CM is running, then try again.":"Lecturer control was not switched on: "+(d.why||"refused")+(d.why==="no such code"?". The class server is an older version, so it needs the updated script (see REDEPLOY.md).":"."))}
   refresh(false);if(cb)cb(d);
  });
 }
