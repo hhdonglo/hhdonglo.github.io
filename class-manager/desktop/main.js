@@ -175,6 +175,7 @@ async function handle(req, res, remote) {
       if (req.method === "POST") {
         const body = await readBody(req, 200000);
         Object.assign(params, Object.fromEntries(new URLSearchParams(body)));
+        if (firstRun.changesPassword(params)) { res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" }); return res.end(firstRun.passwordRefusal()); }
         if (rosterGate.addsStudents(params)) { res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" }); return res.end(rosterGate.refusal()); } // students are added only on the Class Roster page
         const refused = lecturerRefusal(params, { remote, thisComputer: !remote && isThisComputer(req) }, appSettings);
         if (refused) { if (tunnel && remote) tunnel.note("lecturer"); res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" }); return res.end(JSON.stringify(refused)); }
@@ -185,6 +186,7 @@ async function handle(req, res, remote) {
         c.backend.setGeoMode(g.geo); // location is checked for the internet address, not for plain Wi-Fi
         try { out = require("./receipts").once(c.backend, params, () => c.backend.doPost(params, body)); } finally { c.backend.setGeoMode("off"); } // CM's own calls never see a leftover setting
         if (c.live && !remote) out = Object.assign({}, out, { text: c.liveQuiz ? c.liveQuiz.after(params, c.live.after(params, out.text)) : c.live.after(params, out.text) }); // hand an opened attendance session to the relay; the page learns where phones go
+      } else if (firstRun.changesPassword(params)) { res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" }); return res.end(firstRun.passwordRefusal());
       } else if (rosterGate.addsStudents(params)) { res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" }); return res.end(rosterGate.refusal());
       } else { c.backend.setGeoMode(guardFor({ remote, tunnelOn: !!publicUrl() }, appSettings).geo); try { out = c.backend.doGet(params); } finally { c.backend.setGeoMode("off"); } }
       res.writeHead(200, { "Content-Type": out.mime + "; charset=utf-8", "Cache-Control": "no-store", "Access-Control-Allow-Origin": "*" });
@@ -436,7 +438,6 @@ function info(c) {
     settings: shownSettings(c), base: studentHome(c), version: app.getVersion(), courseId: c.id,
     addresses: lanAddresses().map((a) => "http://" + a.address + ":" + port + "/" + coursePrefix(c)),
     tunnel: tunnelFor(c),
-    hostKey: c.backend.hostKeyIsPlain() ? c.backend.hostKey() : "",
     tabs: c.backend.tabs(), dataFolder: registry.dirs(c.id).root, contentFolder: registry.dirs(c.id).course, setup: setupState(c)
   };
 }
@@ -764,13 +765,6 @@ on("cm:centralLogin", (c, e, pw) => signedIn(c, pw, central.check(pw)));
 on("cm:centralCreate", (c, e, pw) => central.status().chosen ? { ok: false, why: "A password is already chosen." } : signedIn(c, pw, central.set(pw)));
 on("cm:centralRecover", (c, e, code, pw) => signedIn(c, pw, central.recover(code, pw)));
 ipcMain.on("cm:sessionKey", (e) => { e.returnValue = unlockedPw && String(e.sender.getURL()).startsWith(baseUrl()) ? unlockedPw : ""; }); // read by preload.js so lecturer pages open already signed in
-// Lost both the lecturer password and the recovery code: the person at this computer may reset it (password-reset path, see README "Lecturer password").
-on("cm:resetPassword", async (c, e) => {
-  const r = await dialog.showMessageBox(winOf(e), { type: "warning", buttons: ["Reset password", "Cancel"], defaultId: 1, cancelId: 1, title: "Reset the lecturer password",
-    message: "Reset the lecturer password for this course?", detail: "A temporary key is shown on the home screen, the recovery code is removed and every lecturer sign-in ends. Choose a new password straight afterwards." });
-  if (r.response !== 0) return false;
-  c.backend.run("resetHostKey"); c.backend.flush(); return true;
-});
 // ---------- resources and question authoring (app/author.html) ----------
 const DOC_TYPES = [{ name: "Teaching material", extensions: ["pdf", "docx", "pptx", "md", "markdown", "txt"] }];
 on("cm:authStatus", (c) => c.authoring.status());

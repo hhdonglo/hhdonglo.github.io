@@ -17,7 +17,7 @@ CONTENTS
   3. Before the first class
   4. Run a class
   5. After class: results, groups and Learning Progress
-  6. Your password, the host key and access codes
+  6. Your CM password and access codes
   7. Students on mobile data (Internet mode, optional)
   8. Keep notes and records in your own cloud storage (optional)
   9. Backups
@@ -27,9 +27,8 @@ CONTENTS
  13. If something goes wrong
 
 Words used in this guide
-  Host key        A private key shown at the top of the window. Lecturer
-                  pages ask for it. Once you choose a password, the password
-                  is used instead.
+  CM password     The one password for the whole of CM, chosen when CM is
+                  first opened. It is used for every course.
   Access code     A personal code for each student, printed on a slip.
   Student address The web address (and QR code) that students open on their
                   phones.
@@ -108,7 +107,7 @@ Step 3. Course materials (optional now)
 1. Open "Class Roster" and check that the class list is complete.
 2. Make access codes (needed for attendance, see Part 6):
    a. Open "Class Roster", then "Access codes".
-   b. Type your host key or password when asked.
+   b. Open it from CM; no further password is asked.
    c. Press "Create codes for students without one".
    d. Press "Print slips" and hand each student their slip.
 3. Choose how students connect (Part 4, step 1).
@@ -132,8 +131,8 @@ Step 1. Let students connect
      computer and the students' phones to it, or choose Internet.
 
 Step 2. Take attendance
-  1. Press "Take attendance" (Class Tools or Class Analytics). Type your
-     host key or password, then press "Start attendance".
+  1. Press "Take attendance" (Class Tools or Class Analytics). Then press
+     "Start attendance".
   2. Show the QR code on the projector. It changes during the session, so
      it must be scanned in the room.
   3. Each student scans it and types their student ID and personal access
@@ -203,8 +202,7 @@ Learning Progress
      learning gain. Open a row to see a student.
 
 Groups
-  1. Open "Class Tools", then "Student groups". Type the host key or
-     password.
+  1. Open "Class Tools", then "Student groups". 
   2. Name the set (for example Lab 1). Choose how to make groups: random,
      mixed by quiz results, or mixed by attendance. Choose who is included
      and the group size.
@@ -233,35 +231,24 @@ Teaching insights, Calendar and Messages
   delivered when each person next opens their page while CM is open.
 
 
-6. YOUR PASSWORD, THE HOST KEY AND ACCESS CODES
+6. YOUR CM PASSWORD AND ACCESS CODES
 -----------------------------------------------
 
-Host key
-  CM makes a host key the first time it runs. It is shown at the top
-  of the window with a Copy button. Lecturer pages (attendance, quiz
-  controls, groups, codes) ask for it. Keep it private. Students never
-  need it.
+CM password
+  CM has one password for the whole of CM, and every course uses it. You
+  choose it the first time CM opens, before anything else, and sign in
+  with it each time CM opens. After that no other password is asked for
+  anything. Students never need it.
 
-Choose your own password (recommended)
-  1. Open "Class Tools", then "Lecturer password".
-  2. Type the temporary key (the host key) where it asks for the current
-     password.
-  3. Type your new password twice. Use at least 10 characters. A few
-     words are fine.
-  4. Press "Save password".
-  5. A recovery code is shown once. Write it down or put it in a password
-     manager. Without it a lost password cannot be recovered by the page.
-  From now on, use your password wherever the host key was asked for. The
-  top of the window then says "your password".
+  To change it: "More tools", then "CM password". Type the new password
+  twice (at least 10 characters; a few words are fine) and press "Save
+  password". A new recovery code is shown once. Write it down or put it
+  in a password manager.
 
 If you forget your password
-  - With the recovery code: on the lecturer login, choose "I forgot my
-    password", type the code and a new password. A new recovery code is
-    shown. The old one stops working.
-  - Without it: open "Class Tools" and press "Reset password (lost it)".
-    Confirm. A temporary key appears on the home screen, the recovery code
-    is removed and every lecturer sign-in ends. Choose a new password
-    straight away.
+  On the sign-in screen choose "I forgot my password", type the recovery
+  code and a new password. A new recovery code is shown and the old one
+  stops working. There is one recovery code for the whole of CM.
 
 Access codes
   Each student has a personal code. It proves a check-in or a view of

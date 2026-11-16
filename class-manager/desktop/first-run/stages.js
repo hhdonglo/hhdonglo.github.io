@@ -34,4 +34,8 @@ function refusal(channel, stage) {
   return missing ? { ok: false, needs: missing, why: WHY[missing] } : null;
 }
 
-module.exports = { ORDER, NEEDS, stageOf, refusal };
+// Page requests that would give one course its own password or recovery code. There is one CM password and one recovery code (central-login.js); these are refused.
+const changesPassword = (p) => { const a = String((p && p.action) || ""); return a === "setkey" || a === "password_recover"; };
+const passwordRefusal = () => JSON.stringify({ ok: false, why: "There is one password for the whole of CM. Change it in CM, under More tools, CM password." });
+
+module.exports = { changesPassword, passwordRefusal, ORDER, NEEDS, stageOf, refusal };

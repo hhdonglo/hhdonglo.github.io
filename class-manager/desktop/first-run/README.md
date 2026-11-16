@@ -18,6 +18,8 @@ A later step never opens before an earlier one is done.
 | `../app/login.html` | The sign-in screen; the same page chooses the password the first time. |
 | `../app/bank-folder.js` | The course folder card in setup. |
 
+**No per-course password.** Course-level passwords and recovery codes are gone: the course lecturer key is set from the CM password (`giveCentral`) and is never shown; the pages refuse `setkey` and `password_recover` (`stages.js`, `changesPassword`); the temporary key, the Host key button and the reset path were removed. Only a browser opened outside CM (for example a phone) asks for the CM password, once.
+
 **How one password reaches every course.** `main.js` keeps the password in memory after sign-in and gives it to each course's own lecturer key (`giveCentral`, stamped per course so it is done once per change). The CM window signs in to lecturer pages by itself (`preload.js` reads `cm:sessionKey`). Phones or other browsers that open lecturer pages still need the password once.
 
 **Online quiz format** (`quizzes/lectureN.json` on the website): `{ lecture, title, questions: [ { id, type (concept, calc, graph, misconception), q, options[4], answer (0 to 3), exp, ref, ... } ] }`. Extra fields (`source`, `tag`, `level`, `calc`) are kept. Tests load every online file.
