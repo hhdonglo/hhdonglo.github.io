@@ -351,3 +351,5 @@ CM's side of the relay hub: `desktop/relay/hub.js` and `desktop/relay/address.js
 `desktop/rules/quiz-results.js` (the answers of a paced quiz, compiling them when it ends, Release and Discard of held results, the item log, presence) with `test/quiz-results-parity.test.js`. Release calls the score tables through the `master` and `totals` hooks, which `rules/score-tables.js` fills in the next step.
 
 `desktop/rules/score-tables.js` (Master, Scores and Totals, built from released results, practice and mock tries) is the `master` and `totals` hook of a release; the release test compares all three tabs with the script's.
+
+`desktop/rules/quiz-submit.js` (what a student's page sends: answer, join, progress, timed submission, practice attempt, question report) with `test/quiz-submit-parity.test.js`, which sends the same requests to the script and to the module and compares outcomes, receipts and every record tab.

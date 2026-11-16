@@ -53,6 +53,10 @@ function answerCounts(store, code, q) { // how many have answered question q, an
   return { answered: n, dist, first: { answered: fn, dist: fdist }, changed: again };
 }
 
+// Rows of Form Responses 1 followed by the held rows (14 columns each).
+const respRows = (store) => body(store, RESPONSES, 14).concat(body(store, STAGED, 14));
+const addHeld = (store, row) => { const r = store.rows(STAGED) || [RESP_HEADER.slice()]; store.setRows(STAGED, r.concat([row])); };
+
 // ---------- presence ----------
 function presence(store, code, id, name, status) {
   const rows = store.rows(PRESENCE) || [PRESENCE_HEADER.slice()], now = store.now();
@@ -142,4 +146,4 @@ function discard(store, code, everyRound) {
 // The hooks quiz-control's act() needs, tied to a store and its options.
 const hooks = (store, o) => ({ finalize: (code) => finalize(store, code, o), commit: (code, every) => commit(store, code, every, o), discard: (code, every) => discard(store, code, every) });
 
-module.exports = { rowFor, addAnswer, latestAnswers, answerCounts, presence, hasPresence, logItems, dropItems, finalize, commit, discard, hooks, roundOf, RESP_HEADER, ITEMS_HEADER, ANSWERS_HEADER };
+module.exports = { rowFor, respRows, addHeld, addAnswer, latestAnswers, answerCounts, presence, hasPresence, logItems, dropItems, finalize, commit, discard, hooks, roundOf, RESP_HEADER, ITEMS_HEADER, ANSWERS_HEADER };
