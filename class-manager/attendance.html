@@ -78,6 +78,12 @@ body.focus main{padding-top:1rem}
    <select id="a-rad"><option value="250">250 m</option><option value="500" selected>500 m (default)</option><option value="1000">1 km</option><option value="2000">2 km</option></select></p>
   <p><button class="go big" type="button" id="a-start">Start attendance</button></p>
   <p class="note" id="a-last"></p>
+  <div id="a-pos" hidden>
+   <p class="note" id="a-pos-why" role="alert"></p>
+   <p class="note">This computer could not give its own position (some desktop programs cannot, even when location is allowed). Enter the classroom position instead. In an online map, right-click the classroom and copy the two numbers, for example 5.6037, -0.1870. CM remembers it for next time.</p>
+   <p><label for="a-pos-in">Classroom position (latitude, longitude)</label> <input id="a-pos-in" type="text" inputmode="decimal" autocomplete="off" placeholder="5.6037, -0.1870"></p>
+   <p><button class="go" type="button" id="a-pos-go">Start with this position</button> <button class="go alt" type="button" id="a-pos-none">Start without the location check</button></p>
+  </div>
   <p class="note" id="a-nocode" hidden></p>
  </section>
  <section class="panel" id="a-live" hidden>
@@ -212,15 +218,22 @@ $("a-start").addEventListener("click",function(){
  });
  };
  // The browser asks once for this device's location; students are compared with it. Without it, only a confirmed "start without" opens a session, and then nobody is checked by location.
+ var parsePos=function(t){var m=String(t||"").match(/^\s*(-?\d{1,2}(?:\.\d+)?)\s*[,;\s]\s*(-?\d{1,3}(?:\.\d+)?)\s*$/);if(!m)return null;var la=+m[1],lo=+m[2];return Math.abs(la)<=90&&Math.abs(lo)<=180?[la,lo]:null};
+ var withPos=function(la,lo,note){try{localStorage.setItem("cm_rad",$("a-rad").value)}catch(x){}go("&lat="+la.toFixed(5)+"&lon="+lo.toFixed(5)+"&radius="+encodeURIComponent($("a-rad").value),note)};
+ // Never silent: say what failed, then offer the classroom position typed in, or an explicit start without the check.
  var noLoc=function(why){
-  if(window.confirm(why+"\n\nStart WITHOUT the location check? Then anyone with the link and code could check in from anywhere. Press Cancel to stop, allow location for this page, and try again.")){go("&nogeo=1","Started without the location check.")}
-  else{$("a-start").disabled=false;$("a-last").textContent="Not started: allow location for this page and try again."}
+  var saved="";try{saved=localStorage.getItem("cm_pos")||""}catch(x){}
+  $("a-pos-why").textContent=why;$("a-pos-in").value=saved;$("a-pos").hidden=false;$("a-pos-in").focus();
+  $("a-start").disabled=false;$("a-last").textContent="Location check not started yet: enter the classroom position below, or start without it.";
  };
+ $("a-pos-go").onclick=function(){var v=parsePos($("a-pos-in").value);if(!v){$("a-pos-why").textContent="Enter latitude and longitude as two numbers, for example 5.6037, -0.1870.";return}
+  try{localStorage.setItem("cm_pos",v[0]+", "+v[1])}catch(x){}$("a-pos").hidden=true;$("a-start").disabled=true;withPos(v[0],v[1],"Location check on, using the classroom position you entered.")};
+ $("a-pos-none").onclick=function(){if(window.confirm("Start WITHOUT the location check? Then anyone with the link and code could check in from anywhere."))$("a-pos").hidden=true,$("a-start").disabled=true,go("&nogeo=1","Started without the location check.")};
  if(!navigator.geolocation){noLoc("This device cannot give a location.");return}
  navigator.geolocation.getCurrentPosition(function(p){
   try{localStorage.setItem("cm_rad",$("a-rad").value)}catch(x){}
   go("&lat="+p.coords.latitude.toFixed(5)+"&lon="+p.coords.longitude.toFixed(5)+"&radius="+encodeURIComponent($("a-rad").value),p.coords.accuracy>100?"This device's location is rough (about "+Math.round(p.coords.accuracy)+" m); the radius is widened by that much for the check. Try a student's phone at the back of the room.":"");
- },function(){noLoc("Location was not allowed or could not be found.")},{enableHighAccuracy:true,timeout:15000,maximumAge:0});
+ },function(er){noLoc(er&&er.code===1?"This computer refused the location request (allow location for CM in the system privacy settings).":"This computer could not find its location ("+((er&&er.message)||"no reason given")+").")},{enableHighAccuracy:true,timeout:15000,maximumAge:0});
 });
 $("a-close").addEventListener("click",function(){
  if(!window.confirm("Close attendance? Check-ins stay held and are not recorded in the Attendance sheet until you press Submit attendance in the Control Centre."))return;
