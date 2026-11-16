@@ -33,7 +33,7 @@ One hosted relay, run by Hope, for all lecturers (a Cloudflare Worker with D1 in
 
 ## 1b. Setting up the relay: guided, once, by Hope only
 **(a) What Hope does once** (about 15 minutes, no coding):
-1. Create a free Cloudflare account (email and a password; this cannot be automated).
+1. A Cloudflare account: Hope already has one, so this step is done. The account already holds Workers named `phyanalytics` and `numeralanalytics` and the domains `phyanalytics.com` and `numeralanalytics.com`; they are not touched.
 2. In the Cloudflare dashboard make one API token with the "Edit Cloudflare Workers" and "Edit D1" permissions and copy it.
 3. Run one command on any computer with Node: `node relay/deploy.mjs` and paste the token when asked.
 
@@ -41,7 +41,9 @@ One hosted relay, run by Hope, for all lecturers (a Cloudflare Worker with D1 in
 
 **(c) Lecturers never touch Cloudflare.** The relay address is built into CM: the release workflow reads it from one repository setting (`CM_RELAY_URL`) and writes it into the app's config when it builds the installers. A lecturer installs CM and phones work; CM registers the course by itself (section 1). If the address is empty, CM works as it does today with no relay (local only). A guided "set up my own relay" screen in CM is possible for an institution that wants its own relay (it would run the same deploy script after asking for their token), but it is not needed for Hope's users and is left out of the first version.
 
-What cannot be automated: creating the Cloudflare account and the token, and Hope deciding the privacy notice text. Everything after that is scripted.
+**Safety around the existing account:** the deploy script uses clearly separate names (`cm-relay` for the Worker, `cm-relay-db` for the database, and `cm-relay` for the cleanup schedule), never lists, edits, binds, or deletes anything else, and uses no custom domain (only the free `workers.dev` address). Before creating anything it lists the account's Workers and databases and stops with a clear message if either name already exists (unless Hope passes `--update` to redeploy her own `cm-relay`). A `--dry-run` shows what it would create and changes nothing. The API token can be limited to this account's Workers and D1 and is revoked from the dashboard whenever Hope wants.
+
+What cannot be automated: creating the API token, and Hope deciding the privacy notice text. Everything after that is scripted.
 
 ## 2. What will be removed from CM and what stays (nothing removed yet)
 Removal happens in the last stage, after the rules are ported and the relay works. Exactly:
