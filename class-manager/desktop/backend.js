@@ -253,7 +253,7 @@ function createBackend(opts) {
     // Secrets kept sealed beside the records (for example the mailbox keys): never in settings.json, never in an export.
     // A script setting (what PropertiesService holds): read and written by the rules/ modules.
     prop: (k) => (k in book.props ? book.props[k] : null),
-    setProp: (k, v) => { book.props[k] = String(v); touch("props"); },
+    setProp: (k, v) => { if (v == null) delete book.props[k]; else book.props[k] = String(v); touch("props"); }, // null removes the setting
     secret: (k) => ("cm.secret." + k in book.props ? book.props["cm.secret." + k] : null),
     setSecret: (k, v) => { book.props["cm.secret." + k] = String(v); touch("props"); },
     receipts: { get: (k) => { const r = db.raw.prepare("SELECT response FROM receipt WHERE ckey = ?").get(String(k)); return r ? r.response : null; }, put: (k, text) => { db.raw.prepare("INSERT OR IGNORE INTO receipt(ckey, response, at) VALUES(?, ?, ?)").run(String(k), String(text), Date.now()); }, prune: (days) => db.raw.prepare("DELETE FROM receipt WHERE at < ?").run(Date.now() - days * 86400000) },
