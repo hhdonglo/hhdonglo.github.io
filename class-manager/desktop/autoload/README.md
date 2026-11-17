@@ -17,12 +17,14 @@ The lecturer points at a folder. CM lists the files, works out what each holds (
 | `book.js` | Joins the sheets of several files for the existing import. | yes |
 | `read-file.js` | Reads Excel, CSV, Word (tables and text), text and PDF (text) into sheets. Read only. | no |
 | `analyze.js` | Reads one file and returns what it holds (calls `read-file.js` and `extract.js`). | no |
+| `placement.js` | Names each scanned file by kind (attendance sheet, quiz results, grades and marks, class list, quiz questions, outline) and says where its data goes. Feeds the single preview. | yes |
 | `scan.js` | Lists readable files in a folder (depth 6, 1,500 files, 60 MB each; skips hidden, temporary and linked items) and watches it. | no |
 | `store.js` | Remembers what each file held, keyed by size and date, so an unchanged file is not read again. | no |
 | `folder.js` | Scans a folder: list, read only new or changed files, forget removed ones. | no |
 | `working.js` | Merges the chosen files and writes the working file (`working-file.xlsx` and one CSV per table). | no |
 | `../autoload-ipc.js` | The screen's calls (`cm:auto*`): pick, scan, watch, plan, questions, export. | no |
-| `../app/folder.js` | The screen. | no |
+| `../app/folder.js` | The screen. A scan goes straight to one preview of every recognised file; Back shows the file list to untick. | no |
+| `../app/folder-placement.js` | The table "What was found and where it goes" in that preview. | no |
 
 ## Rules
 
@@ -55,3 +57,6 @@ A course outline (Word, PDF or text) in the folder is read even though it holds 
 
 ## file-types.js
 The one list of file types every upload screen allows and names (CSV, Excel, Word, PDF, PowerPoint, Markdown, text). Used by the open dialogs for course material, lecture files, question import, the LMS roster and folder loading, so they cannot drift apart. `authoring.js` extract reads tables through `read-file.js`.
+
+## One folder, one load
+`Choose a folder` scans every sub-folder (depth 6), recognises each file, builds the preview (`placement.js` table, counts, flagged IDs) and ends in one button, "Load everything". Student data is refused until a class list exists (the preview says so and the button is off). Unknown IDs are flagged, never added. Quiz questions are never loaded by it: they go to the review queue by their own button. Test: `test/folder-placement.test.js`.

@@ -35,7 +35,7 @@
 
   function welcome(msg) {
     body.innerHTML =
-      "<p>Choose the folder that holds your class files, for example the folder with the class list, the quiz bank, the scores and the attendance.</p>" +
+      "<p>Choose one folder that holds everything for attendance and grades. CM looks through every folder inside it, recognises each file (attendance sheets, quiz results, grades and marks, Excel, CSV, Word, PDF or text), and shows where each one goes before anything is loaded.</p>" +
       "<ul class='note' style='line-height:1.7'><li>Excel, CSV, Word, text and PDF files are looked at. Files can be in any layout: CM looks for the columns it needs by their headings and by what they contain, and ignores the rest.</li>" +
       "<li>It keeps only the useful fields and writes a clean working file of its own. <strong>Your original files are never changed.</strong></li>" +
       "<li>You see what was found, and what is missing, before anything is added to the course.</li></ul>" +
@@ -63,8 +63,12 @@
       "<details><summary class='note'>What was taken from it</summary><ul class='note'>" + cols + "</ul>" + (left ? "<p class='note'>Left out:</p><ul class='note'>" + left + "</ul>" : "") + "</details></li>";
   }
 
+  var listOnly = false; // true when the lecturer asked for the file list (Back, a failed preview); otherwise a scan goes straight to the one preview
   function found(r) {
-    try { foundScreen(r); } catch (err) { failed(err); }
+    try { foundScreen(r); } catch (err) { failed(err); return; }
+    var hasData = r && r.ok && r.files.some(function (f) { return f.ok && f.useful && !f.big; });
+    if (hasData && !listOnly) preview(); // one folder, one preview: every recognised file is ticked, the lecturer can still go Back and untick
+    listOnly = false;
   }
   function foundScreen(r) {
     if (!r.ok) return welcome(r.why);
@@ -96,7 +100,7 @@
     if (!chosenIds.length) { var st = body.querySelector("#fld-status"); if (st) st.textContent = "Tick at least one file."; return; }
     busy("Building the working file…");
     cmApp.autoPlan({ ids: chosenIds, addMissing: opts.addMissing }).then(function (r) {
-      if (!r.ok) { found(scan); var st = body.querySelector("#fld-status"); if (st) st.textContent = r.why; return; }
+      if (!r.ok) { listOnly = true; found(scan); var st = body.querySelector("#fld-status"); if (st) st.textContent = r.why; return; }
       working = r; opts.addMissing = r.addMissing;
       return cmApp.autoCourse({ ids: chosenIds }).then(function (c) { courseFields = c && c.ok ? c.fields : []; courseTopics = c && c.ok ? c.topics : []; courseExisting = c && c.ok ? c.existing : []; }, function () { courseFields = []; courseTopics = []; }).then(function () { show(r); });
     }).catch(function (err) { failed(err); });
@@ -108,7 +112,7 @@
       "<p class='note'>Nothing was added to the course. Go back, untick the file that may be the cause, and try again.</p>" +
       buttons("<button class='btn' type='button' id='fld-cancel'>Close</button><button class='btn primary' type='button' id='fld-back2'>Back to the files</button>");
     body.querySelector("#fld-cancel").onclick = close;
-    body.querySelector("#fld-back2").onclick = function () { busy("Looking at the folder…"); cmApp.autoScan({}).then(found); };
+    body.querySelector("#fld-back2").onclick = function () { busy("Looking at the folder…"); listOnly = true; cmApp.autoScan({}).then(found); };
   }
 
   // What is being imported, in plain terms, before anything is applied.
@@ -134,16 +138,18 @@
     var table = rep.blocked || !rep.tabs.length ? "" : "<div class='tbl' style='height:auto;max-height:16rem'><table><thead><tr><th>Records</th><th>In the files</th><th>New</th><th>Already here</th><th>Not on class list</th></tr></thead><tbody>" + rep.tabs.map(tableRow).join("") + "</tbody></table></div>";
     body.innerHTML =
       "<p><strong>Working file made.</strong> From " + (r.name ? esc(r.name) : "the files") + ", CM kept " + esc(countsOf(s) || "nothing") + ". It is saved in CM's own folder; your originals are untouched.</p>" +
+      (window.cmFolderPlacement ? cmFolderPlacement.html(scan && scan.placement, chosenIds) : "") +
+      (rep.blocked ? "<p class='msg err' role='alert'><strong>No student data can be loaded yet.</strong> This course has no class list. Add it first on the Class Roster page, then load this folder again. Nothing has been changed.</p>" : "") +
       "<p class='row'><button class='btn' type='button' id='fld-export'>Export the working file…</button><button class='btn' type='button' id='fld-open'>Open the working folder</button></p>" +
       "<p>Class list: <strong>" + n(st.classList) + "</strong> students in this course. <strong>" + n(st.withData) + "</strong> have records in the files." + (st.notOnList ? " <strong>" + n(st.notOnList) + "</strong> other IDs are not on the class list. They are left out and not added. <strong>The class list is the source of truth for who is in this course</strong>, and it is changed only on the Class Roster page." : "") + "</p>" +
       summaryHtml(r.summary, rep) + (window.cmFolderCourse ? cmFolderCourse.html(courseFields, courseTopics, courseExisting) : "") +
       (st.namesFilled ? "<p class='note'>" + n(st.namesFilled) + " student(s) on the class list had no name; the files give it.</p>" : "") + flaggedHtml(st) + conflictsHtml(st) + table + (rep.warnings || []).map(function (x) { return "<p class='msg'>" + esc(x) + "</p>"; }).join("") +
       (qn ? "<p>The files also hold <strong>" + n(qn) + "</strong> quiz question set(s). <button class='btn' type='button' id='fld-q'>Send them to the review queue</button> <span class='note' id='fld-qmsg' role='status'>You approve each question before students see it.</span></p>" : "") +
       (rep.changes ? "<p class='note'>A backup is made first. Records already here are never changed, and loading the same files again adds nothing.</p>" : "<p class='msg'>Nothing in these files is new to this course.</p>") +
-      buttons("<button class='btn' type='button' id='fld-back'>Back</button><button class='btn' type='button' id='fld-cancel'>Close</button><button class='btn primary' type='button' id='fld-go'" + (rep.changes ? "" : " disabled") + ">Add " + (rep.changes ? n(rep.changes) + " records" : "") + " to the course</button>");
+      buttons("<button class='btn' type='button' id='fld-back'>Back</button><button class='btn' type='button' id='fld-cancel'>Close</button><button class='btn primary' type='button' id='fld-go'" + (rep.changes ? "" : " disabled") + ">" + (rep.changes ? "Load everything (" + n(rep.changes) + " records)" : "Nothing to load") + "</button>");
     body.querySelector("#fld-cancel").onclick = close;
     if (window.cmFolderCourse) cmFolderCourse.wire(body);
-    body.querySelector("#fld-back").onclick = function () { cmApp.autoScan({}).then(found); };
+    body.querySelector("#fld-back").onclick = function () { listOnly = true; cmApp.autoScan({}).then(found); };
     body.querySelector("#fld-export").onclick = function () { cmApp.autoExport().then(function (x) { if (x && !x.ok) alert(x.why); }); };
     body.querySelector("#fld-open").onclick = function () { cmApp.autoOpenWorking(); };
     var q = body.querySelector("#fld-q");

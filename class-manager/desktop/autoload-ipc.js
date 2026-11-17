@@ -15,6 +15,7 @@ const { analyzeFile } = require("./autoload/analyze");
 const { findDetails, FIELDS } = require("./autoload/course-details");
 const { importSummary } = require("./autoload/summary");
 const { oversized } = require("./autoload/oversize");
+const { placementOf } = require("./autoload/placement");
 const { plan } = require("./import-plan");
 const { pending } = require("./import-ipc");
 
@@ -43,7 +44,8 @@ function registerOn(opts, { on, dialog, winOf, shell, dirOf }) {
     const store = createStore(wdir(c));
     const r = await scanFolder(s.folder, store, { force, exclude: [wdir(c)], onProgress: (p) => { try { e.sender.send("cm:autoProgress", p); } catch (x) { /* the window closed */ } } });
     s.analyses = r.analyses;
-    return { ok: true, folder: s.folder, files: flagBig(r.analyses.map((a, i) => shown(a, i))), skipped: r.skipped, capped: r.capped, reread: r.reread, watching: !!s.watcher };
+    const files = flagBig(r.analyses.map((a, i) => shown(a, i)));
+    return { ok: true, folder: s.folder, files, placement: placementOf(files.map((f, i) => Object.assign({}, f, { hints: r.analyses[i].hints }))), skipped: r.skipped, capped: r.capped, reread: r.reread, watching: !!s.watcher };
   }
 
   on("cm:autoState", (c) => { const s = get(c); return { folder: s.folder, watching: !!s.watcher, workingFolder: wdir(c) }; });
@@ -63,7 +65,8 @@ function registerOn(opts, { on, dialog, winOf, shell, dirOf }) {
     if (r.canceled || !r.filePaths.length) return null;
     const s = get(c), root = path.dirname(r.filePaths[0]); s.analyses = [];
     for (const f of r.filePaths.slice(0, 50)) s.analyses.push(await analyzeFile(f, root));
-    return { ok: true, folder: root, files: flagBig(s.analyses.map((a, i) => shown(a, i))), skipped: { other: 0, tooBig: 0, hidden: 0 }, capped: false, reread: s.analyses.length, watching: false };
+    const files = flagBig(s.analyses.map((a, i) => shown(a, i)));
+    return { ok: true, folder: root, files, placement: placementOf(files.map((f, i) => Object.assign({}, f, { hints: s.analyses[i].hints }))), skipped: { other: 0, tooBig: 0, hidden: 0 }, capped: false, reread: s.analyses.length, watching: false };
   });
 
   on("cm:autoScan", (c, e, o) => scan(c, e, !!(o && o.force)));
