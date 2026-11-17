@@ -7,9 +7,10 @@ const S = require("../rules/class-stats");
 const { fromBackend } = require("../rules/store");
 
 const ago = (d, m) => new Date(Date.now() - d * 864e5 + (m || 0) * 6e4).toISOString();
+// CM also lists sessions with no check-ins as not held (notHeld): the deprecated Apps Script copy does not, so that key is not compared.
 // CM adds clean session dates ("2 Nov 2026"), a date field and the attendance bands (people); the Apps Script copy keeps the file's own heading. Both sides are compared on the clean date.
 const { sessionLabel } = require("../rules/session-label");
-const norm = (r) => JSON.parse(JSON.stringify(r, (k, v) => (k === "_session" || k === "version" || k === "generated" || k === "people" || k === "date" ? undefined : typeof v === "string" ? v.replace(/\b\d\d\/\d\d\/\d{4}\b/g, (d) => sessionLabel(d)) : v)));
+const norm = (r) => JSON.parse(JSON.stringify(r, (k, v) => (k === "_session" || k === "version" || k === "generated" || k === "people" || k === "date" || k === "notHeld" ? undefined : typeof v === "string" ? v.replace(/\b\d\d\/\d\d\/\d{4}\b/g, (d) => sessionLabel(d)) : v)));
 
 function scenario(n, then) {
   const script = classroom({ students: n }), mod = classroom({ students: n });

@@ -151,6 +151,14 @@ function classStats(store, p, version) {
       attOf[aid] = marks;
     }
   }
+  // A session where nobody checked in (a test, an empty or an abandoned session) was not held: it is not counted, so it cannot pull every rate down
+  // or flag the whole class. The page lists these sessions as set aside (out.attendance.notHeld).
+  const notHeld = sessions.filter((s) => s.counted > 0 && s.present === 0).map((s) => ({ label: s.label, date: s.date }));
+  if (notHeld.length) {
+    const keep = sessions.map((s) => !(s.counted > 0 && s.present === 0));
+    Object.keys(attOf).forEach((k) => { attOf[k] = attOf[k].filter((_, i) => keep[i]); });
+    for (let i = sessions.length - 1; i >= 0; i--) if (!keep[i]) sessions.splice(i, 1);
+  }
   const opened = {}; body(store, ATT_CTL, 4).forEach((r) => { const t = new Date(r[3]).getTime(); if (t) opened[AT.column(String(r[1]))] = t; });
   const firstIn = {};
   body(store, ATT_LOG, 6).forEach((r) => {
@@ -165,7 +173,7 @@ function classStats(store, p, version) {
   let allArr = []; Object.keys(arrBySession).forEach((k) => { allArr = allArr.concat(arrBySession[k]); });
   const bySession = sessions.map((s) => { const a = statNums(arrBySession[s.raw] || []); return { label: s.label, date: s.date, present: s.present, counted: s.counted, rate: pct(s.present, s.counted), arrivalMedian: a.median, arrivals: a.n }; });
   const recent = bySession.slice(-3), earlier = bySession.slice(0, -3), avgRate = (xs) => { let p2 = 0, c2 = 0; xs.forEach((x) => { p2 += x.present; c2 += x.counted; }); return pct(p2, c2); };
-  out.attendance = { sessions: sessions.length, rate: avgRate(bySession), lastRate: bySession.length ? bySession[bySession.length - 1].rate : null, recentRate: avgRate(recent), earlierRate: earlier.length ? avgRate(earlier) : null, bySession, arrival: { median: statNums(allArr).median, bands: band(allArr), latest: sessions.length ? band(arrBySession[sessions[sessions.length - 1].raw] || []) : [] } };
+  out.attendance = { notHeld, sessions: sessions.length, rate: avgRate(bySession), lastRate: bySession.length ? bySession[bySession.length - 1].rate : null, recentRate: avgRate(recent), earlierRate: earlier.length ? avgRate(earlier) : null, bySession, arrival: { median: statNums(allArr).median, bands: band(allArr), latest: sessions.length ? band(arrBySession[sessions[sessions.length - 1].raw] || []) : [] } };
 
   const latest = {}, quizMeta = {};
   body(store, RESPONSES, 14).forEach((r) => {

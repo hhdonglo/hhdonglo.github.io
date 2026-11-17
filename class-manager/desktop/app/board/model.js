@@ -26,13 +26,19 @@
     var sm = d.summary || {}, att = a.sessions >= 4 ? delta(has(a.recentRate) ? a.recentRate : sm.recentRate, has(a.earlierRate) ? a.earlierRate : sm.earlierRate, " pts", "vs earlier sessions") : null;
     return [
       { key: "students", icon: "students", label: "Students", value: String(d.rosterSize || 0), note: d.rosterSize ? "on the class list" : "none on the class list yet", delta: null },
-      { key: "attendance", icon: "attendance", label: "Attendance rate", value: has(a.rate) ? a.rate + "%" : "–", note: a.sessions ? U.plural(a.sessions, "session", "sessions") : "no session yet", delta: att },
+      { key: "attendance", icon: "attendance", label: "Attendance rate", value: has(a.rate) ? a.rate + "%" : "–", note: a.sessions ? U.plural(a.sessions, "session", "sessions") + (a.notHeld && a.notHeld.length ? " (" + a.notHeld.length + " set aside)" : "") : "no session yet", delta: att },
       { key: "learning", icon: "quiz", label: "Quiz average", value: last ? r1(last.stats.mean) + "%" : "–", note: last ? "latest quiz, " + U.short(last.quiz, 18) : "no quiz released yet", delta: prev ? delta(last.stats.mean, prev.stats.mean, " pts", "vs the quiz before") : null },
       { key: "practice", icon: "practice", label: "Practice activity", value: String(pr.students), note: pr.students ? "students practised in the last " + pr.days + " days" : "no practice in the last " + pr.days + " days", delta: null },
-      { key: "risk", icon: "risk", label: "At risk", value: String(risk.total || 0), note: risk.total ? "students with a reason to check in" : "no one flagged", delta: null, goodDown: true }
+      { key: "risk", icon: "risk", label: "At risk", value: String(risk.strong || 0), note: riskNote(risk), delta: null, goodDown: true }
     ];
   }
 
+  // Only flags with solid evidence are counted as at risk; a flag built on very little data is named separately and never inflates the number.
+  function riskNote(r) {
+    var strong = r.strong || 0, thin = r.thin || 0;
+    if (!strong && !thin) return "no one flagged";
+    return (strong ? "students with a solid reason to check in" : "none with solid evidence") + (thin ? (strong ? ", " : "; ") + thin + " more on thin evidence" : "");
+  }
   function lec(l) { return l ? l.label + (l.title ? ", " + l.title : "") : ""; }
 
   // Lecture plan: held, behind plan and still to come add up to the planned number.
@@ -103,12 +109,22 @@
     if (qs.length >= 2) { var l = qs[qs.length - 1], p = qs[qs.length - 2], dq = r1(l.stats.mean - p.stats.mean); out.push({ icon: "trend", text: "The quiz average " + (dq === 0 ? "did not change" : (dq > 0 ? "rose" : "fell") + " by " + Math.abs(dq) + " points") + " from " + U.short(p.quiz, 18) + " to " + U.short(l.quiz, 18) + "." }); }
     if (lp && lp.target && (lp.state === "behind" || lp.state === "ahead" || lp.state === "ontrack" || lp.state === "met")) out.push({ icon: "pie", text: lp.headline + ". " + lp.held + " of " + lp.target + " lectures held." });
     if (rk.length) out.push({ icon: "spark", text: "Lowest topic: " + rk[0].label + " at " + rk[0].pct + "% correct" + (rk[0].small ? " (few answers)" : "") + "." + (rk.length > 1 ? " Strongest: " + rk[rk.length - 1].label + " at " + rk[rk.length - 1].pct + "%." : "") });
-    var risk = d.rosterSize ? RK().atRisk(d).total : 0;
-    if (risk) out.push({ icon: "alert", text: U.plural(risk, "student has", "students have") + " a reason to check in. Click the At risk card to see who." });
+    var rr = d.rosterSize ? RK().atRisk(d) : { strong: 0, thin: 0 };
+    if (rr.strong) out.push({ icon: "alert", text: U.plural(rr.strong, "student has", "students have") + " a solid reason to check in. Click the At risk card to see who." });
+    else if (rr.thin) out.push({ icon: "alert", text: U.plural(rr.thin, "student is", "students are") + " flagged on thin evidence only (fewer than " + RK().MIN_SESSIONS + " sessions or " + RK().MIN_QUIZZES + " quizzes), so nobody is counted as at risk yet." });
+    (d.targets || []).slice(0, 2).forEach(function (t) { out.push({ icon: "spark", text: t.title + (t.small ? " (small sample)" : "") + ": " + t.evidence }); });
     if (d.rosterSize >= 10 && pr.students) out.push({ icon: "bolt", text: U.plural(pr.students, "student", "students") + " of " + d.rosterSize + " practised in the last " + pr.days + " days." });
-    return out.slice(0, 5);
+    return out.slice(0, 6);
   }
 
-  var api = { kpis: kpis, plan: plan, progress: progress, topicDonut: topicDonut, groupDonut: groupDonut, ranked: ranked, findings: findings };
+  // The spread of the students' quiz averages, in plain numbers (median, middle half, lowest, highest).
+  function spread(d) {
+    var v = (d.students || []).map(function (x) { return x.quizAverage; }).filter(has).sort(function (a, b) { return a - b; }), n = v.length;
+    if (!n) return { n: 0 };
+    var q = function (p) { var h = (n - 1) * p, lo = Math.floor(h), hi = Math.ceil(h); return v[lo] + (v[hi] - v[lo]) * (h - lo); };
+    return { n: n, median: r1(q(0.5)), q1: r1(q(0.25)), q3: r1(q(0.75)), min: r1(v[0]), max: r1(v[n - 1]) };
+  }
+
+  var api = { kpis: kpis, plan: plan, progress: progress, topicDonut: topicDonut, groupDonut: groupDonut, ranked: ranked, findings: findings, spread: spread };
   if (typeof module === "object" && module.exports) module.exports = api; else root.cmBoardModel = api;
 })(typeof window !== "undefined" ? window : globalThis);

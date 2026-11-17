@@ -31,6 +31,20 @@
   function rankedPanel(d) { return head("Topics needing attention", "Lowest first") + RK.table(M.ranked(d, 6)); }
   function insightsPanel(d, lp) { return head("Insights", "From the numbers only") + F.list(M.findings(d, lp)); }
 
+  // The spread of quiz averages in plain numbers: a white card with the five figures (the bars are in Class graphs).
+  function spreadCard(d) {
+    var sp = M.spread(d);
+    return "<section class='bd-card' id='bd-spread' aria-label='How quiz averages are spread'>" + head("How quiz averages are spread", sp.n ? U.plural(sp.n, "student", "students") + " with a quiz result" : "") +
+      (sp.n ? "<dl class='bd-facts'><div><dt>Median</dt><dd>" + sp.median + "%</dd></div><div><dt>Middle half</dt><dd>" + sp.q1 + "% to " + sp.q3 + "%</dd></div><div><dt>Lowest</dt><dd>" + sp.min + "%</dd></div><div><dt>Highest</dt><dd>" + sp.max + "%</dd></div></dl>" +
+        "<p class='bd-foot'>The middle half is the range holding the central half of the class. Bands, outliers and the fitted curve are in Class graphs below; click a band to list its students.</p>" : "<p class='bd-empty'>Appears once students have a quiz result.</p>") + "</section>";
+  }
+  // Sessions with no check-ins are not counted (rules/class-stats.js). Said plainly, so a missing session is never a mystery.
+  function setAsideCard(d) {
+    var nh = (d.attendance && d.attendance.notHeld) || [];
+    if (!nh.length) return "";
+    return "<section class='bd-card' id='bd-aside' aria-label='Sessions not counted'>" + head("Sessions not counted", U.plural(nh.length, "session", "sessions")) +
+      "<p class='bd-empty'>Nobody checked in at " + nh.map(function (x) { return U.esc(String(x.label).replace(/\s+\d{4}$/, "")); }).join(", ") + ", so " + (nh.length === 1 ? "it is" : "they are") + " treated as not held. They do not lower the attendance rates and do not flag students. A session counts as soon as one student has checked in.</p></section>";
+  }
   // The whole board. Panels carry ids so they can be redrawn one by one (interact.js).
   function html(d, lp, st) {
     st = st || {};
@@ -41,6 +55,6 @@
       "<section class='bd-card' id='bd-rank' aria-label='Topics needing attention'>" + rankedPanel(d) + "</section>" +
       "<section class='bd-card' id='bd-ins' aria-label='Insights'>" + insightsPanel(d, lp) + "</section></div>";
   }
-  var api = { html: html, planPanel: planPanel, progressPanel: progressPanel, breakPanel: breakPanel, rankedPanel: rankedPanel, insightsPanel: insightsPanel };
+  var api = { spreadCard: spreadCard, setAsideCard: setAsideCard, html: html, planPanel: planPanel, progressPanel: progressPanel, breakPanel: breakPanel, rankedPanel: rankedPanel, insightsPanel: insightsPanel };
   if (typeof module === "object" && module.exports) module.exports = api; else root.cmBoardView = api;
 })(typeof window !== "undefined" ? window : globalThis);

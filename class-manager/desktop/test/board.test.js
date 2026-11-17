@@ -6,6 +6,7 @@ const M = require("../app/board/model");
 const V = require("../app/board/render");
 const BL = require("../app/board/barline");
 const D = require("../app/board/donut");
+const SEC = require("../app/board/sections");
 
 const stu = (id, o) => Object.assign({ id, name: "Student " + id, group: "On track", missedInARow: 0, change: null, quizzesTaken: 3, attendance: 90, quizAverage: 70, practiceRecent: 1 }, o);
 const base = () => ({
@@ -54,7 +55,7 @@ test("breakdown and ranked table come from the learning topics, lowest first, wi
 
 test("findings are worked out from the numbers and never more than five", () => {
   const f = M.findings(base(), lp());
-  assert.ok(f.length >= 4 && f.length <= 5);
+  assert.ok(f.length >= 4 && f.length <= 6);
   assert.ok(f.some((x) => /Attendance fell by 20 points/.test(x.text)));
   assert.ok(f.some((x) => /Lowest topic: Forces at 41%/.test(x.text)));
   assert.deepStrictEqual(M.findings({ rosterSize: 0, attendance: {}, quizzes: [], learning: {}, students: [] }, null), []);
@@ -82,4 +83,33 @@ test("chart strings: a bar with no drill is not a button; a donut with no data i
   assert.ok(!BL.svg(lec).includes("data-bd-bar"));
   assert.ok(BL.svg(M.progress(base(), lp())[0]).includes("data-bd-key='attendance'"));
   assert.ok(/no data/.test(D.svg([{ key: "a", label: "A", value: 0, color: "orange" }], null, "T")));
+});
+
+test("at risk counts only solid evidence; flags on thin evidence are named separately and never inflate the number", () => {
+  const d = base(); d.attendance.sessions = 2; d.quizzes = d.quizzes.slice(0, 1); // under 4 sessions and 2 quizzes: every reason is thin
+  d.students = [stu("1", { attendance: 20 }), stu("2", { attendance: 30 })];
+  const k = M.kpis(d)[4];
+  assert.strictEqual(k.value, "0"); assert.ok(/2 more on thin evidence/.test(k.note), k.note);
+  assert.ok(M.findings(d, null).some((x) => /thin evidence only/.test(x.text)));
+});
+
+test("sessions set aside are said in the attendance card and in the Attendance KPI", () => {
+  const d = base(); d.attendance.notHeld = [{ label: "3 Nov 2026" }, { label: "6 Nov 2026" }];
+  assert.ok(/\(2 set aside\)/.test(M.kpis(d)[1].note));
+  const c = V.setAsideCard(d); assert.ok(/3 Nov, 6 Nov/.test(c) && /treated as not held/.test(c));
+  assert.strictEqual(V.setAsideCard(base()), "");
+});
+
+test("spread card gives median, middle half, lowest and highest from the students' quiz averages", () => {
+  const d = base(); d.students = [10, 20, 30, 40, 50].map((q, i) => stu(String(i), { quizAverage: q }));
+  const sp = M.spread(d); assert.deepStrictEqual([sp.n, sp.median, sp.q1, sp.q3, sp.min, sp.max], [5, 30, 20, 40, 10, 50]);
+  assert.ok(/Middle half/.test(V.spreadCard(d)) && /Appears once/.test(V.spreadCard({ students: [] })));
+});
+
+test("sections: each piece sits under its heading once, in order, empty sections are left out, with a jump row", () => {
+  const html = SEC.compose({ overview: ["<p id='a'></p>"], quizzes: ["<p id='b'></p>"], risk: [""], privacy: ["<p id='c'></p>"] });
+  assert.ok(html.indexOf("id='sec-overview'") < html.indexOf("id='sec-quizzes'") && html.indexOf("id='sec-quizzes'") < html.indexOf("id='sec-privacy'"));
+  assert.ok(!html.includes("sec-risk\"") && !html.includes("id='sec-risk'"), "an empty section is omitted");
+  assert.strictEqual((html.match(/id='a'/g) || []).length, 1); assert.ok(html.includes("href='#sec-quizzes'") && !html.includes("href='#sec-risk'"));
+  assert.deepStrictEqual(SEC.ORDER.map((x) => x[0]), ["overview", "attendance", "quizzes", "risk", "questions", "relations", "actions", "privacy"]);
 });

@@ -106,6 +106,11 @@
   function forScreen(screen, d, cohorts) {
     var g = groups(d, cohorts), it = items(d);
     if (screen === "overview") return [sessions(d), quizTrend(d), spread(d), risk(d), change(d), practice(d), participation(d)].concat(g, it);
+    // The Class Analytics sections (board/sections.js) each take their own charts, so no chart appears twice on the page.
+    if (screen === "ov-attendance") return d.attendance && d.attendance.sessions ? [missed(d)] : [];
+    if (screen === "ov-quizzes") return [participation(d), change(d), practice(d)].concat(g);
+    if (screen === "ov-risk") return [risk(d)];
+    if (screen === "ov-questions") return it;
     if (screen === "attendance") return [missed(d)];
     if (screen === "quizzes") return [participation(d), spread(d), change(d), topics(d)].concat(it);
     if (screen === "students") return [spread(d), practice(d)].concat(g);

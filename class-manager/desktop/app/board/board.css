@@ -35,3 +35,16 @@ body.has-board .lp .lp-nums,body.has-board .lp .lp-bar,body.has-board .lp .lp-te
 @media (max-width:760px){.bd-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.bd-grid{grid-template-columns:minmax(0,1fr)}.bd-w3,.bd-w2{grid-column:span 1}.bd-plan{grid-template-columns:minmax(0,1fr)}.bd-donut{margin:0 auto}}
 .bd-table th{background:none;position:static}
 button.dstat.bd-kpi{border:1px solid #E6E9F0!important}
+
+/* Sections: headings and a jump row on the dark page; every chart card inside a section is white, with orange as the bar colour (Hope, 2026-11-17). */
+.bd-nav{display:flex;flex-wrap:wrap;gap:.5rem;margin:var(--gap) 0 0}
+.bd-nav a{padding:.3rem .9rem;border:1px solid var(--accent);border-radius:999px;color:var(--head);font-size:.85rem;font-weight:600;text-decoration:none}.bd-nav a:hover,.bd-nav a:focus-visible{background:var(--accent);color:var(--accent-ink);outline:none}
+.bd-sec{margin:2.2rem 0 0}.bd-sh{margin-bottom:.4rem}.bd-sh h2{margin:0;font-size:var(--fs-h2);color:var(--head);border-left:4px solid var(--accent);padding-left:.7rem}.bd-sh p{margin:.3rem 0 0 .95rem;color:var(--muted);font-size:.95rem}
+.bd-sec .card,.bd-sec .acard{--card:#fff;--card-2:#F4F6FB;--line:#E6E9F0;--text:#1F2D45;--muted:#5A6579;--faint:#5F6A7E;--head:#16294B;--grid:#E6E9F0;--bar:#E8772E;--accent:#9A5B12;--accent-ink:#fff;--focus:#C2531B;
+  background:#fff;color:#1F2D45;border:1px solid #E6E9F0;border-radius:16px;box-shadow:0 1px 2px rgba(15,23,42,.08),0 6px 18px rgba(15,23,42,.08)}
+.bd-sec .card .link{color:#B4561A}
+.bd-sec>.card,.bd-sec>.dgrid,.bd-sec>.bd-card,.bd-sec>#gx,.bd-sec>div[id]{margin-top:var(--gap)}
+.bd-facts{display:flex;flex-wrap:wrap;gap:.6rem 1.8rem;margin:.4rem 0}.bd-facts div{display:flex;flex-direction:column}.bd-facts dt{font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:#5A6579}.bd-facts dd{margin:0;font-size:1.5rem;font-weight:700;color:#1F2D45}
+.bd-sec .card input,.bd-sec .card select,.bd-sec .card textarea,.bd-sec .card .f{background:#fff;color:#1F2D45;border:1px solid #CBD3E1}
+.bd-sec .card .btn{color:#1F2D45;border-color:#CBD3E1}.bd-sec .card .btn:hover{background:#FFF4E6}
+.bd-sec .card .todo-a{color:#9A5B12}.bd-sec .card .tk{color:#5A6579}
