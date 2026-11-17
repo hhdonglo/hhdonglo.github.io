@@ -9,7 +9,7 @@
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
   function plural(n, one, many) { return n + " " + (n === 1 ? one : many); }
 
-  var data = { items: [] }, msg = "", showAside = false;
+  var data = { items: [] }, msg = "", showAside = false, keep = cmUnlistedSelect.create();
 
   function did(x) {
     var bits = [];
@@ -18,9 +18,9 @@
     return bits.length ? bits.join("; ") : "signed in";
   }
   function rowHtml(x, aside) {
-    return "<tr data-id='" + esc(x.id) + "'><td><input type='checkbox' class='ul-pick' aria-label='Select " + esc(x.id) + "'></td>" +
+    return "<tr data-id='" + esc(x.id) + "'><td><input type='checkbox' class='ul-pick' aria-label='Select " + esc(x.id) + "'" + (keep.isTicked(x.id) ? " checked" : "") + "></td>" +
       "<td><code>" + esc(x.id) + "</code></td>" +
-      "<td>" + (aside ? esc(x.name) : "<input type='text' class='ul-name' value='" + esc(x.name) + "' maxlength='80' placeholder='Name (optional)' aria-label='Name for " + esc(x.id) + "'>") + "</td>" +
+      "<td>" + (aside ? esc(x.name) : "<input type='text' class='ul-name' value='" + esc(keep.nameFor(x.id, x.name)) + "' maxlength='80' placeholder='Name (optional)' aria-label='Name for " + esc(x.id) + "'>") + "</td>" +
       "<td>" + did(x) + "</td><td>" + esc(plural(x.signIns, "sign-in", "sign-ins")) + "</td></tr>";
   }
   function table(list, aside) {
@@ -48,7 +48,13 @@
     }
     host.innerHTML = h;
   }
-  function load() { return cmApp.unlistedList().then(function (r) { if (r && r.ok) { data = r; draw(); } }); }
+  function load(force) {
+    return cmApp.unlistedList().then(function (r) {
+      if (!r || !r.ok) return;
+      data = r; keep.prune(r.items);
+      if (keep.changed(r.items) || force === true) draw(); // an unchanged list is left alone: nothing ticked or typed is lost
+    });
+  }
 
   function picked(scope) {
     var out = [];
@@ -61,16 +67,20 @@
   }
   function done(r, okText) {
     msg = r && r.ok ? okText(r) : (r && r.why) || "That did not work.";
-    return load();
+    keep.clearTicks(); return load(true);
   }
+  function rowId(el) { var tr = el.closest && el.closest("tr"); return tr ? tr.getAttribute("data-id") : ""; }
   host.addEventListener("change", function (ev) {
-    var a = ev.target.closest && ev.target.closest(".ul-all"); if (!a) return;
-    a.closest("table").querySelectorAll(".ul-pick").forEach(function (cb) { cb.checked = a.checked; });
+    var a = ev.target.closest && ev.target.closest(".ul-all");
+    if (a) { a.closest("table").querySelectorAll(".ul-pick").forEach(function (cb) { cb.checked = a.checked; keep.tick(rowId(cb), a.checked); }); return; }
+    var p = ev.target.closest && ev.target.closest(".ul-pick"); if (p) keep.tick(rowId(p), p.checked);
   });
+  host.addEventListener("input", function (ev) { var n = ev.target.closest && ev.target.closest(".ul-name"); if (n) keep.type(rowId(n), n.value); });
   host.addEventListener("click", function (ev) {
     var b = ev.target.closest && ev.target.closest("button[data-ul]"); if (!b) return;
     var act = b.getAttribute("data-ul"), aside = act === "restore", sel = picked(aside ? ".ul-aside" : ".ul-wait");
     if (!sel.length) { msg = "Select at least one student first."; draw(); return; }
+    msg = "";
     var ids = sel.map(function (x) { return x.id; });
     if (act === "add") {
       if (!confirm("Add " + plural(sel.length, "student", "students") + " to the class list? Each gets an access code and their sign-in records move in.")) return;
@@ -83,7 +93,7 @@
       showAside = true; b.disabled = true; cmApp.unlistedRestore(ids).then(function (r) { return done(r, function (x) { return plural(x.restored, "ID is", "IDs are") + " back on the waiting list."; }); });
     }
   });
-  document.addEventListener("click", function (ev) { var v = ev.target.closest && ev.target.closest("[data-view='roster']"); if (v) load(); });
+  document.addEventListener("click", function (ev) { var v = ev.target.closest && ev.target.closest("[data-view='roster']"); if (v) load(true); });
   if (cmApp.onAutoChanged) cmApp.onAutoChanged(load);
   setInterval(function () { if (document.visibilityState === "visible") load(); }, 15000); // check-ins arrive while the screen is open
   load();
