@@ -22,6 +22,24 @@ const STUB = (d, lp) => `(function(){var d=${JSON.stringify(d)},lp=${JSON.string
  var map={courses:function(){return{ok:true,list:[course],current:"phys143"}},info:function(){return{ok:true,me:{},source:course.source,repo:{},base:"http://x",addresses:[],settings:{port:8080},tabs:[],tunnel:null,setup:{steps:{course:true,classList:true,materials:true}}}},stats:function(){return d},lectureProgress:function(){return lp?{ok:true,progress:lp}:{ok:false}},analyticsExtra:function(){return{cohorts:{},interventions:[],termClosed:false,aiSummary:false,hasKey:false,privacyNotice:"x"}},weeklySummary:function(){return{ok:true,text:"Attendance and quiz results are steady. Two sessions with no check-ins were set aside.",source:"rules"}}};
  window.cmApp=new Proxy({},{get:function(_,k){return function(){return Promise.resolve(map[k]?map[k]():Object.assign([],{ok:true,list:[],rows:[],items:[],banks:[],docs:[],connected:false}))}},has:function(){return true}});})();`;
 
+// Click through the arrange controls and check they work and are remembered (CM_ARRANGE_CHECK=1).
+async function arrangeCheck(pg) {
+  const w = (k) => pg.evaluate((k) => document.querySelector("[data-bd-key='" + k + "']").style.getPropertyValue("--w"), "bd-prog");
+  const ok = (c, m) => { console.log((c ? "ok   " : "FAIL ") + m); if (!c) process.exitCode = 1; };
+  const before = await w("bd-prog");
+  await pg.click("[data-bd-key='bd-prog'] [data-bd-act='wider']"); const after = await w("bd-prog"); ok(+after === +before + 1, "wider adds a column (" + before + " to " + after + ")");
+  await pg.click("[data-bd-key='bd-prog'] [data-bd-act='taller']"); ok(/px/.test(await pg.evaluate(() => document.querySelector("[data-bd-key='bd-prog']").style.height)), "taller sets a height");
+  const order = () => pg.evaluate(() => [].map.call(document.querySelectorAll("#sec-overview [data-bd-key]"), (e) => [e.getAttribute("data-bd-key"), +e.style.order]).sort((a, b) => a[1] - b[1]).map((x) => x[0]));
+  const o0 = await order(); await pg.click("[data-bd-key='bd-prog'] [data-bd-act='later']"); const o1 = await order(); ok(o1.indexOf("bd-prog") === o0.indexOf("bd-prog") + 1 || o1.join() !== o0.join(), "later moves the card down the order");
+  const dst = await pg.locator("[data-bd-key='bd-rank']").boundingBox(), src = await pg.locator("[data-bd-key='bd-prog'] .bd-ah").boundingBox();
+  await pg.dragAndDrop("[data-bd-key='bd-prog'] .bd-at", "[data-bd-key='bd-rank']"); ok(true, "drag and drop ran without an error");
+  await pg.click("[data-bd-key='bd-rank'] [data-bd-act='hide']"); ok(await pg.evaluate(() => document.querySelector("[data-bd-key='bd-rank']").classList.contains("bd-off")), "hide marks the card (still shown dimmed while arranging)");
+  await pg.click("[data-bd-act='done']"); ok(await pg.evaluate(() => document.querySelector("[data-bd-key='bd-rank']").hidden), "a hidden card disappears after Done");
+  await pg.reload(); await pg.waitForTimeout(900); ok(await pg.evaluate(() => document.querySelector("[data-bd-key='bd-rank']").hidden) && +(await w("bd-prog")) === +after, "width and hidden are remembered after a reload");
+  await pg.click("[data-bd-act='edit']"); await pg.click("[data-bd-show='bd-rank']"); ok(await pg.evaluate(() => !document.querySelector("[data-bd-key='bd-rank']").classList.contains("bd-off")), "a hidden card can be shown again");
+  await pg.click("[data-bd-act='reset']"); ok(+(await w("bd-prog")) === +before, "Reset layout restores the defaults");
+}
+
 (async () => {
   const out = process.argv[2], scheme = process.argv[3] || "dark"; fs.mkdirSync(out, { recursive: true });
   const d = stats(), browser = await chromium.launch();
@@ -32,17 +50,20 @@ const STUB = (d, lp) => `(function(){var d=${JSON.stringify(d)},lp=${JSON.string
   const tabs = process.env.CM_TABS ? process.env.CM_TABS.split(",") : ["overview", "attendance", "quizzes", "risk", "questions", "relations", "actions"];
   const shots = [];
   for (const t of tabs) { shots.push(["tab-" + t + "-wide", 1512, 2600, d, LP, t]); shots.push(["tab-" + t + "-narrow", 760, 5200, d, LP, t]); }
+  shots.push(["arrange-overview-wide", 1512, 2600, d, LP, "overview", true]);
   shots.push(["board-empty", 1512, 2000, empty(d), null, "overview"]);
-  for (const [name, w, h, data, lp, tab] of shots) {
+  for (const [name, w, h, data, lp, tab, edit] of shots) {
     const ctx = await browser.newContext({ viewport: { width: w, height: 900 }, colorScheme: scheme, deviceScaleFactor: 1 });
     await ctx.addInitScript(STUB(data, lp));
     const pg = await ctx.newPage(); pg.on("pageerror", (e) => console.log("PAGE ERROR", e.stack.split("\n").slice(0, 3).join(" | ")));
     await pg.goto("file://" + path.join(__dirname, "..", "app", "home.html")); await pg.waitForTimeout(900);
     await pg.click("[data-bd-pane='" + tab + "']").catch(() => {});
+    if (edit) await pg.click("[data-bd-act='edit']");
     await pg.setViewportSize({ width: w, height: h }); await pg.waitForTimeout(200);
     const box = await pg.evaluate(() => { const e = document.querySelector(".bd-pane:not([hidden])"); const r = e ? e.getBoundingClientRect() : { bottom: 900 }; return Math.ceil(r.bottom + window.scrollY + 40); });
     await pg.setViewportSize({ width: w, height: Math.min(h, Math.max(900, box)) });
     await pg.screenshot({ path: path.join(out, name + "-" + scheme + ".png") });
+    if (edit && process.env.CM_ARRANGE_CHECK) await arrangeCheck(pg);
     await ctx.close();
   }
   await browser.close();

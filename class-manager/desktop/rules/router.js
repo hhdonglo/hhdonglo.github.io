@@ -131,6 +131,7 @@ function createRouter(env) {
       }
       case "host": if (!host()) return J({ ok: false, why: "password" }); return J(V.hostView(store, code, qo()));
       case "display": return J(V.display(store, code, o));
+      case "quiz_default": return hostJ(() => V.defaultCode(store, o)); // the join code for the lecturer's own quiz window; host key required
       case "result": return J(V.result(store, code, p, o));
       default: return out("Class Manager quiz receiver is running");
     }
