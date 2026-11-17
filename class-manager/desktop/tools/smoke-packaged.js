@@ -27,6 +27,17 @@ function find(dist) { // { resources, bin } of the unpacked build for this opera
 const CHILD = `
 const path = require("path"), fs = require("fs"), os = require("os");
 const res = process.env.CM_RES;
+// Every file the app can reach from main.js and preload.js (and everything they require) must exist inside app.asar.
+const root = path.join(res, "app.asar"), seen = new Set(), missing = [], todo = ["main.js", "preload.js"].map((f) => path.join(root, f));
+const resolve = (from, spec) => { const base = path.resolve(path.dirname(from), spec); return [base, base + ".js", base + ".json", path.join(base, "index.js")].find((c) => { try { return fs.statSync(c).isFile(); } catch (e) { return false; } }); };
+while (todo.length) {
+  const f = todo.pop(); if (seen.has(f)) continue; seen.add(f);
+  if (!/\\.js$/.test(f)) continue;
+  const text = fs.readFileSync(f, "utf8"); let m; const re = /require\\(\\s*["'](\\.{1,2}\\/[^"']*)["']\\s*\\)/g;
+  while ((m = re.exec(text))) { const hit = resolve(f, m[1]); if (hit) todo.push(hit); else missing.push(path.relative(root, f) + " requires " + m[1]); }
+}
+if (missing.length) { console.error("MISSING FROM THE PACKAGE:\\n" + missing.join("\\n")); process.exit(1); }
+console.log("require chain complete: " + seen.size + " files reachable from main.js and preload.js");
 const { createBackend } = require(path.join(res, "app.asar", "backend.js"));
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), "cm-smoke-"));
 const make = () => createBackend({ webRoot: path.join(res, "web"), dataFile: path.join(dir, "workbook.json"), log: () => {} });
