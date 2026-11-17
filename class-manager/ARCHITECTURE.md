@@ -393,6 +393,7 @@ Each course keeps its records in one SQLite file, `data/course.db`, using the SQ
 - Backups and backup files still hold workbook text, so older backups restore and the format is the same as before.
 - Student table (`desktop/db/students.js`): one row per ID, the unique key is a keyed fingerprint of the ID, so IDs and names stay unreadable in the file. It is rebuilt from Roster at each save; a repeated ID is kept once and reported. The Excel download starts with a Students sheet.
 - Safe retries (`desktop/receipts.js`): a request with a client key (`ckey`) runs once; a repeat gets the first answer.
+- Failures are answers (`desktop/exec-failure.js`, `config.js` `CM.noAnswer`): an error inside CM's server returns `{ok:false, why}` with a plain sentence, and the pages say "CM did not answer" only when nothing came back at all. Google is not involved: the pages' address is CM's own `/exec`. Start quiz with no question bank for the week is refused in words (`rules/quiz-control.js`, nothing saved) instead of failing; tests: `test/quiz-start-no-bank.test.js`.
 
 ## Phone outbox and mailbox (15 November 2026)
 

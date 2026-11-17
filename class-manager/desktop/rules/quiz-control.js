@@ -106,11 +106,15 @@ function keepQs(store, code, c) { // after "reset, same questions" the next Star
 }
 function chooseQuestions(store, code, c, o) {
   let e = null; try { e = liveEntry(store, code, c, o); } catch (err) { /* offline: five generic slots */ }
-  if (!e) { c.v[18] = 5; c.v[19] = ""; return; }
-  if (e.inline) { c.v[18] = e.inline.length; c.v[19] = e.ids.slice(0, e.inline.length).join(","); return; }
-  const pool = poolIds(o, e), n = Math.max(5, Math.min(maxN(store, code, c, o), quizN(c)));
+  if (!e) { c.v[18] = 5; c.v[19] = ""; return ""; }
+  if (e.inline) { c.v[18] = e.inline.length; c.v[19] = e.ids.slice(0, e.inline.length).join(","); return ""; }
+  let pool; try { pool = poolIds(o, e); } catch (err) { return noBank(e); } // this week's question bank is not in the course: say so, never fail
+  const n = Math.max(5, Math.min(maxN(store, code, c, o), quizN(c)));
   c.v[18] = n; c.v[19] = shuffle(pool, code + ":" + (num(c.v[16]) || 0) + drawSalt(store, o)).slice(0, n).join(",");
+  return "";
 }
+// The plain sentence the lecturer reads when Start quiz finds no questions for the week (the page adds "Not done: ").
+const noBank = (e) => "there are no questions for " + String(e.bank || "this week").replace(/^lecture(\d+)$/, "lecture $1") + " yet. Add them in Course and Content, or choose another week, then press Start quiz again";
 // The correct letter for each of the quiz's questions, never sent to students except during review.
 function lettersFor(store, code, c, o) {
   const n = c ? quizN(c) : 5, key = keyRow(store, code, o), keyL = [], out = [];
@@ -154,8 +158,9 @@ function act(store, p, code, o) {
   else if (a === "lobby") { reset("Lobby"); c.v[14] = 0; }
   else if (a === "start") {
     if (["ready", "lobby", "draft"].indexOf(s) < 0) return { ok: false, why: "can only start from Ready or Lobby (now " + s + ")" };
+    if (pc && !keepQs(store, code, c)) { const missing = chooseQuestions(store, code, c, o); if (missing) return { ok: false, why: missing }; } // nothing is saved when there are no questions
     c.v[1] = "Running"; c.v[3] = now + dur; c.v[4] = dur;
-    if (pc) { if (!keepQs(store, code, c)) chooseQuestions(store, code, c, o); c.v[11] = 1; c.v[13] = qms ? now + qms : 0; c.v[21] = 1; c.v[22] = ""; detail = "question 1"; }
+    if (pc) { c.v[11] = 1; c.v[13] = qms ? now + qms : 0; c.v[21] = 1; c.v[22] = ""; detail = "question 1"; }
   } else if (a === "next") {
     if (!pc || s !== "running") return { ok: false, why: "start the quiz first" };
     if ((num(c.v[11]) || 0) >= quizN(c)) { o.finalize(code); c.v[1] = "Ended"; detail = "after question " + quizN(c); }

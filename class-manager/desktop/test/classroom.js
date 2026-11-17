@@ -16,6 +16,7 @@ function classroom(opts) {
   const state = { offline: false };
   const resolve = (p) => {
     if (state.offline) return null; // the course content cannot be reached
+    if (state.missing && state.missing.test(p)) return null; // one kind of file is not in the course (for example the question banks: quizzes/)
     const a = path.join(PACK, p);
     return fs.existsSync(a) ? a : path.join(WEB, p);
   };
