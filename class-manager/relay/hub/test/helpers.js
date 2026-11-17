@@ -16,6 +16,8 @@ export async function newCourseKeys() {
   const pub = await crypto.subtle.exportKey("jwk", kp.publicKey);
   return { priv: kp.privateKey, pub: { kty: pub.kty, crv: pub.crv, x: pub.x, y: pub.y } };
 }
+// A nonce that certainly does NOT solve the challenge (a fixed value would pass by chance when the work is lowered for tests).
+export async function failWork(challenge, id, bits) { for (let i = 0; i < 1e6; i++) { if (leadingZeroBits(await sha256(challenge + ":" + id + ":" + i)) < bits) return String(i); } throw new Error("no failing nonce found"); }
 export async function solve(challenge, id, bits) { if (!challenge || !bits) return "0"; for (let i = 0; i < 5e6; i++) { if (leadingZeroBits(await sha256(challenge + ":" + id + ":" + i)) >= bits) return String(i); } return "0"; }
 export async function registerCourse(env, keys, now, extra) {
   const ch = (await call(env, "GET", "/v1/challenge", { headers: { "CF-Connecting-IP": (extra && extra.ip) || "1.1.1.1" } }, now)).body;
