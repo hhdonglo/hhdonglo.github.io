@@ -28,7 +28,7 @@ The same server script runs in two places: in Google Apps Script, or inside the 
 
 ```
              Students' phones and laptops                Lecturer
-             (portal, practice, live quiz,               (lecturer menu, Control Centre,
+             (portal, practice, live quiz,               (lecturer menu,
               check-in, calendar, messages)               insights, groups, calendar, messages)
                           \                                   /
                            \  HTTP GET pages and JSON banks  /
@@ -95,7 +95,7 @@ The optional Google copy of mode B was removed in version 0.23.0 (see google-pat
 | `course.html`, `lecture-N.html`, `lecture-N-practice.html`, `introduction*.html`, `mock-exam.html` | Course pages, practice (`assets/practice.js`) and the mock examination (`assets/mock.js`). |
 | `quiz.html`, `quiz-host.html`, `quiz-display.html` | The live quiz for students, the lecturer's controls, and the projector. |
 | `attend.html`, `attendance.html` | Student check-in and the lecturer's attendance session. |
-| `lecturer.html`, `control.html` | Lecturer menu and Control Centre. Both use the host key. |
+| `lecturer.html` | Lecturer menu (website copy). Uses the host key. |
 | `insights.html`, `codes.html`, `groups.html` | Teaching insights, access codes, and student groups (host key). |
 | `calendar.html` | Course calendar: public read, lecturer edit. |
 | `messages.html` | Announcements and messages for students and the lecturer. |
@@ -504,3 +504,5 @@ The lecturer's screen (`quiz-host.html`) takes its sentences and option lists fr
 ## Before class card
 
 Class Tools holds the one place to confirm a class before it starts: `desktop/app/before-class.js` reads the week and join code base through the local backend (`portal_status`, `join_base`, `set_week`) and runs the `preclass` action for the class list size, the quiz bank and the results switch, plus the location check in the window. Nothing new is stored. The Lecturer menu entry in CM now goes to this screen, so there is one starting point for teaching.
+
+The Control Centre page is removed. Its jobs moved to Class Tools: Before class (`before-class.js`) and After class (`after-class.js`, held attendance and held quiz results, confirmed before each action); its class list editing is the Class Roster page.

@@ -1,5 +1,5 @@
 /* Before class card on Class Tools: today's lecture (week, join code, handout) and the pre-class check.
-   One job: show what to confirm before teaching. It reads and writes through CM.call, as the Control Centre did.
+   One job: show what to confirm before teaching. It reads and writes through CM.call, as the old Control Centre did.
    The pure helpers (weekText, checkLines) have no page code, so tests can run them in Node. */
 (function (root) {
   "use strict";

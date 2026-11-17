@@ -12,7 +12,7 @@ Written 9 November 2026. A description of the class management tool as it stands
 
 The class management tool runs one course from three layers: static pages that students and the lecturer open in a browser, one server script that holds every rule, and a private workbook that stores every record. It serves PHYS 143 (12 lectures plus an introduction, 347 practice questions) and is built so that the course content can be replaced.
 
-- **Pages** (HTML and JavaScript, no framework): the student portal, course and lecture pages, practice quizzes, mock exam, live quiz pages, attendance pages, lecturer menu and Control Centre. They read the question banks and course data as JSON files.
+- **Pages** (HTML and JavaScript, no framework): the student portal, course and lecture pages, practice quizzes, mock exam, live quiz pages, attendance pages, lecturer menu. They read the question banks and course data as JSON files.
 - **Password** (`password.html`, `assets/password.js`, `apps_script/src/06-password.gs`): choose, change and recover the password. See README.md, "Password".
 - **Server script** (`apps_script/quiz_receiver.gs`, built from the modules in `apps_script/src/` by `apps_script/build.js`): every live action goes through it, with `doGet` for reads (JSONP) and `doPost` for submissions. It checks the host key, scores answers, records attendance and rebuilds the mark tabs.
 - **Workbook**: the tabs listed under Data model. In the website version it is the Google Sheet "PHYS 143 Quizzes (Responses)". In the desktop app it is a file on the lecturer's computer.
@@ -25,15 +25,14 @@ Eleven components make up the tool. The ones students use need no key; the lectu
 
 | Component | Page or file | Who uses it | What it does |
 | --- | --- | --- | --- |
-| Student portal | `index.html` (`phys143-portal.html`) | Students | This week's lecture and handout, check-in, the live quiz, and "My results" (own check-ins and quiz scores by student ID). The current week is set in `data/portal.json` or from the Control Centre. |
+| Student portal | `index.html` (`phys143-portal.html`) | Students | This week's lecture and handout, check-in, the live quiz, and "My results" (own check-ins and quiz scores by student ID). The current week is set in `data/portal.json` or from Class Tools. |
 | Course page | `course.html` (`phys143.html`) | Students | Overview, weekly programme in three groups (Introduction, Mechanics, Thermal physics), mock exam card. Drawn from `data/lectures.json` and `data/pages/phys143.json`. |
 | Lecture pages | `lecture-N.html`, `introduction.html` | Students | Summary, learning objectives, three weekly contacts, and buttons for slides, handout, supplement, tutorial and practice. |
 | Practice quizzes | `lecture-N-practice.html` (11 lectures plus the introduction; none for lecture 6) | Students | 20 questions drawn from the lecture's bank, feedback after each answer, a retry of the missed questions. Progress is kept in the browser. An optional student ID sends the score to the workbook. |
 | Mock exam | `mock-exam.html` | Students | 50 questions drawn from past examination questions across all banks, 2 hours 30 minutes, answers shown only at the end. |
 | Live quiz | `quiz.html` (students), `quiz-host.html` (dashboard), `quiz-display.html` (projector) | Students and lecturer | Lecturer-paced quiz of 5 to 20 questions from the week's bank, 60 seconds per question by default, results and class ranking on release, then a question-by-question review. |
 | Attendance | `attend.html` (students), `attendance.html` (lecturer) | Students and lecturer | A QR code whose link changes every 30 seconds; students enter only their ID. Lecturer start-up is one Start button and one tick box ("Only students in the room can check in"); radius and a typed classroom position are under More options. Stop, then submit, writes the day's column. |
-| Lecturer menu | `lecturer.html` | Lecturer | One login with the host key, then Run quiz or Take attendance. |
-| Control Centre | `control.html` | Lecturer | Six panels: Today's lecture, Pre-class check, Attendance, Class list, Live quiz, After class. Class list edits one ID at a time and "Tidy to class list". |
+| Lecturer menu | `lecturer.html` | Lecturer | Website copy only: one login with the host key, then buttons to the lecturer pages. In CM the Lecturer menu entry opens Class Tools. |
 | Question banks | `quizzes/lectureN.json`, written by `tools/quiz_src/lectureN.py` | Lecturer | One bank per lecture, read by practice, mock exam and live quiz alike. |
 | Server and workbook | `apps_script/quiz_receiver.gs`; Google Sheet or `desktop/` local workbook | Both, indirectly | Holds the rules and the records (Data model). |
 
@@ -120,7 +119,6 @@ class-manager/
   lecturer.html             lecturer login and menu (host key)
   quiz-host.html, quiz-display.html   quiz dashboard and projector view
   attendance.html           open, close and submit attendance; rotating QR code
-  control.html              Control Centre: class list, results, tidy to class list
   data/                     lectures.json, portal.json, pages/course.json, site.json (empty course)
   templates/                lecture and practice page templates
   course-packs/phys143/     the PHYS 143 course pack source (lecture pages, PDFs, banks, data, bank tools)
@@ -152,7 +150,7 @@ The live quiz join code is 2627 followed by the week number (26271 for week 1, 2
 | --- | --- | --- |
 | Workbook and tabs | Created on first launch (app) or by `setup` (web) | Web only: paste the script, run setup, deploy |
 | Host key | An 8-character key generated at setup | Change it from the quiz dashboard (12 to 40 characters; then stored only as a salted hash) |
-| Class list | Roster lookups and the on-list check | Load it: paste or CSV in the app; roster_sync.sh or Control Centre on the web |
+| Class list | Roster lookups and the on-list check | Load it: paste or CSV in the app; roster_sync.sh on the web |
 | Question selection | n questions drawn from the week's bank at quiz start, in an order fixed by the join code and round number | Choose the week, n and the timing |
 | Marking | Every live answer, practice attempt and mock exam | None |
 | Release | Nothing reaches the record before it | Press Release or Discard after each quiz |
@@ -410,4 +408,4 @@ The lecturer's screen (`quiz-host.html`) takes its sentences and option lists fr
 
 ## Before class card (Class Tools)
 
-`desktop/app/before-class.js` is the "Before class" card on Class Tools: today's lecture (week to teach, join code and its base, handout) and the pre-class check (CM responds, class list loaded, quiz bank for the week, results recording, projector confirmation, location). It uses the same backend actions as the Control Centre (`portal_status`, `set_week`, `join_base`, `preclass`). The pure helpers `checkLines` and `weekText` are tested in `desktop/test/before-class.test.js`. The "Lecturer menu" button and the L shortcut in CM open Class Tools; the web `lecturer.html` login is unchanged and still passes on to `control.html`. The Control Centre page is not removed yet (see the pull request for the list awaiting confirmation).
+`desktop/app/before-class.js` is the "Before class" card on Class Tools: today's lecture (week to teach, join code and its base, handout) and the pre-class check (CM responds, class list loaded, quiz bank for the week, results recording, projector confirmation, location). It uses the same backend actions as the Control Centre (`portal_status`, `set_week`, `join_base`, `preclass`). The pure helpers `checkLines` and `weekText` are tested in `desktop/test/before-class.test.js`. The "Lecturer menu" button and the L shortcut in CM open Class Tools; the web `lecturer.html` login is unchanged and still passes on to `control.html`. `desktop/app/after-class.js` is the "After class" card: it submits or discards held attendance sessions and releases or discards held quiz results, each after a confirmation (test: `desktop/test/after-class.test.js`). The Control Centre page (`control.html`) is removed; its class list editing is on the Class Roster page and its status strip is Live activity on Class Tools.

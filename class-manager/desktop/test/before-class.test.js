@@ -29,3 +29,14 @@ test("Lecturer menu opens Class Tools, and the card is in the page", () => {
   assert.match(h, /data-goview="class" data-key="L"/); assert.doesNotMatch(h, /data-win="lecturer\.html"/);
   assert.match(h, /id="before-class"/); assert.match(h, /src="before-class\.js"/);
 });
+
+test("the Control Centre page is gone and nothing links to it", () => {
+  const WEB = path.join(__dirname, "../..");
+  assert.ok(!fs.existsSync(path.join(WEB, "control.html")));
+  for (const f of ["lecturer.html", "attendance.html", "quiz-host.html", "insights.html", "codes.html", "groups.html", "app/home.html"].map((x) => (x.startsWith("app/") ? path.join("desktop", x) : x)))
+    assert.doesNotMatch(fs.readFileSync(path.join(WEB, f), "utf8"), /control\.html|Control Centre/, f);
+});
+test("back links lead to Class Tools", () => {
+  const WEB = path.join(__dirname, "../..");
+  for (const f of ["attendance.html", "quiz-host.html"]) assert.match(fs.readFileSync(path.join(WEB, f), "utf8"), /href="app\/home\.html#class"/, f);
+});

@@ -551,6 +551,16 @@ tr[data-sel]{cursor:pointer}tr[data-sel].sel>td{background:rgba(70,110,200,.28)}
    <div class="row"><button class="btn primary" type="button" id="bc-run">Run checks</button></div>
   </div>
 
+  <div class="card" id="after-class">
+   <div class="card-head"><h3>After class</h3><span class="note">Held until you decide</span></div>
+   <p id="ac-sum">Held sessions: checking</p>
+   <ul class="bc-list" id="ac-list"></ul>
+   <div class="row"><button class="btn primary sm" type="button" data-held="attend_submit">Submit attendance</button><button class="btn sm" type="button" data-held="attend_discard">Discard unsubmitted</button></div>
+   <p class="note" id="ac-msg" role="status"></p>
+   <p id="ac-qsum" style="margin-top:1rem">Quiz results held: checking</p>
+   <div class="row"><button class="btn primary sm" type="button" data-held="held_release_quiz">Release held quiz results</button><button class="btn sm" type="button" data-held="held_discard_quiz">Discard held quiz results</button></div>
+   <p class="note" id="ac-qmsg" role="status"></p>
+  </div>
   <div class="card live-card">
    <div class="card-head"><h3>Live activity</h3><span class="note" id="lv-upd"></span></div>
    <div class="act" id="lv-att">
@@ -564,7 +574,7 @@ tr[data-sel]{cursor:pointer}tr[data-sel].sel>td{background:rgba(70,110,200,.28)}
    <div class="act" id="lv-quiz">
     <div class="act-top"><span class="tag" id="quiz-tag">Live quiz</span><span class="note" id="quiz-meta"></span></div>
     <div id="quiz-list"><p class="note">No quiz is running.</p></div>
-    <div class="row"><button class="btn" type="button" data-win="quiz-host.html" id="quiz-btn">Run a quiz</button><button class="btn" type="button" data-win="control.html">Control Centre</button></div>
+    <div class="row"><button class="btn" type="button" data-win="quiz-host.html" id="quiz-btn">Run a quiz</button></div>
    </div>
   </div>
   </div>
@@ -587,7 +597,6 @@ tr[data-sel]{cursor:pointer}tr[data-sel].sel>td{background:rgba(70,110,200,.28)}
     <h3>Class tools</h3>
     <div class="tools list">
      <button class="btn" type="button" data-goview="class" data-key="L"><svg><use href="#i-menu"/></svg>Lecturer menu</button>
-     <button class="btn" data-win="control.html"><svg><use href="#i-sliders"/></svg>Control Centre</button>
      <button class="btn" data-win="insights.html"><svg><use href="#i-bulb"/></svg>Teaching insights</button>
     </div>
    </div>
@@ -747,7 +756,7 @@ tr[data-sel]{cursor:pointer}tr[data-sel].sel>td{background:rgba(70,110,200,.28)}
    <form id="sec">
     <label class="f" for="sec-hours">Internet access stops by itself after</label>
     <select class="f" id="sec-hours" style="max-width:14rem"><option value="1">1 hour</option><option value="2">2 hours</option><option value="3">3 hours</option><option value="4">4 hours</option><option value="6">6 hours</option><option value="8">8 hours</option><option value="12">12 hours</option><option value="0">Only when I stop it</option></select>
-    <fieldset style="border:0;padding:0;margin:12px 0 0"><legend class="f">Lecturer pages (Control Centre, live quiz controls, attendance, statistics)</legend>
+    <fieldset style="border:0;padding:0;margin:12px 0 0"><legend class="f">Lecturer pages (live quiz controls, attendance, statistics)</legend>
      <label><input type="radio" name="sec-from" value="network"> On this computer and on the local network</label><br>
      <label><input type="radio" name="sec-from" value="computer"> On this computer only</label>
     </fieldset>
@@ -903,6 +912,7 @@ tr[data-sel]{cursor:pointer}tr[data-sel].sel>td{background:rgba(70,110,200,.28)}
 <script src="charts/bars.js"></script>
 <script src="charts/engagement.js"></script>
 <script src="before-class.js"></script>
+<script src="after-class.js"></script>
 <script src="row-select.js"></script>
 <script src="row-actions.js"></script>
 <script src="grades-view.js"></script>
@@ -1231,7 +1241,7 @@ document.querySelectorAll("input[name=conn]").forEach(function(r){r.addEventList
  if(r.value==="lan"&&r.checked){cmApp.tunnelStop().then(tshow)}
 })});
 $("t-stop").addEventListener("click",function(){document.querySelector('input[name=conn][value=lan]').checked=true;cmApp.tunnelStop().then(tshow)});
-go(store("cm-view")||"overview");
+go(location.hash==="#class"?"class":(store("cm-view")||"overview"));
 livePoll();
 
 /* ---- keyboard shortcuts (zoom is handled by CM itself) ---- */

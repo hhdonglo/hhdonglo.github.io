@@ -51,7 +51,7 @@ body.focus main{padding-top:1rem}
  </section>
  <section class="panel" id="m-choice" hidden>
   <h3 style="margin:.1rem 0 .8rem">What would you like to do?</h3>
-  <div class="choices"><a class="go" href="quiz-host.html">Run quiz</a><a class="go" href="attendance.html">Take attendance</a><a class="go alt" href="control.html">Control Centre</a><a class="go alt" href="insights.html">Teaching insights</a><a class="go alt" href="codes.html">Access codes</a><a class="go alt" href="groups.html">Student groups</a><a class="go alt" href="assignments.html">Group assignments</a><a class="go alt" href="outcomes.html">Learning objectives</a><a class="go alt" href="calendar.html">Calendar</a><a class="go alt" href="messages.html">Messages</a></div>
+  <div class="choices"><a class="go" href="quiz-host.html">Run quiz</a><a class="go" href="attendance.html">Take attendance</a><a class="go alt" href="insights.html">Teaching insights</a><a class="go alt" href="codes.html">Access codes</a><a class="go alt" href="groups.html">Student groups</a><a class="go alt" href="assignments.html">Group assignments</a><a class="go alt" href="outcomes.html">Learning objectives</a><a class="go alt" href="calendar.html">Calendar</a><a class="go alt" href="messages.html">Messages</a></div>
   <p><a class="go alt" href="password.html">Change password</a> <button class="go alt" type="button" id="m-out">Log out</button></p>
  </section>
 </div>
@@ -65,7 +65,7 @@ var KEY="";try{KEY=sessionStorage.getItem("cm_hk")||""}catch(x){}
 function saveKey(k){KEY=k;try{sessionStorage.setItem("cm_hk",k)}catch(x){}}
 function signOut(){KEY="";try{sessionStorage.removeItem("cm_hk")}catch(x){}location.href="lecturer.html"}
 
-function ok(){$("m-login").hidden=true;$("m-choice").hidden=false;if(location.search.indexOf("menu")<0&&window===window.top)location.replace("control.html")} // the Control Centre is the lecturer entry; ?menu keeps the old button page
+function ok(){$("m-login").hidden=true;$("m-choice").hidden=false;}
 function check(k,first){
  jsonp("action=hostcheck&hostkey="+encodeURIComponent(k),function(d){
   if(d&&d.ok){saveKey(k);ok();return}

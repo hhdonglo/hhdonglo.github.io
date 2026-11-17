@@ -139,7 +139,7 @@ Step 2. Take attendance
      code. The first time takes a minute. Later check-ins take one tap,
      because the phone remembers.
   4. Press "Close attendance and record absences" when you are done and
-     look at the list. Then open the "Control Centre" and submit the
+     look at the list. Then open "Class Tools" and, under "After class", submit the
      session to the attendance record. A session counts only once
      submitted.
 
