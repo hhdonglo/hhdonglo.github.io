@@ -76,8 +76,8 @@ function hasPresence(store, code, id) {
 }
 
 // ---------- item log ----------
-function logItems(store, code, rnd, wk, ids, letters, got, discussed) {
-  const now = store.now(), add = [], disc = {}; (discussed || []).forEach((q) => { disc[q] = true; });
+function itemRows(now, code, rnd, wk, ids, letters, got, discussed) { // the Item_Log lines for these students
+  const add = [], disc = {}; (discussed || []).forEach((q) => { disc[q] = true; });
   Object.keys(got).forEach((id) => {
     const a = got[id];
     for (let q = 0; q < letters.length; q++) {
@@ -85,9 +85,15 @@ function logItems(store, code, rnd, wk, ids, letters, got, discussed) {
       add.push([now, code, rnd, wk || "", id, q + 1, ids[q] || "", ans, letters[q] || "", letters[q] && ans === letters[q] ? 1 : 0, (a.conf && a.conf[q]) || "", disc[q + 1] ? String((a.first && a.first[q]) || "") : "", disc[q + 1] ? 1 : ""]);
     }
   });
+  return add;
+}
+function logItems(store, code, rnd, wk, ids, letters, got, discussed) {
+  const add = itemRows(store.now(), code, rnd, wk, ids, letters, got, discussed);
   const rows = body(store, ITEMS, 13), same = (r) => up(r[1]) === code && (Number(r[2]) || 0) === rnd;
   putBody(store, ITEMS, ITEMS_HEADER, (rows.some(same) ? rows.filter((r) => !same(r)) : rows).concat(add)); // a reopened quiz is compiled again
 }
+// Adds lines to the item log without touching the others (a student added to the class list after the quiz was compiled).
+const addItems = (store, add) => { if (add.length) putBody(store, ITEMS, ITEMS_HEADER, body(store, ITEMS, 13).concat(add)); };
 function dropItems(store, pairs) { // pairs: {'CODE|round': true}, from a discard
   if (!store.rows(ITEMS) || !Object.keys(pairs).length) return;
   const rows = body(store, ITEMS, 13), keep = rows.filter((r) => !pairs[up(r[1]) + "|" + (Number(r[2]) || 0)]);
@@ -152,4 +158,4 @@ function discard(store, code, everyRound) {
 // The hooks quiz-control's act() needs, tied to a store and its options.
 const hooks = (store, o) => ({ finalize: (code) => finalize(store, code, o), commit: (code, every) => commit(store, code, every, o), discard: (code, every) => discard(store, code, every) });
 
-module.exports = { rowFor, respRows, addHeld, addAnswer, latestAnswers, answerCounts, presence, hasPresence, logItems, dropItems, finalize, commit, discard, hooks, roundOf, RESP_HEADER, ITEMS_HEADER, ANSWERS_HEADER };
+module.exports = { itemRows, addItems, rowFor, respRows, addHeld, addAnswer, latestAnswers, answerCounts, presence, hasPresence, logItems, dropItems, finalize, commit, discard, hooks, roundOf, RESP_HEADER, ITEMS_HEADER, ANSWERS_HEADER };

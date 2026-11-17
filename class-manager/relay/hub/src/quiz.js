@@ -18,10 +18,14 @@ export async function put(course, body, db, now) {
   if (qs.length > 65536 || st.length > 8192) return fail(413, "too large");
   await db.prepare("INSERT INTO live_quiz(course, code, status, questions, present, at) VALUES(?, ?, ?, ?, ?, ?) ON CONFLICT(course) DO UPDATE SET code = excluded.code, status = excluded.status, questions = excluded.questions, present = excluded.present, at = excluded.at")
     .bind(course, code, st, qs, present, now).run();
+  if (Array.isArray(body.listed)) { // the IDs on the class list, so that a phone with another ID is told to see the lecturer (sent when it changes, not every time)
+    const ids = JSON.stringify(body.listed.map((x) => String(x).replace(/\D/g, "")).filter(Boolean).slice(0, LIMITS.rosterMax));
+    await db.prepare("INSERT INTO quiz_listed(course, ids, at) VALUES(?, ?, ?) ON CONFLICT(course) DO UPDATE SET ids = excluded.ids, at = excluded.at").bind(course, ids, now).run();
+  }
   return reply({ ok: true, code });
 }
 // CM, signed: stop taking answers and forget the question text; the events stay until CM collects them.
-export async function close(course, db) { await db.prepare("DELETE FROM live_quiz WHERE course = ?").bind(course).run(); return reply({ ok: true }); }
+export async function close(course, db) { await db.prepare("DELETE FROM live_quiz WHERE course = ?").bind(course).run(); await db.prepare("DELETE FROM quiz_listed WHERE course = ?").bind(course).run(); return reply({ ok: true }); }
 export async function events(course, body, db) {
   const rows = (await db.prepare("SELECT id, kind, sid, body, at FROM quiz_event WHERE course = ? AND id > ? ORDER BY id LIMIT ?").bind(course, Number(body.after) || 0, LIMITS.eventsPull + 1).all()).results || [];
   return reply({ ok: true, events: rows.slice(0, LIMITS.eventsPull), more: rows.length > LIMITS.eventsPull });
@@ -48,11 +52,14 @@ export async function call(req, db, now) {
     if (s.state === "running" && s.timed && s.endTime) s.remainingMs = Math.max(0, s.endTime - nowMs);
     return reply(s);
   }
-  const name = clean(p.name, 40), id = clean(p.id, 20).replace(/\D/g, ""), done = (outcome) => reply({ ok: outcome === "ok", outcome });
+  const name = clean(p.name, 40), id = clean(p.id, 20).replace(/\D/g, ""); let off = false;
+  const done = (outcome) => reply(off ? { ok: outcome === "ok", outcome, onList: false } : { ok: outcome === "ok", outcome }); // off: this ID is not on the class list
   if (!["join", "progress", "answer", "submit"].includes(p.kind || "submit")) return fail(400, "not on the relay");
   const kind0 = p.kind || "submit";
   if (!q || q.code !== code) return done(kind0 === "answer" ? "bad answer" : kind0 === "submit" ? (!name || !id || !code ? "missing" : "bad code") : "ok"); // as the rules answer a code no quiz uses
   const s = JSON.parse(q.status), present = JSON.parse(q.present), kind = p.kind || "submit";
+  const lr = id ? await db.prepare("SELECT ids FROM quiz_listed WHERE course = ?").bind(course).first() : null; // as CM's rules: with a class list, an ID not on it is held for the lecturer
+  if (lr) { const ids = JSON.parse(lr.ids); off = ids.length > 0 && ids.indexOf(id.replace(/^0+(?=\d)/, "")) < 0; }
   const room = (await db.prepare("SELECT COUNT(*) AS n FROM quiz_event WHERE course = ?").bind(course).first()).n; if (room >= LIMITS.eventsMax) return fail(429, "too many waiting");
   if (kind === "join" || kind === "progress") {
     if (!name || !id) return done("ok");

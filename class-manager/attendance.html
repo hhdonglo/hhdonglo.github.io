@@ -63,7 +63,7 @@ body.focus main{padding-top:1rem}
 @media (prefers-color-scheme:dark){.att .waiting{color:#ffb74d}}
 </style>
 <div class="host att">
- <p class="toplinks"><a href="lecturer.html">&larr; Lecturer menu</a></p>
+ <p class="toplinks"><a href="app/home.html#class">&larr; Class Tools</a></p>
  <section class="panel" id="a-login" hidden>
   <h3 style="margin:.1rem 0 .4rem">Lecturer login</h3>
   <form id="a-form" autocomplete="off">
@@ -245,11 +245,11 @@ function start(near){
 }
 $("a-start").addEventListener("click",function(){$("a-start").disabled=true;start($("a-near").checked)});
 $("a-close").addEventListener("click",function(){
- if(!window.confirm("Stop attendance? Check-ins stay held and are recorded only when you press Submit attendance in the Control Centre."))return;
+ if(!window.confirm("Stop attendance? Check-ins stay held and are recorded only when you press Submit attendance on Class Tools (After class)."))return;
  $("a-msg").textContent="Closing...";
  call("attend_close","",function(d){
   if(!d||!d.ok){$("a-msg").textContent=(d&&d.why?"Not closed: "+d.why+".":CM.noAnswer());return}
-  var x=d.session;$("a-last").textContent="Closed and held, not yet recorded. Submit it from the Control Centre. "+x.present+" present, "+x.absent+" absent"+(x.notOnList?", "+x.notOnList+" not on the roster (see the Not_On_List tab)":"")+"."+(x.flagged?" "+x.flagged+" device(s) checked in more than one ID.":"")+" Review the list below before you submit.";
+  var x=d.session;$("a-last").textContent="Closed and held, not yet recorded. Submit it on Class Tools (After class). "+x.present+" present, "+x.absent+" absent"+(x.notOnList?", "+x.notOnList+" not on the roster (see the Not_On_List tab)":"")+"."+(x.flagged?" "+x.flagged+" device(s) checked in more than one ID.":"")+" Review the list below before you submit.";
   if(timer){clearInterval(timer);timer=null}show("a-idle");review();
  });
 });

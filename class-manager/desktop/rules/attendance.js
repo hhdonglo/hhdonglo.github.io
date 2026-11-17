@@ -7,6 +7,7 @@ const crypto = require("crypto");
 const { normalizeId } = require("../ids");
 const { append } = require("./store");
 const AC = require("./access-codes");
+const U = require("./unlisted");
 
 const CTL = "Attendance_Control", LOG = "Attendance_Log", GRID = "Attendance", FLAGS = "Attendance_Flags", PHONES = "Attendance_Phones", NOTLIST = "Not_On_List";
 const CTL_HEAD = ["Code", "Label", "Status", "Opened", "Closed", "Secret", "Lat", "Lon", "Radius m"];
@@ -60,6 +61,7 @@ function open(store, p, o) {
   const rows = sessions(store); const cur = rows.filter((r) => r.status === "Open").pop();
   if (cur) return { ok: false, why: "a session is already open: close it first", session: { code: cur.code, label: cur.label } };
   if (!roster(store).length) return { ok: false, why: "the Roster tab is empty: run roster_sync.sh to add the Student IDs first" };
+  AC.run(store, { op: "generate" }, {}); // every listed student has an access code before the first phone asks: a class list saved from the Class Roster page has none until now
   const used = (c) => rows.some((r) => r.code === c) || (o.codeUsed ? o.codeUsed(c) : false);
   let code = String(p.acode || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 12);
   if (code && (code.length < 3 || used(code))) return { ok: false, why: "that code is too short or was used before" };
@@ -120,6 +122,10 @@ function checkIn(store, p, o) {
   }
   const others = {}; body(store, LOG).forEach((r) => { if (String(r[1]) === ses.label && String(r[4]) === dev) others[normalizeId(r[2])] = true; });
   if (Object.keys(others).length >= K.DEVICE_IDS) { flag(store, ses.label, aid, dev, "device already used for " + Object.keys(others).join(", ")); return { ok: false, why: "device used" }; }
+  if (!onl) { // not on the class list: the check-in is held for the lecturer to review (rules/unlisted.js); the roster, the grid and every total never count it
+    const held = U.note(store, { id: aid, kind: "attendance", ref: ses.label });
+    if (!held.ok) { flag(store, ses.label, aid, dev, "not on the class list (" + held.why + ")"); return { ok: false, why: "not on list" }; }
+  }
   append(store, LOG, LOG_HEAD, [store.now(), ses.label, aid, onl ? "Yes" : "No", dev, geoText(g)]);
   if (phone && phone.bind) { try { append(store, PHONES, ["Student ID", "Device", "Registered"], [aid, dev, store.now()]); } catch (e) { /* already recorded */ } }
   return { ok: true, id: aid, onList: onl };

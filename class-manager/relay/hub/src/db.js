@@ -19,7 +19,9 @@ export const SCHEMA = [
   // Live quizzes (src/quiz.js): the open quiz's status and question text (no answers) and the joins and answers phones send.
   "CREATE TABLE IF NOT EXISTS live_quiz (course TEXT PRIMARY KEY, code TEXT NOT NULL, status TEXT NOT NULL, questions TEXT NOT NULL, present TEXT NOT NULL, at INTEGER NOT NULL)",
   "CREATE TABLE IF NOT EXISTS quiz_event (id INTEGER PRIMARY KEY AUTOINCREMENT, course TEXT NOT NULL, kind TEXT NOT NULL, sid TEXT NOT NULL, body TEXT NOT NULL, at INTEGER NOT NULL)",
-  "CREATE INDEX IF NOT EXISTS quiz_event_course ON quiz_event(course, id)"
+  "CREATE INDEX IF NOT EXISTS quiz_event_course ON quiz_event(course, id)",
+  // The IDs on the class list while a quiz runs (one JSON list, sent by CM), so a phone is told at once when its ID is not on it. Gone when the quiz closes.
+  "CREATE TABLE IF NOT EXISTS quiz_listed (course TEXT PRIMARY KEY, ids TEXT NOT NULL, at INTEGER NOT NULL)"
 ];
 
 export const LIMITS = {
@@ -42,6 +44,7 @@ export async function cleanup(db, now) {
   await run("liveEvents", "DELETE FROM live_event WHERE at < ?", now - LIMITS.keepItemDays * day);
   await run("quizEvents", "DELETE FROM quiz_event WHERE at < ?", now - LIMITS.keepItemDays * day);
   await run("quizStale", "DELETE FROM live_quiz WHERE at < ?", now - day);
+  await run("quizListed", "DELETE FROM quiz_listed WHERE at < ?", now - day);
   await run("liveCodes", "DELETE FROM live_code WHERE course NOT IN (SELECT course FROM live_session WHERE status = 'Open') OR at < ?", now - day);
   await run("liveClosed", "DELETE FROM live_session WHERE status <> 'Open' AND at < ?", now - LIMITS.keepItemDays * day);
   await run("courseState", "DELETE FROM state WHERE course IN (SELECT id FROM course WHERE last_seen < ?)", old);
@@ -51,6 +54,6 @@ export async function cleanup(db, now) {
 }
 
 export async function deleteCourse(db, id) {
-  for (const t of ["item", "state", "nonce", "live_session", "live_event", "live_phone", "live_code", "live_quiz", "quiz_event"]) await db.prepare("DELETE FROM " + t + " WHERE course = ?").bind(id).run();
+  for (const t of ["item", "state", "nonce", "live_session", "live_event", "live_phone", "live_code", "live_quiz", "quiz_event", "quiz_listed"]) await db.prepare("DELETE FROM " + t + " WHERE course = ?").bind(id).run();
   await db.prepare("DELETE FROM course WHERE id = ?").bind(id).run();
 }

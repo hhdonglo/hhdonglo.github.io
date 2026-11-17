@@ -5,6 +5,7 @@
 const crypto = require("crypto");
 const AT = require("../rules/attendance");
 const AC = require("../rules/access-codes");
+const U = require("../rules/unlisted");
 const { append } = require("../rules/store");
 
 const hashCode = (course, id, code) => crypto.createHash("sha256").update(course + "|" + id + "|" + AC.normCode(code)).digest("hex"); // the relay holds only this, never the code
@@ -27,7 +28,9 @@ function applyEvents(store, events) {
     const at = new Date(e.at * 1000);
     if (e.kind === "ok") {
       if (AT.present(store, e.label)[e.sid]) return;
-      const [onl, loc] = String(e.note).split("|");
+      const [onl0, loc] = String(e.note).split("|");
+      const stillOff = onl0 === "No" && U.isUnlisted(store, e.sid), onl = onl0 === "No" && !stillOff ? "Yes" : onl0; // added to the class list while the phone was signing in: it counts
+      if (stillOff) U.note(store, { id: e.sid, kind: "attendance", ref: e.label, when: at }); // held for review, like a check-in made on this computer
       append(store, AT.LOG, ["Timestamp", "Session", "Student ID", "On roster", "Device", "Location"], [at, e.label, e.sid, onl, e.dev, loc || ""]); out.added++;
     } else if (e.kind === "bind") {
       if (!AT.phones(store).byId[e.sid]) { append(store, AT.PHONES, ["Student ID", "Device", "Registered"], [e.sid, e.dev, at]); out.binds++; }
