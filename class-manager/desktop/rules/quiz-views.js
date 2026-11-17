@@ -144,13 +144,26 @@ function hostView(store, code, o) {
   return out;
 }
 function display(store, code, o) { // projector: no host key; counts, state, countdown, and results only once released
-  const cd = C.ctl(store, code); if (!C.keyRow(store, code, o)) return { ok: false };
+  const cd = C.ctl(store, code), unreg = !C.keyRow(store, code, o) && !!C.codeWeek(store, code); // a week-shaped join code is shown even before its question bank exists, as on the host page
+  if (!C.keyRow(store, code, o) && !unreg) return { ok: false, why: "no such code" };
   const dn = counts(store, code), dr = { ok: true, controlled: !!cd, joined: dn.joined, inprogress: dn.inprogress, submitted: dn.submitted, rows: [] };
+  if (unreg && !cd) dr.note = "Week " + C.codeWeek(store, code) + " has no question bank in this course yet. Add its questions under Quizzes and Questions.";
   if (cd) {
     dr.review = review(store, code, "", o); dr.status = C.status(cd); if (C.visible(cd, "show_leaderboard")) dr.rows = ranking(store, code, "").slice(0, 20);
     if (C.paced(cd) && C.voteOf(cd) === 2 && Number(cd.v[11]) > 0) { const dac = R.answerCounts(store, code, Number(cd.v[11])); dr.revote = { q: Number(cd.v[11]), firstAnswered: dac.first.answered, answered: dac.changed }; }
   }
   return dr;
+}
+
+// The join code CM opens the lecturer's quiz window with, so nothing has to be typed: the quiz that is open now (lobby, running or paused),
+// else the most recently updated one, else the code of the chosen week (the join base followed by the week number).
+function defaultCode(store, o) {
+  const rows = (store.rows(C.TAB) || []).slice(1).filter((v) => String(v[0]).trim());
+  const open = rows.filter((v) => ["lobby", "running", "paused"].indexOf(C.eff({ store, v: v.slice(), row: 0 })) >= 0).pop();
+  if (open) return { ok: true, code: String(open[0]).trim().toUpperCase(), source: "open" };
+  const last = rows.sort((x, y) => String(x[10]).localeCompare(String(y[10]))).pop();
+  if (last) return { ok: true, code: String(last[0]).trim().toUpperCase(), source: "latest" };
+  return { ok: true, code: C.joinBase(store) + (weekChoice(store) || 1), source: "week" };
 }
 
 // ---------- the portal ----------
@@ -188,4 +201,4 @@ function portalResults(store, p, req, o) {
   return out;
 }
 
-module.exports = { counts, ranking, review, status, questions, rankingView, result, hostView, display, portalStatus, portalResults, setWeek, resultsOn, weekChoice, lastOutcome, bankExplanation };
+module.exports = { defaultCode, counts, ranking, review, status, questions, rankingView, result, hostView, display, portalStatus, portalResults, setWeek, resultsOn, weekChoice, lastOutcome, bankExplanation };

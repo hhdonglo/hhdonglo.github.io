@@ -777,7 +777,7 @@ const signedIn = (c, pw, r) => { if (!r.ok) return r; unlockedPw = String(pw); g
 on("cm:centralLogin", (c, e, pw) => signedIn(c, pw, central.check(pw)));
 on("cm:centralCreate", (c, e, pw) => central.status().chosen ? { ok: false, why: "A password is already chosen." } : signedIn(c, pw, central.set(pw)));
 on("cm:centralRecover", (c, e, code, pw) => signedIn(c, pw, central.recover(code, pw)));
-ipcMain.on("cm:sessionKey", (e) => { e.returnValue = unlockedPw && String(e.sender.getURL()).startsWith(baseUrl()) ? unlockedPw : ""; }); // read by preload.js so lecturer pages open already signed in
+ipcMain.on("cm:sessionKey", (e) => { e.returnValue = unlockedPw && require("./local-window").isThisComputerUrl(e.sender.getURL(), port, lanAddresses().map((a) => a.address)) ? unlockedPw : ""; }); // a CM window on this computer, whichever of its addresses it was opened with // read by preload.js so lecturer pages open already signed in
 // ---------- resources and question authoring (app/author.html) ----------
 const FT = require("./autoload/file-types");
 const DOC_TYPES = [FT.filter("Teaching material")];
