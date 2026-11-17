@@ -414,7 +414,15 @@ function createAuthoring(opts) {
   }
 
   // ---------- drafts ----------
-  function validate(q, others) {
+  // Duplicate checks need the stems of the bank and of the drafts. One context is built per batch (stems counted once), so checking
+  // N questions costs N lookups, not N times the whole bank and draft list (that made a large import freeze CM).
+  function checkContext() {
+    const bank = new Map(), draft = new Map();
+    drafts.forEach((o) => { if (o.status === "rejected") return; const k = normStem(o.q); if (k) draft.set(k, (draft.get(k) || 0) + 1); });
+    return { draft, bankHas: (n, st) => { if (!bank.has(n)) bank.set(n, new Set(stemsFor(n))); return bank.get(n).has(st); } };
+  }
+  function validate(q, others, cx) {
+    cx = cx || checkContext();
     const errors = [], warnings = [];
     if (!plain(q.q)) errors.push("The question has no text.");
     if (!Array.isArray(q.options) || q.options.length !== 4) errors.push("A question needs exactly four options (A to D); this one has " + ((q.options || []).length) + ".");
@@ -425,12 +433,12 @@ function createAuthoring(opts) {
     if (!plain(q.exp)) warnings.push("No explanation. Students see the explanation after a wrong answer.");
     if (!q.difficulty) warnings.push("No difficulty level.");
     const st = normStem(q.q);
-    if (st && q.lecture != null && stemsFor(Number(q.lecture)).includes(st)) warnings.push("The same question is already in the Lecture " + q.lecture + " bank.");
-    if (st && (others || []).some((o) => o !== q && o.status !== "rejected" && normStem(o.q) === st)) warnings.push("The same question is already among the drafts.");
+    if (st && q.lecture != null && cx.bankHas(Number(q.lecture), st)) warnings.push("The same question is already in the Lecture " + q.lecture + " bank.");
+    if (st && (cx.draft.get(st) || 0) - (drafts.includes(q) && q.status !== "rejected" ? 1 : 0) > 0) warnings.push("The same question is already among the drafts.");
     return { errors, warnings };
   }
-  function withChecks(d) { return Object.assign({}, d, validate(d, drafts)); }
-  function listDrafts() { return drafts.filter((d) => d.status === "draft").map(withChecks); }
+  function withChecks(d, cx) { return Object.assign({}, d, validate(d, drafts, cx)); }
+  function listDrafts() { const cx = checkContext(); return drafts.filter((d) => d.status === "draft").map((d) => withChecks(d, cx)); }
   function clean(q) {
     return {
       lecture: q.lecture === "" || q.lecture == null ? null : Number(q.lecture),
@@ -444,7 +452,8 @@ function createAuthoring(opts) {
     const now = new Date().toISOString();
     const added = (items || []).map((q) => Object.assign(clean(q), { did: uid(), origin: origin || "manual", status: "draft", created: now }, extra || {}, q.set ? { set: String(q.set).slice(0, 120) } : {}, q.batch ? { batch: q.batch } : {}, q.from ? { from: q.from } : {}));
     drafts = drafts.concat(added); saveDrafts();
-    return added.map(withChecks);
+    const cx = checkContext();
+    return added.map((d) => withChecks(d, cx));
   }
   // Manual entry and edits arrive as plain text from the form; the form marks them with `plainText`.
   function fromForm(q) {
@@ -459,10 +468,10 @@ function createAuthoring(opts) {
   }
   function rejectDrafts(dids) { const s = new Set(dids); drafts = drafts.filter((d) => !s.has(d.did)); saveDrafts(); return listDrafts(); }
   function approve(dids, by) {
-    const s = new Set(dids), done = [], skipped = [];
+    const s = new Set(dids), done = [], skipped = [], cx = checkContext();
     for (const d of drafts) {
       if (!s.has(d.did) || d.status !== "draft") continue;
-      const v = validate(d, drafts);
+      const v = validate(d, drafts, cx);
       if (v.errors.length) { skipped.push({ did: d.did, why: v.errors.join(" ") }); continue; }
       const n = Number(d.lecture);
       const o = overlay(n) || { lecture: n, title: (baseBank(n) || {}).title || baseWeeks()[String(n)] || "Lecture " + n, questions: [], next: 1 };
@@ -493,8 +502,8 @@ function createAuthoring(opts) {
     return importText(parts.map((p) => p.text).join("\n"), defaults, path.basename(file));
   }
   function importText(text, defaults, name) {
-    const items = parseQuestions(text, defaults).map((q) => Object.assign(q, { from: name || "pasted text" }));
-    return { name: name || "pasted text", items: items.map((q) => Object.assign(q, validate(q, drafts))) };
+    const items = parseQuestions(text, defaults).map((q) => Object.assign(q, { from: name || "pasted text" })), cx = checkContext();
+    return { name: name || "pasted text", items: items.map((q) => Object.assign(q, validate(q, drafts, cx))) };
   }
 
   // ---------- generation ----------

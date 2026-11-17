@@ -139,7 +139,7 @@
       summaryHtml(r.summary, rep) + (window.cmFolderCourse ? cmFolderCourse.html(courseFields, courseTopics, courseExisting) : "") +
       (st.namesFilled ? "<p class='note'>" + n(st.namesFilled) + " student(s) on the class list had no name; the files give it.</p>" : "") + flaggedHtml(st) + conflictsHtml(st) + table + (rep.warnings || []).map(function (x) { return "<p class='msg'>" + esc(x) + "</p>"; }).join("") +
       (qn ? "<p>The files also hold <strong>" + n(qn) + "</strong> quiz question set(s). <button class='btn' type='button' id='fld-q'>Send them to the review queue</button> <span class='note' id='fld-qmsg' role='status'>You approve each question before students see it.</span></p>" : "") +
-      (rep.changes ? "<p class='note'>A backup is made first. Records already here are never changed, and loading the same files again adds nothing.</p>" : "<p class='msg'>Nothing in these files is new to this course.</p>") +
+      (rep.changes ? "<p class='note'>A backup is made first. Records already here are never changed, and loading the same files again adds nothing.</p>" : "<p class='msg'>" + (qn ? "No new records in these files. The quiz questions above can still be sent to the review queue." : "Nothing in these files is new to this course.") + "</p>") +
       buttons("<button class='btn' type='button' id='fld-back'>Back</button><button class='btn' type='button' id='fld-cancel'>Close</button><button class='btn primary' type='button' id='fld-go'" + (rep.changes ? "" : " disabled") + ">Add " + (rep.changes ? n(rep.changes) + " records" : "") + " to the course</button>");
     body.querySelector("#fld-cancel").onclick = close;
     if (window.cmFolderCourse) cmFolderCourse.wire(body);
@@ -147,7 +147,13 @@
     body.querySelector("#fld-export").onclick = function () { cmApp.autoExport().then(function (x) { if (x && !x.ok) alert(x.why); }); };
     body.querySelector("#fld-open").onclick = function () { cmApp.autoOpenWorking(); };
     var q = body.querySelector("#fld-q");
-    if (q) q.onclick = function () { cmApp.autoQuestions({ ids: chosenIds }).then(function (x) { body.querySelector("#fld-qmsg").textContent = x.ok ? n(x.added) + " question(s) are in the review queue (Author, Drafts)." + (x.flagged ? " " + x.flagged + " could not be read as complete questions." : "") : x.why; q.disabled = !!x.ok; }); };
+    if (q) q.onclick = function () {
+      var msg = body.querySelector("#fld-qmsg"); q.disabled = true; msg.textContent = "Sending the questions…";
+      if (cmApp.onAutoQuestionsProgress) cmApp.onAutoQuestionsProgress(function (p) { if (q.disabled) msg.textContent = "Reading file " + n(p.done) + " of " + n(p.total) + " (" + n(p.questions) + " questions so far)…"; });
+      cmApp.autoQuestions({ ids: chosenIds }).then(function (x) {
+        msg.textContent = x.ok ? n(x.added) + " question(s) are in the review queue (Author, Drafts)." + (x.flagged ? " " + x.flagged + " could not be read as complete questions." : "") : x.why; q.disabled = !!x.ok;
+      }, function (err) { msg.textContent = "The questions could not be sent: " + (err && err.message || err); q.disabled = false; });
+    };
     var go = body.querySelector("#fld-go");
     go.onclick = function () { go.disabled = true; go.textContent = "Adding…"; cmApp.importApply({ addMissing: !!opts.addMissing }).then(done); };
   }
