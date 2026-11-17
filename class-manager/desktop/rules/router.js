@@ -19,6 +19,7 @@ const G = require("./groups");
 const L = require("./learning");
 const OC = require("./outcomes");
 const P = require("./progress");
+const H = require("./held");
 const QR = require("./quiz-results");
 const QS = require("./quiz-submit");
 const ST = require("./score-tables");
@@ -101,11 +102,15 @@ function createRouter(env) {
       case "hostcheck": return J({ ok: host(), post: req.post });
       case "sessions_end": if (!host()) return J(NOKEY); req.session = ""; return J(AU.signOutEveryone(store, o));
       case "held_status": return hostJ(() => heldStatus());
-      case "held_release_quiz": case "held_discard_quiz": case "attend_submit": case "attend_discard":
+      case "held_items": return hostJ(() => H.items(store));
+      case "held_release_quiz": case "held_discard_quiz": case "attend_submit": case "attend_discard": {
         if (!host()) return J(NOKEY);
-        if (a === "attend_submit") return J(AT.submit(store));
-        if (a === "attend_discard") return J(AT.discard(store));
+        const one = clean(p.session, 12).toUpperCase(), qc = clean(p.code, 30).toUpperCase(), hasRound = p.round !== undefined && p.round !== "", rnd = Number(p.round) || 0; // one session or one quiz when named, otherwise every held one
+        if (a === "attend_submit") return J(AT.submit(store, one));
+        if (a === "attend_discard") return J(AT.discard(store, one));
+        if (qc && hasRound) return J(a === "held_release_quiz" ? H.submitQuiz(store, qc, rnd, ST.hooks(store, o), qo()) : H.discardQuiz(store, qc, rnd));
         return J(Object.assign({ ok: true }, a === "held_release_quiz" ? QR.commit(store, "", true, ST.hooks(store, o)) : QR.discard(store, "", true)));
+      }
       case "roster_tidy": return hostJ(() => CL.tidy(store, p));
       case "roster_edit": return hostJ(() => CL.edit(store, p));
       case "attend_review": return hostJ(() => AR.review(store, p));

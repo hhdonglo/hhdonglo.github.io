@@ -151,6 +151,7 @@ main{grid-area:main;overflow:auto;overflow-x:hidden;min-width:0;padding:1.75rem 
 .act-main .note{margin:.3rem 0 0}
 .qrow{display:flex;align-items:baseline;gap:1rem;padding:.55rem 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
 .qrow:last-child{border-bottom:0}
+.held-list{list-style:none;padding:0;margin:.5rem 0}.held-row{display:flex;justify-content:space-between;align-items:center;gap:.8rem;flex-wrap:wrap;padding:.6rem 0;border-bottom:1px solid var(--line)}.held-row:last-child{border-bottom:0}.held-row b{display:block;color:var(--head)}.held-row .note{display:block;margin:.15rem 0 0}
 .qrow b{font:700 1.05rem ui-monospace,monospace;color:var(--head)}
 .qrow .qn{margin-left:auto;font-weight:700;font-size:1.25rem;color:var(--head);font-variant-numeric:tabular-nums}
 #quiz-list{margin:0 0 1rem}
@@ -551,16 +552,6 @@ tr[data-sel]{cursor:pointer}tr[data-sel].sel>td{background:rgba(70,110,200,.28)}
    <div class="row"><button class="btn primary" type="button" id="bc-run">Run checks</button></div>
   </div>
 
-  <div class="card" id="after-class">
-   <div class="card-head"><h3>After class</h3><span class="note">Held until you decide</span></div>
-   <p id="ac-sum">Held sessions: checking</p>
-   <ul class="bc-list" id="ac-list"></ul>
-   <div class="row"><button class="btn primary sm" type="button" data-held="attend_submit">Submit attendance</button><button class="btn sm" type="button" data-held="attend_discard">Discard unsubmitted</button></div>
-   <p class="note" id="ac-msg" role="status"></p>
-   <p id="ac-qsum" style="margin-top:1rem">Quiz results held: checking</p>
-   <div class="row"><button class="btn primary sm" type="button" data-held="held_release_quiz">Release held quiz results</button><button class="btn sm" type="button" data-held="held_discard_quiz">Discard held quiz results</button></div>
-   <p class="note" id="ac-qmsg" role="status"></p>
-  </div>
   <div class="card live-card">
    <div class="card-head"><h3>Live activity</h3><span class="note" id="lv-upd"></span></div>
    <div class="act" id="lv-att">
@@ -569,13 +560,19 @@ tr[data-sel]{cursor:pointer}tr[data-sel].sel>td{background:rgba(70,110,200,.28)}
      <p class="count"><span id="att-n">0</span><span class="of" id="att-of"></span></p>
      <p class="note" id="att-text">No attendance session is open.</p>
     </div>
-    <div class="row"><button class="btn" type="button" data-win="attendance.html" id="att-btn">Take attendance</button></div>
+    <div class="row"><button class="btn" type="button" data-win="attendance.html" id="att-btn">Take attendance</button><button class="btn danger" type="button" id="att-stop" hidden>Stop attendance</button></div>
    </div>
    <div class="act" id="lv-quiz">
     <div class="act-top"><span class="tag" id="quiz-tag">Live quiz</span><span class="note" id="quiz-meta"></span></div>
     <div id="quiz-list"><p class="note">No quiz is running.</p></div>
     <div class="row"><button class="btn" type="button" data-win="quiz-host.html" id="quiz-btn">Run a quiz</button></div>
    </div>
+  </div>
+  <div class="card" id="after-class">
+   <div class="card-head"><h3>Held, waiting for your decision</h3><span class="tag" id="ac-tag">Checking</span></div>
+   <p class="note">Stopping attendance or a quiz records nothing for students. Submit records it against the class list, the grades and the attendance totals. Discard erases it.</p>
+   <ul class="held-list" id="ac-list"><li class="note">Checking.</li></ul>
+   <p class="note" id="ac-msg" role="status"></p>
   </div>
   </div>
 
@@ -913,6 +910,7 @@ tr[data-sel]{cursor:pointer}tr[data-sel].sel>td{background:rgba(70,110,200,.28)}
 <script src="charts/engagement.js"></script>
 <script src="before-class.js"></script>
 <script src="after-class.js"></script>
+<script src="stop-live.js"></script>
 <script src="row-select.js"></script>
 <script src="row-actions.js"></script>
 <script src="grades-view.js"></script>
@@ -1054,12 +1052,13 @@ function liveShow(d){
  if(!d)return;
  window.cmLive=d;
  var a=d.attendance,tag=$("att-tag"),btn=$("att-btn"),txt=[];
+ $("att-stop").hidden=!(a&&a.status==="Open");
  if(!a){tag.className="tag";tag.textContent="Attendance";$("att-n").textContent="";$("att-of").textContent="";$("att-meta").textContent="";
   $("att-text").textContent="No attendance session yet."+(d.roster?" "+plural(d.roster,"student is","students are")+" on the class list.":"");btn.textContent="Take attendance"}
  else{
   $("att-n").textContent=a.present;$("att-of").textContent=a.rosterSize?"of "+a.rosterSize+" checked in":"checked in";
   if(a.status==="Open"){tag.className="tag on";tag.textContent="Attendance open";$("att-meta").textContent=a.label+(a.opened?", "+ago(a.opened):"");btn.textContent="Show the check-in screen"}
-  else if(a.status==="Closed"){tag.className="tag held";tag.textContent="Attendance closed, not yet submitted";$("att-meta").textContent=a.label;btn.textContent="Review and submit"}
+  else if(a.status==="Closed"){tag.className="tag held";tag.textContent="Attendance stopped, held";$("att-meta").textContent=a.label;btn.textContent="Review the held session"}
   else{tag.className="tag";tag.textContent="Last attendance";$("att-meta").textContent=a.label;btn.textContent="Take attendance"}
   if(a.waiting)txt.push(plural(a.waiting,"check-in waits","check-ins wait")+" for your approval.");
   if(a.notOnList)txt.push(plural(a.notOnList,"ID is","IDs are")+" not on the class list.");
@@ -1070,18 +1069,19 @@ function liveShow(d){
  if(!q.length){qt.className="tag";qt.textContent="Live quiz";$("quiz-list").innerHTML="<p class='note'>No quiz is running.</p>";$("quiz-btn").textContent="Run a quiz";$("quiz-meta").textContent=""}
  else{qt.className="tag on";qt.textContent=q.length===1?"Quiz in progress":q.length+" quizzes in progress";$("quiz-btn").textContent="Quiz administration";
   var st={lobby:"Waiting room",running:"Running",paused:"Paused"};
-  $("quiz-list").innerHTML=q.map(function(x){return"<div class='qrow'><b>"+esc(x.code)+"</b><span>"+esc(x.title||"Quiz")+"</span><span class='note'>"+(st[x.state]||esc(x.state))+"</span><span class='qn'>"+x.joined+" <span class='note'>joined</span></span></div>"}).join("")}
+  $("quiz-list").innerHTML=q.map(function(x){return"<div class='qrow'><b>"+esc(x.code)+"</b><span>"+esc(x.title||"Quiz")+"</span><span class='note'>"+(st[x.state]||esc(x.state))+"</span><span class='qn'>"+x.joined+" <span class='note'>joined</span></span>"+(x.state==="lobby"?"":"<button class='btn danger sm' type='button' data-stop-quiz='"+esc(x.code)+"'>Stop quiz</button>")+"</div>"}).join("")}
  var parts=[];if(a&&a.status==="Open")parts.push(a.present+(a.rosterSize?" of "+a.rosterSize:"")+" checked in");
  q.forEach(function(x){parts.push("Quiz "+x.code+": "+x.joined+" joined")});
  $("scan-live").textContent=parts.join(" · ");$("proj-live").textContent=parts.join(" · ");
  var strip=[];
  if(a&&a.status==="Open")strip.push("<span class='tag on'>Attendance open</span> "+a.present+(a.rosterSize?" of "+a.rosterSize:"")+" checked in"+(a.waiting?", "+plural(a.waiting,"waits","wait")+" for approval":""));
- if(a&&a.status==="Closed")strip.push("<span class='tag held'>Attendance closed</span> "+a.present+" checked in, not yet submitted");
+ if(a&&a.status==="Closed")strip.push("<span class='tag held'>Attendance stopped</span> "+a.present+" checked in, held for your decision");
  q.forEach(function(x){strip.push("<span class='tag on'>Quiz "+esc(x.code)+"</span> "+(st0[x.state]||esc(x.state))+", "+x.joined+" joined")});
  $("ov-live").innerHTML=strip.join("<span class='sep2'></span>")+(strip.length?" <button class='link' type='button' data-goview='class'>Open Class Tools</button>":"");
  $("ov-live").hidden=!strip.length;
 }
 function livePoll(){if(document.visibilityState==="visible"&&cmApp.live)cmApp.live().then(liveShow,function(){})}
+window.livePoll=livePoll;
 $("lv-upd").textContent="Updates every few seconds";
 setInterval(livePoll,4000);
 

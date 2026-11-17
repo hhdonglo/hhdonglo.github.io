@@ -122,14 +122,15 @@ function finalize(store, code, o) {
 }
 
 // Copy held rows into Form Responses 1 (a re-release of the same ID, code and round replaces that row), then the score tables. code '' releases every held row.
-function commit(store, code, everyRound, o) {
+// round (optional): only the held rows of that round of that code, for one quiz decided on its own from Class Tools.
+function commit(store, code, everyRound, o, round) {
   const held = body(store, STAGED, 14); if (!held.length) return { released: 0 };
   let resp = body(store, RESPONSES, 14); const have = {}, keep = [], entries = [], curRound = {}, fresh = []; let released = 0;
   resp.forEach((r, j) => { have[String(r[2]).trim() + "|" + up(r[3]) + "|" + (Number(r[10]) || 0)] = j; });
   held.forEach((r) => {
     const c = up(r[3]), rnd = Number(r[10]) || 0;
     if (curRound[c] === undefined) curRound[c] = roundOf(store, c);
-    if (!((!code || c === code) && (everyRound || rnd === curRound[c]))) { keep.push(r); return; }
+    if (!((!code || c === code) && (round !== undefined ? rnd === round : (everyRound || rnd === curRound[c])))) { keep.push(r); return; }
     const id = String(r[2]).trim(), k = id + "|" + c + "|" + rnd, wk = Number(r[13]) || 0;
     if (have[k] !== undefined) resp[have[k]] = r; else fresh.push(r);
     entries.push({ id, name: String(r[1]), label: wk ? "Week " + wk : "Quiz " + c, score: Number(r[9]), n: Number(r[11]) || 5 });
@@ -142,13 +143,13 @@ function commit(store, code, everyRound, o) {
   logLine(store, "quiz released", String(released) + " result(s)", "", code);
   return { released };
 }
-function discard(store, code, everyRound) {
+function discard(store, code, everyRound, round) {
   const held = body(store, STAGED, 14); if (!held.length) return { discarded: 0 };
   const keep = [], curRound = {}, dropped = {}; let gone = 0;
   held.forEach((r) => {
     const c = up(r[3]), rnd = Number(r[10]) || 0;
     if (curRound[c] === undefined) curRound[c] = roundOf(store, c);
-    if ((!code || c === code) && (everyRound || rnd === curRound[c])) { gone++; dropped[c + "|" + rnd] = true; } else keep.push(r);
+    if ((!code || c === code) && (round !== undefined ? rnd === round : (everyRound || rnd === curRound[c]))) { gone++; dropped[c + "|" + rnd] = true; } else keep.push(r);
   });
   try { dropItems(store, dropped); } catch (e) { /* the item log only */ }
   putBody(store, STAGED, RESP_HEADER, keep);
