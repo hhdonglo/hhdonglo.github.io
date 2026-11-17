@@ -46,4 +46,4 @@ function overview(files, lectures, bankCounts) {
   return { rows, last, gaps: rows.filter((r) => r.number >= 1 && r.status === "Nothing found").map((r) => r.number), unplaced: found.unplaced };
 }
 
-module.exports = { overview, distinct };
+module.exports = { overview, distinct, COPIES };

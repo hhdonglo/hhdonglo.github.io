@@ -37,3 +37,5 @@ Lecture detection: `desktop/autoload/lecture-names.js` finds lecture numbers in 
 ## Lecture cards (Course and Content)
 
 Each lecture is a card: "Lecture N: topic", the course's own one or two sentence summary (from `data/lectures.json`, never invented; a short prompt when none), chips for slides, handout, tutorial, supplement, reference and the quiz bank with its question count, and the files behind a "Files" control. `overview()` takes a third argument, the question counts per lecture (read in `ipc.js`). Copies are not counted twice: folders named backup, removed, old, working and the like are skipped, and a file name found twice in one lecture is one file. A lecture listed as number 0 shows as "Introduction". A bank counts when the course has `quizzes/lectureN.json`, or the scan finds a bank file for that lecture. Tests: `test/lecture-overview.test.js`.
+
+The cards now come from `lecture-files/` (only PDF and Word documents, figures and working files ignored with counts, roles guessed with a confidence); `overview.js` still works out the statuses and gaps from the documents taken in. See `../lecture-files/README.md`.
