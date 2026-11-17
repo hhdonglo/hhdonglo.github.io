@@ -4,6 +4,7 @@
   "use strict";
   var U = root.cmBoardUtil || require("./util"), M = root.cmBoardModel || require("./model"), K = root.cmBoardKpi || require("./kpi");
   var D = root.cmBoardDonut || require("./donut"), BL = root.cmBoardBarline || require("./barline"), RK = root.cmBoardRanked || require("./ranked"), F = root.cmBoardFindings || require("./findings");
+  var SH = root.cmBoardShares || require("./shares");
   var TM = root.cmBoardTopicsModel || require("./topics-model"), TP = root.cmBoardTopics || require("./topics-panels"); // topic mastery, trends, correlations (topics-*.js)
   var STATE = { held: "Held", behind: "Behind", ontrack: "On track", ahead: "Ahead", met: "Target met", ended: "Ended" };
   function head(title, note) { return "<div class='bd-head'><h3>" + U.esc(title) + "</h3>" + (note ? "<span>" + U.esc(note) + "</span>" : "") + "</div>"; }
@@ -32,16 +33,46 @@
   function rankedPanel(d) { return head("Topics needing attention", "Lowest first") + RK.table(M.ranked(d, 6)); }
   function insightsPanel(d, lp) { return head("Insights", "From the numbers only") + F.list(M.findings(d, lp).concat(TM.insights(d)).slice(0, 8)); }
 
-  // The whole board. Panels carry ids so they can be redrawn one by one (interact.js).
+  // The spread of quiz averages in plain numbers: a white card with the five figures (the bars are in Class graphs).
+  function spreadCard(d) {
+    var sp = M.spread(d);
+    return "<section class='bd-card' id='bd-spread' aria-label='How quiz averages are spread'>" + head("How quiz averages are spread", sp.n ? U.plural(sp.n, "student", "students") + " with a quiz result" : "") +
+      (sp.n ? "<dl class='bd-facts'><div><dt>Median</dt><dd>" + sp.median + "%</dd></div><div><dt>Middle half</dt><dd>" + sp.q1 + "% to " + sp.q3 + "%</dd></div><div><dt>Lowest</dt><dd>" + sp.min + "%</dd></div><div><dt>Highest</dt><dd>" + sp.max + "%</dd></div></dl>" +
+        "<p class='bd-foot'>The middle half is the range holding the central half of the class. Bands, outliers and the fitted curve are in Class graphs below; click a band to list its students.</p>" : "<p class='bd-empty'>Appears once students have a quiz result.</p>") + "</section>";
+  }
+  // Sessions with no check-ins are not counted (rules/class-stats.js). Said plainly, so a missing session is never a mystery.
+  function setAsideCard(d) {
+    var nh = (d.attendance && d.attendance.notHeld) || [];
+    if (!nh.length) return "";
+    return "<section class='bd-card' id='bd-aside' aria-label='Sessions not counted'>" + head("Sessions not counted", U.plural(nh.length, "session", "sessions")) +
+      "<p class='bd-empty'>Nobody checked in at " + nh.map(function (x) { return U.esc(String(x.label).replace(/\s+\d{4}$/, "")); }).join(", ") + ", so " + (nh.length === 1 ? "it is" : "they are") + " treated as not held. They do not lower the attendance rates and do not flag students. A session counts as soon as one student has checked in.</p></section>";
+  }
+  // A donut card for a share of the class (shares.js): ring, legend and one line saying what it counts.
+  function shareCard(id, m, note, foot) {
+    var empty = !m.total;
+    return "<section class='bd-card' id='" + id + "' aria-label='" + U.esc(m.title) + "'>" + head(m.title, note || "") +
+      "<div class='bd-plan'>" + D.svg(m.slices, m.centre, m.title) + D.legend(m.slices) + "</div><p class='bd-foot'>" + U.esc(empty ? "Nothing to show yet." : foot) + "</p></section>";
+  }
+  function attendanceShare(d) { var m = SH.attendance(d); return shareCard("bd-satt", m, m.sessions ? U.plural(m.sessions, "session", "sessions") : "", "Every check-in against every student on the list, over the sessions counted."); }
+  function scoreShare(d) { return shareCard("bd-sscore", SH.scores(d), "", "Each student sits in one band by their quiz average. Students with no quiz result are not placed."); }
+  function riskShare(d) {
+    var m = SH.risk(d), w = m.wide.length ? " Class pattern, flags no one: " + m.wide.map(function (x) { return x.label; }).join("; ") + "." : "";
+    return shareCard("bd-srisk", m, "", "A student with two reasons is counted under each. " + (m.thin ? m.thin + " more on thin evidence, shown apart." : "") + w);
+  }
+  function masteryShare(d) { return shareCard("bd-smast", SH.mastery(d), "", "Well mastered is 70% or more correct, needs attention is under 50%."); }
+  function card(id, cls, inner, label) { return "<section class='bd-card " + cls + "' id='" + id + "' aria-label='" + label + "'>" + inner + "</section>"; }
+  // Topic panels (topics-panels.js) as cards that sit in a section's grid.
+  function topicCards(d) { return { mastery: card("bd-tmast", "bd-w3", TP.masteryPanel(d), "Topic mastery"), over: card("bd-tover", "bd-w3", TP.overTimePanel(d), "Mastery by topic over time"), corr: card("bd-tcorr", "bd-w4", TP.correlationPanel(d), "What goes with what") }; }
+  function kpiRow(d) { return K.row(M.kpis(d)); }
+  // The overview grid, as in the reference: plan, progress and breakdown, then the ranked table beside the insights. Panels carry ids so interact.js redraws one at a time.
   function html(d, lp, st) {
     st = st || {};
-    return K.row(M.kpis(d)) + "<section class='card ddrill' id='ddrill' aria-live='polite' hidden></section>" +
-      "<div class='bd-grid'><section class='bd-card bd-w2' id='bd-plan' aria-label='Lecture plan'>" + planPanel(lp) + "</section>" +
+    return "<div class='bd-grid'><section class='bd-card bd-w2' id='bd-plan' aria-label='Lecture plan'>" + planPanel(lp) + "</section>" +
       "<section class='bd-card bd-w3' id='bd-prog' aria-label='Class progress over time'>" + progressPanel(d, lp, st.tab) + "</section>" +
       "<section class='bd-card' id='bd-break' aria-label='Category breakdown'>" + breakPanel(d, st.view) + "</section>" +
       "<section class='bd-card' id='bd-rank' aria-label='Topics needing attention'>" + rankedPanel(d) + "</section>" +
-      "<section class='bd-card' id='bd-ins' aria-label='Insights'>" + insightsPanel(d, lp) + "</section></div>" + TP.html(d);
+      "<section class='bd-card' id='bd-ins' aria-label='Insights'>" + insightsPanel(d, lp) + "</section></div>";
   }
-  var api = { html: html, planPanel: planPanel, progressPanel: progressPanel, breakPanel: breakPanel, rankedPanel: rankedPanel, insightsPanel: insightsPanel };
+  var api = { kpiRow: kpiRow, topicCards: topicCards, attendanceShare: attendanceShare, scoreShare: scoreShare, riskShare: riskShare, masteryShare: masteryShare, spreadCard: spreadCard, setAsideCard: setAsideCard, html: html, planPanel: planPanel, progressPanel: progressPanel, breakPanel: breakPanel, rankedPanel: rankedPanel, insightsPanel: insightsPanel };
   if (typeof module === "object" && module.exports) module.exports = api; else root.cmBoardView = api;
 })(typeof window !== "undefined" ? window : globalThis);
