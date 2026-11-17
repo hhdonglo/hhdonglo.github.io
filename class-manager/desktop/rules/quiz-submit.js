@@ -43,7 +43,7 @@ function handle(store, p, o) {
   if (!name || !id || !code) return done("missing");
   const key = C.keyRow(store, code, o); if (!key) return done("bad code");
   const c = C.ctl(store, code);
-  if (c && C.paced(c)) return done("use answers");
+  if (c && (C.paced(c) || C.isConcept(c))) return done("use answers"); // a diagnostic is never a timed whole-quiz submission: it cannot reach the grades
   if (c) { // lecturer-controlled: state and deadline are checked here, not in the browser
     const s = C.eff(c), left = Number(c.v[3]) + GRACE_MS - now;
     if (s === "draft" || s === "ready" || s === "lobby") return done("not started");

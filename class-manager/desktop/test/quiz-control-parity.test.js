@@ -13,7 +13,7 @@ const site = (p) => { const a = path.join(PACK, p); return JSON.parse(fs.readFil
 // Times differ by a few milliseconds between the two sides: compare them as seconds from the server's clock.
 const norm = (r) => {
   const o = JSON.parse(JSON.stringify(r, (k, v) => (k === "_session" ? undefined : v)));
-  const st = o.status; if (st) { ["endTime", "qDeadline"].forEach((k) => { if (st[k] > 1e9) st[k] = Math.round((st[k] - st.serverNow) / 1000) || 0; }); delete st.serverNow; if (st.remainingMs) st.remainingMs = Math.round(st.remainingMs / 1000); }
+  const st = o.status; if (st) { ["endTime", "qDeadline"].forEach((k) => { if (st[k] > 1e9) st[k] = Math.round((st[k] - st.serverNow) / 1000) || 0; }); delete st.serverNow; delete st.quizType; /* the diagnostic mode is new in CM; the old script has none */ if (st.remainingMs) st.remainingMs = Math.round(st.remainingMs / 1000); }
   return o;
 };
 function pair() {

@@ -35,11 +35,23 @@
     }).join("");
     return card("Support given", "<ul class='alist'>" + rows + "</ul>" + form, "Students given support are compared with students whose earlier quiz results were similar, over the same quizzes.");
   }
+  // Diagnostic quizzes (short concept checks, not marks): how well each concept was understood, weakest first. d = summary of rules/quiz-diagnostic.js.
+  function diagnostics(d) {
+    if (!d || !d.weeks || !d.weeks.length) return card("Diagnostic quizzes", "<p>No diagnostic quiz has been run yet. Choose Diagnostic quiz when you start a quiz to find out whether students understand a concept. The answers are never added to Grades.</p>");
+    var min = d.minAnswers || 10, body = d.weeks.map(function (w) {
+      var rows = w.concepts.map(function (c) {
+        var pc = c.pct === null ? 0 : c.pct, label = c.early ? "too early (" + c.answered + " answers)" : c.pct + "%";
+        return "<li class='crow'><span class='clab'>" + esc(c.tag) + "</span><span class='cbar' role='img' aria-label='" + esc(c.tag + ": " + (c.pct === null ? "no answers" : c.pct + " percent right")) + "'><i style='width:" + pc + "%'></i></span><span class='cval'>" + esc(label) + "</span></li>";
+      }).join("");
+      return "<h4>Week " + esc(w.week) + (w.title ? ": " + esc(w.title) : "") + " (" + w.quizzes + (w.quizzes === 1 ? " diagnostic" : " diagnostics") + ")</h4><ul class='clist'>" + rows + "</ul>";
+    }).join("");
+    return card("Diagnostic quizzes", body, "Share of answers that were right, by concept, over every diagnostic run for the week. Not marks. A concept is judged only after " + min + " answers.");
+  }
   function fairness(f) {
     if (f.empty) return card("Results by group", "<p>Give students a Group in the class list to compare results between groups.</p>");
     var max = 100, rows = f.groups.map(function (g) { return "<li class='crow'><span class='clab'>Group " + esc(g.group) + " (n = " + g.n + ")</span><span class='cbar' role='img' aria-label='Group " + esc(g.group) + " quiz average " + (g.quiz === null ? "none" : g.quiz + " percent") + "'><i style='width:" + Math.min(max, g.quiz || 0) + "%'></i></span><span class='cval'>" + (g.quiz === null ? "no data" : g.quiz + "%") + (g.confidence ? " " + E.badge(g.confidence) : "") + "</span></li>"; }).join("");
     return card("Results by group", "<ul class='clist'>" + rows + "</ul><p" + (f.flagged ? " class='warnline'" : "") + ">" + esc(f.note) + "</p>", "Groups are the teaching groups of the class list. No personal characteristics are used. A gap is a prompt to check conditions, not a judgement of students.");
   }
-  var api = { esc: esc, items: items, concepts: concepts, interventions: interventions, fairness: fairness };
+  var api = { esc: esc, items: items, concepts: concepts, diagnostics: diagnostics, interventions: interventions, fairness: fairness };
   if (typeof module === "object" && module.exports) module.exports = api; else root.cmAnalyticsView = api;
 })(typeof window !== "undefined" ? window : globalThis);

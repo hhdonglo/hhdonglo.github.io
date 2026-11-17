@@ -31,7 +31,7 @@
 <main id="main"><div class="wrap">
 <p class="crumb"><a href="index.html">Portal</a> &rsaquo; Quiz</p>
 <h2 id="try-title">Class quiz</h2>
-<p class="sec-sub">Live class quiz</p>
+<p class="sec-sub" id="qtype">Live class quiz</p>
 <style>
 .try{max-width:46rem;margin:0 auto}
 .try .panel{background:var(--surface);border:1px solid var(--border);border-top:5px solid var(--brown-edge);border-radius:8px;padding:1.2rem 1.3rem;box-shadow:var(--shadow)}
@@ -285,6 +285,7 @@ function pacedClosed(){
  if(st.paused)return true;
  return !!(st.qDeadline&&Date.now()+st.off>st.qDeadline);
 }
+function setType(d){var e=document.getElementById("qtype");if(e&&d&&d.quizType)e.textContent=d.quizType==="concept"?"Diagnostic quiz: checks your understanding of concepts, not for marks":"Live class quiz"} // the lecturer chose a diagnostic quiz or exercises
 function applyPaced(d){
  st.off=d.serverNow-Date.now();st.paused=d.state==="paused";st.remain=d.remainingMs;st.qDeadline=d.qDeadline||0;st.qSeconds=d.qSeconds||0;
  var b=$("banner");
@@ -472,7 +473,7 @@ function finish(){
  deliver();
 }
 function jsonp(params,cb){
- if(/^action=status&/.test(params)){var inner=cb;cb=function(d){LecturerMessage.apply(d);inner(d)}} // every status answer carries the lecturer's message: show it, or remove it when cleared, on whatever screen this phone is on
+ if(/^action=status&/.test(params)){var inner=cb;cb=function(d){LecturerMessage.apply(d);setType(d);inner(d)}} // every status answer carries the lecturer's message: show it, or remove it when cleared, on whatever screen this phone is on
  if(VIA&&/^action=(status|questions)&/.test(params)){ // the relay holds the quiz's status and questions
   var q=new URLSearchParams(params),o={};q.forEach(function(v,k){o[k]=v});
   var done=false,t=setTimeout(function(){if(!done){done=true;cb(null)}},15000);

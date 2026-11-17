@@ -12,7 +12,7 @@ const { fromBackend } = require("../rules/store");
 const WEB = path.resolve(__dirname, "..", ".."), PACK = path.join(WEB, "course-packs", "phys143", "files");
 const site = (p) => { const a = path.join(PACK, p); return JSON.parse(fs.readFileSync(fs.existsSync(a) ? a : path.join(WEB, p), "utf8")); };
 const CODE = "26271";
-const TIMES = ["serverNow", "endTime", "qDeadline", "remainingMs", "_session", "version"];
+const TIMES = ["serverNow", "endTime", "qDeadline", "remainingMs", "_session", "version", "quizType", "conceptWeeks"]; // quizType and conceptWeeks: the diagnostic mode is new in CM; the old script has none
 const norm = (r) => JSON.parse(JSON.stringify(r, (k, v) => (TIMES.indexOf(k) >= 0 ? undefined : v)));
 
 function scenario(then) {

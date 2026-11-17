@@ -356,6 +356,8 @@ CM's side of the relay hub: `desktop/relay/hub.js` and `desktop/relay/address.js
 
 `desktop/rules/quiz-submit.js` (what a student's page sends: answer, join, progress, timed submission, practice attempt, question report) with `test/quiz-submit-parity.test.js`, which sends the same requests to the script and to the module and compares outcomes, receipts and every record tab.
 
+`desktop/rules/quiz-diagnostic.js` (Diagnostic quiz: the class diagnostic per question and concept, the Diagnostic_Log record kept when a diagnostic ends, the summary for Class Analytics) with `test/diagnostic-quiz.test.js`. The mode is the `quiz_type` setting in `quiz-control.js`; the lecturer's words for it are in `assets/quiz-host-text.js` (`typeLabel`, `typeNote`, `weeksFor`, `diagHtml`); the Class Analytics card is `diagnostics` in `desktop/app/analytics/render.js`. Exercises are unchanged.
+
 `desktop/rules/quiz-views.js` (what the quiz pages read: status, questions, review, ranking, a student's result, the host view, the projector display, portal status and My results) with `test/quiz-views-parity.test.js`, which compares every view with the script at each stage of a quiz (running, second vote, ended, review, released, board hidden).
 
 `assets/quiz-display-state.js` (the words the projector shows when it has no quiz to draw: no such join code, no question bank for the week, no answer, quiz not set up; the projector is never blank) with `test/quiz-display-state.test.js`. `desktop/local-window.js` (is a window one of CM's own windows on this computer; decides who is given the signed-in password) with `test/quiz-window-login.test.js`. `quiz_default` in `quiz-views.js` gives the quiz window its join code, for a request with the host key only.

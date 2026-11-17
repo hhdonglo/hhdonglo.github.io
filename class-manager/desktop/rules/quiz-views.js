@@ -5,6 +5,7 @@
 "use strict";
 const C = require("./quiz-control");
 const R = require("./quiz-results");
+const D = require("./quiz-diagnostic");
 const A = require("./auth");
 const AT = require("./attendance");
 const { normalizeId } = require("../ids");
@@ -27,7 +28,14 @@ function counts(store, code) {
   });
   return out;
 }
-function ranking(store, code, me) { // held and released rows
+function ranking(store, code, me, o) { // held and released rows
+  const cc = C.ctl(store, code);
+  if (cc && C.isConcept(cc)) { // a diagnostic: the round's score from the answers given, shown to the class but never recorded as marks
+    const got = R.latestAnswers(store, code), letters = C.lettersFor(store, code, cc, o || {}), list = [];
+    Object.keys(got).forEach((sid) => list.push({ name: String(got[sid].name), score: C.mark(letters, got[sid].ans).reduce((x, y) => x + y, 0), n: letters.length, me: !!me && sid === me }));
+    list.sort((x, y) => y.score - x.score || x.name.localeCompare(y.name));
+    return list.slice(0, 300);
+  }
   const rnd = R.roundOf(store, code), list = [];
   R.respRows(store).forEach((r) => {
     if (up(r[3]) === code && r[9] !== "" && (Number(r[10]) || 0) === rnd) list.push({ name: String(r[1]), score: Number(r[9]), n: Number(r[11]) || 5, me: !!me && String(r[2]).trim() === me });
@@ -95,11 +103,11 @@ function rankingView(store, code, p, o) { // live class ranking for one join cod
   if (!rk) return { hidden: false, rows: [] };
   if (cr) {
     if (!C.visible(cr, "show_leaderboard")) return { hidden: true, waitRelease: true, rows: [] };
-    return { hidden: false, closed: C.eff(cr) === "released", rows: ranking(store, code, me) };
+    return { hidden: false, closed: C.eff(cr) === "released", rows: ranking(store, code, me, o) };
   }
   const v = String(rk[6]).trim().toLowerCase();
   if (v === "hidden") return { hidden: true, rows: [] };
-  return { hidden: false, closed: v === "closed", rows: ranking(store, code, me) };
+  return { hidden: false, closed: v === "closed", rows: ranking(store, code, me, o) };
 }
 function lastOutcome(store, id, code) {
   const rows = (store.rows("Log") || []).slice(1);
@@ -110,6 +118,13 @@ function parseAnswers(r) { const s = String(r[10] || ""); return s ? s.split("")
 function result(store, code, p, o) { // a student's own result; only the phone that took part (the receipt)
   const id = clean(p.id, 20), key = C.keyRow(store, code, o), cx = C.ctl(store, code);
   if (id && !A.receiptOk(store, o, code, id, p.rc)) return { found: false, receipt: false, outcome: lastOutcome(store, id, code), keyMissing: !key };
+  if (cx && C.isConcept(cx) && id) { // a diagnostic: the student's own score comes from the answers, never from the grade records
+    const gd = R.latestAnswers(store, code);
+    if (!gd[id]) return { found: false, outcome: lastOutcome(store, id, code), keyMissing: !key };
+    if (!C.visible(cx, "show_score")) return { found: true, scoreHidden: true, outcome: lastOutcome(store, id, code) };
+    const fl = C.mark(C.lettersFor(store, code, cx, o), gd[id].ans);
+    return { found: true, score: fl.reduce((x, y) => x + y, 0), total: fl.length, flags: fl, diagnostic: true, outcome: lastOutcome(store, id, code) };
+  }
   if (key && id) {
     const rnd = R.roundOf(store, code), rows = R.respRows(store).map((r) => r.slice(2, 14));
     for (let i = 0; i < rows.length; i++) {
@@ -130,7 +145,7 @@ function hostView(store, code, o) {
   if (!hk) return { ok: false, why: "join code" };
   let ch = C.ctl(store, code);
   if (!ch && C.weekFromCode(store, code, o)) { C.act(store, { act: "init" }, code, o); ch = C.ctl(store, code); }
-  const cn = counts(store, code), out = { ok: true, note: unreg && !ch ? "Week " + C.codeWeek(store, code) + " has no question bank in this course yet. Add its questions under Quizzes and Questions." : "", review: ch ? review(store, code, "", o) : { q: 0 }, controlled: !!ch, joined: cn.joined, inprogress: cn.inprogress, submitted: cn.submitted, notYet: cn.notYet, rows: ranking(store, code, "") };
+  const cn = counts(store, code), out = { ok: true, note: unreg && !ch ? "Week " + C.codeWeek(store, code) + " has no question bank in this course yet. Add its questions under Quizzes and Questions." : "", review: ch ? review(store, code, "", o) : { q: 0 }, controlled: !!ch, joined: cn.joined, inprogress: cn.inprogress, submitted: cn.submitted, notYet: cn.notYet, rows: ranking(store, code, "", o) };
   if (ch && C.paced(ch) && Number(ch.v[11]) > 0) {
     const ac = R.answerCounts(store, code, Number(ch.v[11])); out.answered = ac.answered; out.dist = ac.dist;
     if (C.voteOf(ch) === 2 || C.discussedOf(ch).indexOf(Number(ch.v[11])) >= 0) { out.firstVote = ac.first; out.changed = ac.changed; }
@@ -139,6 +154,7 @@ function hostView(store, code, o) {
     out.status = C.status(ch); out.state = out.status.state; let wks = {}; try { wks = o.site("/apps_script/live_quizzes.json").weeks || {}; } catch (e) { /* no list */ }
     let le = null; try { le = C.liveEntry(store, code, ch, o); } catch (e) { /* offline */ }
     out.weeks = wks; out.weekLocked = !!C.weekFromCode(store, code, o); out.week = C.weekFromCode(store, code, o) || (Number(ch.v[20]) || 1); out.maxN = C.maxN(store, code, ch, o); out.fixed = !!(le && le.inline);
+    out.quizType = C.isConcept(ch) ? "concept" : "standard"; out.conceptWeeks = C.conceptWeeks(o); if (C.isConcept(ch)) out.diag = D.live(store, code, ch, o);
     out.settings = { n: C.quizN(ch), duration: Number(ch.v[2]), allowLate: ch.v[5], showScore: ch.v[6], showBoard: ch.v[7] };
   } else out.state = String(hk[7]).trim().toLowerCase() || "started";
   return out;
@@ -149,7 +165,7 @@ function display(store, code, o) { // projector: no host key; counts, state, cou
   const dn = counts(store, code), dr = { ok: true, controlled: !!cd, joined: dn.joined, inprogress: dn.inprogress, submitted: dn.submitted, rows: [] };
   if (unreg && !cd) dr.note = "Week " + C.codeWeek(store, code) + " has no question bank in this course yet. Add its questions under Quizzes and Questions.";
   if (cd) {
-    dr.review = review(store, code, "", o); dr.status = C.status(cd); if (C.visible(cd, "show_leaderboard")) dr.rows = ranking(store, code, "").slice(0, 20);
+    dr.review = review(store, code, "", o); dr.status = C.status(cd); if (C.visible(cd, "show_leaderboard")) dr.rows = ranking(store, code, "", o).slice(0, 20);
     if (C.paced(cd) && C.voteOf(cd) === 2 && Number(cd.v[11]) > 0) { const dac = R.answerCounts(store, code, Number(cd.v[11])); dr.revote = { q: Number(cd.v[11]), firstAnswered: dac.first.answered, answered: dac.changed }; }
   }
   return dr;

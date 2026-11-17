@@ -48,6 +48,15 @@ function createCourse(opts) {
     return [...out].sort((a, b) => a - b);
   }
 
+  // Diagnostic bank numbers (quizzes/lectureN_concept.json): short concept checks, kept apart from the exercises.
+  function conceptNumbers() {
+    const out = new Set();
+    for (const root of [DIR, WEB]) {
+      try { fs.readdirSync(path.join(root, "quizzes")).forEach((f) => { const m = f.match(/^lecture(\d+)_concept\.json$/); if (m) out.add(Number(m[1])); }); } catch (e) { /* none */ }
+    }
+    return [...out].sort((a, b) => a - b);
+  }
+
   function lecturesDoc() {
     const d = read("data/lectures.json", null) || {};
     d.groups = Array.isArray(d.groups) && d.groups.length ? d.groups : [{ id: "lectures", title: "Lectures", subtitle: "", lectures: [] }];
@@ -76,6 +85,9 @@ function createCourse(opts) {
     lq.weeks = lq.weeks || {};
     const banks = new Set(bankNumbers());
     flat().forEach((l) => { if (l.number > 0 && banks.has(l.number)) lq.weeks[String(l.number)] = l.title; });
+    const cw = new Set(conceptNumbers()); lq.concept_weeks = {}; // the weeks a diagnostic quiz can be run for
+    flat().forEach((l) => { if (l.number > 0 && cw.has(l.number)) lq.concept_weeks[String(l.number)] = l.title; });
+    cw.forEach((n) => { if (n > 0 && !lq.concept_weeks[String(n)]) lq.concept_weeks[String(n)] = lq.weeks[String(n)] || "Lecture " + n; });
     writeJson(path.join(DIR, "apps_script", "live_quizzes.json"), lq);
   }
 
@@ -198,7 +210,7 @@ function createCourse(opts) {
     return "course-logo." + ext;
   }
 
-  return { resolve, page, portal, bankNumbers, lectures, saveLecture, removeLecture, addLectureFile, removeLectureFile, setCourseInfo, importPack, exportPack, hasContent, setLogo, syncWeeks, KINDS };
+  return { resolve, page, portal, bankNumbers, conceptNumbers, lectures, saveLecture, removeLecture, addLectureFile, removeLectureFile, setCourseInfo, importPack, exportPack, hasContent, setLogo, syncWeeks, KINDS };
 }
 
 module.exports = { createCourse };

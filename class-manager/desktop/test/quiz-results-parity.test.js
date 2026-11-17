@@ -13,7 +13,7 @@ const { fromBackend } = require("../rules/store");
 const WEB = path.resolve(__dirname, "..", ".."), PACK = path.join(WEB, "course-packs", "phys143", "files");
 const site = (p) => { const a = path.join(PACK, p); return JSON.parse(fs.readFileSync(fs.existsSync(a) ? a : path.join(WEB, p), "utf8")); };
 const CODE = "26271", TABS = ["Quiz_Control", "Answers", "Presence", "Staged_Quiz", "Item_Log", "Form Responses 1", "Key", "Master", "Scores", "Totals", "Attempts"];
-const tab = (c, name) => { const b = JSON.parse(c.backend.exportText()).sheets.find((s) => s.name === name); return b ? b.rows : []; };
+const tab = (c, name) => { const b = JSON.parse(c.backend.exportText()).sheets.find((s) => s.name === name); const rows = b ? b.rows : []; return name === "Quiz_Control" ? rows.map((r) => r.slice(0, 23)) : rows; }; // quiz_type (column 24) is new in CM; the old script has none
 // Times differ; compare the rest. Trailing blank rows are not records.
 const trim = (r) => { const x = r.slice(); while (x.length && (x[x.length - 1] === "" || x[x.length - 1] == null)) x.pop(); return x; }; // a row's empty cells at its end are not data
 const strip = (rows) => rows.map(trim).filter((r) => r.length > 0).map((r, i) => (i === 0 ? r : r.map((v) => ((typeof v === "string" && /^\d{4}-\d\d-\d\dT/.test(v)) || (typeof v === "number" && v > 1e12) ? "T" : (v && typeof v === "object" && v.$d ? "T" : v)))));

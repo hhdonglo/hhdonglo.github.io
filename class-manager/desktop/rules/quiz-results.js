@@ -98,6 +98,11 @@ function dropItems(store, pairs) { // pairs: {'CODE|round': true}, from a discar
 function finalize(store, code, o) {
   const key = C.keyRow(store, code, o), got = latestAnswers(store, code), cf = C.ctl(store, code);
   if (!key) return;
+  if (C.isConcept(cf)) { // a diagnostic is not marks: nothing is held for release and nothing reaches Master, Scores or Totals (rules/quiz-diagnostic.js keeps what it needs)
+    Object.keys(got).forEach((id) => presence(store, code, id, got[id].name, "submitted"));
+    try { require("./quiz-diagnostic").record(store, code, cf, o); } catch (e) { logLine(store, "diagnostic log failed", String(e).slice(0, 120), "", code); }
+    return;
+  }
   const letters = C.lettersFor(store, code, cf, o), nq = cf ? C.quizN(cf) : 5, wk = cf ? (Number(cf.v[20]) || 1) : "", rnd = roundOf(store, code);
   let rows = body(store, STAGED, 14); const have = {};
   rows.forEach((r, j) => { if (up(r[3]) === code && (Number(r[10]) || 0) === rnd) have[String(r[2]).trim()] = j; });

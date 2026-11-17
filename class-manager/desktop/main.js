@@ -650,8 +650,10 @@ on("cm:removeStudent", (c, e, id) => { const r = require("./remove-student").rem
 on("cm:removeEntries", (c, e, tab, picks) => { const r = require("./remove-entry").remove(c.backend, tab, picks); if (r.ok) c.backend.flush(); return r; });
 on("cm:restoreEntries", (c, e, batch) => { const r = require("./remove-entry").restore(c.backend, batch); if (r.ok) c.backend.flush(); return r; });
 on("cm:restoreStudent", (c, e, id) => { const r = require("./remove-student").restore(c.backend, id); if (r.ok) c.backend.flush(); return r; });
+// Diagnostic quizzes run so far, by concept (rules/quiz-diagnostic.js). Counts only; empty when none has been run.
+const diagnosticsOf = (backend) => { try { return require("./rules/quiz-diagnostic").summary(require("./rules/store").fromBackend(backend), { site: backend.site }); } catch (e) { return { ok: true, quizzes: [], weeks: [], minAnswers: 10 }; } };
 // Analytics and governance (governance.js, extras.js, summary.js): cohorts, support given, audit log, per-student export and erase, term close, weekly summary.
-on("cm:analyticsExtra", (c) => ({ ok: true, cohorts: extras.cohorts(c.backend), interventions: extras.interventions(c.backend), termClosed: governance.termClosed(c.backend), aiSummary: !!c.settings.aiSummary, hasKey: !!loadApiKey(), privacyNotice: c.settings.privacyNotice || governance.PRIVACY_NOTICE }));
+on("cm:analyticsExtra", (c) => ({ ok: true, diagnostics: diagnosticsOf(c.backend), cohorts: extras.cohorts(c.backend), interventions: extras.interventions(c.backend), termClosed: governance.termClosed(c.backend), aiSummary: !!c.settings.aiSummary, hasKey: !!loadApiKey(), privacyNotice: c.settings.privacyNotice || governance.PRIVACY_NOTICE }));
 on("cm:addIntervention", (c, e, rec) => { const held = (c.backend.stats(statOpts({})).quizzes || []).length; const r = extras.addIntervention(c.backend, rec || {}, held); if (r.ok) { governance.audit(c.backend, "lecturer", "support recorded", "", String((rec.ids || []).length) + " students"); c.backend.flush(); } return r; });
 on("cm:govern", (c, e, op, a) => {
   a = a || {}; let r;

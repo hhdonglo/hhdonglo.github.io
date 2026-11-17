@@ -9,7 +9,7 @@ const { normalizeId } = require("../ids");
 const blank = (v) => v === undefined || v === null || v === "";
 const GRID_TABS = { Roster: "roster", Attendance: "attendance", Master: "marks", Scores: "marks", Totals: "marks", Access_Codes: "marks" };
 // Log tabs have no uniqueness rule (one row per event); their ID column is only put in its one form.
-const LOG_ID_COL = { "Form Responses 1": 2, Attempts: 1, Item_Log: 4, Attendance_Log: 2, Presence: 1, Not_On_List: 1, Student_Notes: 1, Records: 1, Groups: 2, Group_Work: 4 };
+const LOG_ID_COL = { "Form Responses 1": 2, Attempts: 1, Item_Log: 4, Diagnostic_Log: 4, Attendance_Log: 2, Presence: 1, Not_On_List: 1, Student_Notes: 1, Records: 1, Groups: 2, Group_Work: 4 };
 
 function mergeCell(kind, a, b) { // returns {value, conflict}
   if (blank(a)) return { value: blank(b) ? a : b, conflict: false };
