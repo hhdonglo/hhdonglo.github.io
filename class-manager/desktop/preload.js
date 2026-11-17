@@ -39,6 +39,7 @@ contextBridge.exposeInMainWorld("cmApp", {
   importPick: call("cm:importPick"), resetDescribe: call("cm:resetDescribe"), importPlan: call("cm:importPlan"), importApply: call("cm:importApply"), importForget: call("cm:importForget"), importTemplate: call("cm:importTemplate"),
   offListScan: call("cm:offListScan"), offListSetAside: call("cm:offListSetAside"), offListRestore: call("cm:offListRestore"), autoState: call("cm:autoState"), resetList: call("cm:resetList"), resetCourse: call("cm:resetCourse"), resetRestore: call("cm:resetRestore"), autoPick: call("cm:autoPick"), autoPickFiles: call("cm:autoPickFiles"), autoScan: call("cm:autoScan"), autoWatch: call("cm:autoWatch"), autoPlan: call("cm:autoPlan"), autoQuestions: call("cm:autoQuestions"), autoCourse: call("cm:autoCourse"), studentNote: call("cm:studentNote"), autoCourseSave: call("cm:autoCourseSave"), autoExport: call("cm:autoExport"), autoOpenWorking: call("cm:autoOpenWorking"),
   onAutoProgress: (fn) => { ipcRenderer.on("cm:autoProgress", (e, p) => fn(p)); }, onAutoChanged: (fn) => { ipcRenderer.on("cm:autoChanged", () => fn()); },
+  onAutoQuestionsProgress: (fn) => { ipcRenderer.on("cm:autoQuestionsProgress", (e, p) => fn(p)); },
   onImportProgress: (fn) => { ipcRenderer.on("cm:importProgress", (e, p) => fn(p)); },
   llmPreview: call("cm:llmPreview"), llmSave: call("cm:llmSave"), llmLookup: call("cm:llmLookup"),
   grades: call("cm:grades"), gradesTimeline: call("cm:gradesTimeline"),

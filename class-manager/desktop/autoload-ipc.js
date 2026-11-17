@@ -15,6 +15,7 @@ const { analyzeFile } = require("./autoload/analyze");
 const { findDetails, FIELDS } = require("./autoload/course-details");
 const { importSummary } = require("./autoload/summary");
 const { oversized } = require("./autoload/oversize");
+const { placementOf } = require("./autoload/placement");
 const { plan } = require("./import-plan");
 const { pending } = require("./import-ipc");
 
@@ -43,7 +44,8 @@ function registerOn(opts, { on, dialog, winOf, shell, dirOf }) {
     const store = createStore(wdir(c));
     const r = await scanFolder(s.folder, store, { force, exclude: [wdir(c)], onProgress: (p) => { try { e.sender.send("cm:autoProgress", p); } catch (x) { /* the window closed */ } } });
     s.analyses = r.analyses;
-    return { ok: true, folder: s.folder, files: flagBig(r.analyses.map((a, i) => shown(a, i))), skipped: r.skipped, capped: r.capped, reread: r.reread, watching: !!s.watcher };
+    const files = flagBig(r.analyses.map((a, i) => shown(a, i)));
+    return { ok: true, folder: s.folder, files, placement: placementOf(files.map((f, i) => Object.assign({}, f, { hints: r.analyses[i].hints }))), skipped: r.skipped, capped: r.capped, reread: r.reread, watching: !!s.watcher };
   }
 
   on("cm:autoState", (c) => { const s = get(c); return { folder: s.folder, watching: !!s.watcher, workingFolder: wdir(c) }; });
@@ -63,7 +65,8 @@ function registerOn(opts, { on, dialog, winOf, shell, dirOf }) {
     if (r.canceled || !r.filePaths.length) return null;
     const s = get(c), root = path.dirname(r.filePaths[0]); s.analyses = [];
     for (const f of r.filePaths.slice(0, 50)) s.analyses.push(await analyzeFile(f, root));
-    return { ok: true, folder: root, files: flagBig(s.analyses.map((a, i) => shown(a, i))), skipped: { other: 0, tooBig: 0, hidden: 0 }, capped: false, reread: s.analyses.length, watching: false };
+    const files = flagBig(s.analyses.map((a, i) => shown(a, i)));
+    return { ok: true, folder: root, files, placement: placementOf(files.map((f, i) => Object.assign({}, f, { hints: s.analyses[i].hints }))), skipped: { other: 0, tooBig: 0, hidden: 0 }, capped: false, reread: s.analyses.length, watching: false };
   });
 
   on("cm:autoScan", (c, e, o) => scan(c, e, !!(o && o.force)));
@@ -120,14 +123,21 @@ function registerOn(opts, { on, dialog, winOf, shell, dirOf }) {
   });
 
   // Quiz questions found in the chosen files go to the review queue (Author, Drafts), where each is approved before students see it.
-  on("cm:autoQuestions", (c, e, o) => {
+  on("cm:autoQuestions", async (c, e, o) => {
     const s = get(c), chosen = ((o && o.ids) || []).map((i) => s.analyses[i]).filter((a) => a && a.ok && a.clean && a.clean.questions.length);
     if (!chosen.length) return { ok: false, why: "None of the chosen files holds quiz questions." };
+    const tell = (p) => { try { e.sender.send("cm:autoQuestionsProgress", p); } catch (x) { /* the window closed */ } };
     try {
-      let added = 0, flagged = 0;
-      chosen.forEach((a) => { const r = c.authoring.importText(a.clean.questions.join("\n\n"), {}, a.name), items = r.items.filter((q) => q.q && q.options.length >= 2); const d = c.authoring.addDrafts(items, "imported"); added += d.length; flagged += r.items.length - items.length; });
+      const items = []; let flagged = 0;
+      for (let i = 0; i < chosen.length; i++) { // file by file, giving the screen a turn between files so CM stays responsive
+        const a = chosen[i], r = c.authoring.importText(a.clean.questions.join("\n\n"), {}, a.name), ok = r.items.filter((q) => q.q && q.options.length >= 2);
+        items.push(...ok); flagged += r.items.length - ok.length;
+        tell({ done: i + 1, total: chosen.length, questions: items.length });
+        await new Promise((res) => setImmediate(res));
+      }
+      const added = c.authoring.addDrafts(items, "imported").length; // one save for the whole batch
       return { ok: true, added, flagged };
-    } catch (err) { return { ok: false, why: err.message }; }
+    } catch (err) { return { ok: false, why: "The questions could not be sent to the review queue: " + err.message }; }
   });
 
   on("cm:autoExport", async (c, e) => { // the clean working file, saved where the lecturer chooses

@@ -37,6 +37,25 @@
       "<span class='lp-fill' style='width:" + pct + "%'></span>" + (mark != null ? "<span class='lp-exp' style='left:" + mark + "%' title='Expected by today'></span>" : "") + "</div>";
   }
 
+  // One lecture as text: "Lecture 4, Forces". The title appears only when the course lists one.
+  function lec(l) { return esc(l.label) + (l.title ? ", " + esc(l.title) : ""); }
+  // What to teach: due by this week, next to teach, and (when behind) the lectures missed. Built from p.schedule (rules/lecture-schedule.js).
+  function teach(p) {
+    var s = p.schedule; if (!s || (!s.due && !s.next)) return "";
+    var rows = "";
+    if (s.due) rows += "<li><span class='k'>Due by this week</span><span>" + lec(s.due) + "</span></li>";
+    if (s.next) rows += "<li><span class='k'>Next to teach</span><span>" + lec(s.next) + "</span></li>";
+    if (s.missed.length) rows += "<li><span class='k'>Missed so far</span><span>" + s.missed.map(function (l) { return esc(l.label); }).join(", ") + "</span></li>";
+    return "<ul class='lp-teach' aria-label='What to teach'>" + rows + "</ul>";
+  }
+  // The same lectures with their one-line descriptions, for the expandable section.
+  function teachDetail(p) {
+    var s = p.schedule; if (!s || !s.missed.length) return "";
+    return "<h4>Lectures to catch up on</h4><ul class='lp-days'>" + s.missed.map(function (l) {
+      return "<li><span><strong>" + esc(l.label) + "</strong>" + (l.title ? " " + esc(l.title) : "") + (l.summary ? "<br><span class='note'>" + esc(l.summary) + "</span>" : "") + "</span></li>";
+    }).join("") + "</ul><p class='note'>Lectures are counted in order: when 4 lectures are held, Lectures 1 to 4 count as covered.</p>";
+  }
+
   function days(p) {
     if (!p.days.length) return "<p class='note'>No lecture counted yet. A lecture counts when an attendance session is closed, or when you mark it here.</p>";
     return "<ul class='lp-days'>" + p.days.slice(0, 40).map(function (d) {
@@ -55,8 +74,8 @@
       (p.weekNow ? "<div><b>" + p.weekNow + "/" + p.weeksTotal + "</b><span>week</span></div>" : "") + "</div>" + bar(p) : "";
     var today = new Date(), iso = today.getFullYear() + "-" + ("0" + (today.getMonth() + 1)).slice(-2) + "-" + ("0" + today.getDate()).slice(-2);
     card.innerHTML = "<div class='lp-head'><h3 id='lp-h'>Lectures against the semester target</h3><span class='tag " + stateCls + "'>" + esc(LABEL[p.state] || "") + "</span></div>" +
-      "<p class='lp-verdict'><strong>" + esc(p.headline) + "</strong></p><p class='note'>" + esc(p.detail) + "</p>" + nums +
-      "<details class='lp-more'><summary>Lectures counted and corrections</summary>" + days(p) +
+      "<p class='lp-verdict'><strong>" + esc(p.headline) + "</strong></p><p class='note'>" + esc(p.detail) + "</p>" + teach(p) + nums +
+      "<details class='lp-more'><summary>Lectures counted and corrections</summary>" + teachDetail(p) + days(p) +
       "<p class='row'><label for='lp-date' class='note'>Date</label><input class='f' id='lp-date' type='date' value='" + iso + "' style='max-width:11rem'> " +
       "<button type='button' class='btn sm' data-lp='held' data-date=''>Mark held (also a make-up)</button> <button type='button' class='btn sm' data-lp='cancelled' data-date=''>Mark cancelled</button> " +
       "<button type='button' class='btn sm' id='lp-set'>Set target and dates</button> <span class='note' id='lp-msg' role='status'></span></p></details>";

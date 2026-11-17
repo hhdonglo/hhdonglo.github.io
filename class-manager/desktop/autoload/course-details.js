@@ -2,6 +2,7 @@
 // so the Course details form can be pre-filled. It only suggests: the lecturer sees each value with the file it came from and can correct it.
 // Pure functions: no file access, no screen. Input is what analyze.js keeps as `hints` for each file.
 "use strict";
+const { cleanTitle } = require("./topic-titles");
 
 const STOP = new Set(["ID", "NO", "QR", "Q", "WK", "CSV", "PDF", "DOC", "FIG", "TABLE", "LEVEL", "GROUP", "WEEK", "QUIZ", "SHEET"]);
 const LABELS = {
@@ -68,7 +69,7 @@ function findDetails(sources, today) {
     });
     // A document (a course outline as Word, PDF or text): each line is read like a row, and "Week 3: Topic" lines give the weekly topics.
     const docLines = String(src.text || "").split(/\r?\n/).map((x) => x.trim()).filter((x) => x && x.length < 200).slice(0, 1500);
-    docLines.forEach((ln) => {
+    docLines.forEach((ln, li) => {
       const pair = /^([A-Za-z ]{3,30}?)\s*[:\-–]\s*(.+)$/.exec(ln);
       if (pair) {
         const label = pair[1].trim(), value = pair[2].trim();
@@ -81,7 +82,8 @@ function findDetails(sources, today) {
         });
       }
       const tp = /^(?:week|lecture)\s+(\d{1,2})\s*[:.\-–]\s*(.{3,120})$/i.exec(ln);
-      if (tp && !topics.some((t) => t.week === +tp[1])) topics.push({ week: +tp[1], title: tp[2].trim().replace(/\s+/g, " "), from: file });
+      const title = tp ? cleanTitle(tp[2], docLines[li + 1]) : null; // cut-off, lower-case and arrow lines are not titles
+      if (title && !topics.some((t) => t.week === +tp[1])) topics.push({ week: +tp[1], title, from: file });
     });
     // An outline with no labels: the first lines usually read "PHYS 143: Mechanics and Thermal Physics", "Semester 2, 2026/27" and the institution. Used only for what the labels did not give.
     const top = docLines.slice(0, 15).map((l) => l.replace(/^#+\s*/, "").replace(/\*\*/g, "").trim());

@@ -6,6 +6,7 @@ Lectures held against the semester target. What the lecturer sees: a card at the
 | --- | --- |
 | `../rules/lecture-progress.js` | The arithmetic and the wording. One function, `status()`, used by the card, the banner and the notice. |
 | `../rules/lecture-log.js` | Finds the held dates (attendance sessions plus the lecturer's marks) and keeps the marks as the course setting `lecture_log`. |
+| `../rules/lecture-schedule.js` | Names the lectures: due by this week, next to teach, and the ones missed. Titles and summaries come only from the course's lecture list. |
 | `ipc.js` | `cm:lectureProgress`, `cm:lectureMark`, `cm:lectureNotify`. |
 | `notify.js` | The desktop notice at start, when switched on and behind. |
 | `../app/lecture-progress.js` | The card, the banner and the switch on the home screen. |
@@ -24,6 +25,10 @@ Settings (per course, Course settings): `lectureTarget` (number of lectures, 0 =
 Lectures before today only (today's lecture is not due until the day is over). With teaching days set, the target is spread over the real teaching days of the semester. Without them, it is spread evenly over the days. Behind = expected minus held. Catch-up = the extra sessions in the weeks that remain.
 
 Tests: `test/lecture-progress.test.js`.
+
+## What to teach
+
+The card also says which lecture is due by this week (lecture number = the expected count), which is next to teach (held plus one) and, when behind, which were missed (held plus one up to expected). Lectures are counted in order: 4 lectures held means Lectures 1 to 4 covered. Titles and one-line summaries come from the course's lecture list (Course and Content); a lecture without a title shows as "Lecture N" only. The catch-up list with summaries sits in the card's expandable section. Tests: `test/lecture-progress.test.js` (schedule tests).
 
 ## Lecture list
 
