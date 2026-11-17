@@ -58,5 +58,6 @@ A course outline (Word, PDF or text) in the folder is read even though it holds 
 ## file-types.js
 The one list of file types every upload screen allows and names (CSV, Excel, Word, PDF, PowerPoint, Markdown, text). Used by the open dialogs for course material, lecture files, question import, the LMS roster and folder loading, so they cannot drift apart. `authoring.js` extract reads tables through `read-file.js`.
 
+- **Lecture titles** read from an outline or tutorial sheet are cleaned by `topic-titles.js`: lines cut off at the end are joined to the next line, "- Tutorial Sheet" is removed, and fragments (lower-case start, arrow chains) are not offered as titles.
 ## One folder, one load
 `Choose a folder` scans every sub-folder (depth 6), recognises each file, builds the preview (`placement.js` table, counts, flagged IDs) and ends in one button, "Load everything". Student data is refused until a class list exists (the preview says so and the button is off). Unknown IDs are flagged, never added. Quiz questions are never loaded by it: they go to the review queue by their own button. Test: `test/folder-placement.test.js`.

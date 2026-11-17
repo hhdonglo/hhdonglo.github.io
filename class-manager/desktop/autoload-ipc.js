@@ -123,14 +123,21 @@ function registerOn(opts, { on, dialog, winOf, shell, dirOf }) {
   });
 
   // Quiz questions found in the chosen files go to the review queue (Author, Drafts), where each is approved before students see it.
-  on("cm:autoQuestions", (c, e, o) => {
+  on("cm:autoQuestions", async (c, e, o) => {
     const s = get(c), chosen = ((o && o.ids) || []).map((i) => s.analyses[i]).filter((a) => a && a.ok && a.clean && a.clean.questions.length);
     if (!chosen.length) return { ok: false, why: "None of the chosen files holds quiz questions." };
+    const tell = (p) => { try { e.sender.send("cm:autoQuestionsProgress", p); } catch (x) { /* the window closed */ } };
     try {
-      let added = 0, flagged = 0;
-      chosen.forEach((a) => { const r = c.authoring.importText(a.clean.questions.join("\n\n"), {}, a.name), items = r.items.filter((q) => q.q && q.options.length >= 2); const d = c.authoring.addDrafts(items, "imported"); added += d.length; flagged += r.items.length - items.length; });
+      const items = []; let flagged = 0;
+      for (let i = 0; i < chosen.length; i++) { // file by file, giving the screen a turn between files so CM stays responsive
+        const a = chosen[i], r = c.authoring.importText(a.clean.questions.join("\n\n"), {}, a.name), ok = r.items.filter((q) => q.q && q.options.length >= 2);
+        items.push(...ok); flagged += r.items.length - ok.length;
+        tell({ done: i + 1, total: chosen.length, questions: items.length });
+        await new Promise((res) => setImmediate(res));
+      }
+      const added = c.authoring.addDrafts(items, "imported").length; // one save for the whole batch
       return { ok: true, added, flagged };
-    } catch (err) { return { ok: false, why: err.message }; }
+    } catch (err) { return { ok: false, why: "The questions could not be sent to the review queue: " + err.message }; }
   });
 
   on("cm:autoExport", async (c, e) => { // the clean working file, saved where the lecturer chooses
