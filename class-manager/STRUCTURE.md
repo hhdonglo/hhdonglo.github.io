@@ -304,6 +304,7 @@ Look (2026-11-15, from Hope's inspiration image): soft tinted tiles on cards, on
 | --- | --- |
 | `db/students.js` | The student table with unique IDs, kept equal to Roster. |
 | `receipts.js` | Run a request with a client key once. |
+| `exec-failure.js` | The JSON answer ({ok:false, why}) CM's server sends when a request hits an error, so a page shows a sentence, never "could not reach". |
 | `relay/client.js`, `relay/crypto.js` | Collect from the mailbox and open items; make the course keys. |
 | `app/mailbox.html`, `app/mailbox.js` | The Mailbox screen. |
 | `../assets/outbox.js`, `../assets/relay-seal.js` | The phone's queue and encryption. |

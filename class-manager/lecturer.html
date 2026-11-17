@@ -69,7 +69,7 @@ function ok(){$("m-login").hidden=true;$("m-choice").hidden=false;if(location.se
 function check(k,first){
  jsonp("action=hostcheck&hostkey="+encodeURIComponent(k),function(d){
   if(d&&d.ok){saveKey(k);ok();return}
-  if(first){$("m-err").textContent=d?"That password was not accepted.":"Could not reach the class sheet. Check the connection.";$("m-err").hidden=false}
+  if(first){$("m-err").textContent=d?"That password was not accepted.":CM.noAnswer();$("m-err").hidden=false}
   else{try{sessionStorage.removeItem("cm_hk")}catch(x){}}
  });
 }

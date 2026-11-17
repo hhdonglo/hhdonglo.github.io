@@ -43,6 +43,8 @@ window.CM = {
   // appear in a web address (browser history, server logs). When a key or code is accepted, the answer carries _session,
   // a signed session that expires; it then replaces that key or code in this page and wherever the page remembered it,
   // so the key or code itself is not kept. cb(data or null, milliseconds).
+  // The sentence for a request that got no answer at all. CM's own server (desktop) is named plainly; a Google script is "the class server".
+  CM.noAnswer = function (more) { return (CM.desktop ? "CM did not answer. Check that CM is open on the lecturer's computer and that this device is on the same network" : "Could not reach the class server. Check the connection") + (more === false ? "" : ", then try again") + "."; };
   var swap = {};
   function remember(old, tok) {
     swap[old] = tok;

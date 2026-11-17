@@ -168,14 +168,14 @@ $("r-list").addEventListener("click",function(e){
  if(act==="remove"&&!window.confirm("Remove the check-in of "+id+" from this session?"))return;
  t.disabled=true;$("r-msg").textContent="Saving...";
  call(act==="approve"?"attend_approve":act==="remove"?"attend_remove":"attend_phone_reset","&id="+encodeURIComponent(id)+"&label="+lab,function(d){
-  $("r-msg").textContent=!d?"Could not reach the class sheet.":!d.ok?"Not done: "+(d.why||"refused")+".":act==="approve"?id+" is counted present.":act==="remove"?"Check-in of "+id+" removed.":"The registered phone of "+id+" is forgotten.";
+  $("r-msg").textContent=!d?CM.noAnswer():!d.ok?"Not done: "+(d.why||"refused")+".":act==="approve"?id+" is counted present.":act==="remove"?"Check-in of "+id+" removed.":"The registered phone of "+id+" is forgotten.";
   review();poll();
  });
 });
 $("r-addbtn").addEventListener("click",function(){
  var id=$("r-add").value.replace(/\D/g,"");if(!id||!RV)return;
  call("attend_approve","&manual=1&id="+encodeURIComponent(id)+"&label="+encodeURIComponent(RV.session.label),function(d){
-  $("r-msg").textContent=!d?"Could not reach the class sheet.":!d.ok?"Not added: "+(d.why||"refused")+".":(d.added?id+" is counted present.":id+" was already present.");
+  $("r-msg").textContent=!d?CM.noAnswer():!d.ok?"Not added: "+(d.why||"refused")+".":(d.added?id+" is counted present.":id+" was already present.");
   if(d&&d.ok)$("r-add").value="";review();poll();
  });
 });
@@ -207,7 +207,7 @@ $("a-form").addEventListener("submit",function(e){
  e.preventDefault();var k=$("a-key").value.trim();if(!k){$("a-err").textContent="Enter the key.";$("a-err").hidden=false;return}
  jsonp("action=hostcheck&hostkey="+encodeURIComponent(k),function(d){
   if(d&&d.ok){saveKey(k);$("a-err").hidden=true;begin()}
-  else{$("a-err").textContent=d?"That key was not accepted.":"Could not reach the class sheet. Check the connection.";$("a-err").hidden=false}
+  else{$("a-err").textContent=d?"That key was not accepted.":CM.noAnswer();$("a-err").hidden=false}
  });
 });
 // Start: one button. The location check is a single tick box ("Only students in the room"); CM then uses this computer's own position, or the saved or typed one. Nothing is typed unless this computer cannot find itself.
@@ -248,7 +248,7 @@ $("a-close").addEventListener("click",function(){
  if(!window.confirm("Stop attendance? Check-ins stay held and are recorded only when you press Submit attendance in the Control Centre."))return;
  $("a-msg").textContent="Closing...";
  call("attend_close","",function(d){
-  if(!d||!d.ok){$("a-msg").textContent="Not closed: "+((d&&d.why)||"could not reach the class sheet")+".";return}
+  if(!d||!d.ok){$("a-msg").textContent=(d&&d.why?"Not closed: "+d.why+".":CM.noAnswer());return}
   var x=d.session;$("a-last").textContent="Closed and held, not yet recorded. Submit it from the Control Centre. "+x.present+" present, "+x.absent+" absent"+(x.notOnList?", "+x.notOnList+" not on the roster (see the Not_On_List tab)":"")+"."+(x.flagged?" "+x.flagged+" device(s) checked in more than one ID.":"")+" Review the list below before you submit.";
   if(timer){clearInterval(timer);timer=null}show("a-idle");review();
  });

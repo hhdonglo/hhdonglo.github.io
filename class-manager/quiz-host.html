@@ -169,7 +169,7 @@ function q(){return "code="+encodeURIComponent(cfg.code)+"&hostkey="+encodeURICo
 function act(a,extra,cb){
  cfg.stale=false;
  jsonp("action=control&act="+a+"&"+q()+(extra||""),function(d){
-  $("h-msgline").textContent=!d?"Could not reach the class sheet.":(d.ok?"Done: "+a+".":"Not done: "+(d.why||"refused")+".");
+  $("h-msgline").textContent=!d?CM.noAnswer():(d.ok?"Done: "+a+".":"Not done: "+(d.why||"refused")+".");
   var ie=$("h-initerr");if(ie){ie.hidden=!!(d&&d.ok);ie.textContent=d&&d.ok?"":(!d?"Could not reach the class server, so lecturer control was not switched on. Check that CM is running, then try again.":"Lecturer control was not switched on: "+(d.why||"refused")+(d.why==="no such code"?". The class server is an older version, so it needs the updated script (see REDEPLOY.md).":"."))}
   refresh(false);if(cb)cb(d);
  });
@@ -178,7 +178,7 @@ function setSel(id,v){var e=$(id);if(document.activeElement!==e&&v!=null)e.value
 function refresh(first){
  jsonp("action=host&"+q(),function(d){
   if(!d||!d.ok){
-   if(first){$("h-err").textContent=!d?"Could not reach the class sheet. Check the connection.":d.why==="join code"?"The password was accepted, but no quiz uses that join code. Check the join code, or set up the quiz week first.":d.why==="password"?"That password was not accepted.":"That join code or key was not accepted.";$("h-err").hidden=false;if(d)keyField(true)}
+   if(first){$("h-err").textContent=!d?CM.noAnswer():d.why==="join code"?"The password was accepted, but no quiz uses that join code. Check the join code, or set up the quiz week first.":d.why==="password"?"That password was not accepted.":"That join code or key was not accepted.";$("h-err").hidden=false;if(d)keyField(true)}
    else $("h-upd").textContent="Could not refresh just now; trying again.";
    return}
   if(CM.useRelay)CM.useRelay(d.relay||null); // the QR code follows the relay while it holds the quiz

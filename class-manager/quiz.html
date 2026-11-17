@@ -492,15 +492,15 @@ function problem(m){$("end-msg").hidden=false;$("t-end").textContent="Not record
 function poll(n){
  jsonp("action=result&id="+encodeURIComponent(st.id)+"&code="+encodeURIComponent(st.code)+"&rc="+encodeURIComponent(st.rc),function(d){
   if(d&&d.found){showMine(d);return}
-  if(d&&(d.keyMissing||d.outcome==="bad code")){problem("The class sheet did not recognise this join code, so your answers were not recorded. Tell your lecturer.");return}
+  if(d&&(d.keyMissing||d.outcome==="bad code")){problem("The class server did not recognise this join code, so your answers were not recorded. Tell your lecturer.");return}
   if(d&&d.outcome==="paused"){problem("The quiz was paused when your answers arrived, so they were not recorded. Press Send again once your lecturer resumes.");return}
   if(d&&d.outcome==="not joined"){problem("You joined after the quiz started and late joining is closed, so your answers were not recorded. Tell your lecturer.");return}
   if(d&&d.outcome==="quiz closed"){problem(PHYSMSG.text("E13"));return}
   if(d&&d.receipt===false&&(d.outcome==="ok"||d.outcome==="duplicate")){$("t-end").textContent="Thank you, "+st.name;$("end-msg").textContent="Your answers are recorded. Your score is shown only on the phone that sent them.";return}
-  if(d&&d.outcome&&d.outcome!=="ok"&&d.outcome!=="duplicate"){problem("The class sheet could not record your answers ("+d.outcome+"). Tell your lecturer.");return}
+  if(d&&d.outcome&&d.outcome!=="ok"&&d.outcome!=="duplicate"){problem("The class server could not record your answers ("+d.outcome+"). Tell your lecturer.");return}
   if(st.paced&&n>=4){$("t-end").textContent="The quiz has ended";$("end-msg").textContent="No answers from you were recorded for this quiz. If that is wrong, tell your lecturer.";return}
   if(n<14){setTimeout(function(){poll(n+1)},3000);return}
-  problem("I could not confirm that your answers reached the class sheet. Press Send again; only your first attempt counts, so sending twice does no harm.");
+  problem("I could not confirm that your answers reached the class server. Press Send again; only your first attempt counts, so sending twice does no harm.");
  });
 }
 function showMine(d){

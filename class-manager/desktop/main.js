@@ -196,7 +196,7 @@ async function handle(req, res, remote) {
       res.writeHead(200, { "Content-Type": out.mime + "; charset=utf-8", "Cache-Control": "no-store", "Access-Control-Allow-Origin": "*" });
       return res.end(out.text);
     } catch (e) {
-      console.error(e); res.writeHead(500, { "Content-Type": "text/plain" }); return res.end("server error");
+      const f = require("./exec-failure").failure(e); res.writeHead(f.status, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" }); return res.end(f.body); // the page reads this as an answer, not as "could not reach"
     }
   }
   if (req.method !== "GET" && req.method !== "HEAD") { res.writeHead(405); return res.end(); }
