@@ -44,7 +44,7 @@ const DEFAULTS = { courseCode: "", courseTitle: "", institution: "", lecturer: "
   setupSeen: false, aiSummary: false, privacyNotice: "" }; // one course's settings
 const APP_DEFAULTS = Object.assign({ port: 8143, zoom: 1 }, SECURITY_DEFAULTS);
 const TYPES = {
-  ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8",
+  ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".mjs": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8",
   ".json": "application/json; charset=utf-8", ".svg": "image/svg+xml", ".png": "image/png", ".webp": "image/webp",
   ".pdf": "application/pdf", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   ".pptx": "application/vnd.openxmlformats-officedocument.presentationml.presentation", ".md": "text/markdown; charset=utf-8", ".txt": "text/plain; charset=utf-8", ".woff2": "font/woff2", ".webmanifest": "application/manifest+json"
