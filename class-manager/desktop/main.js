@@ -304,15 +304,21 @@ function secureWindow(w) {
   w.removeMenu();
   zoomKeys(w);
   w.webContents.setWindowOpenHandler(({ url }) => {
-    if (url.startsWith(baseUrl()) && !/\.pdf($|[?#])/i.test(url)) return { action: "allow" };
+    if (url.startsWith(baseUrl()) && !/\.pdf($|[?#])/i.test(url)) {
+      if (windows.focusExisting(url)) return { action: "deny" }; // already open: go to it, never a second copy
+      return { action: "allow" };
+    }
     shell.openExternal(url); return { action: "deny" };
   });
+  w.webContents.on("did-create-window", (child, { url }) => { windows.track(url, child); secureWindow(child); }); // a window a page opened is kept in the same list
   w.webContents.on("will-navigate", (e, url) => { if (!url.startsWith(baseUrl())) { e.preventDefault(); if (/^https?:/.test(url)) shell.openExternal(url); } });
 }
+const windows = require("./window-registry").createWindowRegistry(() => BrowserWindow.getAllWindows()); // one window per tool and course
 function newWindow(page, w, h) {
+  if (windows.focusExisting(baseUrl() + page)) return null;
   const bw = new BrowserWindow({ width: w || 1280, height: h || 860, title: "Class Manager", icon: path.join(__dirname, "app", "icon-512.png"),
     webPreferences: { preload: path.join(__dirname, "preload.js"), contextIsolation: true, sandbox: true, nodeIntegration: false } });
-  secureWindow(bw); bw.loadURL(baseUrl() + page); return bw;
+  secureWindow(bw); windows.track(baseUrl() + page, bw); bw.loadURL(baseUrl() + page); return bw;
 }
 
 // ---------- courses ----------
