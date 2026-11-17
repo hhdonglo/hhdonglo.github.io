@@ -602,7 +602,8 @@ on("cm:chooseLogo", async (c, e, clear) => {
 });
 webImport.register({ on, dialog, winOf, shell }); // cm:import*: bring results exported from the web version into this course
 llm.register({ on, dialog, winOf, shell, dirOf: (c) => registry.dirs(c.id).root }); // cm:llm*: a private snapshot of the course for an AI assistant (llm/README.md)
-require("./lecture-progress/ipc").register({ on, saveSettings, dirOf: (c) => registry.dirs(c.id).course }); // cm:lectureProgress, cm:lectureMark: lectures held against the semester target (lecture-progress/README.md)
+require("./lecture-progress/ipc").register({ on, saveSettings, dirOf: (c) => registry.dirs(c.id).course });
+require("./lecture-files/ipc").register({ on, dialog, winOf, shell, dirOf: (c) => registry.dirs(c.id).course, linkedOf: (c) => registry.dirs(c.id).linked }); // cm:lectureOverview, cm:lectureFile*: which file is the notes, handout, tutorial...; open, replace, remove (lecture-files/README.md) // cm:lectureProgress, cm:lectureMark: lectures held against the semester target (lecture-progress/README.md)
 idNoticesIpc.register({ on }); // cm:idNotices, cm:idResolve: the Duplicate IDs card
 folderImport.register({ on, dialog, winOf, shell, saveSettings, dirOf: (c) => registry.dirs(c.id).root }); // cm:auto*: point at a folder; CM finds and extracts what it needs
 require("./first-run/ipc").register({ on, dialog, winOf, courseDirOf: (c) => registry.dirs(c.id).course, stageFor: stageNow });
