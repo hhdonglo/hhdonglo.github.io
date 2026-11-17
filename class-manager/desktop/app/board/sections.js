@@ -13,15 +13,24 @@
     ["actions", "Actions", "Where to put teaching time, support given and results by group."],
     ["privacy", "Privacy and records", "Term, student data and the audit log."]
   ];
-  function nav(present) {
-    return "<nav class='bd-nav' aria-label='Class Analytics sections'>" + present.map(function (s) { return "<a href='#sec-" + s[0] + "'>" + U.esc(s[1]) + "</a>"; }).join("") + "</nav>";
+  var FOOT = "privacy"; // not a tab: term, student data and the audit log stay at the bottom of every view
+  // The tab bar. Each tab is one dashboard grid; only the chosen one is shown (interact.js switches them without redrawing).
+  function nav(present, active) {
+    return "<div class='bd-tabbar' role='tablist' aria-label='Class Analytics sections'>" + present.map(function (s) {
+      return "<button type='button' role='tab' id='bt-" + s[0] + "' data-bd-pane='" + s[0] + "' aria-controls='sec-" + s[0] + "' aria-selected='" + (s[0] === active) + "'>" + U.esc(s[1]) + "</button>";
+    }).join("") + "</div>";
   }
-  // parts: { overview: [html, ...], attendance: [...], ... } in ORDER's keys.
-  function compose(parts) {
-    var present = ORDER.filter(function (s) { return parts[s[0]] && parts[s[0]].join("").replace(/\s/g, "") !== ""; });
-    return nav(present) + present.map(function (s) {
-      return "<section class='bd-sec' id='sec-" + s[0] + "' aria-labelledby='sh-" + s[0] + "'><div class='bd-sh'><h2 id='sh-" + s[0] + "'>" + U.esc(s[1]) + "</h2><p>" + U.esc(s[2]) + "</p></div>" + parts[s[0]].join("") + "</section>";
+  function filled(parts, k) { return !!parts[k] && parts[k].join("").replace(/\s/g, "") !== ""; }
+  // parts: { overview: [html, ...], attendance: [...], ... } in ORDER's keys. `active` is the chosen tab (the first when missing).
+  // `between` is HTML placed under the tab bar and above the grids (the list of students behind a clicked number).
+  function compose(parts, active, between) {
+    var present = ORDER.filter(function (s) { return s[0] !== FOOT && filled(parts, s[0]); });
+    if (!present.some(function (s) { return s[0] === active; })) active = present.length ? present[0][0] : "";
+    var panes = present.map(function (s) {
+      return "<section class='bd-sec bd-pane' id='sec-" + s[0] + "' role='tabpanel' aria-labelledby='bt-" + s[0] + "'" + (s[0] === active ? "" : " hidden") + "><div class='bd-sh'><h2>" + U.esc(s[1]) + "</h2><p>" + U.esc(s[2]) + "</p></div>" + parts[s[0]].join("") + "</section>";
     }).join("");
+    var foot = filled(parts, FOOT) ? "<section class='bd-sec bd-foot-sec' id='sec-privacy' aria-labelledby='sh-privacy'><div class='bd-sh'><h2 id='sh-privacy'>Privacy and records</h2><p>" + U.esc(ORDER[ORDER.length - 1][2]) + "</p></div>" + parts[FOOT].join("") + "</section>" : "";
+    return nav(present, active) + (between || "") + panes + foot;
   }
   var api = { ORDER: ORDER, compose: compose };
   if (typeof module === "object" && module.exports) module.exports = api; else root.cmBoardSections = api;

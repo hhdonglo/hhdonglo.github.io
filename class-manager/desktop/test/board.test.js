@@ -62,8 +62,8 @@ test("findings are worked out from the numbers and never more than five", () => 
 });
 
 test("the board draws with data, and the clicks the page relies on are in the markup", () => {
-  const html = V.html(base(), lp());
-  ["data-drill='students'", "data-drill='risk'", "id='ddrill'", "data-bd-tab='quiz'", "data-bd-view='groups'", "data-bd-bar='0'", "id='bd-plan'", "id='bd-rank'", "id='bd-ins'"].forEach((x) => assert.ok(html.includes(x), x));
+  const html = V.kpiRow(base()) + V.html(base(), lp());
+  ["data-drill='students'", "data-drill='risk'", "data-bd-tab='quiz'", "data-bd-view='groups'", "data-bd-bar='0'", "id='bd-plan'", "id='bd-rank'", "id='bd-ins'"].forEach((x) => assert.ok(html.includes(x), x));
   assert.ok(!/&(?!amp;|lt;|gt;|quot;|#39;)/.test(html.replace(/&amp;/g, "")), "no bare ampersand");
   assert.ok(/<svg[^>]*role='img'/.test(html), "every chart has a text label");
   assert.ok(V.breakPanel(base(), "groups").includes("data-bd-slice='0'"), "a group slice opens its students");
@@ -107,9 +107,27 @@ test("spread card gives median, middle half, lowest and highest from the student
 });
 
 test("sections: each piece sits under its heading once, in order, empty sections are left out, with a jump row", () => {
-  const html = SEC.compose({ overview: ["<p id='a'></p>"], quizzes: ["<p id='b'></p>"], risk: [""], privacy: ["<p id='c'></p>"] });
+  const html = SEC.compose({ overview: ["<p id='a'></p>"], quizzes: ["<p id='b'></p>"], risk: [""], privacy: ["<p id='c'></p>"] }, "quizzes", "<i id='between'></i>");
   assert.ok(html.indexOf("id='sec-overview'") < html.indexOf("id='sec-quizzes'") && html.indexOf("id='sec-quizzes'") < html.indexOf("id='sec-privacy'"));
   assert.ok(!html.includes("sec-risk\"") && !html.includes("id='sec-risk'"), "an empty section is omitted");
-  assert.strictEqual((html.match(/id='a'/g) || []).length, 1); assert.ok(html.includes("href='#sec-quizzes'") && !html.includes("href='#sec-risk'"));
+  assert.strictEqual((html.match(/id='a'/g) || []).length, 1); assert.ok(html.includes("data-bd-pane='quizzes'") && !html.includes("data-bd-pane='risk'"), "a tab bar with the filled sections only");
+  assert.ok(/id='sec-quizzes'[^>]*>/.test(html) && !/id='sec-quizzes'[^>]*hidden/.test(html) && /id='sec-overview'[^>]*hidden/.test(html), "only the chosen tab is shown");
+  assert.ok(html.indexOf("id='between'") < html.indexOf("id='sec-overview'"), "the drill-down list sits above the grids");
+  assert.ok(/id='sec-overview'[^>]*(?!hidden)/.test(SEC.compose({ overview: ["<p>x</p>"] }, "nope")) && !/hidden/.test(SEC.compose({ overview: ["<p>x</p>"] }, "nope")), "an unknown tab falls back to the first");
   assert.deepStrictEqual(SEC.ORDER.map((x) => x[0]), ["overview", "attendance", "quizzes", "risk", "questions", "relations", "actions", "privacy"]);
+});
+
+const SH = require("../app/board/shares");
+test("donut shares: attendance, score bands, flag reasons and mastery bands add up and say when there is nothing", () => {
+  const d = base(); d.attendance.bySession = [{ label: "a", present: 15, counted: 20 }, { label: "b", present: 5, counted: 20 }];
+  const a = SH.attendance(d); assert.deepStrictEqual([a.slices[0].value, a.slices[1].value, a.centre.big], [20, 20, "50%"]);
+  assert.strictEqual(SH.attendance({ attendance: { bySession: [] } }).centre, null);
+  d.students = [30, 55, 72, 90, 95, null].map((q, i) => stu(String(i), { quizAverage: q }));
+  const sc = SH.scores(d); assert.deepStrictEqual(sc.slices.map((x) => x.value), [1, 1, 1, 2]); assert.strictEqual(sc.total, 5);
+  const r = SH.risk(Object.assign(base(), { attendance: { sessions: 6, bySession: [] }, students: Array.from({ length: 12 }, (_, i) => stu(String(i), { attendance: i < 2 ? 10 : 90 })) }));
+  assert.strictEqual(r.slices.length, 1); assert.strictEqual(r.slices[0].value, 2); assert.strictEqual(r.centre.big, "2");
+  assert.strictEqual(SH.mastery({ topics: { semester: [{ band: "well", pct: 80, label: "L1" }, { band: "attention", pct: 30, label: "L2" }] }, quizzes: [] }).total, 2);
+  const html = V.attendanceShare(d) + V.scoreShare(d) + V.riskShare(d) + V.masteryShare(d);
+  ["bd-satt", "bd-sscore", "bd-srisk", "bd-smast"].forEach((x) => assert.ok(html.includes("id='" + x + "'"), x));
+  assert.ok(/Nothing to show yet/.test(V.attendanceShare({ attendance: { bySession: [] } })));
 });

@@ -48,3 +48,22 @@ button.dstat.bd-kpi{border:1px solid #E6E9F0!important}
 .bd-sec .card input,.bd-sec .card select,.bd-sec .card textarea,.bd-sec .card .f{background:#fff;color:#1F2D45;border:1px solid #CBD3E1}
 .bd-sec .card .btn{color:#1F2D45;border-color:#CBD3E1}.bd-sec .card .btn:hover{background:#FFF4E6}
 .bd-sec .card .todo-a{color:#9A5B12}.bd-sec .card .tk{color:#5A6579}
+
+/* Dashboard layout (Hope, 2026-11-17): KPI row on top, a thin tab bar, then one grid of cards per tab, like the reference. Several charts share a row; one column when narrow. */
+.bd-tabbar{display:flex;flex-wrap:wrap;gap:.35rem;margin:var(--gap) 0 0;padding:.35rem;border-radius:999px;background:rgba(255,255,255,.06);width:fit-content;max-width:100%}
+.bd-tabbar button{border:0;background:transparent;color:var(--text);font:inherit;font-size:.88rem;font-weight:600;padding:.4rem 1rem;border-radius:999px;cursor:pointer}
+.bd-tabbar button:hover{background:rgba(224,165,38,.18)}.bd-tabbar button[aria-selected="true"]{background:#E8772E;color:#fff}
+.bd-tabbar button:focus-visible{outline:3px solid #E0A526;outline-offset:2px}
+.bd-pane{margin:var(--gap) 0 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,24rem),1fr));gap:var(--gap);align-items:start}
+.bd-pane[hidden]{display:none}
+.bd-pane>.bd-sh{grid-column:1/-1;margin:0}.bd-pane>.bd-sh h2{font-size:1.05rem}.bd-pane>.bd-sh p{margin-left:.95rem}
+.bd-pane>.bd-grid,.bd-pane>.dgrid,.bd-pane>.verdict,.bd-pane>.bd-w3,.bd-pane>.bd-w4{grid-column:1/-1}
+.bd-pane>div[id],.bd-pane .dgrid{display:contents}
+.bd-pane>.bd-grid{margin:0}
+.bd-pane .card,.bd-pane .bd-card{margin:0!important;min-width:0}
+.bd-foot-sec{margin:2.2rem 0 0}.bd-foot-sec>.card,.bd-foot-sec>div[id]{margin-top:var(--gap)}
+.bd-pane .dgrid>.card{grid-column:auto}
+.bd-pane{grid-auto-flow:dense}.bd-pane>.bd-sh h2{display:none}.bd-pane>.bd-sh p{margin:0;border-left:4px solid #E0A526;padding-left:.7rem}
+.bd-pane>.bd-grid{align-items:stretch}
+.bd-pane #gx>.card{grid-row:span 3}
+#bd-satt .bd-plan,#bd-sscore .bd-plan,#bd-srisk .bd-plan,#bd-smast .bd-plan{grid-template-columns:minmax(0,1fr);justify-items:center}#bd-srisk .bd-legend,#bd-satt .bd-legend,#bd-sscore .bd-legend,#bd-smast .bd-legend{width:100%}

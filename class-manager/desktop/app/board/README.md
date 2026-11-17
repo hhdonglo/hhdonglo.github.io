@@ -27,3 +27,7 @@ Where it plugs in: `insights.js` (`overview()`) draws the board first and then t
 Empty state: every panel still draws, with ghost bars, a grey ring and one plain sentence saying what to do. A class with 140 students draws the same few dozen marks, so it stays fast. Student lists stay on the lecturer's screen.
 
 Change a chart: edit its module and `test/board.test.js`. Add a progress tab: one entry in `progress()` in `model.js`. Add a KPI: one entry in `kpis()` (and a drill in `dashboard/groups.js` if it should open students). Screenshots: `node tools/board-screenshots.js <folder> [dark|light]` (made-up class, no real data).
+
+## Dashboard layout (2026-11-17)
+KPI row on top, a thin tab bar (Overview, Attendance, Quizzes, Risk and attention, Questions, Relationships and trends, Actions), then one grid of cards for the chosen tab, like the reference: two to three cards per row, one column when narrow. `sections.js` builds the tabs and panes; `interact.js` `pane()` shows one pane and hides the rest without redrawing. Privacy and records stay below every tab. The list of students behind a clicked number (`#ddrill`) sits under the tab bar so it shows on every tab.
+`shares.js` holds the numbers for the donuts (attendance present or absent, quiz average bands, why students are flagged, topic mastery bands); `render.js` draws them as cards (`shareCard`). Topic panels from `topics-panels.js` are placed in Questions and Relationships by `topicCards`.

@@ -25,14 +25,23 @@ const STUB = (d, lp) => `(function(){var d=${JSON.stringify(d)},lp=${JSON.string
 (async () => {
   const out = process.argv[2], scheme = process.argv[3] || "dark"; fs.mkdirSync(out, { recursive: true });
   const d = stats(), browser = await chromium.launch();
-  const shots = [["board-wide", 1512, 10200, d, LP], ["board-narrow", 760, 16000, d, LP], ["board-empty", 1512, 6500, empty(d), null]];
-  for (const [name, w, h, data, lp] of shots) {
+  // made-up topic figures so the topic panels have something to draw (the sample class has no question-level answers)
+  const tp = (n, pct, band) => ({ key: "L" + n, label: "Lecture " + n, title: ["Units", "Kinematics", "Forces", "Energy"][n - 1], pct, band, answers: 120, students: 38, small: false, studentBands: { well: 12, developing: 14, attention: 12 } });
+  d.topics = { cutoffs: { well: 70, developing: 50, minTopicAnswers: 10, minStudentAnswers: 3 }, answers: 480, unmapped: 0, semester: [tp(1, 82, "well"), tp(2, 64, "developing"), tp(3, 41, "attention"), tp(4, 73, "well")],
+    overTime: [1, 2, 3, 4].map((n) => ({ key: "L" + n, label: "Lecture " + n, title: "", values: [60 + n * 3, 55 + n * 5, 50 + n], answers: [30, 30, 30] })), students: {}, byQuiz: {} };
+  const tabs = process.env.CM_TABS ? process.env.CM_TABS.split(",") : ["overview", "attendance", "quizzes", "risk", "questions", "relations", "actions"];
+  const shots = [];
+  for (const t of tabs) { shots.push(["tab-" + t + "-wide", 1512, 2600, d, LP, t]); shots.push(["tab-" + t + "-narrow", 760, 5200, d, LP, t]); }
+  shots.push(["board-empty", 1512, 2000, empty(d), null, "overview"]);
+  for (const [name, w, h, data, lp, tab] of shots) {
     const ctx = await browser.newContext({ viewport: { width: w, height: 900 }, colorScheme: scheme, deviceScaleFactor: 1 });
     await ctx.addInitScript(STUB(data, lp));
-    const pg = await ctx.newPage(); pg.on("pageerror", (e) => console.log("PAGE ERROR", e.stack.split("\n").slice(0,3).join(" | ")));
+    const pg = await ctx.newPage(); pg.on("pageerror", (e) => console.log("PAGE ERROR", e.stack.split("\n").slice(0, 3).join(" | ")));
     await pg.goto("file://" + path.join(__dirname, "..", "app", "home.html")); await pg.waitForTimeout(900);
-    await pg.setViewportSize({ width: w, height: h });
-    if (process.env.CM_PROBE) console.log(name, await pg.evaluate(() => { const e = document.querySelector(".bd-donut"); const c = getComputedStyle(e); return [e.getBoundingClientRect().width, c.maxWidth, c.width, c.display]; }));
+    await pg.click("[data-bd-pane='" + tab + "']").catch(() => {});
+    await pg.setViewportSize({ width: w, height: h }); await pg.waitForTimeout(200);
+    const box = await pg.evaluate(() => { const e = document.querySelector(".bd-pane:not([hidden])"); const r = e ? e.getBoundingClientRect() : { bottom: 900 }; return Math.ceil(r.bottom + window.scrollY + 40); });
+    await pg.setViewportSize({ width: w, height: Math.min(h, Math.max(900, box)) });
     await pg.screenshot({ path: path.join(out, name + "-" + scheme + ".png") });
     await ctx.close();
   }

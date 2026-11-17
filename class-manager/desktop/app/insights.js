@@ -99,16 +99,18 @@
     var targetsCard = "<section class='card'><div class='card-head'><h3>Areas to target</h3><span class='note'>Ranked, with the evidence</span></div>" +
       (d.targets.length ? "<ol class='targets'>" + d.targets.slice(0, 7).map(target).join("") + "</ol>" : "<p class='note'>Nothing stands out yet.</p>") + "</section>";
     var grid = function (xs) { return "<div class='dgrid'>" + xs.join("") + "</div>"; };
-    document.body.classList.add("has-board");
-    parts.overview = [B.html(d, window.cmLecture, window.cmBoardInteract && cmBoardInteract.state), grid([DV.healthCard(d)]), verdict, "<div id='an-summary'></div>"];
-    parts.attendance = ["<div id='xo-att'></div>", B.setAsideCard(d)];
-    parts.quizzes = [B.spreadCard(d), "<div id='gx'>" + gxHtml(d) + "</div>", "<div id='xo-quiz'></div>"]; // class graphs: distribution, box plot and scatter for the chosen day (app/charts/panel.js)
-    parts.risk = ["<div id='xo-risk'></div>", grid([DV.riskCard(d)])];
-    parts.questions = ["<div id='xo-q'></div>", "<div id='an-questions'></div>"];
-    parts.relations = [grid([DV.corrCard(d), DV.trendsCard(d)])];
+    var TC = B.topicCards(d), st = window.cmBoardInteract ? cmBoardInteract.state : {};
+    // Each tab is one dashboard grid: donuts and bar charts side by side, wide tables on their own row (app/board/sections.js, board.css).
+    parts.overview = [B.html(d, window.cmLecture, st), grid([DV.healthCard(d)]), verdict, "<div id='an-summary'></div>"];
+    parts.attendance = [B.attendanceShare(d), B.setAsideCard(d), "<div id='xo-att'></div>"];
+    parts.quizzes = [B.scoreShare(d), B.spreadCard(d), "<div id='gx'>" + gxHtml(d) + "</div>", "<div id='xo-quiz'></div>"]; // class graphs: distribution, box plot and scatter for the chosen day (app/charts/panel.js)
+    parts.risk = [B.riskShare(d), "<div id='xo-risk'></div>", grid([DV.riskCard(d)])];
+    parts.questions = [B.masteryShare(d), TC.mastery, TC.over, "<div id='xo-q'></div>", "<div id='an-questions'></div>"];
+    parts.relations = [TC.corr, grid([DV.corrCard(d), DV.trendsCard(d)])];
     parts.actions = [targetsCard, "<div id='an-actions'></div>", DV.ops(d, window.cmSetup, window.cmLive)];
     parts.privacy = ["<div id='an-privacy'></div>"];
-    var h = SEC.compose(parts);
+    document.body.classList.add("has-board");
+    var h = B.kpiRow(d) + SEC.compose(parts, st.pane, "<section class='card ddrill' id='ddrill' aria-live='polite' hidden></section>");
     $("ov").innerHTML = h; gxWatch();
     [["xo-att", "ov-attendance"], ["xo-quiz", "ov-quizzes"], ["xo-risk", "ov-risk"], ["xo-q", "ov-questions"]].forEach(function (x) { xmount(x[0], x[1]); });
     if (window.cmAnalyticsPanel) cmAnalyticsPanel.mountInto({ summary: $("an-summary"), questions: $("an-questions"), actions: $("an-actions"), privacy: $("an-privacy") }, d);
