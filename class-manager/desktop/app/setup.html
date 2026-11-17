@@ -204,12 +204,14 @@ function fdShow(r,auto){
  var box=$("fd-found");
  if(!r){return}
  if(!r.ok){box.innerHTML=auto&&r.none?"":"<p class='note'>"+fdEsc(r.why||"CM could not read the folder.")+"</p>";return}
+ var tg=$("c-target");if(r.lectureCount&&tg&&!tg.value){tg.value=r.lectureCount;box.setAttribute("data-lec",String(r.lectureCount))}
  if(!r.fields.length){box.innerHTML="<p class='note'>CM read "+r.read.length+(r.read.length===1?" file":" files")+" and found no course details. Type them in below.</p>";return}
  var filled=[];
  r.fields.forEach(function(f){var i=FD[f.key]&&$(FD[f.key]);if(!i)return;var blank=!i.value.trim()||(f.key==="week"&&i.value==="1");if(blank){i.value=f.value;filled.push(f.label)}});
  box.innerHTML="<p><b>CM filled this form from "+fdEsc(r.folder||"the folder")+".</b> Check each value and correct what is wrong; nothing is saved until you press Save and continue.</p><ul>"+
   r.fields.map(function(f){return"<li>"+fdEsc(f.label)+": <b>"+fdEsc(f.value)+"</b> <span class='note'>from "+fdEsc(f.from)+(f.worked?" (worked out from the first day)":"")+"</span></li>"}).join("")+"</ul>"+
   (r.missing&&r.missing.length?"<p class='note'>Not in the files, so left for you: "+fdEsc(r.missing.join(", "))+".</p>":"")+
+  (r.lectureCount?"<p class='note'>CM found lectures 1 to "+r.lectureCount+" in the folder"+(r.lectureGaps&&r.lectureGaps.length?" (no files for lecture "+r.lectureGaps.join(", ")+")":"")+" and filled in the number of lectures planned. Change it if the semester plan differs.</p>":"")+
   (r.topics&&r.topics.length?"<p class='note'>"+r.topics.length+" weekly topics were also found; add them under Course materials.</p>":"")+
   "<p><button type='button' class='btn' id='fd-all'>Use all of these values, replacing what is typed</button></p>";
  $("fd-all").onclick=function(){r.fields.forEach(function(f){var i=FD[f.key]&&$(FD[f.key]);if(i)i.value=f.value})};

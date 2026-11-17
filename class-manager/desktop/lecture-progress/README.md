@@ -24,3 +24,7 @@ Settings (per course, Course settings): `lectureTarget` (number of lectures, 0 =
 Lectures before today only (today's lecture is not due until the day is over). With teaching days set, the target is spread over the real teaching days of the semester. Without them, it is spread evenly over the days. Behind = expected minus held. Catch-up = the extra sessions in the weeks that remain.
 
 Tests: `test/lecture-progress.test.js`.
+
+## Lecture list
+
+Lecture detection: `desktop/autoload/lecture-names.js` finds lecture numbers in file and folder names (lecture1, Lecture_01, L1, Lec 2, week3, "08 Waves", numbers in folder names) and groups files by lecture, with gaps (one detector, uses the existing folder scan `autoload/scan.js`). `desktop/lecture-progress/overview.js` merges that with lectures.json and the banks into "Lecture 1" to the last, shown on Course and Content (`app/lecture-list.js`, call `cm:lectureOverview`). The last detected number pre-fills "Lectures planned" in Course settings. Tests: `test/lecture-names.test.js`, `test/lecture-overview.test.js`.
