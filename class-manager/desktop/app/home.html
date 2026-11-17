@@ -110,6 +110,7 @@ main{grid-area:main;overflow:auto;overflow-x:hidden;min-width:0;padding:1.75rem 
 .btn.primary:hover{background:var(--primary-h);border-color:var(--primary-h)}
 .btn.danger{background:var(--danger);border-color:var(--danger);color:#fff}
 .btn.danger:hover{background:var(--danger-h)}
+.nav-count{margin-left:auto;min-width:1.4rem;padding:0 .45rem;border-radius:999px;background:var(--gold,#d6a736);color:#10213f;font-size:var(--fs-sm);font-weight:700;text-align:center}
 .btn.sm{min-height:2.1rem;padding:.3rem .8rem;font-size:var(--fs-sm)}
 .btn svg{width:1.2rem;height:1.2rem;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
 .link{all:unset;cursor:pointer;color:var(--accent);font-weight:600;font-size:.95rem}
@@ -436,7 +437,7 @@ tr[data-sel]{cursor:pointer}tr[data-sel].sel>td{background:rgba(70,110,200,.28)}
  <p class="side-h">Students</p>
  <button class="nav" data-view="students"><svg><use href="#i-people"/></svg><span>Students</span></button>
  <button class="nav" data-view="progress"><svg><use href="#i-chart"/></svg><span>Learning Progress</span></button>
- <button class="nav" data-view="roster"><svg><use href="#i-list"/></svg><span>Class Roster</span></button>
+ <button class="nav" data-view="roster"><svg><use href="#i-list"/></svg><span>Class Roster</span><span id="unlisted-n" class="nav-count" aria-label="IDs waiting for a decision" hidden></span></button>
  <p class="side-h">Course</p>
  <button class="nav" data-view="course"><svg><use href="#i-book"/></svg><span>Course and Content</span></button>
  <button class="nav" data-view="grades"><svg><use href="#i-table"/></svg><span>Grades and Results</span></button>
@@ -633,6 +634,7 @@ tr[data-sel]{cursor:pointer}tr[data-sel].sel>td{background:rgba(70,110,200,.28)}
    <p class="note" id="cl-n"></p>
    <p class="row" style="margin-top:14px"><button class="btn primary" type="button" data-go="setup.html#class">Add or replace students from a file</button><button class="btn" type="button" id="roster-view">View the list</button></p>
   </div>
+  <div class="card" id="unlisted-review" hidden style="grid-column:1/-1"></div>
   <div class="card" id="id-notices" hidden></div>
   <div class="card sub">
    <h3>Student access</h3>
@@ -927,6 +929,7 @@ tr[data-sel]{cursor:pointer}tr[data-sel].sel>td{background:rgba(70,110,200,.28)}
 <script src="import.js"></script>
 <script src="offlist.js"></script>
 <script src="id-notices.js"></script>
+<script src="unlisted.js"></script>
 <script src="lecture-progress.js"></script>
 <script src="lecture-viewer.js"></script>
 <script src="lecture-view/state.js"></script><script src="lecture-view/present.js"></script><script src="lecture-view/view.js"></script>

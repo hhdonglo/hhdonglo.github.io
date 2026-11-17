@@ -605,6 +605,7 @@ llm.register({ on, dialog, winOf, shell, dirOf: (c) => registry.dirs(c.id).root 
 require("./lecture-progress/ipc").register({ on, saveSettings, dirOf: (c) => registry.dirs(c.id).course });
 require("./lecture-files/ipc").register({ on, dialog, winOf, shell, dirOf: (c) => registry.dirs(c.id).course, linkedOf: (c) => registry.dirs(c.id).linked }); // cm:lectureOverview, cm:lectureFile*: which file is the notes, handout, tutorial...; open, replace, remove (lecture-files/README.md) // cm:lectureProgress, cm:lectureMark: lectures held against the semester target (lecture-progress/README.md)
 idNoticesIpc.register({ on }); // cm:idNotices, cm:idResolve: the Duplicate IDs card
+require("./unlisted-ipc").register({ on }); // cm:unlisted*: students who signed in with an ID not on the class list, held until the lecturer adds or rejects them (rules/unlisted.js)
 folderImport.register({ on, dialog, winOf, shell, saveSettings, dirOf: (c) => registry.dirs(c.id).root }); // cm:auto*: point at a folder; CM finds and extracts what it needs
 require("./first-run/ipc").register({ on, dialog, winOf, courseDirOf: (c) => registry.dirs(c.id).course, stageFor: stageNow });
 require("./roster-shots/ipc").register({ on }); // cm:rosterShots*: the Class Roster page, the only place a roster is entered (roster-shots/README.md)

@@ -21,7 +21,7 @@ test("CM's own server shows the code to the first phone only, and the lecturer c
   const r = claim(a, 1); assert.equal(r.ok, true); assert.equal(r.code, c.codes[a.id]);
   assert.equal(claim(a, 2).code, undefined); assert.equal(claim(a, 2).pending, true, "a second phone is held");
   assert.equal(claim(b, 1).code, undefined, "a phone registered to someone else is not shown another code");
-  assert.equal(claim({ id: "55555555" }, 5).why, "not recognised");
+  const off = claim({ id: "55555555" }, 5); assert.equal(off.ok, true); assert.equal(off.onList, false); assert.equal(off.code, undefined, "an ID off the class list is told so and shown no code");
   assert.equal(claim(a, 1, { t: "00000000" }).why, "old link");
   assert.equal(c.call({ action: "attend", id: a.id, dev: dev(1), t, code: r.code }).ok, true, "the code shown signs the student in");
   assert.ok(c.host("attend_review", {}).items.some((i) => i.pending && i.ids.includes(a.id)), "the lecturer sees the held request");

@@ -4,12 +4,13 @@
    The code is shown only when ALL hold: an attendance session is open; the QR token is current; the ID is on the class list and has a code;
    the phone is not registered to a different ID and the ID is not registered to a different phone (the first phone to ask is registered, the same one-phone-per-student rule as check-in).
    Anyone else asking for that ID is not shown the code: the request is held for the lecturer (the same "waiting for approval" list as a borrowed phone), who can forget the registered phone to let the student try again.
-   Off the class list and "no code yet" give the same answer as a wrong code, so nobody can probe which IDs exist. */
+   An ID off the class list is told so (no code is shown, and the phone checks in with a warning to see the lecturer, rules/unlisted.js); a listed ID with "no code yet" gets the same answer as a wrong code. */
 "use strict";
 const { normalizeId } = require("../ids");
 const { append } = require("./store");
 const AC = require("./access-codes");
 const A = require("./attendance");
+const U = require("./unlisted");
 
 const ON = (store) => String(store.prop("code_claim") || "1") !== "0"; // the lecturer can switch the reveal off (property code_claim = "0")
 const HELD = A.K.PENDING + "asked for the access code from a phone other than the one registered";
@@ -26,6 +27,7 @@ function claim(store, p, o) {
   if (!A.linkOk(ses, String(p.t || "").replace(/[^0-9a-f]/g, "").slice(0, 8), now, o.grace)) { fails.add("d" + dev); fails.add("i" + aid); return { ok: false, why: "old link" }; }
   const g = A.geo(ses, p, mode);
   if (mode === "enforce" && (g.state === "far" || g.state === "none")) return { ok: false, why: g.state === "far" ? "too far" : "no location" };
+  if (U.isUnlisted(store, aid)) return { ok: true, id: aid, onList: false }; // no code to show: the phone goes on to check in with the warning to see the lecturer (rules/unlisted.js)
   const mine = A.rosterSet(store)[aid] ? AC.codesMap(store)[aid] : null;
   if (!mine) { fails.add("d" + dev); fails.add("i" + aid); return { ok: false, why: "not recognised" }; }
   if (AC.expired(store, mine)) return { ok: false, why: "code expired" };

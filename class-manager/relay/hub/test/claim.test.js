@@ -33,15 +33,15 @@ async function bothSides(mode, withCodes) {
   const checkIn = (p) => call(env, "POST", "/v1/attend", { body: JSON.stringify(Object.assign({ course, t: token(now) }, p)), headers: { "CF-Connecting-IP": "6.6.6." + (ip++ % 200) } }, now).then((r) => r.body);
   return { phone, checkIn, env, keys, course, now, store };
 }
-const pick = (r) => ({ ok: r.ok, why: r.why, id: r.id, pending: r.pending, code: r.code });
+const pick = (r) => ({ ok: r.ok, why: r.why, id: r.id, pending: r.pending, code: r.code, onList: r.onList });
 
 test("the same answers as the rules: the first phone is shown the code, any other phone is held", async () => {
-  const S = await bothSides("off"), same = async (p, expect) => { const r = await S.phone(p); assert.deepEqual(pick(r.relay), pick(r.rules)); assert.equal(r.relay.why || (r.relay.pending ? "pending" : r.relay.code ? "shown" : "?"), expect); return r.relay; };
+  const S = await bothSides("off"), same = async (p, expect) => { const r = await S.phone(p); assert.deepEqual(pick(r.relay), pick(r.rules)); assert.equal(r.relay.why || (r.relay.onList === false ? "unlisted" : r.relay.pending ? "pending" : r.relay.code ? "shown" : "?"), expect); return r.relay; };
   assert.equal((await same({ id: "20000001", dev: dev(1) }, "shown")).code, "AAAA-2222");
   assert.equal((await same({ id: "20000001", dev: dev(1) }, "shown")).code, "AAAA-2222", "the same phone again, for example after clearing the page");
   assert.equal((await same({ id: "20000001", dev: dev(2) }, "pending")).code, undefined, "another phone asking for a registered ID is not shown the code");
   assert.equal((await same({ id: "20000002", dev: dev(1) }, "pending")).code, undefined, "a phone registered to someone else is not shown another code");
-  await same({ id: "99999999", dev: dev(3) }, "not recognised"); // off the class list: the same answer as a wrong code
+  await same({ id: "99999999", dev: dev(3) }, "unlisted"); // off the class list: no code is shown; the phone checks in with a warning to see the lecturer
   await same({ id: "20000003", dev: dev(4), t: token(S.now, 5) }, "old link");
   await same({ id: "12", dev: dev(5) }, "bad id");
   await same({ id: "20000003", dev: "short" }, "update page");
@@ -59,7 +59,7 @@ test("the location is checked before a code is shown, and wrong guesses slow a p
   await same({ id: "20000001", dev: dev(1), lat: 51.6, lon: -0.12 }, "too far");
   await same({ id: "20000001", dev: dev(1) }, "no location");
   await same({ id: "20000001", dev: dev(1), lat: 51.5005, lon: -0.12 }, "ok");
-  for (let i = 0; i < 6; i++) await S.phone({ id: "2000010" + i, dev: dev(9), lat: 51.5005, lon: -0.12 });
+  for (let i = 0; i < 6; i++) await S.phone({ id: "20000002", dev: dev(9), t: token(S.now, 5), lat: 51.5005, lon: -0.12 }); // an old QR link counts as a failed try
   await same({ id: "20000002", dev: dev(9), lat: 51.5005, lon: -0.12 }, "slow down");
 });
 

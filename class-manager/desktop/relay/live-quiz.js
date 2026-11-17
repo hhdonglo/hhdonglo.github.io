@@ -8,6 +8,8 @@ const R = require("../rules/quiz-results");
 const QS = require("../rules/quiz-submit");
 const V = require("../rules/quiz-views");
 const A = require("../rules/auth");
+const AC = require("../rules/access-codes");
+const { sinkFor } = require("../rules/unlisted-quiz");
 const { quizHooks } = require("../rules/router");
 const { fromBackend } = require("../rules/store");
 
@@ -15,7 +17,7 @@ const EVERY_MS = 5000, RUNNING = ["lobby", "running", "paused", "ended"];
 
 function createLiveQuiz(opts) {
   const hub = opts.hub, backend = opts.backend, pages = opts.pages, log = opts.log || (() => {}), setTimer = opts.setInterval || setInterval, clearTimer = opts.clearInterval || clearInterval;
-  let code = "", timer = null, busy = Promise.resolve();
+  let code = "", timer = null, busy = Promise.resolve(), listedKey = "";
   const store = () => fromBackend(backend), counters = A.memoryCounters(() => new Date());
   const env = () => ({ site: backend.site, random: () => require("crypto").randomUUID(), counters });
   const usable = () => !!(hub && typeof hub.post === "function" && opts.address());
@@ -35,7 +37,7 @@ function createLiveQuiz(opts) {
       try {
         const b = JSON.parse(e.body);
         // An answer the relay admitted is recorded as of the question and round it was for, even when the lecturer has moved on since (the rules would call it "wrong question").
-        if (b.kind === "answer") R.addAnswer(st, [new Date(e.at * 1000), b.id, b.name, b.code, b.q, b.answer, b.round || 0, b.conf || "", b.vote || 0]);
+        if (b.kind === "answer") sinkFor(st, b.id).addAnswer([new Date(e.at * 1000), b.id, b.name, b.code, b.q, b.answer, b.round || 0, b.conf || "", b.vote || 0]); // an ID off the class list goes to the holding area, not the live tabs
         else QS.handle(st, b, o);
       } catch (err) { log("live quiz: an event could not be recorded (" + err.message + ")"); }
     });
@@ -46,11 +48,13 @@ function createLiveQuiz(opts) {
     const snap = snapshot(store(), c);
     if (snap && RUNNING.indexOf(snap.state) >= 0) {
       const reg = await hub.register(); if (!reg.ok) throw new Error(reg.why || "no relay");
-      await hub.post("/v1/quiz/put", snap.body); code = c;
+      const listed = AC.rosterRows(store()).map((r) => r[0]), key = c + "|" + listed.length + "|" + listed.join(",").length + "|" + require("crypto").createHash("sha1").update(listed.join(",")).digest("hex");
+      const body = key === listedKey ? snap.body : Object.assign({ listed }, snap.body); // the class list goes to the relay when it changes, so a phone with another ID is warned at once
+      const put = await hub.post("/v1/quiz/put", body); code = c; if (put && put.ok !== false) listedKey = key;
       if (!timer) { timer = setTimer(() => { if (code) { collect().then(() => sync(code)).catch(() => {}); } }, EVERY_MS); if (timer.unref) timer.unref(); }
     } else if (code === c) { await collect(); await hub.post("/v1/quiz/close", {}); stopTimer(); } // released, reset or deleted: take the last answers, then close
   });
-  function stopTimer() { code = ""; if (timer) { clearTimer(timer); timer = null; } }
+  function stopTimer() { code = ""; listedKey = ""; if (timer) { clearTimer(timer); timer = null; } }
 
   // The answer text CM is about to send for this request, with the relay fields added; the relay work happens after.
   function after(params, text) {
