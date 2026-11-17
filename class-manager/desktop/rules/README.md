@@ -33,5 +33,7 @@ Stage 1 (this folder) only adds the modules and the tests that prove they give t
 | `progress.js` | `learningProgress_`, `studentProfile_`, `studentStats_`, My results extras | ported, parity tested (`progress-parity.test.js`); `portalExtras(store, id, o)` is what `quiz-views.portalResults` takes as `o.extras` (pass `(s, i) => portalExtras(s, i, o)`) |
 | `router.js` | `doPost`, `doGet`, `route_` (`90-router.gs`) | ported, parity tested (`router-parity.test.js`, every action and POST kind); `createRouter({store, site, version, geoMode})` gives `get` and `post`; `backend.js` uses it when `engine` is `js` (or `CM_ENGINE=js`) |
 
+`topics/` (see its README): topic mastery for the class and for one student; JavaScript only, added after the port, so the parity tests ignore its `topics` field.
+
 Store interface (`store.js`): `rows(tab)` (header first, or null), `setRows(tab, rows)`, `prop(key)`, `setProp(key, value)`, `now()`.
 Rule of the port: same input, same output as the script (`test/rules-parity.test.js` runs both on the same workbook). Do not change behaviour in a port; change it afterwards, with its own test.

@@ -205,9 +205,10 @@
       h += "<div class='ov2'><section class='card'><div class='card-head'><h3>" + esc(q.quiz) + "</h3><span class='note'>" + esc(q.date) + "</span></div>" +
         "<dl class='stats'><div><dt>Mean</dt><dd>" + num(st.mean, "%") + "</dd></div><div><dt>Median</dt><dd>" + num(st.median, "%") + "</dd></div><div><dt>Standard deviation</dt><dd>" + num(st.sd) + "</dd></div>" +
         "<div><dt>Middle half</dt><dd>" + num(st.q1, "%") + " to " + num(st.q3, "%") + "</dd></div><div><dt>Range</dt><dd>" + num(st.min, "%") + " to " + num(st.max, "%") + "</dd></div><div><dt>Students</dt><dd>" + st.n + "</dd></div>" +
-        "<div><dt>Finished, of those who joined</dt><dd>" + num(q.completion, "%") + "</dd></div><div><dt>Class who took part</dt><dd>" + num(q.participation, "%") + "</dd></div><div><dt>Items left blank</dt><dd>" + num(q.unanswered, "%") + "</dd></div></dl></section>" +
+        "<div><dt>Finished, of those who joined</dt><dd" + (q.joined ? "" : " title='CM has no list of who joined this quiz (it was imported), so this cannot be worked out.'") + ">" + (q.joined ? num(q.completion, "%") : "<span class='note'>No join record</span>") + "</dd></div><div><dt>Class who took part</dt><dd>" + num(q.participation, "%") + "</dd></div><div><dt>Items left blank</dt><dd>" + num(q.unanswered, "%") + "</dd></div></dl></section>" +
         "<section class='card'><h3>Score distribution</h3>" + bars(st.hist, ["0–9%", "10–19%", "20–29%", "30–39%", "40–49%", "50–59%", "60–69%", "70–79%", "80–89%", "90–100%"], { h: 180, title: "Score distribution", short: function (l) { return l.split("–")[0]; }, extra: st.hist.map(function () { return "students"; }) }) + "<p class='note'>Students in each band of 10 percentage points.</p></section></div>";
     }
+    if (q && window.cmQuizTopics) h += "<section class='card' id='qz-topics'>" + cmQuizTopics.html(d, q.quiz) + "</section>"; // topic mastery for this quiz (topics/quiz-panel.js)
     h += "<section class='card'><div class='card-head'><h3>Questions</h3><span class='note'>Live quizzes, practice and the mock exam. The correct option is outlined.</span></div><div class='tbl ins-tbl'><table><thead><tr><th>Question</th><th>Answers</th><th>% correct</th><th>Difficulty</th><th>Options chosen in live quizzes</th><th>Shared wrong answer</th><th>Discrimination</th><th>Confident and wrong</th><th>Blank</th></tr></thead><tbody>" +
       d.questions.slice().sort(function (a, b) { return (a.pct === null ? 101 : a.pct) - (b.pct === null ? 101 : b.pct); }).map(function (x) {
         var tot = ["A", "B", "C", "D", "E"].reduce(function (a, L) { return a + x.dist[L]; }, 0) || 1;
@@ -223,6 +224,7 @@
     if (data && window.cmCharts && cmCharts.panel && cmCharts.panel.handle(t, data, gxDraw)) return;
     var g = t.closest("[data-group]"); if (g && data) { filt = g.getAttribute("data-group"); if (window.cmGo) cmGo("students"); else students(); if (cur === "students") students(); return; }
     var bd = t.closest("[data-band]"); if (bd) { band = band === bd.getAttribute("data-band") ? "" : bd.getAttribute("data-band"); attendance(); return; }
+    var tp = t.closest("[data-tp]"); if (tp && window.cmQuizTopics) { cmQuizTopics.setScope(tp.getAttribute("data-tp")); var qt = $("qz-topics"); if (qt && data && data.quizzes[qsel]) qt.innerHTML = cmQuizTopics.html(data, data.quizzes[qsel].quiz); return; }
     var q = t.closest("[data-q]"); if (q) { qsel = +q.getAttribute("data-q"); quizzes(); return; }
     var th0 = t.closest("#st th[data-k]"); if (th0) { var k = th0.getAttribute("data-k"); sortD = k === sortK ? -sortD : 1; sortK = k; students(); return; }
     var ds = t.closest("[data-student]"); if (ds) { studentOpen(ds.getAttribute("data-student")); return; }

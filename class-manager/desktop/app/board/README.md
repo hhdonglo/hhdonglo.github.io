@@ -10,6 +10,8 @@ White chart panels on CM's dark navy and gold page (Hope, 2026-11-17). Orange an
 | `barline.js` | Bars with a line over them and optional dashed plan lines. Used for attendance per session, quiz average per quiz and lectures held against the plan. |
 | `ranked.js` | The ranked table of topics needing attention (lowest first, growth arrow from the gain on repeated questions). |
 | `findings.js` | The Insights panel: sentences from `model.findings`, never written by AI. |
+| `topics-model.js` | Topic part, pure: mastery bars, topic by quiz grid, class trend, correlations (Pearson r with n, a caution when n is under 30 or the link is under 0.3, nothing under 10 pairs) and the topic insights (real numbers only). | change a cut-off or a sentence |
+| `topics-panels.js`, `topics.css` | Draws the topic panels under the first grid: Topic mastery, Mastery by topic over time, What goes with what. Green, gold and red appear only as mastery bands. | change a panel |
 | `icons.js`, `util.js` | Line icons; escaping, rounding, colours. |
 | `render.js` | Puts the panels together (`html`) and exposes each panel so it can be redrawn alone. No calculation. |
 | `interact.js` | Tabs, the topic/group switch, bar and slice clicks (opens the students through `cmDashInteract.open`), redraw when lecture progress arrives (`cm:lecture`). |

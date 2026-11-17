@@ -14,7 +14,7 @@ const { fromBackend } = require("../rules/store");
 const WEB = path.resolve(__dirname, "..", ".."), PACK = path.join(WEB, "course-packs", "phys143", "files");
 const site = (p) => { const a = path.join(PACK, p); return JSON.parse(fs.readFileSync(fs.existsSync(a) ? a : path.join(WEB, p), "utf8")); };
 const tab = (c, name) => { const b = JSON.parse(c.backend.exportText()).sheets.find((s) => s.name === name); return b ? b.rows : []; };
-const norm = (r) => JSON.parse(JSON.stringify(r, (k, v) => (k === "_session" || k === "version" || k === "generated" ? undefined : v)));
+const norm = (r) => JSON.parse(JSON.stringify(r, (k, v) => (k === "_session" || k === "topics" || k === "topicsError" || k === "version" || k === "generated" ? undefined : v)));
 
 function scenario(then) {
   const script = classroom({ students: 8 }), mod = classroom({ students: 8 });
@@ -66,4 +66,12 @@ test("My results gets the same groups, learning, progress and group work", () =>
   script.host("outcomes", { op: "list" });
   const id = gs[0], a = script.call({ action: "my_results", id, code: code(id) }), b = V.portalResults(store(), { id, code: code(id) }, { post: true, session: "" }, Object.assign({ extras: (s, i) => P.portalExtras(s, i, o) }, o));
   assert.deepEqual(norm(b), norm(a)); assert.equal(a.groupWork, 1); assert.ok(a.groups.length === 1 && a.progress);
+}));
+
+test("My results adds the student's own topics (JS engine only): their own answers, weakest first, with advice", () => scenario(({ store, o, code, gs }) => {
+  const id = gs[0], b = V.portalResults(store(), { id, code: code(id) }, { post: true, session: "" }, Object.assign({ extras: (s, i) => P.portalExtras(s, i, o) }, o));
+  assert.ok(Array.isArray(b.topics) && b.topics.length >= 1, "topics are sent");
+  const l1 = b.topics.filter((t) => t.key === "L1")[0]; assert.ok(l1 && l1.asked >= 5 && typeof l1.advice === "string" && l1.band);
+  const mine = P.portalExtras(store(), id, o).topics.reduce((n, t) => n + t.asked, 0), other = P.portalExtras(store(), gs[1], o).topics.reduce((n, t) => n + t.asked, 0);
+  assert.equal(b.topics.reduce((n, t) => n + t.asked, 0), mine); assert.ok(mine > 0 && other > 0);
 }));
