@@ -4,7 +4,7 @@
 // ---------- Portal and Control Centre support (additive: no existing action changes) ----------
 // SCRIPT_VERSION: change it whenever the script is redeployed; the Control Centre compares it with the version its page expects.
 // Key!M2 = Off hides "My results" from students (default On).
-var SCRIPT_VERSION = '2026-11-16-rosteronly-1';
+var SCRIPT_VERSION = '2026-11-17-repeatcode-1';
 
 function resultsOn_() {
   try {

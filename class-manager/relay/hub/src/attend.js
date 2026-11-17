@@ -79,9 +79,17 @@ export async function checkIn(req, db, now) {
   if ((await failed("d" + dev)) || (await failed("i" + sid))) return reply({ ok: false, why: "slow down" });
   if (!(await linkOk(s.secret, String(p.t || "").replace(/[^0-9a-f]/g, "").slice(0, 8), now))) { await bad("d" + dev); await bad("i" + sid); return reply({ ok: false, why: "old link" }); }
   const roster = JSON.parse(s.roster), onl = Object.prototype.hasOwnProperty.call(roster, sid), day = dayOf(s.label);
+  // The access code is not asked by default: only when this phone is already registered to a different ID, that is, when it is used a second time for someone else.
+  let mine = null, seed = {}, owner, bound;
   if (onl) {
-    if (!roster[sid]) return reply({ ok: false, why: "no access code" });
-    if ((await codeHash(course, sid, p.code)) !== roster[sid] || !normCode(p.code)) { await bad("d" + dev); await bad("i" + sid); await event(db, course, s.label, "flag", sid, dev, "wrong access code (refused)", now); return reply({ ok: false, why: "not recognised" }); }
+    mine = await db.prepare("SELECT dev FROM live_phone WHERE course = ? AND sid = ?").bind(course, sid).first(); seed = JSON.parse(s.phones);
+    owner = (await db.prepare("SELECT sid FROM live_phone WHERE course = ? AND dev = ?").bind(course, dev).first() || {}).sid || Object.keys(seed).find((k) => seed[k] === dev);
+    bound = mine ? mine.dev : seed[sid];
+    if (owner && owner !== sid) {
+      if (!roster[sid]) return reply({ ok: false, why: "no access code" });
+      if (!String(p.code || "").trim()) return reply({ ok: false, why: "code required" });
+      if ((await codeHash(course, sid, p.code)) !== roster[sid]) { await bad("d" + dev); await bad("i" + sid); await event(db, course, s.label, "flag", sid, dev, "wrong access code (refused)", now); return reply({ ok: false, why: "not recognised" }); }
+    }
   }
   if (await db.prepare("SELECT 1 AS x FROM live_event WHERE course = ? AND kind = 'ok' AND sid = ? AND label LIKE ?").bind(course, sid, day + " #%").first()) return reply({ ok: true, id: sid, onList: onl, already: true });
   if (!onl) { // a flood of made-up IDs cannot fill the review list: at most UNLISTED_MAX unlisted check-ins per session
@@ -90,9 +98,7 @@ export async function checkIn(req, db, now) {
   }
   const g = geo(s, p); let bind = false;
   if (onl) {
-    const mine = await db.prepare("SELECT dev FROM live_phone WHERE course = ? AND sid = ?").bind(course, sid).first(), seed = JSON.parse(s.phones);
-    const owner = (await db.prepare("SELECT sid FROM live_phone WHERE course = ? AND dev = ?").bind(course, dev).first() || {}).sid || Object.keys(seed).find((k) => seed[k] === dev);
-    const bound = mine ? mine.dev : seed[sid], refuse = owner && owner !== sid, changed = !refuse && bound && bound !== dev;
+    const refuse = owner && owner !== sid, changed = !refuse && bound && bound !== dev;
     if (refuse || changed) {
       if (s.mode === "enforce" && (g.state === "far" || g.state === "none")) return reply({ ok: false, why: g.state === "far" ? "too far" : "no location" });
       if (!(await db.prepare("SELECT 1 AS x FROM live_event WHERE course = ? AND label = ? AND sid = ? AND kind = 'pending'").bind(course, s.label, sid).first())) await event(db, course, s.label, "pending", sid, dev, PENDING + (refuse ? "used the phone registered to " + owner : "used a phone other than the one registered"), now);

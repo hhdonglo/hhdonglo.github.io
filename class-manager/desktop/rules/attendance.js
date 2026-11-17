@@ -99,15 +99,16 @@ function checkIn(store, p, o) {
   if (fails.get("d" + dev) >= K.MAX_FAILS || fails.get("i" + aid) >= K.MAX_FAILS) return { ok: false, why: "slow down" };
   if (!linkOk(ses, String(p.t || "").replace(/[^0-9a-f]/g, "").slice(0, 8), now, o.grace)) { fails.add("d" + dev); fails.add("i" + aid); return { ok: false, why: "old link" }; }
   const onl = !!rosterSet(store)[aid], day = dayKey(store.now());
-  if (onl) {
+  // The access code is not asked by default. It is asked only when this phone is already registered to a different ID, that is, when it is used a second time for someone else (the relay has the same rule, relay/hub/src/attend.js).
+  let phone = onl ? phoneCheck(store, aid, dev) : null;
+  if (onl && phone.refuse) {
     const mine = AC.codesMap(store)[aid]; if (!mine) return { ok: false, why: "no access code" };
+    if (!String(p.code || "").trim()) return { ok: false, why: "code required" };
     const v = o.verifyCode(aid, String(p.code || "").trim(), mine, store);
     if (!v.ok) { fails.add("d" + dev); fails.add("i" + aid); flag(store, ses.label, aid, dev, "wrong access code (refused)"); return { ok: false, why: v.expired ? "session expired" : "not recognised" }; }
   }
   if (body(store, LOG).some((r) => String(r[1]).indexOf(day + " #") === 0 && normalizeId(r[2]) === aid)) return { ok: true, id: aid, onList: onl, already: true };
-  let phone = null;
   if (onl) {
-    phone = phoneCheck(store, aid, dev);
     if (phone.refuse || phone.changed) {
       const g0 = geo(ses, p, mode);
       if ((g0.state === "far" || g0.state === "none") && mode === "enforce") return { ok: false, why: g0.state === "far" ? "too far" : "no location" };
