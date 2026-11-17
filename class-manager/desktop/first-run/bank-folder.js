@@ -3,10 +3,11 @@
 const fs = require("fs");
 const path = require("path");
 const { parseBank, mergeBank, FILE } = require("./quiz-bank");
+const { summary } = require("../course-folder");
 
 const MAX_BYTES = 5 * 1024 * 1024;
 
-// quiz files directly in the folder, in its quizzes/ folder, or one level below (for example a repository checkout).
+// quiz files directly in the folder, in its quizzes/ folder, one level below (for example a repository checkout), or inside a course pack (<pack>/files/quizzes).
 function find(folder) {
   const out = [];
   const look = (dir, depth) => {
@@ -15,7 +16,7 @@ function find(folder) {
       if (d.name.startsWith(".") || d.isSymbolicLink()) return;
       const full = path.join(dir, d.name);
       if (d.isFile() && FILE.test(d.name)) out.push(full);
-      else if (d.isDirectory() && depth < 2 && !/^(node_modules|working)$/.test(d.name)) look(full, depth + 1);
+      else if (d.isDirectory() && !/^(node_modules|working)$/.test(d.name) && (depth < 2 || (depth < 5 && /^(files|quizzes|.*course-pack)$/i.test(d.name)))) look(full, depth + 1); // a course pack keeps its banks at <pack>/files/quizzes
     });
   };
   look(folder, 0);
@@ -38,7 +39,7 @@ function plan(folder, courseDir) {
   const dup = new Map();
   files.filter((p) => p.ok).forEach((p) => { const k = path.basename(p.abs).toLowerCase(); (dup.get(k) || dup.set(k, []).get(k)).push(p); });
   dup.forEach((l, k) => { if (l.length > 1) l.forEach((p) => { p.ok = false; p.problems = ["Another file in the folder is also called " + k + "; only one can be loaded."]; }); });
-  return { folder, files: files.map(({ doc, abs, ...rest }) => rest), loadable: files.filter((p) => p.ok).length };
+  return { folder, files: files.map(({ doc, abs, ...rest }) => rest), loadable: files.filter((p) => p.ok).length, content: summary(folder) };
 }
 
 // Writes each loadable bank into the course folder (add only), then makes sure each lecture exists. `course` is desktop/course.js.

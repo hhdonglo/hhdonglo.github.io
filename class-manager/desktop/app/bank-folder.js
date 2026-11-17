@@ -15,6 +15,7 @@
       return "<li><strong>" + esc(f.file) + "</strong>: lecture " + f.lecture + (f.title ? " (" + esc(f.title) + ")" : "") + ", " + f.questions + " questions. " +
         (f.isNew ? "New to this course." : f.add + " new, " + f.same + " already in the course" + (f.differing.length ? ", " + f.differing.length + " with the same id but different text are kept as they are" : "") + ".") + "</li>";
     }).join("") + "</ul>";
+    var c = p.content; if (c && (c.lectures || c.banks)) box.innerHTML += "<p class='note'>Found " + c.lectures + " lectures, " + c.banks + " quiz banks with " + c.questions + " questions, " + c.files + " lecture files." + (c.noBank.length ? " No quiz bank for lecture " + c.noBank.join(", ") + "." : "") + (c.missing.length ? " Listed but not in the folder: " + c.missing.map(function (m) { return esc(m.file); }).join(", ") + "." : "") + "</p>";
     if (p.loadable) $("bf-load").hidden = false;
   }
   $("bf-pick").addEventListener("click", function () { cmApp.bankFolderPick().then(show); });

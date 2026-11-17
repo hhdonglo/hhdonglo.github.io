@@ -14,6 +14,7 @@ A later step never opens before an earlier one is done.
 | `central-login.js` | The one password: salted scrypt hash and recovery code in `<CM data>/central-login.json`, lockout after 8 wrong tries. |
 | `quiz-bank.js` | Reads and checks a quiz bank in the online format; add-only merge by question id. Pure. |
 | `bank-folder.js` | Finds `lectureN.json` (and `lectureN_concept.json`) in a folder, shows a plan, writes them into the course `quizzes/` folder unchanged. Read only on the folder. |
+| `../course-folder.js` | Finds the course content in any chosen folder (the folder, a pack's `files/`, or a pack up to two levels below) and counts lectures, banks, questions and lecture files, naming any file listed but missing. Read only. Also used when a course is linked to a folder. |
 | `ipc.js` | `cm:firstRunState`, `cm:bankFolderPick`, `cm:bankFolderLoad`. |
 | `../app/login.html` | The sign-in screen; the same page chooses the password the first time. |
 | `../app/bank-folder.js` | The course folder card in setup. |
