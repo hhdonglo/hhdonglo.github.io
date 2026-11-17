@@ -112,7 +112,7 @@ function createRegistry(root) {
       const p = path.resolve(String(src.path || ""));
       const mine = path.join(root, "courses") + path.sep;
       if (!src.path || p.startsWith(mine)) throw new Error("Choose a folder outside CM's data folder.");
-      c.source = { kind: "folder", path: p };
+      c.source = { kind: "folder", path: require("./course-folder").contentRoot(p) }; // a course pack folder points at its files/ folder
     } else c.source = { kind: "app" };
     save(); return get(id);
   }
