@@ -72,6 +72,8 @@ test("a student: the access code gives a session, the script's session is accept
   const book = JSON.parse(P.script.backend.exportText());
   P.mod.editWorkbook((x) => { x.sheets.find((s) => s.name === "Attendance_Control").rows = book.sheets.find((s) => s.name === "Attendance_Control").rows; });
   const ses = AT.sessions(fromBackend(P.mod.backend))[0], tok = AT.linkFor(ses.secret, Math.floor(Date.now() / 30000));
+  // the access code is asked only on a phone already used for another ID, so a student's session is made then
+  assert.equal(P.script.call({ action: "attend", id: b.id, dev: "devicetokenabcdefghij12345", t: tok }).ok, true);
   const ck = P.script.call({ action: "attend", id: a.id, dev: "devicetokenabcdefghij12345", t: tok, code: P.script.codes[a.id] }); assert.equal(ck.ok, true); assert.match(ck._session, /^s1\.s\./);
   assert.deepEqual(A.studentCheck(fromBackend(P.mod.backend), a.id, ck._session, "r", { post: true, session: "" }, P.o), { id: a.id });
   for (let i = 0; i < 6; i++) A.studentCheck(S, b.id, "WRNG-0000", "c", req, P.o);

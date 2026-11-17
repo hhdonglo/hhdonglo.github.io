@@ -1608,17 +1608,19 @@ function attCheckIn_(p, code) { // the student side of the check-in: the QR toke
   if (ATT_REQUIRE_LINK && !attLinkOk_(ses, String(p.t || '').replace(/[^0-9a-f]/g, '').slice(0, 8))) { attFailAdd_('d' + dev); attFailAdd_('i' + aid); return { ok: false, why: 'old link' }; } // scan the live QR code again
   var onl = !!rosterSet_()[aid], day = attDayKey_(); // the student is told only whether their own ID was found; nothing else about the roster
   var phone = null;
-  if (onl && ATT_REQUIRE_CODE) { // a classmate's ID is not enough: the personal access code must match too
+  if (onl && ATT_PHONE_BIND) phone = attPhoneCheck_(aid, dev);
+  if (onl && ATT_REQUIRE_CODE && phone && phone.refuse) { // the access code is not asked by default: only when this phone is already registered to a different ID (used a second time for someone else)
     var mine = codesMap_()[aid];
     if (!mine) return { ok: false, why: 'no access code' };
-    var given = String(p.code || '').trim(), st = isSession_(given) ? sessRead_(given) : null;
+    var given = String(p.code || '').trim();
+    if (!given) return { ok: false, why: 'code required' };
+    var st = isSession_(given) ? sessRead_(given) : null;
     var codeOk = st ? (st.role === 's' && st.subj === aid && sessValid_(st, mine.code)) : (REQ_.post && normCode_(given) === mine.code && !codeExpired_(mine));
     if (!codeOk) { attFailAdd_('d' + dev); attFailAdd_('i' + aid); attFlag_(ses.label, aid, dev, 'wrong access code (refused)'); return { ok: false, why: st && st.expired ? 'session expired' : 'not recognised' }; }
     if (!st) REQ_.session = sessMake_('s', aid, mine.code, SESSION_STUDENT_DAYS * 86400000);
   }
   if (attDayHas_(day, aid)) return { ok: true, id: aid, onList: onl, already: true }; // one mark per ID per day: nothing is added
   if (onl && ATT_PHONE_BIND) { // one phone per student for the term
-    phone = attPhoneCheck_(aid, dev);
     if (phone.refuse || phone.changed) { // a borrowed or new phone (a flat battery, a broken phone): held for the lecturer to confirm, never counted on its own
       var geo0 = attGeo_(ses, p);
       if (geo0.state === 'far' || geo0.state === 'none') { if (ATT_GEO_MODE === 'enforce') return { ok: false, why: geo0.state === 'far' ? 'too far' : 'no location' }; }
@@ -3359,7 +3361,7 @@ function announcements_(p) { // public for audience 'all'; signed-in students al
 // ---------- Portal and Control Centre support (additive: no existing action changes) ----------
 // SCRIPT_VERSION: change it whenever the script is redeployed; the Control Centre compares it with the version its page expects.
 // Key!M2 = Off hides "My results" from students (default On).
-var SCRIPT_VERSION = '2026-11-16-rosteronly-1';
+var SCRIPT_VERSION = '2026-11-17-repeatcode-1';
 
 function resultsOn_() {
   try {

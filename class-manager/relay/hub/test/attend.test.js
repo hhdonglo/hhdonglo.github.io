@@ -40,10 +40,12 @@ test("the same answers as the rules, location off", async () => {
   const S = await bothSides("off"), same = async (p, expect) => { const r = await S.phone(p); assert.deepEqual(pick(r.relay), pick(r.rules)); if (expect) assert.equal(r.relay.why || (r.relay.already ? "already" : r.relay.pending ? "pending" : "ok"), expect); return r.relay; };
   await same({ id: "20000001", dev: dev(1), code: "AAAA-2222" }, "ok");
   await same({ id: "20000001", dev: dev(1), code: "AAAA-2222" }, "already");
-  await same({ id: "20000002", dev: dev(2), code: "wrong" }, "not recognised");
-  await same({ id: "20000003", dev: dev(1), code: "CCCC-4444" }, "pending"); // a phone registered to someone else
+  await same({ id: "20000003", dev: dev(1) }, "code required"); // the same phone again with a different ID: the access code is asked, and only now
+  await same({ id: "20000003", dev: dev(1), code: "wrong" }, "not recognised");
+  await same({ id: "20000003", dev: dev(1), code: "CCCC-4444" }, "pending"); // a phone registered to someone else, with the right code: held for the lecturer
+  await same({ id: "20000002", dev: dev(2), code: "wrong" }, "ok"); // a first sign-in from a new phone needs no code, and a wrong one typed anyway is ignored
   await same({ id: "20000002", dev: dev(2), t: token(S.now, 5), code: "BBBB-3333" }, "old link");
-  await same({ id: "20000002", dev: dev(2), t: token(S.now, 1), code: "BBBB-3333" }, "ok"); // the one before is forgiven
+  await same({ id: "20000002", dev: dev(2), t: token(S.now, 1), code: "BBBB-3333" }, "already"); // the one before is forgiven
   await same({ id: "20000002", dev: dev(7), code: "BBBB-3333" }, "already");
   await same({ id: "99999999", dev: dev(3) }, "ok"); // not on the list: counted as not on the list
   await same({ id: "12", dev: dev(4) }, "bad id");
@@ -63,6 +65,7 @@ test("location enforced: far and missing are refused like the rules", async () =
 
 test("six wrong codes slow a phone down, close forgets the class list, signed routes need a signature", async () => {
   const S = await bothSides("off");
+  await S.phone({ id: "20000001", dev: dev(5) }); // dev(5) is now registered to someone else, so a code is asked for 20000002
   for (let i = 0; i < 6; i++) await call(S.env, "POST", "/v1/attend", { body: JSON.stringify({ course: S.course, id: "20000002", dev: dev(5), t: token(S.now), code: "no" }), headers: { "CF-Connecting-IP": "8.8.8." + i } }, S.now);
   const r = await call(S.env, "POST", "/v1/attend", { body: JSON.stringify({ course: S.course, id: "20000002", dev: dev(5), t: token(S.now), code: "BBBB-3333" }), headers: { "CF-Connecting-IP": "8.8.8.9" } }, S.now);
   assert.equal(r.body.why, "slow down");

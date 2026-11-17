@@ -56,16 +56,17 @@ body.focus main{padding-top:1.2rem}
   <h1>Attendance check-in</h1>
   <form id="c-form" autocomplete="off" novalidate>
    <label for="c-id">Student ID</label><input type="text" id="c-id" maxlength="12" inputmode="numeric" autocomplete="off" placeholder="Your ID number">
-   <label for="c-code">Access code <span class="note">(optional)</span></label><input type="text" id="c-code" maxlength="9" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Leave empty: it is shown to you">
+   <div id="c-codebox" hidden><label for="c-code">Access code</label><input type="text" id="c-code" maxlength="9" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Your access code">
+   <p class="note" id="c-codewhy">This phone has already been used for another ID, so this ID needs its own access code.</p></div>
    <label class="cb"><input type="checkbox" id="c-rem" checked> Remember my ID and code on this phone</label>
-   <p class="note">First time? Enter only your ID. Your access code is shown to you here and kept on this phone.</p>
+   <p class="note">Enter your ID. You need an access code only if this phone has already been used to check in another ID. Your access code is shown to you after your first check-in and kept on this phone.</p>
    <p class="note" id="c-saved" hidden>Your ID and code are saved on this phone. Press Check in.</p>
    <p class="err" id="c-err" role="alert" hidden></p>
    <button type="submit" class="go" id="c-btn">Check in</button>
    <details class="note" id="c-priv"><summary>How your data is used</summary>
     <p><b>Purpose:</b> to note that you came to this class.</p>
     <p><b>What is kept:</b> your student ID, the date and time, whether you were within range of the classroom (a distance in metres, not where you are), and a scrambled code for your phone. The first phone you check in with is registered to you for the term, so that no one else can check in with it and no one can check in for you from another phone. A random code is stored in your phone's browser for this. Your location is used once and is not stored.</p>
-    <p><b>Using another phone:</b> if your phone is not working, you may check in on a classmate's phone with your own ID and access code. The check-in waits until your lecturer confirms it.</p>
+    <p><b>Using another phone:</b> if your phone is not working, you may check in on a classmate's phone with your own ID and access code. The access code is asked only in this case, when a phone is used for a second ID. The check-in waits until your lecturer confirms it.</p>
     <p><b>Who sees it:</b> the lecturer only. Student IDs are not shown publicly.</p>
     <p><b>How long:</b> the phone codes, registered phones and any flags are deleted at the end of the semester. The check-in is kept in the lecturer's class records.</p>
     <p><b>Questions or corrections:</b> <span data-cm="contact">ask the lecturer</span>.</p>
@@ -130,40 +131,37 @@ function jsonp(params,cb){
  CM.call(params,cb)} // every request by POST: see CM.call in config.js
 function err(m){$("c-err").textContent=m;$("c-err").hidden=false}
 var REMK="cm_att_id",REMC="cm_att_code";
-var ATTOK=""; // the session this phone remembers instead of the access code
-(function(){var v="",c="";try{v=localStorage.getItem(REMK)||"";c=localStorage.getItem(REMC)||""}catch(x){}if(v){$("c-id").value=v;$("c-rem").checked=true}if(/^s1\./.test(c)){ATTOK=c;$("c-code").placeholder="Remembered on this phone"}else if(c){$("c-code").value=c}if(v&&c)$("c-saved").hidden=false})();
+var REMID="",REMCODE="",ATTOK=""; // the session this phone remembers instead of the access code
+(function(){var v="",c="";try{v=localStorage.getItem(REMK)||"";c=localStorage.getItem(REMC)||""}catch(x){}if(v){REMID=v;$("c-id").value=v;$("c-rem").checked=true}if(/^s1\./.test(c)){ATTOK=c;$("c-code").placeholder="Remembered on this phone"}else if(c){REMCODE=c}if(v&&c)$("c-saved").hidden=false})();
 function normCode(s){var t=String(s||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,8);return t.length===8?t.slice(0,4)+"-"+t.slice(4):t}
 $("c-code").addEventListener("input",function(){$("c-saved").hidden=true});
 $("c-code").addEventListener("blur",function(){$("c-code").value=normCode($("c-code").value)});
 $("c-id").addEventListener("input",function(){$("c-saved").hidden=true;var v=$("c-id").value.replace(/\D/g,"");if(v!==$("c-id").value)$("c-id").value=v});
+// After a first check-in the phone is shown this ID's own access code, once, and keeps it (rules/code-claim.js): it is needed only if this phone is ever used for a second ID.
+function showCode(){jsonp("action=claim_code&id="+encodeURIComponent($("c-sid").textContent)+"&dev="+DEV+"&t="+TOK,function(c){
+ if(!c||!c.ok||!c.code)return;var k=normCode(c.code);$("c-yourcode").textContent=k;$("c-showcode").hidden=false;
+ try{if($("c-rem").checked)localStorage.setItem(REMC,k)}catch(x){}})}
 $("c-form").addEventListener("submit",function(e){
  e.preventDefault();$("c-err").hidden=true;
- var id=$("c-id").value.trim(),code=$("c-code").value.trim()?normCode($("c-code").value):(RELAY?"":ATTOK);
+ var id=$("c-id").value.trim(),code=$("c-code").value.trim()?normCode($("c-code").value):(id===REMID?(REMCODE||(RELAY?"":ATTOK)):"");
  if(!id){err(PHYSMSG.text("E1"));return}
  if(!TOK){err(PHYSMSG.text("E4"));return}
  $("c-btn").disabled=true;
  var send=function(pos){
  var loc=pos?"&lat="+pos.lat.toFixed(4)+"&lon="+pos.lon.toFixed(4)+"&acc="+Math.round(pos.acc):""; // about 11 m: no more precision than the check needs
  var base="&id="+encodeURIComponent(id)+"&dev="+DEV+"&t="+TOK+loc;
- var finish=function(shown){
+ var finish=function(){
  jsonp("action=attend&code="+encodeURIComponent(code)+base,function(r){
   $("c-btn").disabled=false;
   if(!r){err(PHYSMSG.text("E8"));return}
   if(r.ok){try{if($("c-rem").checked&&r.onList!==false&&!r.pending){localStorage.setItem(REMK,id);if(code)localStorage.setItem(REMC,code)}else if(!$("c-rem").checked&&!r.pending){localStorage.removeItem(REMK);localStorage.removeItem(REMC)}}catch(x){} // a borrowed phone keeps its owner's details and never stores the borrower's code
    var now=new Date();$("c-when").textContent="Recorded at "+("0"+now.getHours()).slice(-2)+":"+("0"+now.getMinutes()).slice(-2)+" on "+now.toLocaleDateString(undefined,{weekday:"long",day:"numeric",month:"long"})+". Your lecturer submits the session after class.";
-   $("c-form-wrap").hidden=true;window.scrollTo(0,0);if(r.pending){$("c-wid").textContent=r.id;$("c-wwhen").textContent=$("c-when").textContent.replace(" Your lecturer submits the session after class.","");$("c-wait").hidden=false;return}var h=r.already?"Already marked present today":"Check-in received";if(r.onList===false){$("c-mid").textContent=r.id;$("c-mh").textContent=h;$("c-missing").hidden=false}else{$("c-sid").textContent=r.id;$("c-dh").textContent=h;if(shown){$("c-yourcode").textContent=shown;$("c-showcode").hidden=false}$("c-done").hidden=false}return}
+   $("c-form-wrap").hidden=true;window.scrollTo(0,0);if(r.pending){$("c-wid").textContent=r.id;$("c-wwhen").textContent=$("c-when").textContent.replace(" Your lecturer submits the session after class.","");$("c-wait").hidden=false;return}var h=r.already?"Already marked present today":"Check-in received";if(r.onList===false){$("c-mid").textContent=r.id;$("c-mh").textContent=h;$("c-missing").hidden=false}else{$("c-sid").textContent=r.id;$("c-dh").textContent=h;$("c-done").hidden=false;if(!code)showCode()}return}
+  if(r.why==="code required"){$("c-codebox").hidden=false;$("c-code").focus()}
   err(PHYSMSG.fromWhy(r.why));
  });
  };
- if(code){finish("");return}
- // No code typed and none remembered: this phone, in the room (the QR code proves it), is shown the code for this ID, once. Anyone else asking for that ID is held for the lecturer.
- jsonp("action=claim_code"+base,function(c){
-  if(!c){$("c-btn").disabled=false;err(PHYSMSG.text("E8"));return}
-  if(c.ok&&c.onList===false){code="";finish("");return} // not on the class list: no code to show; check in with the warning to see the lecturer (CM holds the sign-in for review)
-  if(c.ok&&c.pending){$("c-btn").disabled=false;$("c-form-wrap").hidden=true;window.scrollTo(0,0);$("c-hid").textContent=c.id;$("c-held").hidden=false;return}
-  if(!c.ok){$("c-btn").disabled=false;if(c.why==="not recognised"){err("This ID is not on the class list, or has no access code yet. Check the number, or ask your lecturer.");return}err(PHYSMSG.fromWhy(c.why));return}
-  code=normCode(c.code);finish(code);
- });
+ finish(); // no code is asked first: CM asks for it only when this phone was already used for another ID
  };
  if(POS)send(POS);else getPos(send);
 });
