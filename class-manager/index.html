@@ -124,6 +124,7 @@ if(who)jp("action=chat"+who,function(d){if(d&&d.ok&&d.unread)$("p-msgs").textCon
 })();
 </script>
 <script src="assets/messages.js"></script>
+<script src="assets/my-topics.js"></script>
 <script>
 (function(){
 "use strict";
@@ -197,6 +198,9 @@ function showResults(r){
  if(r.groupWork)h+='<p><a href="group-work.html">Group work: '+r.groupWork+' assignment'+(r.groupWork===1?'':'s')+' for your groups <span aria-hidden="true">&rsaquo;</span></a></p>';
  // Where to focus: the weakest lectures with enough answers to judge.
  var weak=ms.filter(function(m){return m.asked>=5&&m.pct<70}).sort(function(a,b){return a.pct-b.pct}).slice(0,3);
+ var tpx=r.topics&&r.topics.length&&window.cmMyTopics; // the topic view replaces Where to focus and Progress by lecture when the server sends it
+ if(tpx)h+=cmMyTopics.html(r.topics,esc,pracPage);
+ else{
  h+='<h2 style="margin-top:.9rem">Where to focus</h2>';
  if(!ms.length)h+='<p class="note">Nothing to show yet. Do a practice quiz with your ID entered, or take part in a live quiz.</p>';
  else if(!weak.length)h+='<p class="note">No lecture is below 70 per cent in your answers so far. Keep practising the coming lectures.</p>';
@@ -209,6 +213,7 @@ function showResults(r){
    return '<div class="lv '+b[0]+'"><span class="t">'+esc(m.lecture===0?"Introduction":"Lecture "+m.lecture)+'</span><span class="p">'+m.pct+'%</span>'+
     '<span class="bar" role="img" aria-label="'+m.pct+' percent"><i style="width:'+Math.max(2,m.pct)+'%"></i></span><span class="s">'+b[1]+'. '+m.right+' of '+m.asked+' answers correct'+(lecTitle(m.lecture)?'. '+esc(lecTitle(m.lecture)):'')+'</span></div>'}).join("")+
    '<p class="note">From your latest practice attempt for each lecture, your latest mock exam and the released live quizzes. Secure is 70 per cent or more, Developing 50 to 69, Needs work below 50.</p>';
+ }
  }
  // Progress by learning objective: where each objective started and where it is now, from the student's own answers.
  var po=r.progress&&r.progress.outcomes||[],linked=po.filter(function(o){return /objective/.test(o.label)});

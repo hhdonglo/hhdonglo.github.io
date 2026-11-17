@@ -89,7 +89,7 @@ function createRouter(env) {
       case "learning_progress": return hostJ(() => P.learningProgress(store, p, o));
       case "group_work": return J(AS.groupWork(store, p, req, o));
       case "insights": return hostJ(() => L.insights(store, p, env.version));
-      case "class_stats": return hostJ(() => CS.classStats(store, p, env.version));
+      case "class_stats": return hostJ(() => CS.classStats(store, p, env.version, o));
       case "student_note": return hostJ(() => L.noteAdd(store, p.id, p.text));
       case "student_stats": return hostJ(() => P.studentStats(store, p, o, env.version));
       case "access_codes": return hostJ(() => AC.run(store, p, { random: o.random, log: (x, y, z) => logLine(store, x, y, z, "") }));

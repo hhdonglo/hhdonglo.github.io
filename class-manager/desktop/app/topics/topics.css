@@ -1,0 +1,10 @@
+/* Quizzes and Questions: the Topics panel. Uses CM's dark card; bands are green, gold and red because they carry meaning. */
+.tp-list{list-style:none;margin:.6rem 0;padding:0}
+.tp-list li{display:grid;grid-template-columns:minmax(8rem,16rem) minmax(0,1fr) 4rem;gap:.1rem .8rem;align-items:center;padding:.4rem 0;border-top:1px solid var(--line,rgba(255,255,255,.08))}
+.tp-name{font-weight:600}.tp-pct{white-space:nowrap;text-align:right;font-variant-numeric:tabular-nums}
+.tp-bar{height:.7rem;border-radius:99px;background:rgba(255,255,255,.1);overflow:hidden}.tp-bar i{display:block;height:100%;border-radius:99px;background:#7C8799}
+.tp-well .tp-bar i{background:#3FB37F}.tp-developing .tp-bar i{background:#E0A526}.tp-attention .tp-bar i{background:#E5574A}
+.tp-meta{grid-column:2/4;font-size:.82rem;opacity:.8}.tp-meta em{font-style:normal;color:#E0A526}
+.tp-sum,.tp-qs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;margin:.6rem 0}.tp-qs ul{margin:.2rem 0;padding-left:1.1rem}.tp-qs li{margin:.25rem 0;font-size:.88rem}
+.tp-tabs{margin:.4rem 0}
+@media (max-width:900px){.tp-sum,.tp-qs{grid-template-columns:minmax(0,1fr)}}

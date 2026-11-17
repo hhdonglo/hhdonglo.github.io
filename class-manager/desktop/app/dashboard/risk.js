@@ -5,10 +5,13 @@
 (function (root) {
   "use strict";
   var MIN_SESSIONS = 4, MIN_QUIZZES = 2; // fewer than this and a reason is shown as thin evidence
+  var MIN_TAKERS = 5;      // a quiz with fewer takers is a stray sheet or an import artefact, not a quiz the class sat: it is not counted
+  var CLASS_WIDE = 0.8;    // a reason that holds for this share of a class of 10 or more describes the class, not individual students: it flags no one
+  var MIN_CLASS = 10;
   var n = function (v) { return v === null || v === undefined || v === "" ? null : Number(v); };
   function atRisk(d) {
     var th = d.thresholds || {}, effort = n(th.effort) === null ? 70 : th.effort, perf = n(th.perf) === null ? 50 : th.perf, misses = n(th.misses) === null ? 2 : th.misses;
-    var sessions = (d.attendance && d.attendance.sessions) || 0, quizzes = (d.quizzes || []).length;
+    var sessions = (d.attendance && d.attendance.sessions) || 0, quizzes = (d.quizzes || []).filter(function (q) { return q.students === undefined || q.students >= MIN_TAKERS; }).length;
     var defs = [
       { key: "attendance", label: "Attendance below " + effort + "%", rule: "Attendance under " + effort + "% of submitted sessions", thin: sessions < MIN_SESSIONS, test: function (s) { return n(s.attendance) !== null && s.attendance < effort; } },
       { key: "missed", label: "Missed " + misses + " or more sessions in a row", rule: "Absent from the last " + misses + " or more sessions", thin: sessions < MIN_SESSIONS, test: function (s) { return n(s.missedInARow) !== null && s.missedInARow >= misses; } },
@@ -16,14 +19,21 @@
       { key: "noquiz", label: "Took none of the quizzes", rule: "Took none of the " + quizzes + " quizzes released", thin: quizzes < MIN_QUIZZES, test: function (s) { return quizzes >= MIN_QUIZZES && (s.quizzesTaken || 0) === 0; } },
       { key: "fall", label: "Last quiz fell by 15 points or more", rule: "Latest quiz at least 15 points under the one before", thin: true, test: function (s) { return n(s.change) !== null && s.change <= -15; } }
     ];
-    var by = {}, mine = {};
+    var by = {}, mine = {}, wide = [], roster = (d.students || []).length;
     defs.forEach(function (r) { by[r.key] = []; });
+    // A reason that fits nearly everyone is a fact about the class (an empty attendance column, a quiz nobody sat), so it is reported once and flags no one.
+    defs = defs.filter(function (r) {
+      if (roster < MIN_CLASS) return true;
+      var hit = (d.students || []).filter(function (s) { return r.test(s); }).length;
+      if (hit >= CLASS_WIDE * roster) { wide.push({ key: r.key, label: r.label, count: hit, of: roster }); return false; }
+      return true;
+    });
     (d.students || []).forEach(function (s) { defs.forEach(function (r) { if (r.test(s)) { by[r.key].push({ id: s.id, name: s.name || s.id }); (mine[s.id] = mine[s.id] || { id: s.id, name: s.name || s.id, reasons: [], strong: false }); mine[s.id].reasons.push(r.key); if (!r.thin) mine[s.id].strong = true; } }); });
     var all = Object.keys(mine).map(function (k) { return mine[k]; });
     var strong = all.filter(function (s) { return s.strong; });
     return { total: all.length, strong: strong.length, thin: all.length - strong.length, students: all, strongStudents: strong.map(function (s) { return { id: s.id, name: s.name }; }), thinStudents: all.filter(function (s) { return !s.strong; }).map(function (s) { return { id: s.id, name: s.name }; }),
-      reasons: defs.map(function (r) { return { key: r.key, label: r.label, rule: r.rule, thin: r.thin, students: by[r.key] }; }), sessions: sessions, quizzes: quizzes, minSessions: MIN_SESSIONS, minQuizzes: MIN_QUIZZES };
+      reasons: defs.map(function (r) { return { key: r.key, label: r.label, rule: r.rule, thin: r.thin, students: by[r.key] }; }), sessions: sessions, quizzes: quizzes, minSessions: MIN_SESSIONS, minQuizzes: MIN_QUIZZES, classWide: wide };
   }
-  var api = { atRisk: atRisk, MIN_SESSIONS: MIN_SESSIONS, MIN_QUIZZES: MIN_QUIZZES };
+  var api = { atRisk: atRisk, MIN_SESSIONS: MIN_SESSIONS, MIN_QUIZZES: MIN_QUIZZES, MIN_TAKERS: MIN_TAKERS, CLASS_WIDE: CLASS_WIDE };
   if (typeof module === "object" && module.exports) module.exports = api; else root.cmRisk = api;
 })(typeof window !== "undefined" ? window : globalThis);

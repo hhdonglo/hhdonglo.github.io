@@ -275,7 +275,7 @@ function createBackend(opts) {
     const done = (f) => { try { return f(); } finally { flush(); } };
     api.setPasswordAsOwner = (pw) => done(() => R.AU.ownerSetPassword(st, pw, ro()));
     api.passwordStatus = () => R.AU.passwordStatus(st);
-    api.stats = (p) => R.CS.classStats(st, Object.assign({}, p || {}), ver);
+    api.stats = (p) => R.CS.classStats(st, Object.assign({}, p || {}), ver, ro());
     api.studentNote = (id, text) => done(() => R.L.noteAdd(st, id, text));
     api.studentStats = (p) => R.P.studentStats(st, Object.assign({}, p || {}), ro(), ver);
     api.progress = (p) => R.P.learningProgress(st, Object.assign({}, p || {}), ro());

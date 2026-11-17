@@ -4,6 +4,7 @@
   "use strict";
   var U = root.cmBoardUtil || require("./util"), M = root.cmBoardModel || require("./model"), K = root.cmBoardKpi || require("./kpi");
   var D = root.cmBoardDonut || require("./donut"), BL = root.cmBoardBarline || require("./barline"), RK = root.cmBoardRanked || require("./ranked"), F = root.cmBoardFindings || require("./findings");
+  var TM = root.cmBoardTopicsModel || require("./topics-model"), TP = root.cmBoardTopics || require("./topics-panels"); // topic mastery, trends, correlations (topics-*.js)
   var STATE = { held: "Held", behind: "Behind", ontrack: "On track", ahead: "Ahead", met: "Target met", ended: "Ended" };
   function head(title, note) { return "<div class='bd-head'><h3>" + U.esc(title) + "</h3>" + (note ? "<span>" + U.esc(note) + "</span>" : "") + "</div>"; }
 
@@ -29,7 +30,7 @@
       "<p class='bd-foot'>" + (g ? "Groups are suggestions for your review." : m.total ? "Share of " + U.plural(m.total, "lecture topic", "lecture topics") + " by what the answers show." : "Topics appear once quiz answers are linked to lectures.") + "</p>";
   }
   function rankedPanel(d) { return head("Topics needing attention", "Lowest first") + RK.table(M.ranked(d, 6)); }
-  function insightsPanel(d, lp) { return head("Insights", "From the numbers only") + F.list(M.findings(d, lp)); }
+  function insightsPanel(d, lp) { return head("Insights", "From the numbers only") + F.list(M.findings(d, lp).concat(TM.insights(d)).slice(0, 8)); }
 
   // The whole board. Panels carry ids so they can be redrawn one by one (interact.js).
   function html(d, lp, st) {
@@ -39,7 +40,7 @@
       "<section class='bd-card bd-w3' id='bd-prog' aria-label='Class progress over time'>" + progressPanel(d, lp, st.tab) + "</section>" +
       "<section class='bd-card' id='bd-break' aria-label='Category breakdown'>" + breakPanel(d, st.view) + "</section>" +
       "<section class='bd-card' id='bd-rank' aria-label='Topics needing attention'>" + rankedPanel(d) + "</section>" +
-      "<section class='bd-card' id='bd-ins' aria-label='Insights'>" + insightsPanel(d, lp) + "</section></div>";
+      "<section class='bd-card' id='bd-ins' aria-label='Insights'>" + insightsPanel(d, lp) + "</section></div>" + TP.html(d);
   }
   var api = { html: html, planPanel: planPanel, progressPanel: progressPanel, breakPanel: breakPanel, rankedPanel: rankedPanel, insightsPanel: insightsPanel };
   if (typeof module === "object" && module.exports) module.exports = api; else root.cmBoardView = api;

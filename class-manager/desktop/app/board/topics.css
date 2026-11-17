@@ -1,0 +1,18 @@
+/* Class Analytics board, topic panels. White cards like the rest of the board. */
+.bd-w4{grid-column:1/-1}
+.bd-tbars{list-style:none;margin:0;padding:0}
+.bd-tbars li{display:grid;grid-template-columns:minmax(7rem,12rem) minmax(0,1fr) 3rem;gap:.1rem .7rem;align-items:center;padding:.32rem 0}
+.bd-tbars li+li{border-top:1px solid #F0F2F6}
+.bd-tl{font-size:.88rem;font-weight:600;color:#1F2D45;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bd-tb{height:.7rem;border-radius:99px;background:#EDEFF4;overflow:hidden}.bd-tb i{display:block;height:100%;border-radius:99px}
+.bd-tp{font-size:.88rem;font-weight:700;color:#1F2D45;text-align:right;font-variant-numeric:tabular-nums}
+.bd-tn{grid-column:2/4;font-size:.76rem;color:#5A6579}
+.bd-scroll{overflow-x:auto}
+.bd-heat{border-collapse:separate;border-spacing:2px;font-size:.78rem;color:#1F2D45}.bd-heat th{background:none!important;position:static!important;border:0!important;font-weight:600;text-align:left;white-space:nowrap;padding:.1rem .3rem}.bd-heat thead th{font-size:.7rem;color:#5A6579;text-align:center}
+.bd-heat td{border:0!important;min-width:2.2rem;height:1.7rem;text-align:center;border-radius:6px;font-weight:700;font-variant-numeric:tabular-nums}
+.bd-h0{background:#F3F4F8;color:#9AA3B5}.bd-h1{background:#F6D3CE;color:#7A241B}.bd-h2{background:#F8E7B8;color:#6B4A00}.bd-h3{background:#CDEBDC;color:#0F5A3A}
+.bd-corrs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1.2rem}
+.bd-corr h4,.bd-sub{margin:.2rem 0 .3rem;font-size:.9rem;color:#1F2D45}svg.bd-scat{display:block;width:100%!important;max-width:19rem!important;height:auto!important}.bd-scat text{font-size:9px;fill:#5A6579}
+.bd-ct{margin:.3rem 0 0;font-size:.88rem;color:#1F2D45}
+.bd-pairs{list-style:none;margin:0;padding:0;font-size:.88rem;color:#1F2D45}.bd-pairs li{padding:.4rem 0;border-top:1px solid #F0F2F6}
+@media (max-width:760px){.bd-corrs{grid-template-columns:minmax(0,1fr)}.bd-tbars li{grid-template-columns:minmax(0,1fr) 3rem}.bd-tl{grid-column:1/-1}.bd-tn{grid-column:1/-1}.bd-tb{grid-column:1}}

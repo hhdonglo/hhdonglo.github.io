@@ -7,7 +7,7 @@ const { classroom } = require("../test/classroom");
 const { sampleClass } = require("../test/sample-class");
 
 function stats() {
-  const c = classroom({}), s = sampleClass({ now: Date.now() });
+  const c = classroom({ engine: "js" }), s = sampleClass({ now: Date.now() });
   c.editWorkbook((book) => { const enc = (v) => (v instanceof Date ? { $d: v.toISOString() } : v);
     for (const [name, rows] of Object.entries(s.tabs)) { const data = { name, id: 9000 + book.sheets.length, rows: rows.map((r) => r.map(enc)) }; const i = book.sheets.findIndex((x) => x.name === name); if (i >= 0) book.sheets[i] = Object.assign(book.sheets[i], { rows: data.rows }); else book.sheets.push(data); } });
   const d = c.host("class_stats", {}); c.backend.close(); return d;
@@ -23,7 +23,7 @@ const STUB = (d, lp) => `(function(){var d=${JSON.stringify(d)},lp=${JSON.string
 (async () => {
   const out = process.argv[2], scheme = process.argv[3] || "dark"; fs.mkdirSync(out, { recursive: true });
   const d = stats(), browser = await chromium.launch();
-  const shots = [["board-wide", 1512, 2150, d, LP], ["board-narrow", 760, 3300, d, LP], ["board-empty", 1512, 1300, empty(d), null]];
+  const shots = [["board-wide", 1512, Number(process.env.CM_BOARD_H) || 2150, d, LP], ["board-narrow", 760, 3300, d, LP], ["board-empty", 1512, 1300, empty(d), null]];
   for (const [name, w, h, data, lp] of shots) {
     const ctx = await browser.newContext({ viewport: { width: w, height: 900 }, colorScheme: scheme, deviceScaleFactor: 1 });
     await ctx.addInitScript(STUB(data, lp));
