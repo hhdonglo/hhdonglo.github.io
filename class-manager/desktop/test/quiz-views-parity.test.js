@@ -12,7 +12,7 @@ const { fromBackend } = require("../rules/store");
 const WEB = path.resolve(__dirname, "..", ".."), PACK = path.join(WEB, "course-packs", "phys143", "files");
 const site = (p) => { const a = path.join(PACK, p); return JSON.parse(fs.readFileSync(fs.existsSync(a) ? a : path.join(WEB, p), "utf8")); };
 const CODE = "26271";
-const TIMES = ["serverNow", "endTime", "qDeadline", "remainingMs", "_session", "version", "quizType", "conceptWeeks"]; // quizType and conceptWeeks: the diagnostic mode is new in CM; the old script has none
+const TIMES = ["diagnostic", "serverNow", "endTime", "qDeadline", "remainingMs", "_session", "version", "quizType", "conceptWeeks"]; // quizType and conceptWeeks: the diagnostic mode is new in CM; the old script has none
 const norm = (r) => JSON.parse(JSON.stringify(r, (k, v) => (TIMES.indexOf(k) >= 0 ? undefined : v)));
 
 function scenario(then) {
@@ -45,7 +45,9 @@ function compareAll(c, label) {
   c.same(label + " display", S.call({ action: "display", code: CODE }), V.display(store, CODE, o));
   if (label === "running q1") c.same(label + " portal", S.call({ action: "portal_status" }), V.portalStatus(store, "v")); // the script keeps this one for five seconds
   ["20000001", "20000003"].forEach((id) => {
-    c.same(label + " result " + id, S.call({ action: "result", code: CODE, id, rc: c.rcs[id] }), V.result(store, CODE, { id, rc: c.rcs[id] }, o));
+    // CM shows a student's own score as soon as there are answers, held or released (rules/quiz-own-result.js); the old script waited for the release. Everything else is the same.
+    const sr = S.call({ action: "result", code: CODE, id, rc: c.rcs[id] }), mr = V.result(store, CODE, { id, rc: c.rcs[id] }, o);
+    if ((!sr.found || sr.scoreHidden) && mr.found && !mr.scoreHidden) assert.ok(mr.flags && mr.total > 0, label + " result " + id); else c.same(label + " result " + id, sr, mr);
     c.same(label + " result no receipt " + id, S.call({ action: "result", code: CODE, id }), V.result(store, CODE, { id }, o));
   });
 }
