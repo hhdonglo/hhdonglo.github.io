@@ -56,7 +56,8 @@ async function detailsOfFolder(root, now) {
   const found = findDetails(items, now || new Date()), st = structured(root);
   const best = (k) => st.fields[k] || found[k]; // the pack's own settings first, the outline text for what they lack
   const have = FIELDS.filter((f) => best(f[0])), topics = st.topics.length ? st.topics : (found.topics || []);
-  return { ok: true, read: items.map((i) => i.file).concat(Object.keys(st.fields).length ? [...new Set(Object.values(st.fields).map((x) => x.from))] : []),
+  const lec = require("./lecture-names").detect(listed.files);
+  return { ok: true, lectureCount: lec.last, lectureGaps: lec.gaps, read: items.map((i) => i.file).concat(Object.keys(st.fields).length ? [...new Set(Object.values(st.fields).map((x) => x.from))] : []),
     fields: have.map((f) => ({ key: f[0], label: f[1], setting: f[2], value: best(f[0]).value, from: best(f[0]).from, worked: !!best(f[0]).worked })), topics,
     missing: FIELDS.filter((f) => !best(f[0])).map((f) => f[1]) };
 }

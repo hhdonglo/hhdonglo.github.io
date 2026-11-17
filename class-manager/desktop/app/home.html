@@ -180,6 +180,16 @@ main{grid-area:main;overflow:auto;overflow-x:hidden;min-width:0;padding:1.75rem 
 /* banner */
 .banner{display:flex;align-items:center;gap:1.25rem;flex-wrap:wrap;background:linear-gradient(90deg,rgba(201,161,90,.16),rgba(201,161,90,.05));border:1px solid rgba(201,161,90,.25);border-radius:var(--r);padding:.85rem 1.1rem;margin-bottom:1.5rem}
 .banner strong{color:var(--head)}
+.lp{margin-bottom:var(--gap)}.lp-head{display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap}.lp-head h3{margin:0}
+.lp-verdict{font-size:1.15rem;margin:.6rem 0 .1rem}.lp-nums{display:flex;gap:2rem;flex-wrap:wrap;margin:.9rem 0 .6rem}.lp-nums div{display:flex;flex-direction:column}
+.lp-nums b{font-size:1.9rem;color:var(--head);line-height:1.1}.lp-nums span{font-size:var(--fs-sm);color:var(--muted)}
+.lp-bar{position:relative;height:.7rem;border-radius:99px;background:var(--card-2);border:1px solid var(--line);overflow:visible}.lp-fill{position:absolute;left:0;top:0;bottom:0;border-radius:99px;background:var(--accent)}
+.lp-exp{position:absolute;top:-.3rem;bottom:-.3rem;width:3px;background:var(--text);border-radius:2px}
+.tag.lp-behind,.tag.lp-ended{background:rgba(180,71,60,.22);color:var(--head);border:1px solid var(--danger)}.tag.lp-ontrack,.tag.lp-ahead,.tag.lp-met{background:rgba(76,195,138,.18);color:var(--head);border:1px solid var(--ok)}
+.ll{list-style:none;padding:0;margin:.6rem 0 0}.ll-row{padding:.5rem 0;border-bottom:1px solid var(--line)}.ll-h{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap}.ll-row .note{overflow-wrap:anywhere}
+.lp-more{margin-top:.8rem}.lp-days{list-style:none;padding:0;margin:.6rem 0}.lp-days li{display:flex;justify-content:space-between;gap:1rem;align-items:center;padding:.3rem 0;border-bottom:1px solid var(--line)}
+.lp-banner{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin:0 0 1.25rem;padding:.85rem 1.1rem;border-radius:var(--r);background:rgba(180,71,60,.22);border:1px solid var(--danger);color:var(--head)}
+
 .todo{display:flex;gap:1.25rem;list-style:none;margin:0;padding:0;flex:1;flex-wrap:wrap}
 .todo li{display:flex;align-items:center;gap:.45rem;font-size:.95rem;font-weight:600}
 .todo .mk{width:1.1em;text-align:center;color:var(--muted)}
@@ -577,6 +587,7 @@ tr[data-sel]{cursor:pointer}tr[data-sel].sel>td{background:rgba(70,110,200,.28)}
 <!-- Course and Content -->
 <section class="view" id="v-course" aria-labelledby="h-course" hidden>
  <header><h2 id="h-course">Course and Content</h2><p>Course details, lectures, teaching material and question banks.</p></header>
+ <div class="card" id="lec-list" hidden style="margin-bottom:var(--gap)"></div>
  <div class="grid2">
   <div class="card">
    <h3>Course</h3>
@@ -657,6 +668,11 @@ tr[data-sel]{cursor:pointer}tr[data-sel].sel>td{background:rgba(70,110,200,.28)}
     <label class="f" for="s-port">Port</label><input class="f" id="s-port" type="number" min="1024" max="65535" style="max-width:10rem">
     <p class="row" style="margin-top:16px"><button class="btn primary" type="submit">Save settings</button> <span id="saved" class="note" role="status"></span></p>
    </form>
+   <div id="lp-settings" style="margin-top:18px;padding-top:14px;border-top:1px solid var(--line)">
+    <h3>Lecture alerts</h3>
+    <p class="note">The number of lectures and the teaching days are set under Course settings. The lecture card and the banner always show; this adds a notice when CM starts.</p>
+    <p><label><input type="checkbox" id="lp-notify"> Show a desktop notice at start when the course is behind</label> <span class="note" id="lp-notify-msg" role="status"></span></p>
+   </div>
   </div>
   <div class="card" id="llm">
    <h3>Use this course with an AI assistant (optional)</h3>
@@ -886,6 +902,8 @@ tr[data-sel]{cursor:pointer}tr[data-sel].sel>td{background:rgba(70,110,200,.28)}
 <script src="import.js"></script>
 <script src="offlist.js"></script>
 <script src="id-notices.js"></script>
+<script src="lecture-progress.js"></script>
+<script src="lecture-list.js"></script>
 <script src="folder-course.js"></script>
 <script src="folder.js"></script>
 <script src="reset.js"></script>

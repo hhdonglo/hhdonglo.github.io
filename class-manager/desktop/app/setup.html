@@ -91,6 +91,8 @@ html{font-size:clamp(15px,calc(9.5px + .42vw),19px)}
    <div><label for="c-start">First day of teaching <span class="opt">(optional)</span></label><input id="c-start" type="date"></div>
    <div><label for="c-end">Last day of teaching <span class="opt">(optional)</span></label><input id="c-end" type="date"></div>
    <div><label for="c-times">Class times <span class="opt">(optional, shown on the portal)</span></label><input id="c-times" maxlength="200" placeholder="For example Tuesday 09:30 to 11:20"></div>
+   <div><label for="c-target">Lectures planned for the semester <span class="opt">(optional, CM then tracks lectures held and left)</span></label><input id="c-target" type="number" min="0" max="200" placeholder="For example 26"></div>
+   <div><label>Teaching days <span class="opt">(optional, makes the on-track check exact)</span></label><p class="days" id="c-days" style="margin:.2rem 0"><label style="display:inline;font-weight:400;margin-right:.7rem"><input type="checkbox" value="1"> Mon</label><label style="display:inline;font-weight:400;margin-right:.7rem"><input type="checkbox" value="2"> Tue</label><label style="display:inline;font-weight:400;margin-right:.7rem"><input type="checkbox" value="3"> Wed</label><label style="display:inline;font-weight:400;margin-right:.7rem"><input type="checkbox" value="4"> Thu</label><label style="display:inline;font-weight:400;margin-right:.7rem"><input type="checkbox" value="5"> Fri</label><label style="display:inline;font-weight:400;margin-right:.7rem"><input type="checkbox" value="6"> Sat</label><label style="display:inline;font-weight:400;margin-right:.7rem"><input type="checkbox" value="0"> Sun</label></p></div>
    <div><label for="c-week">Current week</label><input id="c-week" type="number" min="1" max="52" value="1"></div>
   </div>
   <details><summary>Appearance and notice <span class="opt">(optional)</span></summary>
@@ -186,6 +188,7 @@ function load(){return cmApp.setup().then(function(d){
  if(d.setup.seen)$("intro").textContent="Course settings. Changes are saved for every page at once.";
  $("c-code").value=S.courseCode||"";$("c-title").value=S.courseTitle||"";$("c-lect").value=S.lecturer||"";$("c-inst").value=S.institution||"";
  $("c-sem").value=S.semester||"";$("c-contact").value=S.contact||"";$("c-start").value=S.startDate||"";$("c-end").value=S.endDate||"";
+ $("c-target").value=S.lectureTarget||"";var TD=String(S.teachingDays||"").split(",");Array.prototype.forEach.call($("c-days").querySelectorAll("input"),function(i){i.checked=TD.indexOf(i.value)>=0});
  $("c-times").value=d.portal.contacts||"";$("c-week").value=d.portal.currentWeek||1;
  $("c-accent-on").checked=!!S.accent;if(S.accent)$("c-accent").value=S.accent;
  $("c-notice").value=S.notice||"";$("c-nl").value=S.noticeLinkLabel||"";$("c-nu").value=S.noticeLinkUrl||"";
@@ -201,12 +204,14 @@ function fdShow(r,auto){
  var box=$("fd-found");
  if(!r){return}
  if(!r.ok){box.innerHTML=auto&&r.none?"":"<p class='note'>"+fdEsc(r.why||"CM could not read the folder.")+"</p>";return}
+ var tg=$("c-target");if(r.lectureCount&&tg&&!tg.value){tg.value=r.lectureCount;box.setAttribute("data-lec",String(r.lectureCount))}
  if(!r.fields.length){box.innerHTML="<p class='note'>CM read "+r.read.length+(r.read.length===1?" file":" files")+" and found no course details. Type them in below.</p>";return}
  var filled=[];
  r.fields.forEach(function(f){var i=FD[f.key]&&$(FD[f.key]);if(!i)return;var blank=!i.value.trim()||(f.key==="week"&&i.value==="1");if(blank){i.value=f.value;filled.push(f.label)}});
  box.innerHTML="<p><b>CM filled this form from "+fdEsc(r.folder||"the folder")+".</b> Check each value and correct what is wrong; nothing is saved until you press Save and continue.</p><ul>"+
   r.fields.map(function(f){return"<li>"+fdEsc(f.label)+": <b>"+fdEsc(f.value)+"</b> <span class='note'>from "+fdEsc(f.from)+(f.worked?" (worked out from the first day)":"")+"</span></li>"}).join("")+"</ul>"+
   (r.missing&&r.missing.length?"<p class='note'>Not in the files, so left for you: "+fdEsc(r.missing.join(", "))+".</p>":"")+
+  (r.lectureCount?"<p class='note'>CM found lectures 1 to "+r.lectureCount+" in the folder"+(r.lectureGaps&&r.lectureGaps.length?" (no files for lecture "+r.lectureGaps.join(", ")+")":"")+" and filled in the number of lectures planned. Change it if the semester plan differs.</p>":"")+
   (r.topics&&r.topics.length?"<p class='note'>"+r.topics.length+" weekly topics were also found; add them under Course materials.</p>":"")+
   "<p><button type='button' class='btn' id='fd-all'>Use all of these values, replacing what is typed</button></p>";
  $("fd-all").onclick=function(){r.fields.forEach(function(f){var i=FD[f.key]&&$(FD[f.key]);if(i)i.value=f.value})};
@@ -220,7 +225,7 @@ function fdAuto(){ /* a folder that is linked or was loaded: fill the empty form
 $("f-course").addEventListener("submit",function(e){e.preventDefault();
  var nu=$("c-nu").value.trim();if(nu&&!/^https:\/\//.test(nu)){$("c-msg").textContent="The notice link must start with https://";return}
  cmApp.saveCourse({courseCode:$("c-code").value,courseTitle:$("c-title").value,lecturer:$("c-lect").value,institution:$("c-inst").value,semester:$("c-sem").value,
-  contact:$("c-contact").value,startDate:$("c-start").value,endDate:$("c-end").value,contacts:$("c-times").value,currentWeek:$("c-week").value,
+  contact:$("c-contact").value,startDate:$("c-start").value,endDate:$("c-end").value,lectureTarget:$("c-target").value,teachingDays:Array.prototype.filter.call($("c-days").querySelectorAll("input"),function(i){return i.checked}).map(function(i){return i.value}).join(","),contacts:$("c-times").value,currentWeek:$("c-week").value,
   accent:$("c-accent-on").checked?$("c-accent").value:"",notice:$("c-notice").value,noticeLinkLabel:$("c-nl").value,noticeLinkUrl:nu}).then(function(r){
   S=r.settings;marks(r.setup);$("c-msg").textContent="Saved.";go("materials")});
 });
