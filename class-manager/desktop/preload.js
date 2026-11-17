@@ -2,7 +2,20 @@
 "use strict";
 const { contextBridge, ipcRenderer } = require("electron");
 try { const k = ipcRenderer.sendSync("cm:sessionKey"); if (k) sessionStorage.setItem("cm_hk", k); } catch (e) { /* not signed in yet */ }
-const call = (ch) => (...a) => ipcRenderer.invoke(ch, ...a);
+// A call refused because an earlier setup stage is not done (first-run/stages.js) shows one notice, with a button to that stage, on whichever page made the call.
+function gateNotice(r) {
+  try {
+    const old = document.getElementById("cm-gate"); if (old) old.remove();
+    const box = document.createElement("div"); box.id = "cm-gate"; box.setAttribute("role", "alert");
+    box.style.cssText = "position:fixed;left:50%;bottom:1.2rem;transform:translateX(-50%);z-index:99999;max-width:36rem;padding:.9rem 1.1rem;border-radius:10px;background:#1f3a68;color:#fff;border:2px solid #c9a227;font:15px/1.4 system-ui,sans-serif;box-shadow:0 6px 24px rgba(0,0,0,.35)";
+    const t = document.createElement("p"); t.style.margin = "0 0 .6rem"; t.textContent = r.why; box.appendChild(t);
+    const go = document.createElement("button"); go.textContent = r.button || "Continue setup"; go.style.cssText = "margin-right:.6rem;padding:.4rem .9rem;border-radius:8px;border:0;background:#c9a227;color:#1f3a68;font-weight:700;cursor:pointer";
+    go.onclick = () => { location.href = r.goto; }; box.appendChild(go);
+    const x = document.createElement("button"); x.textContent = "Close"; x.style.cssText = "padding:.4rem .9rem;border-radius:8px;border:1px solid #fff;background:transparent;color:#fff;cursor:pointer"; x.onclick = () => box.remove(); box.appendChild(x);
+    (document.body || document.documentElement).appendChild(box);
+  } catch (e) { /* the page is not ready; the refusal still reaches it */ }
+}
+const call = (ch) => async (...a) => { const r = await ipcRenderer.invoke(ch, ...a); if (r && r.ok === false && r.needs && r.goto) gateNotice(r); return r; };
 contextBridge.exposeInMainWorld("cmApp", {
   info: call("cm:info"), live: call("cm:live"), stamp: call("cm:stamp"), folderDetails: call("cm:folderDetails"), removeStudent: call("cm:removeStudent"), restoreStudent: call("cm:restoreStudent"), removeEntries: call("cm:removeEntries"), restoreEntries: call("cm:restoreEntries"), stats: call("cm:stats"), analyticsExtra: call("cm:analyticsExtra"), addIntervention: call("cm:addIntervention"), govern: call("cm:govern"), weeklySummary: call("cm:weeklySummary"), studentStats: call("cm:studentStats"), progress: call("cm:progress"), save: call("cm:save"), openWindow: call("cm:openWindow"), openExternal: call("cm:openExternal"),
   tab: call("cm:tab"), exportResults: call("cm:export"), exportExcel: call("cm:exportExcel"), saveExcel: call("cm:saveExcel"),

@@ -3,10 +3,12 @@
 For the person who maintains this code.
 
 **Rules (Hope, 2026-11-16).**
-1. One central lecturer password for CM and every course. It is chosen first, before anything else, and is asked for once, when CM opens. After sign-in no other password is asked for anything.
+1. One central password for CM and every course. It is chosen first, before anything else, and is asked for once, when CM opens. After sign-in no other password is asked for anything.
 2. Then the class roster (Class Roster page, screenshots; see `../roster-shots/README.md`).
 3. Then course material: point CM at the course folder (quizzes in the online format) and/or generate new quizzes (Anthropic API key, `../authoring.js`, drafts reviewed before students see them).
 A later step never opens before an earlier one is done.
+
+**Roster first (Hope, 2026-11-17).** The class roster is the first thing uploaded, right after the password. Every other upload (course pack, library files, quiz folder, results and records files, a folder or files in Load from a folder, LMS files) is refused until a roster exists, with one plain message and a button to the roster step (`GOTO`, `BUTTON` and `NEEDS` in `stages.js`; the button is drawn by `preload.js`). The gate is one place, `stages.js`; nothing else checks. IDs in other files are never roster members: with an empty roster the import preview reports "no class list yet", writes nothing and creates no students, rows or records (`import-plan.js`, `blocked`). A test fails if a new call that opens files is left outside `NEEDS`. The setup wizard order is 1 Class list, 2 Course details (typed, not an upload), 3 Course materials; there is no Skip on the class list step and Continue stays off until the list is saved.
 
 | File | Job |
 | --- | --- |

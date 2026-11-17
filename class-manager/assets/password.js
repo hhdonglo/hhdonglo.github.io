@@ -1,4 +1,4 @@
-/* Lecturer password page (password.html): choose or change the password, or recover it with the recovery code.
+/* Password page (password.html): choose or change the password, or recover it with the recovery code.
    Only this page talks to the password actions of the class server (apps_script/src/06-password.gs). */
 (function () {
   "use strict";

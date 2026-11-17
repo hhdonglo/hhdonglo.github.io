@@ -76,3 +76,26 @@ test("loading from a folder writes the online file unchanged, and loading twice 
   assert.deepEqual(got, want);
   assert.equal(bank.load(folder, course, fake).loaded[0].added, 0);
 });
+
+test("every upload waits for the roster; the wizard puts the class list first", () => {
+  const s0 = stageOf({ passwordChosen: true });
+  for (const ch of ["cm:importPick", "cm:importApply", "cm:importFile", "cm:autoPick", "cm:autoPickFiles", "cm:autoPlan", "cm:lmsRosterFile", "cm:libAdd", "cm:importPack", "cm:bankFolderPick"]) {
+    const r = refusal(ch, s0); assert.equal(r.needs, "roster", ch); assert.equal(r.goto, "setup.html#class"); assert.match(r.why, /class roster first/);
+  }
+  assert.equal(refusal("cm:autoPick", stageOf({ passwordChosen: true, roster: 3 })), null);
+  assert.equal(refusal("cm:rosterShotsSave", s0), null, "the roster itself is never held back");
+  assert.equal(refusal("cm:saveCourse", s0), null, "typing the course details is not an upload");
+});
+
+test("no file-opening call is left outside the gate", () => {
+  const { NEEDS } = require("../first-run/stages");
+  const OK = new Set(["cm:chooseLogo", "cm:backupImport", "cm:linkedChoose", "cm:linkedRestore", "cm:folderDetails", "cm:rosterShotsRead", "cm:setPassword", "cm:saveTemplate", "cm:importTemplate", "cm:autoExport", "cm:saveExcel", "cm:lmsGradebookFile", "cm:linkFolder", "cm:export", "cm:backupExport"]);
+  const root = path.resolve(__dirname, "..");
+  const files = ["main.js", "import-ipc.js", "autoload-ipc.js", "lms/ipc.js", "first-run/ipc.js", "roster-shots/ipc.js"];
+  const open = [];
+  for (const f of files) for (const part of fs.readFileSync(path.join(root, f), "utf8").split(/\bon\("(?=cm:)/).slice(1)) {
+    const ch = part.slice(0, part.indexOf('"')), body = part.split(/\n(?=on\(|\s*on\()/)[0];
+    if (/showOpenDialog|readFileSync|tableOf\(/.test(body) && !NEEDS[ch] && !OK.has(ch)) open.push(ch);
+  }
+  assert.deepEqual(open, [], "gate these in first-run/stages.js NEEDS (or justify in OK): " + open.join(", "));
+});

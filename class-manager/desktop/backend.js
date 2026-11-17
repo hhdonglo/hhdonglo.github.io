@@ -216,7 +216,7 @@ function createBackend(opts) {
     hostKeyIsPlain: () => String(spreadsheet.getSheetByName("Key").getRange(2, 10).getValue()).indexOf("sha256:") !== 0,
     run: (name) => ctx[name](),
     setGeoMode: (mode) => { ctx.ATT_GEO_MODE = mode === "enforce" ? "enforce" : "off"; }, // per request: see attendance-guard.js
-    // The person at this computer chooses the lecturer password without the old one (app screens only; apps_script/src/06-password.gs).
+    // The person at this computer chooses the password without the old one (app screens only; apps_script/src/06-password.gs).
     setPasswordAsOwner: (pw) => { const r = ctx.ownerSetPassword_(pw); flush(); return r; },
     passwordStatus: () => ctx.passwordStatus_(),
     // Class statistics: computed by the script itself (classStats_, studentStats_), with the lecturer's thresholds.

@@ -346,3 +346,18 @@ test("a large file is read in chunks and planned quickly", async () => {
   assert.ok(tRead < 15000 && tPlan < 5000, "read " + tRead + " ms, plan " + tPlan + " ms");
   console.log("# 40,000 rows: read " + tRead + " ms, plan " + tPlan + " ms");
 });
+
+test("an empty class list stays empty: IDs in a records file never become students (Hope, 2026-11-17)", async () => {
+  const { file, s } = await webFile();
+  const c = classroom(); // no roster at all
+  const rosterBefore = JSON.stringify(c.backend.rows("Roster"));
+  const before = JSON.stringify(c.backend.tabs());
+  const r = plan(await readBook(file), local(c));
+  assert.equal(r.report.changes, 0, "nothing would be saved");
+  assert.equal(r.report.blocked, true); assert.deepEqual(r.ops, { tabs: [], roster: [] }, "no operation is made");
+  assert.match(r.report.warnings[0], /no class list yet/);
+  const done = apply(r.ops, c.backend, { rebuild: () => { c.backend.rebuildMarks(); c.backend.buildFromRoster(); } });
+  assert.equal(JSON.stringify(c.backend.rows("Roster")), rosterBefore, "the class list is still empty");
+  assert.equal(JSON.stringify(c.backend.tabs()), before, "no rows or records were created");
+  assert.ok(s.ids.length > 0 && done !== null);
+});
