@@ -9,6 +9,8 @@ What happens when a lecture card on Course and Content is clicked: the lecture v
 | `present.js` | Presentation mode: full screen, one slide at a time, slide counter, timer, dark or light surround, blank screen, exit. |
 | `lecture-view.css` | The look of both. |
 
+Where the Present button is: on every lecture card whose slides are a PDF (gold, first in the row of chips), in the lecture view, and in the slides panel that opens when the Slides chip is clicked. All three start the same presentation (`present.js`).
+
 A document's Open button uses the existing panel (`../lecture-viewer.js`), so Update, Replace, Delete and "Wrong file?" are unchanged, and so is Edit on the card (`../lecture-list.js`). The card's title or any free part of the card opens the lecture view.
 
 ## Presentation keys
@@ -17,6 +19,7 @@ Next: right arrow, down arrow, space, Page Down, Enter. Previous: left arrow, up
 
 ## Notes
 
+- Full screen is asked for inside the click on Present, before the file is read (the browser refuses it otherwise), and any open panel is closed first. The slide fills the screen; the bar at the bottom fades after three seconds. Esc leaves full screen and the presentation.
 - Slides are drawn by the PDF viewer built into CM, so nothing is converted or sent anywhere. The page count comes from `cm:lectureFileView` (`../../lecture-files/ipc.js`, through `peek.js`). The dark or light choice changes the surround of the slide; the slide keeps the colours of its PDF.
 - The quiz projector also reacts when full screen ends. Presentation mode stops that event first (capture listener in `present.js`), so the scan code window does not open when a lecture ends. No code of the quiz projector was changed.
 - Held and due come from `cm:lectureProgress` (the same numbers as the Class Analytics lecture card). A course without a lecture target shows no status.
