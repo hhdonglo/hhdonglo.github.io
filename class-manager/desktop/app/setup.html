@@ -59,7 +59,7 @@ html{font-size:clamp(15px,calc(9.5px + .42vw),19px)}
 <body>
 <header class="banner slim"><div class="wrap"><h1><a class="home-link" href="home.html">Class Manager</a></h1><p class="course"><span data-cm="courseCode">New course</span> · Course setup</p></div></header>
 <main id="main"><div class="wrap su">
-<p class="why" id="intro">Three short steps set CM up for your course. The class list comes first, because everything else you add to CM is checked against it. Everything stays editable.</p>
+<p class="why" id="intro">Three short steps set CM up for your course. The class list comes first because everything about students is checked against it, but every step can be skipped and finished later, and CM can be set up without a class list. Everything stays editable.</p>
 <ol class="steps" id="steps">
  <li><button type="button" data-go="class" id="st-class">1. Class list</button></li>
  <li><button type="button" data-go="course" id="st-course">2. Course details</button></li>
@@ -100,13 +100,13 @@ html{font-size:clamp(15px,calc(9.5px + .42vw),19px)}
    <div class="two"><div><label for="c-nl">Notice link text</label><input id="c-nl" maxlength="80"></div><div><label for="c-nu">Notice link address</label><input id="c-nu" maxlength="400" placeholder="https://"></div></div>
   </details>
   <p class="msg" id="c-msg" role="status"></p>
-  <div class="nav"><button type="button" data-go="class">Back</button><span><button class="p" type="submit">Save and continue</button></span></div>
+  <div class="nav"><button type="button" data-go="class">Back</button><span><button type="button" class="link" data-skip="materials">Skip for now</button><button class="p" type="submit">Save and continue</button></span></div>
  </form>
 </section>
 
 <section data-step="class" aria-labelledby="h-class" hidden>
  <h2 id="h-class">Class roster</h2>
- <p class="why">This is the first thing to add: nothing else can be uploaded to CM until the class list exists. The class list is the fact the whole course depends on: attendance, marks and access codes count only the students on it. It is entered here and nowhere else. Every other file you add to CM is only checked against this list, and never adds or changes a student.</p>
+ <p class="why">This is the first thing to add. You may skip it: course details and course materials need no class list, but results, attendance, marks and anything else about students can be added only once the class list exists. The class list is the fact the whole course depends on: attendance, marks and access codes count only the students on it. It is entered here and nowhere else. Every other file you add to CM is only checked against this list, and never adds or changes a student.</p>
  <div class="card">
   <p class="why">Add your class list in any standard file: CSV, Excel, Word, text or PDF, in any layout (ID and name columns are found for you, extra columns are ignored), or paste the list as text. These are read on this computer: no key, nothing is uploaded. Only a screenshot or a scanned PDF needs Claude to read it, using your Anthropic API key, and those pages are sent to Anthropic (nothing else about the course is sent). You then check and correct the table before anything is saved. An ID belongs to one student: a repeat is merged, and an ID read with two names must be settled by you.</p>
   <div id="rs-drop" class="drop" tabindex="0"><p><button type="button" class="p" id="rs-pick">Add files</button> or drop or paste them here (or paste the list as text). CSV, Excel, Word, text, PDF, PNG, JPEG, WebP or GIF, up to 12 at a time.</p><input type="file" id="rs-file" accept=".csv,.tsv,.txt,.md,.xlsx,.docx,.pdf,image/png,image/jpeg,image/webp,image/gif" multiple hidden></div>
@@ -118,7 +118,7 @@ html{font-size:clamp(15px,calc(9.5px + .42vw),19px)}
    <p><button class="p" type="button" id="rs-save">Save the class list</button> <button type="button" id="rs-clear">Start again</button></p>
   </div>
  </div>
- <div class="nav"><span></span><span><button class="p" type="button" id="rs-next" data-go="course" disabled>Continue</button></span></div>
+ <div class="nav"><span></span><span><button type="button" class="link" data-skip="course">Skip for now</button><button class="p" type="button" id="rs-next" data-go="course" disabled>Continue</button></span></div>
 </section>
 
 <section data-step="materials" aria-labelledby="h-mat" hidden>

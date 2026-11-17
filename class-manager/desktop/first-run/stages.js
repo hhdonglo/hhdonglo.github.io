@@ -1,5 +1,5 @@
 // The order of first-run setup, and which calls wait for which stage. Pure: no disk, no screen.
-// Order (Hope, 2026-11-16): 1 password, 2 class roster, 3 course material (folder, quizzes). A later stage never opens before an earlier one is done.
+// Order (Hope, 2026-11-16): 1 password, 2 class roster, 3 course material. The roster step may be skipped and course material added without it (2026-11-17); only student data waits for the roster.
 "use strict";
 
 const ORDER = ["password", "roster", "material"];
@@ -8,7 +8,7 @@ const ORDER = ["password", "roster", "material"];
 function stageOf(s) {
   s = s || {};
   const done = { password: !!s.passwordChosen, roster: Number(s.roster || 0) > 0, material: Number(s.banks || 0) > 0 || !!s.hasContent };
-  const open = { password: true, roster: done.password, material: done.password && done.roster };
+  const open = { password: true, roster: done.password, material: done.password }; // course material needs no roster
   const current = ORDER.find((k) => !done[k]) || "done";
   return { done, open, current, complete: current === "done" };
 }
@@ -17,12 +17,10 @@ function stageOf(s) {
 const NEEDS = {
   "cm:saveCourse": "password",
   "cm:rosterShotsRead": "password", "cm:rosterShotsPreview": "password", "cm:rosterShotsSave": "password",
-  "cm:saveLecture": "roster", "cm:removeLecture": "roster", "cm:lectureFile": "roster", "cm:importPack": "roster",
-  "cm:libAdd": "roster", "cm:libAddPaths": "roster", "cm:generate": "roster", "cm:autoQuestions": "roster", "cm:autoCourseSave": "roster",
-  "cm:bankFolderPick": "roster", "cm:bankFolderLoad": "roster",
-  // Every other upload: it is checked against the roster, so it waits for the roster too.
-  "cm:importPick": "roster", "cm:importPlan": "roster", "cm:importApply": "roster", "cm:importFile": "roster", "cm:importText": "roster",
-  "cm:autoPick": "roster", "cm:autoPickFiles": "roster", "cm:autoScan": "roster", "cm:autoPlan": "roster", "cm:autoCourse": "roster",
+  // Student data waits for the roster (Hope, 2026-11-17): anything keyed by a student ID is checked against the class list, so it needs one.
+  // Course material (lectures, files, quiz banks, course packs, generated questions, course details) never waits: CM can be set up without a roster.
+  "cm:importPick": "roster", "cm:importPlan": "roster", "cm:importApply": "roster",
+  "cm:autoPick": "roster", "cm:autoPickFiles": "roster", "cm:autoScan": "roster", "cm:autoPlan": "roster",
   "cm:lmsRosterFile": "roster", "cm:lmsRosterService": "roster"
 };
 // Where the button on a refusal takes the lecturer, per missing stage.
@@ -30,7 +28,7 @@ const GOTO = { password: "login.html", roster: "setup.html#class" };
 const BUTTON = { password: "Choose the password", roster: "Add the class roster" };
 const WHY = {
   password: "Choose the password first. It is the first step of setting up a course in CM.",
-  roster: "Add the class roster first. Everything else you add to CM (course material, quizzes, results, attendance, files from a learning management system) is checked against it."
+  roster: "Nothing about students can be added without a class list: results, attendance, marks and files from a learning management system are checked against it. Course material does not need one. Add the class list first."
 };
 
 // null when the call may go ahead, otherwise the refusal the screen shows. A call waits until the stage it needs is done (and so every stage before it).
