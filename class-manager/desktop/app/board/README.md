@@ -34,6 +34,7 @@ KPI row on top, a thin tab bar (Overview, Attendance, Quizzes, Risk and attentio
 
 ## Compact, arrangeable layout (2026-11-17)
 - Top row: `strip.js` draws the lecture plan as a small donut, a bar with an expected-by-today marker, a state badge and chips (due, next, missed); the sentences are tooltips. `lecture-progress.js` renders it and `insights.js` moves it beside the five small KPI tiles (their notes are tooltips).
+- `lp-slot.js`: keeps the lecture plan card alive across redraws of the board (park it before `#ov` is rewritten, mount it into `#bd-lpslot` after). Never place a card that outlives a redraw inside `#ov` without it.
 - Each tab is a 12 column grid. Short cards fill the space under each other (masonry: `arrange.js` gives each card the number of 8 pixel rows its height needs). Default widths and the rule "charts first, text-heavy cards last" are in `layout.js`.
 - Arrange cards (button beside the tabs): drag a card or use its buttons to move it earlier or later, make it narrower, wider, shorter or taller, or hide it; drag the corner to resize. Hidden cards are listed so they can be shown again. Done ends the mode; Reset layout restores the defaults. Choices are saved per course in this computer's browser storage (`cm.board.layout.<course>`), never sent anywhere.
 - Captions under charts (`.bd-foot`, `.ch-cap`) are turned into an info icon with the text as a tooltip. A card with nothing to show is one line (`bd-slim`, no empty donut).

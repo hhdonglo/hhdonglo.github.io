@@ -487,6 +487,8 @@ Dashboard grid (2026-11-17): Class Analytics is a KPI row, a tab bar and one gri
 
 Compact dashboard (2026-11-17): the lecture plan is a strip beside small KPI tiles; each tab is a 12 column masonry grid. `board/layout.js` holds default widths and order, `board/arrange.js` applies and edits them and saves the lecturer's layout per course in localStorage (this computer only). Text is shortened to tooltips (info icons); empty cards collapse to one line.
 
+Long-lived card rule (2026-11-17): `#ov` is rewritten on every refresh (every 60 seconds and on each change), so anything inside it is disposable. The lecture plan card is owned by `lecture-progress.js`, which refreshes every 15 seconds and draws only when its data changes; it is parked outside `#ov` (`board/lp-slot.js`) before each redraw and mounted into the new slot after, so it persists across refreshes, restarts (it is redrawn on load) and the "no class yet" and error views. A card is hidden only by the lecturer (Arrange cards, then the hide button); hidden cards stay listed on the toolbar with a button to show them.
+
 ## Unlisted student IDs (17 November 2026)
 
 Decision (Hope): a student whose ID is not on the class list may still sign in to attendance and quizzes, with a warning to ask the lecturer. This changes the earlier rule that such IDs are only refused. They are still never added automatically.
