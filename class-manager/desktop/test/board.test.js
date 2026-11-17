@@ -7,6 +7,8 @@ const V = require("../app/board/render");
 const BL = require("../app/board/barline");
 const D = require("../app/board/donut");
 const SEC = require("../app/board/sections");
+const ST = require("../app/board/strip");
+const LY = require("../app/board/layout");
 
 const stu = (id, o) => Object.assign({ id, name: "Student " + id, group: "On track", missedInARow: 0, change: null, quizzesTaken: 3, attendance: 90, quizAverage: 70, practiceRecent: 1 }, o);
 const base = () => ({
@@ -63,7 +65,7 @@ test("findings are worked out from the numbers and never more than five", () => 
 
 test("the board draws with data, and the clicks the page relies on are in the markup", () => {
   const html = V.kpiRow(base()) + V.html(base(), lp());
-  ["data-drill='students'", "data-drill='risk'", "data-bd-tab='quiz'", "data-bd-view='groups'", "data-bd-bar='0'", "id='bd-plan'", "id='bd-rank'", "id='bd-ins'"].forEach((x) => assert.ok(html.includes(x), x));
+  ["data-drill='students'", "data-drill='risk'", "data-bd-tab='quiz'", "data-bd-view='groups'", "data-bd-bar='0'", "id='bd-rank'", "id='bd-ins'"].forEach((x) => assert.ok(html.includes(x), x));
   assert.ok(!/&(?!amp;|lt;|gt;|quot;|#39;)/.test(html.replace(/&amp;/g, "")), "no bare ampersand");
   assert.ok(/<svg[^>]*role='img'/.test(html), "every chart has a text label");
   assert.ok(V.breakPanel(base(), "groups").includes("data-bd-slice='0'"), "a group slice opens its students");
@@ -72,8 +74,8 @@ test("the board draws with data, and the clicks the page relies on are in the ma
 test("the empty board still has every panel, ghost bars and a plain message; names are escaped", () => {
   const e = { rosterSize: 30, attendance: { sessions: 0, bySession: [] }, quizzes: [], learning: { topics: [] }, groups: {}, students: [] };
   const html = V.html(e, null);
-  ["id='bd-plan'", "id='bd-prog'", "id='bd-break'", "id='bd-rank'", "id='bd-ins'"].forEach((x) => assert.ok(html.includes(x), x));
-  assert.ok(/No attendance session submitted yet/.test(html) && /No lecture plan yet/.test(html));
+  ["id='bd-prog'", "id='bd-break'", "id='bd-rank'", "id='bd-ins'"].forEach((x) => assert.ok(html.includes(x), x));
+  assert.ok(/No attendance session submitted yet/.test(html) && /No lecture plan yet/.test(ST.html(null)), "the empty plan is said in the strip");
   const d = base(); d.learning.topics[0].label = "<img src=x onerror=alert(1)>";
   const out = V.html(d, lp()); assert.ok(!out.includes("<img"), "topic names are escaped");
 });
@@ -130,4 +132,30 @@ test("donut shares: attendance, score bands, flag reasons and mastery bands add 
   const html = V.attendanceShare(d) + V.scoreShare(d) + V.riskShare(d) + V.masteryShare(d);
   ["bd-satt", "bd-sscore", "bd-srisk", "bd-smast"].forEach((x) => assert.ok(html.includes("id='" + x + "'"), x));
   assert.ok(/Nothing to show yet/.test(V.attendanceShare({ attendance: { bySession: [] } })));
+});
+
+test("lecture strip: donut, bar with an expected marker, a state badge and chips; sentences only in tooltips", () => {
+  const h = ST.html(lp());
+  assert.ok(/class='lpc-badge bad'/.test(h) && /Behind/.test(h) && /lpc-exp/.test(h) && /<svg[^>]*role='img'/.test(h));
+  assert.ok(/Due<\/i> Lecture 6/.test(h) && /Next<\/i> Lecture 5/.test(h) && /Missed/.test(h));
+  assert.ok(!/<p[^>]*>[^<]{60,}/.test(h.replace(/title='[^']*'/g, "")), "no running text outside tooltips");
+  assert.ok(/No lecture plan yet/.test(ST.html({ target: 0 })));
+});
+
+test("layout: charts first and text cards last by default; saved width, height, order and hidden win; keyboard steps and drops reorder", () => {
+  const keys = ["bd-ins", "bd-prog", "c-class-health", "bd-break"];
+  assert.deepStrictEqual(LY.resolve(keys).map((c) => c.key), ["bd-prog", "bd-break", "bd-ins", "c-class-health"]);
+  const r = LY.resolve(keys, { "bd-prog": { w: 99, h: 133, hidden: true }, "bd-ins": { order: -5 } });
+  assert.strictEqual(r[0].key, "bd-ins"); const p = r.find((c) => c.key === "bd-prog");
+  assert.deepStrictEqual([p.w, p.h, p.hidden], [12, 140, true], "width is clamped to 12 columns, height snaps to 20 pixels");
+  assert.strictEqual(LY.clampW(0), LY.MIN_W);
+  const list = LY.resolve(keys), o = LY.move(list, "bd-ins", "bd-prog");
+  assert.ok(o["bd-ins"] < o["bd-prog"] && o["bd-prog"] < o["bd-break"]);
+  const s = LY.step(list, "bd-prog", 1); assert.ok(s["bd-prog"] > s["bd-break"]); assert.strictEqual(LY.step(list, "bd-prog", -1), null);
+});
+
+test("empty cards are one line: no donut when there is nothing to count", () => {
+  const e = base(); e.learning.topics = [];
+  const b = V.breakPanel(e, "topics"); assert.ok(!/<svg/.test(b) && /Topics appear/.test(b));
+  const c = V.masteryShare({ topics: { semester: [] }, quizzes: [] }); assert.ok(!/<svg/.test(c) && /bd-slim/.test(c));
 });

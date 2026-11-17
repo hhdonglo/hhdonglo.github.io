@@ -23,10 +23,10 @@
   function card(c, sel, all) {
     var drill = { title: c.title, unit: c.unit, max: c.max, bars: c.bars.map(function (b) { return { label: b.label + (b.small ? "*" : ""), value: b.value, text: b.text }; }) };
     var small = c.bars.some(function (b) { return b.small && b.n > 0; });
-    return "<section class='card acard xc' data-xc='" + esc(c.key) + "'><h3>" + esc(c.title) + "</h3><p class='note'>" + esc(c.hint) + "</p>" + factsHtml(c) +
+    return "<section class='card acard xc' data-xc='" + esc(c.key) + "'><h3>" + esc(c.title) + "</h3><p class='note ch-cap'>" + esc(c.hint) + "</p>" + factsHtml(c) +
       (c.bars.length ? D().bars(drill, sel === undefined ? null : sel) : "<p class='note'>Nothing to show yet.</p>") +
       "<div class='zlist' aria-live='polite'>" + listHtml(c, sel === undefined || sel === null ? -1 : sel, all) + "</div>" +
-      "<p class='note small'>" + esc(c.caption) + (small ? " * Fewer than 5 students." : "") + "</p>" + tableHtml(c) + "</section>";
+      "<p class='note small ch-cap'>" + esc(c.caption) + (small ? " * Fewer than 5 students." : "") + "</p>" + tableHtml(c) + "</section>";
   }
   var api = { card: card, listHtml: listHtml, CAP: CAP };
   if (typeof module === "object" && module.exports) module.exports = api; else root.cmExploreView = api;
