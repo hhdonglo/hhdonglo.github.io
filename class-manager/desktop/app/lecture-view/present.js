@@ -28,34 +28,34 @@
     var pages = Math.max(1, Number(v.pages) || 1), page = 1, blank = false, theme = savedTheme();
     var began = Date.now(), paused = null, banked = 0, idleTimer = null, ticker = null;
     var el = document.createElement("div");
-    el.className = "lp lp-" + theme; el.tabIndex = -1; el.setAttribute("role", "dialog"); el.setAttribute("aria-label", "Presentation: " + row.label);
+    el.className = "pres pres-" + theme; el.tabIndex = -1; el.setAttribute("role", "dialog"); el.setAttribute("aria-label", "Presentation: " + row.label);
     el.innerHTML =
-      "<div class='lp-stage'><div class='lp-frames'></div><div class='lp-shield' data-lp='shield'></div><div class='lp-blank' hidden></div></div>" +
-      "<div class='lp-bar'><span class='lp-title'>" + esc(row.label) + (row.title ? ": " + esc(row.title) : "") + "</span>" +
-      "<span class='lp-nav'><button type='button' data-lp='prev' aria-label='Previous slide'>Previous</button>" +
-      "<span class='lp-count' role='status' aria-live='polite'></span>" +
-      "<button type='button' data-lp='next' aria-label='Next slide'>Next</button></span>" +
-      "<span class='lp-tools'><span class='lp-clock' title='Time since the start. P pauses, R resets'></span>" +
-      "<button type='button' data-lp='theme'>Light or dark</button><button type='button' data-lp='exit'>Exit</button></span></div>" +
-      "<p class='lp-help' hidden>Next: right arrow, space. Previous: left arrow. First or last: Home, End. B blanks the screen. T changes dark or light. P pauses the timer. R resets it. Esc exits.</p>";
+      "<div class='pres-stage'><div class='pres-frames'></div><div class='pres-shield' data-pres='shield'></div><div class='pres-blank' hidden></div></div>" +
+      "<div class='pres-bar'><span class='pres-title'>" + esc(row.label) + (row.title ? ": " + esc(row.title) : "") + "</span>" +
+      "<span class='pres-nav'><button type='button' data-pres='prev' aria-label='Previous slide'>Previous</button>" +
+      "<span class='pres-count' role='status' aria-live='polite'></span>" +
+      "<button type='button' data-pres='next' aria-label='Next slide'>Next</button></span>" +
+      "<span class='pres-tools'><span class='pres-clock' title='Time since the start. P pauses, R resets'></span>" +
+      "<button type='button' data-pres='theme'>Light or dark</button><button type='button' data-pres='exit'>Exit</button></span></div>" +
+      "<p class='pres-help' hidden>Next: right arrow, space. Previous: left arrow. First or last: Home, End. B blanks the screen. T changes dark or light. P pauses the timer. R resets it. Esc exits.</p>";
     document.body.appendChild(el);
-    var frames = el.querySelector(".lp-frames"), count = el.querySelector(".lp-count"), clockEl = el.querySelector(".lp-clock"),
-      blankEl = el.querySelector(".lp-blank"), help = el.querySelector(".lp-help");
+    var frames = el.querySelector(".pres-frames"), count = el.querySelector(".pres-count"), clockEl = el.querySelector(".pres-clock"),
+      blankEl = el.querySelector(".pres-blank"), help = el.querySelector(".pres-help");
 
     function elapsed() { return banked + (paused ? 0 : Date.now() - began); }
     function tick() { clockEl.textContent = (paused ? "Paused " : "") + S.clock(elapsed()); }
     function show() { // a new frame sits over the old one and the old one goes when the new page has loaded: no white flash between slides
-      var f = document.createElement("iframe"); f.className = "lp-pdf"; f.title = row.label + ", slide " + page; f.tabIndex = -1;
+      var f = document.createElement("iframe"); f.className = "pres-pdf"; f.title = row.label + ", slide " + page; f.tabIndex = -1;
       var old = Array.prototype.slice.call(frames.children);
       f.addEventListener("load", function () { old.forEach(function (o) { if (o.parentNode) o.parentNode.removeChild(o); }); });
       f.src = S.pageUrl(v.url, page); frames.appendChild(f);
       count.textContent = "Slide " + page + " of " + pages;
-      el.querySelector("[data-lp='prev']").disabled = page <= 1; el.querySelector("[data-lp='next']").disabled = page >= pages;
+      el.querySelector("[data-pres='prev']").disabled = page <= 1; el.querySelector("[data-pres='next']").disabled = page >= pages;
     }
     function go(action) { var to = S.movePage(page, action, pages); if (to !== page) { page = to; if (blank) setBlank(false); show(); } }
     function setBlank(on) { blank = on; blankEl.hidden = !on; }
-    function setTheme(t) { theme = t; el.className = el.className.replace(/lp-(dark|light)/, "lp-" + t); saveTheme(t); }
-    function wake() { el.classList.remove("lp-idle"); clearTimeout(idleTimer); idleTimer = setTimeout(function () { el.classList.add("lp-idle"); }, 3000); }
+    function setTheme(t) { theme = t; el.className = el.className.replace(/pres-(dark|light)/, "pres-" + t); saveTheme(t); }
+    function wake() { el.classList.remove("pres-idle"); clearTimeout(idleTimer); idleTimer = setTimeout(function () { el.classList.add("pres-idle"); }, 3000); }
 
     function act(a) {
       if (a === "next" || a === "prev" || a === "first" || a === "last") go(a);
@@ -72,9 +72,9 @@
       e.preventDefault(); e.stopPropagation(); wake(); act(a);
     }
     function onClick(e) {
-      var b = e.target.closest("[data-lp]"); if (!b) return; wake();
-      var a = b.getAttribute("data-lp");
-      if (a === "shield") { var r = el.querySelector(".lp-shield").getBoundingClientRect(); return act(e.clientX - r.left < r.width / 3 ? "prev" : "next"); }
+      var b = e.target.closest("[data-pres]"); if (!b) return; wake();
+      var a = b.getAttribute("data-pres");
+      if (a === "shield") { var r = el.querySelector(".pres-shield").getBoundingClientRect(); return act(e.clientX - r.left < r.width / 3 ? "prev" : "next"); }
       act(a);
     }
     // Leaving full screen (Esc) ends the presentation. The scan code window of the quiz projector also listens for leaving full screen,
