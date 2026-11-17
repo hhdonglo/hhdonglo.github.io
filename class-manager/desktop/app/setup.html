@@ -69,7 +69,7 @@ html{font-size:clamp(15px,calc(9.5px + .42vw),19px)}
 <section data-step="start" aria-labelledby="h-start" hidden>
  <h2 id="h-start">How do you want to begin?</h2>
  <div class="choice">
-  <div class="card"><h3>Start from scratch</h3><p class="why">Enter the course details, then add screenshots of your class list. CM builds everything else: the class list, Master, Scores, Totals and the attendance sheet, ready for the first session.</p><button type="button" class="p" id="start-new">Start from scratch</button></div>
+  <div class="card"><h3>Start from scratch</h3><p class="why">Enter the course details, then add your class list (a CSV, Excel, Word, PDF or text file, or a screenshot). CM builds everything else: the class list, Master, Scores, Totals and the attendance sheet, ready for the first session.</p><button type="button" class="p" id="start-new">Start from scratch</button></div>
   <div class="card"><h3>Use a template</h3><p class="why">Download a workbook with the right headings, fill in scores or attendance, then load it. It is checked against the class list from the Class roster step; it never adds students.</p><button type="button" id="tpl-get">Download the template</button> <button type="button" class="p" id="tpl-load" data-import-web="template">Load the filled template…</button><p class="msg" id="tpl-msg" role="status"></p></div>
   <div class="card"><h3>Load from a folder</h3><p class="why">Point CM at the folder that holds your files (scores, attendance, quiz bank, in any layout). Students are never added from it: it is checked against your class list. It finds what it needs, ignores the rest and builds a clean working file of its own. Your files are never changed.</p><button type="button" class="p" id="start-folder" data-folder-import="setup">Choose a folder…</button></div>
   <div class="card"><h3>Continue from existing data</h3><p class="why">Load the results exported from the web version (the Google Sheet downloaded as Excel). You read a preview first; scores, attendance and practice attempts for students on your class list are loaded and you carry on from there. Add the class list first, from screenshots.</p><button type="button" class="p" id="start-continue" data-import-web="continue">Continue from existing data…</button></div>
@@ -108,8 +108,8 @@ html{font-size:clamp(15px,calc(9.5px + .42vw),19px)}
  <h2 id="h-class">Class roster</h2>
  <p class="why">The class list is the fact the whole course depends on: attendance, marks and access codes count only the students on it. It is entered here and nowhere else. Every other file you add to CM is only checked against this list, and never adds or changes a student.</p>
  <div class="card">
-  <p class="why">Add screenshots of your class list. CM reads the student IDs and names from them with your Anthropic API key (the images are sent to Anthropic to be read; nothing else about the course is sent). You then check and correct the table before anything is saved. An ID belongs to one student: a repeat is merged, and an ID read with two names must be settled by you.</p>
-  <div id="rs-drop" class="drop" tabindex="0"><p><button type="button" class="p" id="rs-pick">Add screenshots</button> or drop or paste them here. PNG, JPEG, WebP or GIF, up to 12 at a time.</p><input type="file" id="rs-file" accept="image/png,image/jpeg,image/webp,image/gif" multiple hidden></div>
+  <p class="why">Add your class list in any standard file: CSV, Excel, Word, text or PDF, in any layout (ID and name columns are found for you, extra columns are ignored), or paste the list as text. These are read on this computer: no key, nothing is uploaded. Only a screenshot or a scanned PDF needs Claude to read it, using your Anthropic API key, and those pages are sent to Anthropic (nothing else about the course is sent). You then check and correct the table before anything is saved. An ID belongs to one student: a repeat is merged, and an ID read with two names must be settled by you.</p>
+  <div id="rs-drop" class="drop" tabindex="0"><p><button type="button" class="p" id="rs-pick">Add files</button> or drop or paste them here (or paste the list as text). CSV, Excel, Word, text, PDF, PNG, JPEG, WebP or GIF, up to 12 at a time.</p><input type="file" id="rs-file" accept=".csv,.tsv,.txt,.md,.xlsx,.docx,.pdf,image/png,image/jpeg,image/webp,image/gif" multiple hidden></div>
   <p class="msg" id="rs-msg" role="status"></p>
   <div id="rs-work" hidden>
    <div class="tbl" id="rs-table"></div>
@@ -159,7 +159,7 @@ html{font-size:clamp(15px,calc(9.5px + .42vw),19px)}
  </div>
  <div class="card">
   <h3 style="margin-top:0">Teaching material and question files</h3>
-  <p class="why">Add PDF, Word, PowerPoint or Markdown files to the library to search them and draft questions from them. Existing question files (Word, PDF or Markdown) are imported for you to review before students see them.</p>
+  <p class="why">Add CSV, Excel, Word, PDF, PowerPoint, Markdown or text files to the library to search them and draft questions from them. Existing question files (CSV, Excel, Word, PDF, Markdown or text) are imported for you to review before students see them.</p>
   <p><button type="button" id="lib-add">Add files to the library</button><button type="button" id="q-import">Import question files</button></p>
   <p class="msg" id="lib-msg" role="status"></p>
  </div>

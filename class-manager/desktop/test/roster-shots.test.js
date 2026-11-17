@@ -32,7 +32,8 @@ test("screenshots go to the vision call one at a time, and bad files are refused
   const ask = async (sys, content) => { calls.push(content); return { students: [{ id: "20000001", name: "Ama Mensah", unclear: false }] }; };
   const out = await readShots([{ name: "a.png", type: "image/png", data: "AAAA" }, { name: "b.png", type: "image/png", data: "AAAA" }], ask);
   assert.equal(calls.length, 2); assert.equal(out.length, 2); assert.equal(out[0].shot, "a.png");
-  await assert.rejects(readShots([{ name: "x.pdf", type: "application/pdf", data: "AA" }], ask), /only PNG/);
+  await assert.rejects(readShots([{ name: "x.docx", type: "application/msword", data: "AA" }], ask), /only PNG/);
+  assert.equal((await readShots([{ name: "scan.pdf", type: "application/pdf", data: "AAAA" }], ask)).length, 1); // a scanned PDF goes to Claude as a document
   await assert.rejects(readShots([], ask), /at least one/);
 });
 

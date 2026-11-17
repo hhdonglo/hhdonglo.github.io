@@ -90,8 +90,13 @@ async function extract(file) {
     }
     return out;
   }
+  if ([".csv", ".tsv", ".xlsx"].includes(ext)) { // a table as text, one line per row, through the shared reader
+    const { readAny } = require("./autoload/read-file");
+    const got = await readAny(file);
+    return got.sheets.map((sh) => ({ loc: sh.name, text: sh.rows.map((r) => r.map((c) => (c == null ? "" : String(c))).join("\t")).join("\n") }));
+  }
   if ([".md", ".markdown", ".txt", ".text"].includes(ext)) return [{ loc: "", text: buf.toString("utf8").replace(/^﻿/, "") }];
-  throw new Error("This kind of file is not supported. Use PDF, Word (.docx), PowerPoint (.pptx), Markdown or text.");
+  throw new Error("This kind of file is not supported. Use CSV, Excel, Word, PDF, PowerPoint, Markdown or text.");
 }
 
 // Passages of about 900 characters, kept within one page or slide where possible.

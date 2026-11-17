@@ -2,18 +2,29 @@
 // This is the ONLY place that adds students to a course (roster-shots/README.md). Every other file is checked against the list and never adds to it.
 "use strict";
 const { readShots } = require("./vision");
+const { readRosterFiles } = require("./files");
 const { review } = require("./review");
 const update = require("./update");
 
 const listOf = (c) => { const names = {}; (c.backend.rawRows("Roster") || []).slice(1).forEach((r) => { if (r && r[0] !== "" && r[0] != null) names[String(r[0])] = String(r[1] || ""); }); return { names }; };
 
 function register({ on }) {
-  // Screenshots from the screen (chosen, dropped or pasted) -> what was read, checked, for the lecturer to correct.
-  on("cm:rosterShotsRead", async (c, e, images) => {
-    if (!c.authoring.status().hasKey) return { ok: false, needKey: true, why: "Reading screenshots uses your Anthropic API key. Add it under Settings, or type the list into the table instead." };
+  // Files from the screen (chosen, dropped, pasted: CSV, Excel, Word, text, PDF, screenshots) -> what was read, checked, for the lecturer to correct.
+  // Everything with real text is read on this computer (files.js). Only pictures and scanned PDFs go to Claude, and only with the lecturer's API key.
+  on("cm:rosterShotsRead", async (c, e, files) => {
     try {
-      const found = await readShots(images, c.authoring.askJson);
-      return { ok: true, found, review: review(found, listOf(c)), listed: Object.keys(listOf(c).names).length };
+      const got = await readRosterFiles(files);
+      let found = got.rows, sent = [];
+      if (got.vision.length) {
+        if (!c.authoring.status().hasKey) {
+          if (!found.length) return { ok: false, needKey: true, why: "These are pictures or scanned pages, so Claude has to read them, using your Anthropic API key. Add the key under Settings, save the list as CSV or Excel, or type it into the table." };
+          sent = []; // text files were read; the pictures are left out and the screen says so
+          return { ok: true, found, review: review(found, listOf(c)), listed: Object.keys(listOf(c).names).length, local: got.local, skipped: got.vision.map((v) => v.name), why: "Some files are pictures or scanned pages and need your Anthropic API key to be read; they were left out." };
+        }
+        const seen = await readShots(got.vision, c.authoring.askJson);
+        found = found.concat(seen); sent = got.vision.map((v) => v.name);
+      }
+      return { ok: true, found, review: review(found, listOf(c)), listed: Object.keys(listOf(c).names).length, local: got.local, sentToAnthropic: sent };
     } catch (err) { return { ok: false, why: err.message }; }
   });
 
