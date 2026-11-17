@@ -264,6 +264,12 @@ document.addEventListener("keydown",function(e){if(e.key==="Escape"&&!$("h-proj-
 function keyField(show){try{if(show)sessionStorage.removeItem("cm_hk")}catch(x){}$("h-key").hidden=!show;var l=document.querySelector('label[for="h-key"]');if(l)l.hidden=!show;if(show)$("h-key").value=""}
 var SK="";try{SK=sessionStorage.getItem("cm_hk")||""}catch(x){}
 if(SK){$("h-key").value=SK;keyField(false)}
+// In a CM window on this computer the Login is already done (desktop/preload.js), so the window opens straight into the quiz: the join code is the one in the address,
+// else the quiz that is open now. Any other browser or device has no stored key and sees the form with the password; the key is never in a web address.
+function autoOpen(code){cfg.code=String(code).toUpperCase();cfg.key=SK;cfg.first=true;$("h-code").value=cfg.code;refresh(true)}
+if(SK){var um=/[?&]code=([^&]+)/.exec(location.search);
+ if(um)autoOpen(decodeURIComponent(um[1]));
+ else jsonp("action=quiz_default&hostkey="+encodeURIComponent(SK),function(d){if(d&&d.ok&&d.code)autoOpen(d.code)})}
 $("h-form").addEventListener("submit",function(e){
  e.preventDefault();cfg.code=$("h-code").value.trim().toUpperCase();cfg.key=$("h-key").value.trim();
  if(!cfg.code||!cfg.key){$("h-err").textContent="Enter the join code and the key.";$("h-err").hidden=false;return}
