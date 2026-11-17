@@ -322,10 +322,7 @@ Two warnings do not block approval: a missing explanation or difficulty, and a d
 | `tools/validate_quizzes.py`, `tools/check_calcs.py`, `tools/test_practice.mjs` | Bank schema and calculations, and the practice engine | Repository |
 | `desktop/test/` (`npm test`) | Class statistics, learning progress, and many courses: migration of a 0.7.0 data folder, the registry and routing, and two courses that share no records (class list, host key, access codes, attendance, lookup, statistics, content, Google Sheet, browser storage); Excel files (written workbooks read back cell for cell, the template imports as a class list, IDs stay text, sheet names, one course per results workbook) | Repository |
 | `desktop/test/charts.test.js` | Learning Progress charts and the weekly class timeline: level counts and shares, quartile band rules, gain signs, thin evidence shown as a dot, row order, escaping, agreement with the server figures | `desktop/app/charts/` |
-<<<<<<< HEAD
 | `desktop/test/class-stats-empty-session.test.js` | Sessions with no check-ins are set aside; a class with no attended session has no rate. |
-=======
->>>>>>> 0cc9a42560f666d645a25f88f211af393e263608
 | `desktop/test/board.test.js` | The Class Analytics board: KPI trend arrows (only when two numbers exist), the lecture plan adds up to the plan, progress series, ranked topics, findings from the numbers, the empty state, escaping of names, and that each chart's clicks are in the markup. |
 | Server checks | 36 (core and learning), 17 (groups), 14 (calendar), 38 (messages and announcements), run against `backend.js` | Session scratch files; not yet in the repository |
 | Browser checks | 17 (learning pages), 11 (groups pages), via Playwright against the running app | Session scratch files |
@@ -478,8 +475,5 @@ Scan (`autoload/scan.js`, `folder.js`) then `placement.js` (pure) gives a row pe
 
 ## Class Analytics board (2026-11-17)
 `desktop/app/board/` draws the top of Class Analytics as white chart panels on the dark page. Data flow: `cmApp.stats` (class statistics) and `cmApp.lectureProgress` (kept in `window.cmLecture`, `cm:lecture` event on change) go into `model.js`, which returns plain data; chart modules (`donut.js`, `barline.js`, `ranked.js`, `kpi.js`, `findings.js`) turn it into inline SVG or HTML strings; `render.js` assembles panels; `interact.js` handles tabs and clicks and opens the existing student drill (`dashboard/interact.js` `open`). No library and no network: charts are drawn locally. Nothing is stored. The board adds no server calls and no new records, so it works the same offline and with 140 students. Details: `desktop/app/board/README.md`.
-<<<<<<< HEAD
 
 Sections and data sanity (2026-11-17): `board/sections.js` groups every Class Analytics metric under eight headings, once each; the explore charts and analytics cards are placed by section (`forScreen("ov-...")`, `cmAnalyticsPanel.mountInto`). `rules/class-stats.js` treats a session in which nobody checked in as not held (`attendance.notHeld`, listed on the page), so empty or test sessions no longer lower every rate or flag the whole class. At risk counts solid evidence only and names thin evidence separately. The deprecated Apps Script copy of the statistics is unchanged.
-=======
->>>>>>> 0cc9a42560f666d645a25f88f211af393e263608

@@ -86,15 +86,8 @@
     $("ov-sub").textContent = "The class in numbers and charts. Click any bar or number for the students behind it. " + plural(d.rosterSize, "student", "students") + " on the class list. Updated " + new Date(d.generated).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) + ".";
     if (!d.rosterSize) { $("ov").innerHTML = "<div class='card empty'><h3>No class yet</h3><p>Add the class list under Class Roster. The overview fills in as you take attendance and run quizzes.</p></div>"; return; }
     // Analytics first: the hard numbers, the main charts, who needs attention and what goes with what. Today and setup come last, in a section that opens (app/dashboard/).
-<<<<<<< HEAD
     // Every metric appears once, grouped under section headings (app/board/sections.js). Charts sit on white cards; the page keeps CM's navy and gold.
     var DV = window.cmDashView, B = window.cmBoardView, SEC = window.cmBoardSections, parts = {};
-=======
-    var DV = window.cmDashView, B = window.cmBoardView, h;
-    if (B) { document.body.classList.add("has-board"); h = "<div id='bd'>" + B.html(d, window.cmLecture, window.cmBoardInteract && cmBoardInteract.state) + "</div>" + (DV ? "<h3 class='xh'>The class in numbers</h3><div id='xo'></div>" + DV.grid(d, true) : ""); } // white chart board first (app/board/)
-    else h = DV ? DV.head(d) + "<h3 class='xh'>The class in numbers</h3><div id='xo'></div>" + DV.grid(d) : "";
-    h += "<div id='gx'>" + gxHtml(d) + "</div>"; // distribution, box plot and scatter for the chosen day (app/charts/panel.js)
->>>>>>> 0cc9a42560f666d645a25f88f211af393e263608
     // Is the class learning?
     var verdict = "<section class='card verdict " + (VCLASS[L.verdict] || "") + "' aria-labelledby='vh'><div class='v-main'><p class='lbl' id='vh'>Is the class learning?</p>" +
       "<p class='v-word'>" + vchip(L.verdict) + (L.confidence ? "<span class='note'>Confidence: " + esc(L.confidence) + "</span>" : "") + "</p>" +
@@ -103,7 +96,6 @@
       "<details class='note'><summary>What a verdict needs</summary><p>" + esc(L.minimum) + " " + esc(L.notMeasured) + "</p></details></div>" +
       "<div class='v-ev'><p class='lbl'>Evidence</p>" + (L.signals.length ? "<ul class='sigs'>" + L.signals.map(function (g) { return "<li>" + arrow(g.value) + "<div><b>" + esc(g.title) + (g.direct ? "" : " <span class='note'>(supporting)</span>") + "</b><span class='note'>" + esc(g.text) + "</span></div></li>"; }).join("") + "</ul>" : "<p class='note'>No evidence yet.</p>") + "</div>" +
       "<div class='v-top'><p class='lbl'>By topic</p>" + (L.topics.length ? "<ul class='topics'>" + L.topics.map(function (t) { return "<li title='" + esc(t.evidence) + "'><span>" + esc(t.label) + (t.small ? " <span class='note'>(few answers)</span>" : "") + "</span>" + vchip(t.verdict) + "<span class='note tnum'>" + num(t.pct, "%") + (t.gain !== null ? " · " + signed(t.gain) + " on repeat" : "") + "</span></li>"; }).join("") + "</ul>" : "<p class='note'>Topics appear once questions are answered.</p>") + "</div></section>";
-<<<<<<< HEAD
     var targetsCard = "<section class='card'><div class='card-head'><h3>Areas to target</h3><span class='note'>Ranked, with the evidence</span></div>" +
       (d.targets.length ? "<ol class='targets'>" + d.targets.slice(0, 7).map(target).join("") + "</ol>" : "<p class='note'>Nothing stands out yet.</p>") + "</section>";
     var grid = function (xs) { return "<div class='dgrid'>" + xs.join("") + "</div>"; };
@@ -120,27 +112,6 @@
     $("ov").innerHTML = h; gxWatch();
     [["xo-att", "ov-attendance"], ["xo-quiz", "ov-quizzes"], ["xo-risk", "ov-risk"], ["xo-q", "ov-questions"]].forEach(function (x) { xmount(x[0], x[1]); });
     if (window.cmAnalyticsPanel) cmAnalyticsPanel.mountInto({ summary: $("an-summary"), questions: $("an-questions"), actions: $("an-actions"), privacy: $("an-privacy") }, d);
-=======
-    // Tiles
-    var trend = a.earlierRate !== null ? signed(Math.round(10 * (a.recentRate - a.earlierRate)) / 10, " points") + " in the last three sessions" : (a.sessions ? plural(a.sessions, "session", "sessions") + " submitted" : "No session submitted yet");
-    var lq = s.lastQuiz;
-    h += "<div class='tiles4'>" +
-      tile("Attendance", num(a.rate, "%"), trend, a.sessions ? bars(a.bySession.map(function (x) { return x.rate; }), a.bySession.map(function (x) { return x.label; }), { max: 100, unit: "%", h: 70, labels: 0, grid: [0, 100], title: "Attendance by session" }) : "") +
-      tile("Latest quiz", lq ? num(lq.stats.mean, "%") : "–", lq ? esc(lq.quiz) + ": median " + num(lq.stats.median, "%") + ", " + plural(lq.students, "student", "students") + (lq.completion !== null ? ", " + lq.completion + "% finished" : "") : "No quiz released yet",
-        d.quizzes.length ? bars(d.quizzes.map(function (q) { return q.stats.mean; }), d.quizzes.map(function (q) { return q.quiz; }), { max: 100, unit: "%", h: 70, labels: 0, grid: [0, 100], title: "Mean score by quiz" }) : "") +
-      "<div class='card tile'><p class='lbl'>Engagement (suggested)</p>" + stack(d.groups) + "</div>" +
-      tile("Absent in a row", String(s.missedInARow), "students missed the last " + d.thresholds.misses + " or more sessions", s.missedInARow ? "<button class='link' type='button' data-goview='attendance'>See who</button>" : "") +
-      "</div>";
-    // Areas to target and the change over time
-    h += "<div class='ov2'><section class='card'><div class='card-head'><h3>Areas to target</h3><span class='note'>Ranked, with the evidence</span></div>" +
-      (d.targets.length ? "<ol class='targets'>" + d.targets.slice(0, 7).map(target).join("") + "</ol>" : "<p class='note'>Nothing stands out yet.</p>") + "</section>" +
-      "<section class='card'><div class='card-head'><h3>How the class is changing</h3></div>" +
-      "<p class='lbl'>Attendance by session</p>" + (a.sessions ? bars(a.bySession.map(function (x) { return x.rate; }), a.bySession.map(function (x) { return x.label; }), { max: 100, unit: "%", h: 150, short: shortDate, title: "Attendance by session" }) : "<p class='note'>No session submitted yet.</p>") +
-      "<p class='lbl' style='margin-top:1rem'>Mean quiz score</p>" + (d.quizzes.length ? bars(d.quizzes.map(function (q) { return q.stats.mean; }), d.quizzes.map(function (q) { return q.quiz; }), { max: 100, unit: "%", h: 150, short: shortDate, title: "Mean score by quiz", extra: d.quizzes.map(function (q) { return "(" + q.students + " students)"; }) }) : "<p class='note'>No quiz released yet.</p>") +
-      "</section></div>";
-    h += "<div id='an'></div>" + (DV ? DV.ops(d, window.cmSetup, window.cmLive) : ""); // evidence, questions, concepts, support, groups, privacy (app/analytics/)
-    $("ov").innerHTML = h; gxWatch(); xmount("xo", "overview"); if (window.cmAnalyticsPanel) cmAnalyticsPanel.mount($("an"), d);
->>>>>>> 0cc9a42560f666d645a25f88f211af393e263608
     if (window.cmBoardInteract && !window.cmBoardBound) { window.cmBoardBound = true; cmBoardInteract.init(function () { return data; }, function () { return window.cmLecture; }); }
     if (window.cmDashInteract) { if (!window.cmDashBound) { window.cmDashBound = true; cmDashInteract.init(function () { return data; }); } cmDashInteract.restore(d); } // clicks on numbers, bars and zones (app/dashboard/interact.js)
   }

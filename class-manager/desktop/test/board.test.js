@@ -6,10 +6,7 @@ const M = require("../app/board/model");
 const V = require("../app/board/render");
 const BL = require("../app/board/barline");
 const D = require("../app/board/donut");
-<<<<<<< HEAD
 const SEC = require("../app/board/sections");
-=======
->>>>>>> 0cc9a42560f666d645a25f88f211af393e263608
 
 const stu = (id, o) => Object.assign({ id, name: "Student " + id, group: "On track", missedInARow: 0, change: null, quizzesTaken: 3, attendance: 90, quizAverage: 70, practiceRecent: 1 }, o);
 const base = () => ({
@@ -58,11 +55,7 @@ test("breakdown and ranked table come from the learning topics, lowest first, wi
 
 test("findings are worked out from the numbers and never more than five", () => {
   const f = M.findings(base(), lp());
-<<<<<<< HEAD
   assert.ok(f.length >= 4 && f.length <= 6);
-=======
-  assert.ok(f.length >= 4 && f.length <= 5);
->>>>>>> 0cc9a42560f666d645a25f88f211af393e263608
   assert.ok(f.some((x) => /Attendance fell by 20 points/.test(x.text)));
   assert.ok(f.some((x) => /Lowest topic: Forces at 41%/.test(x.text)));
   assert.deepStrictEqual(M.findings({ rosterSize: 0, attendance: {}, quizzes: [], learning: {}, students: [] }, null), []);
@@ -91,7 +84,6 @@ test("chart strings: a bar with no drill is not a button; a donut with no data i
   assert.ok(BL.svg(M.progress(base(), lp())[0]).includes("data-bd-key='attendance'"));
   assert.ok(/no data/.test(D.svg([{ key: "a", label: "A", value: 0, color: "orange" }], null, "T")));
 });
-<<<<<<< HEAD
 
 test("at risk counts only solid evidence; flags on thin evidence are named separately and never inflate the number", () => {
   const d = base(); d.attendance.sessions = 2; d.quizzes = d.quizzes.slice(0, 1); // under 4 sessions and 2 quizzes: every reason is thin
@@ -121,5 +113,3 @@ test("sections: each piece sits under its heading once, in order, empty sections
   assert.strictEqual((html.match(/id='a'/g) || []).length, 1); assert.ok(html.includes("href='#sec-quizzes'") && !html.includes("href='#sec-risk'"));
   assert.deepStrictEqual(SEC.ORDER.map((x) => x[0]), ["overview", "attendance", "quizzes", "risk", "questions", "relations", "actions", "privacy"]);
 });
-=======
->>>>>>> 0cc9a42560f666d645a25f88f211af393e263608

@@ -35,7 +35,6 @@ body.has-board .lp .lp-nums,body.has-board .lp .lp-bar,body.has-board .lp .lp-te
 @media (max-width:760px){.bd-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.bd-grid{grid-template-columns:minmax(0,1fr)}.bd-w3,.bd-w2{grid-column:span 1}.bd-plan{grid-template-columns:minmax(0,1fr)}.bd-donut{margin:0 auto}}
 .bd-table th{background:none;position:static}
 button.dstat.bd-kpi{border:1px solid #E6E9F0!important}
-<<<<<<< HEAD
 
 /* Sections: headings and a jump row on the dark page; every chart card inside a section is white, with orange as the bar colour (Hope, 2026-11-17). */
 .bd-nav{display:flex;flex-wrap:wrap;gap:.5rem;margin:var(--gap) 0 0}
@@ -49,5 +48,3 @@ button.dstat.bd-kpi{border:1px solid #E6E9F0!important}
 .bd-sec .card input,.bd-sec .card select,.bd-sec .card textarea,.bd-sec .card .f{background:#fff;color:#1F2D45;border:1px solid #CBD3E1}
 .bd-sec .card .btn{color:#1F2D45;border-color:#CBD3E1}.bd-sec .card .btn:hover{background:#FFF4E6}
 .bd-sec .card .todo-a{color:#9A5B12}.bd-sec .card .tk{color:#5A6579}
-=======
->>>>>>> 0cc9a42560f666d645a25f88f211af393e263608
