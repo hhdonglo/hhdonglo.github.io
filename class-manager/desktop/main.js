@@ -7,7 +7,7 @@
      and pages under /c/<id>/. Every window belongs to one course, read from its address, and every
      request from it acts on that course only. */
 "use strict";
-const { app, BrowserWindow, Menu, ipcMain, shell, dialog, safeStorage } = require("electron");
+const { app, BrowserWindow, Menu, ipcMain, shell, dialog, safeStorage, Notification } = require("electron");
 const http = require("http");
 const fs = require("fs");
 const os = require("os");
@@ -40,6 +40,7 @@ const ROOT = () => app.getPath("userData");
 const SETTINGS_FILE = () => path.join(ROOT(), "settings.json"); // CM's own settings: port and text size
 const TEMPLATES = app.isPackaged ? path.join(process.resourcesPath, "web", "templates") : path.join(__dirname, "..", "templates");
 const DEFAULTS = { courseCode: "", courseTitle: "", institution: "", lecturer: "", semester: "", startDate: "", endDate: "", contact: "", accent: "", logo: "", notice: "", noticeLinkLabel: "", noticeLinkUrl: "",
+  lectureTarget: 0, teachingDays: "", lectureNotify: false,
   setupSeen: false, aiSummary: false, privacyNotice: "" }; // one course's settings
 const APP_DEFAULTS = Object.assign({ port: 8143, zoom: 1 }, SECURITY_DEFAULTS);
 const TYPES = {
@@ -86,6 +87,9 @@ function saveSettings(c, s) {
     noticeLinkUrl: /^https:\/\/[^\s"<>]+$/.test(txt("noticeLinkUrl", 400)) ? txt("noticeLinkUrl", 400) : "",
     accent: /^#[0-9a-f]{6}$/i.test(String(s.accent == null ? settings.accent : s.accent)) ? String(s.accent == null ? settings.accent : s.accent) : "",
     logo: s.logo == null ? settings.logo || "" : String(s.logo),
+    lectureTarget: Math.max(0, Math.min(200, Math.floor(Number(s.lectureTarget == null ? settings.lectureTarget : s.lectureTarget) || 0))), // lectures planned for the semester, 0 = none
+    teachingDays: require("./rules/lecture-progress").cleanDays(s.teachingDays == null ? settings.teachingDays : s.teachingDays).join(","),
+    lectureNotify: s.lectureNotify == null ? !!settings.lectureNotify : !!s.lectureNotify,
     setupSeen: s.setupSeen == null ? !!settings.setupSeen : !!s.setupSeen
   };
   const f = registry.dirs(c.id).settings;
@@ -598,6 +602,7 @@ on("cm:chooseLogo", async (c, e, clear) => {
 });
 webImport.register({ on, dialog, winOf, shell }); // cm:import*: bring results exported from the web version into this course
 llm.register({ on, dialog, winOf, shell, dirOf: (c) => registry.dirs(c.id).root }); // cm:llm*: a private snapshot of the course for an AI assistant (llm/README.md)
+require("./lecture-progress/ipc").register({ on, saveSettings }); // cm:lectureProgress, cm:lectureMark: lectures held against the semester target (lecture-progress/README.md)
 idNoticesIpc.register({ on }); // cm:idNotices, cm:idResolve: the Duplicate IDs card
 folderImport.register({ on, dialog, winOf, shell, saveSettings, dirOf: (c) => registry.dirs(c.id).root }); // cm:auto*: point at a folder; CM finds and extracts what it needs
 require("./first-run/ipc").register({ on, dialog, winOf, courseDirOf: (c) => registry.dirs(c.id).course, stageFor: stageNow });
@@ -829,6 +834,7 @@ app.whenReady().then(async () => {
     webPreferences: { preload: path.join(__dirname, "preload.js"), contextIsolation: true, sandbox: true, nodeIntegration: false } });
   secureWindow(win);
   win.loadURL(baseUrl() + startPage(ctx(registry.active())));
+  setTimeout(() => require("./lecture-progress/notify").startNotice(ctx(registry.active()), Notification), 4000).unref(); // optional notice when behind target
   app.on("activate", () => { if (BrowserWindow.getAllWindows().length === 0) newWindow(startPage(ctx(registry.active())), 1280, 860); });
 });
 app.on("before-quit", () => { if (!closingBackupDone) { closingBackupDone = true; backupAll("close"); } else flushAll(); try { stopTunnel(); } catch (e) {} });
