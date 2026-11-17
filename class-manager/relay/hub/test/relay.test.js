@@ -1,7 +1,7 @@
 /* The relay end to end against a fake D1: automatic registration, abuse controls, signed requests, phones, live state, and forgetting. */
 import test from "node:test";
 import assert from "node:assert/strict";
-import { newEnv, call, newCourseKeys, registerCourse, signed, NOW } from "./helpers.js";
+import { newEnv, call, newCourseKeys, registerCourse, signed, failWork, NOW } from "./helpers.js";
 import { courseIdOf } from "../src/crypto.js";
 import { cleanup } from "../src/db.js";
 
@@ -19,7 +19,7 @@ test("a course registers itself, with no invite, and gets a self-certifying id",
 test("registration needs the work, a real key, and respects the kill switch and build list", async () => {
   const env = await newEnv(), keys = await newCourseKeys();
   const ch = (await call(env, "GET", "/v1/challenge", {}, NOW)).body;
-  const bad = await call(env, "POST", "/v1/register", { body: JSON.stringify({ pub: keys.pub, enc: "x", challenge: ch.challenge, work: "0" }) }, NOW);
+  const bad = await call(env, "POST", "/v1/register", { body: JSON.stringify({ pub: keys.pub, enc: "x", challenge: ch.challenge, work: await failWork(ch.challenge, await courseIdOf(keys.pub), ch.bits) }) }, NOW);
   assert.equal(bad.status, 403, "no work, no course");
   assert.equal((await call(env, "POST", "/v1/register", { body: JSON.stringify({ pub: { kty: "RSA" }, enc: "x" }) }, NOW)).status, 400);
   const off = await newEnv({ REGISTRATION_OPEN: "0" }); assert.equal((await registerCourse(off, keys, NOW)).status, 503);
