@@ -31,6 +31,7 @@
   function rankedPanel(d) { return head("Topics needing attention", "Lowest first") + RK.table(M.ranked(d, 6)); }
   function insightsPanel(d, lp) { return head("Insights", "From the numbers only") + F.list(M.findings(d, lp)); }
 
+<<<<<<< HEAD
   // The spread of quiz averages in plain numbers: a white card with the five figures (the bars are in Class graphs).
   function spreadCard(d) {
     var sp = M.spread(d);
@@ -45,6 +46,8 @@
     return "<section class='bd-card' id='bd-aside' aria-label='Sessions not counted'>" + head("Sessions not counted", U.plural(nh.length, "session", "sessions")) +
       "<p class='bd-empty'>Nobody checked in at " + nh.map(function (x) { return U.esc(String(x.label).replace(/\s+\d{4}$/, "")); }).join(", ") + ", so " + (nh.length === 1 ? "it is" : "they are") + " treated as not held. They do not lower the attendance rates and do not flag students. A session counts as soon as one student has checked in.</p></section>";
   }
+=======
+>>>>>>> 0cc9a42560f666d645a25f88f211af393e263608
   // The whole board. Panels carry ids so they can be redrawn one by one (interact.js).
   function html(d, lp, st) {
     st = st || {};
@@ -55,6 +58,10 @@
       "<section class='bd-card' id='bd-rank' aria-label='Topics needing attention'>" + rankedPanel(d) + "</section>" +
       "<section class='bd-card' id='bd-ins' aria-label='Insights'>" + insightsPanel(d, lp) + "</section></div>";
   }
+<<<<<<< HEAD
   var api = { spreadCard: spreadCard, setAsideCard: setAsideCard, html: html, planPanel: planPanel, progressPanel: progressPanel, breakPanel: breakPanel, rankedPanel: rankedPanel, insightsPanel: insightsPanel };
+=======
+  var api = { html: html, planPanel: planPanel, progressPanel: progressPanel, breakPanel: breakPanel, rankedPanel: rankedPanel, insightsPanel: insightsPanel };
+>>>>>>> 0cc9a42560f666d645a25f88f211af393e263608
   if (typeof module === "object" && module.exports) module.exports = api; else root.cmBoardView = api;
 })(typeof window !== "undefined" ? window : globalThis);
