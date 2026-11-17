@@ -27,8 +27,8 @@
   function breakPanel(d, view) {
     var g = view === "groups", m = g ? M.groupDonut(d) : M.topicDonut(d);
     return head("Category breakdown", "") + "<div class='bd-tabs' role='tablist'><button type='button' role='tab' data-bd-view='topics' aria-selected='" + !g + "'>By topic</button><button type='button' role='tab' data-bd-view='groups' aria-selected='" + g + "'>By group</button></div>" +
-      "<div class='bd-plan'>" + D.svg(m.slices, m.centre, m.title) + D.legend(m.slices) + "</div>" +
-      "<p class='bd-foot'>" + (g ? "Groups are suggestions for your review." : m.total ? "Share of " + U.plural(m.total, "lecture topic", "lecture topics") + " by what the answers show." : "Topics appear once quiz answers are linked to lectures.") + "</p>";
+      (!g && !m.total ? "" : "<div class='bd-plan'>" + D.svg(m.slices, m.centre, m.title) + D.legend(m.slices) + "</div>") +
+      "<p class='" + (!g && !m.total ? "bd-empty" : "bd-foot") + "'>" + (g ? "Groups are suggestions for your review." : m.total ? "Share of " + U.plural(m.total, "lecture topic", "lecture topics") + " by what the answers show." : "Topics appear once quiz answers are linked to lectures.") + "</p>";
   }
   function rankedPanel(d) { return head("Topics needing attention", "Lowest first") + RK.table(M.ranked(d, 6)); }
   function insightsPanel(d, lp) { return head("Insights", "From the numbers only") + F.list(M.findings(d, lp).concat(TM.insights(d)).slice(0, 8)); }
@@ -50,6 +50,7 @@
   // A donut card for a share of the class (shares.js): ring, legend and one line saying what it counts.
   function shareCard(id, m, note, foot) {
     var empty = !m.total;
+    if (empty) return "<section class='bd-card bd-slim' id='" + id + "' aria-label='" + U.esc(m.title) + "'>" + head(m.title, "") + "<p class='bd-empty'>Nothing to show yet.</p></section>";
     return "<section class='bd-card' id='" + id + "' aria-label='" + U.esc(m.title) + "'>" + head(m.title, note || "") +
       "<div class='bd-plan'>" + D.svg(m.slices, m.centre, m.title) + D.legend(m.slices) + "</div><p class='bd-foot'>" + U.esc(empty ? "Nothing to show yet." : foot) + "</p></section>";
   }
@@ -67,7 +68,7 @@
   // The overview grid, as in the reference: plan, progress and breakdown, then the ranked table beside the insights. Panels carry ids so interact.js redraws one at a time.
   function html(d, lp, st) {
     st = st || {};
-    return "<div class='bd-grid'><section class='bd-card bd-w2' id='bd-plan' aria-label='Lecture plan'>" + planPanel(lp) + "</section>" +
+    return "<div class='bd-grid'>" +
       "<section class='bd-card bd-w3' id='bd-prog' aria-label='Class progress over time'>" + progressPanel(d, lp, st.tab) + "</section>" +
       "<section class='bd-card' id='bd-break' aria-label='Category breakdown'>" + breakPanel(d, st.view) + "</section>" +
       "<section class='bd-card' id='bd-rank' aria-label='Topics needing attention'>" + rankedPanel(d) + "</section>" +

@@ -16,9 +16,9 @@
   var FOOT = "privacy"; // not a tab: term, student data and the audit log stay at the bottom of every view
   // The tab bar. Each tab is one dashboard grid; only the chosen one is shown (interact.js switches them without redrawing).
   function nav(present, active) {
-    return "<div class='bd-tabbar' role='tablist' aria-label='Class Analytics sections'>" + present.map(function (s) {
+    return "<div class='bd-tabrow'><div class='bd-tabbar' role='tablist' aria-label='Class Analytics sections'>" + present.map(function (s) {
       return "<button type='button' role='tab' id='bt-" + s[0] + "' data-bd-pane='" + s[0] + "' aria-controls='sec-" + s[0] + "' aria-selected='" + (s[0] === active) + "'>" + U.esc(s[1]) + "</button>";
-    }).join("") + "</div>";
+    }).join("") + "</div><div class='bd-arrbar' id='bd-arrbar'></div></div>";
   }
   function filled(parts, k) { return !!parts[k] && parts[k].join("").replace(/\s/g, "") !== ""; }
   // parts: { overview: [html, ...], attendance: [...], ... } in ORDER's keys. `active` is the chosen tab (the first when missing).

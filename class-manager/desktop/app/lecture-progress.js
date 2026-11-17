@@ -30,24 +30,6 @@
     document.getElementById("lp-x").addEventListener("click", function () { memo(dismissedKey(p), "1"); banner.hidden = true; });
   }
 
-  function bar(p) {
-    var pct = p.target ? Math.min(100, Math.round(100 * p.held / p.target)) : 0;
-    var mark = p.target && p.expected != null ? Math.min(100, Math.round(100 * p.expected / p.target)) : null;
-    return "<div class='lp-bar' role='img' aria-label='" + p.held + " of " + p.target + " lectures held" + (mark != null ? ", " + p.expected + " expected by today" : "") + "'>" +
-      "<span class='lp-fill' style='width:" + pct + "%'></span>" + (mark != null ? "<span class='lp-exp' style='left:" + mark + "%' title='Expected by today'></span>" : "") + "</div>";
-  }
-
-  // One lecture as text: "Lecture 4, Forces". The title appears only when the course lists one.
-  function lec(l) { return esc(l.label) + (l.title ? ", " + esc(l.title) : ""); }
-  // What to teach: due by this week, next to teach, and (when behind) the lectures missed. Built from p.schedule (rules/lecture-schedule.js).
-  function teach(p) {
-    var s = p.schedule; if (!s || (!s.due && !s.next)) return "";
-    var rows = "";
-    if (s.due) rows += "<li><span class='k'>Due by this week</span><span>" + lec(s.due) + "</span></li>";
-    if (s.next) rows += "<li><span class='k'>Next to teach</span><span>" + lec(s.next) + "</span></li>";
-    if (s.missed.length) rows += "<li><span class='k'>Missed so far</span><span>" + s.missed.map(function (l) { return esc(l.label); }).join(", ") + "</span></li>";
-    return "<ul class='lp-teach' aria-label='What to teach'>" + rows + "</ul>";
-  }
   // The same lectures with their one-line descriptions, for the expandable section.
   function teachDetail(p) {
     var s = p.schedule; if (!s || !s.missed.length) return "";
@@ -69,13 +51,10 @@
   function draw(p) {
     if (!p) return;
     current = p; window.cmLecture = p; document.dispatchEvent(new Event("cm:lecture")); drawBanner(p); // the Class Analytics board draws the plan from this (board/)
-    var stateCls = "lp-" + p.state;
-    var nums = p.target ? "<div class='lp-nums'><div><b>" + p.held + "</b><span>held</span></div><div><b>" + p.left + "</b><span>left</span></div><div><b>" + p.target + "</b><span>planned</span></div>" +
-      (p.weekNow ? "<div><b>" + p.weekNow + "/" + p.weeksTotal + "</b><span>week</span></div>" : "") + "</div>" + bar(p) : "";
     var today = new Date(), iso = today.getFullYear() + "-" + ("0" + (today.getMonth() + 1)).slice(-2) + "-" + ("0" + today.getDate()).slice(-2);
-    card.innerHTML = "<div class='lp-head'><h3 id='lp-h'>Lectures against the semester target</h3><span class='tag " + stateCls + "'>" + esc(LABEL[p.state] || "") + "</span></div>" +
-      "<p class='lp-verdict'><strong>" + esc(p.headline) + "</strong></p><p class='note'>" + esc(p.detail) + "</p>" + teach(p) + nums +
-      "<details class='lp-more'><summary>Lectures counted and corrections</summary>" + teachDetail(p) + days(p) +
+    // The strip (board/strip.js) is the picture; the date corrections stay one click away under "Corrections".
+    card.innerHTML = (window.cmBoardStrip ? cmBoardStrip.html(p) : "<div class='lp-head'><h3 id='lp-h'>Lecture plan</h3></div>") +
+      "<details class='lp-more'><summary>Corrections</summary>" + teachDetail(p) + days(p) +
       "<p class='row'><label for='lp-date' class='note'>Date</label><input class='f' id='lp-date' type='date' value='" + iso + "' style='max-width:11rem'> " +
       "<button type='button' class='btn sm' data-lp='held' data-date=''>Mark held (also a make-up)</button> <button type='button' class='btn sm' data-lp='cancelled' data-date=''>Mark cancelled</button> " +
       "<button type='button' class='btn sm' id='lp-set'>Set target and dates</button> <span class='note' id='lp-msg' role='status'></span></p></details>";

@@ -110,8 +110,10 @@
     parts.actions = [targetsCard, "<div id='an-actions'></div>", DV.ops(d, window.cmSetup, window.cmLive)];
     parts.privacy = ["<div id='an-privacy'></div>"];
     document.body.classList.add("has-board");
-    var h = B.kpiRow(d) + SEC.compose(parts, st.pane, "<section class='card ddrill' id='ddrill' aria-live='polite' hidden></section>");
+    var h = "<div class='bd-top'><div id='bd-lpslot' class='bd-lpslot'></div>" + B.kpiRow(d) + "</div>" + SEC.compose(parts, st.pane, "<section class='card ddrill' id='ddrill' aria-live='polite' hidden></section>");
     $("ov").innerHTML = h; gxWatch();
+    var lpc = document.getElementById("lp-card"), slot = document.getElementById("bd-lpslot"); if (lpc && slot) slot.appendChild(lpc); // the lecture plan strip sits beside the key numbers (lecture-progress.js draws it)
+    if (window.cmBoardArrange) { cmBoardArrange.init(); cmBoardArrange.apply(); } // saved order, sizes and hidden cards (app/board/arrange.js)
     [["xo-att", "ov-attendance"], ["xo-quiz", "ov-quizzes"], ["xo-risk", "ov-risk"], ["xo-q", "ov-questions"]].forEach(function (x) { xmount(x[0], x[1]); });
     if (window.cmAnalyticsPanel) cmAnalyticsPanel.mountInto({ summary: $("an-summary"), questions: $("an-questions"), actions: $("an-actions"), privacy: $("an-privacy") }, d);
     if (window.cmBoardInteract && !window.cmBoardBound) { window.cmBoardBound = true; cmBoardInteract.init(function () { return data; }, function () { return window.cmLecture; }); }
