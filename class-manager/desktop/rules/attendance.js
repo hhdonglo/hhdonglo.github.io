@@ -131,8 +131,9 @@ function checkIn(store, p, o) {
   return { ok: true, id: aid, onList: onl };
 }
 
-function submit(store) {
-  const list = sessions(store).filter((s) => s.status === "Closed"); if (!list.length) return { ok: false, why: "no closed session is waiting to be submitted" };
+// only (optional): the code of one closed session; with none, every closed session is decided together.
+function submit(store, only) {
+  const list = sessions(store).filter((s) => s.status === "Closed" && (!only || s.code === only)); if (!list.length) return { ok: false, why: "no closed session is waiting to be submitted" };
   const r = roster(store), done = [];
   list.forEach((cur) => {
     const pres = present(store, cur.label), col = column(cur.label);
@@ -154,8 +155,8 @@ function submit(store) {
   return { ok: true, submitted: done };
 }
 
-function discard(store) {
-  const list = sessions(store).filter((s) => s.status === "Closed"); if (!list.length) return { ok: false, why: "no closed session is waiting" };
+function discard(store, only) {
+  const list = sessions(store).filter((s) => s.status === "Closed" && (!only || s.code === only)); if (!list.length) return { ok: false, why: "no closed session is waiting" };
   const labels = {}; list.forEach((s) => { labels[s.label] = true; });
   const rows = store.rows(LOG) || [LOG_HEAD], keep = rows.filter((x, i) => i === 0 || !labels[String(x[1])]), gone = rows.length - keep.length;
   store.setRows(LOG, keep); list.forEach((s) => setStatus(store, s, "Discarded"));

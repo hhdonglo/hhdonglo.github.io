@@ -7,6 +7,7 @@ Stage 1 (this folder) only adds the modules and the tests that prove they give t
 | --- | --- | --- |
 | `access-codes.js` | `accessCodes_`, `codesMap_`, `codeExpired_`, `newAccessCode_` | ported, parity tested |
 | `attendance.js` | `20-attendance.gs`: open, close, check-in (QR token, device, phone, location, one mark a day), submit, discard | ported, parity tested (`attendance-parity.test.js`) |
+| `held.js` | CM only (no script twin): lists held attendance sessions and held quizzes one by one; submits or discards a single quiz | tested (`held-lifecycle.test.js`) |
 | `class-list.js` | `rosterSync_`, `rosterTidy_`, `rosterEdit_` (00-core.gs), `studentNoteAdd_` (35-records.gs) | ported, parity tested (`class-list-parity.test.js`) |
 | `auth.js` | `05-auth.gs`, `06-password.gs`: sessions, host key and password with recovery, student sign-in, quiz receipts | ported, parity tested (`auth-parity.test.js`) |
 | `quiz-control.js` | `10-assessment.gs` (control part): the lecturer's actions on a live quiz, the state students see, the choice of questions and letters | ported, parity tested (`quiz-control-parity.test.js`); held results and answers follow in step 3b |
