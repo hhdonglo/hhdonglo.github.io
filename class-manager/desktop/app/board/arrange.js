@@ -66,9 +66,9 @@
   }
   function toolbar(info) {
     var t = doc.getElementById("bd-arrbar"); if (!t) return;
-    t.innerHTML = st.edit ? "<button type='button' class='bd-arr-done' data-bd-act='done'>Done</button><button type='button' data-bd-act='reset'>Reset layout</button>" +
-      (info.hidden.length ? "<span class='bd-hid'>Hidden: " + info.hidden.map(function (h) { return "<button type='button' data-bd-show='" + h.key + "'>+ " + h.title.replace(/</g, "&lt;") + "</button>"; }).join("") + "</span>" : "") :
-      "<button type='button' data-bd-act='edit' title='Move, resize and hide cards. Saved on this computer for this course.'>Arrange cards</button>";
+    var hid = info.hidden.length ? "<span class='bd-hid'>Hidden: " + info.hidden.map(function (h) { return "<button type='button' data-bd-show='" + h.key + "'>+ " + h.title.replace(/</g, "&lt;") + "</button>"; }).join("") + "</span>" : ""; // always visible, so a hidden card is never lost
+    t.innerHTML = st.edit ? "<button type='button' class='bd-arr-done' data-bd-act='done'>Done</button><button type='button' data-bd-act='reset'>Reset layout</button>" + hid :
+      "<button type='button' data-bd-act='edit' title='Move, resize and hide cards. Saved on this computer for this course.'>Arrange cards</button>" + hid;
     t.classList.toggle("bd-on", st.edit);
   }
   function apply() {

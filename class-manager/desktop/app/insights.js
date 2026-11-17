@@ -50,7 +50,9 @@
     loading = cmApp.stats(th()).then(function (d) { loading = null; if (d && d.ok) { data = d; } else if (d) { data = null; err(d.why); } return data; }, function (e) { loading = null; err(e && e.message); });
     return loading;
   }
-  function err(why) { ["ov", "st", "at", "qz"].forEach(function (i) { $(i).innerHTML = "<p class='msg'>The statistics could not be worked out" + (why ? ": " + esc(why) : "") + ".</p>"; }); }
+  // The lecture plan card is parked outside #ov before #ov is rewritten, so a redraw can never throw it away (board/lp-slot.js).
+  function parkLp() { if (window.cmBoardLpSlot) cmBoardLpSlot.park(document); }
+  function err(why) { parkLp(); ["ov", "st", "at", "qz"].forEach(function (i) { $(i).innerHTML = "<p class='msg'>The statistics could not be worked out" + (why ? ": " + esc(why) : "") + ".</p>"; }); }
   function show(view) {
     cur = view;
     if (["overview", "students", "attendance", "quizzes"].indexOf(view) < 0) return;
@@ -84,6 +86,7 @@
   function overview() {
     var d = data, s = d.summary, L = d.learning, a = d.attendance;
     $("ov-sub").textContent = "The class in numbers and charts. Click any bar or number for the students behind it. " + plural(d.rosterSize, "student", "students") + " on the class list. Updated " + new Date(d.generated).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) + ".";
+    parkLp();
     if (!d.rosterSize) { $("ov").innerHTML = "<div class='card empty'><h3>No class yet</h3><p>Add the class list under Class Roster. The overview fills in as you take attendance and run quizzes.</p></div>"; return; }
     // Analytics first: the hard numbers, the main charts, who needs attention and what goes with what. Today and setup come last, in a section that opens (app/dashboard/).
     // Every metric appears once, grouped under section headings (app/board/sections.js). Charts sit on white cards; the page keeps CM's navy and gold.
@@ -112,7 +115,7 @@
     document.body.classList.add("has-board");
     var h = "<div class='bd-top'><div id='bd-lpslot' class='bd-lpslot'></div>" + B.kpiRow(d) + "</div>" + SEC.compose(parts, st.pane, "<section class='card ddrill' id='ddrill' aria-live='polite' hidden></section>");
     $("ov").innerHTML = h; gxWatch();
-    var lpc = document.getElementById("lp-card"), slot = document.getElementById("bd-lpslot"); if (lpc && slot) slot.appendChild(lpc); // the lecture plan strip sits beside the key numbers (lecture-progress.js draws it)
+    if (window.cmBoardLpSlot) cmBoardLpSlot.mount(document); // the lecture plan strip sits beside the key numbers (lecture-progress.js draws it)
     if (window.cmBoardArrange) { cmBoardArrange.init(); cmBoardArrange.apply(); } // saved order, sizes and hidden cards (app/board/arrange.js)
     [["xo-att", "ov-attendance"], ["xo-quiz", "ov-quizzes"], ["xo-risk", "ov-risk"], ["xo-q", "ov-questions"]].forEach(function (x) { xmount(x[0], x[1]); });
     if (window.cmAnalyticsPanel) cmAnalyticsPanel.mountInto({ summary: $("an-summary"), questions: $("an-questions"), actions: $("an-actions"), privacy: $("an-privacy") }, d);

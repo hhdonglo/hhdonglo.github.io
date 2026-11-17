@@ -11,6 +11,7 @@
   var card = document.createElement("section");
   card.id = "lp-card"; card.className = "card lp"; card.setAttribute("aria-labelledby", "lp-h");
   ov.parentNode.insertBefore(card, ov);
+  if (window.cmBoardLpSlot) { cmBoardLpSlot.park(document); cmBoardLpSlot.mount(document); } // keep the card out of #ov's redraws (board/lp-slot.js)
   var banner = document.createElement("div");
   banner.id = "lp-banner"; banner.className = "lp-banner"; banner.setAttribute("role", "alert"); banner.hidden = true;
   main.insertBefore(banner, main.firstChild);
@@ -50,6 +51,7 @@
 
   function draw(p) {
     if (!p) return;
+    if (!card.isConnected && window.cmBoardLpSlot) { var h = cmBoardLpSlot.holder(document); if (h) h.appendChild(card); } // never left detached
     current = p; window.cmLecture = p; document.dispatchEvent(new Event("cm:lecture")); drawBanner(p); // the Class Analytics board draws the plan from this (board/)
     var today = new Date(), iso = today.getFullYear() + "-" + ("0" + (today.getMonth() + 1)).slice(-2) + "-" + ("0" + today.getDate()).slice(-2);
     // The strip (board/strip.js) is the picture; the date corrections stay one click away under "Corrections".
