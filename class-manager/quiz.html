@@ -160,6 +160,7 @@ body.focus .try .fun{display:block}
  </section>
 </div>
 <script src="assets/messages.js"></script>
+<script src="assets/unlisted-notice.js"></script>
 <script>
 (function(){
 "use strict";
@@ -180,7 +181,7 @@ var QS=window.QUIZ_L1||[];
 var L="ABCDE";
 var $=function(i){return document.getElementById(i)};
 var st={name:"",id:"",code:"",ans:[],i:0,t:SECONDS,timer:null,sent:false,rc:""}; // rc: the receipt the server gives this phone; only it can show this student's result
-function keepReceipt(r){r.text().then(function(t){try{var d=JSON.parse(t);if(d&&d.receipt)st.rc=d.receipt}catch(x){}}).catch(function(){})}
+function keepReceipt(r){r.text().then(function(t){try{var d=JSON.parse(t);if(d&&d.receipt)st.rc=d.receipt;if(d&&d.onList===false&&window.cmUnlistedNotice)cmUnlistedNotice.show(st.id)}catch(x){}}).catch(function(){})} // an ID off the class list: the class server says so, and the warning to see the lecturer stays on screen
 // A reset or new round by the lecturer: the round number changes (and the quiz goes back to the lobby), so every phone starts over,
 // including phones that are on a question, waiting for the next one, or looking at their result.
 function wasReset(d){return !!d&&((d.round!==undefined&&st.round!==undefined&&d.round!==st.round)||d.state==="lobby"||d.state==="ready"||d.state==="draft")}
@@ -248,7 +249,7 @@ function doAttend(d,btn,er){ // an attendance code: only the student ID is used;
  jsonp("action=attend&code="+encodeURIComponent(st.code)+"&id="+encodeURIComponent(st.id),function(r){
   if(!r){btn.disabled=false;er.textContent=PHYSMSG.text("E8");er.hidden=false;return}
   if(!r.ok){btn.disabled=false;er.textContent=r.why==="closed"?"Attendance for this code is closed.":(r.why==="bad id"?"That does not look like a student ID. Check it and try again.":"That code is not correct.");er.hidden=false;return}
-  $("att-id").textContent=r.id;$("t-att").textContent=r.already?"Already marked present today":"Marked present";$("att-msg").textContent=r.onList===false?"Your ID is not on the class list. Please see your lecturer. Student ID ":"Student ID ";show("s-att");
+  $("att-id").textContent=r.id;$("t-att").textContent=r.already?"Already marked present today":"Marked present";$("att-msg").textContent=r.onList===false?"Your ID is not on the class list. Your attendance is recorded apart and not counted until your lecturer has checked. Please ask your lecturer. Student ID ":"Student ID ";show("s-att");
  });
 }
 // The join QR on the student's phone, only while the class waits for the lecturer to start (never once the quiz is running or paused).

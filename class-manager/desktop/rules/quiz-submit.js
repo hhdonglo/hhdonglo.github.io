@@ -5,6 +5,7 @@
 const C = require("./quiz-control");
 const R = require("./quiz-results");
 const A = require("./auth");
+const { sinkFor } = require("./unlisted-quiz");
 const { append, logLine } = require("./store");
 
 const GRACE_MS = 15000, LETTERS = ["A", "B", "C", "D", "E"];
@@ -15,10 +16,12 @@ function keyState(key) { return String(key[7]).trim().toLowerCase() || "started"
 
 function handle(store, p, o) {
   const name = clean(p.name, 40), id = clean(p.id, 20), code = clean(p.code, 30).toUpperCase(), now = store.now().getTime();
+  const S = sinkFor(store, id); // the live tabs for a student on the class list; the holding area for one who is not (rules/unlisted.js)
   const done = (outcome) => { logLine(store, outcome, name, id, code); return withReceipt(outcome); };
   const withReceipt = (outcome) => {
     if (p.want !== "receipt") return { outcome };
     const r = { ok: outcome === "ok", outcome }; if (outcome === "ok" && id && code) r.receipt = A.quizReceipt(store, o, code, id);
+    if (!S.listed) r.onList = false; // the phone shows "see your lecturer"
     return { outcome, json: r };
   };
   if (p.kind === "answer") { // paced quiz: one answer to the question that is open right now
@@ -28,16 +31,16 @@ function handle(store, p, o) {
     if (C.eff(ca) !== "running") return done("not open");
     if (Number(ca.v[11]) !== qn) return done("wrong question");
     if (Number(ca.v[13]) && now > Number(ca.v[13]) + GRACE_MS) return done("question closed");
-    if (!C.allowLate(ca) && !R.hasPresence(store, code, id)) return done("not joined");
+    if (!C.allowLate(ca) && !S.hasPresence(code, id)) return done("not joined");
     let cf = String(p.conf || "").trim().toUpperCase().charAt(0); if ("HML".indexOf(cf) < 0) cf = "";
-    R.addAnswer(store, [store.now(), id, name, code, qn, al, Number(ca.v[16]) || 0, cf, C.voteOf(ca)]);
+    S.addAnswer([store.now(), id, name, code, qn, al, Number(ca.v[16]) || 0, cf, C.voteOf(ca)]);
     return withReceipt("ok");
   }
   if (p.kind === "join" || p.kind === "progress") { // lobby and live participation
     if (!name || !id || !C.keyRow(store, code, o)) return withReceipt("ok");
     const cj = C.ctl(store, code), sj = cj ? C.eff(cj) : "running";
-    if (cj && !C.allowLate(cj) && (sj === "running" || sj === "paused") && !R.hasPresence(store, code, id)) return withReceipt("late");
-    R.presence(store, code, id, name, p.kind === "progress" ? "inprogress" : "joined");
+    if (cj && !C.allowLate(cj) && (sj === "running" || sj === "paused") && !S.hasPresence(code, id)) return withReceipt("late");
+    S.presence(code, id, name, p.kind === "progress" ? "inprogress" : "joined");
     return withReceipt("ok");
   }
   if (!name || !id || !code) return done("missing");
@@ -50,7 +53,7 @@ function handle(store, p, o) {
     if (s === "paused") return done("paused");
     if (s === "released") return done("quiz closed");
     if (s === "ended" && left < 0) return done("quiz closed");
-    if (!C.allowLate(c) && !R.hasPresence(store, code, id)) return done("not joined");
+    if (!C.allowLate(c) && !S.hasPresence(code, id)) return done("not joined");
   } else {
     const st = keyState(key);
     if (st === "waiting") return done("not started");
@@ -59,10 +62,10 @@ function handle(store, p, o) {
   const rnd = R.roundOf(store, code), ans = [];
   for (let q = 1; q <= 5; q++) { const a = String(p["q" + q] || "").trim().toUpperCase(); ans.push(LETTERS.indexOf(a) >= 0 ? a : ""); }
   const score = C.mark(C.lettersFor(store, code, null, o), ans).reduce((x, y) => x + y, 0);
-  const seen = R.respRows(store).some((r) => String(r[2]).trim() === id && up(r[3]) === code && (Number(r[10]) || 0) === rnd); // first attempt per ID and join code in this round only
+  const seen = S.seen(code, id, rnd); // first attempt per ID and join code in this round only
   if (seen) return done("duplicate");
-  R.addHeld(store, R.rowFor(store.now(), name, id, code, ans, score, rnd, 5, ""));
-  R.presence(store, code, id, name, "submitted");
+  S.addHeld(R.rowFor(store.now(), name, id, code, ans, score, rnd, 5, ""));
+  S.presence(code, id, name, "submitted");
   return done("ok");
 }
 

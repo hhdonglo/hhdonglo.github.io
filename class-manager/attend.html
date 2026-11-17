@@ -76,7 +76,7 @@ body.focus main{padding-top:1.2rem}
  <section class="panel done" id="c-missing" aria-live="polite" hidden>
   <p class="tick warn" aria-hidden="true">!</p>
   <h3 id="c-mh">Check-in received</h3>
-  <p>Student ID <b id="c-mid"></b> is not on the class list. <b>Please see your lecturer.</b></p>
+  <p>Student ID <b id="c-mid"></b> is not on the class list. Your check-in is recorded apart and is not counted until your lecturer has checked it. <b>Please ask your lecturer.</b></p>
   <p class="note">If you mistyped your ID, tap below and enter it again.</p>
   <button type="button" class="go alt" id="c-again2">Enter the ID again</button>
  </section>
@@ -159,6 +159,7 @@ $("c-form").addEventListener("submit",function(e){
  // No code typed and none remembered: this phone, in the room (the QR code proves it), is shown the code for this ID, once. Anyone else asking for that ID is held for the lecturer.
  jsonp("action=claim_code"+base,function(c){
   if(!c){$("c-btn").disabled=false;err(PHYSMSG.text("E8"));return}
+  if(c.ok&&c.onList===false){code="";finish("");return} // not on the class list: no code to show; check in with the warning to see the lecturer (CM holds the sign-in for review)
   if(c.ok&&c.pending){$("c-btn").disabled=false;$("c-form-wrap").hidden=true;window.scrollTo(0,0);$("c-hid").textContent=c.id;$("c-held").hidden=false;return}
   if(!c.ok){$("c-btn").disabled=false;if(c.why==="not recognised"){err("This ID is not on the class list, or has no access code yet. Check the number, or ask your lecturer.");return}err(PHYSMSG.fromWhy(c.why));return}
   code=normCode(c.code);finish(code);

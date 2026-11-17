@@ -485,3 +485,13 @@ Sections and data sanity (2026-11-17): `board/sections.js` groups every Class An
 Dashboard grid (2026-11-17): Class Analytics is a KPI row, a tab bar and one grid of white cards per tab (`board/sections.js`, `board/board.css`). Donut shares come from `board/shares.js` and draw through `board/donut.js`. Privacy and records stay below the tabs.
 
 Compact dashboard (2026-11-17): the lecture plan is a strip beside small KPI tiles; each tab is a 12 column masonry grid. `board/layout.js` holds default widths and order, `board/arrange.js` applies and edits them and saves the lecturer's layout per course in localStorage (this computer only). Text is shortened to tooltips (info icons); empty cards collapse to one line.
+
+## Unlisted student IDs (17 November 2026)
+
+Decision (Hope): a student whose ID is not on the class list may still sign in to attendance and quizzes, with a warning to ask the lecturer. This changes the earlier rule that such IDs are only refused. They are still never added automatically.
+
+- **Holding area.** `rules/unlisted.js` keeps `Unlisted_IDs` and `Unlisted_Records` apart from the class list, Master, Scores, the attendance grid, Presence, Answers, Item_Log and every class figure. The ID is the unique key; repeat sign-ins are one record; caps stop a flood of made-up IDs.
+- **Attendance.** The room QR claim answers `onList:false` with no code; the phone then checks in with an empty code and shows the warning. The check-in is noted in the holding area (the log row says "No", and analytics already filter by the class list). The relay does the same with CM off; CM notes the held check-ins when it collects.
+- **Quizzes.** `quiz-submit.js` writes join, answers and submissions through a sink (`unlisted-quiz.js`): live tabs for listed IDs, the holding area for others. Replies carry `onList:false` so the phone shows the warning. The relay learns the class list IDs when a quiz starts (`quiz_listed`) and answers the same way.
+- **Review.** On Class Roster the lecturer sees each held ID with what it did, and can add (class list, access code, records move in; quiz results are held for release as usual; a backup is made first) or reject (keep aside, restorable, or discard), one or many at once. Adding is the lecturer's own action on that page, so the roster rule stands.
+- **Relay update.** Run `node class-manager/relay/deploy.mjs --update` to create the `quiz_listed` table and deploy the new answers.

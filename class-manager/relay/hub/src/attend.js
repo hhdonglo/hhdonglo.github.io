@@ -8,7 +8,7 @@ import { allow, peek, bump } from "./limits.js";
 import { LIMITS } from "./db.js";
 import { reply, fail, ipOf, readJson } from "./http.js";
 
-const SLOT = 30, GRACE = 1, MAX_FAILS = 6, ACC_CAP = 150, PENDING = "waiting for approval: ";
+const SLOT = 30, GRACE = 1, MAX_FAILS = 6, ACC_CAP = 150, UNLISTED_MAX = 300, PENDING = "waiting for approval: ";
 const normId = (s) => String(s == null ? "" : s).trim().replace(/\.0+$/, "").replace(/\D/g, "").replace(/^0+(?=\d)/, "");
 const normCode = (s) => { const t = String(s || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8); return t.length === 8 ? t.slice(0, 4) + "-" + t.slice(4) : ""; };
 const dayOf = (label) => String(label).split(" #")[0];
@@ -84,6 +84,10 @@ export async function checkIn(req, db, now) {
     if ((await codeHash(course, sid, p.code)) !== roster[sid] || !normCode(p.code)) { await bad("d" + dev); await bad("i" + sid); await event(db, course, s.label, "flag", sid, dev, "wrong access code (refused)", now); return reply({ ok: false, why: "not recognised" }); }
   }
   if (await db.prepare("SELECT 1 AS x FROM live_event WHERE course = ? AND kind = 'ok' AND sid = ? AND label LIKE ?").bind(course, sid, day + " #%").first()) return reply({ ok: true, id: sid, onList: onl, already: true });
+  if (!onl) { // a flood of made-up IDs cannot fill the review list: at most UNLISTED_MAX unlisted check-ins per session
+    const n = (await db.prepare("SELECT COUNT(*) AS n FROM live_event WHERE course = ? AND label = ? AND kind = 'ok' AND note LIKE 'No|%'").bind(course, s.label).first()).n;
+    if (n >= UNLISTED_MAX) return reply({ ok: false, why: "not on list" });
+  }
   const g = geo(s, p); let bind = false;
   if (onl) {
     const mine = await db.prepare("SELECT dev FROM live_phone WHERE course = ? AND sid = ?").bind(course, sid).first(), seed = JSON.parse(s.phones);
@@ -127,7 +131,9 @@ export async function claim(req, db, now) {
   if (!(await linkOk(s.secret, String(p.t || "").replace(/[^0-9a-f]/g, "").slice(0, 8), now))) { await bad("d" + dev); await bad("i" + sid); return reply({ ok: false, why: "old link" }); }
   const g = geo(s, p);
   if (s.mode === "enforce" && (g.state === "far" || g.state === "none")) return reply({ ok: false, why: g.state === "far" ? "too far" : "no location" });
-  const roster = JSON.parse(s.roster), row = Object.prototype.hasOwnProperty.call(roster, sid) ? await db.prepare("SELECT code FROM live_code WHERE course = ? AND sid = ?").bind(course, sid).first() : null;
+  const roster = JSON.parse(s.roster), listed = Object.prototype.hasOwnProperty.call(roster, sid);
+  if (!listed) return reply({ ok: true, id: sid, onList: false }); // off the class list: no code to show; the phone checks in with a warning to see the lecturer, and CM holds it for review
+  const row = await db.prepare("SELECT code FROM live_code WHERE course = ? AND sid = ?").bind(course, sid).first();
   if (!row) { await bad("d" + dev); await bad("i" + sid); return reply({ ok: false, why: "not recognised" }); }
   const mine = await db.prepare("SELECT dev FROM live_phone WHERE course = ? AND sid = ?").bind(course, sid).first(), seed = JSON.parse(s.phones);
   const owner = (await db.prepare("SELECT sid FROM live_phone WHERE course = ? AND dev = ?").bind(course, dev).first() || {}).sid || Object.keys(seed).find((k) => seed[k] === dev);
