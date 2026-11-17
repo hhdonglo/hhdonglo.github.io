@@ -38,7 +38,32 @@
     return out;
   }
 
-  var api = { WHEN: WHEN, whenLabel: whenLabel, actLine: actLine, weekOptions: weekOptions, countOptions: countOptions };
+  // Exercises or Diagnostic quiz. The stored value is "standard" or "concept" (the same names the website uses); the lecturer reads the labels.
+  function typeLabel(t) { return t === "concept" ? "Diagnostic quiz" : "Exercises"; }
+  function typeNote(t, conceptWeeks) {
+    if (t === "concept") return "Diagnostic quiz is on: short concept questions, not for marks. Students see their own score, but nothing is recorded in Grades. The class diagnostic below shows which concepts the class missed.";
+    var ks = Object.keys(conceptWeeks || {}).sort(function (a, b) { return a - b; });
+    return "Exercises are the normal practice questions. A Diagnostic quiz is available for: " + (ks.map(function (k) { return "Week " + k + " (" + conceptWeeks[k] + ")"; }).join(", ") || "no weeks yet (add a diagnostic bank under Quizzes and Questions)") + ".";
+  }
+  // The weeks the Week list offers: for a diagnostic only the weeks that have a diagnostic bank.
+  function weeksFor(weeks, conceptWeeks, diagnostic) {
+    if (!diagnostic) return weeks || {};
+    var out = {}; Object.keys(weeks || {}).forEach(function (k) { if (conceptWeeks && conceptWeeks[k]) out[k] = weeks[k]; });
+    return out;
+  }
+  // The class diagnostic tables: per concept (weakest first) and per question. dg = {byTag:[{tag,answered,right}], byQ:[{q,tag,answered,right}]}.
+  function diagHtml(dg, esc) {
+    var share = function (r, n) { return n ? Math.round(100 * r / n) : null; };
+    var h = "<table><thead><tr><th>Concept</th><th>Right</th><th>Share right</th></tr></thead><tbody>";
+    dg.byTag.slice().sort(function (a, b) { return (a.answered ? a.right / a.answered : 2) - (b.answered ? b.right / b.answered : 2); }).forEach(function (t) {
+      var pc = share(t.right, t.answered); h += "<tr><td>" + esc(t.tag) + "</td><td>" + t.right + " / " + t.answered + "</td><td>" + (pc === null ? "waiting" : '<span class="bar"><i style="width:' + Math.round(pc * 1.6) + 'px"></i> ' + pc + "%</span>") + "</td></tr>";
+    });
+    h += "</tbody></table><table><thead><tr><th>Q</th><th>Concept</th><th>Right</th><th>Share</th></tr></thead><tbody>";
+    dg.byQ.forEach(function (r) { var pc = share(r.right, r.answered); h += "<tr><td>" + r.q + "</td><td>" + esc(r.tag) + "</td><td>" + r.right + " / " + r.answered + "</td><td>" + (pc === null ? "" : pc + "%") + "</td></tr>"; });
+    return h + "</tbody></table>";
+  }
+
+  var api = { WHEN: WHEN, whenLabel: whenLabel, actLine: actLine, weekOptions: weekOptions, countOptions: countOptions, typeLabel: typeLabel, typeNote: typeNote, weeksFor: weeksFor, diagHtml: diagHtml };
   root.QuizHostText = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })(typeof window !== "undefined" ? window : globalThis);

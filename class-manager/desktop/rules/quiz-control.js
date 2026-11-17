@@ -7,7 +7,7 @@ const crypto = require("crypto");
 const { logLine } = require("./store");
 
 const TAB = "Quiz_Control", KEY = "Key", PRESENCE = "Presence", LETTERS = ["A", "B", "C", "D", "E"];
-const HEADER = ["join_code", "status", "duration_min", "end_time_ms", "remaining_ms", "allow_late_join", "show_score", "show_leaderboard", "message", "title", "updated", "current_q", "q_seconds", "q_deadline_ms", "q_remaining_ms", "mode", "round", "review_q", "n_questions", "question_ids", "week", "vote", "discussed"];
+const HEADER = ["join_code", "status", "duration_min", "end_time_ms", "remaining_ms", "allow_late_join", "show_score", "show_leaderboard", "message", "title", "updated", "current_q", "q_seconds", "q_deadline_ms", "q_remaining_ms", "mode", "round", "review_q", "n_questions", "question_ids", "week", "vote", "discussed", "quiz_type"];
 const JOIN_BASE_DEFAULT = "2627";
 
 const num = (v) => Number(v);
@@ -40,13 +40,16 @@ function ctl(store, code) {
 }
 function ctlSave(c) {
   c.v[10] = c.store.now().toISOString();
-  const rows = c.store.rows(TAB).slice(); rows[c.row] = c.v.slice(0, HEADER.length); c.store.setRows(TAB, rows);
+  const rows = c.store.rows(TAB).slice(); rows[c.row] = c.v.slice(0, HEADER.length);
+  if (rows[0] && rows[0].length < HEADER.length) rows[0] = HEADER.slice(); // a course made before a column existed gets the full heading
+  c.store.setRows(TAB, rows);
 }
 const paced = (c) => lower(c.v[15]) !== "timed";
 const voteOf = (c) => (num(c.v[21]) === 2 ? 2 : 1);
 const discussedOf = (c) => String(c.v[22] || "").split(",").map(Number).filter((x) => x > 0);
 const quizN = (c) => Math.max(1, Math.min(20, num(c.v[18]) || 5));
 const qids = (c) => String(c.v[19] || "").split(",").filter(String);
+const isConcept = (c) => !!c && lower(c.v[23] || "") === "concept"; // a diagnostic quiz (column quiz_type); anything else is exercises
 const weekOf = (c) => (c ? num(c.v[20]) || 1 : 1);
 const allowLate = (c) => lower(c.v[5]) !== "no";
 const nowMs = (c) => c.store.now().getTime();
@@ -69,6 +72,7 @@ function status(c) {
     allowLate: allowLate(c), showScore: visible(c, "show_score"), showBoard: visible(c, "show_leaderboard")
   };
   o.reviewQ = num(c.v[17]) || 0;
+  o.quizType = isConcept(c) ? "concept" : "standard"; // concept = diagnostic quiz (not for marks), standard = exercises
   o.round = num(c.v[16]) || 0; // changes on every reset or new round, so student pages know to start over
   if (paced(c)) { o.currentQ = num(c.v[11]) || 0; o.totalQ = quizN(c); o.qids = qids(c); o.qSeconds = num(c.v[12]) || 0; o.qDeadline = num(c.v[13]) || 0; o.vote = voteOf(c); o.discussed = discussedOf(c); }
   return o;
@@ -79,8 +83,10 @@ function liveEntry(store, code, c, o) {
   const m = o.site("/apps_script/live_quizzes.json");
   if (m[code]) return m[code];
   const w = weekFromCode(store, code, o) || weekOf(c);
-  return { bank: "lecture" + w, ids: "all", week: w };
+  return { bank: "lecture" + w + (isConcept(c) ? "_concept" : ""), ids: "all", week: w, concept: isConcept(c) };
 }
+// The weeks that have a diagnostic bank (quizzes/lectureN_concept.json): {week: title}. Listed in live_quizzes.json under concept_weeks.
+function conceptWeeks(o) { try { return o.site("/apps_script/live_quizzes.json").concept_weeks || {}; } catch (e) { return {}; } }
 const bankList = (o, name) => o.site("/quizzes/" + name + ".json").questions;
 const poolIds = (o, e) => (Array.isArray(e.ids) ? e.ids : bankList(o, e.bank).map((q) => q.id));
 function maxN(store, code, c, o) {
@@ -114,7 +120,7 @@ function chooseQuestions(store, code, c, o) {
   return "";
 }
 // The plain sentence the lecturer reads when Start quiz finds no questions for the week (the page adds "Not done: ").
-const noBank = (e) => "there are no questions for " + String(e.bank || "this week").replace(/^lecture(\d+)$/, "lecture $1") + " yet. Add them in Course and Content, or choose another week, then press Start quiz again";
+const noBank = (e) => "there are no " + (e.concept ? "diagnostic " : "") + "questions for " + String(e.bank || "this week").replace(/^lecture(\d+)(_concept)?$/, "lecture $1") + " yet. Add them in Course and Content, or choose another week, then press Start quiz again";
 // The correct letter for each of the quiz's questions, never sent to students except during review.
 function lettersFor(store, code, c, o) {
   const n = c ? quizN(c) : 5, key = keyRow(store, code, o), keyL = [], out = [];
@@ -145,7 +151,7 @@ function act(store, p, code, o) {
   if (a === "init") {
     if (c) return { ok: true, status: status(c) };
     const rows = (store.rows(TAB) || [HEADER.slice()]).slice(); if (!rows.length) rows.push(HEADER.slice());
-    rows.push([code, "Ready", 10, 0, 600000, "Yes", "OnRelease", "OnRelease", "", "", store.now().toISOString(), 0, 60, 0, 0, "paced", 0, 0, 5, "", weekFromCode(store, code, o) || 1, 1, ""]);
+    rows.push([code, "Ready", 10, 0, 600000, "Yes", "OnRelease", "OnRelease", "", "", store.now().toISOString(), 0, 60, 0, 0, "paced", 0, 0, 5, "", weekFromCode(store, code, o) || 1, 1, "", ""]);
     store.setRows(TAB, rows); log("control:init", "host");
     return { ok: true, status: status(ctl(store, code)) };
   }
@@ -225,13 +231,19 @@ function act(store, p, code, o) {
     else if (field === "show_score" || field === "show_leaderboard") c.v[field === "show_score" ? 6 : 7] = /^i/i.test(val) ? "Immediate" : (/^n/i.test(val) ? "Never" : "OnRelease");
     else if (field === "title") c.v[9] = val;
     else if (field === "q_seconds") { const qs = Math.max(0, Math.min(600, num(val) || 0)); c.v[12] = qs; val = String(qs); }
+    else if (field === "quiz_type") {
+      const want = /^c|^d/i.test(val) ? "concept" : "standard";
+      if (want === "concept" && !conceptWeeks(o)[String(weekFromCode(store, code, o) || weekOf(c))]) return { ok: false, why: "there is no diagnostic bank for that week yet" };
+      c.v[23] = want === "concept" ? "concept" : ""; if (want === "concept") c.v[15] = "paced"; c.v[19] = ""; c.v[18] = Math.max(5, Math.min(maxN(store, code, c, o), quizN(c))); val = want;
+    }
     else if (field === "week" && weekFromCode(store, code, o)) return { ok: false, why: "the week is set by the join code" };
     else if (field === "week") {
       const wk = Math.max(1, num(val) || 1), wl = o.site("/apps_script/live_quizzes.json").weeks || {};
       if (!wl[String(wk)]) return { ok: false, why: "no practice bank for that week" };
+      if (isConcept(c) && !conceptWeeks(o)[String(wk)]) return { ok: false, why: "there is no diagnostic bank for that week yet" };
       c.v[20] = wk; c.v[19] = ""; c.v[18] = Math.max(5, Math.min(maxN(store, code, c, o), quizN(c))); val = String(wk);
     } else if (field === "n_questions") { const nn = Math.max(5, Math.min(maxN(store, code, c, o), num(val) || 5)); c.v[18] = nn; val = String(nn); }
-    else if (field === "mode") c.v[15] = /^t/i.test(val) ? "timed" : "paced";
+    else if (field === "mode") { if (isConcept(c) && /^t/i.test(val)) return { ok: false, why: "a diagnostic quiz is always one question at a time" }; c.v[15] = /^t/i.test(val) ? "timed" : "paced"; }
     else return { ok: false, why: "unknown setting" };
     detail = field + "=" + val;
   } else return { ok: false, why: "unknown action" };
@@ -239,4 +251,4 @@ function act(store, p, code, o) {
   return { ok: true, status: status(c) };
 }
 
-module.exports = { HEADER, TAB, liveEntry, maxN, act, ctl, ctlSave, status, eff, keyRow, weekFromCode, codeWeek, joinBase, chooseQuestions, lettersFor, mark, shuffle, quizN, qids, paced, voteOf, discussedOf, allowLate, visible, drawSalt, randomText: () => crypto.randomUUID() };
+module.exports = { isConcept, conceptWeeks, HEADER, TAB, liveEntry, maxN, act, ctl, ctlSave, status, eff, keyRow, weekFromCode, codeWeek, joinBase, chooseQuestions, lettersFor, mark, shuffle, quizN, qids, paced, voteOf, discussedOf, allowLate, visible, drawSalt, randomText: () => crypto.randomUUID() };

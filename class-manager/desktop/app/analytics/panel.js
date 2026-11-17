@@ -23,6 +23,7 @@
     var q = "", a = "";
     if (d.questions && d.questions.length) q += V.items(AI.analyse(d.questions));
     q += V.concepts(C.track(d.lectures || [], d.questions || [], null, d.rosterSize));
+    q += V.diagnostics(ex.diagnostics);
     a += V.interventions((ex.interventions || []).map(function (r) { return I.compare(r, d.students || []); }));
     a += V.fairness(F.byGroup(d.students || [], ex.cohorts || {}));
     return { summary: summaryCard(sm, ex), questions: q, actions: a, privacy: privacyCard(ex) };

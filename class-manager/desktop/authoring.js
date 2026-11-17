@@ -400,7 +400,8 @@ function createAuthoring(opts) {
     (opts.bankNumbers ? opts.bankNumbers() : []).forEach((n) => nums.add(n));
     return [...nums].sort((a, b) => a - b).map((n) => {
       const b = baseBank(n), o = overlay(n);
-      return { lecture: n, title: (b && b.title) || (o && o.title) || w[String(n)] || "", base: b ? b.questions.length : 0, added: o ? o.questions.length : 0, live: !!(w[String(n)] || (o && o.questions.length)),
+      const dg = RJ("quizzes/lecture" + n + "_concept.json", null); // the diagnostic bank: short concept checks, run as Diagnostic quiz
+      return { lecture: n, title: (b && b.title) || (o && o.title) || w[String(n)] || "", base: b ? b.questions.length : 0, added: o ? o.questions.length : 0, diagnostic: dg && Array.isArray(dg.questions) ? dg.questions.length : 0, live: !!(w[String(n)] || (o && o.questions.length)),
         approved: o ? o.questions.map((q) => ({ id: q.id, q: q.q, options: q.options, answer: q.answer, exp: q.exp, ref: q.ref, type: q.type, difficulty: q.difficulty || "", origin: q.origin || "", approved: q.approved || "" })) : [] };
     });
   }

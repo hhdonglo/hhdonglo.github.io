@@ -1,0 +1,951 @@
+{
+ "lecture": 2,
+ "title": "Motion: concept diagnostic",
+ "mode": "concept",
+ "questions": [
+  {
+   "id": "L2-C01",
+   "type": "concept",
+   "tag": "Distance and displacement",
+   "level": "easy",
+   "q": "Ama walks 80 m east along a corridor, then 30 m west. Which statement is correct?",
+   "options": [
+    "Her displacement is 110 m east and the distance she walked is 50 m.",
+    "Her displacement is 50 m east and the distance she walked is 110 m.",
+    "Her displacement and the distance she walked are both 50 m.",
+    "Her displacement and the distance she walked are both 110 m."
+   ],
+   "answer": 1,
+   "exp": "Displacement is the net change in position. Distance adds up the whole path, so it is never smaller than the size of the displacement.",
+   "ref": "Deck: Position and displacement in one dimension"
+  },
+  {
+   "id": "L2-C02",
+   "type": "concept",
+   "tag": "Distance and displacement",
+   "level": "easy",
+   "q": "A trotro drives from Madina to Circle and straight back to Madina. For the whole trip, which statement is correct?",
+   "options": [
+    "Its average velocity and average speed are both zero.",
+    "Its average speed is zero, but its average velocity is not zero.",
+    "Its average velocity and average speed are always equal.",
+    "Its average velocity is zero, but its average speed is not zero."
+   ],
+   "answer": 3,
+   "exp": "Average velocity uses displacement, which is zero for a round trip. Average speed uses total distance, which is not zero.",
+   "ref": "Deck: Average velocity and average speed"
+  },
+  {
+   "id": "L2-C03",
+   "type": "concept",
+   "tag": "Distance and displacement",
+   "level": "medium",
+   "q": "Can the size of an object's displacement be larger than the distance it travelled?",
+   "options": [
+    "Yes, when the object changes direction.",
+    "No. The distance travelled is always at least as large as the size of the displacement.",
+    "Yes, when the object moves at constant velocity.",
+    "Yes, when the displacement is negative."
+   ],
+   "answer": 1,
+   "exp": "The straight-line change in position can never be longer than the path actually followed.",
+   "ref": "Deck: Concept check: distance or displacement?"
+  },
+  {
+   "id": "L2-C04",
+   "type": "concept",
+   "tag": "Distance and displacement",
+   "level": "easy",
+   "q": "On a number line, an object is at x = −3 m. What does this tell us?",
+   "options": [
+    "The object is 3 m east of the origin.",
+    "The object is 3 m from the origin on the negative side.",
+    "The object has no position.",
+    "The object is moving backward."
+   ],
+   "answer": 1,
+   "exp": "The sign of x tells which side of the origin the object is on. It says nothing about how the object is moving.",
+   "ref": "Deck: Position and displacement in one dimension"
+  },
+  {
+   "id": "L2-C05",
+   "type": "concept",
+   "tag": "Distance and displacement",
+   "level": "medium",
+   "q": "Kofi moves from x = +2 m to x = −4 m. His displacement is",
+   "options": [
+    "positive, because the distance travelled is positive.",
+    "zero, because the positions have opposite signs.",
+    "positive, because x = +2 m is the larger number.",
+    "negative, because his final position is on the negative side of his starting position."
+   ],
+   "answer": 3,
+   "exp": "Displacement is final position minus initial position. Here it points towards negative x.",
+   "ref": "Deck: Position and displacement in one dimension"
+  },
+  {
+   "id": "L2-C06",
+   "type": "concept",
+   "tag": "Velocity and speed",
+   "level": "easy",
+   "q": "A runner completes one lap of a track in 80 s. Which statement is correct?",
+   "options": [
+    "The average velocity is zero, but the average speed is not zero.",
+    "Both are zero, because she returned to where she started.",
+    "The average speed is zero, but the average velocity is not zero.",
+    "Both are the same, because the time is the same."
+   ],
+   "answer": 0,
+   "exp": "She ends where she started, so the displacement and the average velocity are zero. She still covered a distance, so the average speed is not zero.",
+   "ref": "Deck: Average velocity and average speed"
+  },
+  {
+   "id": "L2-C07",
+   "type": "concept",
+   "tag": "Velocity and speed",
+   "level": "medium",
+   "q": "What does a car speedometer show?",
+   "options": [
+    "The average speed over the whole trip.",
+    "The velocity, including its direction.",
+    "The size of the instantaneous velocity, which is the speed.",
+    "The acceleration of the car."
+   ],
+   "answer": 2,
+   "exp": "The speedometer gives a magnitude at one instant. It gives no direction.",
+   "ref": "Deck: Instantaneous velocity"
+  },
+  {
+   "id": "L2-C08",
+   "type": "concept",
+   "tag": "Velocity and speed",
+   "level": "medium",
+   "q": "A car travels around a bend at constant speed. Is its velocity constant?",
+   "options": [
+    "No. Its direction changes, so its velocity changes.",
+    "Yes. Constant speed means constant velocity.",
+    "Yes. Velocity only changes when speed changes.",
+    "No. Its speed must be changing."
+   ],
+   "answer": 0,
+   "exp": "Velocity is a vector. A change in direction is a change in velocity even when the speed stays the same.",
+   "ref": "Deck: Acceleration along and across the path"
+  },
+  {
+   "id": "L2-C09",
+   "type": "concept",
+   "tag": "Velocity and speed",
+   "level": "hard",
+   "q": "A car covers the first half of a journey at 30 km/h and the second half at 60 km/h. Compare its average speed for the whole journey with 45 km/h.",
+   "options": [
+    "It is less than 45 km/h, because the car spends more time at the lower speed.",
+    "It is exactly 45 km/h, the mean of the two speeds.",
+    "It is more than 45 km/h, because 60 km/h is the larger speed.",
+    "It cannot be compared without knowing the distance."
+   ],
+   "answer": 0,
+   "exp": "Average speed is total distance divided by total time. The slow half takes longer, so it counts for more.",
+   "ref": "Deck: Average velocity and average speed"
+  },
+  {
+   "id": "L2-C10",
+   "type": "concept",
+   "tag": "Velocity and speed",
+   "level": "medium",
+   "q": "Esi has velocity −5 m/s and Yaw has velocity +3 m/s along the same line. Who is moving faster?",
+   "options": [
+    "Yaw, because +3 is greater than −5.",
+    "They move at the same speed, because the signs cancel.",
+    "Esi, because 5 m/s is the larger speed.",
+    "They cannot be compared, because the directions differ."
+   ],
+   "answer": 2,
+   "exp": "Speed is the size of the velocity. The sign only gives the direction along the line.",
+   "ref": "Deck: Notation: vector, magnitude and component"
+  },
+  {
+   "id": "L2-C11",
+   "type": "concept",
+   "tag": "Average and instantaneous",
+   "level": "easy",
+   "q": "The slope of the tangent to an x–t graph at one instant gives",
+   "options": [
+    "the average velocity over the whole graph.",
+    "the displacement up to that instant.",
+    "the acceleration at that instant.",
+    "the instantaneous velocity at that instant."
+   ],
+   "answer": 3,
+   "exp": "Velocity is the rate of change of position, so it is the slope of the x–t graph.",
+   "ref": "Deck: Instantaneous velocity"
+  },
+  {
+   "id": "L2-C12",
+   "type": "concept",
+   "tag": "Average and instantaneous",
+   "level": "medium",
+   "q": "On an x–t graph, the average velocity between two times is the slope of",
+   "options": [
+    "the tangent at the first time.",
+    "the tangent at the second time.",
+    "the straight line joining the two points on the graph.",
+    "the area under the graph between the two times."
+   ],
+   "answer": 2,
+   "exp": "Average velocity is displacement divided by the time interval. That is the slope of the chord between the two points.",
+   "ref": "Deck: From average to instantaneous velocity"
+  },
+  {
+   "id": "L2-C13",
+   "type": "concept",
+   "tag": "Average and instantaneous",
+   "level": "medium",
+   "q": "How is instantaneous velocity defined from average velocity?",
+   "options": [
+    "As the average speed over the whole trip.",
+    "As the distance travelled divided by a long time.",
+    "As the average of the starting and ending speeds.",
+    "As the average velocity over a time interval that is made shorter and shorter."
+   ],
+   "answer": 3,
+   "exp": "Letting the interval shrink towards zero gives the velocity at a single instant.",
+   "ref": "Deck: From average to instantaneous velocity"
+  },
+  {
+   "id": "L2-C14",
+   "type": "concept",
+   "tag": "Average and instantaneous",
+   "level": "easy",
+   "q": "The x–t graph of an object is a straight sloping line. What is true of its velocity?",
+   "options": [
+    "It is increasing.",
+    "It is constant, and equal to its average velocity.",
+    "It is decreasing.",
+    "It is zero."
+   ],
+   "answer": 1,
+   "exp": "A constant slope means a constant rate of change of position.",
+   "ref": "Deck: Concept check: reading an x–t graph"
+  },
+  {
+   "id": "L2-C15",
+   "type": "concept",
+   "tag": "Average and instantaneous",
+   "level": "hard",
+   "q": "A car's average velocity over an interval is zero. Must its instantaneous velocity be zero at every instant of that interval?",
+   "options": [
+    "No. It can move away and come back, so the net displacement is zero.",
+    "Yes. Zero average velocity means no motion at all.",
+    "Yes. The instantaneous velocity is the average velocity.",
+    "No. Its acceleration must have been zero."
+   ],
+   "answer": 0,
+   "exp": "Average velocity depends only on the net displacement, not on what happened in between.",
+   "ref": "Deck: Concept check: velocity before any algebra"
+  },
+  {
+   "id": "L2-C16",
+   "type": "concept",
+   "tag": "Sign of velocity and acceleration",
+   "level": "medium",
+   "q": "An object has negative velocity and negative acceleration. What happens to its speed?",
+   "options": [
+    "It increases, because the velocity and acceleration point the same way.",
+    "It decreases, because the acceleration is negative.",
+    "It stays constant.",
+    "It cannot be decided without numbers."
+   ],
+   "answer": 0,
+   "exp": "When velocity and acceleration have the same sign the object speeds up, whatever the sign.",
+   "ref": "Deck: Rule: speeding up or slowing down"
+  },
+  {
+   "id": "L2-C17",
+   "type": "concept",
+   "tag": "Sign of velocity and acceleration",
+   "level": "easy",
+   "q": "A car moving in the +x direction brakes. Which statement is correct?",
+   "options": [
+    "Its acceleration is positive, because its velocity is positive.",
+    "Its acceleration is zero, because its velocity is positive.",
+    "Its acceleration is negative and its speed decreases.",
+    "Its velocity is negative, because it is slowing."
+   ],
+   "answer": 2,
+   "exp": "The acceleration points opposite to the velocity, so it is negative and the speed falls.",
+   "ref": "Deck: Rule: speeding up or slowing down"
+  },
+  {
+   "id": "L2-C18",
+   "type": "concept",
+   "tag": "Sign of velocity and acceleration",
+   "level": "medium",
+   "q": "\"Negative acceleration always means the object is slowing down.\" This statement is",
+   "options": [
+    "true, because negative means decreasing.",
+    "true, because acceleration is a vector.",
+    "false, because acceleration can never be negative.",
+    "false, because the object speeds up if its velocity is also negative."
+   ],
+   "answer": 3,
+   "exp": "Speeding up or slowing down depends on the signs of velocity and acceleration together.",
+   "ref": "Deck: Back to the poll: negative velocity and speeding up"
+  },
+  {
+   "id": "L2-C19",
+   "type": "concept",
+   "tag": "Sign of velocity and acceleration",
+   "level": "medium",
+   "q": "A ball thrown straight up is at the top of its path. What is its acceleration at that instant?",
+   "options": [
+    "Zero, because the ball stops.",
+    "9.8 m/s² upward, because the ball was going up.",
+    "About 9.8 m/s² downward, the same as at every other instant.",
+    "Zero, because the velocity is zero."
+   ],
+   "answer": 2,
+   "exp": "Velocity is zero for an instant, but gravity still acts. The acceleration is the same throughout the flight.",
+   "ref": "Deck: Free fall"
+  },
+  {
+   "id": "L2-C20",
+   "type": "concept",
+   "tag": "Sign of velocity and acceleration",
+   "level": "medium",
+   "q": "Can an object have zero velocity and non-zero acceleration at the same instant?",
+   "options": [
+    "Yes, for example a ball at the top of its path.",
+    "No. Zero velocity means zero acceleration.",
+    "No. Acceleration is the velocity divided by time.",
+    "Yes, but only if it is moving sideways."
+   ],
+   "answer": 0,
+   "exp": "Acceleration is the rate of change of velocity. The velocity can be zero at one instant and still be changing.",
+   "ref": "Deck: Instantaneous acceleration"
+  },
+  {
+   "id": "L2-C21",
+   "type": "concept",
+   "tag": "Sign of velocity and acceleration",
+   "level": "easy",
+   "q": "An object moves with constant velocity. Its acceleration is",
+   "options": [
+    "constant and not zero.",
+    "zero.",
+    "equal to its velocity.",
+    "increasing with time."
+   ],
+   "answer": 1,
+   "exp": "Acceleration is the rate of change of velocity. If the velocity does not change, it is zero.",
+   "ref": "Deck: Average acceleration"
+  },
+  {
+   "id": "L2-C22",
+   "type": "concept",
+   "tag": "Sign of velocity and acceleration",
+   "level": "hard",
+   "q": "A cart moves to the right and its velocity changes from +6 m/s to −2 m/s. The direction of its acceleration is",
+   "options": [
+    "to the right, because it started moving right.",
+    "to the right, because the final speed is smaller.",
+    "zero, because the speed is small.",
+    "to the left, because the velocity changed towards the negative direction."
+   ],
+   "answer": 3,
+   "exp": "The acceleration points in the direction of the change in velocity, here towards negative x.",
+   "ref": "Deck: Average acceleration"
+  },
+  {
+   "id": "L2-C23",
+   "type": "concept",
+   "tag": "Reading x-t graphs",
+   "level": "easy",
+   "q": "A horizontal line on an x–t graph means the object is",
+   "options": [
+    "at rest.",
+    "moving at constant non-zero velocity.",
+    "speeding up.",
+    "moving at its greatest speed."
+   ],
+   "answer": 0,
+   "exp": "The position does not change, so the velocity is zero.",
+   "ref": "Deck: Concept check: reading an x–t graph"
+  },
+  {
+   "id": "L2-C24",
+   "type": "concept",
+   "tag": "Reading x-t graphs",
+   "level": "medium",
+   "q": "An x–t graph curves upward, with the slope getting steeper. The object is",
+   "options": [
+    "moving at constant velocity.",
+    "speeding up in the positive direction.",
+    "slowing down.",
+    "at rest."
+   ],
+   "answer": 1,
+   "exp": "A steeper slope means the velocity is growing, so the acceleration is positive.",
+   "ref": "Deck: Reading motion graphs: slope and area"
+  },
+  {
+   "id": "L2-C25",
+   "type": "concept",
+   "tag": "Reading x-t graphs",
+   "level": "medium",
+   "q": "An x–t graph is a straight line sloping downward. The object is",
+   "options": [
+    "moving backward in time.",
+    "moving in the negative direction at constant speed.",
+    "at rest below the axis.",
+    "speeding up."
+   ],
+   "answer": 1,
+   "exp": "A negative slope is a negative velocity. The sign gives direction in space, not time.",
+   "ref": "Deck: Concept check: reading an x–t graph"
+  },
+  {
+   "id": "L2-C26",
+   "type": "concept",
+   "tag": "Reading x-t graphs",
+   "level": "medium",
+   "q": "An x–t graph crosses the t axis (x = 0) at some time. At that time the object",
+   "options": [
+    "is at the origin, and may or may not be at rest.",
+    "is at rest.",
+    "has zero acceleration.",
+    "has changed direction."
+   ],
+   "answer": 0,
+   "exp": "x = 0 means position at the origin. Velocity is given by the slope, not by the value of x.",
+   "ref": "Deck: Concept check: reading an x–t graph"
+  },
+  {
+   "id": "L2-C27",
+   "type": "concept",
+   "tag": "Reading x-t graphs",
+   "level": "easy",
+   "q": "On one x–t graph, line A is steeper than line B. Which object has the greater speed?",
+   "options": [
+    "B, because it stays lower on the graph.",
+    "They are equal, because both are straight lines.",
+    "A, because a steeper slope means a greater speed.",
+    "A, because it started earlier."
+   ],
+   "answer": 2,
+   "exp": "Speed is the size of the slope of the x–t graph.",
+   "ref": "Deck: Reading motion graphs: slope and area"
+  },
+  {
+   "id": "L2-C28",
+   "type": "concept",
+   "tag": "Reading v-t graphs",
+   "level": "easy",
+   "q": "On a v–t graph, the slope gives the",
+   "options": [
+    "acceleration.",
+    "displacement.",
+    "position.",
+    "distance travelled."
+   ],
+   "answer": 0,
+   "exp": "Acceleration is the rate of change of velocity.",
+   "ref": "Deck: Reading motion graphs: slope and area"
+  },
+  {
+   "id": "L2-C29",
+   "type": "concept",
+   "tag": "Reading v-t graphs",
+   "level": "easy",
+   "q": "On a v–t graph, the area between the graph and the time axis gives the",
+   "options": [
+    "acceleration.",
+    "velocity.",
+    "displacement.",
+    "average speed."
+   ],
+   "answer": 2,
+   "exp": "Displacement is the integral of velocity over time.",
+   "ref": "Deck: Reading motion graphs: slope and area"
+  },
+  {
+   "id": "L2-C30",
+   "type": "concept",
+   "tag": "Reading v-t graphs",
+   "level": "medium",
+   "q": "A v–t graph is a horizontal line above the time axis. The object has",
+   "options": [
+    "constant acceleration and zero displacement.",
+    "zero acceleration and zero displacement.",
+    "zero acceleration and a displacement that grows steadily.",
+    "increasing acceleration."
+   ],
+   "answer": 2,
+   "exp": "A flat v–t graph has zero slope, so no acceleration. The area under it keeps growing.",
+   "ref": "Deck: Your turn: translate a v–t graph"
+  },
+  {
+   "id": "L2-C31",
+   "type": "concept",
+   "tag": "Reading v-t graphs",
+   "level": "medium",
+   "q": "A v–t graph crosses the time axis from positive to negative. At the crossing the object",
+   "options": [
+    "is back at its starting position.",
+    "has zero acceleration.",
+    "has stopped for good.",
+    "is momentarily at rest and then reverses direction."
+   ],
+   "answer": 3,
+   "exp": "v = 0 for an instant, and the sign change means the direction reverses. Position cannot be read from the velocity value.",
+   "ref": "Deck: Your turn: solution, slopes and areas"
+  },
+  {
+   "id": "L2-C32",
+   "type": "concept",
+   "tag": "Reading v-t graphs",
+   "level": "hard",
+   "q": "A v–t graph has equal areas above and below the time axis. The object's",
+   "options": [
+    "distance travelled is zero.",
+    "displacement is zero, but the distance travelled is not zero.",
+    "displacement and distance are both zero.",
+    "acceleration is zero."
+   ],
+   "answer": 1,
+   "exp": "Area below the axis counts as negative displacement, so the net displacement cancels. The distance still adds up.",
+   "ref": "Deck: Your turn: solution, slopes and areas"
+  },
+  {
+   "id": "L2-C33",
+   "type": "concept",
+   "tag": "Reading v-t graphs",
+   "level": "medium",
+   "q": "A v–t graph is a straight line rising steadily from the origin. The acceleration is",
+   "options": [
+    "constant and positive.",
+    "zero.",
+    "increasing with time.",
+    "constant and negative."
+   ],
+   "answer": 0,
+   "exp": "A straight line has a constant slope, which means constant acceleration.",
+   "ref": "Deck: Reading motion graphs: slope and area"
+  },
+  {
+   "id": "L2-C34",
+   "type": "concept",
+   "tag": "Choosing the equation",
+   "level": "medium",
+   "q": "The constant-acceleration equations apply when",
+   "options": [
+    "the object moves along any straight line.",
+    "the acceleration is constant during the motion.",
+    "the velocity is constant.",
+    "the object starts from rest."
+   ],
+   "answer": 1,
+   "exp": "These equations come from a constant acceleration. If it changes, they fail.",
+   "ref": "Deck: Constant acceleration: the equations and when to use them"
+  },
+  {
+   "id": "L2-C35",
+   "type": "concept",
+   "tag": "Choosing the equation",
+   "level": "hard",
+   "q": "The acceleration of a particle increases steadily with time. Can we use v = v₀ + at?",
+   "options": [
+    "Yes. It works for any acceleration.",
+    "No. The equation needs a constant acceleration, so we must integrate instead.",
+    "Yes, if we use the average speed.",
+    "No. The velocity cannot change."
+   ],
+   "answer": 1,
+   "exp": "Integrating a(t) over time gives the velocity when the acceleration varies.",
+   "ref": "Deck: Counter-example: the rule has a limit"
+  },
+  {
+   "id": "L2-C36",
+   "type": "concept",
+   "tag": "Choosing the equation",
+   "level": "medium",
+   "q": "You know the initial velocity, the final velocity and the acceleration, and you want the displacement. The time is not given. Which equation is the best choice?",
+   "options": [
+    "The one that links v², v₀², a and the displacement.",
+    "The one that needs the time t.",
+    "v = v₀ + at, because it is the simplest.",
+    "None. The problem cannot be solved."
+   ],
+   "answer": 0,
+   "exp": "Choose the equation that contains the unknown and the known quantities and leaves out the quantity you do not have.",
+   "ref": "Deck: Constant acceleration: the equations and when to use them"
+  },
+  {
+   "id": "L2-C37",
+   "type": "concept",
+   "tag": "Choosing the equation",
+   "level": "medium",
+   "q": "A car brakes uniformly to a stop. If its initial speed is doubled, the braking distance becomes",
+   "options": [
+    "half as large.",
+    "the same.",
+    "larger by more than a factor of two.",
+    "larger by exactly a factor of two."
+   ],
+   "answer": 2,
+   "exp": "Braking distance grows with the square of the initial speed, so doubling the speed more than doubles the distance.",
+   "ref": "Deck: Example 5: braking distance"
+  },
+  {
+   "id": "L2-C38",
+   "type": "concept",
+   "tag": "Choosing the equation",
+   "level": "easy",
+   "q": "A car speeds up uniformly. Its average velocity over the interval is",
+   "options": [
+    "equal to the final velocity.",
+    "halfway between the initial and final velocities.",
+    "equal to the initial velocity.",
+    "always zero."
+   ],
+   "answer": 1,
+   "exp": "For constant acceleration the velocity changes at a steady rate, so the average is the mean of the two ends.",
+   "ref": "Deck: Constant acceleration: the equations and when to use them"
+  },
+  {
+   "id": "L2-C39",
+   "type": "concept",
+   "tag": "Free fall",
+   "level": "easy",
+   "q": "Two stones, one heavy and one light, are dropped together from the same height. Ignoring air, which lands first?",
+   "options": [
+    "They land together.",
+    "The heavy one.",
+    "The light one.",
+    "It depends on the shape of the stones."
+   ],
+   "answer": 0,
+   "exp": "In free fall every object has the same acceleration g, whatever its mass.",
+   "ref": "Deck: Free fall"
+  },
+  {
+   "id": "L2-C40",
+   "type": "concept",
+   "tag": "Free fall",
+   "level": "medium",
+   "q": "A ball is thrown upward. Ignoring air, its acceleration while going up is",
+   "options": [
+    "smaller than while coming down.",
+    "the same as while coming down, downward.",
+    "upward, because the ball moves up.",
+    "zero at the top and downward elsewhere."
+   ],
+   "answer": 1,
+   "exp": "Only gravity acts, so the acceleration is g downward the whole time.",
+   "ref": "Deck: Free fall"
+  },
+  {
+   "id": "L2-C41",
+   "type": "concept",
+   "tag": "Free fall",
+   "level": "medium",
+   "q": "Which object is in free fall?",
+   "options": [
+    "A coin tossed upward, after it leaves the hand.",
+    "A parachutist falling at constant speed.",
+    "A ball resting on a table.",
+    "A lift going down at constant speed."
+   ],
+   "answer": 0,
+   "exp": "Free fall means gravity is the only force. It does not depend on whether the object moves up or down.",
+   "ref": "Deck: Free fall"
+  },
+  {
+   "id": "L2-C42",
+   "type": "concept",
+   "tag": "Free fall",
+   "level": "medium",
+   "q": "A ball is thrown upward and returns to the launch height. Ignoring air, its speed on return is",
+   "options": [
+    "greater than its launch speed.",
+    "smaller than its launch speed.",
+    "zero.",
+    "equal to its launch speed."
+   ],
+   "answer": 3,
+   "exp": "The motion is symmetric. The ball gains back the speed it lost on the way up.",
+   "ref": "Deck: Free fall"
+  },
+  {
+   "id": "L2-C43",
+   "type": "concept",
+   "tag": "Free fall",
+   "level": "medium",
+   "q": "A ball falls from rest. Compared with the first second, it falls in the second second",
+   "options": [
+    "a larger distance, because it is moving faster.",
+    "the same distance.",
+    "a smaller distance.",
+    "no distance, because it has stopped accelerating."
+   ],
+   "answer": 0,
+   "exp": "Its speed keeps increasing, so it covers more distance in each equal interval.",
+   "ref": "Deck: Free fall"
+  },
+  {
+   "id": "L2-C44",
+   "type": "concept",
+   "tag": "Projectile motion",
+   "level": "medium",
+   "q": "One ball is dropped and another is fired horizontally from the same height at the same time. Ignoring air, which hits the ground first?",
+   "options": [
+    "The dropped ball.",
+    "They hit together.",
+    "The ball fired horizontally.",
+    "It depends on the horizontal speed."
+   ],
+   "answer": 1,
+   "exp": "The vertical motion does not depend on the horizontal motion. The components are independent.",
+   "ref": "Deck: Independent components"
+  },
+  {
+   "id": "L2-C45",
+   "type": "concept",
+   "tag": "Projectile motion",
+   "level": "medium",
+   "q": "At the top of a projectile's path, ignoring air, which statement is correct?",
+   "options": [
+    "The velocity is zero and the acceleration is zero.",
+    "The horizontal velocity is zero.",
+    "The vertical velocity is zero, the horizontal velocity is unchanged, and the acceleration is g downward.",
+    "The acceleration is zero, because the ball stops rising."
+   ],
+   "answer": 2,
+   "exp": "Gravity acts only vertically. The horizontal velocity stays constant throughout.",
+   "ref": "Deck: Projectile motion: the model"
+  },
+  {
+   "id": "L2-C46",
+   "type": "concept",
+   "tag": "Projectile motion",
+   "level": "easy",
+   "q": "What is the horizontal acceleration of a projectile, ignoring air?",
+   "options": [
+    "g, downward.",
+    "g, in the direction of motion.",
+    "It depends on the launch angle.",
+    "Zero."
+   ],
+   "answer": 3,
+   "exp": "No horizontal force acts, so the horizontal velocity is constant.",
+   "ref": "Deck: Projectile motion: the model"
+  },
+  {
+   "id": "L2-C47",
+   "type": "concept",
+   "tag": "Projectile motion",
+   "level": "medium",
+   "q": "On level ground and with the same launch speed, which launch angle gives the greatest range?",
+   "options": [
+    "30°",
+    "45°",
+    "60°",
+    "90°"
+   ],
+   "answer": 1,
+   "exp": "Range is greatest at 45°. At 90° the ball goes straight up and has no range.",
+   "ref": "Deck: Projectile motion: the model"
+  },
+  {
+   "id": "L2-C48",
+   "type": "concept",
+   "tag": "Projectile motion",
+   "level": "hard",
+   "q": "On level ground and with the same launch speed, how do the ranges for launch angles of 30° and 60° compare?",
+   "options": [
+    "The 30° range is greater.",
+    "The 60° range is greater.",
+    "They are equal.",
+    "They cannot be compared."
+   ],
+   "answer": 2,
+   "exp": "Two angles that add up to 90° give the same range, but the higher one stays in the air longer.",
+   "ref": "Deck: Projectile motion: the model"
+  },
+  {
+   "id": "L2-C49",
+   "type": "concept",
+   "tag": "Projectile motion",
+   "level": "hard",
+   "q": "A dart is aimed directly at a monkey and fired at the instant the monkey lets go and falls. Ignoring air, the dart",
+   "options": [
+    "hits the monkey, because both fall the same distance below the line of sight.",
+    "passes above the monkey.",
+    "passes below the monkey.",
+    "misses, because the monkey moves."
+   ],
+   "answer": 0,
+   "exp": "Gravity pulls the dart and the monkey down by the same amount in the same time.",
+   "ref": "Deck: The monkey and the dart: solved"
+  },
+  {
+   "id": "L2-C50",
+   "type": "concept",
+   "tag": "Circular motion",
+   "level": "medium",
+   "q": "In uniform circular motion, the acceleration points",
+   "options": [
+    "along the velocity.",
+    "away from the centre.",
+    "nowhere, because it is zero.",
+    "towards the centre of the circle."
+   ],
+   "answer": 3,
+   "exp": "The velocity changes direction, and the change always points inward.",
+   "ref": "Deck: Uniform circular motion: the geometry"
+  },
+  {
+   "id": "L2-C51",
+   "type": "concept",
+   "tag": "Circular motion",
+   "level": "medium",
+   "q": "An object moves in a circle at constant speed. Is its acceleration zero?",
+   "options": [
+    "Yes. Its speed is constant.",
+    "Yes. Its position repeats.",
+    "No. Its velocity changes direction, so it accelerates.",
+    "No. Its speed must be changing."
+   ],
+   "answer": 2,
+   "exp": "Acceleration is the rate of change of the velocity vector, not only of the speed.",
+   "ref": "Deck: An opening question: acceleration at constant speed?"
+  },
+  {
+   "id": "L2-C52",
+   "type": "concept",
+   "tag": "Circular motion",
+   "level": "medium",
+   "q": "At the same speed, a car goes around a tighter bend with a smaller radius. The size of its acceleration",
+   "options": [
+    "decreases.",
+    "stays the same.",
+    "is zero.",
+    "increases."
+   ],
+   "answer": 3,
+   "exp": "The acceleration is v²/R. A smaller radius gives a larger acceleration.",
+   "ref": "Deck: Why the acceleration is v²/R"
+  },
+  {
+   "id": "L2-C53",
+   "type": "concept",
+   "tag": "Circular motion",
+   "level": "medium",
+   "q": "A car goes around the same bend at a higher constant speed. The size of its acceleration",
+   "options": [
+    "decreases.",
+    "stays the same.",
+    "increases.",
+    "is zero."
+   ],
+   "answer": 2,
+   "exp": "The acceleration is v²/R, so it grows with speed.",
+   "ref": "Deck: Why the acceleration is v²/R"
+  },
+  {
+   "id": "L2-C54",
+   "type": "concept",
+   "tag": "Circular motion",
+   "level": "easy",
+   "q": "The time taken for one complete circle is called the",
+   "options": [
+    "frequency.",
+    "angular speed.",
+    "displacement.",
+    "period."
+   ],
+   "answer": 3,
+   "exp": "The period T is the time for one revolution. The frequency f is its inverse.",
+   "ref": "Deck: Period, frequency and angular speed"
+  },
+  {
+   "id": "L2-C55",
+   "type": "concept",
+   "tag": "Relative velocity",
+   "level": "easy",
+   "q": "A train moves east. A passenger walks towards the front of the train. Relative to the ground, the passenger's speed is",
+   "options": [
+    "less than the train's speed.",
+    "equal to the train's speed.",
+    "greater than the train's speed.",
+    "zero."
+   ],
+   "answer": 2,
+   "exp": "Relative velocities add as vectors. Walking forward adds to the train's velocity.",
+   "ref": "Deck: Relative velocity: notation, rule and the train"
+  },
+  {
+   "id": "L2-C56",
+   "type": "concept",
+   "tag": "Relative velocity",
+   "level": "easy",
+   "q": "The same passenger walks towards the back of the train. Relative to the ground, the passenger's speed is",
+   "options": [
+    "greater than the train's speed.",
+    "less than the train's speed.",
+    "equal to the train's speed.",
+    "the same as the walking speed."
+   ],
+   "answer": 1,
+   "exp": "Walking backward subtracts from the velocity of the train.",
+   "ref": "Deck: Relative velocity: notation, rule and the train"
+  },
+  {
+   "id": "L2-C57",
+   "type": "concept",
+   "tag": "Relative velocity",
+   "level": "medium",
+   "q": "A boat points straight across a river with a current. Relative to the ground, the boat",
+   "options": [
+    "goes straight across.",
+    "drifts upstream.",
+    "stops moving.",
+    "drifts downstream while crossing."
+   ],
+   "answer": 3,
+   "exp": "The velocity of the boat relative to the ground is the sum of its velocity relative to the water and the velocity of the water.",
+   "ref": "Deck: Example 7: crossing a river"
+  },
+  {
+   "id": "L2-C58",
+   "type": "concept",
+   "tag": "Relative velocity",
+   "level": "medium",
+   "q": "To travel straight across a river with a current, the boat must be pointed",
+   "options": [
+    "straight across.",
+    "somewhat downstream.",
+    "somewhat upstream.",
+    "along the bank."
+   ],
+   "answer": 2,
+   "exp": "The upstream part of the boat's velocity cancels the current.",
+   "ref": "Deck: Example 7: crossing a river"
+  },
+  {
+   "id": "L2-C59",
+   "type": "concept",
+   "tag": "Relative velocity",
+   "level": "hard",
+   "q": "A boat points straight across a river at a fixed speed relative to the water. A stronger current makes the crossing time",
+   "options": [
+    "shorter.",
+    "longer.",
+    "zero.",
+    "unchanged, because the current has no component across the river."
+   ],
+   "answer": 3,
+   "exp": "Only the velocity component across the river decides how long the crossing takes.",
+   "ref": "Deck: Example 7: crossing a river"
+  }
+ ]
+}
