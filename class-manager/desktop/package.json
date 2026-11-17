@@ -1,7 +1,7 @@
 {
   "name": "class-manager",
   "productName": "Class Manager",
-  "version": "0.22.2",
+  "version": "0.24.0",
   "description": "Course pages, practice quizzes, mock exam, live quiz and attendance for each of the lecturer's courses, run from the lecturer's computer.",
   "author": "Hope Donglo",
   "license": "UNLICENSED",
@@ -54,6 +54,7 @@
       "lms/*.js",
       "excel.js",
       "course.js",
+      "course-folder.js",
       "courses.js",
       "table.js",
       "names.js",

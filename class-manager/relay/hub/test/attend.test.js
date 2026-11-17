@@ -20,10 +20,10 @@ async function bothSides(mode) {
   const now = Math.floor(Date.now() / 1000), env = await newEnv(), keys = await newCourseKeys();
   const reg = await registerCourse(env, keys, now); const course = reg.body.course; assert.equal(await courseIdOf(keys.pub), course);
   const roster = {}; for (const [id, code] of STUDENTS) roster[id] = await codeHash(course, id, code);
-  const op = await signed(env, keys, course, "/v1/live/open", { label: "16/11/2026 #1", secret: SECRET, mode, lat: 51.5, lon: -0.12, radius: 200, roster, phones: {} }, now);
+  const op = await signed(env, keys, course, "/v1/live/open", { label: AT.dayKey(new Date()) + " #1", secret: SECRET, mode, lat: 51.5, lon: -0.12, radius: 200, roster, phones: {} }, now);
   assert.equal(op.status, 200, JSON.stringify(op.body));
   // the rules side: the same class on an in-memory store
-  const tabs = { Roster: [["Student ID", "Name"]].concat(STUDENTS.map(([id]) => [id, "S" + id])), Access_Codes: [["Student ID", "Access code", "Issued"]].concat(STUDENTS.map(([id, c]) => [id, c, new Date().toISOString()])), Attendance_Control: [["Code", "Label", "Status", "Opened", "Closed", "Secret", "Lat", "Lon", "Radius m"], ["1234", "16/11/2026 #1", "Open", "", "", SECRET, 51.5, -0.12, 200]] }, props = {};
+  const tabs = { Roster: [["Student ID", "Name"]].concat(STUDENTS.map(([id]) => [id, "S" + id])), Access_Codes: [["Student ID", "Access code", "Issued"]].concat(STUDENTS.map(([id, c]) => [id, c, new Date().toISOString()])), Attendance_Control: [["Code", "Label", "Status", "Opened", "Closed", "Secret", "Lat", "Lon", "Radius m"], ["1234", AT.dayKey(new Date()) + " #1", "Open", "", "", SECRET, 51.5, -0.12, 200]] }, props = {};
   const store = { rows: (t) => tabs[t] || null, setRows: (t, r) => { tabs[t] = r; }, prop: (k) => props[k], setProp: (k, v) => { props[k] = v; }, now: () => new Date(now * 1000) };
   const fails = {}; const o = { random: () => wc.randomUUID(), geoMode: mode, grace: 1, fails: { get: (k) => fails[k] || 0, add: (k) => { fails[k] = (fails[k] || 0) + 1; } }, verifyCode: (id, g, mine) => ({ ok: AC.normCode(g) === mine.code }) };
   const phone = async (p) => {
