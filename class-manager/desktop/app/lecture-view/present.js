@@ -1,7 +1,7 @@
 /* Class Manager: presentation mode. Shows a lecture's slides (a PDF) full screen, one page at a time, for teaching in class.
    Keys: right, down, space, page down = next; left, up, page up = previous; Home and End = first and last; B = blank the screen;
    T = dark or light surround; P = pause the timer; R = reset the timer; Esc = exit. Click the right of the slide for next, the left third for previous.
-   The slides are shown by the PDF viewer built into CM, so nothing is converted or sent anywhere. The rules are in state.js.
+   Each slide is drawn off screen first (slide-renderer.js) and swapped in only when ready (slide-show.js), so changing slide never blinks; nothing is converted or sent anywhere. The rules are in state.js and slide-cache.js.
    Opened by view.js: cmLecturePresent.start(row). */
 (function () {
   "use strict";
@@ -56,14 +56,40 @@
 
     function elapsed() { return banked + (paused ? 0 : Date.now() - began); }
     function tick() { clockEl.textContent = (paused ? "Paused " : "") + S.clock(elapsed()); }
-    function show() { // a new frame sits over the old one and the old one goes when the new page has loaded: no white flash between slides
-      var f = document.createElement("iframe"); f.className = "pres-pdf"; f.title = row.label + ", slide " + page; f.tabIndex = -1;
-      var old = Array.prototype.slice.call(frames.children);
-      f.addEventListener("load", function () { old.forEach(function (o) { if (o.parentNode) o.parentNode.removeChild(o); }); });
-      f.src = S.pageUrl(v.url, page); frames.appendChild(f);
+    // Slides are drawn by slide-renderer.js onto a canvas off screen and swapped in by slide-show.js once ready, so the slide on screen never goes blank.
+    // If the PDF reader cannot be used, the slides are shown by the PDF viewer built into CM instead (frameShow).
+    var shower = null, rend = null, settled = false, canvas = null, resizeTimer = null;
+    function label() {
       count.textContent = "Slide " + page + " of " + pages;
       el.querySelector("[data-pres='prev']").disabled = page <= 1; el.querySelector("[data-pres='next']").disabled = page >= pages;
     }
+    function size() { var r = frames.getBoundingClientRect(); return { w: r.width, h: r.height, dpr: window.devicePixelRatio || 1 }; }
+    function paint(d) { // one step: the new page replaces the old one in the same frame
+      if (canvas.width !== d.canvas.width || canvas.height !== d.canvas.height) { canvas.width = d.canvas.width; canvas.height = d.canvas.height; }
+      canvas.style.width = d.cssW + "px"; canvas.style.height = d.cssH + "px";
+      canvas.getContext("2d").drawImage(d.canvas, 0, 0);
+      canvas.setAttribute("aria-label", row.label + ", slide " + d.page);
+    }
+    function setup(r) {
+      rend = r; pages = Math.max(1, r.pages || pages);
+      canvas = document.createElement("canvas"); canvas.className = "pres-canvas"; canvas.setAttribute("role", "img"); frames.appendChild(canvas);
+      shower = window.cmSlideShow.create({ pages: pages, size: size, draw: r.draw, paint: paint, shown: function () { label(); }, max: 5 });
+    }
+    function frameShow() { // a new frame sits over the old one and the old one goes when the new page has loaded
+      var f = document.createElement("iframe"); f.className = "pres-pdf"; f.title = row.label + ", slide " + page; f.tabIndex = -1;
+      var old = Array.prototype.slice.call(frames.children);
+      f.addEventListener("load", function () { old.forEach(function (o) { if (o.parentNode) o.parentNode.removeChild(o); }); });
+      f.src = S.pageUrl(v.url, page); frames.appendChild(f); label();
+    }
+    function fallBack() { // the PDF reader failed: keep teaching with the built-in viewer
+      if (shower) shower.stop();
+      shower = null; if (canvas && canvas.parentNode) canvas.parentNode.removeChild(canvas); canvas = null; frameShow();
+    }
+    function show() {
+      if (!settled) return;
+      if (shower) shower.show(page).catch(fallBack); else frameShow();
+    }
+    function onSize() { clearTimeout(resizeTimer); resizeTimer = setTimeout(function () { if (shower) shower.resize().catch(fallBack); }, 150); }
     function go(action) { var to = S.movePage(page, action, pages); if (to !== page) { page = to; if (blank) setBlank(false); show(); } }
     function setBlank(on) { blank = on; blankEl.hidden = !on; }
     function setTheme(t) { theme = t; el.className = el.className.replace(/pres-(dark|light)/, "pres-" + t); saveTheme(t); }
@@ -94,7 +120,8 @@
     function onFull(e) { if (!document.fullscreenElement) { e.stopImmediatePropagation(); finish(); } }
     function finish() {
       if (!run) return; run = null;
-      clearInterval(ticker); clearTimeout(idleTimer);
+      clearInterval(ticker); clearTimeout(idleTimer); clearTimeout(resizeTimer); window.removeEventListener("resize", onSize);
+      if (shower) shower.stop(); if (rend) rend.close();
       document.removeEventListener("keydown", onKey, true); window.removeEventListener("fullscreenchange", onFull, true);
       el.removeEventListener("click", onClick); el.removeEventListener("mousemove", wake);
       leave();
@@ -105,7 +132,10 @@
     run = { finish: finish };
     document.addEventListener("keydown", onKey, true); window.addEventListener("fullscreenchange", onFull, true);
     el.addEventListener("click", onClick); el.addEventListener("mousemove", wake);
-    ticker = setInterval(tick, 1000); tick(); show(); wake(); el.focus();
+    window.addEventListener("resize", onSize);
+    ticker = setInterval(tick, 1000); tick(); label(); wake(); el.focus();
+    (window.cmSlideRenderer && window.cmSlideShow ? window.cmSlideRenderer.open(v.url).then(setup, function () { /* use the built-in viewer */ }) : Promise.resolve())
+      .then(function () { settled = true; if (run) show(); }, function () { settled = true; if (run) show(); });
   }
 
   window.cmLecturePresent = { start: start, active: function () { return !!run; } };
