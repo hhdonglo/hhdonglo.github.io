@@ -68,7 +68,7 @@
 
   function draw(p) {
     if (!p) return;
-    current = p; drawBanner(p);
+    current = p; window.cmLecture = p; document.dispatchEvent(new Event("cm:lecture")); drawBanner(p); // the Class Analytics board draws the plan from this (board/)
     var stateCls = "lp-" + p.state;
     var nums = p.target ? "<div class='lp-nums'><div><b>" + p.held + "</b><span>held</span></div><div><b>" + p.left + "</b><span>left</span></div><div><b>" + p.target + "</b><span>planned</span></div>" +
       (p.weekNow ? "<div><b>" + p.weekNow + "/" + p.weeksTotal + "</b><span>week</span></div>" : "") + "</div>" + bar(p) : "";

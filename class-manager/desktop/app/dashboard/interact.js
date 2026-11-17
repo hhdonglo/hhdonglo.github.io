@@ -58,5 +58,7 @@
   }
   // After the overview is drawn again (a refresh), the chosen drill, zone and view are shown again.
   function restore(d) { drawDrill(d); drawCards(); drawRisk(d); drawCorr(d); }
-  root.cmDashInteract = { init: init, restore: restore, state: st };
+  // Opens the drill for `key` with bar `i` chosen (used by the board's charts, board/interact.js).
+  function open(key, i, d) { st.drill = key; st.bar = i; st.all = false; drawDrill(d); drawCards(); var b = $("ddrill"); if (b && !b.hidden && b.scrollIntoView) b.scrollIntoView({ behavior: "smooth", block: "nearest" }); }
+  root.cmDashInteract = { init: init, restore: restore, open: open, state: st };
 })(window);
