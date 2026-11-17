@@ -173,7 +173,8 @@ function classStats(store, p, version) {
   let allArr = []; Object.keys(arrBySession).forEach((k) => { allArr = allArr.concat(arrBySession[k]); });
   const bySession = sessions.map((s) => { const a = statNums(arrBySession[s.raw] || []); return { label: s.label, date: s.date, present: s.present, counted: s.counted, rate: pct(s.present, s.counted), arrivalMedian: a.median, arrivals: a.n }; });
   const recent = bySession.slice(-3), earlier = bySession.slice(0, -3), avgRate = (xs) => { let p2 = 0, c2 = 0; xs.forEach((x) => { p2 += x.present; c2 += x.counted; }); return pct(p2, c2); };
-  out.attendance = { notHeld, sessions: sessions.length, rate: avgRate(bySession), lastRate: bySession.length ? bySession[bySession.length - 1].rate : null, recentRate: avgRate(recent), earlierRate: earlier.length ? avgRate(earlier) : null, bySession, arrival: { median: statNums(allArr).median, bands: band(allArr), latest: sessions.length ? band(arrBySession[sessions[sessions.length - 1].raw] || []) : [] } };
+  out.attendance = { sessions: sessions.length, rate: avgRate(bySession), lastRate: bySession.length ? bySession[bySession.length - 1].rate : null, recentRate: avgRate(recent), earlierRate: earlier.length ? avgRate(earlier) : null, bySession, arrival: { median: statNums(allArr).median, bands: band(allArr), latest: sessions.length ? band(arrBySession[sessions[sessions.length - 1].raw] || []) : [] } };
+  if (notHeld.length) out.attendance.notHeld = notHeld; // present only when a session was set aside, so the answer is the same as the script's otherwise
 
   const latest = {}, quizMeta = {};
   body(store, RESPONSES, 14).forEach((r) => {
