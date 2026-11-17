@@ -653,6 +653,7 @@ tr[data-sel]{cursor:pointer}tr[data-sel].sel>td{background:rgba(70,110,200,.28)}
   <button class="btn" type="button" id="import-web" data-import-web title="Bring scores, attendance and practice attempts collected on the web into this course">Import from the web…</button>
   <button class="btn" type="button" id="refresh">Refresh totals</button>
   <button class="btn" type="button" id="named">Attendance with names</button>
+  <button class="btn" type="button" id="roster-grades" title="The class list with every result in one table: one row per student on the class list">Roster with grades</button>
   <button class="btn primary" type="button" id="export-xlsx">Download as Excel</button>
   <button class="btn" type="button" id="export">Export all tabs as CSV</button>
  </div>
@@ -1237,6 +1238,7 @@ document.querySelectorAll("[data-setup]").forEach(function(b){b.addEventListener
 $("setup-x").addEventListener("click",function(){store("cm-setup-hidden","1");$("setup").hidden=true});
 $("refresh").addEventListener("click",function(){cmApp.run("refreshTotals").then(function(){$("r-msg").textContent="Totals refreshed.";reload().then(view)})});
 $("named").addEventListener("click",function(){cmApp.run("buildNamedAttendance").then(function(){cur="Attendance_Named";$("r-msg").textContent="Attendance with names is in the tab Attendance_Named.";reload().then(view)})});
+$("roster-grades").addEventListener("click",function(){cmGradesView.select("roster");$("tab").value=GRADES;$("r-msg").textContent="Roster with grades is the first table of the Grades (clean table) tab.";view()});
 $("export-xlsx").addEventListener("click",function(){cmApp.exportExcel().then(function(r){if(!r)return;$("r-msg").textContent=r.ok?"Saved every tab of this course to "+r.file:"Not saved: "+r.why})});
 $("export").addEventListener("click",function(){cmApp.exportResults().then(function(d){if(d)$("r-msg").textContent="Exported to "+d})});
 $("data").addEventListener("click",function(){cmApp.openData()});

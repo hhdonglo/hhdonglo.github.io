@@ -10,3 +10,7 @@ The clean table behind "Grades and Results".
 Master, Scores and Totals are not used: they hold one overwritten value per quiz and one "last updated" time. They stay available as raw tabs in the tab list.
 
 To add a column group, add a block in `build.js` that calls `setCell` and `add`, and list it in `groupsOut`; it becomes its own table automatically.
+
+## Roster with grades
+
+`roster-table.js` adds one more table, always first: the class list with every result in one row per student (ID, Name, each quiz date, Quiz average, Sessions attended, Attendance %, assignments, Practice done). It reuses the columns `build.js` already made and works out four figures from them; a figure is blank when the student has nothing behind it. `view-model.js` applies it, so the screen, Excel (first sheet) and CSV (`Grades Roster with grades.csv`) all agree. Only students on the class list appear; unknown IDs are never rows. Refresh totals redraws it, since the Grades tables are built from the records each time. Tests: `test/roster-grades.test.js`.

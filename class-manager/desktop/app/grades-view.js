@@ -69,7 +69,7 @@
     if (!host || !host.contains(e.target) || (e.key !== "Enter" && e.key !== " ")) return;
     var t = e.target.closest && e.target.closest("th[data-k]"); if (t) { e.preventDefault(); t.click(); }
   });
-  return { timeline: timeline, render: render, redraw: function () { if (data && host) draw(); } };
+  return { timeline: timeline, render: render, select: function (id) { tabId = id; sortKey = null; }, redraw: function () { if (data && host) draw(); } };
   }
   window.cmGradesView = make(); window.cmGradesView.make = make;
 })();
