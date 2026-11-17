@@ -1,4 +1,4 @@
-/* The lecturer's password (apps_script/src/06-password.gs): set, change, recover, reset, and the limits. */
+/* the password (apps_script/src/06-password.gs): set, change, recover, reset, and the limits. */
 "use strict";
 const test = require("node:test");
 const assert = require("node:assert/strict");

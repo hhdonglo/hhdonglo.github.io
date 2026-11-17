@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
-<title>Sign in | Class Manager</title>
+<title>Login | Class Manager</title>
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="../assets/site.css">
 <link rel="stylesheet" href="../assets/cm-theme.css">
@@ -47,9 +47,9 @@ var $=function(i){return document.getElementById(i)},mode="login",url="";
 if(!window.cmApp){document.body.innerHTML="<p style='padding:2rem'>Open this page from Class Manager.</p>";return}
 function setMode(m,chosen){mode=m;$("msg").textContent="";$("rec-row").hidden=m!=="recover";$("pw2-row").hidden=m==="login";$("forgot").hidden=m!=="login";
  $("pw").autocomplete=m==="login"?"current-password":"new-password";
- if(m==="create"){$("t").textContent="Choose your lecturer password";$("lead").textContent="This is the first step. One password opens CM and works for every course. At least 10 characters. You will not be asked for another password.";$("pw-l").textContent="Password";$("go").textContent="Choose password"}
+ if(m==="create"){$("t").textContent="Choose your password";$("lead").textContent="This is the first step. One password opens CM and works for every course. At least 10 characters. You will not be asked for another password.";$("pw-l").textContent="Password";$("go").textContent="Choose password"}
  else if(m==="recover"){$("t").textContent="Choose a new password";$("lead").textContent="Enter the recovery code you saved, then a new password.";$("pw-l").textContent="New password";$("go").textContent="Change password"}
- else{$("t").textContent="Sign in to CM";$("lead").textContent="Enter your lecturer password. It opens every course.";$("pw-l").textContent="Password";$("go").textContent="Sign in"}
+ else{$("t").textContent="Login to CM";$("lead").textContent="Enter your password. It opens every course.";$("pw-l").textContent="Password";$("go").textContent="Login"}
  $("pw").focus()}
 function done(r){if(r.recovery){$("f").hidden=true;$("code").textContent=r.recovery;$("code-box").hidden=false;url=r.url;$("lead").textContent="Your password is set.";$("t").textContent="Save your recovery code"}else location.href=r.url}
 $("f").addEventListener("submit",function(e){e.preventDefault();var pw=$("pw").value;

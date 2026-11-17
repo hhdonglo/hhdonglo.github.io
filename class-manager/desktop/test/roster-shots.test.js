@@ -97,3 +97,20 @@ test("updating a saved class list keeps every record: new students are added, a 
   assert.deepEqual(b.rawRows("Attendance").find((r) => r[0] === "20000003").slice(1, 3), [1, 1], "restored with the attendance it had");
   b.close();
 });
+
+test("saving a class list with a first name only, a last name only and no name keeps each as typed", () => {
+  const c = classroom({ students: 0 }), h = page({ backend: c.backend }, true);
+  const r = h["cm:rosterShotsSave"]({ rows: [{ id: "20000001", name: "Ama" }, { id: "20000002", name: "Boateng" }, { id: "20000003", name: "" }] });
+  assert.ok(r.ok, r.why); assert.equal(r.added, 3);
+  assert.deepEqual(c.backend.rawRows("Roster").slice(1).map((x) => [String(x[0]), String(x[1] || "")]), [["20000001", "Ama"], ["20000002", "Boateng"], ["20000003", ""]]);
+  c.backend.close();
+});
+
+test("the ID is the only key: two students may share a name, and a nameless ID is kept through Master", () => {
+  const c = classroom({ students: 0 }), h = page({ backend: c.backend }, true);
+  const r = h["cm:rosterShotsSave"]({ rows: [{ id: "20000001", name: "Ama Mensah" }, { id: "20000002", name: "Ama Mensah" }, { id: "20000003", name: "" }] });
+  assert.ok(r.ok, r.why); assert.equal(r.added, 3); assert.equal(r.conflicts === undefined || r.conflicts.length === 0, true);
+  const master = c.backend.rawRows("Master").slice(1).map((x) => String(x[0]));
+  assert.ok(["20000001", "20000002", "20000003"].every((id) => master.includes(id)), "every ID reaches Master, named or not");
+  c.backend.close();
+});

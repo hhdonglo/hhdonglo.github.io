@@ -1,4 +1,4 @@
-// The one lecturer password for CM (Hope, 2026-11-16): chosen once, opens CM, and is the same for every course. Stored as a salted slow hash in CM's own
+// the one password for CM (Hope, 2026-11-16): chosen once, opens CM, and is the same for every course. Stored as a salted slow hash in CM's own
 // data folder, never in a course. A recovery code (shown once) can set a new password. Courses receive the same password through main.js (first-run/README.md).
 "use strict";
 const fs = require("fs");

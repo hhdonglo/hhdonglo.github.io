@@ -13,7 +13,7 @@ No student data, class list or host key is stored in this folder.
 
 **Desktop app.** `desktop/` turns this folder into an installable app for colleagues (Windows, macOS, Linux). It runs everything from the lecturer's laptop with no Google account, keeps results on that laptop, and on first launch asks for the course details, the class list and the course materials. See [`desktop/README.md`](desktop/README.md).
 
-## Lecturer password
+## Password
 
 The lecturer signs in with a password that the lecturer chooses (the host key of earlier versions). A new Sheet or desktop course starts with a temporary key; the first time, sign in on `lecturer.html` with it and follow "choose your own password" (`password.html`).
 
@@ -35,8 +35,8 @@ class-manager/
   mock-exam.html             mock exam: 50 past examination questions, 2 hours 30 minutes
   quiz.html                  live quiz, student page
   attend.html                attendance check-in, student page (opened by the QR code)
-  lecturer.html              lecturer login and menu (needs the lecturer password)
-  password.html              choose, change or recover the lecturer password
+  lecturer.html              lecturer login and menu (needs the password)
+  password.html              choose, change or recover the password
   quiz-host.html             live quiz dashboard
   quiz-display.html          live quiz projector view
   attendance.html            start and close attendance, live count, QR code
@@ -155,3 +155,5 @@ In the desktop app the first-launch setup does all of this. For the web version:
 ## Course packs
 
 A course pack is a .zip with `course.json` (the course settings) and `files/` (lectures, PDFs, banks and the data files above, at their paths in this folder). The desktop app imports and exports packs from Course settings and lectures. To build the PHYS 143 pack: `cd desktop && node make-course-pack.js ../course-packs/phys143 PHYS143-course-pack.zip`.
+
+**Roster first, but optional.** The class roster is the first step of setup, after the password, and can be skipped: CM can be set up fully without one (course details, lectures, files, quiz banks, course packs). Only information about students (results, attendance, marks, quiz results, access codes, LMS files) waits for a roster and is refused with a button to the roster step (one gate: `desktop/first-run/stages.js`, `NEEDS`). IDs in other files never become roster members; with an empty roster the preview says so and nothing is saved. The ID is the only required and unique field of a roster entry; a name is optional (first only, last only, both, none, or the same as another student) and is shown as typed.

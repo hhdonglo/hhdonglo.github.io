@@ -1183,7 +1183,7 @@ document.addEventListener("keydown",function(e){
 });
 $("keys").addEventListener("click",function(){$("keys-d").showModal()});
 reload();loadCourses();
-function pwShow(){cmApp.passwordStatus().then(function(d){if(!d)return;$("pw-title").textContent=d.chosen?"Change the lecturer password":"Choose your lecturer password";$("pw-state").textContent=d.chosen?"Your password is saved (not shown). Type a new one to change it; a new recovery code is made.":""})}
+function pwShow(){cmApp.passwordStatus().then(function(d){if(!d)return;$("pw-title").textContent=d.chosen?"Change the password":"Choose your password";$("pw-state").textContent=d.chosen?"Your password is saved (not shown). Type a new one to change it; a new recovery code is made.":""})}
 function pwMsg(t,bad){var o=$("pw-msg");o.textContent=t;o.hidden=!t;o.style.color=bad?"#b00020":""}
 $("pw-form").addEventListener("submit",function(e){e.preventDefault();var a=$("pw-new").value,b=$("pw-new2").value;
  if(a.length<10)return pwMsg("The password needs at least 10 characters. A few words are fine.",true);

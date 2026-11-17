@@ -48,3 +48,15 @@ test("repeats merge and two names for one ID are a conflict through the same rev
   const v = review(r.rows, { names: {} });
   assert.equal(v.students.length, 1); assert.equal(v.merged.length, 1); assert.equal(v.conflicts.length, 1);
 });
+
+test("an ID with only a first name, only a last name, or no name is valid; names are shown as typed", async () => {
+  const first = await readRosterFiles([{ name: "f.csv", type: "text/csv", data: b64("ID,First name\n20000001,Ama\n20000002,Kofi\n") }]);
+  assert.deepEqual(ids(first), ["20000001:Ama", "20000002:Kofi"]);
+  const last = await readRosterFiles([{ name: "l.csv", type: "text/csv", data: b64("ID,Surname\n20000003,Mensah\n20000004,Boateng\n") }]);
+  assert.deepEqual(ids(last), ["20000003:Mensah", "20000004:Boateng"]);
+  const none = await readRosterFiles([{ name: "n.csv", type: "text/csv", data: b64("Student ID,Level\n20000005,200\n20000006,200\n") }]);
+  assert.deepEqual(ids(none).map((x) => x.split(":")[0]), ["20000005", "20000006"]);
+  const mixed = review([{ id: "20000001", name: "Ama" }, { id: "20000003", name: "Mensah" }, { id: "20000005", name: "" }], { names: {} });
+  assert.deepEqual(mixed.students.map((s) => s.id + ":" + s.name), ["20000001:Ama", "20000003:Mensah", "20000005:"]);
+  assert.equal(mixed.conflicts.length, 0); assert.equal(mixed.ambiguous.length, 0);
+});

@@ -13,16 +13,15 @@ const bank = require("../first-run/bank-folder");
 const ONLINE = path.resolve(__dirname, "..", "..", "course-packs", "phys143", "files", "quizzes");
 const tmp = () => fs.mkdtempSync(path.join(os.tmpdir(), "cm-fr-"));
 
-test("the order is password, roster, material; nothing later opens early", () => {
+test("the order is password, roster, material; the roster can be skipped, student data cannot", () => {
   let s = stageOf({});
-  assert.equal(s.current, "password"); assert.deepEqual(s.open, { password: true, roster: false, material: false });
+  assert.equal(s.current, "password");
   assert.equal(refusal("cm:rosterShotsSave", s).needs, "password");
-  assert.equal(refusal("cm:bankFolderLoad", s).needs, "password");
   s = stageOf({ passwordChosen: true });
   assert.equal(refusal("cm:rosterShotsSave", s), null);
-  assert.equal(refusal("cm:bankFolderLoad", s).needs, "roster");
+  assert.equal(refusal("cm:importApply", s).needs, "roster");
   s = stageOf({ passwordChosen: true, roster: 40 });
-  assert.equal(refusal("cm:bankFolderLoad", s), null); assert.equal(s.current, "material");
+  assert.equal(refusal("cm:importApply", s), null); assert.equal(s.current, "material");
   assert.equal(stageOf({ passwordChosen: true, roster: 40, banks: 3 }).complete, true);
   assert.equal(refusal("cm:setup", stageOf({})), null, "reading is never held back");
 });
@@ -75,4 +74,30 @@ test("loading from a folder writes the online file unchanged, and loading twice 
   const want = JSON.parse(fs.readFileSync(path.join(ONLINE, "lecture1.json"), "utf8")), got = JSON.parse(fs.readFileSync(path.join(course, "quizzes", "lecture1.json"), "utf8"));
   assert.deepEqual(got, want);
   assert.equal(bank.load(folder, course, fake).loaded[0].added, 0);
+});
+
+test("student data waits for the roster; course material never does (Hope, 2026-11-17)", () => {
+  const s0 = stageOf({ passwordChosen: true }); // password chosen, empty roster
+  for (const ch of ["cm:importPick", "cm:importPlan", "cm:importApply", "cm:autoPick", "cm:autoPickFiles", "cm:autoScan", "cm:autoPlan", "cm:lmsRosterFile", "cm:lmsRosterService"]) {
+    const r = refusal(ch, s0); assert.equal(r.needs, "roster", ch); assert.equal(r.goto, "setup.html#class"); assert.match(r.why, /Nothing about students/);
+  }
+  for (const ch of ["cm:saveLecture", "cm:removeLecture", "cm:lectureFile", "cm:importPack", "cm:libAdd", "cm:libAddPaths", "cm:generate", "cm:autoQuestions", "cm:autoCourse", "cm:autoCourseSave",
+    "cm:bankFolderPick", "cm:bankFolderLoad", "cm:importFile", "cm:importText", "cm:saveCourse", "cm:rosterShotsSave"]) assert.equal(refusal(ch, s0), null, ch + " works with an empty roster");
+  assert.equal(refusal("cm:autoPick", stageOf({ passwordChosen: true, roster: 3 })), null);
+  assert.equal(stageOf({ passwordChosen: true }).open.material, true);
+});
+
+test("no student-data file-opening call is left outside the gate", () => {
+  const { NEEDS } = require("../first-run/stages");
+  // Course material and CM's own files: allowed with no roster. Anything else that opens a file must be gated above.
+  const OK = new Set(["cm:chooseLogo", "cm:backupImport", "cm:linkedChoose", "cm:linkedRestore", "cm:folderDetails", "cm:rosterShotsRead", "cm:setPassword", "cm:saveTemplate", "cm:importTemplate", "cm:autoExport", "cm:saveExcel", "cm:lmsGradebookFile", "cm:linkFolder", "cm:export", "cm:backupExport",
+    "cm:saveLecture", "cm:lectureFile", "cm:importPack", "cm:libAdd", "cm:libAddPaths", "cm:generate", "cm:autoQuestions", "cm:autoCourse", "cm:autoCourseSave", "cm:bankFolderPick", "cm:bankFolderLoad", "cm:importFile", "cm:importText"]);
+  const root = path.resolve(__dirname, "..");
+  const files = ["main.js", "import-ipc.js", "autoload-ipc.js", "lms/ipc.js", "first-run/ipc.js", "roster-shots/ipc.js"];
+  const open = [];
+  for (const f of files) for (const part of fs.readFileSync(path.join(root, f), "utf8").split(/\bon\("(?=cm:)/).slice(1)) {
+    const ch = part.slice(0, part.indexOf('"')), body = part.split(/\n(?=on\(|\s*on\()/)[0];
+    if (/showOpenDialog|readFileSync|tableOf\(/.test(body) && !NEEDS[ch] && !OK.has(ch)) open.push(ch);
+  }
+  assert.deepEqual(open, [], "gate these in first-run/stages.js NEEDS, or list them as course material: " + open.join(", "));
 });

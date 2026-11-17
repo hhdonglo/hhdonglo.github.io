@@ -355,7 +355,7 @@ function ctxOf(e) {
 }
 const winOf = (e) => BrowserWindow.fromWebContents(e.sender) || win;
 // An IPC handler that receives the window's course first.
-// ---------- one lecturer password for CM (first-run/README.md) ----------
+// ---------- one password for CM (first-run/README.md) ----------
 // Chosen once, opens CM, and is the same for every course. After sign-in nothing else asks for a password: the courses receive the same password and the CM window signs in to them.
 let central = null, unlockedPw = null; // unlockedPw is held in memory only, from sign-in until CM closes
 const OPEN_WHILE_LOCKED = new Set(["cm:centralStatus", "cm:centralLogin", "cm:centralCreate", "cm:centralRecover"]);
@@ -372,7 +372,7 @@ function stageNow(c) {
   return firstRun.stageOf({ passwordChosen: !!(central && central.status().chosen), roster, banks: c.course.bankNumbers().length, hasContent: c.course.hasContent() });
 }
 const on = (ch, fn) => ipcMain.handle(ch, (e, ...a) => {
-  if (!unlockedPw && !OPEN_WHILE_LOCKED.has(ch)) return { ok: false, locked: true, why: "Sign in to CM first." };
+  if (!unlockedPw && !OPEN_WHILE_LOCKED.has(ch)) return { ok: false, locked: true, why: "Login to CM first." };
   const c = ctxOf(e);
   const refused = firstRun.refusal(ch, stageNow(c));
   return refused || fn(c, e, ...a);
@@ -512,7 +512,7 @@ on("cm:resetCourse", (c, e, id, o) => {
     const x = ctx(id); x.backend.flush();
     const b = x.backups.make("reset"); // the records as they are now, checked, before anything moves
     if (b && b.ok === false) return { ok: false, why: "A backup could not be made first, so nothing was reset: " + b.why };
-    const lecturerKey = x.backend.tab("Key"); // the lecturer's password (a salted hash) belongs to the lecturer, not to the course: it is carried across
+    const lecturerKey = x.backend.tab("Key"); // the password (a salted hash) belongs to the lecturer, not to the course: it is carried across
     closeCtx(id);
     const r = courseReset.resetCourse(resetBase(id), o.scope, { linked: registry.dirs(id).linked, discardUndo: o.discardUndo === true });
     if (!r.ok) return r;

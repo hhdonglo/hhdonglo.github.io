@@ -1,4 +1,4 @@
-/* The lecturer password is saved: it survives a restart and a full course Reset (it belongs to the lecturer, not to a course). */
+/* the password is saved: it survives a restart and a full course Reset (it belongs to the lecturer, not to a course). */
 "use strict";
 const test = require("node:test");
 const assert = require("node:assert/strict");
