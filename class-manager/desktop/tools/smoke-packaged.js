@@ -37,6 +37,8 @@ while (todo.length) {
   while ((m = re.exec(text))) { const hit = resolve(f, m[1]); if (hit) todo.push(hit); else missing.push(path.relative(root, f) + " requires " + m[1]); }
 }
 if (missing.length) { console.error("MISSING FROM THE PACKAGE:\\n" + missing.join("\\n")); process.exit(1); }
+try { console.log("relay address inside the package: " + (JSON.stringify(JSON.parse(fs.readFileSync(path.join(root, "relay", "address.json"), "utf8")).url) || "")); } catch (e) { console.log("relay address inside the package: NOT FOUND"); }
+console.log("package version: " + JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8")).version);
 console.log("require chain complete: " + seen.size + " files reachable from main.js and preload.js");
 const { createBackend } = require(path.join(res, "app.asar", "backend.js"));
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), "cm-smoke-"));
