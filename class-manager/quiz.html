@@ -11,6 +11,7 @@
 <link rel="apple-touch-icon" href="assets/icon-192.png">
 <script src="config.js"></script>
 <script src="assets/qrcode.js"></script>
+<script src="assets/lecturer-message.js"></script>
 <link rel="stylesheet" href="assets/site.css">
 <link rel="stylesheet" href="assets/student.css">
 <link rel="manifest" href="manifest.webmanifest">
@@ -195,7 +196,7 @@ function watchStatus(){
  jsonp("action=status&code="+encodeURIComponent(st.code),function(d){if(d&&(d.paced||d.timed)&&wasReset(d))resetToWaiting(d)});
 }
 function show(id){
- if(id==="s-end"){if(!st.watch)st.watch=setInterval(watchStatus,7000+Math.floor(Math.random()*3000))}
+ if(id==="s-end"){if(!st.watch)st.watch=setInterval(watchStatus,4000+Math.floor(Math.random()*1500))}
  else if(id!=="s-wait"&&st.watch){clearInterval(st.watch);st.watch=null}
  document.body.classList.toggle("focus",id!=="s-end");["s-start","s-wait","s-q","s-end","s-att"].forEach(function(x){$(x).hidden=(x!==id)});window.scrollTo(0,0)}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
@@ -288,7 +289,6 @@ function applyPaced(d){
  st.off=d.serverNow-Date.now();st.paused=d.state==="paused";st.remain=d.remainingMs;st.qDeadline=d.qDeadline||0;st.qSeconds=d.qSeconds||0;
  var b=$("banner");
  if(st.paused){b.textContent="Paused by your lecturer. The clock has stopped.";b.hidden=false}
- else if(d.message){b.textContent="Message from your lecturer: "+d.message;b.hidden=false}
  else b.hidden=true;
  if(d.state==="ended"||d.state==="released"){endPaced();return}
  if(d.currentQ&&d.currentQ!==st.curQ){st.curQ=d.currentQ;renderPaced()}
@@ -391,7 +391,6 @@ function applyStatus(d){
  st.off=d.serverNow-Date.now();st.endT=d.endTime;st.paused=d.state==="paused";st.remain=d.remainingMs;st.total=(d.duration||1)*60000;
  var b=$("banner");
  if(st.paused){b.textContent="The quiz is paused by your lecturer. The clock has stopped.";b.hidden=false}
- else if(d.message){b.textContent="Message from your lecturer: "+d.message;b.hidden=false}
  else b.hidden=true;
 }
 function renderTimed(){
@@ -473,6 +472,7 @@ function finish(){
  deliver();
 }
 function jsonp(params,cb){
+ if(/^action=status&/.test(params)){var inner=cb;cb=function(d){LecturerMessage.apply(d);inner(d)}} // every status answer carries the lecturer's message: show it, or remove it when cleared, on whatever screen this phone is on
  if(VIA&&/^action=(status|questions)&/.test(params)){ // the relay holds the quiz's status and questions
   var q=new URLSearchParams(params),o={};q.forEach(function(v,k){o[k]=v});
   var done=false,t=setTimeout(function(){if(!done){done=true;cb(null)}},15000);

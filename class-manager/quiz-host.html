@@ -11,6 +11,7 @@
 <link rel="apple-touch-icon" href="assets/icon-192.png">
 <script src="config.js"></script>
 <script src="assets/qrcode.js"></script>
+<script src="assets/quiz-host-text.js"></script>
 <link rel="stylesheet" href="assets/site.css">
 <script>if(!location.hash){if("scrollRestoration" in history)history.scrollRestoration="manual";window.addEventListener("pageshow",function(){if(!location.hash)window.scrollTo({top:0,left:0,behavior:"instant"})});}</script>
 <link rel="stylesheet" href="assets/cm-theme.css">
@@ -143,8 +144,8 @@ body.focus main{padding-top:1rem}
      <div><label for="h-n">Number of questions</label><select id="h-n"></select></div>
      <div><label for="h-qs">Seconds per question (0 = no timer)</label><select id="h-qs"><option>0</option><option>30</option><option>45</option><option>60</option><option>90</option><option>120</option><option>180</option></select></div>
      <div><label for="h-late">Late joining</label><select id="h-late"><option>Yes</option><option>No</option></select></div>
-     <div><label for="h-ss">Student score shown</label><select id="h-ss"><option>OnRelease</option><option>Immediate</option><option>Never</option></select></div>
-     <div><label for="h-sb">Ranking shown</label><select id="h-sb"><option>OnRelease</option><option>Immediate</option><option>Never</option></select></div>
+     <div><label for="h-ss">Student score shown</label><select id="h-ss"><option value="OnRelease">When released</option><option value="Immediate">Immediately</option><option value="Never">Never</option></select></div>
+     <div><label for="h-sb">Ranking shown</label><select id="h-sb"><option value="OnRelease">When released</option><option value="Immediate">Immediately</option><option value="Never">Never</option></select></div>
     </div>
     <p class="note">Settings apply from the next question. Scores and ranking are worked out when the quiz ends.</p>
    </section>
@@ -169,7 +170,7 @@ function q(){return "code="+encodeURIComponent(cfg.code)+"&hostkey="+encodeURICo
 function act(a,extra,cb){
  cfg.stale=false;
  jsonp("action=control&act="+a+"&"+q()+(extra||""),function(d){
-  $("h-msgline").textContent=!d?CM.noAnswer():(d.ok?"Done: "+a+".":"Not done: "+(d.why||"refused")+".");
+  $("h-msgline").textContent=!d?CM.noAnswer():QuizHostText.actLine(a,d,cfg.joined,/[?&]text=[^&]/.test(extra||""));
   var ie=$("h-initerr");if(ie){ie.hidden=!!(d&&d.ok);ie.textContent=d&&d.ok?"":(!d?"Could not reach the class server, so lecturer control was not switched on. Check that CM is running, then try again.":"Lecturer control was not switched on: "+(d.why||"refused")+(d.why==="no such code"?". The class server is an older version, so it needs the updated script (see REDEPLOY.md).":"."))}
   refresh(false);if(cb)cb(d);
  });
@@ -187,7 +188,7 @@ function refresh(first){
   $("h-init").hidden=!!d.controlled;$("h-ctl").hidden=!d.controlled;
   if(!cfg.t)cfg.t=setInterval(function(){refresh(false)},4000);
   if(!d.controlled)return;
-  cfg.c=d.status;cfg.at=Date.now();
+  cfg.c=d.status;cfg.at=Date.now();cfg.joined=d.joined;
   var st=d.status,s=st.state;
   if(cfg.first===undefined){
    cfg.first=true;
@@ -234,10 +235,10 @@ function refresh(first){
   $("h-dist").innerHTML=h;
   $("h-names").textContent=d.notYet&&d.notYet.length?"Participants: "+d.notYet.join(", "):"";
   var pre=(s==="ready"||s==="lobby"||s==="draft");
-  var wk=Object.keys(d.weeks||{}).sort(function(a,b){return a-b}),wsig=wk.join(",")+"|"+d.maxN;
+  var wk=Object.keys(d.weeks||{}).sort(function(a,b){return a-b}),wsig=wk.join(",")+"|"+d.maxN+"|"+d.week;
   if(cfg.wsig!==wsig){cfg.wsig=wsig;
-   $("h-week").innerHTML=wk.map(function(k){return '<option value="'+k+'">Week '+k+': '+esc(d.weeks[k])+'</option>'}).join("");
-   var no="";for(var n=5;n<=d.maxN;n++)no+='<option>'+n+'</option>';$("h-n").innerHTML=no}
+   $("h-week").innerHTML=QuizHostText.weekOptions(d.weeks,d.week).map(function(o){return '<option value="'+o[0]+'">'+esc(o[1])+'</option>'}).join("");
+   $("h-n").innerHTML=QuizHostText.countOptions(d.maxN,d.settings&&d.settings.n).map(function(n){return '<option>'+n+'</option>'}).join("")}
   $("h-week").disabled=!pre||d.fixed||d.weekLocked;$("h-n").disabled=!pre||d.fixed;
   setSel("h-week",d.week);setSel("h-n",d.settings&&d.settings.n);
   setSel("h-qs",st.qSeconds);setSel("h-late",d.settings&&d.settings.allowLate);setSel("h-ss",d.settings&&d.settings.showScore);setSel("h-sb",d.settings&&d.settings.showBoard);

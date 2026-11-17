@@ -116,6 +116,7 @@ class-manager/
   introduction-practice.html, lecture-N-practice.html   practice quizzes (none for lecture 6)
   mock-exam.html            mock exam from past examination questions
   quiz.html, attend.html    student pages: live quiz, attendance check-in
+  assets/lecturer-message.js, assets/quiz-host-text.js   the lecturer's message on phones; plain words and option lists for the quiz dashboard
   lecturer.html             lecturer login and menu (host key)
   quiz-host.html, quiz-display.html   quiz dashboard and projector view
   attendance.html           open, close and submit attendance; rotating QR code
@@ -398,3 +399,8 @@ Lecture detection: `desktop/autoload/lecture-names.js` finds lecture numbers in 
 `desktop/autoload/placement.js` names each scanned file by kind and where its data goes; `desktop/app/folder-placement.js` draws the table "What was found and where it goes". Choosing a folder in Load student records now ends in one preview and one "Load everything" button (roster rules unchanged). Test: `desktop/test/folder-placement.test.js`.
 
 Topic mastery (2026-11-17): `desktop/rules/topics/` (map, evidence, mastery; see its README) works out how well each lecture topic is understood. It adds `topics` to the class statistics and to My results (a student's own only). Shown in three places: the Topics card on Quizzes and Questions (`desktop/app/topics/`), the topic panels, correlations and insights on Class Analytics (`desktop/app/board/topics-*.js`), and My topics in the portal (`assets/my-topics.js`). The At risk count now ignores a quiz that fewer than 5 students sat and does not flag anyone for a reason that fits 80 percent or more of a class of 10 or more (it is reported as a class pattern); `dashboard/risk.js`.
+
+## Lecturer message on student phones (2026-11-17)
+The lecturer's "Message to all students" is stored with the quiz (`message` in the quiz control row, `rules/quiz-control.js`), is part of every quiz status answer (`status().message`) and therefore also of the status CM hands to the relay (`desktop/relay/live-quiz.js`), so it reaches phones with CM on or off. The cause of "students do not see it": `quiz.html` showed it only inside the question screen, so the waiting room and the results screen never showed it. Now `assets/lecturer-message.js` owns it: `jsonp()` in `quiz.html` passes every `action=status` answer through `LecturerMessage.apply`, which shows a prominent banner on whatever screen the phone is on (waiting room, question, between questions, results), replaces it with a new message, removes it when the answer carries none (Clear), and ignores failed or unknown answers. A phone that joins late reads the current status, so it sees the message at once; the waiting room checks every 4 to 6 seconds, a question every 3.5 to 4 seconds, the results screen every 4 to 5.5 seconds.
+
+The lecturer's screen (`quiz-host.html`) takes its sentences and option lists from `assets/quiz-host-text.js`: "Message sent to N students" with the real joined count, "Message cleared", readable labels for "Student score shown" and "Ranking shown" (When released, Immediately, Never; stored values unchanged), and a Week list that always has the quiz's own week (never blank). Tests: `desktop/test/quiz-message.test.js`.
