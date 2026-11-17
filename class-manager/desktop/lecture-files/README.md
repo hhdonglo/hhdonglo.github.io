@@ -40,4 +40,6 @@ A chip opens the document in a panel: a PDF in the PDF viewer, a Word file as te
 
 A description comes from the course's own text, then the lecturer's edit, then a draft quoted from the notes (title and first question or sentence of the opening page), marked "Drafted from <file>". Keep saves it; Edit changes it. When the notes give nothing usable, the card says so and no text is made up.
 
+The lecture view and presentation mode that open from a card are in `app/lecture-view/` (see its README).
+
 Tests: `test/lecture-files.test.js`.

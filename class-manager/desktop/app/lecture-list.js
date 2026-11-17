@@ -40,7 +40,7 @@
   }
   function label(reason) { var g = (data.ignored.groups || []).filter(function (x) { return x.reason === reason; })[0]; return g ? g.label : reason; }
   function card(r) {
-    var head = r.title ? esc(r.label) + ": " + esc(r.title) : esc(r.label);
+    var head = "<button type='button' class='lc-title' data-view='" + r.number + "' title='Open this lecture'>" + (r.title ? esc(r.label) + ": " + esc(r.title) : esc(r.label)) + "</button>";
     var files = r.documents.map(function (d) { return "<li>" + esc(d.name) + " <span class='note'>" + NAMES[d.kind] + "</span></li>"; }).join("");
     return "<article class='lc' data-n='" + r.number + "'><h4>" + head + "</h4>" + description(r) +
       "<div class='lc-chips'>" + chips(r) + "</div>" +
@@ -63,7 +63,11 @@
   function load() { return cmApp.lectureOverview().then(draw, function () {}); }
 
   host.addEventListener("click", function (e) {
-    var t = e.target.closest("button"); if (!t) return;
+    var t = e.target.closest("button");
+    // a click on the card itself (not on a control, the file lists or the editor) opens the lecture view (app/lecture-view/view.js)
+    if (!t && window.cmLectureView && !e.target.closest("details, select, textarea, a, .lc-edit")) { var cardEl = e.target.closest(".lc"); if (cardEl) return cmLectureView.open(row(cardEl.getAttribute("data-n"))); }
+    if (t && t.hasAttribute("data-view") && window.cmLectureView) return cmLectureView.open(row(t.getAttribute("data-view")));
+    if (!t) return;
     var n = t.getAttribute("data-n") || (t.closest(".lc") && t.closest(".lc").getAttribute("data-n"));
     if (t.hasAttribute("data-open") && window.cmLectureViewer) return cmLectureViewer.open(row(n), t.getAttribute("data-open"), KINDS.reduce(function (m, k) { m[k] = NAMES[k]; return m; }, {}));
     if (t.hasAttribute("data-add") && window.cmLectureViewer) return cmLectureViewer.add(row(n), t.getAttribute("data-add"));

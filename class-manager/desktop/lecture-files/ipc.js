@@ -4,7 +4,7 @@ const fs = require("fs");
 const path = require("path");
 const store = require("./store");
 const { build } = require("./build");
-const { peekAll } = require("./peek");
+const { peekAll, peek } = require("./peek");
 const { isDocumentType, ext } = require("./types");
 const { readDocx } = require("../autoload/read-file");
 const { bankCounts } = require("../lecture-progress/ipc");
@@ -25,7 +25,7 @@ function register({ on, dialog, winOf, shell, dirOf, linkedOf }) {
   on("cm:lectureFileView", async (c, e, rel) => { // what to show when a chip is clicked
     const dir = dirOf(c), f = actions(c).abs(String(rel || ""));
     if (!f || !isDocumentType(rel) || !fs.existsSync(f)) return { ok: false, why: "The file was not found." };
-    if (ext(rel) === ".pdf") return { ok: true, type: "pdf", url: "/" + String(rel).split(path.sep).join("/").split("/").map(encodeURIComponent).join("/") };
+    if (ext(rel) === ".pdf") return { ok: true, type: "pdf", pages: ((await peek(f)) || {}).pages || null, url: "/" + String(rel).split(path.sep).join("/").split("/").map(encodeURIComponent).join("/") };
     try { return { ok: true, type: "text", text: (await readDocx(f)).text }; } catch (err) { return { ok: false, why: "This Word file could not be read: " + err.message }; }
   });
   on("cm:lectureFileUpdate", async (c, e, rel) => { // open in its own program to edit; the screen reads it again afterwards
