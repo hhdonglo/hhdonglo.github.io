@@ -61,6 +61,7 @@ function open(store, p, o) {
   const rows = sessions(store); const cur = rows.filter((r) => r.status === "Open").pop();
   if (cur) return { ok: false, why: "a session is already open: close it first", session: { code: cur.code, label: cur.label } };
   if (!roster(store).length) return { ok: false, why: "the Roster tab is empty: run roster_sync.sh to add the Student IDs first" };
+  AC.run(store, { op: "generate" }, {}); // every listed student has an access code before the first phone asks: a class list saved from the Class Roster page has none until now
   const used = (c) => rows.some((r) => r.code === c) || (o.codeUsed ? o.codeUsed(c) : false);
   let code = String(p.acode || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 12);
   if (code && (code.length < 3 || used(code))) return { ok: false, why: "that code is too short or was used before" };
