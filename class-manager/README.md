@@ -6,7 +6,7 @@ It contains:
 
 - **Course pages**: course overview with the weekly programme, one page per lecture with its PDFs, and the student portal.
 - **Practice and assessment**: a practice quiz per lecture, a timed mock exam built from past examination questions, and the question banks with the tools that write and check them.
-- **Live class tools**: the live quiz (student page, lecturer dashboard, projector display), attendance check-in with a rotating QR code, the lecturer menu and the Control Centre (class list, results, tidy to class list).
+- **Live class tools**: the live quiz (student page, lecturer dashboard, projector display), attendance check-in with a rotating QR code, the lecturer menu (class list, results, tidy to class list).
 - **Server**: the Google Apps Script that stores quiz answers, attendance, the class list and marks in a private Google Sheet.
 
 No student data, class list or host key is stored in this folder.
@@ -40,7 +40,6 @@ class-manager/
   quiz-host.html             live quiz dashboard
   quiz-display.html          live quiz projector view
   attendance.html            start and close attendance, live count, QR code
-  control.html               Control Centre: class list, results, tidy to class list
   data/
     lectures.json            weekly programme and every lecture page (empty until lectures are added)
     portal.json              portal settings: current week, contact times, handouts

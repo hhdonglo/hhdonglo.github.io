@@ -62,7 +62,7 @@ body.focus main{padding-top:1rem}
  <section class="panel">
   <h3>Access codes for My progress</h3>
   <p class="note">Students open their progress page in the Portal with their student ID and a personal access code. The ID alone is no longer enough, so a classmate who knows an ID cannot see that student's marks. Every student on the class list gets a code automatically, so print the slips and hand each student their own slip in class. A code can be replaced at any time; the old one stops working at once.</p>
-  <p><button class="go" type="button" id="a-gen">Create missing codes now</button><button class="go alt" type="button" id="a-print">Print slips</button><a class="go alt" href="control.html">Control Centre</a></p>
+  <p><button class="go" type="button" id="a-gen">Create missing codes now</button><button class="go alt" type="button" id="a-print">Print slips</button></p>
   <p class="note" id="a-state" role="status"></p>
   <p class="err" id="a-err" role="alert" hidden></p>
  </section>
@@ -100,7 +100,7 @@ function call(op,extra){
 }
 function draw(){
  var f=$("a-find").value.trim().toLowerCase(),rows=ROWS.filter(function(r){return!f||r.id.indexOf(f)>=0||String(r.name).toLowerCase().indexOf(f)>=0});
- if(!ROWS.length){$("a-list").innerHTML='<p class="note">The class list is empty. Load it first (Control Centre, Class list, or the app\'s Class list).</p>';return}
+ if(!ROWS.length){$("a-list").innerHTML='<p class="note">The class list is empty. Load it first (Class Roster).</p>';return}
  $("a-list").innerHTML='<table><thead><tr><th scope="col">Student ID</th><th scope="col">Name</th><th scope="col">Access code</th><th scope="col"></th></tr></thead><tbody>'+rows.map(function(r){
   return'<tr><td>'+esc(r.id)+'</td><td>'+esc(r.name)+'</td><td class="c">'+(r.code?esc(r.code)+(r.expired?' <span class="note">(expired)</span>':''):'<span class="note">None</span>')+'</td><td><button class="go alt sm" type="button" data-id="'+esc(r.id)+'">'+(r.code?"Replace":"Create")+'</button></td></tr>'}).join("")+'</tbody></table>';
  var cc=(window.CM&&window.CM.courseCode)||"";

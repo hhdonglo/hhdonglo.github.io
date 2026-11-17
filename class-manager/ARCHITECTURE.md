@@ -28,7 +28,7 @@ The same server script runs in two places: in Google Apps Script, or inside the 
 
 ```
              Students' phones and laptops                Lecturer
-             (portal, practice, live quiz,               (lecturer menu, Control Centre,
+             (portal, practice, live quiz,               (lecturer menu,
               check-in, calendar, messages)               insights, groups, calendar, messages)
                           \                                   /
                            \  HTTP GET pages and JSON banks  /
@@ -95,7 +95,7 @@ The optional Google copy of mode B was removed in version 0.23.0 (see google-pat
 | `course.html`, `lecture-N.html`, `lecture-N-practice.html`, `introduction*.html`, `mock-exam.html` | Course pages, practice (`assets/practice.js`) and the mock examination (`assets/mock.js`). |
 | `quiz.html`, `quiz-host.html`, `quiz-display.html` | The live quiz for students, the lecturer's controls, and the projector. |
 | `attend.html`, `attendance.html` | Student check-in and the lecturer's attendance session. |
-| `lecturer.html`, `control.html` | Lecturer menu and Control Centre. Both use the host key. |
+| `lecturer.html` | Lecturer menu (website copy). Uses the host key. |
 | `insights.html`, `codes.html`, `groups.html` | Teaching insights, access codes, and student groups (host key). |
 | `calendar.html` | Course calendar: public read, lecturer edit. |
 | `messages.html` | Announcements and messages for students and the lecturer. |
@@ -500,3 +500,9 @@ Decision (Hope): a student whose ID is not on the class list may still sign in t
 The lecturer's "Message to all students" is stored with the quiz (`message` in the quiz control row, `rules/quiz-control.js`), is part of every quiz status answer (`status().message`) and therefore also of the status CM hands to the relay (`desktop/relay/live-quiz.js`), so it reaches phones with CM on or off. The cause of "students do not see it": `quiz.html` showed it only inside the question screen, so the waiting room and the results screen never showed it. Now `assets/lecturer-message.js` owns it: `jsonp()` in `quiz.html` passes every `action=status` answer through `LecturerMessage.apply`, which shows a prominent banner on whatever screen the phone is on (waiting room, question, between questions, results), replaces it with a new message, removes it when the answer carries none (Clear), and ignores failed or unknown answers. A phone that joins late reads the current status, so it sees the message at once; the waiting room checks every 4 to 6 seconds, a question every 3.5 to 4 seconds, the results screen every 4 to 5.5 seconds.
 
 The lecturer's screen (`quiz-host.html`) takes its sentences and option lists from `assets/quiz-host-text.js`: "Message sent to N students" with the real joined count, "Message cleared", readable labels for "Student score shown" and "Ranking shown" (When released, Immediately, Never; stored values unchanged), and a Week list that always has the quiz's own week (never blank). Tests: `desktop/test/quiz-message.test.js`.
+
+## Before class card
+
+Class Tools holds the one place to confirm a class before it starts: `desktop/app/before-class.js` reads the week and join code base through the local backend (`portal_status`, `join_base`, `set_week`) and runs the `preclass` action for the class list size, the quiz bank and the results switch, plus the location check in the window. Nothing new is stored. The Lecturer menu entry in CM now goes to this screen, so there is one starting point for teaching.
+
+The Control Centre page is removed. Its jobs moved to Class Tools: Before class (`before-class.js`) and After class (`after-class.js`, held attendance and held quiz results, confirmed before each action); its class list editing is the Class Roster page.
