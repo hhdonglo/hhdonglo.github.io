@@ -11,6 +11,7 @@
 <link rel="apple-touch-icon" href="assets/icon-192.png">
 <script src="config.js"></script>
 <script src="assets/qrcode.js"></script>
+<script src="assets/quiz-display-state.js"></script>
 <link rel="stylesheet" href="assets/site.css">
 <script>if(!location.hash){if("scrollRestoration" in history)history.scrollRestoration="manual";window.addEventListener("pageshow",function(){if(!location.hash)window.scrollTo({top:0,left:0,behavior:"instant"})});}</script>
 <link rel="stylesheet" href="assets/cm-theme.css">
@@ -36,6 +37,12 @@ main>.wrap{max-width:none!important;padding:0 1.5rem}
 .disp .side .code{font-size:clamp(5rem,16vh,10rem)}
 .disp .side .addr{font-size:1.8rem}
 .disp .side .huge{font-size:3rem}
+.disp .side.compact{padding:.7rem;margin:.5rem 0;gap:1.5rem}
+.disp .side.compact img{width:130px;height:130px}
+.disp .side.compact .code{font-size:3rem}
+.disp .side.compact .addr{font-size:1.1rem}
+.disp .side.compact .huge{font-size:1.5rem}
+.disp .msg{font:600 1.6rem/1.4 system-ui,sans-serif;margin:.6rem auto;max-width:48rem}
 .disp img{width:340px;height:340px;max-width:80vw;background:#fff;border:1px solid var(--border);border-radius:10px;padding:8px}
 .disp .code{font:700 6rem/1.05 ui-monospace,Menlo,monospace;letter-spacing:.08em;color:var(--brown)}
 @media (prefers-color-scheme:dark){.disp .code,.disp .clock{color:#e9c9a8}}
@@ -66,6 +73,7 @@ main>.wrap{max-width:none!important;padding:0 1.5rem}
  <section class="panel" id="d-ask">
   <form id="d-form"><label for="d-code" class="lbl">Join code</label><br><input type="text" id="d-code" maxlength="30" style="font:1.4rem system-ui;padding:.4rem .8rem;margin:.5rem"> <button class="btn primary" type="submit" style="min-height:48px;padding:0 1.4rem">Show display</button></form>
  </section>
+ <p class="msg" id="d-msg" role="status" aria-live="polite" hidden></p>
  <div id="d-main" hidden>
   <div class="layout">
    <aside class="panel side" id="d-join">
@@ -106,17 +114,21 @@ var $=function(i){return document.getElementById(i)};
 var cfg={code:"",c:null,at:0,t:null};
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function jsonp(params,cb){CM.call(params,cb)} // every request by POST: see CM.call in config.js
+function say(t){var m=$("d-msg");m.textContent=t;m.hidden=!t}
 function refresh(){
  jsonp("action=display&code="+encodeURIComponent(cfg.code),function(d){
-  if(!d||!d.ok)return;
+  var nt=QuizDisplayState.notice(d,CM.noAnswer());
+  if(!d||!d.ok){ // never a blank page: say what is wrong; once the quiz has been shown, keep it and keep trying
+   say(nt);if(!cfg.shown)$("d-ask").hidden=false;if(!cfg.t)cfg.t=setInterval(refresh,2500);return}
+  cfg.shown=true;say(nt);
   if(CM.useRelay)CM.useRelay(d.relay||null);
   $("d-ask").hidden=true;$("d-main").hidden=false;$("d-showcode").textContent=cfg.code;
   $("d-joined").textContent=d.joined;$("d-joined2").textContent=d.joined;$("d-answered").textContent=d.answered||0;
   var st=d.status;cfg.c=st;cfg.at=Date.now();
   var s=st?st.state:"started";ctlSync(s);var live=s==="running"||s==="paused",fin=s==="ended"||s==="released";
-  $("d-join").hidden=live||fin;if(!live&&!fin)CM.drawQr(document.querySelector("#d-join img[data-qr]"),CM.joinUrl(cfg.code));
+  $("d-join").hidden=false;$("d-join").classList.toggle("compact",live||fin);CM.drawQr(document.querySelector("#d-join img[data-qr]"),CM.joinUrl(cfg.code)); // the code, address and count stay on screen in every state
   var qkey=cfg.code+"|"+(st&&st.qids||[]).join(",");
-  if(st&&st.qids&&st.qids.length&&cfg.qkey!==qkey){cfg.qkey=qkey;jsonp("action=questions&code="+encodeURIComponent(cfg.code),function(r){cfg.qs=(r&&r.questions)||[]})}
+  if(st&&st.qids&&st.qids.length&&cfg.qkey!==qkey){cfg.qkey=qkey;jsonp("action=questions&code="+encodeURIComponent(cfg.code),function(r){cfg.qs=(r&&r.questions)||[];if(cfg.qs.length)refresh()})}
   var rv=d.review&&d.review.q&&fin?d.review:null;
   if(rv){
    var Q=(cfg.qs||[])[rv.q-1]||{stem:"",opts:[]},h='<p class="lbl" style="text-align:center">Question '+rv.q+' of '+(st.totalQ||5)+'</p><div style="font-size:2.6rem;line-height:1.3;margin:.4rem 0 .8rem">'+Q.stem+'</div>';
