@@ -1,24 +1,31 @@
-/* Class Manager: the lecture list on Course and Content. "Lecture 1" to the last lecture, each with its title, files, quiz bank and a plain status.
-   Built from cmApp.lectureOverview (lecture-progress/overview.js): the lecturer sees the lectures, not raw file names. */
+/* Class Manager: the lectures on Course and Content, as cards.
+   Each card: "Lecture N: topic", one or two sentences on what it covers (the course's own summary, never invented), chips for slides, handout,
+   tutorial, supplement and the quiz bank, and the files behind a "Files" control. Built from cmApp.lectureOverview (lecture-progress/overview.js). */
 (function () {
   "use strict";
   var host = document.getElementById("lec-list");
   if (!host || !window.cmApp || !cmApp.lectureOverview) return;
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
-  var OK = { Complete: "lp-ontrack", "No quiz bank": "lp-behind", "No files": "lp-behind", "Nothing found": "lp-behind" };
+  var NAMES = { slides: "Slides", handout: "Handout", tutorial: "Tutorial", supplement: "Supplement", reference: "Reference" };
 
-  function row(r) {
-    var files = r.files.slice(0, 6).map(function (f) { return esc(f.split(/[\\/]/).pop()); }).join(", ") + (r.files.length > 6 ? " and " + (r.files.length - 6) + " more" : "");
-    return "<li class='ll-row'><div class='ll-h'><strong>" + esc(r.label) + "</strong>" + (r.title ? " <span class='note'>" + esc(r.title) + "</span>" : "") +
-      " <span class='tag " + (OK[r.status] || "") + "'>" + esc(r.status) + "</span></div>" +
-      "<div class='note'>" + (r.fileCount ? r.fileCount + (r.fileCount === 1 ? " file: " : " files: ") + files : "No files") + ". Quiz bank: " + (r.bank ? "yes" : "none") + ".</div></li>";
+  function chips(r) {
+    var h = Object.keys(NAMES).filter(function (k) { return r.chips && r.chips[k]; }).map(function (k) { return "<span class='lc-chip'>" + NAMES[k] + "</span>"; }).join("");
+    h += r.bank ? "<span class='lc-chip lc-bank'>Quiz bank" + (r.questions ? ": " + r.questions + " questions" : "") + "</span>" : "<span class='lc-chip lc-none'>No quiz bank</span>";
+    return h;
+  }
+  function card(r) {
+    var head = r.title ? esc(r.label) + ": " + esc(r.title) : esc(r.label);
+    var files = r.files.map(function (f) { return "<li>" + esc(f.split(/[\\/]/).pop()) + "</li>"; }).join("");
+    return "<article class='lc'><h4>" + head + "</h4>" +
+      (r.description ? "<p class='lc-d'>" + esc(r.description) + "</p>" : "<p class='lc-d note'>No description yet. Add one in Course settings.</p>") +
+      "<div class='lc-chips'>" + chips(r) + "</div>" +
+      (r.fileCount ? "<details class='lc-files'><summary>Files (" + r.fileCount + ")</summary><ul>" + files + "</ul></details>" : "<p class='note lc-nf'>No files found.</p>") + "</article>";
   }
   function draw(o) {
     if (!o || !o.ok || !o.rows.length) { host.hidden = !o || !o.ok; host.innerHTML = o && o.ok ? "<h3>Lectures</h3><p class='note'>No lectures found yet. Load a course folder, or add lectures under Course settings.</p>" : ""; return; }
     host.hidden = false;
     var bad = o.rows.filter(function (r) { return r.status !== "Complete"; }).length;
-    host.innerHTML = "<h3>Lectures (" + o.rows.length + ")</h3><p class='note'>Lecture 1 to Lecture " + o.last + ", found from the names of the files and folders and from the course's lecture list." +
-      (o.gaps.length ? " Nothing was found for lecture " + o.gaps.join(", ") + "." : "") + (bad ? " " + bad + " need attention." : "") + "</p><ul class='ll'>" + o.rows.map(row).join("") + "</ul>";
+    host.innerHTML = "<h3>Lectures (" + o.rows.length + ")</h3><p class='note'>" + (o.gaps.length ? "Nothing was found for lecture " + o.gaps.join(", ") + ". " : "") + (bad ? bad + " without all files or a quiz bank." : "Every lecture has files and a quiz bank.") + "</p><div class='lc-grid'>" + o.rows.map(card).join("") + "</div>";
   }
   function load() { cmApp.lectureOverview().then(draw, function () {}); }
   load();

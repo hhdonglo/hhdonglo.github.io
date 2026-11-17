@@ -33,3 +33,7 @@ The card also says which lecture is due by this week (lecture number = the expec
 ## Lecture list
 
 Lecture detection: `desktop/autoload/lecture-names.js` finds lecture numbers in file and folder names (lecture1, Lecture_01, L1, Lec 2, week3, "08 Waves", numbers in folder names) and groups files by lecture, with gaps (one detector, uses the existing folder scan `autoload/scan.js`). `desktop/lecture-progress/overview.js` merges that with lectures.json and the banks into "Lecture 1" to the last, shown on Course and Content (`app/lecture-list.js`, call `cm:lectureOverview`). The last detected number pre-fills "Lectures planned" in Course settings. Tests: `test/lecture-names.test.js`, `test/lecture-overview.test.js`.
+
+## Lecture cards (Course and Content)
+
+Each lecture is a card: "Lecture N: topic", the course's own one or two sentence summary (from `data/lectures.json`, never invented; a short prompt when none), chips for slides, handout, tutorial, supplement, reference and the quiz bank with its question count, and the files behind a "Files" control. `overview()` takes a third argument, the question counts per lecture (read in `ipc.js`). Copies are not counted twice: folders named backup, removed, old, working and the like are skipped, and a file name found twice in one lecture is one file. A lecture listed as number 0 shows as "Introduction". A bank counts when the course has `quizzes/lectureN.json`, or the scan finds a bank file for that lecture. Tests: `test/lecture-overview.test.js`.

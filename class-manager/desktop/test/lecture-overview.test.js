@@ -16,3 +16,16 @@ test("a lecture with a bank but no files says so; an empty course gives no rows"
   assert.strictEqual(overview(["quizzes/lecture1.json"], [{ number: 1, bank: true }]).rows[0].status, "No files");
   assert.strictEqual(overview([], []).rows.length, 0);
 });
+
+test("copies in backup folders and repeated names are not counted again; the summary and chips come from the course", () => {
+  const files = ["lecture_1/lecture01_vectors.pdf", "backups/2026/lecture_1/lecture01_vectors.pdf", "old/lecture_1/lecture01_tutorial.pdf", "lecture_1/copy/lecture01_vectors.pdf", "lecture_1/lecture01_tutorial.pdf"];
+  const o = overview(files, [{ number: 1, title: "Vectors", summary: "How to add vectors.", tutorial: "lecture_1/lecture01_tutorial.pdf", bank: false }], { 1: 30 });
+  const r = o.rows[0];
+  assert.strictEqual(r.fileCount, 2); assert.strictEqual(r.description, "How to add vectors."); assert.strictEqual(r.chips.tutorial, true);
+  assert.strictEqual(r.bank, true); assert.strictEqual(r.questions, 30); assert.strictEqual(r.status, "Complete");
+});
+
+test("an introduction (lecture 0) is a card only when the course lists it", () => {
+  assert.strictEqual(overview([], [{ number: 0, title: "Introduction", bank: true }, { number: 1, bank: true }]).rows[0].label, "Introduction");
+  assert.strictEqual(overview([], [{ number: 1, bank: true }]).rows[0].label, "Lecture 1");
+});

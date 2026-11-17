@@ -4,6 +4,18 @@ const log = require("../rules/lecture-log");
 const { fromBackend } = require("../rules/store");
 const schedule = require("../rules/lecture-schedule");
 
+// Questions per lecture in the course's banks (quizzes/lectureN.json: a list of questions, or an object holding one).
+function bankCounts(c) {
+  const out = {};
+  c.course.bankNumbers().forEach((n) => {
+    try {
+      const f = c.course.resolve("quizzes/lecture" + n + ".json"), j = f ? JSON.parse(require("fs").readFileSync(f, "utf8")) : null;
+      out[n] = Array.isArray(j) ? j.length : j && Array.isArray(j.questions) ? j.questions.length : 0;
+    } catch (e) { out[n] = 0; }
+  });
+  return out;
+}
+
 function register({ on, saveSettings, dirOf }) {
   const store = (c) => fromBackend(c.backend);
   // The status plus which lectures are due, next and missed (named from the course's lecture list).
@@ -14,7 +26,7 @@ function register({ on, saveSettings, dirOf }) {
     return r.ok ? { ok: true, progress: progress(c) } : r;
   });
   on("cm:lectureOverview", async (c) => { // Lecture 1 to the last, from the course folder and what the course lists
-    try { const files = (await require("../autoload/scan").listFiles(dirOf(c))).files; return Object.assign({ ok: true }, require("./overview").overview(files, c.course.lectures())); } catch (e) { return { ok: false, why: e.message }; }
+    try { const files = (await require("../autoload/scan").listFiles(dirOf(c))).files; return Object.assign({ ok: true }, require("./overview").overview(files, c.course.lectures(), bankCounts(c))); } catch (e) { return { ok: false, why: e.message }; }
   });
   on("cm:lectureNotify", (c, e, yes) => { saveSettings(c, { lectureNotify: yes === true }); return { ok: true, notify: !!c.settings.lectureNotify }; });
 }
