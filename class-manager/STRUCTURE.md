@@ -1,6 +1,6 @@
 # Class Manager: structure and review notes
 
-**Current version: 0.22.2**
+**Current version: 0.24.1**
 
 Written 9 November 2026. A description of the class management tool as it stands in this folder, for review of the tool and of the course it serves.
 
