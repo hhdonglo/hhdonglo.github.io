@@ -27,7 +27,7 @@
     dlg.innerHTML = "<header><h3>" + esc(r.label) + ": " + NAMES[kind] + "</h3><button type='button' class='lv-x' aria-label='Close'>Close</button></header>" +
       "<p class='lv-name'>" + esc(c.name) + "</p>" + conf +
       "<div class='lv-tools'><label>Wrong file? <select class='lv-pick'>" + others.map(function (o) { return "<option value='" + esc(o.rel) + "'" + (o.rel === c.rel ? " selected" : "") + ">" + esc(o.name) + "</option>"; }).join("") + "</select></label>" +
-      "<button type='button' data-a='update'>Update</button><button type='button' data-a='replace'>Replace</button><button type='button' data-a='delete'>Delete</button></div>" +
+      (kind === "slides" && window.cmLecturePresent && /\.pdf$/i.test(c.rel) ? "<button type='button' class='lv-present' data-a='present'>Present</button>" : "") + "<button type='button' data-a='update'>Update</button><button type='button' data-a='replace'>Replace</button><button type='button' data-a='delete'>Delete</button></div>" +
       "<div class='lv-msg' role='status'></div><div class='lv-body'></div>";
     if (!dlg.open) dlg.showModal();
     body(r, c);
@@ -43,6 +43,7 @@
     if (t.classList.contains("lv-x")) return close();
     if (t.hasAttribute("data-undo")) return cmApp.lectureFileUndo().then(function (u) { if (u && !u.ok) return bar(esc(u.why)); changed(); refreshAfterUndo(); });
     var a = t.getAttribute("data-a");
+    if (a === "present") return cmLecturePresent.start(r); // asks for full screen inside this click, then closes this panel
     if (a === "update") return cmApp.lectureFileUpdate(c.rel).then(function (u) { bar(u && u.ok ? "Opened in its own program. Save your changes there, then <button type='button' data-a='reread'>Show the updated file</button>." : esc(u && u.why || "Could not open it.")); });
     if (a === "reread") return refresh("Showing the file as it is now.");
     if (a === "replace") return cmApp.lectureFileReplace(r.number, kind).then(function (res) { if (!res) return; if (!res.ok) return bar(esc(res.why)); refresh("Replaced. The old file is still in the folder. <button type='button' data-undo='1'>Undo</button>"); });

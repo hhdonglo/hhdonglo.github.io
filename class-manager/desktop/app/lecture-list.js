@@ -19,6 +19,7 @@
       return "<button type='button' class='lc-chip' data-open='" + k + "' data-n='" + r.number + "' title='" + esc(c.name) + "'>" + NAMES[k] +
         (c.source === "auto" ? " <small class='lc-conf lc-" + c.level + "'>" + Math.round(c.confidence * 100) + "%</small>" : "") + "</button>";
     }).join("");
+    if (r.chips.slides && /\.pdf$/i.test(r.chips.slides.rel)) h = "<button type='button' class='lc-chip lc-present' data-present='" + r.number + "' title='Show the slides full screen'>Present</button>" + h;
     h += r.bank ? "<span class='lc-chip lc-bank'>Quiz bank" + (r.questions ? ": " + r.questions + " questions" : "") + "</span>" : "<span class='lc-chip lc-none'>No quiz bank</span>";
     return h;
   }
@@ -66,6 +67,7 @@
     var t = e.target.closest("button");
     // a click on the card itself (not on a control, the file lists or the editor) opens the lecture view (app/lecture-view/view.js)
     if (!t && window.cmLectureView && !e.target.closest("details, select, textarea, a, .lc-edit")) { var cardEl = e.target.closest(".lc"); if (cardEl) return cmLectureView.open(row(cardEl.getAttribute("data-n"))); }
+    if (t && t.hasAttribute("data-present") && window.cmLecturePresent) return cmLecturePresent.start(row(t.getAttribute("data-present")));
     if (t && t.hasAttribute("data-view") && window.cmLectureView) return cmLectureView.open(row(t.getAttribute("data-view")));
     if (!t) return;
     var n = t.getAttribute("data-n") || (t.closest(".lc") && t.closest(".lc").getAttribute("data-n"));

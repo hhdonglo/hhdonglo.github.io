@@ -17,10 +17,10 @@ dialog.lw::backdrop{background:rgba(0,0,0,.6)}
 .pres-dark{--pres-bg:#0b0f18;--pres-bar:#141b2b;--pres-text:#f3efe6;--pres-line:#2c3550;--pres-accent:#E0B254}
 .pres-light{--pres-bg:#f4f1ea;--pres-bar:#ffffff;--pres-text:#1a1f2e;--pres-line:#cfc8b8;--pres-accent:#8a6410}
 .pres{background:var(--pres-bg);color:var(--pres-text)}
-.pres-stage{position:relative;flex:1;min-height:0}.pres-frames,.pres-shield,.pres-blank{position:absolute;inset:0}
+.pres-stage{position:absolute;inset:0}.pres-frames,.pres-shield,.pres-blank{position:absolute;inset:0}
 .pres-pdf{position:absolute;inset:0;width:100%;height:100%;border:0;background:var(--pres-bg);pointer-events:none}
 .pres-shield{cursor:pointer}.pres-blank{background:#000}.pres-blank[hidden]{display:none}
-.pres-bar{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.55rem 1rem;background:var(--pres-bar);border-top:2px solid var(--pres-accent);font-size:1rem;transition:opacity .3s}
+.pres-bar{position:absolute;left:0;right:0;bottom:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.55rem 1rem;background:var(--pres-bar);border-top:2px solid var(--pres-accent);font-size:1rem;transition:opacity .3s}
 .pres-title{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1}
 .pres-nav,.pres-tools{display:flex;align-items:center;gap:.7rem}.pres-count,.pres-clock{font-variant-numeric:tabular-nums;white-space:nowrap}
 .pres-bar button{font:inherit;color:var(--pres-text);background:transparent;border:1px solid var(--pres-line);border-radius:8px;padding:.3rem .8rem;cursor:pointer}

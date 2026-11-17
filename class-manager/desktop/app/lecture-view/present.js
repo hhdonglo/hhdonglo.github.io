@@ -9,19 +9,31 @@
   if (!S || !window.cmApp || !cmApp.lectureFileView) return;
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
   var THEME_KEY = "cm-present-theme";
-  var run = null; // the presentation on screen, if any
+  var run = null, starting = false; // the presentation on screen, if any
 
   function savedTheme() { try { return localStorage.getItem(THEME_KEY) === "light" ? "light" : "dark"; } catch (e) { return "dark"; } }
   function saveTheme(t) { try { localStorage.setItem(THEME_KEY, t); } catch (e) { /* the choice is not kept */ } }
 
+  // Called from a click. Full screen can only be asked for inside the click itself, so it is asked for first, before the file is read.
+  // The whole page goes full screen (the presentation covers it), and any open panel is closed because a panel would sit above the slide.
   function start(row) {
-    if (run) return;
+    if (run || starting) return;
     var chip = row && row.chips && row.chips.slides;
     if (S.slidesKind(chip) !== "pdf") return;
+    starting = true;
+    var asked = document.documentElement.requestFullscreen ? document.documentElement.requestFullscreen().catch(function () { /* the presentation still covers the window */ }) : Promise.resolve();
+    Array.prototype.forEach.call(document.querySelectorAll("dialog[open]"), function (d) { d.close(); });
     cmApp.lectureFileView(chip.rel).then(function (v) {
-      if (!v || !v.ok || v.type !== "pdf") return alert((v && v.why) || "The slides cannot be shown.");
-      open(row, chip, v);
-    });
+      starting = false;
+      if (!v || !v.ok || v.type !== "pdf") { leave(); return alert((v && v.why) || "The slides cannot be shown."); }
+      asked.then(function () { open(row, chip, v); });
+    }, function () { starting = false; leave(); });
+  }
+  // Leave full screen without the quiz projector's scan window opening (see onFull below).
+  function leave() {
+    if (!document.fullscreenElement) return;
+    function quiet(e) { e.stopImmediatePropagation(); window.removeEventListener("fullscreenchange", quiet, true); }
+    window.addEventListener("fullscreenchange", quiet, true); document.exitFullscreen().catch(function () {});
   }
 
   function open(row, chip, v) {
@@ -85,7 +97,7 @@
       clearInterval(ticker); clearTimeout(idleTimer);
       document.removeEventListener("keydown", onKey, true); window.removeEventListener("fullscreenchange", onFull, true);
       el.removeEventListener("click", onClick); el.removeEventListener("mousemove", wake);
-      if (document.fullscreenElement) document.exitFullscreen().catch(function () {});
+      leave();
       if (el.parentNode) el.parentNode.removeChild(el);
       document.dispatchEvent(new Event("cm:present-ended"));
     }
@@ -94,7 +106,6 @@
     document.addEventListener("keydown", onKey, true); window.addEventListener("fullscreenchange", onFull, true);
     el.addEventListener("click", onClick); el.addEventListener("mousemove", wake);
     ticker = setInterval(tick, 1000); tick(); show(); wake(); el.focus();
-    if (el.requestFullscreen) el.requestFullscreen().catch(function () { /* the panel still covers the window */ });
   }
 
   window.cmLecturePresent = { start: start, active: function () { return !!run; } };

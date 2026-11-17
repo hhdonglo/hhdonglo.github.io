@@ -59,11 +59,11 @@
     var t = e.target.closest("[data-lw]"); if (!t || !state.row) return;
     var a = t.getAttribute("data-lw"), kind = t.getAttribute("data-kind") || "slides";
     if (a === "close") return dlg.close();
-    if (a === "present") { dlg.close(); return cmLecturePresent.start(state.row); }
+    if (a === "present") { state.presenting = true; return cmLecturePresent.start(state.row); }
     if (a === "open" && window.cmLectureViewer) return cmLectureViewer.open(state.row, kind);
     if (a === "attach" && window.cmLectureViewer) return cmLectureViewer.add(state.row, kind);
   });
   document.addEventListener("cm:lectures-changed", function () { if (dlg.open) load(); });
-  document.addEventListener("cm:present-ended", function () { if (state.n != null && !dlg.open) { dlg.showModal(); load(); } }); // back to the lecture after teaching
+  document.addEventListener("cm:present-ended", function () { if (state.presenting && !dlg.open) { state.presenting = false; dlg.showModal(); load(); } }); // back to the lecture after teaching
   window.cmLectureView = { open: open };
 })();
