@@ -313,7 +313,7 @@ Look (2026-11-15, from Hope's inspiration image): soft tinted tiles on cards, on
 | `app/grades-view.js` | Draws the Grades tables (buttons to switch), the row menu (Timeline, Remove from class) and the timeline. |
 | `app/frozen-cols.css` | One shared style that freezes the first two columns (Student ID, Name) of a wide table; the other columns scroll to the right of them. Used by the Grades table. |
 ## Join code base (0.21.1)
-- A join code is the course's base followed by the week number (base 2627: 26271 is Week 1). The base is a script property `join_base` (default 2627), changed by the host-only action `join_base` and the "Join code base" field in the Control Centre. `joinBase_`, `codeWeek_` and `weekFromCode_` are in `apps_script/src/00-core.gs`. A signed-in lecturer can open any join code of that shape; a week without a question bank says so. Script version 2026-11-15-signin-2.
+- A join code is the course's base followed by the week number (base 2627: 26271 is Week 1). The base is a script property `join_base` (default 2627), changed by the host-only action `join_base` and the "Join code base" field under Before class on Class Tools. `joinBase_`, `codeWeek_` and `weekFromCode_` are in `apps_script/src/00-core.gs`. A signed-in lecturer can open any join code of that shape; a week without a question bank says so. Script version 2026-11-15-signin-2.
 
 ## More charts (0.21.2)
 `desktop/app/charts/explore-data.js`, `explore-view.js` and `explore-panel.js` (see `charts/README.md`): nine extra clickable bar charts across the Overview, Attendance, Quizzes and Questions and Students screens. Mounted from `app/insights.js` (`xmount`). Styles in `app/dashboard/dashboard.css`.
