@@ -61,6 +61,8 @@ function eff(c) {
   return s;
 }
 const when = (c, name) => lower(c.v[{ show_score: 6, show_leaderboard: 7 }[name]]) || "onrelease";
+// A student always sees their own score as soon as the quiz ends: Submit or Discard decides only whether it is kept. Only the lecturer's choice "Never" hides it.
+const scoreNever = (c) => when(c, "show_score") === "never";
 const visible = (c, name) => { const w = when(c, name); return w === "immediate" || (w === "onrelease" && eff(c) === "released"); };
 
 function status(c) {
@@ -251,4 +253,4 @@ function act(store, p, code, o) {
   return { ok: true, status: status(c) };
 }
 
-module.exports = { isConcept, conceptWeeks, HEADER, TAB, liveEntry, maxN, act, ctl, ctlSave, status, eff, keyRow, weekFromCode, codeWeek, joinBase, chooseQuestions, lettersFor, mark, shuffle, quizN, qids, paced, voteOf, discussedOf, allowLate, visible, drawSalt, randomText: () => crypto.randomUUID() };
+module.exports = { isConcept, conceptWeeks, HEADER, TAB, liveEntry, maxN, act, ctl, ctlSave, status, eff, keyRow, weekFromCode, codeWeek, joinBase, chooseQuestions, lettersFor, mark, shuffle, quizN, qids, paced, voteOf, discussedOf, allowLate, visible, scoreNever, drawSalt, randomText: () => crypto.randomUUID() };

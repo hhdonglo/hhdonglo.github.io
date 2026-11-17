@@ -9,6 +9,8 @@ const D = require("./quiz-diagnostic");
 const A = require("./auth");
 const AT = require("./attendance");
 const { normalizeId } = require("../ids");
+const OWN = require("./quiz-own-result");
+const U = require("./unlisted");
 
 const EXPL = "Explanations", PRESENCE = "Presence", KEY = "Key", ATT = "Attendance", SCORES = "Scores";
 const up = (v) => String(v).trim().toUpperCase();
@@ -114,25 +116,16 @@ function lastOutcome(store, id, code) {
   for (let i = rows.length - 1; i >= 0; i--) if (String(rows[i][3]).trim() === id && up(rows[i][4]) === code) return String(rows[i][1]);
   return "";
 }
-function parseAnswers(r) { const s = String(r[10] || ""); return s ? s.split("").map((ch) => (ch === "-" ? "" : ch)) : r.slice(2, 7); } // r: ID, Join Code, Q1..Q5, Score, Round, Questions, Answers
 function result(store, code, p, o) { // a student's own result; only the phone that took part (the receipt)
   const id = clean(p.id, 20), key = C.keyRow(store, code, o), cx = C.ctl(store, code);
   if (id && !A.receiptOk(store, o, code, id, p.rc)) return { found: false, receipt: false, outcome: lastOutcome(store, id, code), keyMissing: !key };
-  if (cx && C.isConcept(cx) && id) { // a diagnostic: the student's own score comes from the answers, never from the grade records
-    const gd = R.latestAnswers(store, code);
-    if (!gd[id]) return { found: false, outcome: lastOutcome(store, id, code), keyMissing: !key };
-    if (!C.visible(cx, "show_score")) return { found: true, scoreHidden: true, outcome: lastOutcome(store, id, code) };
-    const fl = C.mark(C.lettersFor(store, code, cx, o), gd[id].ans);
-    return { found: true, score: fl.reduce((x, y) => x + y, 0), total: fl.length, flags: fl, diagnostic: true, outcome: lastOutcome(store, id, code) };
-  }
-  if (key && id) {
-    const rnd = R.roundOf(store, code), rows = R.respRows(store).map((r) => r.slice(2, 14));
-    for (let i = 0; i < rows.length; i++) {
-      if (String(rows[i][0]).trim() === id && up(rows[i][1]) === code && (Number(rows[i][8]) || 0) === rnd) {
-        if (cx && !C.visible(cx, "show_score")) return { found: true, scoreHidden: true, outcome: lastOutcome(store, id, code) };
-        const flags = C.mark(C.lettersFor(store, code, cx, o), parseAnswers(rows[i]));
-        return { found: true, score: flags.reduce((x, y) => x + y, 0), total: flags.length, flags, outcome: lastOutcome(store, id, code) };
-      }
+  if (key && id) { // the score is shown as soon as the quiz ends, whether or not the result is kept (Submit or Discard) and whether or not the ID is on the class list
+    const ans = OWN.answersFor(store, code, id, o);
+    if (ans) {
+      const off = U.isUnlisted(store, id), extra = off ? { onList: false } : {};
+      if (cx && C.scoreNever(cx)) return Object.assign({ found: true, scoreHidden: true, outcome: "" }, extra);
+      const flags = C.mark(C.lettersFor(store, code, cx, o), ans);
+      return Object.assign({ found: true, score: flags.reduce((x, y) => x + y, 0), total: flags.length, flags, diagnostic: !!(cx && C.isConcept(cx)), outcome: "" }, extra);
     }
   }
   return { found: false, outcome: lastOutcome(store, id, code), keyMissing: !key };
