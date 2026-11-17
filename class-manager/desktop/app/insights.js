@@ -84,7 +84,9 @@
     $("ov-sub").textContent = "The class in numbers and charts. Click any bar or number for the students behind it. " + plural(d.rosterSize, "student", "students") + " on the class list. Updated " + new Date(d.generated).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) + ".";
     if (!d.rosterSize) { $("ov").innerHTML = "<div class='card empty'><h3>No class yet</h3><p>Add the class list under Class Roster. The overview fills in as you take attendance and run quizzes.</p></div>"; return; }
     // Analytics first: the hard numbers, the main charts, who needs attention and what goes with what. Today and setup come last, in a section that opens (app/dashboard/).
-    var DV = window.cmDashView, h = DV ? DV.head(d) + "<h3 class='xh'>The class in numbers</h3><div id='xo'></div>" + DV.grid(d) : "";
+    var DV = window.cmDashView, B = window.cmBoardView, h;
+    if (B) { document.body.classList.add("has-board"); h = "<div id='bd'>" + B.html(d, window.cmLecture, window.cmBoardInteract && cmBoardInteract.state) + "</div>" + (DV ? "<h3 class='xh'>The class in numbers</h3><div id='xo'></div>" + DV.grid(d, true) : ""); } // white chart board first (app/board/)
+    else h = DV ? DV.head(d) + "<h3 class='xh'>The class in numbers</h3><div id='xo'></div>" + DV.grid(d) : "";
     h += "<div id='gx'>" + gxHtml(d) + "</div>"; // distribution, box plot and scatter for the chosen day (app/charts/panel.js)
     // Is the class learning?
     h += "<section class='card verdict " + (VCLASS[L.verdict] || "") + "' aria-labelledby='vh'><div class='v-main'><p class='lbl' id='vh'>Is the class learning?</p>" +
@@ -113,6 +115,7 @@
       "</section></div>";
     h += "<div id='an'></div>" + (DV ? DV.ops(d, window.cmSetup, window.cmLive) : ""); // evidence, questions, concepts, support, groups, privacy (app/analytics/)
     $("ov").innerHTML = h; gxWatch(); xmount("xo", "overview"); if (window.cmAnalyticsPanel) cmAnalyticsPanel.mount($("an"), d);
+    if (window.cmBoardInteract && !window.cmBoardBound) { window.cmBoardBound = true; cmBoardInteract.init(function () { return data; }, function () { return window.cmLecture; }); }
     if (window.cmDashInteract) { if (!window.cmDashBound) { window.cmDashBound = true; cmDashInteract.init(function () { return data; }); } cmDashInteract.restore(d); } // clicks on numbers, bars and zones (app/dashboard/interact.js)
   }
   function target(t) {

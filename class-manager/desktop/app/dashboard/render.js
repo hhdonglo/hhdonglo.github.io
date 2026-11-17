@@ -84,7 +84,9 @@
   }
   // The page is built in this order (insights.js): head (the hard numbers), then the charts, then grid (who needs attention, what goes with what, trends), then ops.
   function head(d) { return statCards(d); }
-  function grid(d) { return "<div class='dgrid'>" + riskCard(d) + corrCard(d) + trendsCard(d) + insightsCard(d) + healthCard(d) + "</div>" + callout(d); }
+  function grid(d, slim) { // slim: the Class Analytics board already shows trends and insights, so they are not repeated
+    return "<div class='dgrid'>" + riskCard(d) + corrCard(d) + (slim ? "" : trendsCard(d) + insightsCard(d)) + healthCard(d) + "</div>" + (slim ? "" : callout(d));
+  }
   // Today, setup and the class tools: needed, but not what the page is about, so they sit in a section the lecturer can open.
   function ops(d, setup, live) {
     var sp = R.setupProgress(setup);
