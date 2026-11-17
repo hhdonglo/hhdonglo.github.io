@@ -2,6 +2,7 @@
    One responsibility: presentation of times and layout (no records, headings, order). Pure. */
 "use strict";
 const { shown } = require("./times");
+const { withRoster } = require("./roster-table");
 
 const NO_RECORD = "no record";
 
@@ -20,7 +21,7 @@ function tableOf(g, gr) {
   });
   return { id: gr.id, label: gr.label, columns, rows, summary: { students: rows.length, withRecords: rows.filter((r) => r.entries > 0).length } };
 }
-function forScreen(g) { return { tables: g.groups.map((gr) => tableOf(g, gr)), summary: g.summary, noRecord: NO_RECORD }; }
+function forScreen(g0) { const g = withRoster(g0); return { tables: g.groups.map((gr) => tableOf(g, gr)), summary: g.summary, noRecord: NO_RECORD }; } // "Roster with grades" is always the first table
 
 function timelineForScreen(entries) { return entries.map((e) => ({ when: shown(e.at), kind: e.kind, what: e.what, result: e.result })); }
 

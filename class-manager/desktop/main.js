@@ -643,7 +643,7 @@ on("cm:exportPack", async (c, e) => {
 on("cm:tab", (c, e, name) => c.backend.tab(String(name)));
 // Remove a student from the class and put the student back (remove-student.js): nothing is deleted, Restore undoes it.
 // IDs not on the class list: rows already in the tables, set aside on the lecturer's say, and the review list (offlist.js).
-on("cm:offListScan", (c) => Object.assign(require("./offlist").scan(c.backend), { flagged: require("./offlist").flagged(c.backend) }));
+on("cm:offListScan", (c) => Object.assign(require("./offlist").scan(c.backend), { flagged: require("./offlist").flagged(c.backend), flagSummary: require("./offlist").flagSummary(require("./offlist").flagged(c.backend)) }));
 on("cm:offListSetAside", (c, e, ids) => { const r = require("./offlist").setAside(c.backend, ids); if (r.ok) { c.backend.flush(); c.backend.rebuildMarks(); } return r; });
 on("cm:offListRestore", (c) => { const r = require("./offlist").restore(c.backend); if (r.ok) c.backend.flush(); return r; });
 on("cm:removeStudent", (c, e, id) => { const r = require("./remove-student").remove(c.backend, id); if (r.ok) c.backend.flush(); return r; });
@@ -675,6 +675,8 @@ on("cm:export", async (c, e) => {
     const rows = names.withNameColumns(c.backend.tab(t.name) || []);
     fs.writeFileSync(path.join(dir, t.name.replace(/[^\w .-]/g, "_") + ".csv"), "﻿" + rows.map((r) => r.map(csvCell).join(",")).join("\r\n"));
   });
+  // The Grades tables as CSV as well, Roster with grades first (each file starts with "Grades ").
+  try { const g = gradesOf(c); require("./grades/view-model").forExcel(g, (id) => g.entries(id)).forEach((x) => fs.writeFileSync(path.join(dir, "Grades " + x.name.replace(/[^\w .-]/g, "_") + ".csv"), "\ufeff" + x.rows.map((r) => r.map(csvCell).join(",")).join("\r\n"))); } catch (err) { console.error("grades csv: " + err.message); }
   shell.openPath(dir);
   return dir;
 });

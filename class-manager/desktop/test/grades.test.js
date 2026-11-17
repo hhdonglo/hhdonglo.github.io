@@ -17,15 +17,16 @@ const backend = createBackend({ webRoot: WEB, dataFile: path.join(fs.mkdtempSync
 Object.entries(sample.tabs).forEach(([name, rows]) => backend.setRows(name, rows));
 backend.rosterSync(sample.ids.map((id, i) => [id, "S" + i]), true);
 const read = (n) => backend.rawRows(n);
+
 const g = build(read), v = vm.forScreen(g), T = (id) => v.tables.find((t) => t.id === id);
 const FR_HEAD = ["Timestamp", "First Name", "ID", "Join Code", "Q1", "Q2", "Q3", "Q4", "Q5", "Score", "Round", "Questions", "Answers", "Week"];
 const fr = (ts, id, code, score, week) => [ts, "A", id, code, "", "", "", "", "", score, 0, 5, "", week];
 const ros = [["ID", "Name"], ["10690001", "A"], ["10690002", "B"]];
 
 test("each group is its own table: Quizzes, Attendance, Practice", () => {
-  assert.deepEqual(v.tables.map((t) => t.label), ["Quizzes", "Attendance", "Practice"]);
+  assert.deepEqual(v.tables.map((t) => t.label), ["Roster with grades", "Quizzes", "Attendance", "Practice"]);
   assert.equal(T("quizzes").columns.length, 4, "four quiz dates");
-  assert.ok(!v.tables.some((t) => t.columns.some((c) => /taken|^code|attended|%/i.test(c.label))), "no stray columns");
+  assert.ok(!v.tables.filter((t) => t.id !== "roster").some((t) => t.columns.some((c) => /taken|^code|attended|%/i.test(c.label))), "no stray columns");
   assert.ok(T("quizzes").columns.every((c) => /^\d{1,2} [A-Z][a-z]{2} \d{4}$/.test(c.label)), "quiz columns are headed by their date");
   assert.ok(T("attendance").columns.every((c) => /^\d{1,2} [A-Z][a-z]{2} \d{4}( #\d+)?$/.test(c.label)));
 });
@@ -45,7 +46,7 @@ test("a quiz is one column even when two join codes were used, and the latest tr
 
 test("two quizzes on one day get a clear label; an empty cell is blank; off-roster IDs never become rows", () => {
   const rows = [FR_HEAD, fr("2026-11-02T10:00:00Z", "10690001", "111", 3, 1), fr("2026-11-02T14:00:00Z", "10690002", "222", 5, 2), fr("2026-11-02T14:00:00Z", "99999999", "222", 5, 2)];
-  const t = vm.forScreen(build((n) => (n === "Form Responses 1" ? rows : n === "Roster" ? ros : null))).tables[0];
+  const t = vm.forScreen(build((n) => (n === "Form Responses 1" ? rows : n === "Roster" ? ros : null))).tables.filter((x) => x.id !== "roster")[0];
   assert.deepEqual(t.columns.map((c) => c.label), ["2 Nov 2026 (Week 1)", "2 Nov 2026 (Week 2)"]);
   assert.equal(t.rows.length, 2);
   assert.equal(t.rows[0].cells["q:w2"].t, ""); assert.ok(t.rows[0].cells["q:w2"].empty);
@@ -53,7 +54,7 @@ test("two quizzes on one day get a clear label; an empty cell is blank; off-rost
 
 test("attendance is its own table with one column per session date", () => {
   const grid = [["Student ID", "02/11/2026", "02/11/2026 #2", "03/11/2026"], ["10690001", 1, 0, 1], ["10690002", 0, 1, ""]];
-  const t = vm.forScreen(build((n) => (n === "Attendance" ? grid : n === "Roster" ? ros : null))).tables[0];
+  const t = vm.forScreen(build((n) => (n === "Attendance" ? grid : n === "Roster" ? ros : null))).tables.filter((x) => x.id !== "roster")[0];
   assert.deepEqual(t.columns.map((c) => c.label), ["2 Nov 2026", "2 Nov 2026 #2", "3 Nov 2026"]);
   assert.deepEqual(t.rows[0].cells["att:0"].t, "1"); assert.equal(t.rows[0].cells["att:1"].t, "0");
   assert.ok(t.rows[1].cells["att:2"].empty);
@@ -82,11 +83,11 @@ test("a student's timeline is dated, newest first, and covers attendance, quizze
 
 test("Excel follows the screen: one sheet per table (ID, Name, dates), then Timeline", () => {
   const sheets = vm.forExcel(g, (id) => g.entries(id));
-  assert.deepEqual(sheets.map((s) => s.name), ["Quizzes", "Attendance", "Practice", "Timeline"]);
-  assert.deepEqual(sheets[0].rows[0].slice(0, 2), ["Student ID", "Name"]);
-  assert.deepEqual(sheets[0].rows[0].slice(2), T("quizzes").columns.map((c) => c.label));
-  assert.equal(sheets[0].rows.length, v.tables[0].rows.length + 1);
-  assert.ok(sheets[3].rows.length > v.tables[0].rows.length);
+  assert.deepEqual(sheets.map((s) => s.name), ["Roster with grades", "Quizzes", "Attendance", "Practice", "Timeline"]);
+  assert.deepEqual(sheets[1].rows[0].slice(0, 2), ["Student ID", "Name"]);
+  assert.deepEqual(sheets[1].rows[0].slice(2), T("quizzes").columns.map((c) => c.label));
+  assert.equal(sheets[1].rows.length, v.tables[0].rows.length + 1);
+  assert.ok(sheets[4].rows.length > v.tables[0].rows.length);
 });
 
 test("times in any record format are read; marks are not mistaken for times", () => {
@@ -103,7 +104,7 @@ test("a session heading that came in as a long date string reads as a clean shor
   assert.equal(sessionLabel("04/11/2026"), "4 Nov 2026"); assert.equal(sessionLabel("04/11/2026 #2"), "4 Nov 2026 #2");
   assert.equal(sessionLabel("Midterm"), "Midterm"); assert.equal(sessionDate("04/11/2026"), "2026-11-04");
   const grid = [["Student ID", "Attendance Tue Nov 03 2026 00:00:00 GMT+0000 (Greenwich Mean Time)"], ["10690001", 1]];
-  const t = vm.forScreen(build((n) => (n === "Attendance" ? grid : n === "Roster" ? ros : null))).tables[0];
+  const t = vm.forScreen(build((n) => (n === "Attendance" ? grid : n === "Roster" ? ros : null))).tables.filter((x) => x.id !== "roster")[0];
   assert.deepEqual(t.columns.map((c) => c.label), ["3 Nov 2026"]);
 });
 

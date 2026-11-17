@@ -406,6 +406,13 @@ Each course keeps its records in one SQLite file, `data/course.db`, using the SQ
 
 "Grades and Results" opens on a clean table built from the records (`desktop/grades/`), not from Master. One row per student on the class list; each group is its own table, chosen by buttons above it (Quizzes, Attendance, Assignments, Practice): Student ID, Name, then one column per date. Quiz columns are headed by the quiz date, oldest first (two quizzes on one day read "2 Nov 2026 (Week 1)" and "2 Nov 2026 (Week 2)"; the latest try shows). Attendance has one column per session date, with 1 for present and 0 for absent. A blank cell means no record. Only students on the class list are rows. Every value keeps the time of the entry it came from (shown on hover); the timeline lists every dated entry, newest first. Download as Excel has one sheet per table with the same layout, then a Timeline sheet. Removing a student is an explicit row action (confirm, set aside, restorable); clicking a row no longer removes anything. Master, Scores and Totals remain in the tab list as raw tabs.
 
+
+## Roster with grades (17 November 2026)
+
+Grades and Results has a first table, Roster with grades (also reached by the button of that name beside "Attendance with names"): the class list and every result in one table, one row per student on the class list, with ID, Name, one column per quiz date, Quiz average, Sessions attended, Attendance %, assignment marks and Practice done. It is added by `desktop/grades/roster-table.js` from the columns `grades/build.js` already builds (no results logic is duplicated); the four figures are worked out from those cells and left blank when the student has nothing behind them. The same table is the first sheet of Download as Excel and the file `Grades Roster with grades.csv` in Export all tabs as CSV. IDs not on the class list are never rows. Refresh totals redraws it because the Grades tables are built from the records each time.
+
+The notice "IDs flagged by imports" now counts each ID once however many files it came from (`offlist.flagSummary`). An import used to flag at most 500 IDs because the report listed only 500; it now flags every ID that is not on the class list (`notOnListAllIds`).
+
 ## Courses, IDs and Reset (15 November 2026)
 
 - A course owns its class list. Each course has its own database (`courses/<id>/data/course.db`), so a student ID is unique within a course and the same person in two courses is two separate records. Every record refers to an ID in its own course's class list; an import matches only against that course's class list. IDs in a file that are not on the class list are listed in the preview ("IDs not on the class list"), never added silently and never sent to another course.

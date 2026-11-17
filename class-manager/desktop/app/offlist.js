@@ -17,8 +17,10 @@
           "<p class='row'><button class='btn' type='button' id='ol-blank'>Set aside the " + r.blank + " with no records</button><button class='btn' type='button' id='ol-all'>Set aside all " + r.rows.length + "</button><button class='btn' type='button' id='ol-restore'>Restore set-aside rows</button></p></details>";
       }
       if ((r.flagged || []).length) {
-        html += "<details class='card' style='margin:.6rem 0;padding:.6rem .9rem'><summary class='note'>IDs flagged by imports (" + r.flagged.length + "): not on the class list, never added</summary><ul class='note'>" +
-          r.flagged.slice(-200).map(function (x) { return "<li>" + esc(x.id) + ": " + esc(x.why) + ", from " + esc(x.file) + " (" + esc(String(x.when).slice(0, 10)) + ")</li>"; }).join("") + "</ul></details>";
+        var sm = r.flagSummary || { ids: r.flagged.length, files: 1 }, seen = {}, uniq = []; // one line per ID, with the files it came from
+        r.flagged.forEach(function (x) { var k = String(x.id); if (!seen[k]) { seen[k] = { id: x.id, why: x.why, files: [], when: x.when }; uniq.push(seen[k]); } if (seen[k].files.indexOf(x.file) < 0) seen[k].files.push(x.file); });
+        html += "<details class='card' style='margin:.6rem 0;padding:.6rem .9rem'><summary class='note'>IDs flagged by imports (" + sm.ids + " IDs from " + sm.files + " file(s)): not on the class list, never added</summary><ul class='note'>" +
+          uniq.slice(-200).map(function (x) { return "<li>" + esc(x.id) + ": " + esc(x.why) + ", from " + esc(x.files.join(", ")) + " (" + esc(String(x.when).slice(0, 10)) + ")</li>"; }).join("") + (uniq.length > 200 ? "<li>and " + (uniq.length - 200) + " more</li>" : "") + "</ul></details>";
       }
       box.innerHTML = html;
       function go(ids, msg) { if (!confirm(msg)) return; cmApp.offListSetAside(ids).then(function (x) { if (x && x.ok) location.reload(); else alert(x && x.why || "Nothing was changed."); }); }

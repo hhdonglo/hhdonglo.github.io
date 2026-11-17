@@ -39,7 +39,8 @@ function register({ on, dialog, winOf, shell }) {
       const backup = c.backups.make("before web import"); // the records as they were, to restore if this was a mistake
       if (backup && backup.ok === false) return { ok: false, why: "A backup could not be made first, so nothing was imported: " + backup.why };
       const done = apply(made.ops, c.backend, { rebuild: () => { c.backend.rebuildMarks(); c.backend.buildFromRoster(); } });
-      const ids = (made.report.students.notOnListIds || []).map((id) => ({ id, why: "not on the class list" })).concat((made.report.students.flagged || []).filter((x) => !(made.report.students.notOnListIds || []).includes(x.id)));
+      const all = made.report.students.notOnListAllIds || made.report.students.notOnListIds || []; // every ID, not only the 500 the report lists
+      const ids = all.map((id) => ({ id, why: "not on the class list" })).concat((made.report.students.flagged || []).filter((x) => !all.includes(x.id)));
       const flagged = require("./offlist").flag(c.backend, ids, p.name); // IDs not on the class list are only listed for review, never given a row
       c.backend.flush();
       pending.delete(c.id);

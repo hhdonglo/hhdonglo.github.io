@@ -309,7 +309,7 @@ Look (2026-11-15, from Hope's inspiration image): soft tinted tiles on cards, on
 | `app/mailbox.html`, `app/mailbox.js` | The Mailbox screen. |
 | `../assets/outbox.js`, `../assets/relay-seal.js` | The phone's queue and encryption. |
 | `../relay/worker.mjs`, `../relay/README.md` | The mailbox Worker and the setup steps. |
-| `grades/build.js`, `grades/view-model.js`, `grades/times.js` | The clean Grades tables (Quizzes by date, Attendance by session date, and more) with the time of each entry, a student's timeline, and the Excel layout (see `grades/README.md`). |
+| `grades/build.js`, `grades/roster-table.js`, `grades/view-model.js`, `grades/times.js` | The clean Grades tables (Quizzes by date, Attendance by session date, and more) with the time of each entry, a student's timeline, and the Excel layout (see `grades/README.md`). `roster-table.js` adds the first table, Roster with grades (class list, quiz dates, quiz average, attendance figures), from the other tables. |
 | `rules/session-label.js`, `rules/attendance-bands.js` | Clean session dates from any heading; the class split by attendance rate (who comes, who does not). |
 | `app/grades-view.js` | Draws the Grades tables (buttons to switch), the row menu (Timeline, Remove from class) and the timeline. |
 | `app/frozen-cols.css` | One shared style that freezes the first two columns (Student ID, Name) of a wide table; the other columns scroll to the right of them. Used by the Grades table. |

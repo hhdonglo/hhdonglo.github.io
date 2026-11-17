@@ -59,6 +59,9 @@ function flag(b, ids, file, now) {
   return add.length;
 }
 
+// The review list counted honestly: each ID once however many files it came from. The same ID in two files is two entries but one ID.
+const flagSummary = (list) => { const ids = new Set(list.map((x) => digits(x.id))), files = new Set(list.map((x) => x.file)); return { ids: ids.size, files: files.size, entries: list.length }; };
+
 const flagged = (b) => (b.rawRows(FLAGS) || []).slice(1).map((r) => ({ when: r[0], id: r[1], why: r[2], file: r[3] }));
 
-module.exports = { scan, setAside, restore, flag, flagged, KEPT, FLAGS };
+module.exports = { scan, setAside, restore, flag, flagged, flagSummary, KEPT, FLAGS };
