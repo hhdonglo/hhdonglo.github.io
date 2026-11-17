@@ -138,7 +138,7 @@ function targets(out, learning, th) {
   return t.sort((a, b) => b.weight - a.weight).slice(0, 12).map((x) => { x.weight = Math.round(x.weight); return x; });
 }
 
-function classStats(store, p, version) {
+function classStats(store, p, version, o) {
   p = p || {}; const now = store.now().getTime(), th = thresholds(p);
   const roster = AC.rosterRows(store).map((r) => ({ id: normalizeId(r[0]), name: AC.cleanName(r[1]).trim() })).filter((r) => r.id), inRoster = {}; roster.forEach((r) => { inRoster[r.id] = true; });
   const out = { ok: true, version, generated: new Date(now).toISOString(), thresholds: th, rosterSize: roster.length, groupNames: STATS_GROUPS };
@@ -227,6 +227,7 @@ function classStats(store, p, version) {
   out.attendance.people = require("./attendance-bands").attendanceBands(students); // who comes and who does not, by band
   const counts = {}; STATS_GROUPS.forEach((g) => { counts[g] = 0; }); students.forEach((s) => { counts[s.group]++; }); out.groups = counts;
   out.learning = learningVerdict(out, rep); out.targets = targets(out, out.learning, th);
+  try { out.topics = require("./topics").classTopics(store, o, order); } catch (e) { out.topics = null; out.topicsError = String(e).slice(0, 120); } // topic mastery (rules/topics/README.md)
   const lastQ = out.quizzes.length ? out.quizzes[out.quizzes.length - 1] : null;
   out.summary = { attendanceRate: out.attendance.rate, lastSessionRate: out.attendance.lastRate, recentRate: out.attendance.recentRate, earlierRate: out.attendance.earlierRate, missedInARow: students.filter((s) => s.missedInARow >= th.misses).length, quizzes: out.quizzes.length, quizAverage: statNums(students.map((s) => s.quizAverage)).mean, lastQuiz: lastQ, review: out.questions.filter((q) => q.answers >= 5 && q.pct !== null).sort((a, b) => a.pct - b.pct).slice(0, 3).map((q) => ({ id: q.id, pct: q.pct, wrongTop: q.wrongTop, wrongTopN: q.wrongTopN, answers: q.answers })) };
   return out;

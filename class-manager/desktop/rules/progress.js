@@ -68,7 +68,7 @@ function studentProfile(store, id, all, me, o) {
 // Host only: one student in full, for the Class statistics student view.
 function studentStats(store, p, o, version) {
   const id = normalizeId(p.id); if (!id) return { ok: false, why: "no student ID" };
-  const all = CS.classStats(store, p, version); let me = null; all.students.forEach((s) => { if (s.id === id) me = s; });
+  const all = CS.classStats(store, p, version, o); let me = null; all.students.forEach((s) => { if (s.id === id) me = s; });
   if (!me) return { ok: false, why: "that ID is not on the class list" };
   let ln = { mastery: [], revisit: [], practice: [] }; try { ln = L.studentLearning(store, id); } catch (e) { /* shown without it */ }
   let prof = null; try { prof = studentProfile(store, id, all, me, o); } catch (e) { prof = { error: String(e).slice(0, 160) }; }
@@ -81,6 +81,7 @@ function portalExtras(store, id, o) {
   const out = {};
   try { out.groups = G.studentGroups(store, id); } catch (e) { out.groups = []; }
   try { const ln = L.studentLearning(store, id); out.mastery = ln.mastery; out.revisit = ln.revisit; out.practice = ln.practice; } catch (e) { out.learningError = true; }
+  try { out.topics = require("./topics").studentTopics(store, o, id); } catch (e) { out.topicsError = true; } // the student's own topics only
   try {
     const sp = OC.studentProgress(id, OC.evidence(store, o));
     out.progress = { outcomes: sp.outcomes.map((x) => ({ label: x.label, answers: x.answers, start: x.start, current: x.current, gain: x.gain, level: x.level })), timeline: sp.timeline, overall: { answers: sp.overall.answers, start: sp.overall.start, current: sp.overall.current, gain: sp.overall.gain }, minimum: sp.minimum };

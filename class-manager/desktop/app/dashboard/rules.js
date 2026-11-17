@@ -33,7 +33,7 @@
         light: small ? LIGHTS.watch : light(a.rate, 60, 80), reason: small ? "Small class: fewer than " + MIN_STUDENTS + " students." : "" },
       { key: "learning", label: "Learning", value: L.verdict || "Not enough data", text: L.confidence ? "confidence: " + L.confidence : "needs two released quizzes", light: learnLight },
       { key: "practice", label: "Practice", value: String(d.practice ? d.practice.last7Days || 0 : 0), text: d.practice && d.practice.studentsLast7Days ? "attempts in 7 days, by " + plural(d.practice.studentsLast7Days, "student", "students") : "no practice in the last 7 days", light: LIGHTS.none },
-      { key: "risk", label: "At risk", value: String(atRisk), text: atRisk ? "with at least one reason" + (rk.thin ? "; " + rk.thin + " on thin evidence" : "") : "no one flagged", reason: rk.thin ? rk.thin + " flagged on little data (fewer than " + RK.MIN_SESSIONS + " sessions or " + RK.MIN_QUIZZES + " quizzes)" : "", light: riskShare === null ? LIGHTS.none : riskShare >= 25 ? LIGHTS.bad : riskShare > 0 ? LIGHTS.watch : LIGHTS.good }
+      { key: "risk", label: "At risk", value: String(atRisk), text: atRisk ? "with at least one reason" + (rk.thin ? "; " + rk.thin + " on thin evidence" : "") : "no one flagged", reason: (rk.thin ? rk.thin + " flagged on little data (fewer than " + RK.MIN_SESSIONS + " sessions or " + RK.MIN_QUIZZES + " quizzes)" : "") + (rk.classWide && rk.classWide.length ? (rk.thin ? ". " : "") + rk.classWide.map(function (w) { return w.label + " fits " + w.count + " of " + w.of + " students, so it is a class pattern and flags no one"; }).join("; ") : ""), light: riskShare === null ? LIGHTS.none : riskShare >= 25 ? LIGHTS.bad : riskShare > 0 ? LIGHTS.watch : LIGHTS.good }
     ];
   }
 

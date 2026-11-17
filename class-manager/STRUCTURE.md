@@ -396,3 +396,5 @@ Lecture detection: `desktop/autoload/lecture-names.js` finds lecture numbers in 
 
 ## Load one folder of attendance and grades
 `desktop/autoload/placement.js` names each scanned file by kind and where its data goes; `desktop/app/folder-placement.js` draws the table "What was found and where it goes". Choosing a folder in Load student records now ends in one preview and one "Load everything" button (roster rules unchanged). Test: `desktop/test/folder-placement.test.js`.
+
+Topic mastery (2026-11-17): `desktop/rules/topics/` (map, evidence, mastery; see its README) works out how well each lecture topic is understood. It adds `topics` to the class statistics and to My results (a student's own only). Shown in three places: the Topics card on Quizzes and Questions (`desktop/app/topics/`), the topic panels, correlations and insights on Class Analytics (`desktop/app/board/topics-*.js`), and My topics in the portal (`assets/my-topics.js`). The At risk count now ignores a quiz that fewer than 5 students sat and does not flag anyone for a reason that fits 80 percent or more of a class of 10 or more (it is reported as a class pattern); `dashboard/risk.js`.
