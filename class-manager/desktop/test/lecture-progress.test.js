@@ -94,3 +94,35 @@ test("works with no class list: nothing here reads the roster", () => {
   const r = L.report(store([]), settings);
   assert.strictEqual(r.held, 0); assert.ok(r.state === "behind" || r.state === "ontrack");
 });
+
+// Which lectures are due, next and missed (rules/lecture-schedule.js).
+const S = require("../rules/lecture-schedule");
+const list = [{ number: 1, title: "Units", summary: "SI units" }, { number: 2, title: "Motion" }, { number: 3 }, { number: 4, title: "Forces" }];
+
+test("behind: due is the expected lecture, next is the first not held, missed lists the gap in order", () => {
+  const p = S.plan({ target: 13, held: 1, expected: 4 }, list);
+  assert.strictEqual(p.due.label, "Lecture 4"); assert.strictEqual(p.due.title, "Forces");
+  assert.strictEqual(p.next.label, "Lecture 2"); assert.strictEqual(p.next.title, "Motion");
+  assert.deepStrictEqual(p.missed.map((l) => l.number), [2, 3, 4]);
+  assert.strictEqual(p.missed[1].title, ""); // no title in the course list: nothing invented
+});
+
+test("on track or ahead: nothing missed, next is held plus one", () => {
+  assert.deepStrictEqual(S.plan({ target: 13, held: 4, expected: 4 }, list).missed, []);
+  const a = S.plan({ target: 13, held: 6, expected: 4 }, list);
+  assert.deepStrictEqual(a.missed, []); assert.strictEqual(a.next.number, 7); assert.strictEqual(a.due.number, 4);
+});
+
+test("no target, no dates, target met", () => {
+  assert.deepStrictEqual(S.plan({ target: 0, held: 2, expected: null }, list), { due: null, next: null, missed: [] });
+  const d = S.plan({ target: 13, held: 2, expected: null }, list);
+  assert.strictEqual(d.due, null); assert.strictEqual(d.next.number, 3);
+  const m = S.plan({ target: 13, held: 13, expected: 13 }, list);
+  assert.strictEqual(m.next, null); assert.deepStrictEqual(m.missed, []);
+});
+
+test("report carries the schedule through the status numbers", () => {
+  const s = P.status(Object.assign({}, base, { heldDates: ["2026-11-03"], today: "2026-11-24" }));
+  const p = S.plan(s, list);
+  assert.strictEqual(p.due.number, s.expected); assert.strictEqual(p.missed.length, s.behind);
+});
