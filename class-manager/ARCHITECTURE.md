@@ -443,3 +443,6 @@ The Attendance page opens with the same Attendance table as Grades and Results (
 ## Attendance start-up (simplified 2026-11-16)
 
 `attendance.html` shows one Start button, one tick box ("Only students in the room can check in", remembered as `cm_near`) and a collapsed More options (radius, typed classroom position). Unticked, CM sends `attend_open` with no position. Ticked, CM sends this computer's position, else the saved one, and asks for typing only when neither exists. If the Access and safety setting enforces location, the server answers `needLocation` and the page switches the tick on by itself. Rules in `desktop/rules/attendance.js` and `attendance-guard.js` are unchanged: one phone per student ID, new-phone approval, roster-only IDs and the relay all work as before. Test: `desktop/test/attendance-start.test.js`.
+
+## Uploads (2026-11-17)
+Every upload screen accepts the standard file types through the shared readers (`desktop/autoload/read-file.js`, `detect.js`, `file-types.js`; `desktop/roster-shots/files.js` for the class list). Only the Class Roster adds students; other uploads only check against it.

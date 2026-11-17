@@ -31,10 +31,10 @@ function register({ on, dialog, winOf, shell, dirOf, fetchFn }) {
   on("cm:lmsSave", (c, e, s) => ({ ok: true, config: config.save(dirOf(c), s) }));
 
   on("cm:lmsRosterFile", async (c, e, o) => { // a roster exported from the LMS
-    const r = await dialog.showOpenDialog(winOf(e), { title: "Choose the roster exported from the LMS", properties: ["openFile"], filters: [{ name: "Roster", extensions: ["csv", "xlsx", "txt", "tsv"] }] });
+    const r = await dialog.showOpenDialog(winOf(e), { title: "Choose the roster exported from the LMS", properties: ["openFile"], filters: [require("../autoload/file-types").filter("Roster")] });
     if (r.canceled || !r.filePaths[0]) return null;
     try {
-      const read = readRoster(await readTable(r.filePaths[0]), { profile: (o && o.profile) || config.load(dirOf(c)).profile, idColumn: o && o.idColumn });
+      const read = readRoster(await require("../roster-shots/files").tableOf(r.filePaths[0]), { profile: (o && o.profile) || config.load(dirOf(c)).profile, idColumn: o && o.idColumn });
       if (read.problem) return Object.assign(stop(read.problem), { columns: read.columns });
       return summary(c, path.basename(r.filePaths[0]), read.students, { skipped: read.skipped, repeats: read.repeats.length });
     } catch (err) { return stop(err.message); }

@@ -608,7 +608,7 @@ on("cm:saveLecture", (c, e, o) => { const r = c.course.saveLecture(o || {}); c.b
 on("cm:removeLecture", (c, e, n) => { const r = c.course.removeLecture(Number(n)); c.backend.dropSiteCache(); return r; });
 on("cm:lectureFile", async (c, e, n, kind, remove) => {
   if (remove) return c.course.removeLectureFile(Number(n), String(kind));
-  const r = await dialog.showOpenDialog(winOf(e), { title: "Choose the file", filters: [{ name: "Lecture file", extensions: ["pdf", "docx", "pptx", "md", "txt"] }], properties: ["openFile"] });
+  const r = await dialog.showOpenDialog(winOf(e), { title: "Choose the file", filters: [FT.filter("Lecture file")], properties: ["openFile"] });
   if (r.canceled || !r.filePaths[0]) return null;
   try { return c.course.addLectureFile(Number(n), String(kind), r.filePaths[0]); } catch (err) { return { ok: false, why: err.message }; }
 });
@@ -770,7 +770,8 @@ on("cm:centralCreate", (c, e, pw) => central.status().chosen ? { ok: false, why:
 on("cm:centralRecover", (c, e, code, pw) => signedIn(c, pw, central.recover(code, pw)));
 ipcMain.on("cm:sessionKey", (e) => { e.returnValue = unlockedPw && String(e.sender.getURL()).startsWith(baseUrl()) ? unlockedPw : ""; }); // read by preload.js so lecturer pages open already signed in
 // ---------- resources and question authoring (app/author.html) ----------
-const DOC_TYPES = [{ name: "Teaching material", extensions: ["pdf", "docx", "pptx", "md", "markdown", "txt"] }];
+const FT = require("./autoload/file-types");
+const DOC_TYPES = [FT.filter("Teaching material")];
 on("cm:authStatus", (c) => c.authoring.status());
 on("cm:authSettings", (c, e, o) => c.authoring.setSettings(o || {}));
 on("cm:libList", (c) => c.authoring.listDocs());
@@ -795,7 +796,7 @@ on("cm:draftsReject", (c, e, dids) => c.authoring.rejectDrafts((dids || []).map(
 on("cm:approve", (c, e, dids) => { const r = c.authoring.approve((dids || []).map(String), "review screen"); c.backend.dropSiteCache(); return r; });
 on("cm:withdraw", (c, e, id) => { const r = c.authoring.withdraw(String(id)); c.backend.dropSiteCache(); return r; });
 on("cm:importFile", async (c, e, defaults) => {
-  const r = await dialog.showOpenDialog(winOf(e), { title: "Import questions", filters: [{ name: "Questions", extensions: ["docx", "pdf", "md", "markdown", "txt"] }], properties: ["openFile"] });
+  const r = await dialog.showOpenDialog(winOf(e), { title: "Import questions", filters: [FT.filter("Questions")], properties: ["openFile"] });
   if (r.canceled || !r.filePaths[0]) return null;
   try { return Object.assign({ ok: true }, await c.authoring.importFile(r.filePaths[0], defaults || {})); } catch (err) { return { ok: false, why: err.message }; }
 });
