@@ -34,6 +34,7 @@ function handle(store, p, o) {
     if (!C.allowLate(ca) && !S.hasPresence(code, id)) return done("not joined");
     let cf = String(p.conf || "").trim().toUpperCase().charAt(0); if ("HML".indexOf(cf) < 0) cf = "";
     S.addAnswer([store.now(), id, name, code, qn, al, Number(ca.v[16]) || 0, cf, C.voteOf(ca)]);
+    if (!S.hasPresence(code, id)) S.presence(code, id, name, "inprogress"); // an answer is participation, even when the join never arrived
     return withReceipt("ok");
   }
   if (p.kind === "join" || p.kind === "progress") { // lobby and live participation

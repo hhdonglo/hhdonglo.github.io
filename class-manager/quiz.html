@@ -12,6 +12,7 @@
 <script src="config.js"></script>
 <script src="assets/qrcode.js"></script>
 <script src="assets/lecturer-message.js"></script>
+<script src="assets/quiz-acks.js"></script>
 <link rel="stylesheet" href="assets/site.css">
 <link rel="stylesheet" href="assets/student.css">
 <link rel="manifest" href="manifest.webmanifest">
@@ -181,6 +182,7 @@ var D=function(s){return s};
 var QS=window.QUIZ_L1||[];
 var L="ABCDE";
 var $=function(i){return document.getElementById(i)};
+var ACKS=QuizAcks.create();
 var st={name:"",id:"",code:"",ans:[],i:0,t:SECONDS,timer:null,sent:false,rc:""}; // rc: the receipt the server gives this phone; only it can show this student's result
 function keepReceipt(r){r.text().then(function(t){try{var d=JSON.parse(t);if(d&&d.receipt)st.rc=d.receipt;if(d&&d.onList===false)st.offList=true}catch(x){}}).catch(function(){})} // an ID off the class list: the class server says so; the student takes the whole quiz as usual and the notice to see the lecturer appears only on the final screen
 // A reset or new round by the lecturer: the round number changes (and the quiz goes back to the lobby), so every phone starts over,
@@ -311,7 +313,7 @@ function renderPaced(){
   b.addEventListener("click",function(){
    if(pacedClosed())return;
    st.ans[st.curQ-1]=L[j];Array.prototype.forEach.call(o.children,function(c){c.setAttribute("aria-checked",c===b?"true":"false")});
-   sendAnswer(st.curQ,L[j]);drawConf();
+   ACKS.chosen(st.curQ,L[j]);sendAnswer(st.curQ,L[j]);drawConf();
   });
   o.appendChild(b);
  });
@@ -331,10 +333,20 @@ Array.prototype.forEach.call(document.querySelectorAll("#conf button"),function(
  if(pacedClosed()||!st.ans[st.curQ-1])return;if(!st.conf)st.conf=[];
  st.conf[st.curQ-1]=b.getAttribute("data-c");drawConf();sendAnswer(st.curQ,st.ans[st.curQ-1]);
 })});
-function sendAnswer(q,a){
- var b=new URLSearchParams();b.set("kind","answer");b.set("name",st.name);b.set("id",st.id);b.set("code",st.code);b.set("q",String(q));b.set("answer",a);b.set("conf",(st.conf&&st.conf[q-1])||"");
- $("pnote").textContent="Sending your answer.";
- postTo(b,{mode:"no-cors"}).then(function(){$("pnote").textContent="Your answer is sent. You can change it until time runs out. Wait for the next question."},function(){$("pnote").textContent="Your answer could not be sent. Check your connection and tap it again."});
+function sendAnswer(q,a,tries){
+ tries=tries||0;
+ var b=new URLSearchParams();b.set("kind","answer");b.set("name",st.name);b.set("id",st.id);b.set("code",st.code);b.set("q",String(q));b.set("answer",a);b.set("conf",(st.conf&&st.conf[q-1])||"");b.set("want","receipt");
+ if(!tries)$("pnote").textContent="Sending your answer.";
+ postTo(b).then(function(r){return r.json()}).then(function(d){
+  keepReceipt({text:function(){return Promise.resolve(JSON.stringify(d))}});
+  ACKS.reply(q,a,d&&d.outcome);
+  if(d&&d.outcome==="ok"){$("pnote").textContent="Your answer is received. You can change it until time runs out. Wait for the next question.";return}
+  var why=QuizAcks.WHY[d&&d.outcome]||(d&&d.outcome)||"not accepted";
+  if(d&&d.outcome==="not joined"&&tries<2){join("progress");setTimeout(function(){sendAnswer(q,a,tries+1)},1500);return} // the join was lost: join again, then send again
+  $("pnote").textContent="Your answer was not accepted ("+why+"). Tell your lecturer."
+ },function(){ // the phone could not reach the server: keep the answer and try again, up to three more times
+  if(tries<3&&st.ans[q-1]===a){$("pnote").textContent="Could not reach the class server. Trying again.";setTimeout(function(){sendAnswer(q,a,tries+1)},2000*(tries+1));return}
+  $("pnote").textContent="Your answer could not be sent. Check your connection and tap it again."});
 }
 function setLocked(){
  var lock=pacedClosed();
@@ -503,7 +515,8 @@ function poll(n){
   if(d&&d.receipt===false&&(d.outcome==="ok"||d.outcome==="duplicate")){$("t-end").textContent="Thank you, "+st.name;$("end-msg").textContent="Your answers are recorded. Your score is shown only on the phone that sent them.";return}
   if(d&&d.onList===false)st.offList=true;
   if(d&&!st.paced&&d.outcome&&d.outcome!=="ok"&&d.outcome!=="duplicate"){problem("The class server could not record your answers ("+d.outcome+"). Tell your lecturer.");return}
-  if(st.paced&&n>=4){$("t-end").textContent="The quiz has ended";$("end-msg").textContent="No answers from you were recorded for this quiz. If that is wrong, tell your lecturer.";return}
+  if(st.paced&&n>=4){var note=ACKS.endNote();if(note){$("t-end").textContent="Thank you, "+st.name;$("end-msg").textContent=note;return} // the relay cannot give a phone its score; the answers it confirmed are said plainly
+   $("t-end").textContent="The quiz has ended";$("end-msg").textContent="No answers from you were recorded for this quiz. If that is wrong, tell your lecturer.";return}
   if(n<14){setTimeout(function(){poll(n+1)},3000);return}
   problem("I could not confirm that your answers reached the class server. Press Send again; only your first attempt counts, so sending twice does no harm.");
  });

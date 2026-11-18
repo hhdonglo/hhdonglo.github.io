@@ -68,3 +68,34 @@ test("without a joined student the relay refuses late answers like the rules, an
     assert.equal((await R.phone(a)).outcome, "question closed");
   } finally { R.cm.backend.close(); R.twin.backend.close(); }
 });
+
+// Hope's class, 2026-11-18: phones used the relay, the lecturer pressed Stop before CM had collected their answers (CM collects every 5 seconds),
+// and the quiz showed 0 participants and no results. Stopping must take what the relay holds first, then hold the results.
+test("stopping a relay quiz straight after phones answered still holds every answer and counts every participant", async () => {
+  const R = await rig();
+  try {
+    await R.hub.register(); await R.ctl({ act: "init" }); await R.ctl({ act: "set", field: "allow_late", value: "no" }); await R.ctl({ act: "set", field: "q_seconds", value: "0" });
+    await R.ctl({ act: "lobby" });
+    const [a, b] = students(R);
+    await R.phone({ kind: "join", name: "S1", id: a.id, code: CODE }); await R.phone({ kind: "join", name: "S2", id: b.id, code: CODE });
+    await R.ctl({ act: "start" }); // CM has not collected the lobby joins yet
+    assert.equal((await R.phone({ kind: "answer", name: "S1", id: a.id, code: CODE, q: "1", answer: "A" })).outcome, "ok");
+    assert.equal((await R.phone({ kind: "answer", name: "S2", id: b.id, code: CODE, q: "1", answer: "B" })).outcome, "ok");
+    await R.ctl({ act: "end" }); // Stop, with nothing collected yet
+    await R.lq.idle();
+    const disp = R.cm.get({ action: "display", code: CODE });
+    assert.equal(disp.joined, 2, "both phones are counted as participants: " + JSON.stringify(disp).slice(0, 160));
+    const held = R.cm.host("held_items").quizzes; assert.equal(held.length, 1, "the quiz is held for Submit or Discard");
+    assert.equal(held[0].count, 2, "with both students' answers");
+  } finally { R.cm.backend.close(); R.twin.backend.close(); }
+});
+
+test("an answer sent to CM directly counts the student as a participant even if the join was lost", () => {
+  const c = classroom({ students: 2, engine: "js" });
+  try {
+    c.host("control", { code: CODE, act: "init" }); c.host("control", { code: CODE, act: "set", field: "q_seconds", value: "0" }); c.host("control", { code: CODE, act: "start" });
+    const s = c.students[0];
+    assert.equal(c.call({ kind: "answer", name: s.name, id: s.id, code: CODE, q: "1", answer: "A" }).outcome || "ok", "ok");
+    assert.equal(c.get({ action: "display", code: CODE }).joined, 1, "no join was sent, yet the student took part");
+  } finally { c.backend.close(); }
+});

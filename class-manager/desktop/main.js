@@ -484,6 +484,7 @@ on("cm:save", async (c, e, s) => {
   if (appSettings.port !== before) { await restartServer(); for (const w of BrowserWindow.getAllWindows()) { const id = registry.idFromUrl(w.webContents.getURL()) || registry.active(); w.loadURL(baseUrl() + startPage(ctx(id))); } }
   return info(c);
 });
+on("cm:backToTools", (c, e) => { const r = require("./back-to-tools").backToTools({ from: BrowserWindow.fromWebContents(e.sender), main: () => win, all: () => BrowserWindow.getAllWindows(), reopen: () => newWindow(startPage(c), 1280, 860) }); return { ok: r.ok, closed: r.closed }; }); // the Back to Class Tools link in Attendance and Quiz windows (back-to-tools.js)
 on("cm:openWindow", (c, e, page) => { if (/^[\w.-]+\.html([?#][\w=&#.-]*)?$/.test(page)) newWindow(coursePrefix(c) + page); });
 ipcMain.handle("cm:openExternal", (e, url) => { if (/^https:\/\//.test(String(url))) shell.openExternal(url); });
 
