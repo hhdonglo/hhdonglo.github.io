@@ -18,22 +18,19 @@ function session() {
   const c = classroom({ students: 3, engine: "js" }), store = () => fromBackend(c.backend);
   assert.equal(c.host("attend_open", { nogeo: "1" }).ok, true);
   const t = tokenOf(store());
-  const claim = (id, d) => c.call({ action: "claim_code", id, dev: dev(d), t });
   const attend = (id, d, code) => c.call({ action: "attend", id, dev: dev(d), t, code: code || "" });
-  return { c, store, claim, attend };
+  return { c, store, attend };
 }
 
 test("an unlisted ID is told so, signs in with no code, and is held apart (attendance)", () => {
-  const { c, store, claim, attend } = session();
-  const cl = claim(OFF, 1); assert.equal(cl.ok, true); assert.equal(cl.onList, false); assert.equal(cl.code, undefined, "no access code is shown to an unlisted ID");
+  const { c, store, attend } = session();
   const r = attend(OFF, 1); assert.equal(r.ok, true); assert.equal(r.onList, false);
   assert.equal(attend(OFF, 1).already, true, "signing in again is one sign-in, not two");
   assert.deepEqual(tab(c, "Unlisted_IDs").map((r) => [r[0], r[5], r[4]]), [[OFF, "waiting", 1]]);
   assert.equal(tab(c, "Unlisted_Records").length, 1);
   assert.equal(tab(c, "Roster").some((r) => String(r[0]) === OFF), false, "never added to the class list by signing in");
   // a listed student is unchanged
-  const mine = c.students[0], k = claim(mine.id, 2); assert.equal(k.code, c.codes[mine.id]);
-  assert.equal(attend(mine.id, 2, k.code).onList, true);
+  const mine = c.students[0]; assert.equal(attend(mine.id, 2).onList, true);
   c.host("attend_close"); c.host("attend_submit");
   const grid = c.backend.rawRows("Attendance"); assert.equal(grid.slice(1).some((r) => String(r[0]) === OFF), false, "no row in the attendance grid");
   assert.equal(grid.slice(1).length, 3);
@@ -81,7 +78,7 @@ test("quiz: an unlisted ID joins and answers, gets the warning, and nothing reac
 });
 
 test("adding on the review screen: the class list, a code and the records move in; rejecting moves nothing", async () => {
-  const { c, store, claim, attend } = session();
+  const { c, store, attend } = session();
   attend(OFF, 1); attend("66666666", 2);
   c.host("attend_close"); c.host("attend_submit");
   const H = handlers(), ctx = { backend: c.backend };
@@ -91,7 +88,6 @@ test("adding on the review screen: the class list, a code and the records move i
   const r = H["cm:unlistedAdd"](ctx, null, [{ id: OFF, name: "Zed Zed" }, { id: "66666666", name: "No" }]);
   assert.equal(r.ok, true); assert.equal(r.added, 2, "a set-aside ID can still be added by the lecturer");
   const ro = c.backend.rawRows("Roster").slice(1).find((x) => String(x[0]) === OFF); assert.ok(ro && ro[1] === "Zed Zed");
-  assert.ok(c.backend.rawRows("Access_Codes").slice(1).some((x) => String(x[0]) === OFF), "an access code is made");
   const grid = c.backend.rawRows("Attendance"), col = grid[0].length - 1, row = grid.slice(1).find((x) => String(x[0]) === OFF);
   assert.ok(row && Number(row[col]) === 1, "the session already submitted counts for the new student");
   assert.equal(c.backend.rawRows("Attendance_Log").slice(1).find((x) => String(x[2]) === OFF)[3], "Yes");

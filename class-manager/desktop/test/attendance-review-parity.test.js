@@ -9,7 +9,7 @@ const AC = require("../rules/access-codes");
 const R = require("../rules/attendance-review");
 const { fromBackend } = require("../rules/store");
 
-const norm = (r) => JSON.parse(JSON.stringify(r, (k, v) => (k === "_session" || k === "code" || k === "time" || k === "link" ? undefined : v)));
+const norm = (r) => JSON.parse(JSON.stringify(r, (k, v) => (k === "_session" || k === "code" || k === "time" || k === "link" || k === "noCode" ? undefined : v)));
 const same = (a, b) => assert.deepEqual(norm(a), norm(b));
 function setup(n) {
   const script = classroom({ students: n }), mod = classroom({ students: n });
@@ -27,7 +27,9 @@ const mk = (P, s, d) => { const ses = AT.sessions(P.st())[0]; return { action: "
 test("status, review, remove and approve agree through a session", () => {
   const P = setup(3); const [a, b, c] = P.script.students;
   [[a, 1], [b, 2]].forEach(([s, d]) => { const p = mk(P, s, d); assert.equal(P.script.call(p).ok, true); assert.equal(AT.checkIn(P.st(), p, P.o).ok, true); });
-  const p2 = mk(P, c, 2); P.script.call(p2); AT.checkIn(P.st(), p2, P.o); // a borrowed phone: held for approval
+  const p1 = mk(P, c, 3); P.script.call(p1); AT.checkIn(P.st(), p1, P.o); // c registers a phone, the lecturer removes the check-in, then c signs in from another phone: held for approval
+  const lb0 = P.script.host("attend_status").session.label; P.script.host("attend_remove", { id: c.id, label: lb0 }); P.M("remove", { id: c.id, label: lb0 });
+  const p2 = mk(P, c, 4); P.script.call(p2); AT.checkIn(P.st(), p2, P.o);
   same(P.M("status"), P.script.host("attend_status"));
   const lbl = P.script.host("attend_status").session.label;
   same(P.M("review", { label: lbl }), P.script.host("attend_review", { label: lbl }));

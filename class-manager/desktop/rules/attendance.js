@@ -1,7 +1,6 @@
 /* Attendance: sessions, the rotating QR token, check-in, review, submit. A port of apps_script/src/20-attendance.gs with the same answers
    (test/attendance-parity.test.js runs both on the same workbook). One responsibility: attendance rules over the store interface (store.js).
-   Left to the caller and passed in `opts`: random (UUID-like secrets), verifyCode(aid, given) for the student's personal access code,
-   fails (a counter object with get(key), add(key); the script keeps it in a short cache), log(outcome, label, id). */
+   Left to the caller and passed in `opts`: random (UUID-like secrets), fails (a counter object with get(key), add(key); the script keeps it in a short cache), log(outcome, label, id). */
 "use strict";
 const crypto = require("crypto");
 const { normalizeId } = require("../ids");
@@ -61,7 +60,6 @@ function open(store, p, o) {
   const rows = sessions(store); const cur = rows.filter((r) => r.status === "Open").pop();
   if (cur) return { ok: false, why: "a session is already open: close it first", session: { code: cur.code, label: cur.label } };
   if (!roster(store).length) return { ok: false, why: "the Roster tab is empty: run roster_sync.sh to add the Student IDs first" };
-  AC.run(store, { op: "generate" }, {}); // every listed student has an access code before the first phone asks: a class list saved from the Class Roster page has none until now
   const used = (c) => rows.some((r) => r.code === c) || (o.codeUsed ? o.codeUsed(c) : false);
   let code = String(p.acode || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 12);
   if (code && (code.length < 3 || used(code))) return { ok: false, why: "that code is too short or was used before" };
@@ -99,36 +97,37 @@ function checkIn(store, p, o) {
   if (fails.get("d" + dev) >= K.MAX_FAILS || fails.get("i" + aid) >= K.MAX_FAILS) return { ok: false, why: "slow down" };
   if (!linkOk(ses, String(p.t || "").replace(/[^0-9a-f]/g, "").slice(0, 8), now, o.grace)) { fails.add("d" + dev); fails.add("i" + aid); return { ok: false, why: "old link" }; }
   const onl = !!rosterSet(store)[aid], day = dayKey(store.now());
-  // The access code is not asked by default. It is asked only when this phone is already registered to a different ID, that is, when it is used a second time for someone else (the relay has the same rule, relay/hub/src/attend.js).
-  let phone = onl ? phoneCheck(store, aid, dev) : null;
-  if (onl && phone.refuse) {
-    const mine = AC.codesMap(store)[aid]; if (!mine) return { ok: false, why: "no access code" };
-    if (!String(p.code || "").trim()) return { ok: false, why: "code required" };
-    const v = o.verifyCode(aid, String(p.code || "").trim(), mine, store);
-    if (!v.ok) { fails.add("d" + dev); fails.add("i" + aid); flag(store, ses.label, aid, dev, "wrong access code (refused)"); return { ok: false, why: v.expired ? "session expired" : "not recognised" }; }
-  }
   if (body(store, LOG).some((r) => String(r[1]).indexOf(day + " #") === 0 && normalizeId(r[2]) === aid)) return { ok: true, id: aid, onList: onl, already: true };
-  if (onl) {
-    if (phone.refuse || phone.changed) {
-      const g0 = geo(ses, p, mode);
-      if ((g0.state === "far" || g0.state === "none") && mode === "enforce") return { ok: false, why: g0.state === "far" ? "too far" : "no location" };
-      if (!pendingHas(store, ses.label, aid)) flag(store, ses.label, aid, dev, K.PENDING + (phone.refuse ? "used the phone registered to " + phone.owner : "used a phone other than the one registered"));
-      return { ok: true, id: aid, onList: true, pending: true };
-    }
+  // The personal access code is never asked here. A second ID on a phone that already checked in someone else needs a one-time code from the lecturer (attendance-unlock.js);
+  // the relay has the same rule (relay/hub/src/attend.js).
+  const UL = require("./attendance-unlock"); // loaded here, not at the top: that file uses this one
+  const phone = onl ? phoneCheck(store, aid, dev) : null;
+  const others = {}; body(store, LOG).forEach((r) => { if (String(r[1]) === ses.label && String(r[4]) === dev) others[normalizeId(r[2])] = true; });
+  const second = onl && (phone.refuse || Object.keys(others).length >= K.DEVICE_IDS);
+  let unlocked = false;
+  if (second) {
+    if (!String(p.code || "").trim()) { UL.ask(store, ses.label, aid, dev); return { ok: false, why: "code required" }; }
+    if (!UL.use(store, ses.label, aid, p.code)) { fails.add("d" + dev); fails.add("i" + aid); flag(store, ses.label, aid, dev, "wrong unlock code (refused)"); return { ok: false, why: "not recognised" }; }
+    unlocked = true;
+  }
+  if (onl && !unlocked && phone.changed) {
+    const g0 = geo(ses, p, mode);
+    if ((g0.state === "far" || g0.state === "none") && mode === "enforce") return { ok: false, why: g0.state === "far" ? "too far" : "no location" };
+    if (!pendingHas(store, ses.label, aid)) flag(store, ses.label, aid, dev, K.PENDING + "used a phone other than the one registered");
+    return { ok: true, id: aid, onList: true, pending: true };
   }
   const g = geo(ses, p, mode);
   if (g.state === "far" || g.state === "none") {
     flag(store, ses.label, aid, dev, "location: " + geoText(g) + (mode === "enforce" ? " (refused)" : " (accepted)"));
     if (mode === "enforce") return { ok: false, why: g.state === "far" ? "too far" : "no location" };
   }
-  const others = {}; body(store, LOG).forEach((r) => { if (String(r[1]) === ses.label && String(r[4]) === dev) others[normalizeId(r[2])] = true; });
-  if (Object.keys(others).length >= K.DEVICE_IDS) { flag(store, ses.label, aid, dev, "device already used for " + Object.keys(others).join(", ")); return { ok: false, why: "device used" }; }
   if (!onl) { // not on the class list: the check-in is held for the lecturer to review (rules/unlisted.js); the roster, the grid and every total never count it
     const held = U.note(store, { id: aid, kind: "attendance", ref: ses.label });
     if (!held.ok) { flag(store, ses.label, aid, dev, "not on the class list (" + held.why + ")"); return { ok: false, why: "not on list" }; }
   }
-  append(store, LOG, LOG_HEAD, [store.now(), ses.label, aid, onl ? "Yes" : "No", dev, geoText(g)]);
-  if (phone && phone.bind) { try { append(store, PHONES, ["Student ID", "Device", "Registered"], [aid, dev, store.now()]); } catch (e) { /* already recorded */ } }
+  if (unlocked) flag(store, ses.label, aid, dev, "checked in with the lecturer's unlock code on a phone used for another ID");
+  append(store, LOG, LOG_HEAD, [store.now(), ses.label, aid, onl ? "Yes" : "No", unlocked ? "" : dev, geoText(g)]); // an unlocked check-in keeps no phone hash: the phone belongs to the first ID
+  if (phone && phone.bind && !unlocked) { try { append(store, PHONES, ["Student ID", "Device", "Registered"], [aid, dev, store.now()]); } catch (e) { /* already recorded */ } }
   return { ok: true, id: aid, onList: onl };
 }
 

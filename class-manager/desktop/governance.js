@@ -83,7 +83,7 @@ function setTerm(backend, closed, now) {
   return { ok: true, closed: !!closed };
 }
 // null when the request may go on; otherwise the answer to send. Lecturer requests (with a hostkey) always pass.
-const STUDENT_ACTIONS = ["attend", "claim_code", "chat"], STUDENT_KINDS = ["attempt", "report"];
+const STUDENT_ACTIONS = ["attend", "chat"], STUDENT_KINDS = ["attempt", "report"];
 function closedRefusal(params, closed) {
   if (!closed || !params || params.hostkey) return null;
   if (STUDENT_ACTIONS.indexOf(params.action) >= 0 || STUDENT_KINDS.indexOf(params.kind) >= 0) return { ok: false, why: "closed", detail: "This term is closed. New check-ins and answers are no longer accepted." };

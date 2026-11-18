@@ -3,8 +3,8 @@
 "use strict";
 const { normalizeId } = require("../ids");
 const { append } = require("./store");
-const AC = require("./access-codes");
 const A = require("./attendance");
+const UL = require("./attendance-unlock");
 
 const names = (store) => { const o = {}; A.roster(store).forEach((r) => { o[r[0]] = r[1] || ""; }); return o; };
 const findByColumn = (store, label) => A.sessions(store).filter((s) => A.column(s.label) === String(label || "")).pop() || null;
@@ -14,14 +14,14 @@ const iso = (v) => (v instanceof Date ? v.toISOString() : String(v));
 function status(store, o) {
   const rows = A.sessions(store), mode = (o && o.geoMode) || A.K.GEO_MODE;
   let cur = rows.filter((r) => r.status === "Open").pop() || (rows.length ? rows[rows.length - 1] : null);
-  const codes = AC.codesMap(store), rosterIds = A.roster(store).map((r) => r[0]);
-  if (!cur) return { ok: true, session: null, noCode: rosterIds.filter((id) => !codes[id]).length };
+  if (!cur) return { ok: true, session: null };
   const pres = A.present(store, cur.label), on0 = A.rosterSet(store); let on = 0, off = 0;
   Object.keys(pres).forEach((id) => { if (on0[id]) on++; else off++; });
   const waiting = {};
   A.body(store, A.FLAGS).forEach((r) => { const i = normalizeId(r[2]); if (String(r[1]) === cur.label && String(r[4]).indexOf(A.K.PENDING) === 0 && !pres[i]) waiting[i] = 1; });
+  UL.waiting(store, cur.label, pres).forEach((i) => { waiting[i] = 1; }); // a second ID that asked for the lecturer's code counts as waiting too
   const live = cur.status === "Open" && cur.secret, now = store.now().getTime();
-  return { ok: true, session: { link: live ? A.linkFor(cur.secret, A.slotOf(now)) : "", secondsLeft: live ? A.secondsLeft(now) : 0, label: A.column(cur.label), status: cur.status, geo: cur.lat != null && mode !== "off" ? mode : "off", radius: cur.lat != null ? (cur.radius || A.K.RADIUS) : 0, present: on, notOnList: off, waiting: Object.keys(waiting).length, noCode: cur.status !== "Open" ? Object.keys(on0).filter((i) => !codes[i]).length : 0, rosterSize: Object.keys(on0).length, pending: rows.filter((r) => r.status === "Closed").length } };
+  return { ok: true, session: { link: live ? A.linkFor(cur.secret, A.slotOf(now)) : "", secondsLeft: live ? A.secondsLeft(now) : 0, label: A.column(cur.label), status: cur.status, geo: cur.lat != null && mode !== "off" ? mode : "off", radius: cur.lat != null ? (cur.radius || A.K.RADIUS) : 0, present: on, notOnList: off, waiting: Object.keys(waiting).length, rosterSize: Object.keys(on0).length, pending: rows.filter((r) => r.status === "Closed").length } };
 }
 
 function review(store, p) {
@@ -33,7 +33,10 @@ function review(store, p) {
   A.body(store, A.FLAGS).forEach((r) => {
     if (String(r[1]) !== cur.label) return;
     const ids = splitIds(r[2]).map(normalizeId).filter(String);
-    items.push({ time: iso(r[0]), ids, names: ids.map((i) => nm[i] || ""), reason: String(r[4]), pending: String(r[4]).indexOf(A.K.PENDING) === 0, present: ids.filter((i) => pres[i]), phone: ids.filter((i) => ph.byId[i]) });
+    const asking = String(r[4]) === UL.ASKED && ids.length === 1;
+    const item = { time: iso(r[0]), ids, names: ids.map((i) => nm[i] || ""), reason: String(r[4]), pending: String(r[4]).indexOf(A.K.PENDING) === 0, present: ids.filter((i) => pres[i]), phone: ids.filter((i) => ph.byId[i]) };
+    if (asking) item.unlock = true, item.code = UL.current(store, cur.label, ids[0]); // the lecturer's list offers "Issue code" for this one
+    items.push(item);
   });
   return { ok: true, session: { label: A.column(cur.label), status: cur.status }, items, canRemove: cur.status === "Open" || cur.status === "Closed" };
 }

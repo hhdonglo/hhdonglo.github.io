@@ -5,7 +5,8 @@ Stage 1 (this folder) only adds the modules and the tests that prove they give t
 
 | Module | Replaces (apps_script/src) | Status |
 | --- | --- | --- |
-| `access-codes.js` | `accessCodes_`, `codesMap_`, `codeExpired_`, `newAccessCode_` | ported, parity tested |
+| `access-codes.js` | `accessCodes_`, `codesMap_`, `codeExpired_` | a student makes their own 5-letter code (`setup`); the lecturer only resets; no longer parity tested (`access-codes.test.js`) |
+| `attendance-unlock.js` | new (no script original) | the lecturer's one-time code for a second ID on a phone (`attendance-unlock.test.js`) |
 | `attendance.js` | `20-attendance.gs`: open, close, check-in (QR token, device, phone, location, one mark a day), submit, discard | ported, parity tested (`attendance-parity.test.js`) |
 | `held.js` | CM only (no script twin): lists held attendance sessions and held quizzes one by one; submits or discards a single quiz | tested (`held-lifecycle.test.js`) |
 | `class-list.js` | `rosterSync_`, `rosterTidy_`, `rosterEdit_` (00-core.gs), `studentNoteAdd_` (35-records.gs) | ported, parity tested (`class-list-parity.test.js`) |
@@ -24,7 +25,6 @@ Stage 1 (this folder) only adds the modules and the tests that prove they give t
 | `learning.js` | `30-analytics.gs` (evidence part), `35-records.gs`: questions to revisit, per-question statistics, Teaching insights, student records and notes | ported, parity tested (`learning-parity.test.js`) |
 | `class-stats.js` | `30-analytics.gs` (class part): Class statistics, engagement groups, the learning verdict, areas to target | ported, parity tested (`class-stats-parity.test.js`) |
 | `outcomes.js` | `30-analytics.gs` (objectives part): links from questions to objectives, answers as evidence, progress by objective, class by week, ask-discuss-revise | ported, parity tested (`outcomes-parity.test.js`); Learning progress and the student profile follow with group work |
-| `code-claim.js` | new (no script original) | shows a student their own access code at sign-in: only with a current QR token, only for an ID on the class list, only to the first phone (which is registered to that ID); any other phone is held for the lecturer. Same rules on the relay. Tested in `code-claim.test.js` and `relay/hub/test/claim.test.js`. Switch off with the property `code_claim` = `0` |
 | `attendance-review.js` | `attStatus_`, `attReview_`, `attRemove_`, `attApprove_`, `attPhoneReset_` | ported, parity tested (`attendance-review-parity.test.js`) |
 | `text.js` | `calWhen_`, `calDate_`, `chatTxt_`, `safeLink_`, `fmtDay_`, `randInt_`, `shuffled_` | shared text, date and shuffle helpers (used by groups, assignments, calendar and chat) |
 | `groups.js` | `groupsAct_`, `studentGroups_`, `groupsDisplay_` | ported, parity tested (`collaboration-parity.test.js`); random dealing takes `o.random` so tests can be exact |

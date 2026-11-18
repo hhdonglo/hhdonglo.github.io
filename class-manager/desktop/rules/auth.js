@@ -66,6 +66,7 @@ function studentCheck(store, rawId, given, tag, req, o) {
   }
   if (Number(o.counters.get("signin_fails") || 0) >= K.SIGNIN_GLOBAL_MAX) return { why: "slow down" };
   const code = AC.normCode(given);
+  if (onList && !mine) return { why: "no access code" }; // nothing made yet: the page offers the student a 5-letter code of their own (action code_setup)
   if (!mine || !code || mine.code !== code) { failAdd(o, tag + id); o.counters.put("signin_fails", String(Number(o.counters.get("signin_fails") || 0) + 1), 600); return { why: "not recognised" }; }
   if (AC.expired(store, mine)) return { why: "code expired" };
   req.session = sessMake(store, o, "s", id, mine.code, K.STUDENT_DAYS * 86400000);
@@ -139,4 +140,4 @@ function ownerSetPassword(store, pw, o) {
   return { ok: true, recovery: code };
 }
 
-module.exports = { K, memoryCounters, sessMake, sessRead, sessValid, isSession, signOutEveryone, hostOk, studentCheck, quizReceipt, receiptOk, pwHash, pwMake, pwCheck, pwChosen, pwProblem, passwordStatus, setHostKey, recoverHostKey, resetHostKey, ownerSetPassword, hostStored };
+module.exports = { K, failsOf, failAdd, memoryCounters, sessMake, sessRead, sessValid, isSession, signOutEveryone, hostOk, studentCheck, quizReceipt, receiptOk, pwHash, pwMake, pwCheck, pwChosen, pwProblem, passwordStatus, setHostKey, recoverHostKey, resetHostKey, ownerSetPassword, hostStored };

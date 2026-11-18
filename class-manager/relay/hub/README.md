@@ -36,4 +36,4 @@ The older mailbox (`../worker.mjs`, KV and tokens) keeps working until CM moves 
 
 ## Access codes shown at sign-in
 
-`POST /v1/claim` (phone, unsigned) shows a student their own access code under the rules in `desktop/rules/code-claim.js`. The codes are in table `live_code`, sent by CM only in `/v1/live/open`, deleted at `/v1/live/close` and by the daily cleanup. Existing relays pick up the new table with `node class-manager/relay/deploy.mjs --update`.
+`POST /v1/live/unlock` (CM, signed) receives the hash of a one-time unlock code the lecturer issued for one ID (table `live_unlock`, kept only while the session is open). A phone that is a second ID on a used phone must send that code to `/v1/attend`; the right code lets it through once. The old `POST /v1/claim` and table `live_code` are gone. Existing relays pick up the change with `node class-manager/relay/deploy.mjs --update`.

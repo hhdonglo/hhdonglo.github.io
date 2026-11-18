@@ -41,8 +41,12 @@ function classroom(opts) {
   for (let i = 0; i < n; i++) c.students.push({ id: String(20000001 + i), name: "Student" + (i + 1) });
   if (n) {
     backend.rosterSync(c.students.map((s) => [s.id, s.name]), true);
-    const r = c.host("access_codes", { op: "generate" });
-    (r.rows || []).forEach((x) => { c.codes[x.id] = x.code; });
+    const r = c.host("access_codes", { op: "generate" }); // the script still makes codes; the JavaScript rules leave that to each student (rules/access-codes.js, setup)
+    (r.rows || []).forEach((x) => { if (x.code) c.codes[x.id] = x.code; });
+    if (c.students.some((x) => !c.codes[x.id])) { // seed what a student would have made for themselves: 5 letters, the same for every run
+      c.students.forEach((x, i) => { c.codes[x.id] = "STU" + String(i + 1).padStart(2, "0"); });
+      c.editWorkbook((b) => { let sh = b.sheets.find((x) => x.name === "Access_Codes"); if (!sh) { sh = { name: "Access_Codes", rows: [] }; b.sheets.push(sh); } sh.rows = [["Student ID", "Access code", "Issued"]].concat(c.students.map((x) => [x.id, c.codes[x.id], new Date().toISOString()])); });
+    }
   }
   return c;
 }

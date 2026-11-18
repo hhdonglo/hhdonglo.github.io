@@ -88,7 +88,6 @@ body.focus main{padding-top:1rem}
     <p><button class="go" type="button" id="a-pos-go">Start with this position</button> <button class="go alt" type="button" id="a-pos-none">Start without the location check</button></p>
    </div>
   </details>
-  <p class="note" id="a-nocode" hidden></p>
  </section>
  <section class="panel" id="a-live" hidden>
   <p class="lbl">Scan with your phone, then enter your student ID and access code.</p>
@@ -146,24 +145,26 @@ function drawReview(d){
  RV=d;var ss=d.session;$("a-review").hidden=!ss;if(!ss)return;
  $("r-label").textContent="("+ss.label+(ss.status==="Submitted"?", submitted":"")+")";
  var can=!!d.canRemove,seen={},items=[];
- (d.items||[]).filter(function(it){return it.reason!=="approved by the lecturer"}).slice().reverse().forEach(function(it){var k=it.ids.join(",")+"|"+it.reason;if(seen[k]){seen[k].n++;return}it.n=1;seen[k]=it;items.push(it)}); // repeats shown once, with a count
+ (d.items||[]).filter(function(it){return it.reason!=="approved by the lecturer"&&it.reason!=="unlock code issued by the lecturer"}).slice().reverse().forEach(function(it){var k=it.ids.join(",")+"|"+it.reason;if(seen[k]){seen[k].n++;return}it.n=1;seen[k]=it;items.push(it)}); // repeats shown once, with a count
  items.sort(function(x,y){return (y.pending?1:0)-(x.pending?1:0)});
  $("r-none").hidden=items.length>0;$("r-addwrap").hidden=!can;
  $("r-list").innerHTML=items.map(function(it,k){
   var who=it.ids.map(function(i,j){return "<b>"+esc(i)+"</b>"+(it.names[j]?" "+esc(it.names[j]):"")}).join(", ");
   var one=it.ids.length===1?it.ids[0]:"",here=one&&it.present.indexOf(one)>=0;
   var refused=/\(refused\)$/.test(it.reason),removed=/removed by the lecturer/.test(it.reason),byhand=/by the lecturer$/.test(it.reason);
-  var st=it.pending?(here?"Approved, counted present":"Waiting for your approval, not counted"):refused?(here?"Refused; the student later checked in correctly":"Refused, not counted"):(one&&!removed&&!byhand?(here?"Counted present":"Not counted"):"");
+  var st=it.unlock?(here?"Checked in with your code":(it.code?"Read this code to the student. It works once.":"Waiting for you to issue a code, not counted")):it.pending?(here?"Approved, counted present":"Waiting for your approval, not counted"):refused?(here?"Refused; the student later checked in correctly":"Refused, not counted"):(one&&!removed&&!byhand?(here?"Counted present":"Not counted"):"");
   var b="";
+  if(it.unlock&&!here)b+=(it.code?'<span class="note">Code for '+esc(one)+':</span> <b style="font:700 1.6rem ui-monospace,Menlo,Consolas,monospace;letter-spacing:.15em">'+esc(it.code)+'</b> ':"")+'<button class="go" type="button" data-act="unlock" data-id="'+esc(one)+'">'+(it.code?"New code":"Issue code")+'</button>';
   if(can&&one&&it.pending&&!here)b+='<button class="go" type="button" data-act="approve" data-id="'+esc(one)+'">Approve</button>';
   if(can&&one&&here&&(it.pending||!refused&&!removed&&!byhand))b+='<button class="go alt" type="button" data-act="remove" data-id="'+esc(one)+'">Remove check-in</button>';
   if(can&&!one)it.ids.forEach(function(i){if(it.present.indexOf(i)>=0)b+='<button class="go alt" type="button" data-act="remove" data-id="'+esc(i)+'">Remove '+esc(i)+'</button>'});
   if(one&&it.phone.indexOf(one)>=0&&/phone other than|different phone/.test(it.reason))b+='<button class="go alt" type="button" data-act="reset" data-id="'+esc(one)+'">Forget registered phone</button>';
-  return '<li'+(it.pending&&!here?' class="wait"':'')+'><div>'+who+'</div><p class="why">'+esc(it.reason.replace(/^waiting for approval: /,"").replace(/ \(refused\)$/,""))+(it.n>1?" ("+it.n+" times)":"")+'</p>'+(st?'<p class="st">'+st+'</p>':'')+(b?'<p>'+b+'</p>':'')+'</li>';
+  return '<li'+(it.pending&&!here?' class="wait"':'')+'><div>'+who+'</div><p class="why">'+esc((it.unlock?"This phone was already used for another ID. Only you can give this student a code.":it.reason).replace(/^waiting for approval: /,"").replace(/ \(refused\)$/,""))+(it.n>1?" ("+it.n+" times)":"")+'</p>'+(st?'<p class="st">'+st+'</p>':'')+(b?'<p>'+b+'</p>':'')+'</li>';
  }).join("");
 }
 $("r-list").addEventListener("click",function(e){
  var t=e.target.closest("button[data-act]");if(!t||!RV)return;var id=t.getAttribute("data-id"),act=t.getAttribute("data-act"),lab=encodeURIComponent(RV.session.label);
+if(act==="unlock"){t.disabled=true;$("r-msg").textContent="Saving...";call("attend_unlock","&id="+encodeURIComponent(id),function(d){$("r-msg").textContent=!d?CM.noAnswer():!d.ok?"Not done: "+(d.why||"refused")+".":"Code for "+id+": "+d.code+". Read it to the student.";review();poll()});return}
  if(act==="reset"&&!window.confirm("Forget the phone registered to "+id+"? The next phone this student checks in with becomes their registered phone."))return;
  if(act==="remove"&&!window.confirm("Remove the check-in of "+id+" from this session?"))return;
  t.disabled=true;$("r-msg").textContent="Saving...";
@@ -198,7 +199,6 @@ function begin(){
   if(!d||!d.ok){try{sessionStorage.removeItem("cm_hk")}catch(x){}KEY="";show("a-login");if(d)$("a-err").textContent="";return}
   var ss=d.session;
   review();
-  var nc=(ss&&ss.noCode)||d.noCode||0;if(nc){$("a-nocode").hidden=false;$("a-nocode").innerHTML="<b>"+nc+" student(s) on the class list have no access code yet</b> and cannot check in. <a href=\"codes.html\">Create the codes and print the slips</a> before you start."}
   if(ss&&ss.status!=="Open")$("a-last").textContent="Last session "+ss.label+": "+ss.present+" present"+(ss.notOnList?", "+ss.notOnList+" not on the list":"")+".";
   draw(d);
  });

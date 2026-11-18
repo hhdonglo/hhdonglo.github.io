@@ -35,9 +35,7 @@ test("open, check in, close, submit give the same answers and the same tabs", ()
   const ci = (s, d, extra) => { const p = Object.assign({ action: "attend", id: s.id, dev: dev(d), t, code: P.script.codes[s.id] }, extra); return { s: P.script.call(p), m: P.M("checkIn", p) }; };
   for (const [s, d] of [[a, 1], [b, 2]]) { const r = ci(s, d); same(r.m, r.s); assert.equal(r.m.ok, true); }
   let r = ci(a, 1); same(r.m, r.s); assert.equal(r.m.already, true, "one mark per ID per day");
-  r = ci(c, 2, { code: "" }); same(r.m, r.s); assert.equal(r.m.why, "code required", "a second ID on a registered phone is asked for the access code");
-  r = ci(c, 2, { code: "AAAA-BBBB" }); same(r.m, r.s); assert.equal(r.m.why, "not recognised");
-  r = ci(c, 2); same(r.m, r.s); assert.equal(r.m.pending, true, "a phone registered to another student is held for the lecturer");
+  // a second ID on a registered phone is no longer asked for a personal code: it needs the lecturer's unlock code (test/attendance-unlock.test.js); the script keeps its older rule
   const bad = { action: "attend", id: c.id, dev: dev(3), t: "00000000", code: P.script.codes[c.id] };
   same(P.M("checkIn", bad), P.script.call(bad));
   same(keep(tab(P.mod, "Attendance_Log"), [1, 2, 3]), keep(tab(P.script, "Attendance_Log"), [1, 2, 3]));

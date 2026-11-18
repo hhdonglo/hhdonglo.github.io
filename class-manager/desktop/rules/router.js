@@ -7,8 +7,8 @@ const AC = require("./access-codes");
 const AN = require("./announcements");
 const AS = require("./assignments");
 const AT = require("./attendance");
-const CC = require("./code-claim");
 const AR = require("./attendance-review");
+const UL = require("./attendance-unlock");
 const AU = require("./auth");
 const C = require("./quiz-control");
 const CA = require("./calendar");
@@ -96,7 +96,13 @@ function createRouter(env) {
       case "access_codes": return hostJ(() => AC.run(store, p, { random: o.random, log: (x, y, z) => logLine(store, x, y, z, "") }));
       case "preclass": return hostJ(() => preclass(p, o));
       case "attend": return J(AT.checkIn(store, p, o));
-      case "claim_code": return J(CC.claim(store, p, o));
+      case "code_setup": { // a student makes their own 5-letter code (access-codes.js); only for an ID on the class list that has none
+        if (!req.post) return J({ ok: false, why: "not recognised" });
+        const key = "setup:" + normalizeId(p.id); if (AU.failsOf(o, key) >= AU.K.ATT_MAX_FAILS) return J({ ok: false, why: "slow down" });
+        const r = AC.setup(store, p.id, p.code, { log: (x, y, z) => logLine(store, x, y, z, "") });
+        if (!r.ok) AU.failAdd(o, key); else req.session = AU.sessMake(store, o, "s", r.id, r.code, AU.K.STUDENT_DAYS * 86400000);
+        return J(r.ok ? { ok: true, id: r.id } : r);
+      }
       case "password_status": return J(AU.passwordStatus(store));
       case "password_recover": if (!req.post) return J({ ok: false, why: "not accepted" }); return J(AU.recoverHostKey(store, p, o));
       case "hostcheck": return J({ ok: host(), post: req.post });
@@ -117,6 +123,7 @@ function createRouter(env) {
       case "attend_remove": return hostJ(() => AR.remove(store, p));
       case "attend_approve": return hostJ(() => AR.approve(store, p));
       case "attend_phone_reset": return hostJ(() => AR.phoneReset(store, normalizeId(p.id)));
+      case "attend_unlock": return hostJ(() => UL.issue(store, p, o));
       case "attend_status": return hostJ(() => AR.status(store, o));
       case "attend_open": return hostJ(() => AT.open(store, p, o));
       case "attend_close": return hostJ(() => AT.close(store));

@@ -36,6 +36,7 @@ function createLiveSession(opts) {
     if (!out || typeof out !== "object") return text;
     if (action === "attend_open" && out.ok) start();
     else if (action === "attend_close" && out.ok) stop();
+    else if (action === "attend_unlock" && out.ok && on) chain(async () => { const c = hub.publicConfig(); if (c) await L.pushUnlock(hub, c.course, out.id, out.code); }); // the relay learns the new code at once
     if ((action === "attend_status" || action === "attend_open") && on) { const c = hub.publicConfig(); if (c) { out.relay = { url: c.url, course: c.course, pages }; return JSON.stringify(out); } }
     return text;
   }

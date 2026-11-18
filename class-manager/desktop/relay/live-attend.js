@@ -4,7 +4,7 @@
 "use strict";
 const crypto = require("crypto");
 const AT = require("../rules/attendance");
-const AC = require("../rules/access-codes");
+const AC = require("../rules/access-codes"); // normCode, for the hash
 const U = require("../rules/unlisted");
 const { append } = require("../rules/store");
 
@@ -13,13 +13,14 @@ const hashCode = (course, id, code) => crypto.createHash("sha256").update(course
 // Opens the current Open session on the relay. The session must already be open in the rules (AT.open); geo is the mode its check-ins use.
 async function openOnRelay(hub, store, course, geo) {
   const ses = AT.openSession(store); if (!ses) return { ok: false, why: "no attendance session is open" };
-  const codes = AC.codesMap(store), roster = {};
-  AT.roster(store).forEach(([id]) => { roster[id] = codes[id] ? hashCode(course, id, codes[id].code) : ""; });
+  const roster = {};
+  AT.roster(store).forEach(([id]) => { roster[id] = ""; }); // the class list only: no personal codes go to the relay
   const phones = AT.phones(store).byId; // phones the relay registered earlier (its own hash); one registered through CM's own page has a different hash, so it is held for review once
-  const show = String(store.prop("code_claim") || "1") !== "0", shown = {}; // codes go to the relay only for this open session, only so that students can be shown their own on sign-in; they are deleted when the session closes
-  if (show) Object.keys(roster).forEach((id) => { if (codes[id]) shown[id] = codes[id].code; });
-  return hub.post("/v1/live/open", { codes: shown, label: ses.label, secret: ses.secret, mode: geo === "enforce" ? "enforce" : "off", lat: ses.lat, lon: ses.lon, radius: ses.radius || 500, roster, phones });
+  return hub.post("/v1/live/open", { label: ses.label, secret: ses.secret, mode: geo === "enforce" ? "enforce" : "off", lat: ses.lat, lon: ses.lon, radius: ses.radius || 500, roster, phones });
 }
+
+// The lecturer just issued an unlock code (rules/attendance-unlock.js): the relay gets only its hash, so a phone can use it while this computer is off.
+async function pushUnlock(hub, course, id, code) { return hub.post("/v1/live/unlock", { id, hash: hashCode(course, id, code) }); }
 
 // Records the relay's events once each: a check-in is added to the log unless that ID is already there; flags and held check-ins go to the flags tab.
 function applyEvents(store, events) {
@@ -51,4 +52,4 @@ async function collect(hub, store) {
 
 async function closeOnRelay(hub) { return hub.post("/v1/live/close", {}); }
 
-module.exports = { openOnRelay, collect, closeOnRelay, applyEvents, hashCode };
+module.exports = { pushUnlock, openOnRelay, collect, closeOnRelay, applyEvents, hashCode };
