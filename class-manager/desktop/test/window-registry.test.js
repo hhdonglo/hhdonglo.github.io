@@ -54,3 +54,21 @@ test("a window that moved to another page is found by the page it shows now", ()
   assert.equal(r.focusExisting(U("a", "home.html")), false);
   assert.equal(r.focusExisting(U("a", "setup.html")), true);
 });
+
+test("the quiz window follows the code asked for instead of opening a second one", () => {
+  const r = createWindowRegistry(null, /\/quiz-host\.html$/), w = fakeWindow(U("a", "quiz-host.html?code=111"));
+  w.loadURL = (u) => { w.url = u; w.calls.push("load " + u); };
+  r.track(w.url, w);
+  assert.equal(r.focusExisting(U("a", "quiz-host.html?code=222")), true);
+  assert.deepEqual(w.calls, ["load " + U("a", "quiz-host.html?code=222"), "show", "focus"]);
+  w.calls.length = 0;
+  r.focusExisting(U("a", "quiz-host.html?code=222")); // the same code again: not reloaded
+  assert.deepEqual(w.calls, ["show", "focus"]);
+});
+
+test("other tools are never reloaded by a second request", () => {
+  const r = createWindowRegistry(null, /\/quiz-host\.html$/), w = fakeWindow(U("a", "attendance.html?code=1"));
+  w.loadURL = () => w.calls.push("load"); r.track(w.url, w);
+  r.focusExisting(U("a", "attendance.html?code=2"));
+  assert.deepEqual(w.calls, ["show", "focus"]);
+});

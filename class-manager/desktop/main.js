@@ -313,7 +313,7 @@ function secureWindow(w) {
   w.webContents.on("did-create-window", (child, { url }) => { windows.track(url, child); secureWindow(child); }); // a window a page opened is kept in the same list
   w.webContents.on("will-navigate", (e, url) => { if (!url.startsWith(baseUrl())) { e.preventDefault(); if (/^https?:/.test(url)) shell.openExternal(url); } });
 }
-const windows = require("./window-registry").createWindowRegistry(() => BrowserWindow.getAllWindows()); // one window per tool and course
+const windows = require("./window-registry").createWindowRegistry(() => BrowserWindow.getAllWindows(), /\/quiz-host\.html$/); // one window per tool and course; the quiz window follows the quiz code asked for
 function newWindow(page, w, h) {
   if (windows.focusExisting(baseUrl() + page)) return null;
   const bw = new BrowserWindow({ width: w || 1280, height: h || 860, title: "Class Manager", icon: path.join(__dirname, "app", "icon-512.png"),
@@ -610,6 +610,7 @@ webImport.register({ on, dialog, winOf, shell }); // cm:import*: bring results e
 llm.register({ on, dialog, winOf, shell, dirOf: (c) => registry.dirs(c.id).root }); // cm:llm*: a private snapshot of the course for an AI assistant (llm/README.md)
 require("./lecture-progress/ipc").register({ on, saveSettings, dirOf: (c) => registry.dirs(c.id).course });
 require("./lecture-files/ipc").register({ on, dialog, winOf, shell, dirOf: (c) => registry.dirs(c.id).course, linkedOf: (c) => registry.dirs(c.id).linked }); // cm:lectureOverview, cm:lectureFile*: which file is the notes, handout, tutorial...; open, replace, remove (lecture-files/README.md) // cm:lectureProgress, cm:lectureMark: lectures held against the semester target (lecture-progress/README.md)
+require("./signin-problems-ipc").register({ on }); // cm:signinProblems, cm:signinDismiss: the Sign-in problems list (signin-attempts.js)
 idNoticesIpc.register({ on }); // cm:idNotices, cm:idResolve: the Duplicate IDs card
 require("./unlisted-ipc").register({ on }); // cm:unlisted*: students who signed in with an ID not on the class list, held until the lecturer adds or rejects them (rules/unlisted.js)
 folderImport.register({ on, dialog, winOf, shell, saveSettings, dirOf: (c) => registry.dirs(c.id).root }); // cm:auto*: point at a folder; CM finds and extracts what it needs
@@ -829,7 +830,9 @@ ipcMain.handle("cm:saveTemplate", async (e, kind) => {
 function flushAll() { for (const c of ctxs.values()) { try { c.backend.flush(); } catch (e) {} } }
 function backupAll(reason) { for (const c of ctxs.values()) { try { c.backend.flush(); c.lastBackup = c.backups.make(reason); Promise.resolve(c.linked.auto()).catch((e) => console.log("[linked " + c.id + "]", e.message)); } catch (e) { c.lastBackup = { ok: false, why: e.message }; } } }
 let closingBackupDone = false;
+const firstCM = require("./single-instance").ensureSingle(app, () => win); // a second launch quits and the running CM is shown (single-instance.js)
 app.whenReady().then(async () => {
+  if (!firstCM) return;
   // Before 0.8.0 CM held one course; it becomes the first course here, with all of its records.
   const mig = courses.migrateLegacy(ROOT(), (m) => console.log("[courses]", m));
   registry = courses.createRegistry(ROOT());

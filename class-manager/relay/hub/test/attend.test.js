@@ -82,3 +82,15 @@ test("six wrong codes slow a phone down, close forgets the class list, signed ro
   assert.equal((await call(S.env, "POST", "/v1/live/open", { body: "{}" }, S.now)).status, 401);
   const ack = await signed(S.env, S.keys, S.course, "/v1/live/ack", { upto: 1000 }, S.now); assert.equal(ack.body.ok, true);
 });
+
+test("refused check-ins are kept as events for CM's Sign-in problems list, with a reason and never a code", async () => {
+  const S = await bothSides("off");
+  await S.phone({ id: "20000001", dev: dev(1) });
+  await S.phone({ id: "20000003", dev: dev(1) }); // second ID on that phone: asks for the lecturer's code
+  await S.phone({ id: "20000003", dev: dev(1), code: "SECRET-CODE" }); // wrong code
+  await S.phone({ id: "20000002", dev: dev(2), t: "00000000" }); // old QR
+  await S.phone({ id: "12", dev: dev(3) }); // wrong length
+  const ev = (await signed(S.env, S.keys, S.course, "/v1/live/events", { after: 0 }, S.now)).body.events.filter((e) => e.kind === "refused");
+  assert.deepEqual(ev.map((e) => [e.sid, e.note]), [["20000003", "second_id"], ["20000003", "wrong_unlock"], ["20000002", "old_qr"], ["12", "bad_id"]]);
+  assert.ok(!JSON.stringify(ev).includes("SECRET"));
+});

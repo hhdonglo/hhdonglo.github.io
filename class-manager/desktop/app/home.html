@@ -434,7 +434,7 @@ tr[data-sel]{cursor:pointer}tr[data-sel].sel>td{background:rgba(70,110,200,.28)}
  <button class="nav" aria-current="page" data-view="overview"><svg><use href="#i-pulse"/></svg><span>Class Analytics</span></button>
  <p class="side-h">Teach</p>
  <button class="nav" data-view="class"><svg><use href="#i-live"/></svg><span>Class Tools</span></button>
- <button class="nav" data-view="attendance"><svg><use href="#i-check"/></svg><span>Attendance</span></button>
+ <button class="nav" data-view="attendance"><svg><use href="#i-check"/></svg><span>Attendance</span><span id="signin-n" class="nav-count" aria-label="IDs that could not sign in" hidden></span></button>
  <button class="nav" data-view="quizzes"><svg><use href="#i-chart"/></svg><span>Quizzes and Questions</span></button>
  <p class="side-h">Students</p>
  <button class="nav" data-view="students"><svg><use href="#i-people"/></svg><span>Students</span></button>
@@ -512,6 +512,7 @@ tr[data-sel]{cursor:pointer}tr[data-sel].sel>td{background:rgba(70,110,200,.28)}
 <section class="view" id="v-attendance" aria-labelledby="h-att" hidden>
  <header class="vh"><div><h2 id="h-att">Attendance</h2><p>Submitted sessions only. A session counts once you submit it to the attendance record.</p></div>
   <div class="row"><button class="btn sm" type="button" data-win="attendance.html"><svg><use href="#i-check"/></svg>Take attendance</button></div></header>
+ <div class="card" id="signin-problems" hidden></div>
  <div class="ins" id="at"></div>
 </section>
 
@@ -959,6 +960,7 @@ tr[data-sel]{cursor:pointer}tr[data-sel].sel>td{background:rgba(70,110,200,.28)}
 <script src="import.js"></script>
 <script src="offlist.js"></script>
 <script src="id-notices.js"></script>
+<script src="signin-problems.js"></script>
 <script src="unlisted-select.js"></script>
 <script src="unlisted.js"></script>
 <script src="lecture-progress.js"></script>
@@ -1068,10 +1070,10 @@ function liveShow(d){
   $("att-text").textContent=txt.join(" ");
  }
  var q=d.quizzes||[],qt=$("quiz-tag");
- if(!q.length){qt.className="tag";qt.textContent="Live quiz";$("quiz-list").innerHTML="<p class='note'>No quiz is running.</p>";$("quiz-btn").textContent="Run a quiz";$("quiz-meta").textContent=""}
- else{qt.className="tag on";qt.textContent=q.length===1?"Quiz in progress":q.length+" quizzes in progress";$("quiz-btn").textContent="Quiz administration";
+ if(!q.length){qt.className="tag";qt.textContent="Live quiz";$("quiz-list").innerHTML="<p class='note'>No quiz is running.</p>";$("quiz-btn").textContent="Run a quiz";$("quiz-btn").setAttribute("data-win","quiz-host.html");$("quiz-meta").textContent=""}
+ else{qt.className="tag on";qt.textContent=q.length===1?"Quiz in progress":q.length+" quizzes in progress";$("quiz-btn").textContent="Quiz administration";$("quiz-btn").setAttribute("data-win","quiz-host.html?code="+encodeURIComponent((q.filter(function(x){return x.state!=="lobby"})[0]||q[0]).code));
   var st={lobby:"Waiting room",running:"Running",paused:"Paused"};
-  $("quiz-list").innerHTML=q.map(function(x){return"<div class='qrow'><b>"+esc(x.code)+"</b><span>"+esc(x.title||"Quiz")+"</span><span class='note'>"+(st[x.state]||esc(x.state))+"</span><span class='qn'>"+x.joined+" <span class='note'>joined</span></span>"+(x.state==="lobby"?"":"<button class='btn danger sm' type='button' data-stop-quiz='"+esc(x.code)+"'>Stop quiz</button>")+"</div>"}).join("")}
+  $("quiz-list").innerHTML=q.map(function(x){return"<div class='qrow'><b>"+esc(x.code)+"</b><span>"+esc(x.title||"Quiz")+"</span><span class='note'>"+(st[x.state]||esc(x.state))+"</span><span class='qn'>"+x.joined+" <span class='note'>joined</span></span>"+"<button class='btn sm' type='button' data-open-quiz='"+esc(x.code)+"'>Open</button><button class='btn danger sm' type='button' data-stop-quiz='"+esc(x.code)+"' data-state='"+esc(x.state)+"'>"+(x.state==="lobby"?"Close lobby":"Stop quiz")+"</button></div>"}).join("")}
  var parts=[];if(a&&a.status==="Open")parts.push(a.present+(a.rosterSize?" of "+a.rosterSize:"")+" checked in");
  q.forEach(function(x){parts.push("Quiz "+x.code+": "+x.joined+" joined")});
  $("scan-live").textContent=parts.join(" · ");$("proj-live").textContent=parts.join(" · ");
@@ -1280,6 +1282,7 @@ $("pw-code-copy").addEventListener("click",function(){var t=$("pw-code").textCon
 pwShow();
 
 document.querySelectorAll("[data-win]").forEach(function(b){b.addEventListener("click",function(){cmApp.openWindow(b.getAttribute("data-win"))})});
+document.addEventListener("click",function(e){var b=e.target.closest&&e.target.closest("[data-open-quiz]");if(b)cmApp.openWindow("quiz-host.html?code="+encodeURIComponent(b.getAttribute("data-open-quiz")))}); /* the Open button of a running quiz: the one quiz window shows that quiz */
 document.querySelectorAll("[data-go]").forEach(function(b){b.addEventListener("click",function(){location.href=b.getAttribute("data-go")})});
 $("tab").addEventListener("change",function(){$("filter").value="";view()});
 document.querySelectorAll("[data-setup]").forEach(function(b){b.addEventListener("click",function(){location.href="setup.html#"+b.getAttribute("data-setup")})});

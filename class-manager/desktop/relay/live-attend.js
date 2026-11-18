@@ -6,6 +6,7 @@ const crypto = require("crypto");
 const AT = require("../rules/attendance");
 const AC = require("../rules/access-codes"); // normCode, for the hash
 const U = require("../rules/unlisted");
+const SA = require("../rules/signin-attempts"); // refused phones go to the Sign-in problems list
 const { append } = require("../rules/store");
 
 const hashCode = (course, id, code) => crypto.createHash("sha256").update(course + "|" + id + "|" + AC.normCode(code)).digest("hex"); // the relay holds only this, never the code
@@ -24,10 +25,12 @@ async function pushUnlock(hub, course, id, code) { return hub.post("/v1/live/unl
 
 // Records the relay's events once each: a check-in is added to the log unless that ID is already there; flags and held check-ins go to the flags tab.
 function applyEvents(store, events) {
-  const out = { added: 0, flags: 0, pending: 0, binds: 0 };
+  const out = { added: 0, flags: 0, pending: 0, binds: 0, refused: 0 };
   events.forEach((e) => {
     const at = new Date(e.at * 1000);
+    if (e.kind === "refused") { if (SA.note(store, { id: e.sid, where: "Attendance (phone)", reason: String(e.note), dev: e.dev, at })) out.refused++; return; } // Sign-in problems list
     if (e.kind === "ok") {
+      SA.noteOk(store, e.sid, "Attendance (phone)", at);
       if (AT.present(store, e.label)[e.sid]) return;
       const [onl0, loc] = String(e.note).split("|");
       const stillOff = onl0 === "No" && U.isUnlisted(store, e.sid), onl = onl0 === "No" && !stillOff ? "Yes" : onl0; // added to the class list while the phone was signing in: it counts
@@ -43,7 +46,7 @@ function applyEvents(store, events) {
 async function collect(hub, store) {
   const after = Number(store.prop("live_after")) || 0;
   const r = await hub.post("/v1/live/events", { after });
-  if (!r.events.length) return { ok: true, applied: { added: 0, flags: 0, pending: 0, binds: 0 } };
+  if (!r.events.length) return { ok: true, applied: { added: 0, flags: 0, pending: 0, binds: 0, refused: 0 } };
   const applied = applyEvents(store, r.events), top = r.events[r.events.length - 1].id;
   store.setProp("live_after", String(top));
   await hub.post("/v1/live/ack", { upto: top });
