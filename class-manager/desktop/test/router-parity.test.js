@@ -10,7 +10,7 @@ const { fromBackend } = require("../rules/store");
 
 const WEB = path.resolve(__dirname, "..", ".."), PACK = path.join(WEB, "course-packs", "phys143", "files");
 const site = (p) => { const a = path.join(PACK, p); return JSON.parse(fs.readFileSync(fs.existsSync(a) ? a : path.join(WEB, p), "utf8")); };
-const TIMES = ["quizType", "conceptWeeks", "code", "serverNow", "endTime", "qDeadline", "remainingMs", "_session", "generated", "created", "updated", "t", "last", "at", "v", "secondsLeft", "link", "time", "people", "topics", "topicsError"];
+const TIMES = ["quizType", "conceptWeeks", "code", "serverNow", "endTime", "qDeadline", "remainingMs", "_session", "generated", "created", "updated", "t", "last", "at", "v", "secondsLeft", "link", "time", "people", "topics", "topicsError", "noCode"]; // noCode: the script still reports students without a code; the rules no longer make codes for everyone (test/access-codes.test.js)
 const parse = (r) => { try { return JSON.parse(r.text); } catch (e) { return r.text; } };
 const norm = (r) => JSON.parse(JSON.stringify(typeof r === "string" ? { text: r } : r, (k, v) => (TIMES.indexOf(k) >= 0 ? undefined : typeof v === "string" ? v.replace(/^M\d{13}[0-9a-f-]{4}$/, "M").replace(/\b[GEASM][0-9a-f]{8,10}\b/g, "ID").replace(/\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d[^"]*/g, "T").replace(/DTSTAMP:\S+|SEQUENCE:\d+/g, "") : v)));
 
@@ -37,7 +37,7 @@ test("every read action gives the same answer", () => scenario(({ script, both, 
     { action: "chat", id, code }, { action: "my_results", id, code }, { action: "group_work", id, access: code }, { action: "hostcheck" }, { action: "hostcheck", hostkey: script.key }];
   reads.forEach((p) => both(p));
   const hostReads = [{ action: "host", code: CODE }, { action: "join_base" }, { action: "preclass", week: "1" }, { action: "held_status" }, { action: "attend_status" }, { action: "attend_review" }, { action: "groups", op: "list" }, { action: "assignments", op: "list" },
-    { action: "outcomes", op: "list" }, { action: "groups_display" }, { action: "learning_progress" }, { action: "insights" }, { action: "class_stats" }, { action: "student_stats", id }, { action: "access_codes", op: "list" }, { action: "calendar_ics", course: "X" }, { action: "roster_tidy" }];
+    { action: "outcomes", op: "list" }, { action: "groups_display" }, { action: "learning_progress" }, { action: "insights" }, { action: "class_stats" }, { action: "student_stats", id }, { action: "calendar_ics", course: "X" }, { action: "roster_tidy" }];
   hostReads.forEach((p) => both(host(p)));
   hostReads.slice(0, 4).forEach((p) => both(Object.assign({}, p, badKey), "bad key " + p.action)); // few: the script counts wrong keys and then refuses all
 }));
@@ -51,7 +51,7 @@ test("every change gives the same answer and the same records", () => scenario((
     { kind: "attempt", id, quiz: "Mock exam", attempt: "1", score: "7", total: "10", seconds: "5", wrong: "", asked: "L1-01" }, { kind: "attempt", quiz: "x" }, { kind: "report", page: "p", lecture: "1", qid: "L1-01", comment: "typo" }, { kind: "submit", name: "A", id, code: "NOPE" }].forEach((p) => same(p));
   [{ act: "next" }, { act: "revote" }, { act: "end" }, { act: "release" }].forEach((p) => same(host(Object.assign({ action: "control", code: CODE }, p)), "control " + p.act));
   same(host({ action: "control", code: CODE, state: "stopped" }), "legacy state"); same({ action: "control", code: CODE, act: "next", hostkey: "bad" }, "control bad key");
-  [{ action: "join_base", base: "3636" }, { action: "join_base", base: "1" }, { action: "set_week", w: "2" }, { action: "set_week", w: "99" }, { action: "access_codes", op: "expiry", days: "30" }, { action: "access_codes", op: "reset", id },
+  [{ action: "join_base", base: "3636" }, { action: "join_base", base: "1" }, { action: "set_week", w: "2" }, { action: "set_week", w: "99" },
     { action: "student_note", id, text: "a note" }, { action: "roster_edit", op: "name", id, name: "New Name" }, { action: "calendar_edit", op: "save", title: "Exam day", start: "2030-03-01" }, { action: "announcements", op: "save", title: "Hello", text: "t" },
     { action: "groups", op: "lock", set: "Lab", group: "1" }, { action: "assignments", op: "close", id: "NOPE" }, { action: "outcomes", op: "accept", lecture: "1" }].forEach((p) => same(host(p), p.action + " " + (p.op || "")));
   same({ action: "chat", id, code, op: "send", conv: "CLASS", text: "hi" }); same({ action: "chat", id, code, op: "send", conv: "CLASS", text: "hi" }, "chat again");

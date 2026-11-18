@@ -82,8 +82,13 @@ body.focus main{padding-top:1.2rem}
   <details id="p-details"><summary>My progress</summary>
    <form id="p-form" autocomplete="off" novalidate>
     <label for="p-id">Student ID</label><input type="text" id="p-id" maxlength="12" inputmode="numeric" autocomplete="off">
-    <label for="p-code">Access code</label><input type="text" id="p-code" maxlength="9" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ABCD-EF23" aria-describedby="p-codenote">
-    <p class="note" id="p-codenote">Your personal code is on the slip from your lecturer. Keep it to yourself: with your ID it opens your record.</p>
+    <label for="p-code">Access code</label><input type="text" id="p-code" maxlength="9" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Your 5-letter code" aria-describedby="p-codenote">
+    <p class="note" id="p-codenote">Your access code is a 5-letter code that you make yourself the first time. Keep it to yourself: with your ID it opens your record. Forgotten it? Ask your lecturer to reset it, then make a new one.</p>
+    <div id="p-newbox" hidden>
+     <p class="note"><b>Make your access code.</b> Choose 5 letters or digits that you will remember. Your lecturer cannot see it.</p>
+     <label for="p-new">New code</label><input type="text" id="p-new" maxlength="5" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="5 letters or digits">
+     <label for="p-new2">Type it again</label><input type="text" id="p-new2" maxlength="5" autocomplete="off" autocapitalize="characters" spellcheck="false">
+    </div>
     <label class="cb" id="p-remlab" hidden><input type="checkbox" id="p-rem"> Remember my ID and code on this phone</label>
     <p class="note" id="p-remnote" hidden>Stored only in this browser. <a href="#" id="p-forget">Forget this phone</a></p>
     <p class="err" id="p-err" role="alert" hidden></p>
@@ -176,7 +181,7 @@ function load(){
 $("p-id").addEventListener("input",function(){var v=$("p-id").value.replace(/\D/g,"");if(v!==$("p-id").value)$("p-id").value=v});
 $("p-rem").addEventListener("change",function(){$("p-remnote").hidden=!$("p-rem").checked;if(!$("p-rem").checked){try{localStorage.removeItem(KEYID);localStorage.removeItem(KEYCODE)}catch(x){}}});
 $("p-forget").addEventListener("click",function(e){e.preventDefault();try{localStorage.removeItem(KEYID);localStorage.removeItem(KEYCODE)}catch(x){}$("p-rem").checked=false;$("p-id").value="";$("p-code").value="";$("p-remnote").hidden=true;$("p-out").hidden=true});
-$("p-code").addEventListener("input",function(){var v=$("p-code").value.toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,8);v=v.length>4?v.slice(0,4)+"-"+v.slice(4):v;if(v!==$("p-code").value)$("p-code").value=v});
+$("p-code").addEventListener("input",function(){var v=$("p-code").value.toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,8);v=v.length>5?v.slice(0,4)+"-"+v.slice(4):v;if(v!==$("p-code").value)$("p-code").value=v}); // 5 characters; the older printed 8-character codes still work
 var BANKS={},TITLES={};
 function bank(n,cb){ // the public question bank of one lecture, for the questions to revisit
  if(BANKS[n]!==undefined){cb(BANKS[n]);return}
@@ -248,13 +253,25 @@ $("p-form").addEventListener("submit",function(e){
  e.preventDefault();var er=$("p-err");er.hidden=true;$("p-out").hidden=true;
  var id=$("p-id").value.trim(),code=$("p-code").value.trim().toUpperCase();
  if(!/^[0-9]{4,12}$/.test(id)){er.textContent=PHYSMSG.text("E1");er.hidden=false;return}
+ if(!$("p-newbox").hidden){ // first time: the student makes a code, then is signed in with it
+  var n1=$("p-new").value.trim().toUpperCase(),n2=$("p-new2").value.trim().toUpperCase();
+  if(!/^[A-Z0-9]{5}$/.test(n1)){er.textContent="The code must be 5 letters or digits.";er.hidden=false;return}
+  if(n1!==n2){er.textContent="The two codes are not the same.";er.hidden=false;return}
+  $("p-show").disabled=true;
+  jsonp("action=code_setup&id="+encodeURIComponent(id)+"&code="+encodeURIComponent(n1),function(r){
+   $("p-show").disabled=false;
+   if(!r){er.textContent=PHYSMSG.text("E8");er.hidden=false;return}
+   if(!r.ok){er.textContent=r.why==="code exists"?"A code has already been made for this ID. Enter it, or ask your lecturer to reset it.":r.detail||PHYSMSG.fromWhy(r.why);er.hidden=false;if(r.why==="code exists")$("p-newbox").hidden=true;return}
+   $("p-newbox").hidden=true;$("p-code").value=n1;$("p-new").value="";$("p-new2").value="";$("p-form").dispatchEvent(new Event("submit",{cancelable:true}));
+  },12000);return}
  if(!code&&SAVEDTOK)code=SAVEDTOK;
- else if(!/^[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(code)){er.textContent=PHYSMSG.text("E17");er.hidden=false;return}
+ else if(code&&!/^([A-Z0-9]{5}|[A-Z0-9]{4}-[A-Z0-9]{4})$/.test(code)){ // an empty code is sent too: a student who has none yet is then offered the chance to make one
+  er.textContent=PHYSMSG.text("E17");er.hidden=false;return}
  $("p-show").disabled=true;
  jsonp("action=my_results&id="+encodeURIComponent(id)+"&code="+encodeURIComponent(code),function(r){
   $("p-show").disabled=false;
   if(!r){er.textContent=PHYSMSG.text("E8");er.hidden=false;return}
-  if(!r.ok){if(code===SAVEDTOK){SAVEDTOK="";$("p-code").placeholder="";try{localStorage.removeItem(KEYCODE)}catch(x){}}er.textContent=PHYSMSG.fromWhy(r.why);er.hidden=false;return}
+  if(!r.ok){if(code===SAVEDTOK){SAVEDTOK="";$("p-code").placeholder="";try{localStorage.removeItem(KEYCODE)}catch(x){}}if(r.why==="no access code"||r.why==="code expired"){$("p-newbox").hidden=false;$("p-new").focus();er.textContent=PHYSMSG.text(r.why==="code expired"?"E19":"E18").replace(" on the Portal page","")+" Make it below.";er.hidden=false;return}er.textContent=PHYSMSG.fromWhy(r.why);er.hidden=false;return}
   if($("p-rem").checked){try{localStorage.setItem(KEYID,id);localStorage.setItem(KEYCODE,code)}catch(x){}}
   showResults(r);
  },12000);

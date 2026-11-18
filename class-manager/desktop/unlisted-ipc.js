@@ -31,7 +31,6 @@ function register({ on }) {
     const done = c.backend.rosterSync(chosen.map((p) => [p.id, p.name]), false);
     if (!done || done.ok === false) return { ok: false, why: (done && done.why) || "The class list could not be saved." };
     c.backend.buildFromRoster(); // a row for each new student in Attendance, Master and Scores
-    AC.run(storeOf(c), { op: "generate" }, { random: (n) => crypto.randomBytes(n) }); // an access code for each, as for everyone on the list
     const env = { site: c.backend.site, random: () => crypto.randomUUID(), counters: A.memoryCounters(() => new Date()) };
     const moved = MV.move(storeOf(c), chosen, quizHooks(storeOf(c), env));
     c.backend.flush(); c.backend.rebuildMarks();

@@ -25,8 +25,7 @@ const post = (p) => B.doPost(p).text;
 const ids = sample.ids, names = sample.names;
 
 // Access codes for the student views.
-const codes = host({ action: "access_codes", op: "generate" });
-const codeOf = {}; (codes.rows || []).forEach((c) => { codeOf[c.id] = c.code; });
+const codeOf = {}; ids.forEach((id, i) => { codeOf[id] = "PD" + String(i + 1).padStart(3, "0"); const r = get({ action: "code_setup", id, code: codeOf[id] }); assert.equal(r.ok, true, "the student makes a code"); });
 
 test("access codes exist for the class", () => { assert.equal(Object.keys(codeOf).length, ids.length); });
 

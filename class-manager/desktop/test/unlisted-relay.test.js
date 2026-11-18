@@ -26,10 +26,9 @@ test("attendance on the relay: an unlisted phone is told, signs in, and CM holds
   assert.equal((await L.openOnRelay(hub, store, course, "off")).ok, true);
   const ses = AT.openSession(store), tok = AT.linkFor(ses.secret, Math.floor(Date.now() / 30000));
   const post = async (path, p, d) => (await (await fetchTo(env)("https://hub.test" + path, { method: "POST", headers: { "CF-Connecting-IP": "7.7.7." + d }, body: JSON.stringify(Object.assign({ course, dev: "phone" + d + "abcdefghijklmnopqrstuvwxyz", t: tok }, p)) })).json());
-  const cl = await post("/v1/claim", { id: OFF }, 1); assert.deepEqual([cl.ok, cl.onList, cl.code], [true, false, undefined], "no code, the warning");
   const ci = await post("/v1/attend", { id: OFF, code: "" }, 1); assert.equal(ci.ok, true); assert.equal(ci.onList, false);
   assert.equal((await post("/v1/attend", { id: OFF, code: "" }, 1)).already, true);
-  assert.equal((await post("/v1/attend", { id: a.id, code: c.codes[a.id] }, 2)).onList, true);
+  assert.equal((await post("/v1/attend", { id: a.id }, 2)).onList, true);
   const got = await L.collect(hub, store); assert.equal(got.applied.added, 2);
   assert.deepEqual(U.list(store).items.map((x) => [x.id, x.status, x.attendance.length]), [[OFF, "waiting", 1]]);
   assert.equal((await L.collect(hub, store)).applied.added, 0); assert.equal(U.recordsOf(store, OFF).length, 1, "collecting again holds nothing twice");

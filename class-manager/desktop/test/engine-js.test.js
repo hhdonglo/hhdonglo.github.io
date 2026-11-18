@@ -16,8 +16,8 @@ test("a class runs a quiz, takes attendance and shows My results on the JavaScri
     assert.equal(c.host("host", { code }).submitted >= 0, true);
     ctl({ act: "end" }); assert.equal(ctl({ act: "release" }).ok, true);
     const rows = c.host("class_stats", {}); assert.equal(rows.ok, true); assert.equal(rows.students.length, 4);
-    const codes = c.host("access_codes", { op: "list" }).rows, mine = codes[0];
-    const r = c.call({ action: "my_results", id: mine.id, code: mine.code }); assert.equal(r.ok, true); assert.ok(r._session);
+    const mine = c.students[0]; assert.equal(c.call({ action: "my_results", id: mine.id, code: "WRONG" }).why, "not recognised");
+    const r = c.call({ action: "my_results", id: mine.id, code: c.codes[mine.id] }); assert.equal(r.ok, true); assert.ok(r._session);
     assert.equal(c.host("attend_open", { nogeo: "1" }).ok, true); assert.equal(c.host("attend_close", {}).ok, true);
     assert.match(c.call({ action: "nothing" }).toString(), /running/);
   } finally { c.backend.close(); }

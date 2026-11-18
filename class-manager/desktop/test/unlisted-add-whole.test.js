@@ -62,7 +62,6 @@ test("add: the student arrives with an access code, attendance, quiz answers and
   assert.ok(heldAnswers >= 1);
   const r = H["cm:unlistedAdd"](ctx, null, [{ id: A, name: "AMA" }, { id: B, name: "Aman" }]);
   assert.equal(r.ok, true); assert.equal(r.added, 2);
-  [A, B].forEach((id) => assert.ok(tab(c, "Access_Codes").some((x) => String(x[0]) === id), "access code for " + id));
   assert.equal(H["cm:unlistedCount"](ctx).waiting, 0);
   const grid = c.backend.rawRows("Attendance"), col = grid[0].length - 1;
   [A, B].forEach((id) => assert.equal(Number(grid.slice(1).find((x) => String(x[0]) === id)[col]), 1, "attendance mark for " + id));

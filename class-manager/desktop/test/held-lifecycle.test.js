@@ -14,8 +14,8 @@ const tokenOf = (c) => AT.linkFor(AT.openSession(fromBackend(c.backend)).secret,
 function takeAttendance(c, n, extraId) {
   assert.equal(c.host("attend_open", { nogeo: "1" }).ok, true);
   const t = tokenOf(c);
-  c.students.slice(0, n).forEach((s, i) => { c.call({ action: "claim_code", id: s.id, dev: dev(i), t }); assert.equal(c.call({ action: "attend", id: s.id, dev: dev(i), t, code: c.codes[s.id] }).ok, true); });
-  if (extraId) { c.call({ action: "claim_code", id: extraId, dev: dev(9), t }); c.call({ action: "attend", id: extraId, dev: dev(9), t }); }
+  c.students.slice(0, n).forEach((s, i) => { assert.equal(c.call({ action: "attend", id: s.id, dev: dev(i), t }).ok, true); });
+  if (extraId) { c.call({ action: "attend", id: extraId, dev: dev(9), t }); }
 }
 function runQuiz(c) {
   c.host("control", { code: CODE, act: "init" }); c.host("control", { code: CODE, act: "set", field: "q_seconds", value: "0" }); c.host("control", { code: CODE, act: "start" });
