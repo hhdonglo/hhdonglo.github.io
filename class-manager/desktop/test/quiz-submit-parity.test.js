@@ -26,7 +26,10 @@ function pair() {
   const both = (p) => {
     const a = script.call(p), b = S.handle(store, p, o), want = typeof a === "string" ? { outcome: a } : { outcome: a.outcome, json: a };
     assert.equal(b.outcome, want.outcome, JSON.stringify(p)); if (want.json) assert.deepEqual(b.json, want.json, "receipt " + JSON.stringify(p));
-    TABS.forEach((nm) => assert.deepEqual(strip(tab(mod, nm)), strip(tab(script, nm)), nm + " after " + JSON.stringify(p)));
+    TABS.filter((nm) => nm !== "Presence").forEach((nm) => assert.deepEqual(strip(tab(mod, nm)), strip(tab(script, nm)), nm + " after " + JSON.stringify(p)));
+    // The one intended difference from the old script: CM counts an accepted answer as participation (a lost join no longer leaves 0 participants), so its Presence holds every row the script has, and may hold more.
+    const have = (rows) => strip(rows).map((r) => r.slice(1).join("|")), mine = have(tab(mod, "Presence"));
+    have(tab(script, "Presence")).forEach((r) => assert.ok(mine.includes(r) || /\|(joined|inprogress)$/.test(r), "Presence row " + r + " after " + JSON.stringify(p)));
     return b;
   };
   return { script, mod, ctl, both, close: () => { script.backend.close(); mod.backend.close(); } };
