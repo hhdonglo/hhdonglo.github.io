@@ -9,8 +9,9 @@ function keyOf(url) {
   try { return new URL(String(url), "http://cm.local").pathname; } catch (e) { return ""; }
 }
 
-// all: optional function giving every window CM has, so a window that was opened by hand or has moved to another page is found by the page it shows now
-function createWindowRegistry(all) {
+// all: optional function giving every window CM has, so a window that was opened by hand or has moved to another page is found by the page it shows now.
+// retarget: optional pattern for pages whose one window follows a ?code= in the request (the quiz window): asking for another code points that window at it instead of opening a second one.
+function createWindowRegistry(all, retarget) {
   const open = new Map(); // key -> window
   const alive = (w) => !!w && !(typeof w.isDestroyed === "function" && w.isDestroyed());
   function find(url) {
@@ -28,8 +29,13 @@ function createWindowRegistry(all) {
     w.focus();
   }
   // true when a window for this address was open and has been brought forward
+  const codeOf = (url) => { try { return new URL(String(url), "http://cm.local").searchParams.get("code") || ""; } catch (e) { return ""; } };
   function focusExisting(url) {
     const w = find(url); if (!w) return false;
+    const want = codeOf(url);
+    if (want && retarget && retarget.test(keyOf(url))) { // same tool, another code: this window shows that one
+      try { if (codeOf(w.webContents.getURL()) !== want) w.loadURL(String(url)); } catch (e) { /* the window is going away */ }
+    }
     raise(w); return true;
   }
   // remember a newly made window; it is forgotten when it closes

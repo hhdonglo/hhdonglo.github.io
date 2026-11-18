@@ -22,6 +22,7 @@ const P = require("./progress");
 const H = require("./held");
 const QR = require("./quiz-results");
 const QS = require("./quiz-submit");
+const SA = require("./signin-attempts");
 const ST = require("./score-tables");
 const V = require("./quiz-views");
 const { normalizeId } = require("../ids");
@@ -95,7 +96,12 @@ function createRouter(env) {
       case "student_stats": return hostJ(() => P.studentStats(store, p, o, env.version));
       case "access_codes": return hostJ(() => AC.run(store, p, { random: o.random, log: (x, y, z) => logLine(store, x, y, z, "") }));
       case "preclass": return hostJ(() => preclass(p, o));
-      case "attend": return J(AT.checkIn(store, p, o));
+      case "attend": { // a refused check-in is also noted for the lecturer's Sign-in problems list (signin-attempts.js)
+        const r = AT.checkIn(store, p, o);
+        if (r && r.ok === false) SA.note(store, { id: p.id, where: "Attendance", reason: SA.FROM_ATTEND[r.why] });
+        else if (r && r.ok) SA.noteOk(store, p.id, "Attendance");
+        return J(r);
+      }
       case "code_setup": { // a student makes their own 5-letter code (access-codes.js); only for an ID on the class list that has none
         if (!req.post) return J({ ok: false, why: "not recognised" });
         const key = "setup:" + normalizeId(p.id); if (AU.failsOf(o, key) >= AU.K.ATT_MAX_FAILS) return J({ ok: false, why: "slow down" });

@@ -7,6 +7,7 @@ const crypto = require("crypto");
 const { normalizeId } = require("../ids");
 const { logLine } = require("./store");
 const AC = require("./access-codes");
+const SA = require("./signin-attempts");
 
 const K = { HOST_HOURS: 8, STUDENT_DAYS: 14, SIGNIN_GLOBAL_MAX: 200, ATT_MAX_FAILS: 6, PW_ROUNDS: 4000, HOST_MAX_FAILS: 10, RECOVERY_MAX_FAILS: 5, PW_MIN: 10, PW_MAX: 100 };
 const KEY_TAB = "Key";
@@ -54,9 +55,11 @@ const failsOf = (o, key) => Number(o.counters.get("attf:" + key) || 0);
 const failAdd = (o, key) => o.counters.put("attf:" + key, String(failsOf(o, key) + 1), 600);
 function studentCheck(store, rawId, given, tag, req, o) {
   const id = normalizeId(rawId); given = String(given || "").trim();
-  if (id.length < 4 || id.length > 12) return { why: "bad id" };
+  const typed = !!given && !isSession(given) && !!req.post; // someone typed a code: a refusal here is a sign-in problem the lecturer may need to see (signin-attempts.js)
+  const refuse = (why, reason) => { if (typed) SA.note(store, { id: id || rawId, where: "Student sign-in", reason }); return { why }; };
+  if (id.length < 4 || id.length > 12) return refuse("bad id", "bad_id");
   if (!req.post) return { why: "not recognised" };
-  if (failsOf(o, tag + id) >= K.ATT_MAX_FAILS) return { why: "slow down" };
+  if (failsOf(o, tag + id) >= K.ATT_MAX_FAILS) return refuse("slow down", "locked");
   const onList = AC.rosterRows(store).some((r) => r[0] === id), mine = onList ? AC.codesMap(store)[id] : null;
   if (isSession(given)) {
     const t = sessRead(store, given);
@@ -64,12 +67,13 @@ function studentCheck(store, rawId, given, tag, req, o) {
     if (t && t.role === "s" && t.subj === id && mine && sessValid(store, o, t, mine.code)) return { id };
     failAdd(o, tag + id); return { why: "not recognised" };
   }
-  if (Number(o.counters.get("signin_fails") || 0) >= K.SIGNIN_GLOBAL_MAX) return { why: "slow down" };
+  if (Number(o.counters.get("signin_fails") || 0) >= K.SIGNIN_GLOBAL_MAX) return refuse("slow down", "locked");
   const code = AC.normCode(given);
-  if (onList && !mine) return { why: "no access code" }; // nothing made yet: the page offers the student a 5-letter code of their own (action code_setup)
-  if (!mine || !code || mine.code !== code) { failAdd(o, tag + id); o.counters.put("signin_fails", String(Number(o.counters.get("signin_fails") || 0) + 1), 600); return { why: "not recognised" }; }
-  if (AC.expired(store, mine)) return { why: "code expired" };
+  if (onList && !mine) return refuse("no access code", "no_code"); // nothing made yet: the page offers the student a 5-letter code of their own (action code_setup)
+  if (!mine || !code || mine.code !== code) { failAdd(o, tag + id); o.counters.put("signin_fails", String(Number(o.counters.get("signin_fails") || 0) + 1), 600); return refuse("not recognised", onList ? "wrong_code" : "not_on_list"); }
+  if (AC.expired(store, mine)) return refuse("code expired", "code_expired");
   req.session = sessMake(store, o, "s", id, mine.code, K.STUDENT_DAYS * 86400000);
+  SA.noteOk(store, id, "Student sign-in");
   return { id };
 }
 

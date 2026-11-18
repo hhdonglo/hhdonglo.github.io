@@ -25,7 +25,14 @@ function geo(s, p) {
   const d = metres(s.lat, s.lon, la, lo); return { state: d - acc <= (s.radius || 500) ? "ok" : "far", dist: d };
 }
 const geoText = (g) => (g.state === "off" ? "" : g.state === "none" ? "no location" : g.state + " " + g.dist + " m");
+const REFUSED_MAX = 400; // refused attempts waiting for CM per course: a flood of tries cannot fill the table
 const event = (db, course, label, kind, sid, dev, note, now) => db.prepare("INSERT INTO live_event(course, label, kind, sid, dev, note, at) VALUES(?, ?, ?, ?, ?, ?, ?)").bind(course, label, kind, sid, dev, note, now).run();
+
+// A refused check-in, kept as an event so CM can show the lecturer which ID is stuck and why (desktop/rules/signin-attempts.js; the keys are its reasons). No code is ever stored.
+async function refused(db, course, label, sid, dev, reason, now) {
+  const n = (await db.prepare("SELECT COUNT(*) AS n FROM live_event WHERE course = ? AND kind = 'refused'").bind(course).first()).n;
+  if (n < REFUSED_MAX) await event(db, course, label, "refused", sid, dev || "", reason, now);
+}
 
 // CM, signed. body: { label, secret, mode: "off"|"enforce", lat?, lon?, radius?, roster: { id: "" }, phones: { id: deviceHash } }
 export async function open(course, body, db, now) {
@@ -81,12 +88,13 @@ export async function checkIn(req, db, now) {
   const s = await db.prepare("SELECT * FROM live_session WHERE course = ? AND status = 'Open'").bind(course).first();
   if (!s) return reply({ ok: false, why: "closed" });
   const sid = normId(p.id); let dev = String(p.dev || "").replace(/[^A-Za-z0-9]/g, "").slice(0, 40);
-  if (sid.length < 4 || sid.length > 12) return reply({ ok: false, why: "bad id" });
-  if (dev.length < 16) return reply({ ok: false, why: "update page" });
+  const no = async (why, reason) => { if (sid) await refused(db, course, s.label, sid.slice(0, 12), dev.slice(0, 8), reason, now); return reply({ ok: false, why }); }; // the refusal is also kept for CM's Sign-in problems list
+  if (sid.length < 4 || sid.length > 12) return no("bad id", "bad_id");
+  if (dev.length < 16) return no("update page", "old_page");
   dev = (await sha256Hex(course + ":" + dev)).slice(0, 16); // only a salted hash of the phone's token is ever kept
   const fk = (k) => ["att:f:" + k, 600], failed = async (k) => (await peek(db, fk(k)[0], 600, now)) >= MAX_FAILS, bad = (k) => bump(db, fk(k)[0], 600, now);
-  if ((await failed("d" + dev)) || (await failed("i" + sid))) return reply({ ok: false, why: "slow down" });
-  if (!(await linkOk(s.secret, String(p.t || "").replace(/[^0-9a-f]/g, "").slice(0, 8), now))) { await bad("d" + dev); await bad("i" + sid); return reply({ ok: false, why: "old link" }); }
+  if ((await failed("d" + dev)) || (await failed("i" + sid))) return no("slow down", "locked");
+  if (!(await linkOk(s.secret, String(p.t || "").replace(/[^0-9a-f]/g, "").slice(0, 8), now))) { await bad("d" + dev); await bad("i" + sid); return no("old link", "old_qr"); }
   const roster = JSON.parse(s.roster), onl = Object.prototype.hasOwnProperty.call(roster, sid), day = dayOf(s.label);
   // No personal access code here. A second ID on a phone that already checked in someone else needs the lecturer's one-time unlock code.
   let mine = null, seed = {}, owner, bound, unlocked = false;
@@ -99,23 +107,23 @@ export async function checkIn(req, db, now) {
     if (!already && ((owner && owner !== sid) || usedHere)) {
       if (!String(p.code || "").trim()) {
         if (!(await db.prepare("SELECT 1 AS x FROM live_event WHERE course = ? AND label = ? AND sid = ? AND kind = 'flag' AND note = ?").bind(course, s.label, sid, ASKED).first())) await event(db, course, s.label, "flag", sid, dev, ASKED, now);
-        return reply({ ok: false, why: "code required" });
+        return no("code required", "second_id");
       }
       const row = await db.prepare("SELECT hash FROM live_unlock WHERE course = ? AND sid = ?").bind(course, sid).first();
-      if (!row || (await codeHash(course, sid, p.code)) !== row.hash) { await bad("d" + dev); await bad("i" + sid); await event(db, course, s.label, "flag", sid, dev, "wrong unlock code (refused)", now); return reply({ ok: false, why: "not recognised" }); }
+      if (!row || (await codeHash(course, sid, p.code)) !== row.hash) { await bad("d" + dev); await bad("i" + sid); await event(db, course, s.label, "flag", sid, dev, "wrong unlock code (refused)", now); return no("not recognised", "wrong_unlock"); }
       await db.prepare("DELETE FROM live_unlock WHERE course = ? AND sid = ?").bind(course, sid).run(); unlocked = true; // one use
     }
   }
   if (await db.prepare("SELECT 1 AS x FROM live_event WHERE course = ? AND kind = 'ok' AND sid = ? AND label LIKE ?").bind(course, sid, day + " #%").first()) return reply({ ok: true, id: sid, onList: onl, already: true });
   if (!onl) { // a flood of made-up IDs cannot fill the review list: at most UNLISTED_MAX unlisted check-ins per session
     const n = (await db.prepare("SELECT COUNT(*) AS n FROM live_event WHERE course = ? AND label = ? AND kind = 'ok' AND note LIKE 'No|%'").bind(course, s.label).first()).n;
-    if (n >= UNLISTED_MAX) return reply({ ok: false, why: "not on list" });
+    if (n >= UNLISTED_MAX) return no("not on list", "not_on_list");
   }
   const g = geo(s, p); let bind = false;
   if (onl) {
     const changed = !unlocked && bound && bound !== dev && !(owner && owner !== sid);
     if (changed) {
-      if (s.mode === "enforce" && (g.state === "far" || g.state === "none")) return reply({ ok: false, why: g.state === "far" ? "too far" : "no location" });
+      if (s.mode === "enforce" && (g.state === "far" || g.state === "none")) return no(g.state === "far" ? "too far" : "no location", g.state === "far" ? "too_far" : "no_location");
       if (!(await db.prepare("SELECT 1 AS x FROM live_event WHERE course = ? AND label = ? AND sid = ? AND kind = 'pending'").bind(course, s.label, sid).first())) await event(db, course, s.label, "pending", sid, dev, PENDING + "used a phone other than the one registered", now);
       return reply({ ok: true, id: sid, onList: true, pending: true });
     }
@@ -123,7 +131,7 @@ export async function checkIn(req, db, now) {
   }
   if (g.state === "far" || g.state === "none") {
     await event(db, course, s.label, "flag", sid, dev, "location: " + geoText(g) + (s.mode === "enforce" ? " (refused)" : " (accepted)"), now);
-    if (s.mode === "enforce") return reply({ ok: false, why: g.state === "far" ? "too far" : "no location" });
+    if (s.mode === "enforce") return no(g.state === "far" ? "too far" : "no location", g.state === "far" ? "too_far" : "no_location");
   }
   if (unlocked) await event(db, course, s.label, "flag", sid, dev, "checked in with the lecturer's unlock code on a phone used for another ID", now);
   try { await db.prepare("INSERT INTO live_event(course, label, kind, sid, dev, note, at) VALUES(?, ?, 'ok', ?, ?, ?, ?)").bind(course, s.label, sid, unlocked ? "" : dev, (onl ? "Yes" : "No") + "|" + geoText(g), now).run(); } // an unlocked check-in keeps no phone hash: the phone belongs to the first ID

@@ -12,6 +12,7 @@
 <script src="config.js"></script>
 <script src="assets/qrcode.js"></script>
 <script src="assets/quiz-host-text.js"></script>
+<script src="assets/quiz-central.js" defer></script>
 <link rel="stylesheet" href="assets/site.css">
 <script>if(!location.hash){if("scrollRestoration" in history)history.scrollRestoration="manual";window.addEventListener("pageshow",function(){if(!location.hash)window.scrollTo({top:0,left:0,behavior:"instant"})});}</script>
 <link rel="stylesheet" href="assets/cm-theme.css">
@@ -65,6 +66,9 @@ body.focus main{padding-top:1rem}
 #h-proj-view button{position:absolute;top:.6rem;right:.6rem;opacity:.55}
 #h-proj-view button:hover,#h-proj-view button:focus{opacity:1}
 .host [hidden]{display:none!important}
+#h-all .qc-row{display:flex;flex-wrap:wrap;gap:.8rem;align-items:center;padding:.4rem 0;border-bottom:1px solid var(--border)}
+#h-all .qc-row[aria-current]{background:rgba(214,167,54,.12)}
+#h-all .qc-btns{margin-left:auto;display:flex;gap:.4rem}
 </style>
 <div class="host">
 <div id="h-proj-view" hidden><button class="go alt" type="button" id="h-proj-close">Close projector view</button><iframe id="h-proj-frame" title="Projector view"></iframe></div>
@@ -78,6 +82,7 @@ body.focus main{padding-top:1rem}
    <p class="note" style="margin-top:1rem"><a href="password.html">Change the password</a></p>
  </section>
  <div id="h-main" hidden>
+  <section class="panel" id="h-all" hidden aria-label="All quizzes"></section>
   <p class="projbar"><a href="app/home.html#class">&larr; Class Tools</a>&nbsp; <button class="go alt" type="button" id="h-proj-win">Projector window</button><button class="go alt" type="button" id="h-proj-here">Show projector view here</button></p>
   <section class="panel" id="h-init" hidden>
    <p>This quiz is not lecturer-controlled yet. Students can still take it the older way. To run it question by question from this screen, switch it on.</p>

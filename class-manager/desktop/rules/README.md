@@ -39,3 +39,5 @@ Stage 1 (this folder) only adds the modules and the tests that prove they give t
 
 Store interface (`store.js`): `rows(tab)` (header first, or null), `setRows(tab, rows)`, `prop(key)`, `setProp(key, value)`, `now()`.
 Rule of the port: same input, same output as the script (`test/rules-parity.test.js` runs both on the same workbook). Do not change behaviour in a port; change it afterwards, with its own test.
+
+`signin-attempts.js`: the Sign-in problems list (tab `Signin_Attempts`): refused sign-ins and check-ins per ID with reasons, never a code. Called from `auth.js` (studentCheck), `router.js` (attend) and `../relay/live-attend.js` (phones on the relay). JavaScript only, so the parity tests ignore its tab.
