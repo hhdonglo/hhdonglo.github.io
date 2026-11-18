@@ -149,8 +149,9 @@ test("two courses never see each other's records", () => {
   assert.equal(json(B.backend.doPost({ action: "hostcheck", hostkey: B.key })).ok, true);
 
   // Access codes are separate: the same student has a different code in each course, and A's code opens nothing in B.
-  const codeA = json(A.backend.doPost({ action: "access_codes", op: "generate", hostkey: A.key })).rows.find((r) => r.id === shared).code;
-  const codeB = json(B.backend.doPost({ action: "access_codes", op: "generate", hostkey: B.key })).rows.find((r) => r.id === shared).code;
+  const codeA = "AAAA2", codeB = "BBBB3"; // each student makes their own code in each course
+  assert.equal(json(A.backend.doPost({ action: "code_setup", id: shared, code: codeA })).ok, true);
+  assert.equal(json(B.backend.doPost({ action: "code_setup", id: shared, code: codeB })).ok, true);
   assert.ok(codeA && codeB); assert.notEqual(codeA, codeB);
   assert.equal(json(A.backend.doPost({ action: "my_results", id: shared, code: codeA })).ok, true);
   assert.notEqual(json(B.backend.doPost({ action: "my_results", id: shared, code: codeA })).ok, true, "A's code is refused by B");
