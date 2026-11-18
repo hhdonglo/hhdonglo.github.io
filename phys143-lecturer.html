@@ -44,10 +44,36 @@ body.focus main{padding-top:1rem}
  <section class="panel" id="m-login">
   <h3 style="margin:.1rem 0 .4rem">Lecturer login</h3>
   <form id="m-form" autocomplete="off">
-   <label for="m-key">Key</label><input type="password" id="m-key" maxlength="40" autocomplete="new-password" autocapitalize="none" spellcheck="false">
-   <p><button class="go" type="submit">Log in</button></p>
+   <label for="m-key">Password</label><input type="password" id="m-key" maxlength="100" autocomplete="current-password" autocapitalize="none" spellcheck="false">
+   <p><button class="go" type="submit">Log in</button> <button class="go alt" type="button" id="m-forgot">Forgot the password?</button></p>
    <p class="note" id="m-err" role="alert" hidden></p>
   </form>
+ </section>
+ <section class="panel" id="m-set" hidden>
+  <h3 style="margin:.1rem 0 .4rem">Choose a password</h3>
+  <p class="note" id="m-set-why">Choose a password of 10 to 100 characters. A few words make a good one.</p>
+  <form id="m-set-form" autocomplete="off">
+   <label for="m-new">New password</label><input type="password" id="m-new" maxlength="100" autocomplete="new-password" autocapitalize="none" spellcheck="false">
+   <label for="m-new2">New password again</label><input type="password" id="m-new2" maxlength="100" autocomplete="new-password" autocapitalize="none" spellcheck="false">
+   <p><button class="go" type="submit">Save the password</button></p>
+   <p class="note" id="m-set-err" role="alert" hidden></p>
+  </form>
+ </section>
+ <section class="panel" id="m-rec" hidden>
+  <h3 style="margin:.1rem 0 .4rem">Choose a new password with the recovery code</h3>
+  <form id="m-rec-form" autocomplete="off">
+   <label for="m-rcode">Recovery code</label><input type="text" id="m-rcode" maxlength="40" autocomplete="off" autocapitalize="characters" spellcheck="false">
+   <label for="m-rnew">New password</label><input type="password" id="m-rnew" maxlength="100" autocomplete="new-password" autocapitalize="none" spellcheck="false">
+   <label for="m-rnew2">New password again</label><input type="password" id="m-rnew2" maxlength="100" autocomplete="new-password" autocapitalize="none" spellcheck="false">
+   <p><button class="go" type="submit">Save the password</button> <button class="go alt" type="button" id="m-rec-back">Back to Login</button></p>
+   <p class="note" id="m-rec-err" role="alert" hidden></p>
+  </form>
+ </section>
+ <section class="panel" id="m-code" hidden>
+  <h3 style="margin:.1rem 0 .4rem">Save the recovery code</h3>
+  <p class="note">The password is saved. Keep this recovery code somewhere safe. It is shown once, and it is the only way to choose a new password if this one is lost.</p>
+  <p style="font:700 1.5rem ui-monospace,monospace;letter-spacing:.05em" id="m-code-text"></p>
+  <p><button class="go" type="button" id="m-code-done">I have saved it. Go to Login</button></p>
  </section>
  <section class="panel" id="m-choice" hidden>
   <h3 style="margin:.1rem 0 .8rem">What would you like to do?</h3>
@@ -55,31 +81,63 @@ body.focus main{padding-top:1rem}
   <p><button class="go alt" type="button" id="m-out">Log out</button></p>
  </section>
 </div>
+<script src="assets/host-post.js"></script>
 <script>
 (function(){
 "use strict";
 var SCRIPT_URL="https://script.google.com/macros/s/AKfycbzso5-FCU4erf_grbktH-AH-RKaPDap7TfJAw_TOSxNarTrJDe-PgyBzgIH7Fj2fjZ3/exec";
 var $=function(i){return document.getElementById(i)};
-function jsonp(params,cb){
- var n="cb"+Date.now()+Math.floor(Math.random()*1e6),sc=document.createElement("script"),done=false;
- function end(d){if(done)return;done=true;delete window[n];if(sc.parentNode)sc.parentNode.removeChild(sc);cb(d)}
- window[n]=end;sc.onerror=function(){end(null)};
- sc.src=SCRIPT_URL+"?"+params+"&callback="+n+"&_="+Date.now();document.head.appendChild(sc);
-}
+function jsonp(params,cb){HostPost.call(SCRIPT_URL,params,cb)}
 var KEY="";try{KEY=sessionStorage.getItem("phys143_hk")||""}catch(x){}
 function saveKey(k){KEY=k;try{sessionStorage.setItem("phys143_hk",k)}catch(x){}}
 function signOut(){KEY="";try{sessionStorage.removeItem("phys143_hk")}catch(x){}location.href="phys143-lecturer.html"}
 
-function ok(){$("m-login").hidden=true;$("m-choice").hidden=false;if(window!==window.top&&location.search.indexOf("menu")<0){location.replace("phys143-attendance.html");return} // embedded in the Control Centre: go straight to the attendance controls, no menu
+function ok(){panel("m-choice");if(window!==window.top&&location.search.indexOf("menu")<0){location.replace("phys143-attendance.html");return} // embedded in the Control Centre: go straight to the attendance controls, no menu
  if(location.search.indexOf("menu")<0&&window===window.top)location.replace("phys143-control.html")} // the Control Centre is the lecturer entry; ?menu keeps the old button page
+var MINPW=10,pendingKey="";
+function panel(id){["m-login","m-set","m-rec","m-code","m-choice"].forEach(function(x){$(x).hidden=(x!==id)})}
+function say(id,t){$(id).textContent=t;$(id).hidden=!t}
 function check(k,first){
  jsonp("action=hostcheck&hostkey="+encodeURIComponent(k),function(d){
-  if(d&&d.ok){saveKey(k);ok();return}
-  if(first){$("m-err").textContent=d?"That key was not accepted.":"Could not reach the class sheet. Check the connection.";$("m-err").hidden=false}
-  else{try{sessionStorage.removeItem("phys143_hk")}catch(x){}}
+  if(d&&d.ok){
+   saveKey(k);
+   jsonp("action=password_status",function(s){ // a temporary key must be replaced by a password the lecturer chooses
+    if(s&&s.ok&&!s.chosen){$("m-set-why").textContent="Choose your own password now. The temporary key is replaced by it. Use 10 to 100 characters.";panel("m-set");return}
+    ok();
+   });
+   return}
+  if(first){$("m-err").textContent=d?"That password was not accepted.":"Could not reach the class sheet. Check the connection.";$("m-err").hidden=false}
+  else{try{sessionStorage.removeItem("phys143_hk")}catch(x){}KEY=""}
  });
 }
-$("m-form").addEventListener("submit",function(e){e.preventDefault();var k=$("m-key").value.trim();if(!k){$("m-err").textContent="Enter the key.";$("m-err").hidden=false;return}$("m-err").hidden=true;check(k,true)});
+function pwProblem(n,m){if(n.length<MINPW)return "The password must have at least "+MINPW+" characters.";if(n!==m)return "The two passwords do not match.";return ""}
+function showCode(c){$("m-code-text").textContent=c;panel("m-code")}
+$("m-form").addEventListener("submit",function(e){e.preventDefault();var k=$("m-key").value.trim();if(!k){$("m-err").textContent="Enter the password.";$("m-err").hidden=false;return}$("m-err").hidden=true;check(k,true)});
+$("m-set-form").addEventListener("submit",function(e){
+ e.preventDefault();var n=$("m-new").value,bad=pwProblem(n,$("m-new2").value);if(bad){say("m-set-err",bad);return}
+ say("m-set-err","Saving...");
+ jsonp("action=setkey&hostkey="+encodeURIComponent(KEY)+"&newkey="+encodeURIComponent(n),function(d){
+  if(!d){say("m-set-err","Could not reach the class sheet.");return}
+  if(!d.ok){say("m-set-err","Not saved: "+(d.why||"refused")+".");return}
+  KEY="";try{sessionStorage.removeItem("phys143_hk")}catch(x){}
+  $("m-new").value=$("m-new2").value="";say("m-set-err","");showCode(d.recovery);
+ });
+});
+$("m-forgot").addEventListener("click",function(){jsonp("action=password_status",function(s){
+ if(s&&s.recovery){panel("m-rec")}
+ else{$("m-err").textContent="No recovery code has been made yet. The Sheet owner can reset the password from the script editor (resetHostKey).";$("m-err").hidden=false}
+})});
+$("m-rec-back").addEventListener("click",function(){panel("m-login")});
+$("m-rec-form").addEventListener("submit",function(e){
+ e.preventDefault();var n=$("m-rnew").value,bad=pwProblem(n,$("m-rnew2").value);if(bad){say("m-rec-err",bad);return}
+ say("m-rec-err","Saving...");
+ jsonp("action=password_recover&recovery="+encodeURIComponent($("m-rcode").value)+"&newkey="+encodeURIComponent(n),function(d){
+  if(!d){say("m-rec-err","Could not reach the class sheet.");return}
+  if(!d.ok){say("m-rec-err",d.why||"Not accepted.");return}
+  $("m-rcode").value=$("m-rnew").value=$("m-rnew2").value="";say("m-rec-err","");showCode(d.recovery);
+ });
+});
+$("m-code-done").addEventListener("click",function(){$("m-code-text").textContent="";panel("m-login")});
 $("m-out").addEventListener("click",signOut);
 if(KEY)check(KEY,false);
 })();

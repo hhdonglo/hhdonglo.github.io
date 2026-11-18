@@ -44,14 +44,14 @@ body.focus main{padding-top:1rem}
  <section class="panel" id="x-login">
   <h3 style="margin:.1rem 0 .4rem">Lecturer login</h3>
   <form id="x-form" autocomplete="off">
-   <label for="x-key">Key</label><input type="password" id="x-key" maxlength="40" autocomplete="new-password" autocapitalize="none" spellcheck="false">
+   <label for="x-key">Password</label><input type="password" id="x-key" maxlength="100" autocomplete="current-password" autocapitalize="none" spellcheck="false">
    <p><button class="go" type="submit">Log in</button></p>
    <p class="note" id="x-err" role="alert" hidden></p>
   </form>
  </section>
  <section class="panel" id="x-main" hidden>
   <h3 style="margin:.1rem 0 .6rem">Reset all results (clean slate)</h3>
-  <p class="note">Empties attendance and quiz results so the term starts fresh. Every tab it clears is copied to a backup tab (<b>Backup_&lt;tab&gt;_&lt;date_time&gt;</b>) first, and a copy of the whole Sheet is saved in your Drive too. Nothing is cleared if a tab backup cannot be checked. The Roster, join codes, host key, quiz settings, question banks and the script are not touched. Attendance is refilled with the Student IDs on the Roster.</p>
+  <p class="note">Empties attendance and quiz results so the term starts fresh. Every tab it clears is copied to a backup tab (<b>Backup_&lt;tab&gt;_&lt;date_time&gt;</b>) first, and a copy of the whole Sheet is saved in your Drive too. Nothing is cleared if a tab backup cannot be checked. The Roster, join codes, password, quiz settings, question banks and the script are not touched. Attendance is refilled with the Student IDs on the Roster.</p>
   <p><button class="go alt" type="button" id="x-preview">Show what will be cleared</button></p>
   <div id="x-list" hidden>
    <table id="x-table" style="width:100%;border-collapse:collapse;font:1rem system-ui,sans-serif"></table>
@@ -64,17 +64,13 @@ body.focus main{padding-top:1rem}
   <p><a class="go alt" href="phys143-control.html">Back to the Control Centre</a> <button class="go alt" type="button" id="x-out">Log out</button></p>
  </section>
 </div>
+<script src="assets/host-post.js"></script>
 <script>
 (function(){
 "use strict";
 var SCRIPT_URL="https://script.google.com/macros/s/AKfycbzso5-FCU4erf_grbktH-AH-RKaPDap7TfJAw_TOSxNarTrJDe-PgyBzgIH7Fj2fjZ3/exec";
 var $=function(i){return document.getElementById(i)};
-function jsonp(params,cb){
- var n="cb"+Date.now()+Math.floor(Math.random()*1e6),sc=document.createElement("script"),done=false;
- function end(d){if(done)return;done=true;delete window[n];if(sc.parentNode)sc.parentNode.removeChild(sc);cb(d)}
- window[n]=end;sc.onerror=function(){end(null)};
- sc.src=SCRIPT_URL+"?"+params+"&callback="+n+"&_="+Date.now();document.head.appendChild(sc);
-}
+function jsonp(params,cb){HostPost.call(SCRIPT_URL,params,cb)}
 var KEY="";try{KEY=sessionStorage.getItem("phys143_hk")||""}catch(x){}
 function saveKey(k){KEY=k;try{sessionStorage.setItem("phys143_hk",k)}catch(x){}}
 function signOut(){KEY="";try{sessionStorage.removeItem("phys143_hk")}catch(x){}location.reload()}
@@ -84,11 +80,11 @@ function show(main){$("x-login").hidden=main;$("x-main").hidden=!main}
 function check(k,first){
  jsonp("action=hostcheck&hostkey="+encodeURIComponent(k),function(d){
   if(d&&d.ok){saveKey(k);show(true);return}
-  if(first){$("x-err").textContent=d?"That key was not accepted.":"Could not reach the class sheet. Check the connection.";$("x-err").hidden=false}
+  if(first){$("x-err").textContent=d?"That password was not accepted.":"Could not reach the class sheet. Check the connection.";$("x-err").hidden=false}
   else{try{sessionStorage.removeItem("phys143_hk")}catch(x){}KEY="";show(false)}
  });
 }
-$("x-form").addEventListener("submit",function(e){e.preventDefault();var k=$("x-key").value.trim();if(!k){$("x-err").textContent="Enter the key.";$("x-err").hidden=false;return}$("x-err").hidden=true;check(k,true)});
+$("x-form").addEventListener("submit",function(e){e.preventDefault();var k=$("x-key").value.trim();if(!k){$("x-err").textContent="Enter the password.";$("x-err").hidden=false;return}$("x-err").hidden=true;check(k,true)});
 $("x-out").addEventListener("click",signOut);
 $("x-preview").addEventListener("click",function(){
  $("x-msg").textContent="Counting...";$("x-list").hidden=true;
