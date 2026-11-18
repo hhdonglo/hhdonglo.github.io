@@ -76,7 +76,7 @@ body.proj #a-wait p{font:700 clamp(2rem,6vh,4rem)/1.2 system-ui,sans-serif}
  <section class="panel" id="a-login" hidden>
   <h3 style="margin:.1rem 0 .4rem">Lecturer login</h3>
   <form id="a-form" autocomplete="off">
-   <label for="a-key">Key</label><input type="password" id="a-key" maxlength="40" autocomplete="new-password" autocapitalize="none" spellcheck="false">
+   <label for="a-key">Password</label><input type="password" id="a-key" maxlength="100" autocomplete="current-password" autocapitalize="none" spellcheck="false">
    <p><button class="go" type="submit">Log in</button></p>
    <p class="note" id="a-err" role="alert" hidden></p>
   </form>
@@ -112,17 +112,13 @@ body.proj #a-wait p{font:700 clamp(2rem,6vh,4rem)/1.2 system-ui,sans-serif}
  <p><button class="go alt" type="button" id="a-out">Log out</button></p>
 </div>
 <script src="assets/qrcode.js"></script>
+<script src="assets/host-post.js"></script>
 <script>
 (function(){
 "use strict";
 var SCRIPT_URL="https://script.google.com/macros/s/AKfycbzso5-FCU4erf_grbktH-AH-RKaPDap7TfJAw_TOSxNarTrJDe-PgyBzgIH7Fj2fjZ3/exec";
 var $=function(i){return document.getElementById(i)};
-function jsonp(params,cb){
- var n="cb"+Date.now()+Math.floor(Math.random()*1e6),sc=document.createElement("script"),done=false;
- function end(d){if(done)return;done=true;delete window[n];if(sc.parentNode)sc.parentNode.removeChild(sc);cb(d)}
- window[n]=end;sc.onerror=function(){end(null)};
- sc.src=SCRIPT_URL+"?"+params+"&callback="+n+"&_="+Date.now();document.head.appendChild(sc);
-}
+function jsonp(params,cb){HostPost.call(SCRIPT_URL,params,cb)}
 var KEY="";try{KEY=sessionStorage.getItem("phys143_hk")||""}catch(x){}
 function saveKey(k){KEY=k;try{sessionStorage.setItem("phys143_hk",k)}catch(x){}}
 var PROJ=/[?&]view=projector/.test(location.search); // projector view: the lecturer logs in once on this window; nothing here can close or change the session
@@ -196,10 +192,10 @@ function begin(){
  });
 }
 $("a-form").addEventListener("submit",function(e){
- e.preventDefault();var k=$("a-key").value.trim();if(!k){$("a-err").textContent="Enter the key.";$("a-err").hidden=false;return}
+ e.preventDefault();var k=$("a-key").value.trim();if(!k){$("a-err").textContent="Enter the password.";$("a-err").hidden=false;return}
  jsonp("action=hostcheck&hostkey="+encodeURIComponent(k),function(d){
   if(d&&d.ok){saveKey(k);$("a-err").hidden=true;begin()}
-  else{$("a-err").textContent=d?"That key was not accepted.":"Could not reach the class sheet. Check the connection.";$("a-err").hidden=false}
+  else{$("a-err").textContent=d?"That password was not accepted.":"Could not reach the class sheet. Check the connection.";$("a-err").hidden=false}
  });
 });
 $("a-start").addEventListener("click",function(){
