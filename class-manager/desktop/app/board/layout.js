@@ -5,7 +5,7 @@
   "use strict";
   var COLS = 12, MIN_W = 2, MIN_H = 120, STEP_H = 20;
   // Width in columns by card key (12 columns; 3 to 4 cards per row on a wide screen). Unknown cards get DEFAULT_W.
-  var WIDTH = { "bd-prog": 6, "bd-break": 3, "bd-rank": 3, "bd-satt": 4, "bd-sscore": 4, "bd-srisk": 4, "bd-smast": 4, "bd-spread": 4, "bd-aside": 4, "bd-tmast": 6, "bd-tover": 6, "bd-tcorr": 12, "bd-ins": 6, "c-class-health": 3, "c-this-week-in-the-class": 4, "c-is-the-class-learning": 12, "c-areas-to-target": 6 };
+  var WIDTH = { "bd-prog": 8, "bd-break": 4, "bd-rank": 8, "bd-satt": 4, "bd-sscore": 4, "bd-srisk": 4, "bd-smast": 4, "bd-spread": 4, "bd-aside": 4, "bd-tmast": 6, "bd-tover": 6, "bd-tcorr": 12, "bd-ins": 4, "c-class-health": 4, "c-this-week-in-the-class": 8, "c-workspace-health-measures": 12, "c-is-the-class-learning": 12, "c-areas-to-target": 6 };
   var DEFAULT_W = 4;
   // Text-heavy cards sit after the graphs unless the lecturer moves them.
   var TEXT = { "bd-ins": 1, "c-class-health": 1, "c-this-week-in-the-class": 1, "c-is-the-class-learning": 1, "bd-aside": 1, "c-areas-to-target": 1 };

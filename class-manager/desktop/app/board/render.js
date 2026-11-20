@@ -80,7 +80,7 @@
     st = st || {};
     var progress = progressPanel(d, lp, st.tab), breakdown = breakPanel(d, st.view), available = d.analytics && d.analytics.available;
     var chartSlot = progress || !available || available.content;
-    var cards = (chartSlot ? "<section class='bd-card bd-w3' id='bd-prog' aria-label='Class progress over time'" + (progress ? "" : " hidden") + ">" + progress + "</section>" : "") +
+    var cards = (chartSlot ? "<section class='bd-card bd-w3' id='bd-prog' aria-label='Class progress over time'" + (progress ? "" : " hidden data-bd-unavailable") + ">" + progress + "</section>" : "") +
       (breakdown ? card("bd-break", "", breakdown, "Category breakdown") : "") +
       (!available || available.questions ? card("bd-rank", "", rankedPanel(d), "Topics needing attention") : "") +
       (!available || M.findings(d, lp).length ? card("bd-ins", "", insightsPanel(d, lp), "Insights") : "");

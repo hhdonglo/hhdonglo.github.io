@@ -54,7 +54,7 @@
     list.forEach(function (c, i) {
       var el = byKey[c.key]; tidy(el);
       el.classList.add("bd-arr"); el.style.order = String(i); el.style.setProperty("--w", c.w); el.style.height = c.h ? c.h + "px" : ""; el.classList.toggle("bd-sized", !!c.h);
-      var off = c.hidden && !st.edit; el.classList.toggle("bd-off", c.hidden); el.hidden = off;
+      var off = el.hasAttribute("data-bd-unavailable") || c.hidden && !st.edit; el.classList.toggle("bd-off", c.hidden); el.hidden = off;
       if (c.hidden) hidden.push({ key: c.key, title: titleOf(el) });
       [].forEach.call(el.querySelectorAll("[data-bd-ah],[data-bd-rz]"), function (x) { x.remove(); });
       el.draggable = st.edit; el.classList.toggle("bd-editing", st.edit);

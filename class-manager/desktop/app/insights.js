@@ -86,7 +86,7 @@
   /* ---- Class Analytics ---- */
   function overview() {
     var d = data, L = d.learning, MA = window.cmModuleAnalytics;
-    $("ov-sub").textContent = "The class in numbers and charts. Click any bar or number for the students behind it. " + plural(d.rosterSize, "student", "students") + " on the class list. Updated " + new Date(d.generated).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) + ".";
+    $("ov-sub").textContent = plural(d.rosterSize, "student", "students") + " on the class list · Updated " + new Date(d.generated).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
     parkLp();
     if (!d.rosterSize) { $("ov").innerHTML = "<div class='card empty'><h3>No class yet</h3><p>Add the class list under Class Roster. The overview fills in as course records become available.</p></div>"; return; }
     // Analytics first: the hard numbers, the main charts, who needs attention and what goes with what. Today and setup come last, in a section that opens (app/dashboard/).
@@ -120,7 +120,7 @@
     parts.privacy = ["<div id='an-privacy'></div>"];
     document.body.classList.add("has-board");
     var hasContent = hasMeasure(d, "content");
-    var h = "<div class='bd-top" + (hasContent ? "" : " bd-top-no-plan") + "'>" +
+    var h = "<div class='bd-top bd-summary" + (hasContent ? "" : " bd-top-no-plan") + "'>" +
       (hasContent ? "<div id='bd-lpslot' class='bd-lpslot'></div>" : "") + B.kpiRow(d) + "</div>" + SEC.compose(parts, st.pane, "<section class='card ddrill' id='ddrill' aria-live='polite' hidden></section>");
     $("ov").innerHTML = h; gxWatch();
     if (window.cmBoardLpSlot && hasMeasure(d, "content")) cmBoardLpSlot.mount(document); // the lecture plan strip sits beside the key numbers (lecture-progress.js draws it)

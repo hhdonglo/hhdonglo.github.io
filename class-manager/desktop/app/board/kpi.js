@@ -10,7 +10,7 @@
   }
   function card(k) {
     return "<button type='button' class='dstat bd-kpi' data-drill='" + U.esc(k.key) + "' aria-pressed='false' title='" + U.esc(k.note || "") + "'>" + I.icon(k.icon, "bd-ico bd-ico-lg") +
-      "<span class='bd-kl'>" + U.esc(k.label) + "</span><span class='bd-kv'>" + U.esc(k.value) + "</span><span class='bd-kn'>" + U.esc(k.note) + "</span>" + trend(k) + "</button>";
+      "<span class='bd-kv'>" + U.esc(k.value) + "</span><span class='bd-kl'>" + U.esc(k.label) + "</span><span class='bd-kn'>" + U.esc(k.note) + "</span>" + trend(k) + "</button>";
   }
   function row(kpis) { return "<div class='bd-kpis' role='group' aria-label='Key numbers. Click one for the students behind it.'>" + kpis.map(card).join("") + "</div>"; }
   var api = { card: card, row: row };

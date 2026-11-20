@@ -11,7 +11,7 @@ const appEvents = new Map();
 let send, ready;
 const loaded = new Promise(resolve => { ready = resolve; });
 const app = {
-  isPackaged: false, getPath: () => root, getVersion: () => "0.35.0", requestSingleInstanceLock: () => true,
+  isPackaged: false, getPath: () => root, getVersion: () => "0.35.1", requestSingleInstanceLock: () => true,
   whenReady: () => Promise.resolve(), on: (event, fn) => appEvents.set(event, fn), quit: () => {},
 };
 const electron = {

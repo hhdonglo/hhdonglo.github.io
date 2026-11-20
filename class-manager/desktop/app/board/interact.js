@@ -8,7 +8,9 @@
   function paintProgress(d, lp) {
     var el = $("bd-prog"); if (!el) return;
     el.innerHTML = V.progressPanel(d, lp, st.tab);
-    el.hidden = !el.innerHTML;
+    var unavailable = !el.innerHTML;
+    el.toggleAttribute("data-bd-unavailable", unavailable);
+    el.hidden = unavailable || el.classList.contains("bd-off") && !root.cmBoardArrange?.state.edit;
   }
   function paint(d, lp) { put("bd-plan", V.planPanel(lp)); paintProgress(d, lp); put("bd-break", V.breakPanel(d, st.view)); put("bd-rank", V.rankedPanel(d)); put("bd-ins", V.insightsPanel(d, lp)); }
   // Show one section grid and hide the rest; the choice is kept in st.pane so a refresh of the page keeps it.

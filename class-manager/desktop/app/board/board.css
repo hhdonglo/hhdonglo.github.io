@@ -115,4 +115,33 @@ body.has-board .lp .lp-nums{display:block}body.has-board .lp .lp-bar,body.has-bo
 .bd-pane .verdict .sigs .note{display:none}.bd-pane .verdict .v-act{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.bd-pane .verdict .note.warnline,.bd-pane .verdict details{display:none}
 .bd-pane{grid-auto-rows:8px;row-gap:0!important;column-gap:.8rem!important}.bd-pane>.bd-sh{padding-bottom:.4rem}
 
-.bd-top.bd-top-no-plan{grid-template-columns:minmax(0,1fr)}
+/* Overview: lecture plan and headline measures above the wide chart and supporting cards. */
+#ov{container-type:inline-size;gap:1rem}
+#ov>.bd-summary,#ov>.bd-tabrow,#ov>#sec-overview{margin:0}
+.bd-top.bd-summary{grid-template-columns:minmax(0,1fr);align-items:stretch;gap:.8rem}
+.bd-summary>.bd-kpis{grid-template-columns:repeat(auto-fit,minmax(min(100%,7.25rem),1fr));align-items:stretch;gap:.65rem}
+.bd-summary .bd-lpslot:empty{display:none}
+.bd-summary .bd-lpslot .lp{background:#FFF4E6;--card:#FFF4E6;box-shadow:0 1px 2px rgba(15,23,42,.08)}
+.bd-summary .lpc-head h3{font-size:1.05rem}
+.bd-summary .lp .lpc-bar{display:block;margin:.15rem 0 .35rem}
+.bd-summary .lpc-chips{overflow-wrap:anywhere}
+.bd-summary button.bd-kpi{gap:.2rem;padding:.7rem .75rem;text-align:left;min-width:0}
+.bd-summary .bd-kpi .bd-ico-lg{position:static;width:2rem;height:2rem;padding:.35rem;margin-bottom:.3rem;border-radius:9px}
+.bd-summary .bd-kpi .bd-kv{font-size:1.7rem}
+.bd-summary .bd-kpi .bd-kl{padding:0;color:#1F2D45}
+.bd-summary .bd-kpi .bd-kn,.bd-summary .bd-kpi .bd-delta span{display:block;line-height:1.25;overflow-wrap:anywhere}
+.bd-summary .bd-kpi .bd-kn{font-size:.74rem}
+.bd-summary .bd-kpi .bd-delta{font-size:.75rem;margin-top:.2rem}
+#sec-overview .bd-head{flex-wrap:wrap;gap:.15rem .65rem}
+#sec-overview .bd-card .bd-table th,#sec-overview .bd-card .bd-table td{overflow-wrap:anywhere}
+#sec-overview [data-bd-key="c-workspace-health-measures"] .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,11rem),1fr));gap:.75rem}
+@container (min-width: 61rem){
+  .bd-top.bd-summary:not(.bd-top-no-plan):has(.bd-lpslot:not(:empty)){grid-template-columns:minmax(15rem,1.6fr) minmax(0,4fr)}
+}
+@container (min-width: 46rem){
+  #sec-overview :is(.bd-arr,.bd-card,.card){grid-column:span var(--w,4)}
+}
+@container (max-width: 45.99rem){
+  #sec-overview :is(.bd-arr,.bd-card,.card){grid-column:1/-1}
+  #sec-overview .verdict{grid-template-columns:minmax(0,1fr)}
+}
