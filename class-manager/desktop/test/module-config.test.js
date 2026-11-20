@@ -26,39 +26,42 @@ const rows = db => tables.map(table => db.prepare("SELECT * FROM " + table + " O
 test("legacy migration snapshots sealed and auxiliary WAL rows and is repeat-safe", t => {
   const opts = fixture(t);
   const legacy = store.open(opts.dbFile, opts.vault);
-  t.after(() => legacy.close());
-  legacy.save({ sheets: [{ id: 1, name: "Roster", rows: [["ID", "Name"], ["1001", "Example"]] }], props: { setting: "test" } });
-  legacy.raw.prepare("INSERT INTO student VALUES (?, ?, ?)").run("student", legacy.codec.pack({ id: "1001" }), 0);
-  legacy.raw.prepare("INSERT INTO id_notice VALUES (?, ?, ?, ?)").run("notice", legacy.codec.pack({ id: "1001" }), "open", 1);
-  legacy.raw.prepare("INSERT INTO receipt VALUES (?, ?, ?)").run("receipt", "accepted", 1);
-  const before = rows(legacy.raw);
-  assert.ok(fs.statSync(opts.dbFile + "-wal").size > 0);
+  try {
+    legacy.save({ sheets: [{ id: 1, name: "Roster", rows: [["ID", "Name"], ["1001", "Example"]] }], props: { setting: "test" } });
+    legacy.raw.prepare("INSERT INTO student VALUES (?, ?, ?)").run("student", legacy.codec.pack({ id: "1001" }), 0);
+    legacy.raw.prepare("INSERT INTO id_notice VALUES (?, ?, ?, ?)").run("notice", legacy.codec.pack({ id: "1001" }), "open", 1);
+    legacy.raw.prepare("INSERT INTO receipt VALUES (?, ?, ?)").run("receipt", "accepted", 1);
+    const before = rows(legacy.raw);
+    assert.ok(fs.statSync(opts.dbFile + "-wal").size > 0);
 
-  const opened = openCourse(opts);
-  try {
-    assert.deepEqual(opened.enabledModules, defaultModules());
-    assert.deepEqual(rows(opened.db.raw), before);
-  } finally {
-    opened.db.close();
-  }
-  const [directory] = snapshots(opts.dir);
-  assert.ok(directory);
-  const restoredFile = path.join(opts.dir, "restored.db");
-  fs.copyFileSync(path.join(opts.dir, directory, "course.db"), restoredFile);
-  const restored = new DatabaseSync(restoredFile, { readOnly: true });
-  try {
-    assert.deepEqual(rows(restored), before);
-    assert.deepEqual(legacy.codec.unpack(restored.prepare("SELECT data FROM cell_row WHERE row_no = 1").get().data), ["1001", "Example"]);
-  } finally {
-    restored.close();
-  }
+    const opened = openCourse(opts);
+    try {
+      assert.deepEqual(opened.enabledModules, defaultModules());
+      assert.deepEqual(rows(opened.db.raw), before);
+    } finally {
+      opened.db.close();
+    }
+    const [directory] = snapshots(opts.dir);
+    assert.ok(directory);
+    const restoredFile = path.join(opts.dir, "restored.db");
+    fs.copyFileSync(path.join(opts.dir, directory, "course.db"), restoredFile);
+    const restored = new DatabaseSync(restoredFile, { readOnly: true });
+    try {
+      assert.deepEqual(rows(restored), before);
+      assert.deepEqual(legacy.codec.unpack(restored.prepare("SELECT data FROM cell_row WHERE row_no = 1").get().data), ["1001", "Example"]);
+    } finally {
+      restored.close();
+    }
 
-  const again = openCourse(opts);
-  try {
-    assert.deepEqual(again.enabledModules, defaultModules());
-    assert.deepEqual(snapshots(opts.dir), [directory]);
+    const again = openCourse(opts);
+    try {
+      assert.deepEqual(again.enabledModules, defaultModules());
+      assert.deepEqual(snapshots(opts.dir), [directory]);
+    } finally {
+      again.db.close();
+    }
   } finally {
-    again.db.close();
+    legacy.close();
   }
 });
 
