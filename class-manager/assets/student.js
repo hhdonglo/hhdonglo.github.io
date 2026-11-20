@@ -13,10 +13,12 @@ var ico={
  res:'<svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>'
 };
 function bar(){
+ var modules=window.CM&&window.CM.modules;
+ function enabled(id){return !modules||modules.includes(id)}
  var n=document.createElement("nav");n.className="stu-tabs";n.setAttribute("aria-label","Student");
  n.innerHTML='<a href="index.html"'+cur("index.html")+'>'+ico.home+'Portal</a>'+
-  '<a href="course.html"'+cur("course.html")+'>'+ico.book+'Lectures</a>'+
-  '<a href="quiz.html"'+cur("quiz.html")+'>'+ico.quiz+'Quiz</a>'+
+  (enabled("content")?'<a href="course.html"'+cur("course.html")+'>'+ico.book+'Lectures</a>':'')+
+  (enabled("liveQuizzes")?'<a href="quiz.html"'+cur("quiz.html")+'>'+ico.quiz+'Quiz</a>':'')+
   '<a href="index.html#results">'+ico.res+'Results</a>';
  document.body.appendChild(n);document.body.classList.add("stu");
 }

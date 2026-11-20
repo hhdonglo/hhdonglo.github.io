@@ -21,19 +21,20 @@
     var notes = list.filter(function (c) { return c.note; }).map(function (c) { return "<li>" + esc(c.title) + ": " + esc(c.note) + "</li>"; }).join("");
     return card("Concepts across the course", "<ul class='clist'>" + bars + "</ul>" + (notes ? "<ul class='alist'>" + notes + "</ul>" : ""), "Percent of live answers that were correct. A topic is marked once it has 30 answers.");
   }
-  function interventions(list) {
+  function interventions(list, canCompare) {
+    canCompare = canCompare !== false;
     var form = "<form class='sp-form' data-an-form='support'><p class='row' style='flex-wrap:wrap;gap:.5rem .9rem;align-items:flex-end'>" +
       "<label style='font-weight:400'>What was given<br><input class='f' id='sp-kind' maxlength='60' placeholder='Check-in, tutoring offer, e-mail' required></label>" +
       "<label style='font-weight:400'>Student IDs (separated by spaces or commas)<br><input class='f' id='sp-ids' inputmode='numeric' placeholder='22583439 22583440' required style='min-width:16rem'></label>" +
       "<label style='font-weight:400'>Note (optional)<br><input class='f' id='sp-note' maxlength='300' style='min-width:12rem'></label>" +
-      "<button class='btn' type='submit'>Record</button></p><p class='small muted'>CM compares these students' later quizzes with students whose earlier results were similar. The comparison is an association, never proof.</p></form>";
-    if (!list.length) return card("Support given", "<p>No support recorded yet. Record a check-in or tutoring offer to see whether later results move.</p>" + form);
+      "<button class='btn' type='submit'>Record</button></p>" + (canCompare ? "<p class='small muted'>CM compares these students' later quizzes with students whose earlier results were similar. This is an observational association.</p>" : "") + "</form>";
+    if (!list.length) return card("Support given", "<p>No support recorded yet.</p>" + form);
     var rows = list.map(function (r) {
       var who = (r.givenIds && r.givenIds.length) || (r.comparedIds && r.comparedIds.length) ?
         "<details class='small'><summary>The students behind these numbers</summary><p class='small'>Given (" + r.given + "): " + esc((r.givenIds || []).join(", ") || "none") + "</p><p class='small'>Compared with (" + r.compared + "): " + esc((r.comparedIds || []).join(", ") || "none") + "</p></details>" : "";
-      return "<li><b>" + esc(r.kind) + "</b> (" + esc(r.date) + "): " + esc(r.text) + (r.confidence ? " " + E.badge(r.confidence) : "") + (r.note ? "<br><span class='small muted'>" + esc(r.note) + "</span>" : "") + who + "</li>";
+      return "<li><b>" + esc(r.kind) + "</b> (" + esc(r.date) + "): " + esc(r.text || "") + (r.confidence ? " " + E.badge(r.confidence) : "") + (r.note ? "<br><span class='small muted'>" + esc(r.note) + "</span>" : "") + who + "</li>";
     }).join("");
-    return card("Support given", "<ul class='alist'>" + rows + "</ul>" + form, "Students given support are compared with students whose earlier quiz results were similar, over the same quizzes.");
+    return card("Support given", "<ul class='alist'>" + rows + "</ul>" + form, canCompare ? "Students given support are compared with students whose earlier quiz results were similar, over the same quizzes." : "");
   }
   // Diagnostic quizzes (short concept checks, not marks): how well each concept was understood, weakest first. d = summary of rules/quiz-diagnostic.js.
   function diagnostics(d) {

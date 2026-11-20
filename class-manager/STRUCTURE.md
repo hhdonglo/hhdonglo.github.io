@@ -1,6 +1,6 @@
 # Class Manager: structure and review notes
 
-**Current version: 0.34.0**
+**Current version: 0.35.0**
 
 Written 9 November 2026. A description of the class management tool as it stands in this folder, for review of the tool and of the course it serves.
 
@@ -426,3 +426,22 @@ The lecturer's screen (`quiz-host.html`) takes its sentences and option lists fr
 `desktop/rules/quiz-own-result.js` finds one student's answers for the current round wherever CM keeps them: the holding area for an ID off the class list, otherwise released results, held results (Staged_Quiz), then the live Answers. `rules/quiz-views.js` (`result`) marks them, so every phone sees its score the moment the quiz ends, on the class list or not (a diagnostic is shown as understanding, not a mark). Showing the score never records it: Submit or Discard stays the lecturer's decision. Only the setting "Never" for the student score hides it ("When the quiz ends" in `quiz-host.html`). A late tap turned away with "wrong question" is no longer shown as a failure on the final screen. On the phone the notice for an unlisted ID appears only on the final screen, under the score (`cmUnlistedNotice.showEnd` in `assets/unlisted-notice.js`), as it does after attendance. Tests: `desktop/test/quiz-own-result.test.js`.
 
 **Quiz answers and Back to Class Tools (2026-11-18).** `desktop/relay/live-quiz.js` now takes everything the relay holds before it holds the results when the lecturer presses Stop (`settle`), so no phone is left out; joins the relay admitted are recorded even if CM collects them after the quiz started, and an accepted answer counts the student as a participant (`rules/quiz-submit.js`). On the phone, `assets/quiz-acks.js` remembers which answers the class server confirmed; `quiz.html` sends each answer with a receipt, tries again when the phone cannot reach the server, and never says "No answers were recorded" for answers the server confirmed (a relay phone cannot ask for its score). `desktop/back-to-tools.js` with `assets/back-to-tools.js` make the Class Tools link in Attendance and Quiz windows bring the one main window forward and close the tool window (`cm:backToTools`). Tests: `test/live-quiz.test.js`, `test/quiz-acks.test.js`, `test/back-to-tools.test.js`.
+
+**Desktop analytics IPC.** `desktop/analytics-ipc.js` registers class statistics, student statistics and progress reads through the course-aware IPC wrapper in `desktop/main.js`.
+
+- `desktop/app/backup-panel.js` renders backup status and handles backup, restore, import and export on the home screen.
+- `desktop/course-content.js` reads course materials, discovers question banks and falls back to bundled pages.
+- `desktop/course-pack.js` reads and writes course packs and stages replacement course material.
+- `desktop/workbook-adapter.js` implements the spreadsheet, sheet and range interfaces used by the backend.
+
+- `desktop/module-registry.js` declares built-in course modules, their dependencies, pages, actions, IPC channels, owned records and statistics.
+- `desktop/db/module-config.js` checks versions, takes a pre-migration snapshot and initializes persistent module configuration. See `desktop/db/README.md` and `desktop/test/module-config.test.js`.
+
+- `desktop/module-access.js` uses the registry to enforce course feature access across requests, pages, IPC channels and navigation.
+- `desktop/course-module-settings.js` coordinates live-work and relay checks before saving course features in `desktop/app/course-modules.js`. The two-course pilot uses `desktop/test/module-pilot.test.js`.
+
+- The Milestone 3 pilot in `desktop/test/module-pilot.test.js` starts one desktop main process with test Electron and HTTP transports. It creates both feature presets and additional courses, uses the normal course-scoped IPC and HTTP handlers, and verifies stale-window, mismatched-request and roster-search isolation.
+
+- `desktop/academic-memory/` and `desktop/app/academic-memory.*` provide the Milestone 4 records and events, typed links and tags, discussion log, and rebuildable sealed search index. See the module README for each review boundary.
+
+- [Milestone 5](plans/modular-platform-milestone-5.md) records the Calendar, Messaging, Announcements, Practice, Groups and Assignments module boundaries and their regression checks.

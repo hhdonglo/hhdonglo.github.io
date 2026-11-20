@@ -13,6 +13,9 @@
   function drawDrill(d) {
     var box = $("ddrill"); if (!box) return;
     if (!st.drill) { box.hidden = true; box.innerHTML = ""; return; }
+    var available = d.analytics && d.analytics.available;
+    var key = st.drill === "learning" ? "quizzes" : st.drill;
+    if (available && key !== "students" && !available[key]) { st.drill = null; box.hidden = true; box.innerHTML = ""; return; }
     var dr = G.drills(d)[st.drill]; if (!dr) { box.hidden = true; return; }
     var b = st.bar === null ? null : dr.bars[st.bar];
     box.hidden = false;
@@ -33,7 +36,10 @@
   }
   function drawCorr(d) {
     var box = $("dcorr-chart"); if (!box) return;
-    var vs = G.correlations(d), v = vs[st.corr] || vs[0];
+    var vs = G.correlations(d);
+    if (!vs.length) return;
+    if (st.corr >= vs.length) st.corr = 0;
+    var v = vs[st.corr];
     box.innerHTML = C.relation(v, chosen(d)); $("dcorr-text").textContent = v.text + (st.zone ? " Students in the chosen zone are highlighted." : "");
     Array.prototype.forEach.call(document.querySelectorAll("#dcorr .zb"), function (b) { b.setAttribute("aria-pressed", String(+b.getAttribute("data-corr") === st.corr)); });
   }
@@ -45,7 +51,12 @@
       var c;
       if ((c = t.closest("[data-drill]"))) {
         var k = c.getAttribute("data-drill");
-        if (k === "risk") { var r = $("drisk"); if (r) { r.scrollIntoView({ behavior: "smooth", block: "center" }); var b0 = r.querySelector(".zb"); if (b0) b0.focus(); } return; }
+        if (k === "risk") {
+          if (root.cmBoardInteract && $("sec-risk")) root.cmBoardInteract.pane("risk");
+          var r = $("drisk") || $("sec-risk");
+          if (r) { r.scrollIntoView({ behavior: "smooth", block: "center" }); var b0 = r.querySelector("button"); if (b0) b0.focus(); }
+          return;
+        }
         st.drill = st.drill === k ? null : k; st.bar = null; drawDrill(d); drawCards(); return;
       }
       if (t.closest("[data-all]")) { st.all = !st.all; drawDrill(d); drawRisk(d); return; }

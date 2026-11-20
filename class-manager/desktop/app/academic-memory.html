@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Academic memory</title>
+<link rel="stylesheet" href="academic-memory.css">
+<script src="../config.js"></script>
+<script src="academic-memory.js" defer></script>
+</head>
+<body>
+<main>
+ <header><a href="home.html">Back to Class Manager</a><h1>Academic memory</h1><p id="workspace"></p></header>
+ <p id="status" role="status"></p>
+ <section>
+  <h2>Search this course</h2>
+  <form id="search" role="search">
+   <label for="query">Search text</label><input type="search" id="query" maxlength="160">
+   <button type="submit">Search</button><button type="button" id="refresh">Refresh index</button>
+  </form>
+  <ul id="results" aria-live="polite"></ul>
+  <p id="search-source" role="status"></p>
+ </section>
+ <section>
+  <h2>Discussions</h2>
+  <ul id="discussions"></ul>
+  <form id="discussion">
+   <label for="title">Title</label><input id="title" maxlength="160" required>
+   <label for="notes">Notes</label><textarea id="notes" maxlength="12000" rows="4"></textarea>
+   <label for="decisions">Decisions, one per line</label><textarea id="decisions" rows="2"></textarea>
+   <label for="actions">Action items, one per line</label><textarea id="actions" rows="2"></textarea>
+   <label for="tags">Tags, separated by commas</label><input id="tags">
+   <fieldset><legend>Attachments</legend><div id="attachments"></div><button type="button" id="attach">Link a course file</button></fieldset>
+   <label><input type="checkbox" id="searchable"> Include this discussion in local search</label>
+   <div class="row"><button type="submit">Save discussion</button><button type="button" id="new">New discussion</button></div>
+  </form>
+ </section>
+ <section>
+  <h2>Links and tags</h2>
+  <form id="link">
+   <label for="from">From</label><select id="from"></select>
+   <label for="relation">Relationship</label><select id="relation"><option value="related">Related to</option><option value="supports">Supports</option><option value="follows">Follows</option></select>
+   <label for="to">To</label><select id="to"></select>
+   <button type="submit">Link</button>
+  </form>
+  <ul id="links"></ul>
+  <form id="tag-form">
+   <label for="target">Target in this course</label><select id="target"></select>
+   <label for="target-tags">Tags, separated by commas</label><input id="target-tags">
+   <button type="submit">Save tags</button>
+  </form>
+  <ul id="target-tag-list"></ul>
+ </section>
+ <section>
+  <h2>Attendance and quizzes</h2>
+  <ul id="events"></ul>
+  <p id="record-count"></p>
+ </section>
+</main>
+<dialog id="memory-reader" aria-labelledby="memory-reader-title"><h2 id="memory-reader-title"></h2>
+<pre id="memory-reader-text"></pre><form method="dialog"><button type="submit">Close</button></form></dialog>
+</body>
+</html>

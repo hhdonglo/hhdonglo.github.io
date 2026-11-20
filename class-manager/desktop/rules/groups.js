@@ -186,7 +186,7 @@ function studentGroups(store, id) {
 function display(store, p, o) {
   const r = act(store, { op: "list", set: p.set }, o); if (!r.ok) return r;
   const short = (n) => { const w = String(n || "").trim().split(/\s+/); return w.length > 1 ? w[0] + " " + w[w.length - 1].charAt(0) + "." : (w[0] || "Student"); };
-  const asg = require("./assignments"), list = asg.rows(store).filter((a) => a.set === r.set && a.status !== "closed");
+  const asg = require("./assignments"), list = (!o.enabled || o.enabled("assignments")) ? asg.rows(store).filter((a) => a.set === r.set && a.status !== "closed") : [];
   return { ok: true, set: r.set, sets: r.sets, groups: r.groups.map((g) => ({ group: g.group, members: g.members.map((m) => short(m.name)), tasks: list.filter((a) => asg.forGroup(a, g.group)).map((a) => a.title) })) };
 }
 

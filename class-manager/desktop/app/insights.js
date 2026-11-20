@@ -44,6 +44,7 @@
   var shortDate = function (l) { var m = /^(\d\d)\/(\d\d)/.exec(l), n = /^(\d{1,2} [A-Z][a-z]{2}) \d{4}( #\d+)?$/.exec(l); return n ? n[1] + (n[2] || "") : m ? m[1] + "/" + m[2] : l.replace(/^Week /, "W"); };
   var tile = function (lbl, big, sub, extra) { return "<div class='card tile'><p class='lbl'>" + lbl + "</p><p class='tbig'>" + big + "</p><p class='note'>" + sub + "</p>" + (extra || "") + "</div>"; };
 
+  var hasMeasure = function (d, key) { return !d.analytics || !!d.analytics.available[key]; };
   var data = null, loading = null, cur = "overview";
   function load(force) {
     if (loading && !force) return loading;
@@ -84,10 +85,10 @@
 
   /* ---- Class Analytics ---- */
   function overview() {
-    var d = data, s = d.summary, L = d.learning, a = d.attendance;
+    var d = data, L = d.learning, MA = window.cmModuleAnalytics;
     $("ov-sub").textContent = "The class in numbers and charts. Click any bar or number for the students behind it. " + plural(d.rosterSize, "student", "students") + " on the class list. Updated " + new Date(d.generated).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) + ".";
     parkLp();
-    if (!d.rosterSize) { $("ov").innerHTML = "<div class='card empty'><h3>No class yet</h3><p>Add the class list under Class Roster. The overview fills in as you take attendance and run quizzes.</p></div>"; return; }
+    if (!d.rosterSize) { $("ov").innerHTML = "<div class='card empty'><h3>No class yet</h3><p>Add the class list under Class Roster. The overview fills in as course records become available.</p></div>"; return; }
     // Analytics first: the hard numbers, the main charts, who needs attention and what goes with what. Today and setup come last, in a section that opens (app/dashboard/).
     // Every metric appears once, grouped under section headings (app/board/sections.js). Charts sit on white cards; the page keeps CM's navy and gold.
     var DV = window.cmDashView, B = window.cmBoardView, SEC = window.cmBoardSections, parts = {};
@@ -104,18 +105,25 @@
     var grid = function (xs) { return "<div class='dgrid'>" + xs.join("") + "</div>"; };
     var TC = B.topicCards(d), st = window.cmBoardInteract ? cmBoardInteract.state : {};
     // Each tab is one dashboard grid: donuts and bar charts side by side, wide tables on their own row (app/board/sections.js, board.css).
-    parts.overview = [B.html(d, window.cmLecture, st), grid([DV.healthCard(d)]), verdict, "<div id='an-summary'></div>"];
-    parts.attendance = [B.attendanceShare(d), B.setAsideCard(d), "<div id='xo-att'></div>"];
-    parts.quizzes = [B.scoreShare(d), B.spreadCard(d), "<div id='gx'>" + gxHtml(d) + "</div>", "<div id='xo-quiz'></div>"]; // class graphs: distribution, box plot and scatter for the chosen day (app/charts/panel.js)
-    parts.risk = [B.riskShare(d), "<div id='xo-risk'></div>", grid([DV.riskCard(d)])];
-    parts.questions = [B.masteryShare(d), TC.mastery, TC.over, "<div id='xo-q'></div>", "<div id='an-questions'></div>"];
-    parts.relations = [TC.corr, grid([DV.corrCard(d), DV.trendsCard(d)])];
-    parts.actions = [targetsCard, "<div id='an-actions'></div>", DV.ops(d, window.cmSetup, window.cmLive)];
+    parts.overview = [B.html(d, window.cmLecture, st), grid([DV.healthCard(d)]), (MA ? MA.measurements(d) : ""),
+      hasMeasure(d, "learning") ? verdict : "", d.analytics && !d.analytics.metrics.length && !hasMeasure(d, "learning") ? "" : "<div id='an-summary'></div>"];
+    if (hasMeasure(d, "attendance") || B.setAsideCard(d)) parts.attendance = [
+      hasMeasure(d, "attendance") ? B.attendanceShare(d) + "<div id='xo-att'></div>" : "", B.setAsideCard(d)];
+    if (hasMeasure(d, "quizzes")) parts.quizzes = [B.scoreShare(d), B.spreadCard(d), "<div id='gx'>" + gxHtml(d) + "</div>", "<div id='xo-quiz'></div>"];
+    if (hasMeasure(d, "risk")) parts.risk = [B.riskShare(d), "<div id='xo-risk'></div>", grid([DV.riskCard(d)])];
+    if (hasMeasure(d, "questions") || hasMeasure(d, "diagnostics")) parts.questions = [
+      hasMeasure(d, "questions") ? B.masteryShare(d) + TC.mastery + "<div id='xo-q'></div>" : "",
+      hasMeasure(d, "quizzes") && hasMeasure(d, "questions") ? TC.over : "", "<div id='an-questions'></div>"];
+    if (hasMeasure(d, "quizzes") || hasMeasure(d, "attendance") || TC.corr) parts.relations = [
+      TC.corr, DV.corrCard(d), DV.trendsCard(d)];
+    parts.actions = [d.targets.length ? targetsCard : "", (MA ? MA.suggestions(d) : ""), "<div id='an-actions'></div>", DV.ops(d, window.cmSetup, window.cmLive)];
     parts.privacy = ["<div id='an-privacy'></div>"];
     document.body.classList.add("has-board");
-    var h = "<div class='bd-top'><div id='bd-lpslot' class='bd-lpslot'></div>" + B.kpiRow(d) + "</div>" + SEC.compose(parts, st.pane, "<section class='card ddrill' id='ddrill' aria-live='polite' hidden></section>");
+    var hasContent = hasMeasure(d, "content");
+    var h = "<div class='bd-top" + (hasContent ? "" : " bd-top-no-plan") + "'>" +
+      (hasContent ? "<div id='bd-lpslot' class='bd-lpslot'></div>" : "") + B.kpiRow(d) + "</div>" + SEC.compose(parts, st.pane, "<section class='card ddrill' id='ddrill' aria-live='polite' hidden></section>");
     $("ov").innerHTML = h; gxWatch();
-    if (window.cmBoardLpSlot) cmBoardLpSlot.mount(document); // the lecture plan strip sits beside the key numbers (lecture-progress.js draws it)
+    if (window.cmBoardLpSlot && hasMeasure(d, "content")) cmBoardLpSlot.mount(document); // the lecture plan strip sits beside the key numbers (lecture-progress.js draws it)
     if (window.cmBoardArrange) { cmBoardArrange.init(); cmBoardArrange.apply(); } // saved order, sizes and hidden cards (app/board/arrange.js)
     [["xo-att", "ov-attendance"], ["xo-quiz", "ov-quizzes"], ["xo-risk", "ov-risk"], ["xo-q", "ov-questions"]].forEach(function (x) { xmount(x[0], x[1]); });
     if (window.cmAnalyticsPanel) cmAnalyticsPanel.mountInto({ summary: $("an-summary"), questions: $("an-questions"), actions: $("an-actions"), privacy: $("an-privacy") }, d);
@@ -130,10 +138,15 @@
 
   /* ---- Students ---- */
   var filt = "", sortK = "group", sortD = 1;
-  var COLS = [["name", "Student"], ["group", "Suggested group"], ["attendance", "Attendance"], ["missedInARow", "Missed in a row"], ["arrivalMedian", "Arrival (median min)"],
-    ["quizzesTaken", "Quizzes taken"], ["quizAverage", "Quiz average"], ["change", "Last change"], ["percentile", "Percentile"], ["practiceRecent", "Practice (recent)"], ["practiceMinutes", "Practice minutes"]];
+  var COLS = [["name", "Student"], ["group", "Suggested group", "engagement"], ["attendance", "Attendance", "attendance"],
+    ["missedInARow", "Missed in a row", "attendance"], ["arrivalMedian", "Arrival (median min)", "attendance"],
+    ["quizzesTaken", "Quizzes taken", "quizzes"], ["quizAverage", "Quiz average", "quizzes"], ["change", "Last change", "quizzes"],
+    ["percentile", "Percentile", "quizzes"], ["practiceRecent", "Practice (recent)", "practice"], ["practiceMinutes", "Practice minutes", "practice"]];
   function students() {
-    var d = data, t = d.thresholds;
+    var d = data, t = d.thresholds, engagement = hasMeasure(d, "engagement");
+    var columns = COLS.filter(function (c) { return !c[2] || hasMeasure(d, c[2]); });
+    if (!engagement) filt = "";
+    if (!columns.some(function (c) { return c[0] === sortK; })) sortK = "name";
     ["effort", "perf", "idle", "misses"].forEach(function (k) { $("th-" + k).value = t[k]; });
     var rows = d.students.filter(function (s) { return !filt || s.group === filt; });
     rows.sort(function (a, b) {
@@ -142,23 +155,39 @@
       if (x === null || x === undefined) return 1; if (y === null || y === undefined) return -1;
       return (typeof x === "string" ? x.localeCompare(y) : x - y) * sortD;
     });
-    var h = "<div class='row gfilter' role='group' aria-label='Filter by group'><button type='button' class='gf" + (filt ? "" : " on") + "' data-group=''>All <b>" + d.students.length + "</b></button>" +
-      GROUPS.map(function (g) { return d.groups[g] || g !== "Not enough data" ? "<button type='button' class='gf" + (filt === g ? " on" : "") + "' data-group='" + esc(g) + "'><i class='" + GCLASS[g] + "'></i>" + esc(g) + " <b>" + (d.groups[g] || 0) + "</b></button>" : ""; }).join("") + "</div>";
-    h += "<div class='tbl ins-tbl'><table><thead><tr>" + COLS.map(function (c) { return "<th scope='col' tabindex='0' data-k='" + c[0] + "'" + (c[0] === sortK ? " aria-sort='" + (sortD > 0 ? "ascending" : "descending") + "'" : "") + ">" + c[1] + "</th>"; }).join("") + "</tr></thead><tbody>" +
+    var h = engagement ? "<div class='row gfilter' role='group' aria-label='Filter by group'><button type='button' class='gf" + (filt ? "" : " on") + "' data-group=''>All <b>" + d.students.length + "</b></button>" +
+      GROUPS.map(function (g) { return d.groups[g] || g !== "Not enough data" ? "<button type='button' class='gf" + (filt === g ? " on" : "") + "' data-group='" + esc(g) + "'><i class='" + GCLASS[g] + "'></i>" + esc(g) + " <b>" + (d.groups[g] || 0) + "</b></button>" : ""; }).join("") + "</div>" : "";
+    h += "<div class='tbl ins-tbl'><table><thead><tr>" + columns.map(function (c) { return "<th scope='col' tabindex='0' data-k='" + c[0] + "'" + (c[0] === sortK ? " aria-sort='" + (sortD > 0 ? "ascending" : "descending") + "'" : "") + ">" + c[1] + "</th>"; }).join("") + "</tr></thead><tbody>" +
       rows.map(function (s) {
-        return "<tr tabindex='0' data-id='" + esc(s.id) + "' title='" + esc(s.why.join("; ")) + "'><td><b>" + esc(s.name || s.id) + "</b><span class='note'> " + esc(s.id) + "</span></td><td>" + chip(s.group) + "</td><td>" + num(s.attendance, "%") + "</td><td" + (s.missedInARow >= t.misses ? " class='flag'" : "") + ">" + s.missedInARow + "</td><td>" + num(s.arrivalMedian) +
-          "</td><td>" + s.quizzesTaken + " of " + d.quizzes.length + "</td><td>" + num(s.quizAverage, "%") + "</td><td>" + signed(s.change) + "</td><td>" + num(s.percentile) + "</td><td>" + s.practiceRecent + "</td><td>" + s.practiceMinutes + "</td></tr>";
-      }).join("") + "</tbody></table></div><p class='note'>Click a student for the full record. Percentile is the share of classmates with a lower quiz average. Practice (recent) counts attempts in the last " + t.idle + " days.</p>";
+        var cells = {
+          name: "<b>" + esc(s.name || s.id) + "</b><span class='note'> " + esc(s.id) + "</span>",
+          group: chip(s.group), attendance: num(s.attendance, "%"), missedInARow: s.missedInARow,
+          arrivalMedian: num(s.arrivalMedian), quizzesTaken: s.quizzesTaken + " of " + d.quizzes.length,
+          quizAverage: num(s.quizAverage, "%"), change: signed(s.change), percentile: num(s.percentile),
+          practiceRecent: s.practiceRecent, practiceMinutes: s.practiceMinutes
+        };
+        return "<tr tabindex='0' data-id='" + esc(s.id) + "' title='" + esc(s.why.join("; ")) + "'>" +
+          columns.map(function (c) {
+            return "<td" + (c[0] === "missedInARow" && s.missedInARow >= t.misses ? " class='flag'" : "") + ">" + cells[c[0]] + "</td>";
+          }).join("") + "</tr>";
+      }).join("") + "</tbody></table></div><p class='note'>Click a student for the full record." +
+      (hasMeasure(d, "quizzes") ? " Percentile is the share of classmates with a lower quiz average." : "") +
+      (hasMeasure(d, "practice") ? " Practice (recent) counts attempts in the last " + t.idle + " days." : "") + "</p>";
     $("st").innerHTML = h + "<h3 class='xh'>More charts</h3><div id='xs'></div>"; xmount("xs", "students");
   }
   function studentOpen(id) {
     cmApp.studentStats(Object.assign({ id: id }, th())).then(function (r) {
       if (!r || !r.ok) { $("stu-body").innerHTML = "<h2 id='stu-h'>Student " + esc(id) + "</h2><p class='msg'>" + esc(r && r.why ? "Not found: " + r.why + "." : "The record could not be read.") + "</p>"; if (!$("stu-d").open) $("stu-d").showModal(); return; }
-      var s = r.student, h = "<h2 id='stu-h'>" + esc(s.name || s.id) + " <span class='note'>" + esc(s.id) + "</span></h2><p>" + chip(s.group) + " <span class='note'>Suggested, for your review: " + esc(s.why.join("; ")) + ".</span></p>";
-      h += "<div class='kv4'><div><p class='lbl'>Attendance</p><p class='tbig'>" + num(s.attendance, "%") + "</p><p class='note'>" + s.present + " of " + s.sessions + " sessions; " + (s.missedInARow ? s.missedInARow + " missed in a row" : "present at the last session") + "</p></div>" +
-        "<div><p class='lbl'>Quiz average</p><p class='tbig'>" + num(s.quizAverage, "%") + "</p><p class='note'>" + s.quizzesTaken + " taken; percentile " + num(s.percentile) + "</p></div>" +
-        "<div><p class='lbl'>Practice</p><p class='tbig'>" + s.practiceAttempts + "</p><p class='note'>attempts, " + s.practiceMinutes + " min; last " + (s.lastPractice || "never") + "</p></div></div>";
-      h += "<p class='lbl'>Sessions</p><div class='marks'>" + s.marks.map(function (m, i) { return "<span class='" + (m === 1 ? "m-in" : m === 0 ? "m-out" : "m-na") + "' title='" + esc(r.sessions[i] || "") + ": " + (m === 1 ? "present" : m === 0 ? "absent" : "not counted") + "'>" + (m === 1 ? "✓" : m === 0 ? "✕" : "·") + "</span>"; }).join("") + "</div>";
+      var s = r.student, h = "<h2 id='stu-h'>" + esc(s.name || s.id) + " <span class='note'>" + esc(s.id) + "</span></h2>", figures = [];
+      if (s.why.length) h += "<p>" + chip(s.group) + " <span class='note'>Suggested, for your review: " + esc(s.why.join("; ")) + ".</span></p>";
+      if (r.sessions.length) figures.push("<div><p class='lbl'>Attendance</p><p class='tbig'>" + num(s.attendance, "%") + "</p><p class='note'>" +
+        s.present + " of " + s.sessions + " counted sessions" + (s.missedInARow ? " · " + s.missedInARow + " missed in a row" : "") + "</p></div>");
+      if (s.quizzesTaken) figures.push("<div><p class='lbl'>Quiz average</p><p class='tbig'>" + num(s.quizAverage, "%") + "</p><p class='note'>" +
+        s.quizzesTaken + " taken · percentile " + num(s.percentile) + "</p></div>");
+      if (s.practiceAttempts) figures.push("<div><p class='lbl'>Practice</p><p class='tbig'>" + s.practiceAttempts + "</p><p class='note'>attempts, " +
+        s.practiceMinutes + " min · last " + esc(s.lastPractice || "never") + "</p></div>");
+      if (figures.length) h += "<div class='kv4'>" + figures.join("") + "</div>";
+      if (s.marks.length) h += "<p class='lbl'>Sessions</p><div class='marks'>" + s.marks.map(function (m, i) { return "<span class='" + (m === 1 ? "m-in" : m === 0 ? "m-out" : "m-na") + "' title='" + esc(r.sessions[i] || "") + ": " + (m === 1 ? "present" : m === 0 ? "absent" : "not counted") + "'>" + (m === 1 ? "✓" : m === 0 ? "✕" : "·") + "</span>"; }).join("") + "</div>";
       if (s.trajectory.length) h += "<p class='lbl'>Quiz results</p>" + bars(s.trajectory.map(function (x) { return x.pct; }), s.trajectory.map(function (x) { return x.quiz; }), { max: 100, unit: "%", h: 120, short: shortDate, title: "Quiz results" });
       if (r.mastery.length) h += "<p class='lbl'>Proportion correct by lecture</p>" + bars(r.mastery.map(function (x) { return x.pct; }), r.mastery.map(function (x) { return x.lecture === 0 ? "Intro" : "Lecture " + x.lecture; }), { max: 100, unit: "%", h: 110, short: function (l) { return l.replace("Lecture ", "L"); }, title: "Proportion correct by lecture", extra: r.mastery.map(function (x) { return "(" + x.right + " of " + x.asked + ")"; }) });
       if (r.revisit.length) h += "<p class='lbl'>Questions to revisit</p><p class='note'>" + r.revisit.map(function (q) { return esc(q.id) + " (" + esc(q.from) + ")"; }).join(", ") + "</p>";

@@ -6,77 +6,19 @@
 "use strict";
 const fs = require("fs");
 const path = require("path");
-const JSZip = require("jszip");
+const { createCourseContent } = require("./course-content");
+const { createCoursePack } = require("./course-pack");
 
 const KINDS = ["slides", "handout", "tutorial", "supplement", "reference"]; // file fields of a lecture
 
-function readJson(f, d) { try { return JSON.parse(fs.readFileSync(f, "utf8")); } catch (e) { return d; } }
 function writeJson(f, o) { fs.mkdirSync(path.dirname(f), { recursive: true }); const t = f + ".tmp"; fs.writeFileSync(t, JSON.stringify(o, null, 1)); fs.renameSync(t, f); }
-function inside(root, full) { const r = path.normalize(root + path.sep); return path.normalize(full).startsWith(r); }
 
 function createCourse(opts) {
   const DIR = opts.dir;          // the course folder in CM's data folder
   const WEB = opts.web;          // CM's own pages
   const TPL = opts.templates;    // lecture page templates
-
-  // A path below the site root ("/data/lectures.json"), as a file on disk: the course folder first, then CM's pages.
-  function resolve(rel) {
-    rel = String(rel || "").replace(/^\/+/, "");
-    for (const root of [DIR, WEB]) {
-      const full = path.join(root, rel);
-      if (!inside(root, full)) continue;
-      try { if (fs.statSync(full).isFile()) return full; } catch (e) { /* not here */ }
-    }
-    return null;
-  }
-  const read = (rel, d) => { const f = resolve(rel); return f ? readJson(f, d) : d; };
-
-  // Lecture pages that the course does not provide are made from the templates.
-  function page(rel) {
-    const m = String(rel || "").match(/^\/?lecture-(\d{1,2})(-practice)?\.html$/);
-    if (!m) return null;
-    const n = Number(m[1]), nn = ("0" + n).slice(-2);
-    try { return fs.readFileSync(path.join(TPL, m[2] ? "practice.html" : "lecture.html"), "utf8").replace(/\{\{NN\}\}/g, nn).replace(/\{\{N\}\}/g, String(n)); } catch (e) { return null; }
-  }
-
-  // Question bank numbers in the course folder.
-  function bankNumbers() {
-    const out = new Set();
-    for (const root of [DIR, WEB]) {
-      try { fs.readdirSync(path.join(root, "quizzes")).forEach((f) => { const m = f.match(/^lecture(\d+)\.json$/); if (m) out.add(Number(m[1])); }); } catch (e) { /* none */ }
-    }
-    return [...out].sort((a, b) => a - b);
-  }
-
-  // Diagnostic bank numbers (quizzes/lectureN_concept.json): short concept checks, kept apart from the exercises.
-  function conceptNumbers() {
-    const out = new Set();
-    for (const root of [DIR, WEB]) {
-      try { fs.readdirSync(path.join(root, "quizzes")).forEach((f) => { const m = f.match(/^lecture(\d+)_concept\.json$/); if (m) out.add(Number(m[1])); }); } catch (e) { /* none */ }
-    }
-    return [...out].sort((a, b) => a - b);
-  }
-
-  function lecturesDoc() {
-    const d = read("data/lectures.json", null) || {};
-    d.groups = Array.isArray(d.groups) && d.groups.length ? d.groups : [{ id: "lectures", title: "Lectures", subtitle: "", lectures: [] }];
-    d.contacts = d.contacts || [];
-    return d;
-  }
-  function flat(d) { const o = []; (d || lecturesDoc()).groups.forEach((g) => (g.lectures || []).forEach((l) => o.push(Object.assign({ group: g.id }, l)))); return o.sort((a, b) => a.number - b.number); }
-
-  // portal.json as the pages see it: titles and handouts from the lectures, practice from the banks that exist.
-  function portal(extraBanks) {
-    const p = read("data/portal.json", {}) || {};
-    const ls = flat();
-    const banks = new Set(bankNumbers().concat(extraBanks || []));
-    p.lectures = {}; p.handouts = {};
-    ls.forEach((l) => { if (l.number > 0) { p.lectures[String(l.number)] = l.title; if (l.handout) p.handouts[String(l.number)] = l.handout; } });
-    p.practice = ls.filter((l) => l.number > 0 && banks.has(l.number) && l.status !== "soon").map((l) => l.number);
-    p.settings = p.settings || { showMyResults: true, allowRememberId: true };
-    if (!p.currentWeek) p.currentWeek = 1;
-    return p;
-  }
+  const { resolve, read, page, bankNumbers, conceptNumbers, lecturesDoc, flat, portal, lectures, practicePages, hasContent } = createCourseContent(DIR, WEB, TPL);
+  const { importPack, exportPack } = createCoursePack(DIR);
 
   function saveLectures(d) { writeJson(path.join(DIR, "data", "lectures.json"), d); syncWeeks(); }
   // The live quiz weeks follow the lectures, so a quiz can be run for every lecture that has a bank.
@@ -90,8 +32,6 @@ function createCourse(opts) {
     cw.forEach((n) => { if (n > 0 && !lq.concept_weeks[String(n)]) lq.concept_weeks[String(n)] = lq.weeks[String(n)] || "Lecture " + n; });
     writeJson(path.join(DIR, "apps_script", "live_quizzes.json"), lq);
   }
-
-  function lectures() { return flat().map((l) => Object.assign({}, l, { bank: bankNumbers().includes(l.number) })); }
 
   function saveLecture(o) {
     const n = Math.round(Number(o.number));
@@ -146,58 +86,6 @@ function createCourse(opts) {
     writeJson(path.join(DIR, "data", "portal.json"), p);
   }
 
-  // ---------- course packs ----------
-  // A folder chosen instead of a zip: the pack folder itself or a folder with the pack one or two levels down. Read like a zip, without hidden files.
-  async function zipOfFolder(root) {
-    const zip = new JSZip(); let n = 0;
-    (function walk(dir, rel, depth) {
-      let ents; try { ents = fs.readdirSync(dir, { withFileTypes: true }); } catch (e) { return; }
-      for (const e of ents) {
-        if (e.name.startsWith(".") || e.name.startsWith("~$") || e.isSymbolicLink() || n > 20000) continue;
-        const full = path.join(dir, e.name), r = rel ? rel + "/" + e.name : e.name;
-        if (e.isDirectory()) { if (depth < 12 && e.name !== "node_modules") walk(full, r, depth + 1); }
-        else if (e.isFile()) { zip.file(r, fs.readFileSync(full)); n++; }
-      }
-    })(root, "", 0);
-    return zip;
-  }
-  async function importPack(file) {
-    const zip = fs.statSync(file).isDirectory() ? await zipOfFolder(file) : await JSZip.loadAsync(fs.readFileSync(file));
-    // course.json at the top of the zip, or inside one wrapper folder (a zip made by compressing the pack folder itself).
-    const cjName = zip.file("course.json") ? "course.json" : Object.keys(zip.files).filter((n) => /^[^/]+(\/[^/]+)?\/course\.json$/.test(n) && !/^__MACOSX\//.test(n)).sort((a, b) => a.length - b.length)[0];
-    if (!cjName) throw new Error("This is not a Class Manager course pack (course.json is missing).");
-    const base = cjName.slice(0, cjName.length - "course.json".length); // "" or "Folder/"
-    const meta = JSON.parse(await zip.file(cjName).async("string"));
-    if (meta.format !== "class-manager-course") throw new Error("This is not a Class Manager course pack.");
-    const names = Object.keys(zip.files).filter((n) => n.startsWith(base + "files/") && !zip.files[n].dir && !/(^|\/)(\.DS_Store|~\$[^/]*)$/.test(n));
-    // A pack with no files (only course.json) gives the course details but must not replace the course content with nothing.
-    if (!names.length) return { settings: meta.settings || {}, name: meta.name || "", files: 0, replaced: false };
-    const tmp = DIR + ".import"; fs.rmSync(tmp, { recursive: true, force: true }); fs.mkdirSync(tmp, { recursive: true });
-    for (const n of names) {
-      const rel = n.slice(base.length + 6);
-      if (!rel || /(^|\/)\.\.(\/|$)/.test(rel) || path.isAbsolute(rel)) continue;
-      const out = path.join(tmp, rel);
-      if (!inside(tmp, out)) continue;
-      fs.mkdirSync(path.dirname(out), { recursive: true });
-      fs.writeFileSync(out, await zip.files[n].async("nodebuffer"));
-    }
-    const old = DIR + ".previous";
-    fs.rmSync(old, { recursive: true, force: true });
-    if (fs.existsSync(DIR)) fs.renameSync(DIR, old); // kept until the next import, in case it is needed again
-    fs.renameSync(tmp, DIR);
-    return { settings: meta.settings || {}, name: meta.name || "", files: names.length, replaced: true };
-  }
-  async function exportPack(file, settings) {
-    const zip = new JSZip();
-    const s = Object.assign({}, settings); delete s.scriptUrl; delete s.port; delete s.setupSeen;
-    zip.file("course.json", JSON.stringify({ format: "class-manager-course", version: 1, name: [s.courseCode, s.courseTitle].filter(Boolean).join(" "), settings: s }, null, 1));
-    const walk = (dir, pre) => { let list = []; try { list = fs.readdirSync(dir, { withFileTypes: true }); } catch (e) { return; }
-      list.forEach((e) => { const f = path.join(dir, e.name); if (e.isDirectory()) walk(f, pre + e.name + "/"); else zip.file("files/" + pre + e.name, fs.readFileSync(f)); }); };
-    walk(DIR, "");
-    fs.writeFileSync(file, await zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" }));
-    return file;
-  }
-  function hasContent() { return flat().length > 0 || bankNumbers().length > 0; }
   // An optional logo, kept in the course folder.
   function setLogo(src) {
     ["png", "jpg", "jpeg", "svg", "webp"].forEach((x) => { try { fs.unlinkSync(path.join(DIR, "course-logo." + x)); } catch (e) { /* none */ } });
@@ -210,7 +98,7 @@ function createCourse(opts) {
     return "course-logo." + ext;
   }
 
-  return { resolve, page, portal, bankNumbers, conceptNumbers, lectures, saveLecture, removeLecture, addLectureFile, removeLectureFile, setCourseInfo, importPack, exportPack, hasContent, setLogo, syncWeeks, KINDS };
+  return { resolve, page, portal, bankNumbers, conceptNumbers, lectures, practicePages, saveLecture, removeLecture, addLectureFile, removeLectureFile, setCourseInfo, importPack, exportPack, hasContent, setLogo, syncWeeks, KINDS };
 }
 
 module.exports = { createCourse };

@@ -35,15 +35,15 @@
   // Attendance, practice and topics against quiz average, and topic against topic.
   function correlations(d) {
     var ss = d.students || [], out = [];
-    out.push(describe("Attendance and quiz average", pearson(ss.map(function (s) { return s.attendance; }), ss.map(function (s) { return s.quizAverage; })), "attendance and quiz average"));
-    out.push(describe("Practice and quiz average", pearson(ss.map(function (s) { return s.practiceAttempts; }), ss.map(function (s) { return s.quizAverage; })), "practice attempts and quiz average"));
+    if (!d.analytics || d.analytics.available.attendance && d.analytics.available.quizzes) out.push(describe("Attendance and quiz average", pearson(ss.map(function (s) { return s.attendance; }), ss.map(function (s) { return s.quizAverage; })), "attendance and quiz average"));
+    if (!d.analytics || d.analytics.available.practice && d.analytics.available.quizzes) out.push(describe("Practice and quiz average", pearson(ss.map(function (s) { return s.practiceAttempts; }), ss.map(function (s) { return s.quizAverage; })), "practice attempts and quiz average"));
     var per = (d.topics && d.topics.students) || {}, ts = topicsOf(d).filter(function (t) { return t.students >= MIN_PAIRS; }), pairs = [];
     for (var i = 0; i < ts.length; i++) for (var j = i + 1; j < ts.length; j++) {
       var a = [], b = []; Object.keys(per).forEach(function (id) { var x = per[id][ts[i].key], y = per[id][ts[j].key]; if (x && y && x.n >= (d.topics.cutoffs ? d.topics.cutoffs.minStudentAnswers : 3) && y.n >= 3) { a.push(x.pct); b.push(y.pct); } });
       var c = pearson(a, b); if (c.r !== null) pairs.push(describe(ts[i].label + " and " + ts[j].label, c, "the two topics"));
     }
     pairs.sort(function (x, y) { return Math.abs(y.r) - Math.abs(x.r); });
-    return { main: out, topicPairs: pairs.slice(0, 3), topicPairsTotal: pairs.length };
+    return { main: d.analytics ? out.filter(function (c) { return c.r !== null; }) : out, topicPairs: pairs.slice(0, 3), topicPairsTotal: pairs.length };
   }
 
   // Topic bars: every topic with its band, counts of students per band, and whether the answers are few.

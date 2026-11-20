@@ -81,9 +81,9 @@
   // Attendance by session, with the numbers: how many were present of how many, and who was absent.
   function sessions(d) {
     var ss = d.students || [], sess = (d.attendance && d.attendance.bySession) || [], roster = d.rosterSize || ss.length;
-    return chart("sessions", "Attendance by session", "Click a session to list who was absent.", "Present out of the class list (" + roster + "). Attendance in the first sessions of a term is often lower; read the trend, not one session.", "%", 100,
+    return chart("sessions", "Attendance by session", "Click a session to list who was absent.", "Present out of the recorded marks for each session. The class list has " + roster + " students.", "%", 100,
       sess.map(function (x, i) { var absent = ss.filter(function (s) { return s.marks && s.marks[i] === 0; }); var pres = x.present !== undefined ? x.present : Math.round((x.rate || 0) * roster / 100);
-        return Object.assign(bar((x.label || "S" + (i + 1)) + " · " + pres + "/" + roster, absent, x.rate), { text: x.rate + "%", what: "absent" }); }));
+        return Object.assign(bar((x.label || "S" + (i + 1)) + " · " + pres + "/" + (x.counted == null ? roster : x.counted), absent, x.rate), { text: x.rate + "%", what: "absent" }); }));
   }
   // Quiz average and who took part, quiz by quiz.
   function quizTrend(d) {
@@ -116,6 +116,18 @@
     if (screen === "students") return [spread(d), practice(d)].concat(g);
     return [];
   }
-  var api = { sessions: sessions, quizTrend: quizTrend, risk: risk, SMALL: SMALL, spread: spread, change: change, participation: participation, missed: missed, practice: practice, groups: groups, topics: topics, items: items, forScreen: forScreen };
+  function availableCharts(screen, d, cohorts) {
+    var charts = forScreen(screen, d, cohorts);
+    if (!d.analytics) return charts;
+    var a = d.analytics.available;
+    var show = { sessions: a.attendance, missed: a.attendance, quiztrend: a.quizzes, spread: a.quizzes,
+      participation: a.quizzes, change: a.quizzes, practice: a.practice && a.quizzes,
+      "grp-eng": a.engagement && a.quizzes, "grp-teach": a.groups && a.quizzes, topics: a.questions,
+      difficulty: a.questions, discrimination: a.quizzes && a.questions, atrisk: a.risk };
+    return charts.filter(function (c) {
+      return show[c.key] && c.bars.some(function (b) { return b.value != null && b.n > 0; });
+    });
+  }
+  var api = { sessions: sessions, quizTrend: quizTrend, risk: risk, SMALL: SMALL, spread: spread, change: change, participation: participation, missed: missed, practice: practice, groups: groups, topics: topics, items: items, forScreen: availableCharts };
   if (typeof module === "object" && module.exports) module.exports = api; else root.cmExplore = api;
 })(typeof window !== "undefined" ? window : globalThis);

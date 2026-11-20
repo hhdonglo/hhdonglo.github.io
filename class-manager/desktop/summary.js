@@ -7,14 +7,16 @@
 
 function aggregates(d) {
   d = d || {}; const s = d.summary || {}, a = d.attendance || {}, L = d.learning || {};
-  const last = (d.quizzes || []).slice(-1)[0];
+  const scoped = d.analytics && d.analytics.available;
+  const last = (d.quizzes || []).filter(q => q.stats && q.stats.mean != null).at(-1);
   return {
     students: d.rosterSize || 0,
+    ...(scoped ? { attendanceMeasured: scoped.attendance } : {}),
     attendanceRate: a.rate === undefined ? null : a.rate, attendanceEarlier: a.earlierRate === undefined ? null : a.earlierRate, attendanceRecent: a.recentRate === undefined ? null : a.recentRate, sessions: a.sessions || 0,
     absentInARow: s.missedInARow || 0, absentThreshold: (d.thresholds || {}).misses || 3,
     latestQuiz: last ? { name: last.quiz, mean: last.stats && last.stats.mean, students: last.students } : null,
-    verdict: L.verdict || null, confidence: L.confidence || null,
-    topics: (L.topics || []).map((t) => ({ topic: t.label, pct: t.pct, small: !!t.small })),
+    verdict: scoped && !scoped.learning ? null : L.verdict || null, confidence: L.confidence || null,
+    topics: (scoped && !scoped.questions ? [] : L.topics || []).map((t) => ({ topic: t.label, pct: t.pct, small: !!t.small })),
     targets: (d.targets || []).slice(0, 5).map((t) => ({ kind: t.kind, title: t.title, n: t.n, action: t.action })),
     groups: d.groupNames ? Object.keys(d.groupNames).length : 0
   };
@@ -27,14 +29,14 @@ function ruleText(a) {
     let t = "Attendance is " + a.attendanceRate + "% over " + a.sessions + " sessions";
     if (a.attendanceEarlier !== null && a.attendanceRecent !== null) { const dlt = Math.round(10 * (a.attendanceRecent - a.attendanceEarlier)) / 10; t += dlt ? ", " + (dlt > 0 ? "up " : "down ") + Math.abs(dlt) + " points in the last three sessions" : ", unchanged in the last three sessions"; }
     out.push(t + ".");
-  } else out.push("No attendance session has been submitted yet.");
+  } else if (a.attendanceMeasured !== false) out.push("No attendance session has been submitted yet.");
   if (a.absentInARow) out.push(a.absentInARow + (a.absentInARow === 1 ? " student has" : " students have") + " missed the last " + a.absentThreshold + " or more sessions.");
   if (a.latestQuiz) out.push("The latest quiz (" + a.latestQuiz.name + ") averaged " + a.latestQuiz.mean + "% across " + a.latestQuiz.students + " students.");
   const weak = a.topics.filter((t) => !t.small && t.pct !== null && t.pct < 60);
   if (weak.length) out.push("Topics to revisit: " + weak.map((t) => t.topic + " (" + t.pct + "%)").join(", ") + ".");
   if (a.verdict) out.push("Is the class learning? " + a.verdict + (a.confidence ? " (confidence: " + a.confidence + ")" : "") + ".");
   if (a.targets.length) out.push("Suggested first: " + a.targets[0].title + ". " + a.targets[0].action);
-  return out.join(" ");
+  return out.join(" ") || "Course measures will appear as records become available.";
 }
 
 async function aiText(a, o) {

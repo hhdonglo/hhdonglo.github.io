@@ -8,6 +8,10 @@ const path = require("path");
 const vm = require("vm");
 const crypto = require("crypto");
 const { openCourse } = require("./db/migrate");
+const moduleAccess = require("./module-access");
+const moduleConfig = require("./db/module-config");
+const { scopedStore } = require("./rules/analytics-scope");
+const { createWorkbookAdapter } = require("./workbook-adapter");
 const { toJson } = require("./db/codec");
 const { createStudents } = require("./db/students");
 const { createNotices } = require("./db/notices");
@@ -25,7 +29,7 @@ function createBackend(opts) {
 
   // ---------- course database on disk (db/store.js; the old workbook.json is imported by db/migrate.js) ----------
   const dbFile = opts.dbFile || path.join(path.dirname(FILE), "course.db");
-  const opened = openCourse({ dbFile, jsonFile: FILE, vault, log });
+  const opened = openCourse({ dbFile, jsonFile: FILE, vault, log, initialModules: opts.initialModules });
   const db = opened.db, book = opened.book, loadProblem = opened.loadProblem;
   if (!book.props) book.props = {};
   const students = createStudents(db, vault); // the student table: unique IDs, kept equal to the Roster tab
@@ -54,75 +58,7 @@ function createBackend(opts) {
     try { db.save(book, d, p); const rt = rosterTab(); if (rt && d.has(rt)) students.sync(rt.rows); } catch (e) { d.forEach((x) => dirty.add(x)); propsDirty = propsDirty || p; log("could not save: " + e.message); throw e; }
   }
 
-  // ---------- SpreadsheetApp ----------
-  const blank = (v) => v === undefined || v === null;
-  function norm(v) { return blank(v) ? "" : v; }
-  function Sheet(data) {
-    const s = this;
-    const rows = () => data.rows;
-    function lastRow() { const r = rows(); for (let i = r.length - 1; i >= 0; i--) if (r[i] && r[i].some((v) => v !== "" && !blank(v))) return i + 1; return 0; }
-    function lastCol() { let m = 0; rows().forEach((r) => { if (!r) return; for (let j = r.length - 1; j >= 0; j--) if (r[j] !== "" && !blank(r[j])) { m = Math.max(m, j + 1); break; } }); return m; }
-    function cell(r, c) { const row = rows()[r - 1]; return row ? norm(row[c - 1]) : ""; }
-    function put(r, c, v) {
-      const R = rows(); while (R.length < r) R.push([]);
-      const row = R[r - 1] || (R[r - 1] = []); while (row.length < c) row.push("");
-      row[c - 1] = blank(v) ? "" : v; touch(data);
-    }
-    function Range(r, c, nr, nc) {
-      nr = nr || 1; nc = nc || 1;
-      if (r < 1 || c < 1 || nr < 1 || nc < 1) throw new Error("The coordinates of the range are outside the dimensions of the sheet.");
-      let px = null;
-      const rg = {
-        getValue: () => cell(r, c),
-        getValues: () => { const o = []; for (let i = 0; i < nr; i++) { const a = []; for (let j = 0; j < nc; j++) a.push(cell(r + i, c + j)); o.push(a); } return o; },
-        getDisplayValues: () => rg.getValues().map((a) => a.map((v) => (isDate(v) ? fmtDate(v, v.getHours() || v.getMinutes() || v.getSeconds() ? "dd/MM/yyyy HH:mm:ss" : "dd/MM/yyyy") : String(v)))),
-        setValue: (v) => { put(r, c, v); return px; },
-        setValues: (vals) => {
-          if (!Array.isArray(vals) || vals.length !== nr || vals.some((a) => !Array.isArray(a) || a.length !== nc)) throw new Error("The number of rows or columns in the data does not match the range.");
-          vals.forEach((a, i) => a.forEach((v, j) => put(r + i, c + j, v))); return px;
-        },
-        clearContent: () => { for (let i = 0; i < nr; i++) for (let j = 0; j < nc; j++) if (rows()[r + i - 1]) put(r + i, c + j, ""); return px; },
-        getRow: () => r, getColumn: () => c, getNumRows: () => nr, getNumColumns: () => nc
-      };
-      // Formatting has no meaning on disk: every set* call is accepted and ignored.
-      px = new Proxy(rg, { get: (t, k) => (k in t ? t[k] : typeof k === "string" && /^(set|clear|merge|break|protect|activate)/.test(k) ? () => px : undefined) });
-      return px;
-    }
-    let sp = null;
-    Object.assign(s, {
-      getName: () => data.name,
-      getLastRow: lastRow, getLastColumn: lastCol,
-      getMaxRows: () => Math.max(1000, rows().length), getMaxColumns: () => Math.max(26, lastCol()),
-      insertRowsAfter: () => sp, insertColumnsAfter: () => sp,
-      getRange: (r, c, nr, nc) => { if (typeof r === "string") throw new Error("A1 ranges are not supported"); return Range(r, c, nr, nc); },
-      getDataRange: () => Range(1, 1, Math.max(1, lastRow()), Math.max(1, lastCol())),
-      appendRow: (vals) => { const r = lastRow() + 1; vals.forEach((v, j) => put(r, j + 1, v)); return sp; },
-      deleteRow: (r) => { rows().splice(r - 1, 1); touch(data); return sp; },
-      deleteRows: (r, n) => { rows().splice(r - 1, n); touch(data); return sp; },
-      deleteColumn: (c) => { rows().forEach((row) => row && row.splice(c - 1, 1)); touch(data); return sp; },
-      clear: () => { data.rows = []; touch(data); return sp; },
-      clearContents: () => { data.rows = []; touch(data); return sp; },
-      getSheetId: () => data.id
-    });
-    sp = new Proxy(s, { get: (t, k) => (k in t ? t[k] : typeof k === "string" && /^(set|hide|show|protect|activate|autoResize)/.test(k) ? () => sp : undefined) });
-    return sp;
-  }
-  const sheetObjs = new Map();
-  function sheetObj(d) { if (!sheetObjs.has(d)) sheetObjs.set(d, new Sheet(d)); return sheetObjs.get(d); }
-  const ui = {
-    alert: () => "YES", Button: { YES: "YES", NO: "NO", OK: "OK" }, ButtonSet: { YES_NO: "YES_NO", OK: "OK" },
-    createMenu: function () { const m = { addItem: () => m, addSeparator: () => m, addToUi: () => {} }; return m; }
-  };
-  const spreadsheet = {
-    getSheetByName: (n) => { const d = book.sheets.find((x) => x.name === n); return d ? sheetObj(d) : null; },
-    insertSheet: (n) => {
-      if (book.sheets.some((x) => x.name === n)) throw new Error('A sheet with the name "' + n + '" already exists.');
-      const d = { name: n, id: book.sheets.length + 1, rows: [] }; book.sheets.push(d); touch(d); return sheetObj(d);
-    },
-    getSheets: () => book.sheets.map(sheetObj),
-    getName: () => "Class Manager (local)", getId: () => "local", getUrl: () => ""
-  };
-  const SpreadsheetApp = { getActiveSpreadsheet: () => spreadsheet, getActive: () => spreadsheet, getUi: () => ui, flush: () => {} };
+  const { SpreadsheetApp, spreadsheet, sheetObj } = createWorkbookAdapter({ book, touch, isDate, fmtDate });
 
   // ---------- other services ----------
   const store = new Map();
@@ -207,6 +143,19 @@ function createBackend(opts) {
     return out && typeof out.text === "string" ? out : ContentService.createTextOutput(out == null ? "" : String(out));
   }
 
+  let enabledModules = opened.enabledModules;
+  const refusal = (params, isPost) => moduleAccess.refusal(enabledModules, moduleAccess.requestModule(params, isPost));
+  function guardRequest(run, params, isPost) {
+    const denied = refusal(params, isPost);
+    if (denied) {
+      const body = JSON.stringify(denied);
+      const callback = !isPost && /^[A-Za-z_][A-Za-z0-9_]*$/.test(params.callback || "") ? params.callback : "";
+      return ContentService.createTextOutput(callback ? callback + "(" + body + ")" : body)
+        .setMimeType(callback ? "application/javascript" : "application/json");
+    }
+    return moduleAccess.filterReply(params, run(), enabledModules);
+  }
+
   const api = {
     doGet: (params) => call("doGet", params),
     doPost: (params, raw) => call("doPost", params, raw),
@@ -257,31 +206,61 @@ function createBackend(opts) {
     secret: (k) => ("cm.secret." + k in book.props ? book.props["cm.secret." + k] : null),
     setSecret: (k, v) => { book.props["cm.secret." + k] = String(v); touch("props"); },
     receipts: { get: (k) => { const r = db.raw.prepare("SELECT response FROM receipt WHERE ckey = ?").get(String(k)); return r ? r.response : null; }, put: (k, text) => { db.raw.prepare("INSERT OR IGNORE INTO receipt(ckey, response, at) VALUES(?, ?, ?)").run(String(k), String(text), Date.now()); }, prune: (days) => db.raw.prepare("DELETE FROM receipt WHERE at < ?").run(Date.now() - days * 86400000) },
+    enabledModules: () => enabledModules.slice(),
+    saveModules: ids => { enabledModules = moduleConfig.save(db, ids); version++; return enabledModules.slice(); },
+    moduleRefusal: refusal,
     databaseInfo: () => Object.assign({ file: dbFile }, db.counts())
   };
   // The engine: "script" (the Apps Script, run here) or "js" (the rules/ modules through rules/router.js). Both answer the same requests; "js" needs no script.
   api.site = (p) => { const r = UrlFetchApp.fetch("http://local" + p); if (r.getResponseCode() !== 200) throw new Error("not found: " + p); return JSON.parse(r.getContentText()); }; // the course's JSON files, for the rules
   const engine = opts.engine || process.env.CM_ENGINE || "js";
+  const { createRouter } = require("./rules/router"), { fromBackend } = require("./rules/store");
+  const site = api.site;
+  let router;
+  const rules = () => router || (router = createRouter({ store: fromBackend(api), site, version: String(ctx.SCRIPT_VERSION), geoMode: () => ctx.ATT_GEO_MODE, enabledModules: api.enabledModules }));
+  const runRules = (params, post) => {
+    tidyIds();
+    try { const r = (post ? rules().post : rules().get)(idParams(params)); return ContentService.createTextOutput(r.text).setMimeType(r.mime); }
+    finally { flush(); }
+  };
   if (engine === "js") {
-    const { createRouter } = require("./rules/router"), { fromBackend } = require("./rules/store");
-    const site = (p) => { const r = UrlFetchApp.fetch("http://local" + p); if (r.getResponseCode() !== 200) throw new Error("not found: " + p); return JSON.parse(r.getContentText()); };
-    const router = createRouter({ store: fromBackend(api), site, version: String(ctx.SCRIPT_VERSION), geoMode: () => ctx.ATT_GEO_MODE });
-    const run = (fn, params) => { tidyIds(); try { const r = fn(idParams(params)); return ContentService.createTextOutput(r.text).setMimeType(r.mime); } finally { flush(); } };
-    api.doGet = (params) => run(router.get, params);
-    api.doPost = (params) => run(router.post, params);
+    api.doGet = params => runRules(params, false);
+    api.doPost = params => runRules(params, true);
     // The methods the app screens call directly (not through a page request) use the same rules.
-    const R = { AU: require("./rules/auth"), CL: require("./rules/class-list"), CS: require("./rules/class-stats"), L: require("./rules/learning"), P: require("./rules/progress") };
-    const st = fromBackend(api), ro = () => ({ site, random: () => crypto.randomUUID(), counters: R.AU.memoryCounters(() => new Date()) }), ver = String(ctx.SCRIPT_VERSION);
+    const R = { AU: require("./rules/auth"), CL: require("./rules/class-list"), L: require("./rules/learning") };
+    const st = fromBackend(api), ro = () => ({ site, random: () => crypto.randomUUID(), counters: R.AU.memoryCounters(() => new Date()) });
     const done = (f) => { try { return f(); } finally { flush(); } };
     api.setPasswordAsOwner = (pw) => done(() => R.AU.ownerSetPassword(st, pw, ro()));
     api.passwordStatus = () => R.AU.passwordStatus(st);
-    api.stats = (p) => R.CS.classStats(st, Object.assign({}, p || {}), ver, ro());
     api.studentNote = (id, text) => done(() => R.L.noteAdd(st, id, text));
-    api.studentStats = (p) => R.P.studentStats(st, Object.assign({}, p || {}), ro(), ver);
-    api.progress = (p) => R.P.learningProgress(st, Object.assign({}, p || {}), ro());
     api.rosterSync = (rows, replace) => { try { tidyGrid("Roster", [["Student ID", "Name"]].concat(rows || [])).notices.forEach((n) => notices.record(n)); } catch (e) { /* the merge itself still happens */ } return done(() => R.CL.sync(st, { rows: JSON.stringify(rows), mode: "apply", replace: replace ? "yes" : "" })); };
     api.engine = "js";
   } else api.engine = "script";
+  const fullModuleCount = require("./module-registry").defaultModules().length;
+  const useScopedRules = () => engine === "js" || api.enabledModules().length !== fullModuleCount;
+  const analyticsStore = () => scopedStore(fromBackend(api), api.enabledModules());
+  const classStats = require("./rules/class-stats").classStats, progress = require("./rules/progress");
+  const versionOfRules = String(ctx.SCRIPT_VERSION);
+  const analyticsOptions = { site };
+  const legacy = { stats: api.stats, studentStats: api.studentStats, progress: api.progress };
+  api.analyticsStats = p => classStats(analyticsStore(), { ...p }, versionOfRules, analyticsOptions);
+  api.stats = p => useScopedRules() ? api.analyticsStats(p) : legacy.stats(p);
+  api.studentStats = p => useScopedRules() ? progress.studentStats(analyticsStore(), { ...p }, analyticsOptions, versionOfRules) : legacy.studentStats(p);
+  api.progress = p => useScopedRules() ? progress.learningProgress(analyticsStore(), { ...p }, analyticsOptions) : legacy.progress(p);
+  const analyticsActions = new Set(["class_stats", "student_stats", "learning_progress", "insights", "outcomes", "my_results"]);
+  const { doGet, doPost } = api;
+  api.doGet = (params = {}) => guardRequest(() => engine !== "js" && useScopedRules() && analyticsActions.has(params.action) ?
+    runRules(params, false) : doGet(params), params, false);
+  api.doPost = (params = {}, raw) => {
+    const effective = Object.assign({}, params, raw ? Object.fromEntries(new URLSearchParams(raw)) : {});
+    return guardRequest(() => {
+      if (engine !== "js" && effective.action === "calendar_edit" && effective.kind) {
+        try { return rules().post(idParams(effective)); } finally { flush(); }
+      }
+      if (engine !== "js" && useScopedRules() && analyticsActions.has(effective.action)) return runRules(effective, true);
+      return doPost(effective, raw);
+    }, effective, true);
+  };
   return api;
 }
 

@@ -84,25 +84,66 @@
   }
 
   /* ---- the lookup ---- */
-  var roster = [];
+  var searchGeneration = 0;
   function lookOpen() {
-    var d = $("look-d"); if (!d) return;
-    (window.cmInsights && cmInsights.students ? cmInsights.students() : Promise.resolve([])).then(function (list) {
-      roster = list || [];
-      $("look-list").innerHTML = roster.map(function (s) { return "<option value='" + esc(s.id) + "'>" + esc(s.name) + "</option>"; }).join("");
-    });
+    var d = $("look-d"); if (!d || d.open) return;
+    searchGeneration++;
+    $("look-results").replaceChildren();
+    var picker = $("look-course"), courseForm = $("look-course-form");
+    if (picker && courseForm) {
+      var options = Array.from($("course-sel").options).filter(function (option) { return option.value && !option.value.startsWith("__"); });
+      picker.replaceChildren.apply(picker, options.map(function (option) { return option.cloneNode(true); }));
+      picker.value = $("course-sel").value;
+      courseForm.hidden = options.length < 2;
+    }
     $("look-in").value = ""; $("look-msg").textContent = ""; d.showModal(); $("look-in").focus();
   }
-  function lookGo() {
-    var v = $("look-in").value.trim(), low = v.toLowerCase(), id = v.replace(/\D/g, "");
-    var hit = roster.filter(function (s) { return s.id === id; })[0] || roster.filter(function (s) { return low && String(s.name).toLowerCase().indexOf(low) >= 0; })[0];
-    if (!hit && id.length >= 4) hit = { id: id };
-    if (!hit) { $("look-msg").textContent = "No student matches. Type a Student ID or part of a name."; return; }
-    $("look-d").close(); if (window.cmInsights && cmInsights.open) cmInsights.open(hit.id);
+  async function lookGo() {
+    var query = $("look-in").value.trim(), generation = ++searchGeneration;
+    var results = $("look-results"), message = $("look-msg");
+    results.replaceChildren();
+    message.textContent = query ? "Searching this course…" : "Enter a student ID or name.";
+    if (!query) return;
+    try {
+      var matches = await cmApp.findStudents(query);
+      if (generation !== searchGeneration || !$("look-d").open || query !== $("look-in").value.trim()) return;
+      if (!Array.isArray(matches)) { message.textContent = matches.why || "Search is unavailable."; return; }
+      message.textContent = matches.length ? "" : "No student matches in this course.";
+      var analytics = !window.CM.modules || window.CM.modules.includes("analytics");
+      matches.forEach(function (student) {
+        var item = document.createElement(analytics ? "button" : "p");
+        item.textContent = student.name + " (" + student.id + ")";
+        if (analytics) {
+          item.type = "button";
+          item.className = "btn sm";
+          item.addEventListener("click", function () { $("look-d").close(); cmInsights.open(student.id); });
+        }
+        results.append(item);
+      });
+    } catch (error) {
+      if (generation === searchGeneration && $("look-d").open) message.textContent = error.message;
+    }
   }
   document.addEventListener("keydown", function (e) {
     var mac = /Mac/i.test(navigator.platform || navigator.userAgent);
-    if ((mac ? e.metaKey : e.ctrlKey) && !e.altKey && !e.shiftKey && e.key.toLowerCase() === "k") { e.preventDefault(); lookOpen(); }
+    if ((mac ? e.metaKey : e.ctrlKey) && !e.altKey && !e.shiftKey && e.key.toLowerCase() === "k") {
+      e.preventDefault();
+      if (cmApp.academic) location.href = "academic-work.html?command=1";
+      else lookOpen();
+    }
+  });
+  if ($("look-course-form")) $("look-course-form").addEventListener("submit", function (event) {
+    event.preventDefault();
+    var selector = $("course-sel");
+    if (selector.value === $("look-course").value) { $("look-d").close(); return; }
+    selector.value = $("look-course").value;
+    $("look-d").close();
+    selector.dispatchEvent(new Event("change"));
+  });
+  if ($("look-in")) $("look-in").addEventListener("input", function () {
+    searchGeneration++;
+    $("look-results").replaceChildren();
+    $("look-msg").textContent = "";
   });
   if ($("look-form")) $("look-form").addEventListener("submit", function (e) { e.preventDefault(); lookGo(); });
   ["look-btn", "look-top"].forEach(function (i) { if ($(i)) $(i).addEventListener("click", lookOpen); });

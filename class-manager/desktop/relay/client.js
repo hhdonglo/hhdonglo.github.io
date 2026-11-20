@@ -46,6 +46,7 @@ function createRelay(opts) {
             const msg = JSON.parse(open(c.priv, it.sealed));
             if (!msg || !msg.params || !ALLOWED[msg.params.kind]) { log("mailbox: item of a kind that is not accepted was dropped"); continue; }
             const params = Object.assign({}, msg.params, { ckey: String(msg.ckey || it.id).replace(/[^\w.-]/g, "_") });
+            if (backend.moduleRefusal?.(params, true)) { ids.pop(); continue; }
             receipts.once(backend, params, () => backend.doPost(params, new URLSearchParams(params).toString()));
             got++;
           } catch (e) { log("mailbox: an item could not be opened and was dropped (" + e.message + ")"); }

@@ -31,16 +31,17 @@ function texRender(root){
 function flat(d){var o=[];d.groups.forEach(function(g){g.lectures.forEach(function(l){if(l.number>0)o.push({l:l,g:g})})});return o.sort(function(a,b){return a.l.number-b.l.number})}
 function ln(n){return ("0"+n).slice(-2)}
 function lpage(n,l){return l&&l.page?l.page:"lecture-"+n+".html"}
+function practiceOn(){return !window.CM||!CM.moduleEnabled||CM.moduleEnabled("practice")}
 function ppage(n,l){return l&&l.practice_page?l.practice_page:"lecture-"+n+"-practice.html"}
 R.weekly=function(el,d){
   var co=d.course_outline,cof='';if(co&&co.url){cof='<p class="outline"><strong>'+esc(co.label||"Course outline")+':</strong> <span class="pdf-pair"><a href="'+esc(co.url)+'" target="_blank" rel="noopener">Preview<span class="vh"> '+esc(co.label||"course outline")+' (opens in a new tab)</span></a><a href="'+esc(co.url)+'" download>Download<span class="vh"> '+esc(co.label||"course outline")+'</span></a></span></p>'}
   var ol=d.official_listing;if(ol&&ol.url)cof+='<p class="outline"><a href="'+esc(ol.url)+'" target="_blank" rel="noopener">'+esc(ol.label||"Official course listing")+' ↗<span class="vh"> (opens in a new tab)</span></a></p>';
-  var mk=d.mock_exam?'<div class="mock-feature" id="mock-exam"><p class="mf-kicker">End of course</p><h4 class="mf-title">Mock exam</h4><p class="mf-text">Fifty questions drawn at random from past examination questions across the course, in 2 hours 30 minutes, with the timer on screen and answers shown only at the end. For practice, not assessment.</p><p class="mf-meta"><span>50 questions</span><span>2 h 30 min</span><span>All lectures</span></p><p><a class="btn primary mf-btn" href="mock-exam.html">Take the mock exam <span aria-hidden="true">&rarr;</span></a></p></div>':'';
-  var mj=d.mock_exam?'<p class="mock-jump"><a href="#mock-exam"><strong>Mock exam</strong> · 50 questions in 2 h 30 min · jump to the end of the course <span aria-hidden="true">&darr;</span></a></p>':'';
+  var mk=practiceOn()&&d.mock_exam?'<div class="mock-feature" id="mock-exam"><p class="mf-kicker">End of course</p><h4 class="mf-title">Mock exam</h4><p class="mf-text">Fifty questions drawn at random from past examination questions across the course, in 2 hours 30 minutes, with the timer on screen and answers shown only at the end. For practice, not assessment.</p><p class="mf-meta"><span>50 questions</span><span>2 h 30 min</span><span>All lectures</span></p><p><a class="btn primary mf-btn" href="mock-exam.html">Take the mock exam <span aria-hidden="true">&rarr;</span></a></p></div>':'';
+  var mj=practiceOn()&&d.mock_exam?'<p class="mock-jump"><a href="#mock-exam"><strong>Mock exam</strong> · 50 questions in 2 h 30 min · jump to the end of the course <span aria-hidden="true">&darr;</span></a></p>':'';
   el.innerHTML=cof+mj+d.groups.map(function(g){
     return '<div class="week-group" id="'+esc(g.id)+'"><h4 class="grp">'+md(g.title)+'</h4><p class="sec-sub">'+md(g.subtitle)+'</p><ul class="weeks">'+g.lectures.map(function(l){
       var n=l.number,soon=l.status==="soon";
-      return '<li class="week'+(soon?' soon':'')+'" id="lecture-'+n+'"><span class="wk">Week '+n+'</span><span class="wt"><a href="'+lpage(n,l)+'">'+(soon?'Coming soon':md(l.title))+'</a><span class="state'+(soon?'':' ok')+'">'+(soon?'Coming soon':'Available')+'</span></span><span class="ws">'+md(soon?(l.note||"Materials are being prepared."):l.summary)+'</span>'+(soon?'':'<span class="wl">'+[(l.slides||n>0?wlink(l.slides,"Slides",n):""),(l.handout?wlink(l.handout,"Handout",n):""),wlink(l.supplement,"Supplementary",n),(l.reference?wlink(l.reference,"Reference slides",n):""),wlink(l.tutorial,"Tutorial",n),wlink(l.practice==="soon"?"":ppage(n,l),"Practice questions",n)].join(" ")+'</span>')+'</li>'}).join("")+'</ul></div>'}).join("")+mk;
+      return '<li class="week'+(soon?' soon':'')+'" id="lecture-'+n+'"><span class="wk">Week '+n+'</span><span class="wt"><a href="'+lpage(n,l)+'">'+(soon?'Coming soon':md(l.title))+'</a><span class="state'+(soon?'':' ok')+'">'+(soon?'Coming soon':'Available')+'</span></span><span class="ws">'+md(soon?(l.note||"Materials are being prepared."):l.summary)+'</span>'+(soon?'':'<span class="wl">'+[(l.slides||n>0?wlink(l.slides,"Slides",n):""),(l.handout?wlink(l.handout,"Handout",n):""),wlink(l.supplement,"Supplementary",n),(l.reference?wlink(l.reference,"Reference slides",n):""),wlink(l.tutorial,"Tutorial",n),(practiceOn()?wlink(l.practice==="soon"?"":ppage(n,l),"Practice questions",n):"")].join(" ")+'</span>')+'</li>'}).join("")+'</ul></div>'}).join("")+mk;
 };
 function isPdf(u){return /\.pdf(\?|#|$)/i.test(u||"")}
 function lbtn(url,label,n,primary){
@@ -60,7 +61,7 @@ R.lecture=function(el,d,site){
   var out='';
   if(soon){out+='<div class="ov-card"><p>This lecture will be added when it is ready.</p></div>'}
   else{
-    out+='<div class="lecture-buttons" role="group" aria-label="Lecture resources">'+lbtn(l.slides,"Lecture slides",n,true)+(l.handout?lbtn(l.handout,"Handout",n):"")+lbtn(l.supplement,"Supplementary note",n)+(l.reference?lbtn(l.reference,"Reference slides",n):"")+lbtn(l.tutorial,"Tutorial sheet",n)+lbtn(l.practice==="soon"?"":ppage(n),"Practice questions",n)+'</div>';
+    out+='<div class="lecture-buttons" role="group" aria-label="Lecture resources">'+lbtn(l.slides,"Lecture slides",n,true)+(l.handout?lbtn(l.handout,"Handout",n):"")+lbtn(l.supplement,"Supplementary note",n)+(l.reference?lbtn(l.reference,"Reference slides",n):"")+lbtn(l.tutorial,"Tutorial sheet",n)+(practiceOn()?lbtn(l.practice==="soon"?"":ppage(n,l),"Practice questions",n):"")+'</div>';
     out+='<details class="fold" id="objectives" open><summary>Learning objectives</summary><div class="ov-card"><p>Students should be able to:</p>'+list(l.outcomes||[],"")+'</div></details>';
     var focus=l.contact_focus||[];
     (d.contacts||[]).forEach(function(c,k){
@@ -69,7 +70,7 @@ R.lecture=function(el,d,site){
   var prev=all[i-1],next=all[i+1];
   out+='<nav class="pager" aria-label="Lecture navigation">'+(prev?'<a class="prev" href="'+lpage(prev.l.number)+'">&larr; Lecture '+ln(prev.l.number)+'</a>':'<span></span>')+'<a class="toc" href="course.html#weekly">'+esc(course)+' contents</a>'+(next?'<a class="next" href="'+lpage(next.l.number)+'">Lecture '+ln(next.l.number)+' &rarr;</a>':'<span></span>')+'</nav>';
   el.innerHTML=out;
-  if(location.hash==="#practice"&&!soon&&l.practice!=="soon")location.replace(ppage(n));
+  if(practiceOn()&&location.hash==="#practice"&&!soon&&l.practice!=="soon")location.replace(ppage(n));
 };
 function sub(o,site){return JSON.parse(JSON.stringify(o).replace(/\{(email|email_alt|phone_display|office)\}/g,function(m,k){return JSON.stringify(site[k]||"").slice(1,-1)}))}
 function list(items,style){

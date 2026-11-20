@@ -3,6 +3,7 @@
 const log = require("../rules/lecture-log");
 const { fromBackend } = require("../rules/store");
 const schedule = require("../rules/lecture-schedule");
+const { scopedStore } = require("../rules/analytics-scope");
 
 // Questions per lecture in the course's banks (quizzes/lectureN.json: a list of questions, or an object holding one).
 function bankCounts(c) {
@@ -19,7 +20,7 @@ function bankCounts(c) {
 function register({ on, saveSettings, dirOf }) {
   const store = (c) => fromBackend(c.backend);
   // The status plus which lectures are due, next and missed (named from the course's lecture list).
-  const progress = (c) => { const p = log.report(store(c), c.settings); p.schedule = schedule.plan(p, c.course.lectures()); return p; };
+  const progress = (c) => { const source = store(c); const p = log.report(c.backend.enabledModules ? scopedStore(source, c.backend.enabledModules()) : source, c.settings); p.schedule = schedule.plan(p, c.course.lectures()); return p; };
   on("cm:lectureProgress", (c) => ({ ok: true, progress: progress(c) }));
   on("cm:lectureMark", (c, e, date, kind) => {
     const r = log.mark(store(c), String(date || ""), kind == null || kind === "" ? null : String(kind));

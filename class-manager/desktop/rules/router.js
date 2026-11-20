@@ -27,6 +27,7 @@ const ST = require("./score-tables");
 const V = require("./quiz-views");
 const { normalizeId } = require("../ids");
 const { logLine } = require("./store");
+const { scopedStore } = require("./analytics-scope");
 
 const NOKEY = { ok: false, why: "host key not accepted" };
 const clean = (v, max) => { let s = String(v == null ? "" : v).trim().slice(0, max); if (/^[=+\-@]/.test(s)) s = "'" + s; return s; };
@@ -40,6 +41,7 @@ function createRouter(env) {
   const out = (text, mime) => ({ text: String(text == null ? "" : text), mime: mime || MIME.text });
   const oFor = (req) => {
     const o = Object.assign({}, base, { geoMode: env.geoMode ? env.geoMode() : undefined });
+    o.enabled = id => !env.enabledModules || env.enabledModules().includes(id);
     // The phone's access code, or the session it was given at its last check-in; a code that works gives a session to keep.
     o.verifyCode = (aid, given, mine, st) => {
       const t = AU.isSession(given) ? AU.sessRead(st, given) : null;
@@ -60,7 +62,7 @@ function createRouter(env) {
 
   function post(p) {
     p = p || {}; const req = { post: true, session: "" }, o = oFor(req);
-    if (p.action && !p.kind) return route(p, req, o);
+    if (p.action === "calendar_edit" || p.action && !p.kind) return route(p, req, o);
     if (p.kind === "roster_sync") return out(JSON.stringify(AU.hostOk(store, p, req, o) ? CL.sync(store, p) : { ok: false, why: "key not accepted" }));
     if (p.kind === "report") return out(QS.report(store, p, o));
     if (p.kind === "attempt") return out(QS.attempt(store, p));
@@ -72,28 +74,32 @@ function createRouter(env) {
   function route(p, req, o) {
     const code = clean(p.code, 30).toUpperCase(), host = () => AU.hostOk(store, p, req, o), J = (obj) => json(req, p, obj), hostJ = (fn) => J(host() ? fn() : NOKEY), qo = () => quizO(o);
     const a = p.action;
+    const analytics = () => env.enabledModules ? scopedStore(store, env.enabledModules()) : store;
     switch (a) {
       case "status": return J(V.status(store, code, o));
       case "version": return J({ ok: true, version: env.version });
       case "join_base": if (!host()) return J(NOKEY); return J(p.base != null && p.base !== "" ? joinBaseSet(p.base) : { ok: true, base: C.joinBase(store) });
       case "set_week": return hostJ(() => V.setWeek(store, p));
       case "portal_status": return J(V.portalStatus(store, env.version));
-      case "my_results": return J(V.portalResults(store, p, req, Object.assign({}, o, { extras: (s, id) => P.portalExtras(s, id, o) })));
+      case "my_results": return J(V.portalResults(store, p, req, Object.assign({}, o, { extras: (s, id) => P.portalExtras(analytics(), id, o) })));
       case "chat": return J(CH.chat(store, p, req, o));
       case "announcements": return J(AN.announcements(store, p, req, o));
       case "calendar": return J(CA.calendar(store, p, req, o));
       case "calendar_ics": return out(CA.ics(store, p, req, o), MIME.ics);
       case "calendar_edit": if (!host()) return J(NOKEY); return J(CA.act(store, p, req, o));
       case "groups": return hostJ(() => G.act(store, p, o));
-      case "outcomes": return hostJ(() => OC.outcomesAct(store, p, o));
+      case "outcomes": return hostJ(() => OC.outcomesAct(analytics(), p, o));
       case "assignments": return hostJ(() => AS.act(store, p, o));
       case "groups_display": return hostJ(() => G.display(store, p, o));
-      case "learning_progress": return hostJ(() => P.learningProgress(store, p, o));
+      case "learning_progress": return hostJ(() => P.learningProgress(analytics(), p, o));
       case "group_work": return J(AS.groupWork(store, p, req, o));
-      case "insights": return hostJ(() => L.insights(store, p, env.version));
-      case "class_stats": return hostJ(() => CS.classStats(store, p, env.version, o));
+      case "insights": return hostJ(() => {
+        const source = analytics();
+        return L.insights(source, p, env.version, { persistQuestionStats: source === store });
+      });
+      case "class_stats": return hostJ(() => CS.classStats(analytics(), p, env.version, o));
       case "student_note": return hostJ(() => L.noteAdd(store, p.id, p.text));
-      case "student_stats": return hostJ(() => P.studentStats(store, p, o, env.version));
+      case "student_stats": return hostJ(() => P.studentStats(analytics(), p, o, env.version));
       case "access_codes": return hostJ(() => AC.run(store, p, { random: o.random, log: (x, y, z) => logLine(store, x, y, z, "") }));
       case "preclass": return hostJ(() => preclass(p, o));
       case "attend": { // a refused check-in is also noted for the lecturer's Sign-in problems list (signin-attempts.js)

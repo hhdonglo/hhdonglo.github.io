@@ -141,6 +141,9 @@
 (function(){
 "use strict";
 var SCRIPT_URL=window.CM.scriptUrl,$=function(i){return document.getElementById(i)};
+var messaging=CM.moduleEnabled("messaging"), announcements=CM.moduleEnabled("announcements");
+$("a-panel").hidden=!announcements;
+$("a-ev").parentElement.hidden=!CM.moduleEnabled("calendar");
 var KEYID="cm_portal_id",KEYCODE="cm_portal_code",ID="",CODE="",HK="",D=null,CONV="",AFTER=0,MSGS=[],V="",timer=null,EVENTS=[];
 try{HK=sessionStorage.getItem("cm_hk")||"";ID=localStorage.getItem(KEYID)||sessionStorage.getItem(KEYID)||"";CODE=localStorage.getItem(KEYCODE)||sessionStorage.getItem(KEYCODE)||""}catch(x){}
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
@@ -151,10 +154,12 @@ function show(id,t){$(id).textContent=t||"";$(id).hidden=!t}
 function fmt(t){var d=new Date(t),n=new Date();return(d.toDateString()===n.toDateString()?"":d.getDate()+"/"+(d.getMonth()+1)+" ")+("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2)}
 function linkify(s){return esc(s).replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank" rel="noopener">$1</a>')}
 // ---------- announcements ----------
-function loadAnn(op,extra){jsonp("action=announcements"+auth()+(op?q("op",op):"")+(extra||""),function(d){
+function loadAnn(op,extra){if(!announcements)return;jsonp("action=announcements"+auth()+(op?q("op",op):"")+(extra||""),function(d){
  if(!d||!d.ok){if(d&&op)show("a-err","Not saved: "+d.why);else $("a-list").innerHTML='<p class="note">'+(d?"Announcements are not available: "+esc(d.why):"The class server could not be reached.")+'</p>';return}
+ if(!messaging&&d.host){$("s-login").hidden=true;hostAnnUi()}
  show("a-err","");if(op==="save"){clearAnn();$("a-det").open=false}
  $("a-list").innerHTML=d.announcements.length?d.announcements.map(function(a){return'<div class="ann'+(a.pinned?" pin":"")+(a.unread?" new":"")+'"><h4>'+(a.pinned?"Pinned: ":"")+esc(a.title)+'</h4><p class="note">'+esc(a.at.replace("T"," "))+(a.scheduled?" (shown from "+esc(a.scheduled.replace("T"," "))+")":"")+(d.host?" · "+esc(audName(a.audience)):"")+'</p>'+(a.text?'<p>'+linkify(a.text)+'</p>':"")+(a.link?'<p><a href="'+esc(a.link)+'"'+(/^https?:/.test(a.link)?' target="_blank" rel="noopener"':"")+'>'+esc(a.link)+'</a></p>':"")+(a.event?'<p><a href="calendar.html#'+esc(a.event.start.slice(0,10))+'">Calendar: '+esc(a.event.title)+", "+esc(a.event.start.replace("T"," "))+'</a></p>':"")+(d.host?'<p><button class="go alt sm" type="button" data-aedit="'+esc(a.id)+'">Edit</button><button class="go alt sm" type="button" data-adel="'+esc(a.id)+'">Delete</button></p>':"")+'</div>'}).join(""):'<p class="note">No announcements.</p>';
+ CM.hideDisabledNavigation($("a-list"));
  window.__ANN=d.announcements;$("a-badge").textContent=d.unread;$("a-badge").hidden=!d.unread;
  if(d.unread&&!d.host)setTimeout(function(){jsonp("action=announcements"+auth()+"&read=yes",function(){})},4000);
 })}
@@ -165,10 +170,15 @@ $("a-form").addEventListener("submit",function(e){e.preventDefault();loadAnn("sa
 $("a-list").addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;
  if(b.hasAttribute("data-adel")){if(confirm("Delete this announcement?"))loadAnn("delete",q("ann",b.getAttribute("data-adel")));return}
  var a=(window.__ANN||[]).filter(function(x){return x.id===b.getAttribute("data-aedit")})[0];if(!a)return;
- $("a-id").value=a.id;$("a-title").value=a.title;$("a-text").value=a.text;$("a-aud").value=a.audience||"all";$("a-from").value=a.scheduled||"";$("a-link").value=a.link||"";$("a-ev").value=a.event?a.event.id:"";$("a-pin").checked=a.pinned;$("a-det").open=true;$("a-title").focus()});
-function hostAnnUi(){$("a-host").hidden=false;
+ $("a-id").value=a.id;$("a-title").value=a.title;$("a-text").value=a.text;var select=$("a-aud"),audience=a.audience||"all",previous=select.querySelector("[data-saved-audience]");
+ if(previous)previous.remove();
+ if(!Array.from(select.options).some(function(option){return option.value===audience})){
+  var option=document.createElement("option");option.value=audience;option.textContent="Keep the saved audience";option.dataset.savedAudience="";select.append(option)
+ }
+ select.value=audience;$("a-from").value=a.scheduled||"";$("a-link").value=a.link||"";$("a-ev").value=a.event?a.event.id:"";$("a-pin").checked=a.pinned;$("a-det").open=true;$("a-title").focus()});
+function hostAnnUi(){if(!announcements)return;$("a-host").hidden=false;
  $("a-aud").innerHTML='<option value="all">Everyone, on the Portal</option><option value="class">Signed-in students only</option>'+(D?D.conversations.filter(function(c){return/^[LS]:/.test(c.id)}).map(function(c){return'<option value="'+esc(c.id)+'">'+esc(c.name)+'</option>'}).join(""):"");
- jsonp("action=calendar"+q("hostkey",HK),function(d){if(d&&d.ok){EVENTS=d.events;$("a-ev").innerHTML='<option value="">None</option>'+d.events.filter(function(ev){return ev.start>=new Date().toISOString().slice(0,10)}).map(function(ev){return'<option value="'+esc(ev.id)+'">'+esc(ev.start.replace("T"," ")+" "+ev.title)+'</option>'}).join("")}})}
+ if(!CM.modules||CM.modules.includes("calendar"))jsonp("action=calendar"+q("hostkey",HK),function(d){if(d&&d.ok){EVENTS=d.events;$("a-ev").innerHTML='<option value="">None</option>'+d.events.filter(function(ev){return ev.start>=new Date().toISOString().slice(0,10)}).map(function(ev){return'<option value="'+esc(ev.id)+'">'+esc(ev.start.replace("T"," ")+" "+ev.title)+'</option>'}).join("")}})}
 // ---------- messages ----------
 function sync(op,extra,cb){
  jsonp("action=chat"+auth()+(op?q("op",op):"")+(CONV?q("conv",CONV)+q("after",AFTER):"")+(!op&&V?q("v",V):"")+(extra||""),function(d){
@@ -228,7 +238,7 @@ function signOut(why){clearInterval(timer);timer=null;D=null;ID="";CODE="";HK=""
 $("c-out").addEventListener("click",function(){signOut("")});
 $("s-form").addEventListener("submit",function(e){e.preventDefault();ID=$("s-id").value.replace(/\D/g,"");CODE=$("s-code").value.trim().toUpperCase();if(!ID||!CODE)return;
  try{(($("s-rem").checked)?localStorage:sessionStorage).setItem(KEYID,ID);(($("s-rem").checked)?localStorage:sessionStorage).setItem(KEYCODE,CODE)}catch(x){}start()});
-function start(){D=null;V="";CONV="CLASS";MSGS=[];sync("read");clearInterval(timer);timer=setInterval(function(){if(!document.hidden&&D)sync()},8000)}
+function start(){if(!messaging){loadAnn();return}D=null;V="";CONV="CLASS";MSGS=[];sync("read");clearInterval(timer);timer=setInterval(function(){if(!document.hidden&&D)sync()},8000)}
 document.addEventListener("visibilitychange",function(){if(!document.hidden&&D)sync()});
 if(HK||ID&&CODE)start();else{$("s-login").hidden=false;loadAnn()}
 })();

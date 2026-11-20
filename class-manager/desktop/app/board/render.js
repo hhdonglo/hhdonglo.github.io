@@ -19,14 +19,19 @@
 
   function progressPanel(d, lp, tab) {
     var tabs = M.progress(d, lp), cur = tabs.filter(function (t) { return t.key === tab; })[0] || tabs[0];
+    if (!cur) return "";
     return head("Class progress over time", "Click a bar for the students behind it") +
       "<div class='bd-tabs' role='tablist'>" + tabs.map(function (t) { return "<button type='button' role='tab' data-bd-tab='" + t.key + "' aria-selected='" + (t === cur) + "'>" + U.esc(t.title) + "</button>"; }).join("") + "</div>" +
       BL.svg(cur) + BL.key(cur);
   }
 
   function breakPanel(d, view) {
-    var g = view === "groups", m = g ? M.groupDonut(d) : M.topicDonut(d);
-    return head("Category breakdown", "") + "<div class='bd-tabs' role='tablist'><button type='button' role='tab' data-bd-view='topics' aria-selected='" + !g + "'>By topic</button><button type='button' role='tab' data-bd-view='groups' aria-selected='" + g + "'>By group</button></div>" +
+    var byTopic = !d.analytics || d.analytics.available.questions;
+    var byGroup = !d.analytics || d.analytics.available.engagement;
+    if (!byTopic && !byGroup) return "";
+    var g = byGroup && (view === "groups" || !byTopic), m = g ? M.groupDonut(d) : M.topicDonut(d);
+    var tabs = byTopic && byGroup ? "<div class='bd-tabs' role='tablist'><button type='button' role='tab' data-bd-view='topics' aria-selected='" + !g + "'>By topic</button><button type='button' role='tab' data-bd-view='groups' aria-selected='" + g + "'>By group</button></div>" : "";
+    return head("Category breakdown", "") + tabs +
       (!g && !m.total ? "" : "<div class='bd-plan'>" + D.svg(m.slices, m.centre, m.title) + D.legend(m.slices) + "</div>") +
       "<p class='" + (!g && !m.total ? "bd-empty" : "bd-foot") + "'>" + (g ? "Groups are suggestions for your review." : m.total ? "Share of " + U.plural(m.total, "lecture topic", "lecture topics") + " by what the answers show." : "Topics appear once quiz answers are linked to lectures.") + "</p>";
   }
@@ -54,7 +59,7 @@
     return "<section class='bd-card' id='" + id + "' aria-label='" + U.esc(m.title) + "'>" + head(m.title, note || "") +
       "<div class='bd-plan'>" + D.svg(m.slices, m.centre, m.title) + D.legend(m.slices) + "</div><p class='bd-foot'>" + U.esc(empty ? "Nothing to show yet." : foot) + "</p></section>";
   }
-  function attendanceShare(d) { var m = SH.attendance(d); return shareCard("bd-satt", m, m.sessions ? U.plural(m.sessions, "session", "sessions") : "", "Every check-in against every student on the list, over the sessions counted."); }
+  function attendanceShare(d) { var m = SH.attendance(d); return shareCard("bd-satt", m, m.sessions ? U.plural(m.sessions, "session", "sessions") : "", "Present and absent marks recorded across counted sessions. Blank marks are excluded."); }
   function scoreShare(d) { return shareCard("bd-sscore", SH.scores(d), "", "Each student sits in one band by their quiz average. Students with no quiz result are not placed."); }
   function riskShare(d) {
     var m = SH.risk(d), w = m.wide.length ? " Class pattern, flags no one: " + m.wide.map(function (x) { return x.label; }).join("; ") + "." : "";
@@ -63,16 +68,23 @@
   function masteryShare(d) { return shareCard("bd-smast", SH.mastery(d), "", "Well mastered is 70% or more correct, needs attention is under 50%."); }
   function card(id, cls, inner, label) { return "<section class='bd-card " + cls + "' id='" + id + "' aria-label='" + label + "'>" + inner + "</section>"; }
   // Topic panels (topics-panels.js) as cards that sit in a section's grid.
-  function topicCards(d) { return { mastery: card("bd-tmast", "bd-w3", TP.masteryPanel(d), "Topic mastery"), over: card("bd-tover", "bd-w3", TP.overTimePanel(d), "Mastery by topic over time"), corr: card("bd-tcorr", "bd-w4", TP.correlationPanel(d), "What goes with what") }; }
+  function topicCards(d) {
+    var corr = TP.correlationPanel(d);
+    return { mastery: card("bd-tmast", "bd-w3", TP.masteryPanel(d), "Topic mastery"),
+      over: card("bd-tover", "bd-w3", TP.overTimePanel(d), "Mastery by topic over time"),
+      corr: corr ? card("bd-tcorr", "bd-w4", corr, "What goes with what") : "" };
+  }
   function kpiRow(d) { return K.row(M.kpis(d)); }
   // The overview grid, as in the reference: plan, progress and breakdown, then the ranked table beside the insights. Panels carry ids so interact.js redraws one at a time.
   function html(d, lp, st) {
     st = st || {};
-    return "<div class='bd-grid'>" +
-      "<section class='bd-card bd-w3' id='bd-prog' aria-label='Class progress over time'>" + progressPanel(d, lp, st.tab) + "</section>" +
-      "<section class='bd-card' id='bd-break' aria-label='Category breakdown'>" + breakPanel(d, st.view) + "</section>" +
-      "<section class='bd-card' id='bd-rank' aria-label='Topics needing attention'>" + rankedPanel(d) + "</section>" +
-      "<section class='bd-card' id='bd-ins' aria-label='Insights'>" + insightsPanel(d, lp) + "</section></div>";
+    var progress = progressPanel(d, lp, st.tab), breakdown = breakPanel(d, st.view), available = d.analytics && d.analytics.available;
+    var chartSlot = progress || !available || available.content;
+    var cards = (chartSlot ? "<section class='bd-card bd-w3' id='bd-prog' aria-label='Class progress over time'" + (progress ? "" : " hidden") + ">" + progress + "</section>" : "") +
+      (breakdown ? card("bd-break", "", breakdown, "Category breakdown") : "") +
+      (!available || available.questions ? card("bd-rank", "", rankedPanel(d), "Topics needing attention") : "") +
+      (!available || M.findings(d, lp).length ? card("bd-ins", "", insightsPanel(d, lp), "Insights") : "");
+    return cards ? "<div class='bd-grid'>" + cards + "</div>" : "";
   }
   var api = { kpiRow: kpiRow, topicCards: topicCards, attendanceShare: attendanceShare, scoreShare: scoreShare, riskShare: riskShare, masteryShare: masteryShare, spreadCard: spreadCard, setAsideCard: setAsideCard, html: html, planPanel: planPanel, progressPanel: progressPanel, breakPanel: breakPanel, rankedPanel: rankedPanel, insightsPanel: insightsPanel };
   if (typeof module === "object" && module.exports) module.exports = api; else root.cmBoardView = api;

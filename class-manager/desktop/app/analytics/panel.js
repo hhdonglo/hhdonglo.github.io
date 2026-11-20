@@ -20,12 +20,15 @@
   // The cards in four groups, so the page can place each where it belongs: summary (Overview), questions, actions and privacy (the last section).
   function parts(d, ex, sm) {
     var AI = use("cmItems", "items"), C = use("cmConcepts", "concepts"), I = use("cmInterventions", "interventions"), F = use("cmFairness", "fairness");
-    var q = "", a = "";
+    var q = "", a = "", available = d.analytics && d.analytics.available;
     if (d.questions && d.questions.length) q += V.items(AI.analyse(d.questions));
-    q += V.concepts(C.track(d.lectures || [], d.questions || [], null, d.rosterSize));
-    q += V.diagnostics(ex.diagnostics);
-    a += V.interventions((ex.interventions || []).map(function (r) { return I.compare(r, d.students || []); }));
-    a += V.fairness(F.byGroup(d.students || [], ex.cohorts || {}));
+    if (!available || available.questions) q += V.concepts(C.track(d.lectures || [], d.questions || [], null, d.rosterSize));
+    if (!available || ex.diagnostics && ex.diagnostics.weeks.length) q += V.diagnostics(ex.diagnostics);
+    var canCompare = !available || available.quizzes;
+    a += V.interventions((ex.interventions || []).map(function (r) {
+      return canCompare ? I.compare(r, d.students || []) : r;
+    }), canCompare);
+    if (!available || available.groups && available.quizzes && Object.keys(ex.cohorts || {}).length) a += V.fairness(F.byGroup(d.students || [], ex.cohorts || {}));
     return { summary: summaryCard(sm, ex), questions: q, actions: a, privacy: privacyCard(ex) };
   }
   function build(d, ex, sm) { var p = parts(d, ex, sm); return p.summary + p.questions + p.actions + p.privacy; }
@@ -34,7 +37,7 @@
   function mountInto(targets, d) {
     if (!root.cmApp || !cmApp.analyticsExtra) return;
     var refresh = function () { mountInto(targets, d); };
-    Promise.all([cmApp.analyticsExtra(), cmApp.weeklySummary()]).then(function (r) {
+    Promise.all([cmApp.analyticsExtra(), targets.summary || targets.all ? cmApp.weeklySummary() : null]).then(function (r) {
       var p = parts(d, r[0], r[1]), all = p.summary + p.questions + p.actions + p.privacy;
       Object.keys(targets).forEach(function (k) { var el = targets[k]; if (!el) return; el.innerHTML = "<div class='dgrid'>" + (k === "all" ? all : p[k]) + "</div>"; bind(el, refresh); });
     }).catch(function () { Object.keys(targets).forEach(function (k) { if (targets[k]) targets[k].innerHTML = ""; }); });

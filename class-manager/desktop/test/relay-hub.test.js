@@ -49,6 +49,26 @@ test("a phone's sealed practice result is collected once, recorded once, and for
   b.close();
 });
 
+test("a disabled Practice module leaves queued attempts available for re-enable", async () => {
+  const env = await hubEnv(), c = classroom({ students: 1, engine: "js" }), b = c.backend;
+  try {
+    const fetch = fetchTo(env), hub = createHub({ backend: b, address: "https://hub.test", fetch });
+    await hub.register();
+    const pc = hub.publicConfig(), enabled = b.enabledModules();
+    const sealed = await seal(pc.key, JSON.stringify({ ckey: "practice-disabled",
+      params: { kind: "attempt", id: c.students[0].id, quiz: "Lecture 1", score: "4", total: "5" } }));
+    const dropped = await fetch("https://hub.test/v1/drop", { method: "POST", body: JSON.stringify({ course: pc.course, sealed }) });
+    assert.equal(dropped.ok, true);
+    b.saveModules(enabled.filter(id => id !== "practice"));
+    assert.equal((await hub.pull()).received, 0);
+    assert.ok((b.rawRows("Attempts") || []).length <= 1);
+    b.saveModules(enabled);
+    assert.equal((await hub.pull()).received, 1);
+    assert.equal(b.rawRows("Attempts").length, 2);
+    assert.equal((await hub.pull()).received, 0);
+  } finally { b.close(); }
+});
+
 test("items of a kind that is not accepted are dropped, not recorded", async () => {
   const env = await hubEnv(), c = classroom({ students: 1 }), hub = createHub({ backend: c.backend, address: "https://hub.test", fetch: fetchTo(env), log: () => {} });
   await hub.register(); const pc = hub.publicConfig();

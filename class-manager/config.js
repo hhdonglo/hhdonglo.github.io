@@ -49,12 +49,23 @@ window.CM = {
   function remember(old, tok) {
     swap[old] = tok;
     [window.sessionStorage, window.localStorage].forEach(function (st) {
-      try { for (var i = 0; i < st.length; i++) { var k = st.key(i); if (st.getItem(k) === old) st.setItem(k, tok); } } catch (e) { /* storage off */ }
+      try {
+        var prefix = CM.desktop ? window.__cmStore || "" : "";
+        for (var i = 0; i < st.length; i++) {
+          var k = st.key(i);
+          if (prefix) {
+            if (!k.startsWith(prefix)) continue;
+            k = k.slice(prefix.length);
+          } else if (CM.desktop && k.startsWith("cm@")) continue;
+          if (st.getItem(k) === old) st.setItem(k, tok);
+        }
+      } catch (e) { /* storage off */ }
     });
   }
   CM.call = function (params, cb, ms) {
     var b = new URLSearchParams(params), t0 = Date.now(), done = false, timer;
     b.delete("callback");
+    if (CM.desktop && CM.courseId) b.set("cmCourseId", CM.courseId);
     ["hostkey", "code", "access"].forEach(function (k) { var v = b.get(k); if (v && swap[v]) b.set(k, swap[v]); });
     function end(d) { if (done) return; done = true; clearTimeout(timer); cb(d, Date.now() - t0); }
     if (!CM.scriptUrl) { setTimeout(function () { end(null); }, 0); return; }
@@ -77,7 +88,23 @@ window.CM = {
     r.setProperty("--navy", CM.accent); r.setProperty("--primary-bg", CM.accent); r.setProperty("--link", CM.accent); r.setProperty("--btn-text", CM.accent);
     r.setProperty("--navy-deep", "color-mix(in srgb, " + CM.accent + " 70%, #000)");
   }
+  CM.moduleEnabled = function (id) { return !CM.modules || CM.modules.includes(id); };
+  CM.hideDisabledNavigation = function (root) {
+    if (!CM.modules || !CM.disabledPages) return;
+    var base = new URL(".", location.href);
+    root.querySelectorAll("a[href]").forEach(function (link) {
+      var href = link.getAttribute("href"), target;
+      try { target = new URL(href, location.href); } catch (e) { return; }
+      if (target.origin !== base.origin || !target.pathname.startsWith(base.pathname)) return;
+      var page = target.pathname.slice(base.pathname.length);
+      if (CM.disabledPages.includes(page) ||
+          !CM.moduleEnabled("practice") && (/^(?:lecture-\d+|introduction)-practice\.html$/.test(page) || href === "course.html#weekly")) {
+        link.style.display = "none";
+      }
+    });
+  };
   function fill() {
+    CM.hideDisabledNavigation(document);
     // Course labels in the header, crumbs and footer.
     document.querySelectorAll("[data-cm]").forEach(function (el) {
       var v = CM[el.getAttribute("data-cm")]; if (v) el.textContent = v;

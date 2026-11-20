@@ -17,7 +17,7 @@ const EVERY_MS = 5000, RUNNING = ["lobby", "running", "paused", "ended"];
 
 function createLiveQuiz(opts) {
   const hub = opts.hub, backend = opts.backend, pages = opts.pages, log = opts.log || (() => {}), setTimer = opts.setInterval || setInterval, clearTimer = opts.clearInterval || clearInterval;
-  let code = "", timer = null, settled = false, busy = Promise.resolve(), listedKey = "";
+  let code = "", timer = null, settled = false, retiring = false, busy = Promise.resolve(), listedKey = "";
   const store = () => fromBackend(backend), counters = A.memoryCounters(() => new Date());
   const env = () => ({ site: backend.site, random: () => require("crypto").randomUUID(), counters });
   const usable = () => !!(hub && typeof hub.post === "function" && opts.address());
@@ -31,6 +31,7 @@ function createLiveQuiz(opts) {
   }
   async function collect() {
     const st = store(), after = Number(st.prop("live_quiz_after")) || 0, r = await hub.post("/v1/quiz/events", { after });
+    if (r.ok === false) throw new Error(r.why || "Could not collect relay quiz events.");
     if (!r.events || !r.events.length) return 0;
     const o = quizHooks(st, env());
     r.events.forEach((e) => {
@@ -47,6 +48,7 @@ function createLiveQuiz(opts) {
     await hub.post("/v1/quiz/ack", { upto: top }); return r.events.length;
   }
   const sync = (c) => chain(async () => {
+    if (retiring) return;
     const snap = snapshot(store(), c);
     if (snap && RUNNING.indexOf(snap.state) >= 0) {
       const reg = await hub.register(); if (!reg.ok) throw new Error(reg.why || "no relay");
@@ -54,7 +56,7 @@ function createLiveQuiz(opts) {
       const body = key === listedKey ? snap.body : Object.assign({ listed }, snap.body); // the class list goes to the relay when it changes, so a phone with another ID is warned at once
       const put = await hub.post("/v1/quiz/put", body); code = c; if (put && put.ok !== false) listedKey = key;
       if (snap.state === "ended") await settle(c); else settled = false; // Stop: take what phones sent, then hold the results; nothing the relay holds is left out
-      if (!timer) { timer = setTimer(() => { if (code) { collect().then(() => sync(code)).catch(() => {}); } }, EVERY_MS); if (timer.unref) timer.unref(); }
+      if (!timer) { timer = setTimer(() => { if (code && !retiring) { collect().then(() => sync(code)).catch(() => {}); } }, EVERY_MS); if (timer.unref) timer.unref(); }
     } else if (code === c) { await collect(); await hub.post("/v1/quiz/close", {}); stopTimer(); } // released, reset or deleted: take the last answers, then close
   });
   // After Stop: the relay no longer accepts answers (its status is "ended"); collect what it holds, then compile the held results again (finalize replaces, never doubles).
@@ -73,7 +75,21 @@ function createLiveQuiz(opts) {
     if (on) { const pc = hub.publicConfig(); if (pc) { out.relay = { url: pc.url, course: pc.course, pages }; return JSON.stringify(out); } }
     return text;
   }
-  return { after, sync, collect: () => chain(collect), close: () => chain(async () => { if (code) { await collect(); await hub.post("/v1/quiz/close", {}); } stopTimer(); }), isOpen: () => !!code, idle: () => busy };
+  async function closeForModules() {
+    retiring = true;
+    try {
+      await busy;
+      if (!hub.configured()) return;
+      const result = await hub.post("/v1/quiz/close", {});
+      if (!result.ok) throw new Error(result.why || "Could not close relay quizzes.");
+      while (await collect()) { /* drain earlier answers before disabling */ }
+      stopTimer();
+    } finally {
+      retiring = false;
+    }
+  }
+
+  return { after, sync, closeForModules, collect: () => chain(collect), close: () => chain(async () => { if (code) { await collect(); await hub.post("/v1/quiz/close", {}); } stopTimer(); }), isOpen: () => !!code, idle: () => busy };
 }
 
 module.exports = { createLiveQuiz, EVERY_MS };

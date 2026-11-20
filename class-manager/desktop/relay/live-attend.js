@@ -43,12 +43,13 @@ function applyEvents(store, events) {
   return out;
 }
 // Collects everything since the last time, records it, and tells the relay to forget it. Returns { ok, applied }.
-async function collect(hub, store) {
+async function collect(hub, store, beforeAck) {
   const after = Number(store.prop("live_after")) || 0;
   const r = await hub.post("/v1/live/events", { after });
   if (!r.events.length) return { ok: true, applied: { added: 0, flags: 0, pending: 0, binds: 0, refused: 0 } };
   const applied = applyEvents(store, r.events), top = r.events[r.events.length - 1].id;
   store.setProp("live_after", String(top));
+  if (beforeAck) beforeAck();
   await hub.post("/v1/live/ack", { upto: top });
   return { ok: true, applied, more: !!r.more };
 }

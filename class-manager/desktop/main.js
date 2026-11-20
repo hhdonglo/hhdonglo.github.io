@@ -13,10 +13,21 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const { createBackend } = require("./backend");
+const { CourseMigrationError } = require("./db/module-config");
+const moduleAccess = require("./module-access");
+const courseModules = require("./course-module-settings");
+const academicMemory = require("./academic-memory/ipc");
+const { createIndex } = require("./academic-memory/index");
+const academicIpc = require("./academic-work/ipc");
+const { openWork } = require("./academic-work/store");
+const { createAcademicWork } = require("./academic-work/service");
+const { createMail } = require("./academic-work/mail");
+const { snapshot: academicSnapshot } = require("./academic-work/course-source");
 const { createLinkedFolder } = require("./linked-folder");
 const { createCourseSync } = require("./sync/course-sync");
 const { createAuthoring } = require("./authoring");
 const governance = require("./governance"), extras = require("./extras"), summary = require("./summary");
+const { courseStats } = require("./course-analytics");
 const { createTunnel, createLimiter } = require("./tunnel");
 const { createCourse } = require("./course");
 const names = require("./names");
@@ -137,7 +148,11 @@ function configJs(c, req, remote, r) {
   const cm = { courseId: c.id, courseCode: s.courseCode, courseTitle: s.courseTitle, institution: s.institution, lecturer: s.lecturer, semester: s.semester,
     contact: s.contact, accent: s.accent, logo: s.logo, notice: s.notice ? { text: s.notice, linkLabel: s.noticeLinkLabel, linkUrl: s.noticeLinkUrl } : null,
     scriptUrl: (remote ? "https://" : "http://") + host + (r.prefixed ? r.prefix : "/") + "exec", desktop: true };
-  const relay = c.relay && c.relay.publicConfig(); if (relay) cm.relay = relay; // the mailbox: address, student code and public key only (relay/client.js)
+  const enabled = c.backend.enabledModules();
+  cm.modules = enabled;
+  Object.assign(cm, moduleAccess.browserAccess(enabled));
+  if (!enabled.includes("practice")) cm.disabledPages.push(...c.course.practicePages());
+  const relay = enabled.includes("practice") && c.relay && c.relay.publicConfig(); if (relay) cm.relay = relay; // the mailbox: address, student code and public key only (relay/client.js)
   if (publicUrl()) cm.publicBase = publicUrl() + r.prefix.slice(1); // QR codes and links for students use the internet address while it is on
   // Every course but the default one keeps its own browser storage on students' phones and in CM's windows.
   return courses.configScript(src, cm, c.id === registry.defaultId() ? "" : "cm@" + c.id + ":");
@@ -171,14 +186,34 @@ async function handle(req, res, remote) {
   if (r.notFound) { res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" }); return res.end("This course is not available on this computer."); }
   const c = ctx(r.id);
   let p = r.rest;
+  const enabled = c.backend.enabledModules();
+  const page = path.posix.normalize(p.replace(/\\/g, "/")).slice(1);
+  const disabledPracticePage = !enabled.includes("practice") && /\.html$/i.test(page) &&
+    c.course.practicePages().some(name => name.toLowerCase() === page.toLowerCase());
+  if (disabledPracticePage || moduleAccess.refusal(enabled, moduleAccess.pageModule(page, enabled))) {
+    res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" });
+    return res.end("This feature is disabled for this course.");
+  }
   if (p === "/exec") {
     // The quiz and attendance server of this course: same requests the pages always send.
     try {
       const params = Object.fromEntries(u.searchParams);
+      const wrongCourse = value => value != null && value !== c.id
+        ? { ok: false, why: "This request belongs to a different course. Reopen the course page and try again." } : null;
+      const paused = () => c.moduleChange && { ok: false, why: "Course features are being updated. Try again shortly." };
+      const sendRefusal = denied => {
+        res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+        return res.end(JSON.stringify(denied));
+      };
+      const initialRefusal = wrongCourse(params.cmCourseId) || paused();
+      if (initialRefusal) return sendRefusal(initialRefusal);
       let out;
       if (req.method === "POST") {
         const body = await readBody(req, 200000);
         Object.assign(params, Object.fromEntries(new URLSearchParams(body)));
+        if (ctxs.get(r.id) !== c) return sendRefusal({ ok: false, why: "This course changed while the request was in progress. Reopen the page and try again." });
+        const disabled = wrongCourse(params.cmCourseId) || paused() || c.backend.moduleRefusal(params, true);
+        if (disabled) return sendRefusal(disabled);
         if (firstRun.changesPassword(params)) { res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" }); return res.end(firstRun.passwordRefusal()); }
         if (rosterGate.addsStudents(params)) { res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" }); return res.end(rosterGate.refusal()); } // students are added only on the Class Roster page
         const refused = lecturerRefusal(params, { remote, thisComputer: !remote && isThisComputer(req) }, appSettings);
@@ -189,7 +224,13 @@ async function handle(req, res, remote) {
         if (g.refuse) { res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" }); return res.end(JSON.stringify(g.refuse)); }
         c.backend.setGeoMode(g.geo); // location is checked for the internet address, not for plain Wi-Fi
         try { out = require("./receipts").once(c.backend, params, () => c.backend.doPost(params, body)); } finally { c.backend.setGeoMode("off"); } // CM's own calls never see a leftover setting
-        if (c.live && !remote) out = Object.assign({}, out, { text: c.liveQuiz ? c.liveQuiz.after(params, c.live.after(params, out.text)) : c.live.after(params, out.text) }); // hand an opened attendance session to the relay; the page learns where phones go
+        if (!remote) {
+          const current = c.backend.enabledModules();
+          let text = out.text;
+          if (c.live && current.includes("attendance")) text = c.live.after(params, text);
+          if (c.liveQuiz && current.includes("liveQuizzes")) text = c.liveQuiz.after(params, text);
+          out = Object.assign({}, out, { text });
+        }
       } else if (firstRun.changesPassword(params)) { res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" }); return res.end(firstRun.passwordRefusal());
       } else if (rosterGate.addsStudents(params)) { res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" }); return res.end(rosterGate.refusal());
       } else { c.backend.setGeoMode(guardFor({ remote, tunnelOn: !!publicUrl() }, appSettings).geo); try { out = c.backend.doGet(params); } finally { c.backend.setGeoMode("off"); } }
@@ -217,7 +258,9 @@ async function handle(req, res, remote) {
   }
   if (p === "/data/portal.json") { // titles, handouts and practice lists follow the course's lectures and banks
     const extra = c.authoring.banks().filter((b) => b.base + b.added > 0).map((b) => b.lecture);
-    res.writeHead(200, { "Content-Type": TYPES[".json"], "Cache-Control": "no-cache" }); return res.end(JSON.stringify(c.course.portal(extra)));
+    const portal = c.course.portal(extra);
+    if (!enabled.includes("practice")) portal.practice = [];
+    res.writeHead(200, { "Content-Type": TYPES[".json"], "Cache-Control": "no-cache" }); return res.end(JSON.stringify(portal));
   }
   if (p === "/config.js") { res.writeHead(200, { "Content-Type": TYPES[".js"], "Cache-Control": "no-store" }); return res.end(configJs(c, req, remote, r)); }
   if (p.startsWith("/app/")) { // CM's own screens are for this computer only
@@ -243,7 +286,18 @@ function sendFile(res, file, root) {
 }
 function listen(p, host, remote) {
   return new Promise((resolve, reject) => {
-    const s = http.createServer((q, r) => { handle(q, r, remote).catch(() => { try { r.writeHead(500); r.end(); } catch (e) {} }); });
+    const s = http.createServer((q, r) => {
+      handle(q, r, remote).catch((error) => {
+        try {
+          if (error instanceof CourseMigrationError) {
+            console.error(error.message);
+            r.writeHead(503, { "Content-Type": "text/plain; charset=utf-8" });
+            return r.end("This course needs database recovery on the lecturer's computer.");
+          }
+          r.writeHead(500); r.end();
+        } catch (e) { /* response already closed */ }
+      });
+    });
     s.once("error", reject);
     s.listen(p, host || "0.0.0.0", () => resolve(s));
   });
@@ -321,16 +375,48 @@ function newWindow(page, w, h) {
   secureWindow(bw); windows.track(baseUrl() + page, bw); bw.loadURL(baseUrl() + page); return bw;
 }
 
+const indexVault = { encode: value => vault.encode(value), decode: bytes => vault.decode(bytes), isSealed: bytes => vault.isSealed(bytes) };
+const academicIndex = createIndex(path.join(ROOT(), "academic-index.cmv"), indexVault);
+const academicStore = openWork(path.join(ROOT(), "academic-work.cmv"), indexVault, () => registry.list());
+const email = createMail(path.join(ROOT(), "academic-mail.cmv"), () => vault, url => shell.openExternal(url));
+const academics = createAcademicWork({
+  work: academicStore, index: academicIndex,
+  courseSource: id => {
+    const c = ctxs.get(id);
+    if (c?.moduleChange) throw new Error("The course is updating its modules.");
+    return c?.backend || academicSnapshot(path.join(registry.dirs(id).data, "course.db"), vault);
+  },
+  courseRoot: id => registry.dirs(id).course,
+  courseHealth: id => {
+    const c = ctxs.get(id);
+    if (!c || c.moduleChange || !c.backend.enabledModules().includes("analytics")) return null;
+    return courseStats(c.backend, {}).analytics?.metrics || null;
+  }
+});
+const deliverAcademicReminders = academicIpc.createReminderDelivery(() => academics, Notification, () => !!unlockedPw,
+  id => newWindow("c/" + registry.active() + "/app/academic-work.html?workspace=" + encodeURIComponent(id)),
+  error => console.log("[academic reminders]", error.message));
+
+const memory = academicMemory.createMemory({
+  index: academicIndex,
+  workspace: id => registry.get(id) || academicStore.get(id),
+  workspaces: () => {
+    try { return academicStore.list(); }
+    catch { return registry.list(); } // a damaged planning file cannot block established course memory
+  },
+  dirOf: course => registry.dirs(course.id).course
+});
+
 // ---------- courses ----------
 // One context per course, made on first use and kept while CM runs, so a class can go on in one course
 // (students checking in, a quiz running) while the lecturer looks at another.
-function makeCtx(id) {
+function makeCtx(id, initialModules) {
   const d = registry.dirs(id);
   const c = { id, settings: loadCourseSettings(id) };
   c.course = createCourse({ dir: d.course, web: WEB, templates: TEMPLATES });
   c.authoring = createAuthoring({ dir: d.authoring, webRoot: WEB, resolve: c.course.resolve, bankNumbers: c.course.bankNumbers, loadKey: loadApiKey, saveKey: saveApiKey,
     keyIsEncrypted: () => safeStorage.isEncryptionAvailable(), log: (m) => console.log("[authoring " + id + "]", m) });
-  c.backend = createBackend({ readSite: (rel) => c.authoring.siteFile(rel), webRoot: WEB, resolve: c.course.resolve, dataFile: d.workbook, vault,
+  c.backend = createBackend({ readSite: (rel) => c.authoring.siteFile(rel), webRoot: WEB, resolve: c.course.resolve, dataFile: d.workbook, vault, initialModules,
     log: (m) => console.log("[backend " + id + "]", m), onChange: () => { if (c.sync) c.sync.changed(); } });
   c.backups = createBackups({ dir: path.join(d.root, "backups"), workbook: d.workbook, vault, readText: () => c.backend ? c.backend.exportText() : require("./db/migrate").readWorkbookText(path.join(d.data, "course.db"), vault) });
   c.linked = createLinkedFolder({ dir: d.root, label: () => c.settings.courseCode || id, content: () => backupContent(c), protect: vault.protectBytes, unprotect: vault.unprotectBytes, protected: vault.protected });
@@ -343,14 +429,16 @@ function makeCtx(id) {
   c.liveQuiz = hubUrl ? require("./relay/live-quiz").createLiveQuiz({ hub: c.relay, backend: c.backend, address: () => hubUrl, pages: "https://hhdonglo.github.io/class-manager/", log: (m) => console.log("[live quiz " + id + "]", m) }) : null; // phones join and answer a live quiz on the relay while this computer is off
   c.sync.start(); // local and online at the same time: a round now, then every two minutes, and a few seconds after each change
   try { c.lastBackup = c.backups.make(""); } catch (e) { c.lastBackup = { ok: false, why: e.message }; } // a backup each time the course is opened, checked at once
+  try { memory.refresh(c); } catch (error) { console.log("[academic memory " + id + "]", error.message); }
   return c;
 }
-function ctx(id) {
-  if (!ctxs.has(id)) { ctxs.set(id, makeCtx(id)); giveCentral(ctxs.get(id)); }
+function ctx(id, initialModules) {
+  if (!ctxs.has(id)) { ctxs.set(id, makeCtx(id, initialModules)); giveCentral(ctxs.get(id)); }
   return ctxs.get(id);
 }
 function closeCtx(id) { // after the course's folder changes: saved now, made again on next use
   const c = ctxs.get(id); if (!c) return;
+  if (c.moduleChange) throw new Error("Course features are being updated. Try again shortly.");
   try { c.sync.stop(); } catch (e) {}
   try { c.relay.stop(); } catch (e) {}
   try { if (c.live) c.live.close(); } catch (e) {}
@@ -360,8 +448,8 @@ function closeCtx(id) { // after the course's folder changes: saved now, made ag
 }
 // The course a window belongs to, from its address (/c/<id>/...). A window never acts on another course.
 function ctxOf(e) {
-  const id = registry.idFromUrl(e.sender.getURL()) || registry.active();
-  return ctx(id);
+  const id = registry.idFromUrl(e.sender.getURL());
+  return id ? ctx(id) : null;
 }
 const winOf = (e) => BrowserWindow.fromWebContents(e.sender) || win;
 // An IPC handler that receives the window's course first.
@@ -376,7 +464,14 @@ function giveCentral(c) { // a course takes the central password the first time 
   const r = c.backend.setPasswordAsOwner(unlockedPw);
   if (r && r.ok) saveSettings(c, { centralStamp: st.stamp });
 }
-function giveCentralToAll() { for (const m of registry.list()) giveCentral(ctx(m.id)); }
+function giveCentralToAll() {
+  for (const course of registry.list()) {
+    try { giveCentral(ctx(course.id)); } catch (error) {
+      if (!(error instanceof CourseMigrationError)) throw error;
+      console.error(error.message);
+    }
+  }
+}
 function stageNow(c) {
   const roster = ((c.backend.tabs().find((t) => t.name === "Roster") || { rows: 1 }).rows || 1) - 1;
   return firstRun.stageOf({ passwordChosen: !!(central && central.status().chosen), roster, banks: c.course.bankNumbers().length, hasContent: c.course.hasContent() });
@@ -384,6 +479,11 @@ function stageNow(c) {
 const on = (ch, fn) => ipcMain.handle(ch, (e, ...a) => {
   if (!unlockedPw && !OPEN_WHILE_LOCKED.has(ch)) return { ok: false, locked: true, why: "Login to CM first." };
   const c = ctxOf(e);
+  if (!c) return { ok: false, why: "This course is no longer available." };
+  if (c.moduleChange) return { ok: false, why: "Course features are being updated. Try again shortly." };
+  const enabled = c.backend.enabledModules();
+  const disabled = moduleAccess.refusal(enabled, moduleAccess.channelModule(ch.slice(3), enabled));
+  if (disabled) return disabled;
   const refused = firstRun.refusal(ch, stageNow(c));
   return refused || fn(c, e, ...a);
 });
@@ -399,7 +499,7 @@ function tunnelFor(c) { // the internet address of this course's pages
 function liveOf(c) {
   const out = { attendance: null, quizzes: [], roster: 0 };
   const backend = c.backend;
-  try {
+  if (backend.enabledModules().includes("attendance")) try {
     const st = backend.run("attStatus_");
     const ses = st && st.session;
     const ctl = backend.tab("Attendance_Control") || [];
@@ -408,7 +508,7 @@ function liveOf(c) {
       rosterSize: ses.rosterSize || 0, opened: open ? String(open[3]) : "" };
   } catch (e) { /* no attendance tabs yet */ }
   try { const r = backend.tab("Roster"); out.roster = r ? Math.max(0, r.filter((x) => String(x[0]).trim()).length - 1) : 0; } catch (e) {}
-  try {
+  if (backend.enabledModules().includes("liveQuizzes")) try {
     const rows = (backend.tab("Quiz_Control") || []).slice(1), pres = (backend.tab("Presence") || []).slice(1), now = Date.now();
     for (const r of rows) {
       const code = String(r[0]).trim().toUpperCase(); let state = String(r[1]).trim().toLowerCase();
@@ -466,12 +566,8 @@ function csvCell(v) { v = String(v == null ? "" : v); return /[",\n\r]/.test(v) 
 on("cm:info", (c) => info(c));
 on("cm:live", (c) => liveOf(c));
 on("cm:stamp", (c) => ({ ok: true, stamp: c.backend.version() })); // changes whenever any record changes (app/charts/panel.js)
-// Class statistics for the In Class summary and the Class Statistics screen, computed in the backend from the course's workbook.
-const statOpts = (o) => { const p = {}; for (const k of ["effort", "perf", "idle", "misses", "id"]) if (o && o[k] !== undefined && o[k] !== "") p[k] = String(o[k]).slice(0, 20); return p; };
-on("cm:stats", (c, e, o) => { try { return c.backend.stats(statOpts(o)); } catch (err) { return { ok: false, why: err.message }; } });
-on("cm:studentStats", (c, e, o) => { try { return c.backend.studentStats(statOpts(o)); } catch (err) { return { ok: false, why: err.message }; } });
+require("./analytics-ipc").register({ on });
 on("cm:studentNote", (c, e, o) => { try { return c.backend.studentNote(o && o.id, o && o.text); } catch (err) { return { ok: false, why: err.message }; } });
-on("cm:progress", (c) => { try { return c.backend.progress({}); } catch (err) { return { ok: false, why: err.message }; } });
 on("cm:tunnelStart", async (c) => { await startTunnel(); return tunnelFor(c); });
 ipcMain.handle("cm:readme", () => shell.openPath(app.isPackaged ? path.join(process.resourcesPath, "README.txt") : path.join(__dirname, "README.txt")));
 on("cm:tunnelStop", (c) => { stopTunnel(); return tunnelFor(c); });
@@ -485,17 +581,35 @@ on("cm:save", async (c, e, s) => {
   return info(c);
 });
 on("cm:backToTools", (c, e) => { const r = require("./back-to-tools").backToTools({ from: BrowserWindow.fromWebContents(e.sender), main: () => win, all: () => BrowserWindow.getAllWindows(), reopen: () => newWindow(startPage(c), 1280, 860) }); return { ok: r.ok, closed: r.closed }; }); // the Back to Class Tools link in Attendance and Quiz windows (back-to-tools.js)
-on("cm:openWindow", (c, e, page) => { if (/^[\w.-]+\.html([?#][\w=&#.-]*)?$/.test(page)) newWindow(coursePrefix(c) + page); });
+on("cm:openWindow", (c, e, page) => {
+  if (!/^[\w.-]+\.html([?#][\w=&#.-]*)?$/.test(page)) return;
+  const enabled = c.backend.enabledModules();
+  const disabled = moduleAccess.refusal(enabled, moduleAccess.pageModule(page.split(/[?#]/)[0], enabled));
+  if (disabled) return disabled;
+  newWindow(coursePrefix(c) + page);
+});
 ipcMain.handle("cm:openExternal", (e, url) => { if (/^https:\/\//.test(String(url))) shell.openExternal(url); });
 
 // ---------- the course list: add, rename, archive, switch, link a folder ----------
+academicMemory.register({ on, memory, dialog, winOf, shell, readDocument: (file, event) => require("./academic-work/documents").openDocument(file, BrowserWindow, winOf(event)), isCurrent: course => ctxs.get(course.id) === course && !course.moduleChange });
+academicIpc.register({
+  on, academics: () => academics, mail: email, dialog, winOf, BrowserWindow, shell,
+  isLocal: event => require("./local-window").isThisComputerUrl(event.sender.getURL(), port, lanAddresses().map(a => a.address)) &&
+    (!event.senderFrame || event.senderFrame.parent === null)
+});
+on("cm:courseModules", (c) => courseModules.state(c));
+on("cm:findStudents", (c, e, query) => c.backend.students.find(query));
+on("cm:saveCourseModules", (c, e, ids) => courseModules.save(c, ids));
 on("cm:courses", (c) => ({ current: c.id, list: courseList(c.id) }));
 on("cm:addCourse", async (c, e, o) => {
   o = o || {};
   const code = String(o.code || "").trim();
   if (!code) return { ok: false, why: "Give the course a code, for example PHYS 101." };
+  let enabled;
+  try { enabled = courseModules.initialModules(o.preset); }
+  catch (error) { return { ok: false, why: error.message }; }
   const n = registry.add({ code, title: o.title, term: o.term });
-  const nc = ctx(n.id);
+  const nc = ctx(n.id, enabled);
   saveSettings(nc, { courseCode: code, courseTitle: String(o.title || ""), semester: String(o.term || "") });
   if (o.copyFrom && registry.get(String(o.copyFrom))) { // reuse another course's details (institution, lecturer, contact, colour); never its students
     const src = ctx(String(o.copyFrom)).settings;
@@ -542,7 +656,10 @@ on("cm:archiveCourse", (c, e, id, archived) => {
   id = String(id || "");
   const r = registry.setArchived(id, !!archived);
   if (!r.ok) return r;
-  if (archived) closeCtx(id); // its pages stop being served; its records stay in its folder
+  if (archived) {
+    closeCtx(id); // its pages stop being served; its records stay in its folder
+    try { memory.remove(id); } catch (error) { console.log("[academic memory " + id + "]", error.message); }
+  }
   return { ok: true, list: courseList(c.id), url: id === c.id && archived ? baseUrl() + startPage(ctx(registry.active())) : "" };
 });
 on("cm:switchCourse", (c, e, id) => {
@@ -662,8 +779,8 @@ on("cm:restoreStudent", (c, e, id) => { const r = require("./remove-student").re
 // Diagnostic quizzes run so far, by concept (rules/quiz-diagnostic.js). Counts only; empty when none has been run.
 const diagnosticsOf = (backend) => { try { return require("./rules/quiz-diagnostic").summary(require("./rules/store").fromBackend(backend), { site: backend.site }); } catch (e) { return { ok: true, quizzes: [], weeks: [], minAnswers: 10 }; } };
 // Analytics and governance (governance.js, extras.js, summary.js): cohorts, support given, audit log, per-student export and erase, term close, weekly summary.
-on("cm:analyticsExtra", (c) => ({ ok: true, diagnostics: diagnosticsOf(c.backend), cohorts: extras.cohorts(c.backend), interventions: extras.interventions(c.backend), termClosed: governance.termClosed(c.backend), aiSummary: !!c.settings.aiSummary, hasKey: !!loadApiKey(), privacyNotice: c.settings.privacyNotice || governance.PRIVACY_NOTICE }));
-on("cm:addIntervention", (c, e, rec) => { const held = (c.backend.stats(statOpts({})).quizzes || []).length; const r = extras.addIntervention(c.backend, rec || {}, held); if (r.ok) { governance.audit(c.backend, "lecturer", "support recorded", "", String((rec.ids || []).length) + " students"); c.backend.flush(); } return r; });
+on("cm:analyticsExtra", (c) => ({ ok: true, diagnostics: c.backend.enabledModules().includes("liveQuizzes") ? diagnosticsOf(c.backend) : null, cohorts: c.backend.enabledModules().includes("groups") ? extras.cohorts(c.backend) : {}, interventions: extras.interventions(c.backend), termClosed: governance.termClosed(c.backend), aiSummary: !!c.settings.aiSummary, hasKey: !!loadApiKey(), privacyNotice: c.settings.privacyNotice || governance.PRIVACY_NOTICE }));
+on("cm:addIntervention", (c, e, rec) => { const held = (c.backend.stats({}).quizzes || []).length; const r = extras.addIntervention(c.backend, rec || {}, held); if (r.ok) { governance.audit(c.backend, "lecturer", "support recorded", "", String((rec.ids || []).length) + " students"); c.backend.flush(); } return r; });
 on("cm:govern", (c, e, op, a) => {
   a = a || {}; let r;
   if (op === "export") { r = governance.studentExport(c.backend, a.id); if (r.ok) c.backend.flush(); }
@@ -675,7 +792,7 @@ on("cm:govern", (c, e, op, a) => {
   else r = { ok: false, why: "Unknown action." };
   return r;
 });
-on("cm:weeklySummary", async (c) => { try { return Object.assign({ ok: true }, await summary.weekly(c.backend.stats(statOpts({})), { enabled: !!c.settings.aiSummary, loadKey: loadApiKey, model: c.authoring.status().model })); } catch (err) { return { ok: false, why: err.message }; } });
+on("cm:weeklySummary", async (c) => { try { return Object.assign({ ok: true }, await summary.weekly(courseStats(c.backend, {}), { enabled: !!c.settings.aiSummary, loadKey: loadApiKey, model: c.authoring.status().model })); } catch (err) { return { ok: false, why: err.message }; } });
 on("cm:export", async (c, e) => {
   const r = await dialog.showOpenDialog(winOf(e), { title: "Choose a folder for the results", properties: ["openDirectory", "createDirectory"] });
   if (r.canceled || !r.filePaths[0]) return null;
@@ -839,8 +956,10 @@ app.whenReady().then(async () => {
   registry = courses.createRegistry(ROOT());
   registry.ensureOne();
   vault = makeVault();
+  try { memory.reconcile(); } catch (error) { console.log("[academic memory]", error.message); }
   central = createCentralLogin({ file: path.join(ROOT(), "central-login.json") });
   setInterval(() => backupAll(""), BACKUP_EVERY_MS).unref();
+  setInterval(deliverAcademicReminders, 15000).unref();
   appSettings = loadAppSettings();
   await restartServer();
   tunnel = createTunnel({ dir: path.join(ROOT(), "tunnel"),
@@ -849,8 +968,18 @@ app.whenReady().then(async () => {
   win = new BrowserWindow({ width: 1280, height: 860, minWidth: 900, minHeight: 600, title: "Class Manager", icon: path.join(__dirname, "app", "icon-512.png"),
     webPreferences: { preload: path.join(__dirname, "preload.js"), contextIsolation: true, sandbox: true, nodeIntegration: false } });
   secureWindow(win);
-  win.loadURL(baseUrl() + startPage(ctx(registry.active())));
-  setTimeout(() => require("./lecture-progress/notify").startNotice(ctx(registry.active()), Notification), 4000).unref(); // optional notice when behind target
+  try {
+    win.loadURL(baseUrl() + startPage(ctx(registry.active())));
+  } catch (error) {
+    if (!(error instanceof CourseMigrationError)) throw error;
+    dialog.showErrorBox("CM course database needs recovery", error.message);
+    app.quit();
+    return;
+  }
+  setTimeout(() => {
+    const current = ctx(registry.active());
+    if (current.backend.enabledModules().includes("content")) require("./lecture-progress/notify").startNotice(current, Notification);
+  }, 4000).unref(); // optional notice when behind target
   app.on("activate", () => { if (BrowserWindow.getAllWindows().length === 0) newWindow(startPage(ctx(registry.active())), 1280, 860); });
 });
 app.on("before-quit", () => { if (!closingBackupDone) { closingBackupDone = true; backupAll("close"); } else flushAll(); try { stopTunnel(); } catch (e) {} });

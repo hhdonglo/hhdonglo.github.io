@@ -445,6 +445,8 @@ tr[data-sel]{cursor:pointer}tr[data-sel].sel>td{background:rgba(70,110,200,.28)}
  <button class="nav" data-view="grades"><svg><use href="#i-table"/></svg><span>Grades and Results</span></button>
  <div class="grow"></div>
  <div class="sep"></div>
+ <a class="nav" href="academic-work.html" aria-label="Academic Work"><svg><use href="#i-book"/></svg><span>Academic Work</span></a>
+ <a class="nav" href="academic-memory.html" aria-label="Academic memory"><svg><use href="#i-book"/></svg><span>Academic memory</span></a>
  <button class="nav" id="readme"><svg><use href="#i-help"/></svg><span>Instructions</span></button>
  <button class="nav" data-view="settings"><svg><use href="#i-gear"/></svg><span>CM Settings</span></button>
 </nav>
@@ -566,6 +568,7 @@ tr[data-sel]{cursor:pointer}tr[data-sel].sel>td{background:rgba(70,110,200,.28)}
    <div class="act" id="lv-quiz">
     <div class="act-top"><span class="tag" id="quiz-tag">Live quiz</span><span class="note" id="quiz-meta"></span></div>
     <div id="quiz-list"><p class="note">No quiz is running.</p></div>
+    <a class="btn sm" id="quiz-bank-setup" href="setup.html#materials" hidden>Load quiz questions</a>
     <div class="row"><button class="btn" type="button" data-win="quiz-host.html" id="quiz-btn">Run a quiz</button></div>
    </div>
   </div>
@@ -634,7 +637,7 @@ tr[data-sel]{cursor:pointer}tr[data-sel].sel>td{background:rgba(70,110,200,.28)}
    <p>Bring the class roster in from the learning management system and send grades back, as a file or directly. Off until you switch it on; names are never sent.</p>
    <p class="row" style="margin-top:14px"><button class="btn primary" type="button" data-go="lms.html">Open the LMS connector</button></p>
   </div>
-  <div class="card">
+  <div class="card" id="practice-mailbox">
    <h3>Mailbox</h3>
    <p>Optional. Lets practice results from students' phones reach CM even when this computer is off. Encrypted, no names, kept for 14 days.</p>
    <p class="row" style="margin-top:14px"><button class="btn primary" type="button" data-go="mailbox.html">Open the mailbox</button></p>
@@ -694,6 +697,14 @@ tr[data-sel]{cursor:pointer}tr[data-sel].sel>td{background:rgba(70,110,200,.28)}
 <section class="view" id="v-settings" aria-labelledby="h-settings" hidden>
  <header><h2 id="h-settings">CM Settings</h2><p>Course details are under Course and Content.</p></header>
  <div class="grid2">
+  <div class="card">
+   <h3>Course features</h3>
+   <form id="course-modules">
+    <p class="note">Turning a feature off keeps its records. Finish any live or held classroom work first.</p>
+    <div id="course-module-choices"></div>
+    <p class="row"><button class="btn primary" type="submit" disabled>Save features</button> <span id="course-module-status" class="note" role="status"></span></p>
+   </form>
+  </div>
   <div class="card">
    <h3>Server</h3>
    <form id="f">
@@ -861,6 +872,11 @@ tr[data-sel]{cursor:pointer}tr[data-sel].sel>td{background:rgba(70,110,200,.28)}
   <div><label for="cd-title">Title</label><input class="f" id="cd-title" maxlength="120" placeholder="Mechanics"></div>
   <div><label for="cd-term">Term</label><input class="f" id="cd-term" maxlength="80" placeholder="Semester 2, 2026/27"></div>
   <div><label for="cd-copy">Copy institution and lecturer from</label><select class="f" id="cd-copy" style="min-width:0;width:100%"></select></div>
+  <div><label for="cd-preset">Course features</label><select class="f" id="cd-preset">
+   <option value="all">All features</option>
+   <option value="attendance">Attendance only</option>
+   <option value="attendanceQuizzes">Attendance and live quizzes</option>
+  </select></div>
   <div style="grid-column:1/-1" class="row"><button class="btn primary" type="submit">Add and open the course</button><span class="msg" id="cd-msg" role="status"></span></div>
  </form>
  <form method="dialog" class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn">Close</button></form>
@@ -895,10 +911,15 @@ tr[data-sel]{cursor:pointer}tr[data-sel].sel>td{background:rgba(70,110,200,.28)}
  <form method="dialog" class="row" style="justify-content:flex-end;margin-top:1rem"><button class="btn primary">Close</button></form></dialog>
 
 <dialog id="look-d" class="look-d" aria-labelledby="look-h">
- <h2 id="look-h">Find a student</h2>
+ <h2 id="look-h">Find a student or open a course</h2>
  <form id="look-form" autocomplete="off"><label for="look-in">Student ID or name</label>
-  <div class="row"><input class="f" id="look-in" list="look-list" style="flex:1"><button class="btn primary" type="submit">Open</button><button class="btn" type="button" id="look-x">Cancel</button></div>
-  <datalist id="look-list"></datalist><p class="note" id="look-msg" role="status"></p></form>
+  <div class="row"><input class="f" id="look-in" maxlength="120" style="flex:1"><button class="btn primary" type="submit">Find</button><button class="btn" type="button" id="look-x">Cancel</button></div>
+  <div id="look-results"></div><p class="note" id="look-msg" role="status"></p></form>
+ <form id="look-course-form" class="row" hidden>
+  <label for="look-course">Open a course</label>
+  <select class="f" id="look-course"></select>
+  <button class="btn" type="submit">Open course</button>
+ </form>
 </dialog>
 <link rel="stylesheet" href="charts/charts.css">
 <link rel="stylesheet" href="frozen-cols.css">
@@ -955,7 +976,9 @@ tr[data-sel]{cursor:pointer}tr[data-sel].sel>td{background:rgba(70,110,200,.28)}
 <script src="records-view.js"></script>
 <link rel="stylesheet" href="topics/topics.css">
 <script src="topics/quiz-panel.js"></script>
+<script src="analytics/module-view.js"></script>
 <script src="insights.js"></script>
+<script src="academic-entry.js" defer></script>
 <script src="progress.js"></script>
 <script src="import.js"></script>
 <script src="offlist.js"></script>
@@ -972,6 +995,8 @@ tr[data-sel]{cursor:pointer}tr[data-sel].sel>td{background:rgba(70,110,200,.28)}
 <script src="folder.js"></script>
 <script src="reset.js"></script>
 <script src="linked-folder.js"></script>
+<script src="backup-panel.js"></script>
+<script src="course-modules.js"></script>
 <script src="llm.js"></script>
 <script>
 (function(){
@@ -988,8 +1013,27 @@ function copy(text,btn){
 
 /* ---- views ---- */
 var views=["overview","students","progress","attendance","quizzes","class","course","roster","grades","settings"];
+var disabledViews=window.CM.disabledViews||[], disabledPages=window.CM.disabledPages||[];
+var enabledModules=window.CM.modules;
+function moduleOn(id){return !enabledModules||enabledModules.indexOf(id)>=0}
+document.querySelectorAll(".nav[data-view],[data-goview],[data-win]").forEach(function(el){
+ var view=el.getAttribute("data-view")||el.getAttribute("data-goview"), page=(el.getAttribute("data-win")||"").split(/[?#]/)[0];
+ if(disabledViews.indexOf(view)>=0||disabledPages.indexOf(page)>=0)el.hidden=true;
+});
+if(!moduleOn("attendance"))$("lv-att").hidden=true;
+if(!moduleOn("practice"))$("practice-mailbox").hidden=true;
+if(!moduleOn("liveQuizzes")){$("lv-quiz").hidden=true;$("before-class").hidden=true}
+if(!moduleOn("analytics"))$("llm").hidden=true;
+if(!moduleOn("content"))$("lp-settings").hidden=true;
+$("quiz-bank-setup").hidden=moduleOn("content")||!moduleOn("liveQuizzes");
+if(!moduleOn("attendance")&&!moduleOn("liveQuizzes"))$("after-class").hidden=true;
+if(!moduleOn("announcements")){
+ document.querySelectorAll("[data-win='messages.html']").forEach(function(el){
+  if(moduleOn("messaging"))el.textContent="Messages";
+ });
+}
 function go(v){
- if(views.indexOf(v)<0)v="overview";
+ if(views.indexOf(v)<0||disabledViews.indexOf(v)>=0)v=moduleOn("analytics")?"overview":"class";
  views.forEach(function(x){$("v-"+x).hidden=x!==v});
  document.querySelectorAll(".nav[data-view]").forEach(function(b){if(b.getAttribute("data-view")===v)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current")});
  store("cm-view",v);$("main").scrollTop=0;
@@ -1224,7 +1268,7 @@ document.addEventListener("click",function(e){var b=e.target.closest&&e.target.c
 $("cc-open").addEventListener("click",function(){cmApp.openContent()});
 $("cd-add").addEventListener("submit",function(e){
  e.preventDefault();cmsg("Adding…");
- cmApp.addCourse({code:$("cd-code").value,title:$("cd-title").value,term:$("cd-term").value,copyFrom:$("cd-copy").value}).then(function(r){if(r&&r.ok)location.href=r.url;else cmsg(r&&r.why||"Not added.")});
+ cmApp.addCourse({code:$("cd-code").value,title:$("cd-title").value,term:$("cd-term").value,copyFrom:$("cd-copy").value,preset:$("cd-preset").value}).then(function(r){if(r&&r.ok)location.href=r.url;else cmsg(r&&r.why||"Not added.")});
 });
 $("cd-list").addEventListener("click",function(e){
  var b=e.target.closest&&e.target.closest("[data-cact]");if(!b)return;
@@ -1259,10 +1303,10 @@ document.addEventListener("keydown",function(e){
  var k=e.key.toLowerCase(),map={"1":"overview","2":"students","9":"progress","3":"attendance","4":"quizzes","5":"class","6":"course","7":"roster","8":"grades",",":"settings"};
  if(map[k]&&!e.shiftKey){e.preventDefault();go(map[k]);var n=document.querySelector('.nav[data-view="'+map[k]+'"]');if(n)n.focus();return}
  if(k==="l"&&!e.shiftKey){e.preventDefault();go("class");return}
- if(k==="p"&&!e.shiftKey){e.preventDefault();cmApp.openWindow("quiz-display.html");return}
+ if(moduleOn("liveQuizzes")&&k==="p"&&!e.shiftKey){e.preventDefault();cmApp.openWindow("quiz-display.html");return}
  if(k==="c"&&e.shiftKey){e.preventDefault();$("copy-url").click();return}
  if(k==="s"&&e.shiftKey){e.preventDefault();scanOpen();return}
- if(k==="a"&&e.shiftKey){e.preventDefault();cmApp.openWindow("attendance.html");return}
+ if(moduleOn("attendance")&&k==="a"&&e.shiftKey){e.preventDefault();cmApp.openWindow("attendance.html");return}
  if(k==="/"||k==="?"){e.preventDefault();$("keys-d").showModal()}
 });
 $("keys").addEventListener("click",function(){$("keys-d").showModal()});
@@ -1299,36 +1343,7 @@ $("f").addEventListener("submit",function(e){
   cmApp.save({port:$("s-port").value}).then(function(){location.reload()});
 });
 setInterval(function(){if(document.visibilityState==="visible")cmApp.info().then(function(i){tshow(i.tunnel)})},30000);
-/* ---- records protection and backups ---- */
-function bkWhen(ms){var d=new Date(ms);return d.toLocaleDateString(undefined,{day:"numeric",month:"short"})+" "+("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2)}
-var BKWHY={auto:"automatic",close:"when CM closed",manual:"made by you",restore:"before a restore"};
-function bkShow(b){if(!b)return;
- $("bk-prot").textContent=b.protected?"The records of this course are encrypted on this computer, with a key kept in the system keychain.":"The records are encrypted, but this computer offers no keychain for the key, so anyone who can open your user account's files can read them. Keep this computer's account protected by a password.";
- $("bk-problem").hidden=!b.loadProblem;if(b.loadProblem)$("bk-problem").textContent="The records file could not be read when the course opened ("+b.loadProblem.why+"). It was kept, not overwritten, as "+b.loadProblem.file+". Restore a backup below.";
- $("bk-keep").textContent=b.keep;
- var last=b.last;if(last&&!last.ok)$("bk-msg").textContent="The last backup failed: "+(last.why||"unknown");
- $("bk-list").innerHTML=b.list.length?'<table><thead><tr><th scope="col">Backup</th><th scope="col">Kind</th><th scope="col">Size</th><th scope="col"></th></tr></thead><tbody>'+b.list.map(function(x){return'<tr><td>'+esc(bkWhen(x.at))+'</td><td>'+esc(BKWHY[x.reason]||x.reason)+'</td><td>'+Math.max(1,Math.round(x.bytes/1024))+' KB</td><td><button class="btn" type="button" data-bk="'+esc(x.name)+'">Restore</button></td></tr>'}).join("")+'</tbody></table>':'<p class="note">No backups yet.</p>'}
-function bkLoad(){cmApp.backups().then(bkShow)}
-bkLoad();
-$("bk-now").addEventListener("click",function(){$("bk-msg").textContent="Backing up…";cmApp.backupNow().then(function(b){bkShow(b);$("bk-msg").textContent=b.last&&b.last.ok?"Backed up and checked: "+b.last.check.tabs+" tabs, "+b.last.check.rows+" rows.":"Not done: "+((b.last&&b.last.why)||"unknown")})});
-$("bk-list").addEventListener("click",function(e){var t=e.target.closest("button[data-bk]");if(!t)return;var n=t.getAttribute("data-bk");
- cmApp.backupCheck(n).then(function(v){if(!v.ok){$("bk-msg").textContent="That backup cannot be read: "+v.why;return}
-  if(!confirm("Restore this course's records from this backup ("+v.tabs+" tabs, "+v.rows+" rows)? The records as they are now are kept as a backup first."))return;
-  cmApp.backupRestore(n).then(function(r){if(r.ok){bkShow(r);$("bk-msg").textContent="Restored. The records as they were are kept as a backup."}else $("bk-msg").textContent="Not restored: "+r.why})})});
-var BKMODE="";
-function bkAsk(mode){BKMODE=mode;$("bk-pass").value="";$("bk-again").value="";$("bk-derr").textContent="";$("bk-again-w").hidden=mode!=="export";
- $("bk-dnote").textContent=mode==="export"?"The backup file holds this course's records and settings, encrypted with this passphrase, so that it can be restored on another computer. Without the passphrase it cannot be opened, and the passphrase cannot be recovered.":"Enter the passphrase the backup was saved with. The course's records are replaced by the file's; the records as they are now are kept as a backup first.";
- $("bk-d").showModal();$("bk-pass").focus()}
-$("bk-export").addEventListener("click",function(){bkAsk("export")});
-$("bk-import").addEventListener("click",function(){bkAsk("import")});
-$("bk-cancel").addEventListener("click",function(){$("bk-d").close()});
-$("bk-form").addEventListener("submit",function(e){e.preventDefault();var p=$("bk-pass").value;
- if(p.length<10){$("bk-derr").textContent="At least 10 characters.";return}
- if(BKMODE==="export"&&p!==$("bk-again").value){$("bk-derr").textContent="The two passphrases differ.";return}
- $("bk-d").close();$("bk-msg").textContent=BKMODE==="export"?"Saving…":"Restoring…";
- (BKMODE==="export"?cmApp.backupExport(p):cmApp.backupImport(p)).then(function(r){if(!r){$("bk-msg").textContent="";return}
-  if(!r.ok){$("bk-msg").textContent="Not done: "+r.why;return}
-  if(BKMODE==="export")$("bk-msg").textContent="Saved and read back: "+r.file;else{bkShow(r);$("bk-msg").textContent="Restored from the backup made "+(r.made||"").slice(0,10)+"."}})});
+cmBackupPanel.init(cmApp, $, esc);
 function secShow(s){$("sec-hours").value=String(s.tunnelHours);document.querySelectorAll("input[name=sec-from]").forEach(function(r){r.checked=r.value===s.lecturerFrom});$("sec-online").checked=!!s.lecturerOnline;$("sec-geo").checked=s.geoInternet!==false}
 cmApp.security().then(secShow);
 $("sec").addEventListener("submit",function(e){e.preventDefault();var f=document.querySelector("input[name=sec-from]:checked");

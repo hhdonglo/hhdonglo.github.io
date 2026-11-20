@@ -17,3 +17,9 @@ Tests: `test/db.test.js`. To change the layout, edit `SCHEMA` in `store.js` and 
 - `db/notices.js` keeps a notice for each merge (both source rows, both names). `backend.idNotices()` lists them; `backend.resolveIdNotice(tab, id, name)` records the lecturer's choice of name.
 - `db/students.js` holds a unique key on the keyed fingerprint of the normalised ID, so the database itself refuses a second row.
 - Old data is checked when a course opens. Tests: `test/duplicate-ids.test.js` (one test per entry path).
+
+## Course module configuration
+
+`module-config.js` checks an existing course read-only before normal startup or workbook import. A legacy SQLite database gets a verified, same-installation recovery snapshot in `data/module-migration-*/course.db` before module configuration is added. The snapshot includes committed WAL data and auxiliary records. The original installation key is required to read sealed records. The configuration has its own version and is carried over when a workbook is restored over an existing course. New courses and migrated courses start with the full module list.
+
+Use CM Settings → Course features to change the current course. Existing data and recovery tools remain available. To turn off Attendance or Live quizzes, finish or clear the held work first. When a hosted relay is registered, CM also closes the remote session and collects earlier events before saving. A relay error leaves the local module list unchanged. The two-course and Worker checks are in `test/module-pilot.test.js`.

@@ -183,18 +183,24 @@ test("two courses never see each other's records", () => {
   assert.equal(B.course.portal().lectures["3"], undefined);
 });
 
-test("pages of two courses keep separate browser storage", () => {
+test("pages keep separate browser storage and refresh credentials only in their own course", async () => {
   const src = fs.readFileSync(path.join(WEB, "config.js"), "utf8");
   function page(prefix, store) { // runs config.js in a fake window and returns that window
     function Storage() {}
     Storage.prototype.getItem = function (k) { return Object.prototype.hasOwnProperty.call(store, k) ? store[k] : null; };
     Storage.prototype.setItem = function (k, v) { store[k] = String(v); };
     Storage.prototype.removeItem = function (k) { delete store[k]; };
+    Storage.prototype.key = function (i) { return Object.keys(store)[i]; };
+    Object.defineProperty(Storage.prototype, "length", { get() { return Object.keys(store).length; } });
     const ls = new Storage();
     const doc = { documentElement: { style: { setProperty() {} } }, querySelectorAll: () => [], addEventListener() {}, readyState: "complete", title: "Page" };
     const w = { Storage, localStorage: ls, sessionStorage: new Storage(), document: doc, location: { href: "http://x/" }, addEventListener() {} };
     w.window = w;
-    vm.runInNewContext(C.configScript(src, { courseId: "x", courseCode: "X" }, prefix), w);
+    Object.assign(w, { URLSearchParams, setTimeout, clearTimeout, fetch: async (_url, options) => {
+      assert.equal(options.body.get("cmCourseId"), prefix ? "math-101" : "default");
+      return { text: async () => JSON.stringify({ ok: true, _session: prefix ? "other-session" : "default-session" }) };
+    } });
+    vm.runInNewContext(C.configScript(src, { desktop: true, courseId: prefix ? "math-101" : "default", courseCode: "X", scriptUrl: "http://x/exec" }, prefix), w);
     return w;
   }
   const store = {}; // one phone: one storage for the whole address
@@ -205,5 +211,13 @@ test("pages of two courses keep separate browser storage", () => {
   assert.equal(def.localStorage.getItem("cm_portal_code"), null);
   assert.equal(other.localStorage.getItem("cm_portal_code"), "ABCD-EFGH");
   assert.deepEqual(Object.keys(store).sort(), ["cm@math-101:cm_portal_code", "cm_portal_id"]);
-  assert.equal(other.CM.courseId, "x");
+  assert.equal(other.CM.courseId, "math-101");
+  def.localStorage.setItem("cm_portal_code", "shared-code");
+  other.localStorage.setItem("cm_portal_code", "shared-code");
+  assert.ok((await new Promise(resolve => def.CM.call({ code: "shared-code" }, resolve))).ok);
+  assert.equal(def.localStorage.getItem("cm_portal_code"), "default-session");
+  assert.equal(other.localStorage.getItem("cm_portal_code"), "shared-code");
+  assert.ok((await new Promise(resolve => other.CM.call({ code: "shared-code" }, resolve))).ok);
+  assert.equal(other.localStorage.getItem("cm_portal_code"), "other-session");
+  assert.equal(def.localStorage.getItem("cm_portal_code"), "default-session");
 });

@@ -43,13 +43,14 @@
       (q.length ? "<ol class='dq'>" + q.map(function (x) { return "<li><button type='button' class='link' data-student='" + esc(x.id) + "'>" + esc(x.name) + "</button> <span class='note'>" + esc(x.why.join("; ")) + "</span></li>"; }).join("") + "</ol>" : "<p class='note'>No one is flagged. Flags appear as attendance and quiz results arrive.</p>") + "</section>";
   }
   function trendsCard(d) {
+    var series = R.trends(d); if (d.analytics && !series.some(function (t) { return t.enough; })) return "";
     return "<section class='card dtrends' aria-labelledby='dr-h'><div class='card-head'><h3 id='dr-h'>Trends</h3><span class='note'>Last sessions and quizzes</span></div><ul class='dtr'>" +
-      R.trends(d).map(function (t) { return "<li><span class='lbl'>" + esc(t.label) + "</span>" + spark(t.vals, t.unit, t.label) + "<span class='tnum'>" + (t.last === null ? "–" : t.last + t.unit) + (t.change === null ? "" : " <span class='note'>(" + (t.change > 0 ? "+" : "") + t.change + ")</span>") + "</span></li>"; }).join("") + "</ul></section>";
+      series.filter(function (t) { return !d.analytics || t.enough; }).map(function (t) { return "<li><span class='lbl'>" + esc(t.label) + "</span>" + spark(t.vals, t.unit, t.label) + "<span class='tnum'>" + (t.last === null ? "–" : t.last + t.unit) + (t.change === null ? "" : " <span class='note'>(" + (t.change > 0 ? "+" : "") + t.change + ")</span>") + "</span></li>"; }).join("") + "</ul></section>";
   }
   function healthCard(d) {
     var h = R.health(d);
     return "<section class='card dhealth " + h.light + "' aria-labelledby='dh-h'><div class='card-head'><h3 id='dh-h'>Class health</h3><span class='lt'><i></i>" + esc(h.word) + "</span></div>" +
-      (h.reasons.length ? "<ul class='note'>" + h.reasons.map(function (r) { return "<li>" + esc(r) + "</li>"; }).join("") + "</ul>" : "<p class='note'>Nothing needs attention.</p>") + "</section>";
+      (h.reasons.length ? "<ul class='note'>" + h.reasons.map(function (r) { return "<li>" + esc(r) + "</li>"; }).join("") + "</ul>" : (h.light === "lt-none" ? "" : "<p class='note'>No concerns in the available measures.</p>")) + "</section>";
   }
   function insightsCard(d) {
     var xs = R.insights(d);
@@ -57,10 +58,13 @@
       (xs.length ? "<ul>" + xs.map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ul>" : "<p class='note'>Insights appear after a few sessions and quizzes.</p>") + "</section>";
   }
   // Four large tiles that open the tools a lecturer reaches for first. They only navigate (data-dgo, handled with the Today buttons).
-  function controls() {
+  function controls(d) {
     var T = [["view:class", "Attendance", "Open, monitor, close", "t-green", ICON.attendance], ["view:quizzes", "Quizzes and Questions", "Prepare, start, control", "t-purple", ICON.practice],
       ["view:students", "Students", "Records and notes", "t-blue", ICON.students], ["view:progress", "Learning Progress", "Graphs by day", "t-orange", ICON.learning]];
-    return "<section class='dctl' aria-label='Class tools'><h3>Class tools</h3><div class='dtiles'>" + T.map(function (t) { return "<button type='button' class='dtile " + t[3] + "' data-dgo='" + t[0] + "'><svg class='ico' viewBox='0 0 24 24' aria-hidden='true'>" + t[4] + "</svg><b>" + esc(t[1]) + "</b><span>" + esc(t[2]) + "</span></button>"; }).join("") + "</div></section>";
+    var owners = { "view:class": "attendance", "view:quizzes": "liveQuizzes", "view:progress": "analytics" };
+    return "<section class='dctl' aria-label='Class tools'><h3>Class tools</h3><div class='dtiles'>" + T.filter(function (t) {
+      return !d || !d.analytics || !owners[t[0]] || d.analytics.enabled.includes(owners[t[0]]);
+    }).map(function (t) { return "<button type='button' class='dtile " + t[3] + "' data-dgo='" + t[0] + "'><svg class='ico' viewBox='0 0 24 24' aria-hidden='true'>" + t[4] + "</svg><b>" + esc(t[1]) + "</b><span>" + esc(t[2]) + "</span></button>"; }).join("") + "</div></section>";
   }
   // The first insight as one callout, with a button to the full list.
   function callout(d) {
@@ -69,6 +73,7 @@
   }
   // Who needs attention, as a chart: attendance against quiz average with three zones. A click on a zone lists its students (interact.js).
   function riskCard(d) {
+    if (d.analytics && !(d.analytics.available.attendance && d.analytics.available.quizzes)) return "";
     var G = root.cmGroups || require("./groups"), C = root.cmDashCharts || require("./charts"), z = G.riskZones(d);
     var head = "<section class='card drisk' id='drisk' aria-labelledby='drk-h'><div class='card-head'><h3 id='drk-h'>Who needs attention</h3><span class='note'>Click a zone to list its students</span></div>";
     if (z.points.length < G.MIN_POINTS) return head + "<p class='note'>Needs at least " + G.MIN_POINTS + " students with both attendance and a quiz average. " + z.points.length + " so far.</p></section>";
@@ -78,6 +83,7 @@
   // What goes with what: three linked views. Selecting a zone above highlights the same students here. Always labelled as association.
   function corrCard(d) {
     var G = root.cmGroups || require("./groups"), C = root.cmDashCharts || require("./charts"), vs = G.correlations(d);
+    if (!vs.length) return "";
     return "<section class='card dcorr' id='dcorr' aria-labelledby='dc-h'><div class='card-head'><h3 id='dc-h'>What goes with what</h3><span class='note'>Association, not proof of cause</span></div>" +
       "<div class='zbar' role='group' aria-label='Comparison'>" + vs.map(function (v, i) { return "<button type='button' class='zb' data-corr='" + i + "' aria-pressed='" + (i === 0) + "'>" + esc(v.title) + "</button>"; }).join("") + "</div>" +
       "<div id='dcorr-chart'>" + C.relation(vs[0], null) + "</div><p class='note' id='dcorr-text'>" + esc(vs[0].text) + "</p></section>";
@@ -91,7 +97,7 @@
   function ops(d, setup, live) {
     var sp = R.setupProgress(setup);
     var sum = "Today and setup" + (sp.complete ? "" : " · " + sp.done + " of " + sp.of + " setup steps done");
-    return "<details class='card ops' id='dops'><summary>" + esc(sum) + "</summary><div class='opsbody'>" + today(d, setup, live) + setupTracker(setup) + controls() + "</div></details>";
+    return "<details class='card ops' id='dops'><summary>" + esc(sum) + "</summary><div class='opsbody'>" + today(d, setup, live) + setupTracker(setup) + controls(d) + "</div></details>";
   }
   // Kept for the tests and for older callers: everything in one string, analytics first.
   function top(d, setup, live) { return head(d) + grid(d) + ops(d, setup, live); }

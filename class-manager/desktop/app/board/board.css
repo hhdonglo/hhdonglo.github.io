@@ -114,3 +114,5 @@ body.has-board .lp .lp-nums{display:block}body.has-board .lp .lp-bar,body.has-bo
 /* less running text: evidence detail lines and the long suggestion are shortened */
 .bd-pane .verdict .sigs .note{display:none}.bd-pane .verdict .v-act{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.bd-pane .verdict .note.warnline,.bd-pane .verdict details{display:none}
 .bd-pane{grid-auto-rows:8px;row-gap:0!important;column-gap:.8rem!important}.bd-pane>.bd-sh{padding-bottom:.4rem}
+
+.bd-top.bd-top-no-plan{grid-template-columns:minmax(0,1fr)}

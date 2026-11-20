@@ -36,14 +36,18 @@
     }
     return { title: title, students: out };
   }
-  function regionHtml(rows) {
-    var g = region(rows); if (!g) return "<p class='note gx-hint'>Click a bar, a box or a quarter of the scatter to list the students in it.</p>";
+  function regionHtml(rows, both) {
+    var g = region(rows); if (!g) return "<p class='note gx-hint'>Click a bar, a box" + (both ? " or a quarter of the scatter" : "") + " to list the students in it.</p>";
     return "<div class='gx-list' role='region' aria-live='polite' aria-label='Students in the chosen region'><h4>" + esc(g.title) + ": " + g.students.length + (g.students.length === 1 ? " student" : " students") + "</h4>" +
       (g.students.length ? "<ul>" + g.students.map(function (x) { return "<li><button type='button' class='link' data-student='" + esc(x.id) + "'>" + esc(x.name || x.id) + "</button> <span class='note'>" + esc(x.note) + "</span></li>"; }).join("") + "</ul>" : "<p class='note'>No student is in this region.</p>") +
       "<p class='row'><button type='button' class='gx-step' style='font-size:var(--fs-sm)' data-gx='clear'>Clear</button></p></div>";
   }
 
   function render(d) {
+    var both = !d.analytics || d.analytics.available.attendance && d.analytics.available.quizzes;
+    if (!both && (state.measure === "att" || /^(quad|box:1)/.test(state.region || ""))) {
+      state.measure = "quiz"; state.region = null;
+    }
     var v = view(d), tl = v.tl, day = tl[v.i];
     if (!day) return "<section class='card gx' aria-labelledby='gxh'><h3 id='gxh'>Class graphs</h3><p class='note'>The graphs appear once there is a session or a quiz to show.</p></section>";
     var opts = tl.map(function (t) { return "<option value='" + esc(t.key) + "'" + (t.key === day.key ? " selected" : "") + ">" + esc(t.label + (t.what ? " (" + t.what + ")" : "")) + "</option>"; }).join("");
@@ -51,15 +55,17 @@
       "<label class='gx-day'><span class='note'>Day</span><select id='gx-day'>" + opts + "</select></label>" +
       "<button type='button' class='gx-step' data-gx='next' aria-label='Next day'" + (v.i === tl.length - 1 ? " disabled" : "") + ">›</button>" +
       seg("Range", [["mode:to", "Up to this day"], ["mode:on", "This day only"]], "mode:" + state.mode) +
-      seg("Measure", [["measure:quiz", "Quiz average"], ["measure:att", "Attendance"]], "measure:" + state.measure) +
+      (both ? seg("Measure", [["measure:quiz", "Quiz average"], ["measure:att", "Attendance"]], "measure:" + state.measure) : "") +
       seg("Outlier limit", [["k:1.5", "1.5 SD"], ["k:2", "2 SD"], ["k:3", "3 SD"]], "k:" + state.k) + "</div>";
     var scope = state.mode === "on" ? "On " + day.label + " only" : "Up to " + day.label;
     var meas = MEASURES[state.measure];
     var dist = K.dist.distribution(pairs(v.rows, state.measure), { label: meas, k: state.k });
-    var box = K.box.boxplot([{ label: "Quiz average", rows: pairs(v.rows, "quiz") }, { label: "Attendance", rows: pairs(v.rows, "att") }]);
+    var series = [{ label: "Quiz average", rows: pairs(v.rows, "quiz") }];
+    if (both) series.push({ label: "Attendance", rows: pairs(v.rows, "att") });
+    var box = K.box.boxplot(series);
     var sc = K.scat.scatter(v.rows.filter(function (r) { return r.att !== null && r.quiz !== null; }).map(function (r) { return { id: r.id, name: r.name, x: r.att, y: r.quiz }; }), { yLabel: "Quiz average" });
-    return "<section class='card gx' aria-labelledby='gxh'><h3 id='gxh'>Class graphs</h3><p class='note'>" + esc(scope) + ". The graphs update by themselves when new records arrive.</p>" + head + regionHtml(v.rows) +
-      "<div class='gx-grid'><div class='gx-cell'><h4>How performance is spread</h4>" + dist + "</div><div class='gx-cell'><h4>Who is an outlier</h4>" + box + "</div><div class='gx-cell'><h4>Does attendance go with performance</h4>" + sc + "</div></div></section>";
+    return "<section class='card gx' aria-labelledby='gxh'><h3 id='gxh'>Class graphs</h3><p class='note'>" + esc(scope) + ". The graphs update by themselves when new records arrive.</p>" + head + regionHtml(v.rows, both) +
+      "<div class='gx-grid'><div class='gx-cell'><h4>How performance is spread</h4>" + dist + "</div><div class='gx-cell'><h4>Who is an outlier</h4>" + box + "</div>" + (both ? "<div class='gx-cell'><h4>Does attendance go with performance</h4>" + sc + "</div>" : "") + "</div></section>";
   }
 
   // Click and change handlers on one container; redraw() puts the new HTML in.

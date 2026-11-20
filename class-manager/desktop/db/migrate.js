@@ -9,6 +9,7 @@
 const fs = require("fs");
 const path = require("path");
 const store = require("./store");
+const configuration = require("./module-config");
 const { toJson, fromJson } = require("./codec");
 
 const stampNow = () => new Date().toISOString().replace(/[-:T]/g, "").slice(0, 14) + String(Date.now() % 1000).padStart(3, "0");
@@ -30,11 +31,15 @@ function moveAside(file, why) {
 }
 
 // Imports workbook text into a new database next to dbFile, checks it, then puts it in place.
-function importWorkbook(dbFile, text, vault) {
+function importWorkbook(dbFile, text, vault, checked = configuration.preflight(dbFile, vault, store.SCHEMA_VERSION)) {
   const book = parseWorkbookText(text);
   const tmp = dbFile + ".new";
   for (const ext of ["", "-wal", "-shm"]) { try { fs.unlinkSync(tmp + ext); } catch (e) { /* none */ } }
   const s = store.open(tmp, vault);
+  try { configuration.initialize(s, checked.enabled); } catch (error) {
+    s.close();
+    throw new configuration.CourseMigrationError(dbFile, error, checked.snapshot);
+  }
   s.replaceAll(book); s.setMeta("imported_from", "workbook.json"); s.setMeta("imported_at", new Date().toISOString());
   const back = s.load();
   const ok = s.check() && sameBook(book, back);
@@ -49,14 +54,16 @@ function importWorkbook(dbFile, text, vault) {
 // Opens the course. Returns {db, book, loadProblem, imported}.
 function openCourse(opts) {
   const { dbFile, jsonFile, vault } = opts, log = opts.log || (() => {});
+  const checked = configuration.preflight(dbFile, vault, store.SCHEMA_VERSION, opts.initialModules);
   let loadProblem = null, imported = null;
   if (jsonFile && fs.existsSync(jsonFile)) {
     try {
       const raw = fs.readFileSync(jsonFile);
-      imported = importWorkbook(dbFile, vault ? vault.decode(raw) : raw.toString("utf8"), vault);
+      imported = importWorkbook(dbFile, vault ? vault.decode(raw) : raw.toString("utf8"), vault, checked);
       fs.renameSync(jsonFile, jsonFile + ".imported-" + stampNow()); // kept: the original is never deleted
       log("workbook imported into the database: " + imported.tabs + " tabs, " + imported.rows + " rows");
     } catch (e) {
+      if (e instanceof configuration.CourseMigrationError) throw e;
       // An inbox file that cannot be used stays exactly where it is, and is reported; the database (if any) is untouched.
       loadProblem = { file: jsonFile, why: String(e.message || e) };
       log("workbook file could not be imported: " + loadProblem.why);
@@ -69,7 +76,12 @@ function openCourse(opts) {
     if (!loadProblem) { loadProblem = moveAside(dbFile, String(e.message || e)); log("database could not be read; kept as " + loadProblem.file); }
     db = store.open(dbFile, vault); book = db.load();
   }
-  return { db, book, loadProblem, imported };
+  try { configuration.initialize(db, checked.enabled); } catch (error) {
+    db.close();
+    throw new configuration.CourseMigrationError(dbFile, error, checked.snapshot);
+  }
+  if (checked.snapshot) log("pre-module recovery snapshot: " + checked.snapshot);
+  return { db, book, loadProblem, imported, enabledModules: checked.enabled };
 }
 
 // The course as workbook JSON text (what backups and backup files hold), read from the database file while no course is open.

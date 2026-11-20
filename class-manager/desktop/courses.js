@@ -136,7 +136,7 @@ function createRegistry(root) {
     return { id, rest, prefixed, prefix: "/c/" + id + "/" };
   }
   function idFromUrl(u) {
-    try { const r = route(new URL(u).pathname); return r.id || ""; } catch (e) { return ""; }
+    try { const r = route(decodeURIComponent(new URL(u).pathname)); return r.id || ""; } catch (e) { return ""; }
   }
   function ensureOne() { if (!open().length) add({}); if (!doc.active || !find(doc.active) || find(doc.active).archived) { doc.active = open()[0].id; save(); } return active(); }
 

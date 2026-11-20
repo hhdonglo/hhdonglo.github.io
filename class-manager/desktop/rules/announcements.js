@@ -18,7 +18,7 @@ const save = (store, list) => T.rewrite(store, TAB, HEAD, list.map((a) => [a.id,
 function announcements(store, p, req, o) { // public for 'all'; signed-in students also get their own; the lecturer gets all, with edit ops
   const w = (p.hostkey || p.code) ? CH.who(store, p, req, o) : null;
   if (w && typeof w !== "string") return { ok: false, why: w.why };
-  const host = w === "LECTURER", now = localNow(store.now()); let list = rows(store);
+  const host = w === "LECTURER", now = localNow(store.now()), calendarEnabled = !o.enabled || o.enabled("calendar"); let list = rows(store);
   if (host && p.op) {
     let a = p.ann ? list.filter((x) => x.id === String(p.ann))[0] : null; const ts = store.now().toISOString();
     if (p.op === "save") {
@@ -27,14 +27,14 @@ function announcements(store, p, req, o) { // public for 'all'; signed-in studen
       let aud = String(p.audience || "all"); if (!/^(all|class|([LS]:[^,]+)(,[LS]:[^,]+)*)$/.test(aud)) aud = "all";
       const link = T.chatTxt(p.link, 400); if (link && !/^(https?:\/\/|[\w.-]+\.(html|pdf)([#?].*)?$)/i.test(link)) return { ok: false, why: "The link must be a web address or a course page." };
       if (!a) { a = { id: "A" + String(o.random()).replace(/-/g, "").slice(0, 10), created: ts }; list.unshift(a); }
-      a.title = title; a.text = text; a.audience = aud; a.pinned = String(p.pinned) === "yes"; a.from = T.calWhen(p.from); a.link = link; a.event = T.chatTxt(p.event, 40); a.updated = ts; a.status = "ok";
+      a.title = title; a.text = text; a.audience = aud; a.pinned = String(p.pinned) === "yes"; a.from = T.calWhen(p.from); a.link = link; a.event = calendarEnabled ? T.chatTxt(p.event, 40) : a.event || ""; a.updated = ts; a.status = "ok";
       save(store, list); CH.bump(store, o);
     } else if (p.op === "delete" && a) { list = list.filter((x) => x !== a); save(store, list); CH.bump(store, o); }
   }
   const groups = {};
   if (w && !host) CH.convs(store, w, CH.cfgOf(store)).forEach((c) => { groups[c.id] = 1; });
   const rd = w ? CH.reads(store) : {}, lastRead = w ? (rd[w + "|ANN"] || 0) : 0, events = {};
-  try { CA.rows(store).forEach((ev) => { events[ev.id] = ev; }); } catch (e) { /* no calendar */ }
+  if (calendarEnabled) try { CA.rows(store).forEach((ev) => { events[ev.id] = ev; }); } catch (e) { /* no calendar */ }
   const visible = list.filter((a2) => {
     if (host) return true;
     if (a2.from && a2.from > now) return false;

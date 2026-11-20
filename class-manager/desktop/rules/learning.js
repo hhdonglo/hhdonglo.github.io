@@ -92,7 +92,7 @@ function questionStats(items, attempts) {
 }
 
 // ---- Teaching insights (host only). version is the script version the pages compare. ----
-function insights(store, p, version) {
+function insights(store, p, version, { persistQuestionStats = true } = {}) {
   const now = store.now().getTime(), attMin = Math.max(0, Math.min(100, Number(p.att) || 70)), quizMin = Math.max(0, Math.min(100, Number(p.quiz) || 50)), idleDays = Math.max(1, Math.min(120, Number(p.idle) || 14));
   const roster = AC.rosterRows(store).map((r) => ({ id: normalizeId(r[0]), name: AC.cleanName(r[1]) })).filter((r) => r.id), inRoster = {}; roster.forEach((r) => { inRoster[r.id] = true; });
   const out = { ok: true, version, rosterSize: roster.length, thresholds: { att: attMin, quiz: quizMin, idle: idleDays } };
@@ -137,6 +137,7 @@ function insights(store, p, version) {
   });
   flags.sort((a, b) => b.reasons.length - a.reasons.length || (a.quizAverage === null ? 101 : a.quizAverage) - (b.quizAverage === null ? 101 : b.quizAverage));
   out.attention = flags;
+  if (!persistQuestionStats) return out;
   try {
     const stamp = store.now();
     store.setRows(QSTATS, [QSTATS_HEADER.slice()].concat(stats.map((s) => [s.id, s.lecture, s.answers, s.pct === null ? "" : s.pct, s.label, s.live, s.livePct === null ? "" : s.livePct, s.key, s.wrongTop ? s.wrongTop + " (" + s.wrongTopN + ")" : "", s.discrimination === null ? "" : s.discrimination, s.confidentWrong, s.practice, s.practicePct === null ? "" : s.practicePct, stamp])));

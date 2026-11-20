@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Academic Work · Class Manager</title>
+<link rel="stylesheet" href="academic-work.css">
+<script src="academic-work.js" defer></script>
+</head>
+<body>
+<header class="masthead">
+ <div><a href="home.html">Class Manager</a><h1>Academic Work</h1></div>
+ <button id="open-search" type="button">Search and commands <kbd>Ctrl / ⌘ K</kbd></button>
+</header>
+<main>
+ <nav id="views" aria-label="Academic Work">
+  <button data-view="workspaces" type="button">Command Center</button>
+  <button data-view="timeline" type="button">Timeline</button>
+  <button data-view="activity" type="button">Activity Feed</button>
+  <button data-view="plans" type="button">Goals &amp; plans</button>
+  <button data-view="memory" type="button">Memory &amp; knowledge</button>
+  <button data-view="mail" type="button">Email</button>
+ </nav>
+ <p id="status" role="status"></p>
+ <div class="scope"><label for="scope">Workspace</label><select id="scope"></select><button id="refresh" type="button">Refresh</button></div>
+ <section id="workspaces" class="view">
+  <div class="heading"><h2>Workspace health</h2><button id="new-workspace" type="button" class="primary">New workspace</button></div>
+  <div id="workspace-cards" class="cards"></div>
+  <details id="archives"><summary>Archived workspaces</summary><ul id="archived-list"></ul></details>
+ </section>
+ <section id="timeline" class="view" hidden>
+  <h2>Academic Timeline</h2><div id="timeline-items"></div>
+ </section>
+ <section id="activity" class="view" hidden>
+  <h2>Activity Feed</h2><div id="activity-items"></div>
+ </section>
+ <section id="plans" class="view" hidden>
+  <div class="heading"><h2>Goals and plans</h2><button id="new-plan" type="button" class="primary">Add plan</button></div>
+  <p class="meta">CM delivers reminders while the desktop app is open and signed in. Missed reminders are picked up the next time it opens.</p>
+  <div id="plan-items"></div>
+ </section>
+ <section id="memory" class="view" hidden>
+  <div class="heading"><h2>Academic Memory</h2><div class="row"><button id="new-note" type="button" class="primary">New note or discussion</button><button id="link-file" type="button">Link document</button></div></div>
+  <div id="knowledge"></div>
+ </section>
+ <section id="mail" class="view" hidden>
+  <h2>Email</h2><p>Read the latest 20 inbox messages from each connected account. CM displays message content as text.</p>
+  <div id="mail-accounts" class="cards"></div><div id="mail-items"></div>
+ </section>
+</main>
+
+<dialog id="search-dialog" aria-labelledby="search-title">
+ <div class="heading"><h2 id="search-title">Search and commands</h2><button type="button" data-close="search-dialog">Close</button></div>
+ <form id="search-form" role="search">
+  <label>Search workspaces, plans, files, discussions and commands<input type="search" name="query" maxlength="160" required autofocus></label>
+  <label><input type="checkbox" name="scoped"> Search only the selected workspace</label>
+  <button class="primary">Search</button>
+ </form>
+ <div id="search-results" aria-live="polite"></div>
+</dialog>
+<dialog id="editor" aria-labelledby="edit-title">
+ <div class="heading"><h2 id="edit-title"></h2><button type="button" data-close="editor">Cancel</button></div>
+ <form id="edit-form"></form>
+</dialog>
+<dialog id="reader" aria-labelledby="reader-title">
+ <div class="heading"><h2 id="reader-title"></h2><button type="button" data-close="reader">Close</button></div><div id="reader-content"></div>
+</dialog>
+</body>
+</html>

@@ -30,7 +30,10 @@
       { key: "learning", icon: "quiz", label: "Quiz average", value: last ? r1(last.stats.mean) + "%" : "–", note: last ? "latest quiz, " + U.short(last.quiz, 18) : "no quiz released yet", delta: prev ? delta(last.stats.mean, prev.stats.mean, " pts", "vs the quiz before") : null },
       { key: "practice", icon: "practice", label: "Practice activity", value: String(pr.students), note: pr.students ? "students practised in the last " + pr.days + " days" : "no practice in the last " + pr.days + " days", delta: null },
       { key: "risk", icon: "risk", label: "At risk", value: String(risk.strong || 0), note: riskNote(risk), delta: null, goodDown: true }
-    ];
+    ].filter(function (card) {
+      if (!d.analytics || card.key === "students") return true;
+      return d.analytics.available[card.key === "learning" ? "quizzes" : card.key];
+    });
   }
 
   // Only flags with solid evidence are counted as at risk; a flag built on very little data is named separately and never inflates the number.
@@ -74,7 +77,11 @@
       { key: "lectures", title: "Lectures held against the plan", unit: "", max: Math.max(lp && lp.target || 0, cum.length, 1), drill: null, barName: "Lectures held so far", lineName: "",
         labels: days.map(function (x) { return x.slice(8) + "/" + x.slice(5, 7); }), bars: cum, line: [], refs: refs,
         empty: "No lecture counted yet. A lecture counts when attendance is closed or when you mark it held." }
-    ];
+    ].filter(function (tab) {
+      if (!d.analytics) return true;
+      if (tab.key === "lectures") return d.analytics.available.content && !!(days.length || lp && lp.target);
+      return d.analytics.available[tab.key === "quiz" ? "quizzes" : tab.key];
+    });
   }
 
   // Topics by verdict (donut) and the ranked list of topics needing attention. Comes from the learning verdict; a topic with few answers is flagged.
@@ -107,7 +114,7 @@
       out.push({ icon: "bars", text: Math.abs(df) < 3 ? "Attendance is steady at about " + rec + "% over the last three sessions." : "Attendance " + (df > 0 ? "rose" : "fell") + " by " + Math.abs(df) + " points over the last three sessions, to " + rec + "%." });
     } else if (a.sessions && has(a.rate)) out.push({ icon: "bars", text: "Attendance is " + a.rate + "% across " + U.plural(a.sessions, "session", "sessions") + "." });
     if (qs.length >= 2) { var l = qs[qs.length - 1], p = qs[qs.length - 2], dq = r1(l.stats.mean - p.stats.mean); out.push({ icon: "trend", text: "The quiz average " + (dq === 0 ? "did not change" : (dq > 0 ? "rose" : "fell") + " by " + Math.abs(dq) + " points") + " from " + U.short(p.quiz, 18) + " to " + U.short(l.quiz, 18) + "." }); }
-    if (lp && lp.target && (lp.state === "behind" || lp.state === "ahead" || lp.state === "ontrack" || lp.state === "met")) out.push({ icon: "pie", text: lp.headline + ". " + lp.held + " of " + lp.target + " lectures held." });
+    if ((!d.analytics || d.analytics.available.content) && lp && lp.target && (lp.state === "behind" || lp.state === "ahead" || lp.state === "ontrack" || lp.state === "met")) out.push({ icon: "pie", text: lp.headline + ". " + lp.held + " of " + lp.target + " lectures held." });
     if (rk.length) out.push({ icon: "spark", text: "Lowest topic: " + rk[0].label + " at " + rk[0].pct + "% correct" + (rk[0].small ? " (few answers)" : "") + "." + (rk.length > 1 ? " Strongest: " + rk[rk.length - 1].label + " at " + rk[rk.length - 1].pct + "%." : "") });
     var rr = d.rosterSize ? RK().atRisk(d) : { strong: 0, thin: 0 };
     if (rr.strong) out.push({ icon: "alert", text: U.plural(rr.strong, "student has", "students have") + " a solid reason to check in. Click the At risk card to see who." });

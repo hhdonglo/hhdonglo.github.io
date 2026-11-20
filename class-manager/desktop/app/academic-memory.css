@@ -1,0 +1,16 @@
+:root { color-scheme: light dark; font: 16px system-ui, sans-serif; }
+body { margin: 0; }
+main { width: min(58rem, calc(100% - 2rem)); margin: 2rem auto; }
+section { border: 1px solid GrayText; border-radius: .6rem; padding: 1rem; margin: 1rem 0; }
+h2 { margin-top: 0; }
+form { display: grid; gap: .45rem; max-width: 40rem; }
+button, select, input, textarea { font: inherit; color: inherit; }
+button, select, input:not([type=checkbox]), textarea { padding: .35rem .55rem; box-sizing: border-box; max-width: 100%; }
+button { width: fit-content; cursor: pointer; }
+ul { padding-left: 1.4rem; }
+li { margin: .35rem 0; overflow-wrap: anywhere; }
+li button { margin-left: .5rem; }
+fieldset { min-width: 0; }
+.row { display: flex; gap: .5rem; flex-wrap: wrap; }
+
+#memory-reader{width:min(52rem,90vw);max-height:85vh}#memory-reader-text{white-space:pre-wrap;overflow-wrap:anywhere}

@@ -125,8 +125,8 @@ html{font-size:clamp(15px,calc(9.5px + .42vw),19px)}
 
 <section data-step="materials" aria-labelledby="h-mat" hidden>
  <h2 id="h-mat">Course materials</h2>
- <p class="why">Add your lectures one by one, with their slides, handouts and tutorial sheets. Students then find them on the portal. If a colleague or an earlier year prepared a course pack, import it instead and everything comes in at once.</p>
- <div class="card">
+ <p class="why" data-content-only>Add your lectures one by one, with their slides, handouts and tutorial sheets. Students then find them on the portal. If a colleague or an earlier year prepared a course pack, import it instead and everything comes in at once.</p>
+ <div class="card" data-content-only>
   <h3 style="margin-top:0">Course pack <span class="opt">(optional)</span></h3>
   <p class="why">A course pack (a .zip, or the pack folder itself) holds a whole course: details, lectures, files and question banks. Importing one replaces the course content in CM; class records are not touched.</p>
   <p><button type="button" id="pk-import">Import a course pack</button><button type="button" id="pk-export">Export this course as a pack</button></p>
@@ -138,11 +138,11 @@ html{font-size:clamp(15px,calc(9.5px + .42vw),19px)}
   <p><button type="button" id="bf-pick">Choose the course folder…</button> <button type="button" class="p" id="bf-load" hidden>Load these quizzes</button></p>
   <div id="bf-found"></div>
   <p class="msg" id="bf-msg" role="status"></p>
-  <h4>New quizzes written by CM</h4>
-  <p class="why" id="bf-gen">CM writes new quiz questions from your teaching material, for you to review before students see them. It needs your Anthropic API key.</p>
-  <p><a class="btn" href="author.html#gen" style="text-decoration:underline">Generate new quizzes…</a></p>
+  <h4 data-content-only>New quizzes written by CM</h4>
+  <p class="why" id="bf-gen" data-content-only>CM writes new quiz questions from your teaching material, for you to review before students see them. It needs your Anthropic API key.</p>
+  <p data-content-only><a class="btn" href="author.html#gen" style="text-decoration:underline">Generate new quizzes…</a></p>
  </div>
- <div class="card">
+ <div class="card" data-content-only>
   <h3 style="margin-top:0">Lectures</h3>
   <div id="lec-list"></div>
   <form id="f-lec" class="lec">
@@ -159,7 +159,7 @@ html{font-size:clamp(15px,calc(9.5px + .42vw),19px)}
    <p class="msg" id="l-msg" role="status"></p>
   </form>
  </div>
- <div class="card">
+ <div class="card" data-content-only>
   <h3 style="margin-top:0">Teaching material and question files</h3>
   <p class="why">Add CSV, Excel, Word, PDF, PowerPoint, Markdown or text files to the library to search them and draft questions from them. Existing question files (CSV, Excel, Word, PDF, Markdown or text) are imported for you to review before students see them.</p>
   <p><button type="button" id="lib-add">Add files to the library</button><button type="button" id="q-import">Import question files</button></p>
@@ -176,7 +176,12 @@ if(!window.cmApp){document.body.innerHTML="<p style='padding:2rem'>Open this pag
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 var S=null,KINDS=[],LECS=[],ROWS=[];
 var KIND_LABEL={slides:"Slides",handout:"Handout",tutorial:"Tutorial sheet",supplement:"Supplementary note",reference:"Reference slides"};
+var contentOn=!CM.modules||CM.modules.includes("content");
+var materialOn=contentOn||CM.modules.includes("liveQuizzes");
+if(!contentOn)document.querySelectorAll("[data-content-only]").forEach(function(node){node.hidden=true});
+if(!materialOn)$("st-materials").hidden=true;
 function go(step){
+ if(step==="materials"&&!materialOn){cmApp.setupSeen().then(function(){location.href="home.html"});return}
  document.querySelectorAll("[data-step]").forEach(function(s){s.hidden=s.getAttribute("data-step")!==step});
  document.querySelectorAll("[data-go]").forEach(function(b){if(b.closest(".steps"))b.setAttribute("aria-current",b.getAttribute("data-go")===step?"step":"false")});
  try{history.replaceState(null,"","#"+step)}catch(x){}

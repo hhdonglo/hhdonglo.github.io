@@ -6,11 +6,11 @@
   var ORDER = [
     ["overview", "Overview", "The class at a glance: key numbers, the lecture plan, progress over time and what the numbers say."],
     ["attendance", "Attendance", "Who is absent in a row, and which sessions were counted."],
-    ["quizzes", "Quizzes", "How quiz results are spread, who took each quiz, how scores changed and how practice goes with results."],
-    ["risk", "Risk and attention", "Who is at risk and why, and where attendance and quiz results are both low. Flags are suggestions for your review."],
+    ["quizzes", "Quizzes", "Score distributions, participation and changes in recorded quiz results."],
+    ["risk", "Risk and attention", "Signals from course records that may warrant a check-in."],
     ["questions", "Questions", "Which questions are hard, which separate stronger from weaker students, and how each topic is going."],
-    ["relations", "Relationships and trends", "What goes with what, and how the numbers move over the last sessions and quizzes."],
-    ["actions", "Actions", "Where to put teaching time, support given and results by group."],
+    ["relations", "Relationships and trends", "Patterns and associations in the recorded measures."],
+    ["actions", "Actions", "Teaching suggestions and support records."],
     ["privacy", "Privacy and records", "Term, student data and the audit log."]
   ];
   var FOOT = "privacy"; // not a tab: term, student data and the audit log stay at the bottom of every view

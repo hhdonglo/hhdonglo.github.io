@@ -71,12 +71,12 @@ body.focus main{padding-top:1.2rem}
  <div class="card" id="p-primary"></div>
  <div class="card" id="p-week"></div>
  <div class="card" id="p-news">
-  <h2>Announcements<span id="p-nbadge" hidden></span></h2>
+  <h2 id="p-ann-heading">Announcements<span id="p-nbadge" hidden></span></h2>
   <div id="p-ann"><p class="note">Loading…</p></div>
-  <h2 style="margin-top:.9rem">Coming up</h2>
+  <h2 id="p-cal-heading" style="margin-top:.9rem">Coming up</h2>
   <div id="p-cal"><p class="note">Loading…</p></div>
   <a class="go alt" href="messages.html" id="p-msgs">Messages</a>
-  <a class="go alt" href="calendar.html">Course calendar</a>
+  <a class="go alt" id="p-calendar-link" href="calendar.html">Course calendar</a>
  </div>
  <div class="card" id="p-res" hidden>
   <details id="p-details"><summary>My progress</summary>
@@ -95,7 +95,7 @@ body.focus main{padding-top:1.2rem}
     <button class="go alt" type="submit" id="p-show">Show my progress</button>
    </form>
    <div id="p-out" hidden></div>
-   <p class="note">Only you can open this page, with your ID and code. Practice counts once you have entered your ID on a practice page.</p>
+   <p class="note">Only you can open this page, with your ID and code.<span id="p-practice-note"> Practice counts once you have entered your ID on a practice page.</span></p>
   </details>
  </div>
  <div class="card" id="p-install" hidden>
@@ -103,7 +103,7 @@ body.focus main{padding-top:1.2rem}
   <p class="note" id="p-inst-txt">Open the Portal like an app, with one tap, even on a weak connection.</p>
   <button class="go alt" type="button" id="p-inst-btn">Install the Portal</button>
  </div>
- <div class="card"><details><summary>All lectures</summary><ul id="p-all"></ul></details></div>
+ <div class="card" id="p-lectures"><details><summary>All lectures</summary><ul id="p-all"></ul></details></div>
  <p class="note">Corrections: contact your lecturer.</p>
 </div>
 <script>
@@ -114,18 +114,24 @@ function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return
 function jp(p,cb){CM.call(p,cb)} // every request by POST: see CM.call in config.js
 var id="",code="";try{id=localStorage.getItem("cm_portal_id")||"";code=localStorage.getItem("cm_portal_code")||""}catch(x){}
 var who=id&&code?"&id="+encodeURIComponent(id)+"&code="+encodeURIComponent(code):"";
-jp("action=announcements"+who,function annCb(d){
+function enabled(name){return !CM.modules||CM.modules.indexOf(name)>=0}
+$("p-ann-heading").hidden=$("p-ann").hidden=!enabled("announcements");
+$("p-cal-heading").hidden=$("p-cal").hidden=$("p-calendar-link").hidden=!enabled("calendar");
+$("p-msgs").hidden=!enabled("messaging")&&!enabled("announcements");
+$("p-news").hidden=!enabled("announcements")&&!enabled("calendar")&&!enabled("messaging");
+$("p-week").hidden=$("p-lectures").hidden=!enabled("content");
+if(enabled("announcements"))jp("action=announcements"+who,function annCb(d){
  if(!d||!d.ok){if(d&&who){who="";jp("action=announcements",annCb);return}$("p-ann").innerHTML='<p class="note">None at present.</p>';return}
  var l=d.announcements.slice(0,3);
  $("p-ann").innerHTML=l.length?l.map(function(a){return'<div class="rv"><strong>'+(a.pinned?"Pinned: ":"")+esc(a.title)+'</strong>'+(a.unread?' <span style="color:#b3261e;font-weight:700">New</span>':"")+'<br><span class="src">'+esc(a.at.replace("T"," "))+'</span>'+(a.text?'<br>'+esc(a.text.length>220?a.text.slice(0,220)+"…":a.text):"")+'</div>'}).join("")+(d.announcements.length>3?'<p class="note"><a href="messages.html">All announcements</a></p>':""):'<p class="note">None at present.</p>';
 });
-jp("action=calendar",function(d){
+if(enabled("calendar"))jp("action=calendar",function(d){
  if(!d||!d.ok){$("p-cal").innerHTML='<p class="note">The calendar is not available.</p>';return}
  var now=new Date(),t=now.getFullYear()+"-"+("0"+(now.getMonth()+1)).slice(-2)+"-"+("0"+now.getDate()).slice(-2);
  var l=d.events.filter(function(e){return(e.end||e.start).slice(0,10)>=t}).slice(0,3);
  $("p-cal").innerHTML=l.length?l.map(function(e){return'<div class="rv"><a href="calendar.html#'+esc(e.start.slice(0,10))+'"><strong>'+esc(e.title)+'</strong></a><br><span class="src">'+esc(e.start.slice(0,10)===t?"Today":e.start.slice(0,10))+(e.allDay?"":" "+esc(e.start.slice(11,16)))+(e.location?" · "+esc(e.location):"")+'</span></div>'}).join(""):'<p class="note">Nothing scheduled.</p>';
 });
-if(who)jp("action=chat"+who,function(d){if(d&&d.ok&&d.unread)$("p-msgs").textContent="Messages ("+d.unread+" unread)"});
+if(who&&enabled("messaging"))jp("action=chat"+who,function(d){if(d&&d.ok&&d.unread)$("p-msgs").textContent="Messages ("+d.unread+" unread)"});
 })();
 </script>
 <script src="assets/messages.js"></script>
@@ -135,6 +141,8 @@ if(who)jp("action=chat"+who,function(d){if(d&&d.ok&&d.unread)$("p-msgs").textCon
 "use strict";
 var SCRIPT_URL=window.CM.scriptUrl;
 var $=function(i){return document.getElementById(i)};
+var practiceOn=CM.moduleEnabled("practice");
+$("p-practice-note").hidden=!practiceOn;
 var CFG=null,LIVE=null,KEYID="cm_portal_id",KEYCODE="cm_portal_code",SAVEDTOK=""; // SAVEDTOK: the session this phone remembers instead of the code
 function lecPage(n){return Number(n)===0?"introduction.html":"lecture-"+Number(n)+".html"}
 function pracPage(n){return Number(n)===0?"introduction-practice.html":"lecture-"+Number(n)+"-practice.html"}
@@ -155,6 +163,7 @@ function render(){
   b.textContent=L?"No live activity right now.":"Live status is not available. The links below still work.";b.className="card banner";
   h='<h2>Next step</h2><a class="go" href="'+lecPage(w)+'">Continue with '+lecName(w)+'</a>';
  }
+ p.hidden=!!CM.modules&&CM.modules.indexOf("content")<0&&!(L&&(L.attendance==="open"||(L.quiz&&L.quiz!=="none")));
  p.innerHTML=h;
  var hw=CFG.handouts[w],pr=CFG.practice.indexOf(Number(w))>=0;
  $("p-week").innerHTML='<h2>This week: Lecture '+esc(w)+'</h2><p><b>'+esc(title)+'</b></p><ul>'+
@@ -195,7 +204,7 @@ function band(p){return p>=70?["ok","Secure"]:p>=50?["mid","Developing"]:["low",
 function showResults(r){
  var at=r.attendance||[],pres=at.filter(function(a){return a[1]}).length,qz=r.quizzes||[],pr=r.practice||[],ms=(r.mastery||[]).filter(function(m){return m.asked>0}),rv=r.revisit||[];
  var tries=pr.reduce(function(t,p){return t+(p.attempts||0)},0),pct=at.length?Math.round(100*pres/at.length):0;
- var h='<div class="stu-chips"><div class="stu-chip"><b>'+pres+' / '+at.length+'</b>Check-ins</div><div class="stu-chip"><b>'+qz.length+'</b>Quizzes</div><div class="stu-chip"><b>'+tries+'</b>Practice attempts</div></div>'+
+ var h='<div class="stu-chips"><div class="stu-chip"><b>'+pres+' / '+at.length+'</b>Check-ins</div><div class="stu-chip"><b>'+qz.length+'</b>Quizzes</div>'+(practiceOn?'<div class="stu-chip"><b>'+tries+'</b>Practice attempts</div>':'')+'</div>'+
   (at.length?'<div class="stu-bar" role="img" aria-label="Attendance '+pct+' percent"><i style="width:'+pct+'%"></i></div>':'');
  // Groups the lecturer has made, with the other members and any group mark.
  var gr=r.groups||[];
@@ -211,7 +220,7 @@ function showResults(r){
  else if(!weak.length)h+='<p class="note">No lecture is below 70 per cent in your answers so far. Keep practising the coming lectures.</p>';
  else h+=weak.map(function(m){var n=rv.filter(function(q){return lecOf(q.id)===m.lecture}).length;
   return '<div class="focus-box"><b>'+esc(m.lecture===0?"Introduction":"Lecture "+m.lecture)+(lecTitle(m.lecture)?": "+esc(lecTitle(m.lecture)):"")+'</b><br>'+m.pct+' per cent of '+m.asked+' answers correct.'+
-   (n?' '+n+' question'+(n===1?'':'s')+' to revisit below.':'')+'<br><a href="'+pracPage(m.lecture)+'">Practice this lecture <span aria-hidden="true">&rsaquo;</span></a></div>'}).join("");
+   (n?' '+n+' question'+(n===1?'':'s')+' to revisit below.':'')+(practiceOn?'<br><a href="'+pracPage(m.lecture)+'">Practice this lecture <span aria-hidden="true">&rsaquo;</span></a>':'')+'</div>'}).join("");
  // Progress by lecture.
  if(ms.length){
   h+='<h2 style="margin-top:.9rem">Progress by lecture</h2>'+ms.map(function(m){var b=band(m.pct);
@@ -231,9 +240,9 @@ function showResults(r){
  // Questions to revisit, with the slide to look at.
  h+='<h2 style="margin-top:.9rem">Questions to revisit</h2><div id="p-rv">'+(rv.length?'<p class="note">Loading the questions.</p>':'<p class="note">None at the moment.</p>')+'</div>';
  h+='<details class="sub2"><summary>Quiz scores</summary>'+(qz.length?"<table><tr><th>Quiz</th><th>Score</th></tr>"+qz.map(function(q){return"<tr><td>"+esc(q[0])+"</td><td>"+esc(q[1])+"</td></tr>"}).join("")+"</table>":"<p class='note'>Nothing yet.</p>")+'</details>';
- h+='<details class="sub2"><summary>Practice history</summary>'+(pr.length?"<table><tr><th>Practice</th><th>Attempts</th><th>Latest</th><th>Best</th></tr>"+pr.map(function(p){return"<tr><td>"+esc(p.label)+"</td><td>"+p.attempts+"</td><td>"+(p.last?p.last.score+" / "+p.last.total:"")+"</td><td>"+(p.best?p.best.score+" / "+p.best.total:"")+"</td></tr>"}).join("")+"</table>":"<p class='note'>Nothing yet.</p>")+'</details>';
+ if(practiceOn)h+='<details class="sub2"><summary>Practice history</summary>'+(pr.length?"<table><tr><th>Practice</th><th>Attempts</th><th>Latest</th><th>Best</th></tr>"+pr.map(function(p){return"<tr><td>"+esc(p.label)+"</td><td>"+p.attempts+"</td><td>"+(p.last?p.last.score+" / "+p.last.total:"")+"</td><td>"+(p.best?p.best.score+" / "+p.best.total:"")+"</td></tr>"}).join("")+"</table>":"<p class='note'>Nothing yet.</p>")+'</details>';
  h+='<details class="sub2"><summary>Check-ins</summary>'+(at.length?"<table><tr><th>Session</th><th>Status</th></tr>"+at.map(function(a){return"<tr><td>"+esc(a[0])+"</td><td>"+(a[1]?"Checked in":"No check-in")+"</td></tr>"}).join("")+"</table>":"<p class='note'>Nothing yet.</p>")+'</details>';
- $("p-out").innerHTML=h;$("p-out").hidden=false;
+ $("p-out").innerHTML=h;CM.hideDisabledNavigation($("p-out"));$("p-out").hidden=false;
  if(!rv.length)return;
  var lecs={};rv.forEach(function(q){var n=lecOf(q.id);if(n>=0)lecs[n]=1});
  var keys=Object.keys(lecs),left=keys.length;

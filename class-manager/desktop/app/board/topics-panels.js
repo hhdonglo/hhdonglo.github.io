@@ -48,6 +48,7 @@
   function corrCard(c) { return "<div class='bd-corr'><h4>" + U.esc(c.label) + "</h4>" + scatter(c) + "<p class='bd-ct'>" + U.esc(c.text) + "</p>" + (c.caution ? "<p class='bd-small'>" + U.esc(c.caution) + "</p>" : "") + "</div>"; }
   function correlationPanel(d) {
     var co = TM.correlations(d);
+    if (d.analytics && !co.main.length && !co.topicPairs.length) return "";
     return head("What goes with what", "Association, not proof of cause") + "<div class='bd-corrs'>" + co.main.map(corrCard).join("") + "</div>" +
       (co.topicPairs.length ? "<h4 class='bd-sub'>Topics that go together</h4><ul class='bd-pairs'>" + co.topicPairs.map(function (c) { return "<li><b>" + U.esc(c.label) + "</b> <span>" + U.esc(c.text) + "</span>" + (c.caution ? " <span class='bd-small'>" + U.esc(c.caution) + "</span>" : "") + "</li>"; }).join("") + "</ul><p class='bd-foot'>The three strongest of " + co.topicPairsTotal + " topic pairs with at least " + TM.MIN_PAIRS + " students having both.</p>" : "<p class='bd-foot'>Topic pairs appear once at least " + TM.MIN_PAIRS + " students have answered both topics.</p>");
   }

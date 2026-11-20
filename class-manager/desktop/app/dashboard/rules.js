@@ -26,15 +26,16 @@
     var RK = root.cmRisk || require("./risk"), rk = RK.atRisk(d), atRisk = rk.total;
     var learnLight = L.verdict === "Learning" ? LIGHTS.good : L.verdict === "Mixed" ? LIGHTS.watch : L.verdict === "Not yet learning" ? LIGHTS.bad : LIGHTS.none;
     var small = d.rosterSize > 0 && d.rosterSize < MIN_STUDENTS;
-    var riskShare = d.rosterSize ? 100 * atRisk / d.rosterSize : null;
+    var practiceMetric = d.analytics && d.analytics.metrics.find(function (m) { return m.id === "practiceAttempts"; });
+    var riskShare = d.rosterSize ? 100 * (d.analytics ? rk.strong : atRisk) / d.rosterSize : null;
     return [
       { key: "students", label: "Students", value: String(d.rosterSize || 0), text: d.rosterSize ? "on the class list" : "none on the class list yet", light: d.rosterSize ? LIGHTS.good : LIGHTS.bad },
       { key: "attendance", label: "Attendance", value: a.rate === null || a.rate === undefined ? "–" : a.rate + "%", text: a.sessions ? plural(a.sessions, "session", "sessions") + " submitted" : "no session submitted yet",
         light: small ? LIGHTS.watch : light(a.rate, 60, 80), reason: small ? "Small class: fewer than " + MIN_STUDENTS + " students." : "" },
       { key: "learning", label: "Learning", value: L.verdict || "Not enough data", text: L.confidence ? "confidence: " + L.confidence : "needs two released quizzes", light: learnLight },
-      { key: "practice", label: "Practice", value: String(d.practice ? d.practice.last7Days || 0 : 0), text: d.practice && d.practice.studentsLast7Days ? "attempts in 7 days, by " + plural(d.practice.studentsLast7Days, "student", "students") : "no practice in the last 7 days", light: LIGHTS.none },
-      { key: "risk", label: "At risk", value: String(atRisk), text: atRisk ? "with at least one reason" + (rk.thin ? "; " + rk.thin + " on thin evidence" : "") : "no one flagged", reason: (rk.thin ? rk.thin + " flagged on little data (fewer than " + RK.MIN_SESSIONS + " sessions or " + RK.MIN_QUIZZES + " quizzes)" : "") + (rk.classWide && rk.classWide.length ? (rk.thin ? ". " : "") + rk.classWide.map(function (w) { return w.label + " fits " + w.count + " of " + w.of + " students, so it is a class pattern and flags no one"; }).join("; ") : ""), light: riskShare === null ? LIGHTS.none : riskShare >= 25 ? LIGHTS.bad : riskShare > 0 ? LIGHTS.watch : LIGHTS.good }
-    ];
+      { key: "practice", label: "Practice", value: String(practiceMetric ? practiceMetric.value : d.practice ? d.practice.last7Days || 0 : 0), text: practiceMetric ? "students practised · " + practiceMetric.window.toLowerCase() : d.practice && d.practice.studentsLast7Days ? "attempts in 7 days, by " + plural(d.practice.studentsLast7Days, "student", "students") : "no practice in the last 7 days", light: LIGHTS.none },
+      { key: "risk", label: "At risk", value: String(d.analytics ? rk.strong : atRisk), text: atRisk ? "with at least one reason" + (rk.thin ? "; " + rk.thin + " on thin evidence" : "") : "no one flagged", reason: (rk.thin ? rk.thin + " flagged on little data (fewer than " + RK.MIN_SESSIONS + " sessions or " + RK.MIN_QUIZZES + " quizzes)" : "") + (rk.classWide && rk.classWide.length ? (rk.thin ? ". " : "") + rk.classWide.map(function (w) { return w.label + " fits " + w.count + " of " + w.of + " students, so it is a class pattern and flags no one"; }).join("; ") : ""), light: riskShare === null ? LIGHTS.none : riskShare >= 25 ? LIGHTS.bad : riskShare > 0 ? LIGHTS.watch : LIGHTS.good }
+    ].filter(function (card) { return !d.analytics || card.key === "students" || d.analytics.available[card.key]; });
   }
 
   // Who needs attention first, with the reason. Highest priority first, at most `max` entries.
@@ -57,12 +58,12 @@
   function todayCard(d, setup, live) {
     var acts = [], sp = setupProgress(setup), a = d.attendance || {}, L = d.learning || {};
     if (!sp.complete) { var next = sp.steps.filter(function (s) { return !s.done; })[0]; acts.push({ text: "Finish setting up: " + next.label.toLowerCase(), go: "setup:" + next.setup, label: "Open" }); }
-    if (live && live.attendance && live.attendance.status === "Closed") acts.push({ text: "Submit the attendance you closed", go: "view:class", label: "Review" });
-    else if (live && live.attendance && live.attendance.status === "Open") acts.push({ text: "Attendance is open: " + live.attendance.present + " checked in", go: "view:class", label: "Open" });
+    if ((!d.analytics || d.analytics.enabled.includes("attendance")) && live && live.attendance && live.attendance.status === "Closed") acts.push({ text: "Submit the attendance you closed", go: "view:class", label: "Review" });
+    else if ((!d.analytics || d.analytics.enabled.includes("attendance")) && live && live.attendance && live.attendance.status === "Open") acts.push({ text: "Attendance is open: " + live.attendance.present + " checked in", go: "view:class", label: "Open" });
     var q = priorityQueue(d, 3);
     if (q.length) acts.push({ text: plural(q.length, "student needs", "students need") + " a check-in, starting with " + q[0].name, go: "view:students", label: "See students" });
     if (L.action && L.verdict && L.verdict !== "Not enough data") acts.push({ text: L.action, go: "view:progress", label: "See progress" });
-    if (!acts.length && d.rosterSize) acts.push({ text: a.sessions ? "Nothing urgent. Take attendance at the next class." : "Take attendance at your next class to start the record.", go: "view:class", label: "Class Tools" });
+    if (!acts.length && d.rosterSize && (!d.analytics || d.analytics.enabled.includes("attendance"))) acts.push({ text: a.sessions ? "Nothing urgent. Take attendance at the next class." : "Take attendance at your next class to start the record.", go: "view:class", label: "Class Tools" });
     return acts.slice(0, 4);
   }
 
@@ -75,7 +76,7 @@
       { key: "engagement", label: "Quiz participation", unit: "%", vals: qz.map(function (q) { return q.participation; }) },
       { key: "gain", label: "Learning gain", unit: " points", vals: qz.map(function (q, i) { var f = qz[0] && qz[0].stats ? qz[0].stats.mean : null; return q.stats && f !== null && i > 0 ? Math.round(10 * (q.stats.mean - f)) / 10 : null; }) }
     ];
-    return series.map(function (s) {
+    return series.filter(function (s) { return !d.analytics || d.analytics.available[s.key === "attendance" ? "attendance" : "quizzes"]; }).map(function (s) {
       var v = lastN(s.vals.filter(function (x) { return x !== null && x !== undefined; }), 8), last = v.length ? v[v.length - 1] : null, first = v.length ? v[0] : null;
       return { key: s.key, label: s.label, unit: s.unit, vals: v, enough: v.length >= 3, last: last, change: v.length >= 3 ? Math.round(10 * (last - first)) / 10 : null };
     });
@@ -83,7 +84,9 @@
 
   // One card for the class: the worst of the lights, with the sentence that explains it.
   function health(d) {
-    var cards = statCards(d), reasons = [], worst = LIGHTS.good;
+    var cards = statCards(d).filter(function (card) {
+      return !d.analytics || (card.key !== "students" && (card.key !== "risk" || d.analytics.available.strongRisk));
+    }), reasons = [], worst = LIGHTS.good;
     cards.forEach(function (c) {
       if (c.light === LIGHTS.bad) { worst = LIGHTS.bad; reasons.push(c.label + ": " + c.value + ", " + c.text); }
       else if (c.light === LIGHTS.watch) { if (worst !== LIGHTS.bad) worst = LIGHTS.watch; reasons.push(c.label + ": " + c.value + (c.reason ? ". " + c.reason : ", " + c.text)); }

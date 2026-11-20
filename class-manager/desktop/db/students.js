@@ -32,7 +32,23 @@ function createStudents(store, vault) {
     return { students: rows.length, duplicates };
   }
   const unpack = (r) => (r ? store.codec.unpack(r.data) : null);
+  function find(query) {
+    const term = String(query ?? "").trim().slice(0, 120).toLowerCase();
+    if (!term) return [];
+    const exactId = /^[0-9\s]+$/.test(term) ? term.replace(/\s/g, "") : "";
+    const exact = exactId && unpack(q.one.get(fp(exactId)));
+    if (exact) return [{ id: exact.id, name: exact.name }];
+    const matches = [];
+    for (const row of q.all.iterate()) {
+      const { id, name } = unpack(row);
+      if (id.includes(exactId || term) || name.toLowerCase().includes(term)) matches.push({ id, name });
+      if (matches.length === 20) break;
+    }
+    return matches;
+  }
+
   return {
+    find,
     sync,
     list: () => q.all.all().map(unpack),
     get: (id) => unpack(q.one.get(fp(clean(id)))),

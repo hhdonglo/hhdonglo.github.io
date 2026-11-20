@@ -11,13 +11,14 @@ const EVERY_MS = 15000;
 
 function createLiveSession(opts) {
   const hub = opts.hub, backend = opts.backend, pages = opts.pages, log = opts.log || (() => {}), setTimer = opts.setInterval || setInterval, clearTimer = opts.clearInterval || clearInterval;
-  let on = false, timer = null, busy = Promise.resolve();
+  let on = false, timer = null, retiring = false, busy = Promise.resolve();
   const store = () => fromBackend(backend);
   const usable = () => !!(hub && typeof hub.post === "function" && opts.address());
   const chain = (fn) => { busy = busy.then(fn).catch((e) => log("live attendance: " + e.message)); return busy; };
 
-  const collect = () => chain(async () => { if (on) await L.collect(hub, store()); });
+  const collect = () => chain(async () => { if (on && !retiring) await L.collect(hub, store()); });
   const start = () => chain(async () => {
+    if (retiring) return;
     const reg = await hub.register(); if (!reg.ok) throw new Error(reg.why || "no relay");
     const ses = AT.openSession(store()); if (!ses) return;
     const r = await L.openOnRelay(hub, store(), reg.course, ses.lat != null ? "enforce" : "off");
@@ -41,7 +42,29 @@ function createLiveSession(opts) {
     return text;
   }
   const close = () => stop();
-  return { after, collect, close, isOpen: () => on, idle: () => busy };
+  async function closeForModules() {
+    retiring = true;
+    try {
+      await busy;
+      if (!hub.configured()) return;
+      try {
+        const result = await L.closeOnRelay(hub);
+        if (!result.ok && result.why !== "no session is open") throw new Error(result.why || "Could not close relay attendance.");
+      } catch (error) {
+        if (error.status !== 409 || error.why !== "no session is open") throw error;
+      }
+      if (timer) clearTimer(timer);
+      timer = null;
+      on = false;
+      let resultPage;
+      do {
+        resultPage = await L.collect(hub, store(), () => backend.flush());
+      } while (resultPage.more);
+    } finally {
+      retiring = false;
+    }
+  }
+  return { after, collect, close, closeForModules, isOpen: () => on, idle: () => busy };
 }
 
 module.exports = { createLiveSession, EVERY_MS };

@@ -54,13 +54,19 @@
       { key: "prac-change", title: "Practice and quiz change", xl: "Practice attempts", yl: "Change since the quiz before, points", x: function (s) { return s.practiceAttempts === undefined ? null : s.practiceAttempts; }, y: function (s) { return norm(s.change); } },
       { key: "prac-quiz", title: "Practice and quiz average", xl: "Practice attempts", yl: "Quiz average %", x: function (s) { return s.practiceAttempts === undefined ? null : s.practiceAttempts; }, y: function (s) { return norm(s.quizAverage); } }
     ];
-    return defs.map(function (v) {
+    return defs.filter(function (v) {
+      return !d.analytics || d.analytics.available.quizzes && d.analytics.available[v.key === "att-quiz" ? "attendance" : "practice"];
+    }).map(function (v) {
       var pts = ss.map(function (s) { return { id: s.id, name: label(s), x: v.x(s), y: v.y(s) }; }).filter(function (p) { return p.x !== null && p.y !== null; });
       var r = pearson(pts), n = pts.length, text;
       if (r === null) text = n < MIN_POINTS ? "Only " + n + " students have both measures, too few to compare." : "One of the two measures does not vary, so there is nothing to compare.";
-      else text = "n = " + n + " students, r = " + r + ": a " + strength(r) + " " + (r < 0 ? "negative" : "positive") + " association. This shows what goes together, not what causes what.";
+      else {
+        var description = strength(r) === "no clear" ? "no clear association" : "a " + strength(r) + " " + (r < 0 ? "negative" : "positive") + " association";
+        var caution = d.analytics ? (n < 10 ? "Limited evidence from a small sample. " : "") + "Observational comparison." : "This shows what goes together, not what causes what.";
+        text = "n = " + n + " students, r = " + r + ": " + description + ". " + caution;
+      }
       return { key: v.key, title: v.title, xl: v.xl, yl: v.yl, points: pts, n: n, r: r, text: text };
-    });
+    }).filter(function (v) { return !d.analytics || v.r !== null; });
   }
 
   var api = { MIN_POINTS: MIN_POINTS, riskPoints: riskPoints, riskZones: riskZones, zoneOf: zoneOf, drills: drills, pearson: pearson, correlations: correlations };
