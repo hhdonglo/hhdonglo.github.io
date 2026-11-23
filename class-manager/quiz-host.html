@@ -227,7 +227,7 @@ function refresh(first){
    if(r==="off"&&st.reviewQ>0)b.hidden=true;
    if(b.getAttribute("data-vote")==="1"&&st.vote===2)b.hidden=true;
   });
-  $("h-state").textContent=(LABEL[s]||s)+(s==="lobby"?": "+d.joined:"")+(st.reviewQ>0?" \u00b7 reviewing question "+st.reviewQ:"")+(live&&st.vote===2?" \u00b7 second vote, after discussion":"");
+  $("h-state").textContent=(LABEL[s]||s)+(s==="lobby"?": "+d.joined+(d.notOnList?" ("+d.notOnList+" not on the class list)":""):"")+(st.reviewQ>0?" \u00b7 reviewing question "+st.reviewQ:"")+(live&&st.vote===2?" \u00b7 second vote, after discussion":"");
   var qkey=cfg.code+"|"+(st.qids||[]).join(",");
   if(st.qids&&st.qids.length&&cfg.qkey!==qkey){cfg.qkey=qkey;jsonp("action=questions&code="+encodeURIComponent(cfg.code),function(r){cfg.qs=(r&&r.questions)||[];refresh(false)})}
   var Q=cfg.qs&&cfg.qs[(st.currentQ||0)-1];
@@ -263,7 +263,7 @@ function refresh(first){
   setSel("h-week",d.week);setSel("h-n",d.settings&&d.settings.n);
   setSel("h-qs",st.qSeconds);setSel("h-late",d.settings&&d.settings.allowLate);setSel("h-ss",d.settings&&d.settings.showScore);setSel("h-sb",d.settings&&d.settings.showBoard);
   var rk=0,prev=null,t="<table><thead><tr><th>#</th><th>First name</th><th>Score</th></tr></thead><tbody>";
-  d.rows.forEach(function(r,i){if(r.score!==prev){rk=i+1;prev=r.score}t+="<tr><td>"+rk+"</td><td>"+esc(r.name)+"</td><td>"+esc(r.score)+" / "+(r.n||5)+"</td></tr>"});
+  d.rows.forEach(function(r,i){if(r.score!==prev){rk=i+1;prev=r.score}t+="<tr><td>"+rk+"</td><td>"+esc(r.name)+(r.offList?" <span class=\"note\">· not on list</span>":"")+"</td><td>"+esc(r.score)+" / "+(r.n||5)+"</td></tr>"});
   $("h-rank").innerHTML=d.rows.length?t+"</tbody></table>":'<p class="note">The ranking appears here when the quiz ends.</p>';
   $("h-upd").textContent="Updates every 4 seconds. Last update "+new Date().toLocaleTimeString()+".";
  });
