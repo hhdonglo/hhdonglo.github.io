@@ -56,17 +56,17 @@ body.focus main{padding-top:1.2rem}
   <h1>Attendance check-in</h1>
   <form id="c-form" autocomplete="off" novalidate>
    <label for="c-id">Student ID</label><input type="text" id="c-id" maxlength="12" inputmode="numeric" autocomplete="off" placeholder="Your ID number">
-   <div id="c-codebox" hidden><label for="c-code">Code from your lecturer</label><input type="text" id="c-code" maxlength="5" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="5 letters">
-   <p class="note" id="c-codewhy">This phone has already been used for another ID. Ask your lecturer for a code for this ID, enter it here and press Check in. Only your lecturer can give this code.</p></div>
+   <div id="c-chbox" hidden><label for="c-ch">Number shown on the projector</label><input type="text" id="c-ch" maxlength="4" inputmode="numeric" autocomplete="off" placeholder="4 digits">
+   <p class="note">Your lecturer asked for the four-digit number shown on the screen in the room. Enter it within 15 seconds and press Check in.</p></div>
    <label class="cb"><input type="checkbox" id="c-rem" checked> Remember my ID on this phone</label>
-   <p class="note">Enter your ID and press Check in. No code is needed, unless this phone has already been used to check in another ID: then your lecturer gives you a code for your ID.</p>
+   <p class="note">Enter your own ID and press Check in. <b>Check in only for yourself.</b> If another ID is signed in from this phone, or you use a different phone from before, the check-in is still recorded at once and your lecturer will review it; nothing is decided automatically.</p>
    <p class="note" id="c-saved" hidden>Your ID is saved on this phone. Press Check in.</p>
    <p class="err" id="c-err" role="alert" hidden></p>
    <button type="submit" class="go" id="c-btn">Check in</button>
    <details class="note" id="c-priv"><summary>How your data is used</summary>
     <p><b>Purpose:</b> to note that you came to this class.</p>
-    <p><b>What is kept:</b> your student ID, the date and time, whether you were within range of the classroom (a distance in metres, not where you are), and a scrambled code for your phone. The first phone you check in with is registered to you for the term, so that no one else can check in with it and no one can check in for you from another phone. A random code is stored in your phone's browser for this. Your location is used once and is not stored.</p>
-    <p><b>Using another phone:</b> if your phone is not working, you may check in on a classmate's phone with your own ID and a one-time code that only your lecturer can give you. The code is asked only in this case, when a phone is used for a second ID.</p>
+    <p><b>What is kept:</b> your student ID, the date and time, whether you were within range of the classroom (a distance in metres, not where you are), and a scrambled code for your phone. A random code is stored in your phone's browser for this. If your lecturer has turned it on, a scrambled form of the network address is also kept, for review only. Your location is used once and is not stored.</p>
+    <p><b>Checking in for others:</b> signing in a friend is not allowed. Two IDs signed in from one phone are both recorded and marked for your lecturer to review. A mark only asks the lecturer to look; it is not a decision, and you can explain to your lecturer if there was a good reason, for example a phone that stopped working.</p>
     <p><b>Who sees it:</b> the lecturer only. Student IDs are not shown publicly.</p>
     <p><b>How long:</b> the phone codes, registered phones and any flags are deleted at the end of the semester. The check-in is kept in the lecturer's class records.</p>
     <p><b>Questions or corrections:</b> <span data-cm="contact">ask the lecturer</span>.</p>
@@ -86,14 +86,8 @@ body.focus main{padding-top:1.2rem}
   <h3 id="c-dh">Check-in received</h3>
   <p>Student ID <b id="c-sid"></b></p>
   <p class="when" id="c-when"></p>
+  <p class="note" id="c-review" hidden><b>Recorded for review.</b> This check-in is marked for your lecturer to review, for example because this phone was used for another ID or is not the one you used before. It is counted now. Nothing has been decided.</p>
   <p class="note">Your attendance record is in the Portal, under My progress. <a href="#" id="c-other">Not your ID? Enter it again</a></p>
- </section>
- <section class="panel done" id="c-wait" aria-live="polite" hidden>
-  <p class="tick warn" aria-hidden="true">&#8987;</p>
-  <h3>Waiting for your lecturer</h3>
-  <p>Student ID <b id="c-wid"></b></p>
-  <p>This phone is not the one registered to you, so your check-in is held until your lecturer confirms it. <b>Stay in class and tell your lecturer.</b></p>
-  <p class="note" id="c-wwhen"></p>
  </section>
 </div>
 <script src="assets/messages.js"></script>
@@ -123,29 +117,30 @@ function jsonp(params,cb){
   fetch(RELAY.replace(/\/$/,"")+ep,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify(q)}).then(function(r){return r.json()}).then(function(j){if(!done){done=true;clearTimeout(t);cb(j)}},function(){if(!done){done=true;clearTimeout(t);cb(null)}});
   return}
  CM.call(params,cb)} // every request by POST: see CM.call in config.js
+// A new random number for each press of Check in: the server accepts a request number once per session, so a captured request cannot be sent again.
+function nonce(){var a=new Uint8Array(8),t="";(window.crypto||window.msCrypto).getRandomValues(a);for(var i=0;i<a.length;i++)t+=("0"+a[i].toString(16)).slice(-2);return t}
 function err(m){$("c-err").textContent=m;$("c-err").hidden=false}
-var REMK="cm_att_id"; // only the ID is remembered: the lecturer's code works once, so it is never kept
+var REMK="cm_att_id"; // only the ID is remembered
 (function(){var v="";try{v=localStorage.getItem(REMK)||""}catch(x){}if(v){$("c-id").value=v;$("c-rem").checked=true;$("c-saved").hidden=false}})();
-function normCode(s){return String(s||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,5)}
-$("c-code").addEventListener("input",function(){$("c-saved").hidden=true;var v=normCode($("c-code").value);if(v!==$("c-code").value)$("c-code").value=v});
+$("c-ch").addEventListener("input",function(){var v=$("c-ch").value.replace(/\D/g,"").slice(0,4);if(v!==$("c-ch").value)$("c-ch").value=v});
 $("c-id").addEventListener("input",function(){$("c-saved").hidden=true;var v=$("c-id").value.replace(/\D/g,"");if(v!==$("c-id").value)$("c-id").value=v});
 $("c-form").addEventListener("submit",function(e){
  e.preventDefault();$("c-err").hidden=true;
- var id=$("c-id").value.trim(),code=normCode($("c-code").value);
+ var id=$("c-id").value.trim(),ch=$("c-ch").value.trim();
  if(!id){err(PHYSMSG.text("E1"));return}
  if(!TOK){err(PHYSMSG.text("E4"));return}
  $("c-btn").disabled=true;
  var send=function(pos){
  var loc=pos?"&lat="+pos.lat.toFixed(4)+"&lon="+pos.lon.toFixed(4)+"&acc="+Math.round(pos.acc):""; // about 11 m: no more precision than the check needs
- var base="&id="+encodeURIComponent(id)+"&dev="+DEV+"&t="+TOK+loc;
+ var base="&id="+encodeURIComponent(id)+"&dev="+DEV+"&t="+TOK+"&n="+nonce()+(ch?"&ch="+encodeURIComponent(ch):"")+loc;
  var finish=function(){
- jsonp("action=attend&code="+encodeURIComponent(code)+base,function(r){
+ jsonp("action=attend"+base,function(r){
   $("c-btn").disabled=false;
   if(!r){err(PHYSMSG.text("E8"));return}
-  if(r.ok){try{if(code){/* a borrowed phone keeps its owner's ID */}else if($("c-rem").checked&&r.onList!==false&&!r.pending)localStorage.setItem(REMK,id);else if(!$("c-rem").checked&&!r.pending)localStorage.removeItem(REMK)}catch(x){}
+  if(r.ok){try{if($("c-rem").checked&&r.onList!==false)localStorage.setItem(REMK,id);else if(!$("c-rem").checked)localStorage.removeItem(REMK)}catch(x){}
    var now=new Date();$("c-when").textContent="Recorded at "+("0"+now.getHours()).slice(-2)+":"+("0"+now.getMinutes()).slice(-2)+" on "+now.toLocaleDateString(undefined,{weekday:"long",day:"numeric",month:"long"})+". Your lecturer submits the session after class.";
-   $("c-form-wrap").hidden=true;window.scrollTo(0,0);if(r.pending){$("c-wid").textContent=r.id;$("c-wwhen").textContent=$("c-when").textContent.replace(" Your lecturer submits the session after class.","");$("c-wait").hidden=false;return}var h=r.already?"Already marked present today":"Check-in received";if(r.onList===false){$("c-mid").textContent=r.id;$("c-mh").textContent=h;$("c-missing").hidden=false}else{$("c-sid").textContent=r.id;$("c-dh").textContent=h;$("c-done").hidden=false}return}
-  if(r.why==="code required"||(r.why==="not recognised"&&!$("c-codebox").hidden)){$("c-codebox").hidden=false;$("c-code").focus();err(PHYSMSG.text(r.why==="code required"?"E22":"E24"));return}
+   $("c-form-wrap").hidden=true;window.scrollTo(0,0);var h=r.already?"Already marked present today":"Check-in received";if(r.onList===false){$("c-mid").textContent=r.id;$("c-mh").textContent=h;$("c-missing").hidden=false}else{$("c-sid").textContent=r.id;$("c-dh").textContent=h;$("c-review").hidden=!r.review;$("c-done").hidden=false}return}
+  if(r.why==="challenge required"||r.why==="wrong challenge"){$("c-chbox").hidden=false;$("c-ch").focus();err(PHYSMSG.text(r.why==="challenge required"?"E40":"E41"));return}
   err(PHYSMSG.fromWhy(r.why));
  });
  };
@@ -153,9 +148,9 @@ $("c-form").addEventListener("submit",function(e){
  };
  if(POS)send(POS);else getPos(send);
 });
-function again(){$("c-saved").hidden=true;$("c-done").hidden=true;$("c-missing").hidden=true;$("c-form-wrap").hidden=false;$("c-id").value="";$("c-id").focus()}
+function again(){$("c-review").hidden=true;$("c-saved").hidden=true;$("c-done").hidden=true;$("c-missing").hidden=true;$("c-form-wrap").hidden=false;$("c-id").value="";$("c-id").focus()}
 $("c-again2").addEventListener("click",again);
-$("c-other").addEventListener("click",function(e){e.preventDefault();try{localStorage.removeItem(REMK)}catch(x){}$("c-rem").checked=false;$("c-code").value="";$("c-codebox").hidden=true;again()});
+$("c-other").addEventListener("click",function(e){e.preventDefault();try{localStorage.removeItem(REMK)}catch(x){}$("c-rem").checked=false;$("c-ch").value="";$("c-chbox").hidden=true;again()});
 })();
 </script>
 </div>

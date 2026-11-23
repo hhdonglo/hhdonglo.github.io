@@ -22,6 +22,9 @@ var M={
  E15:["The system is being updated. Refresh this page. If it continues, tell your lecturer.","refresh"],
  E16:["The service is busy. Wait a few seconds and try again. Tell your lecturer.","retry"],
  E17:["This student ID and access code do not match. Check both. If you have forgotten your code, ask your lecturer to reset it, then make a new one.","edit"],
+ E40:["Enter the four-digit number shown on the projector, then press Check in again.","edit"],
+ E41:["That number is not right, or it has changed. Look at the screen again and enter the number now shown.","edit"],
+ E42:["This request was already received. Check in again if you are not marked present.","edit"],
  E22:["This phone has already been used to check in another ID. Ask your lecturer for a code for your ID, enter it in the box and press Check in. Only your lecturer can give this code.","edit"],
  E24:["That code is not right, or it was already used. Ask your lecturer for a code for your ID.","edit"],
  E18:["You have not made your access code yet. Choose a 5-letter code of your own on the Portal page, then try again.","help"],
@@ -33,7 +36,7 @@ var M={
 // Server reason strings (the "why" field of the attend and quiz replies) to catalogue codes.
 var WHY={
  "bad id":"E1","old link":"E3","no token":"E4","no location":"E5","too far":"E6","device used":"E10",
- "not on list":"E2","results off":"E11","closed":"E11","slow down":"E14","update page":"E15","not joined":"E13","quiz closed":"E11","bad code":"E12","not recognised":"E17","no access code":"E18","code required":"E22","code expired":"E19","session expired":"E20","not on network":"E21"
+ "not on list":"E2","results off":"E11","closed":"E11","slow down":"E14","update page":"E15","not joined":"E13","quiz closed":"E11","bad code":"E12","not recognised":"E17","no access code":"E18","code required":"E22","challenge required":"E40","wrong challenge":"E41","request repeated":"E42","code expired":"E19","session expired":"E20","not on network":"E21"
 };
 function code(why){return WHY[why]||"E0"}
 // text(code) returns the message with its reference, e.g. "... (Ref E3)".
